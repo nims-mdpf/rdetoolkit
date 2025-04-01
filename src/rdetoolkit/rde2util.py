@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import json
 import os
 import pathlib
@@ -510,10 +511,12 @@ class Meta:
                 stract = stract.replace(srckey, f'"{realval}"' if isinstance(realval, str) else str(realval))
         vobj["value"] = eval(stract)
 
-    def __convert_to_str(self, value: str | float | list) -> str | list[str]:
+    def __convert_to_str(self, value: str | float | list | datetime.datetime) -> str | list[str]:
         """Convert the given value to string or list of strings."""
         if isinstance(value, (str, int, float, bool)):
             return str(value)
+        if isinstance(value, datetime.datetime):
+            return value.isoformat()
         if isinstance(value, list):
             return list(map(str, value))
         try:
