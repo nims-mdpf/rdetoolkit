@@ -1,6 +1,8 @@
 import pathlib
-from _typeshed import Incomplete as Incomplete
-from rdetoolkit.models.rde2types import MetaType as MetaType, RdeFsPath as RdeFsPath, RepeatedMetaType as RepeatedMetaType
+from _typeshed import Incomplete
+from rdetoolkit.exceptions import StructuredError as StructuredError
+from rdetoolkit.fileops import readf_json as readf_json, writef_json as writef_json
+from rdetoolkit.models.rde2types import MetaItem as MetaItem, MetaType as MetaType, MetadataDefJson as MetadataDefJson, RdeFsPath as RdeFsPath, RepeatedMetaType as RepeatedMetaType, ValueUnitPair as ValueUnitPair
 from typing import Any, Callable, Final, TypedDict
 
 LANG_ENC_FLAG: Final[int]
@@ -36,6 +38,7 @@ class Meta:
     def __init__(self, metadef_filepath: RdeFsPath, *, metafilepath: RdeFsPath | None = None) -> None: ...
     def assign_vals(self, entry_dict_meta: MetaType | RepeatedMetaType, *, ignore_empty_strvalue: bool = True) -> dict[str, set]: ...
     def writefile(self, meta_filepath: str, enc: str = 'utf_8') -> dict[str, Any]: ...
+    def metadata_validation(self, vsrc: str, outtype: str | None, outfmt: str | None, orgtype: str | None, outunit: str | None) -> dict[str, bool | int | float | str]: ...
 
 class ValueCaster:
     @staticmethod
