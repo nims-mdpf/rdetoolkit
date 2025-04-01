@@ -611,7 +611,7 @@ class Meta:
                 continue
             if val_src_element == "" and opt_ignore_emptystr:
                 continue
-            self.metaVar[idx][key] = self._metadata_validation(val_src_element, outtype, outfmt, orgtype, outunit)
+            self.metaVar[idx][key] = self.metadata_validation(val_src_element, outtype, outfmt, orgtype, outunit)
 
     def __set_const_metadata(
         self,
@@ -624,9 +624,9 @@ class Meta:
         orgtype = metadefvalue.get("originalType")
         outunit = metadefvalue.get("unit")
         if not isinstance(metavalue, list):
-            self.metaConst[key] = self._metadata_validation(metavalue, outtype, outfmt, orgtype, outunit)
+            self.metaConst[key] = self.metadata_validation(metavalue, outtype, outfmt, orgtype, outunit)
 
-    def _metadata_validation(
+    def metadata_validation(
         self,
         vsrc: str,
         outtype: str | None,
