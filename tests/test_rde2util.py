@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import tempfile
@@ -49,6 +50,16 @@ def meta_const_instance():
             "name": {"ja": "日時", "en": "date"},
             "schema": {"type": "string"},
         },
+        "datetime": {
+            "name": {
+                "ja": "分析年月日",
+                "en": "Measured date"
+            },
+            "schema": {
+                "type": "string",
+                "format": "date"
+            }
+        },
         "reference": {
             "name": {"ja": "参考文献", "en": "Reference"},
             "schema": {"type": "string"},
@@ -80,10 +91,11 @@ def test_assignVals_unknown_key(meta_const_instance):
 
 
 def test_assignVals_exsit_key(meta_const_instance):
-    entry_dict_meta = {"date": "2022-01-01", "reference": "sample.com"}
+    entry_dict_meta = {"date": "2022-01-01", "datetime": datetime.datetime(2012, 12, 16, 0, 0), "reference": "sample.com"}
     result = meta_const_instance.assign_vals(entry_dict_meta)
+    assert meta_const_instance.metaConst["datetime"]["value"] == "2012-12-16"
     assert result["unknown"] == set()
-    assert result["assigned"] == {"reference", "date"}
+    assert result["assigned"] == {"reference", "date", "datetime"}
 
 
 def test_empty_writefile(meta_const_instance):

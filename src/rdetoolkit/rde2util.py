@@ -516,7 +516,10 @@ class Meta:
             return str(value)
         if isinstance(value, list):
             return list(map(str, value))
-        return ""
+        try:
+            return str(value)
+        except Exception:
+            return ""
 
     def writefile(self, meta_filepath: str, enc: str = "utf_8") -> dict[str, Any]:
         """Writes the metadata to a file after processing units and actions.
