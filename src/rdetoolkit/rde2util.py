@@ -662,12 +662,12 @@ class Meta:
             vstr = valpair.value
             # Check if the value can be interpreted.
             # We only care if the process completes without exceptions.
-            _casted_value = castval(vstr, orgtype, outfmt)
+            _casted_value = castval(vstr, outtype, outfmt)
         else:
             vstr = vsrc
             # Check if the value can be interpreted.
             # We only care if the process completes without exceptions.
-            _casted_value = castval(vstr, orgtype, outfmt)
+            _casted_value = castval(vstr, outtype, outfmt)
 
         if outunit:
             return {
