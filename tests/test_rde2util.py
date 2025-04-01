@@ -338,3 +338,50 @@ def test_convert_to_date_format():
 
     with pytest.raises(StructuredError, match="ERROR: unknown format in metaDef"):
         ValueCaster.convert_to_date_format("2021-01-01", "unknown-format")
+
+
+@pytest.mark.parametrize(
+    "vsrc, outtype, outfmt, orgtype, outunit, expected",
+    [
+        # Case 1: orgtype=None case (castval is called directly)
+        ("100", "integer", None, None, None, {"value": 100}),
+        ("true", "boolean", None, None, None, {"value": True}),
+        ("test", "string", None, None, None, {"value": "test"}),
+        ("2023-01-01", "string", "date", None, None, {"value": "2023-01-01"}),
+
+        # Case 2: orgtype=integer with unit
+        ("100kg", "integer", None, "integer", None, {"value": 100}),
+        ("50.5m", "number", None, "integer", None, {"value": 50.5}), # integerなので小数点以下が切り捨て
+
+        # Case 3: orgtype=number with unit
+        ("100.5kg", "number", None, "number", None, {"value": 100.5}),
+
+        # Case 4: orgtype=string (other types)
+        ("test", "string", None, "string", None, {"value": "test"}),
+
+        # Case 5: with outunit (unit information included)
+        ("100", "integer", None, None, "kg", {"value": 100, "unit": "kg"}),
+        ("test", "string", None, "string", "m", {"value": "test", "unit": "m"}),
+
+        # Case 6: input value with whitespace (should be trimmed)
+        ("  100  ", "integer", None, None, None, {"value": 100}),
+
+        # Case 7: combination of unit and format
+        ("2023-01-01", "string", "date", None, "UTC", {"value": "2023-01-01", "unit": "UTC"}),
+    ]
+)
+def test_metadata_validation(meta_const_instance, vsrc, outtype, outfmt, orgtype, outunit, expected):
+    """Meta.metadata_validation"""
+    result = meta_const_instance.metadata_validation(vsrc, outtype, outfmt, orgtype, outunit)
+    assert result == expected
+
+
+def test_metadata_validation_error(meta_const_instance):
+    """Error testing with invalid input or type"""
+    # Cases where castval throws an error with an invalid type
+    with pytest.raises(StructuredError, match="ERROR: unknown value type in metaDef"):
+        meta_const_instance.metadata_validation("test", "invalid_type", None, None, None)
+
+    # Cases in which castval throws an error with invalid value
+    with pytest.raises(StructuredError, match="ERROR: failed to cast metaDef value"):
+        meta_const_instance.metadata_validation("abc", "integer", None, None, None)
