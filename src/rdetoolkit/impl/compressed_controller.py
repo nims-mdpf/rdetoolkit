@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import tarfile
 import zipfile
 from pathlib import Path
 from typing import Final
@@ -10,7 +11,7 @@ import charset_normalizer
 import pandas as pd
 
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.interfaces.filechecker import ICompressedFileStructParser
+from rdetoolkit.interfaces.filechecker import IArtifactPackageCompressor, ICompressedFileStructParser
 from rdetoolkit.invoicefile import check_exist_rawfiles
 from rdetoolkit.rdelogger import get_logger
 
@@ -261,3 +262,151 @@ def parse_compressedfile_mode(
         # File Mode
         return CompressedFlatFileParser(xlsx_invoice)
     return CompressedFolderParser(xlsx_invoice)
+
+
+class ZipArtifactPackageCompressor(IArtifactPackageCompressor):
+
+    def __init__(self, source_dir: str | Path, exclude_patterns: list[str]) -> None:
+        self.source_dir = Path(source_dir) if not isinstance(source_dir, Path) else source_dir
+        self._exclude_patterns = [re.compile(pattern) for pattern in exclude_patterns]
+
+    @property
+    def exclude_patterns(self) -> list[str]:
+        """Get the list of exclude patterns."""
+        return [pattern.pattern for pattern in self._exclude_patterns]
+
+    @exclude_patterns.setter
+    def exclude_patterns(self, patterns: list[str]) -> None:
+        """Set the list of exclude patterns."""
+        self._exclude_patterns = [re.compile(pattern) for pattern in patterns]
+
+    def archive(self, output_zip: str | Path) -> list[Path]:
+        """Archives the source directory into a zip file with case-insensitive path validation.
+
+        Args:
+            output_zip: Path to the output zip file
+
+        Returns:
+            List of top-level directories included in the archive
+
+        Raises:
+            StructuredError: When case-insensitive duplicate paths are detected
+        """
+        included_dirs = set()
+        files_to_zip = []
+        all_file_paths = []
+
+        for root, dirs, files in os.walk(self.source_dir):
+            dirs[:] = [d for d in dirs if not self._is_excluded(os.path.join(root, d))]
+
+            for file in files:
+                file_path = os.path.join(root, file)
+                if self._is_excluded(file_path):
+                    continue
+
+                rel_path = os.path.relpath(file_path, self.source_dir)
+                lower_path = rel_path.lower()
+
+                if lower_path in included_dirs:
+                    emsg = f"ERROR: Case-insensitive duplicate path detected: {rel_path}"
+                    raise StructuredError(emsg)
+
+                included_dirs.add(lower_path)
+                files_to_zip.append((file_path, rel_path))
+                all_file_paths.append(Path(rel_path))
+
+        with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for file_path, rel_path in files_to_zip:
+                zipf.write(file_path, rel_path)
+
+        return list(all_file_paths)
+
+    def _is_excluded(self, path: str) -> bool:
+        """Check if path matches any compiled exclude pattern."""
+        return any(
+            re.search(pattern, path) for pattern in self.exclude_patterns
+        )
+
+
+class TarGzArtifactPackageCompressor(IArtifactPackageCompressor):
+    def __init__(self, source_dir: str | Path, exclude_patterns: list[str]) -> None:
+        self.source_dir = Path(source_dir) if not isinstance(source_dir, Path) else source_dir
+        self._exclude_patterns = [re.compile(pattern) for pattern in exclude_patterns]
+
+    @property
+    def exclude_patterns(self) -> list[str]:
+        """Get the list of exclude patterns."""
+        return [pattern.pattern for pattern in self._exclude_patterns]
+
+    @exclude_patterns.setter
+    def exclude_patterns(self, patterns: list[str]) -> None:
+        """Set the list of exclude patterns."""
+        self._exclude_patterns = [re.compile(pattern) for pattern in patterns]
+
+    def archive(self, output_tar: str | Path) -> list[Path]:
+        """Archives the source directory into a tar.gz file with case-insensitive path validation.
+
+        Args:
+            output_tar: Path to the output tar.gz file
+
+        Returns:
+            List of top-level directories included in the archive
+
+        Raises:
+            StructuredError: When case-insensitive duplicate paths are detected
+        """
+        included_dirs = set()
+        files_to_targz = []
+        all_file_paths = []
+
+        for root, dirs, files in os.walk(self.source_dir):
+            dirs[:] = [d for d in dirs if not self._is_excluded(os.path.join(root, d))]
+
+            for file in files:
+                file_path = os.path.join(root, file)
+                if self._is_excluded(file_path):
+                    continue
+
+                rel_path = os.path.relpath(file_path, self.source_dir)
+                lower_path = rel_path.lower()
+
+                if lower_path in included_dirs:
+                    emsg = f"ERROR: Case-insensitive duplicate path detected: {rel_path}"
+                    raise StructuredError(emsg)
+
+                included_dirs.add(lower_path)
+                files_to_targz.append((file_path, rel_path))
+                all_file_paths.append(Path(rel_path))
+
+        with tarfile.open(output_tar, "w:gz") as tar:
+            for file_path, rel_path in files_to_targz:
+                tar.add(file_path, arcname=rel_path)
+        return all_file_paths
+
+    def _is_excluded(self, path: str) -> bool:
+        """Check if path matches any compiled exclude pattern."""
+        return any(
+            re.search(pattern, path) for pattern in self.exclude_patterns
+        )
+
+
+def get_artifact_archiver(fmt: str, source_dir: str | Path, exclude_patterns: list[str]) -> IArtifactPackageCompressor:
+    """Factory function to get the appropriate archiver based on the format.
+
+    Args:
+        fmt (str): The format of the archive (e.g., 'zip', 'tar.gz').
+        source_dir (str | Path): The source directory to be archived.
+        exclude_patterns (list[str]): List of patterns to exclude.
+
+    Returns:
+        IArtifactPackageCompressor: An instance of the appropriate archiver class.
+
+    Raises:
+        ValueError: If the format is not supported.
+    """
+    if fmt.lower() == "zip":
+        return ZipArtifactPackageCompressor(source_dir, exclude_patterns)
+    if fmt.lower() in ("tar.gz", "targz", "tgz"):
+        return TarGzArtifactPackageCompressor(source_dir, exclude_patterns)
+    emsg = "Unsupported archive format. Use 'zip' or 'tar.gz'."
+    raise ValueError(emsg)
