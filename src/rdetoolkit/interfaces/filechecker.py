@@ -87,3 +87,26 @@ class ICompressedFileStructParser(ABC):
             List[Tuple[Path, ...]]: A list of tuples, each containing paths or other relevant data extracted from the compressed file.
         """
         raise NotImplementedError
+
+
+class IArtifactPackageCompressor(ABC):
+    """An abstract interface for compressing artifacts into a zip file."""
+
+    @property
+    @abstractmethod
+    def exclude_patterns(self) -> list[str]:
+        """Exclusion list."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def archive(self, output_zip: str | Path) -> list[Path]:
+        """Archives files into a zip archive.
+
+        Args:
+            output_zip (str | Path): The path to the output zip file.
+
+        Returns:
+            list[Path]: A list of paths to the files that were archived.
+
+        """
+        raise NotImplementedError
