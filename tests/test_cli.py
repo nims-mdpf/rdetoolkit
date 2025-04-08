@@ -8,6 +8,7 @@ import textwrap
 from unittest.mock import patch
 
 
+import click
 import pytest
 from click.testing import CliRunner
 from rdetoolkit.cli import (
@@ -505,6 +506,7 @@ def test_invoke_creates_report(temp_source_dir, temp_output_archive, capsys):
 
     # The generated report file should have the same name as output_archive but with a .md extension.
     report_path = temp_output_archive.with_suffix(".md")
+
     assert report_path.exists(), "The report file was not generated."
 
     report_content = report_path.read_text(encoding="utf-8")
@@ -518,3 +520,21 @@ def test_invoke_creates_report(temp_source_dir, temp_output_archive, capsys):
     assert "Archiving project files" in captured
     assert "Source Directory:" in captured
     assert "Output Archive:" in captured
+
+
+def test_report_generation_failure(temp_source_dir, temp_output_archive, capsys):
+    """
+    Test that an exception (click.Abort) is raised when the report output path
+    is a directory during report generation.
+    """
+    report_path = temp_output_archive.with_suffix(".md")
+    report_path.mkdir(exist_ok=True)
+    with pytest.raises(click.Abort):
+        command = CreateArtifactCommand(
+            source_dir=temp_source_dir,
+            output_archive_path=temp_output_archive,
+            exclude_patterns=["venv", "site-packages"],
+        )
+        command.invoke()
+    captured = capsys.readouterr().out
+    assert "Error:" in captured
