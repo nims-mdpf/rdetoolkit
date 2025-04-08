@@ -41,7 +41,7 @@ class CreateArtifactCommand:
         requirements_path = self._check_file("requirements.txt", logo="🐍")
 
         fmt = self._check_extention_type()
-        result_conn = self. _scan_external_conn()
+        result_conn = self._scan_external_conn()
         result_code_security = self._scan_code_security()
         result_dirs = self._archive_target_dir(fmt)
 
