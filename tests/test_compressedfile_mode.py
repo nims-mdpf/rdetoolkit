@@ -19,9 +19,10 @@ from rdetoolkit.impl.compressed_controller import (
 
 @pytest.fixture
 def temp_dir():
-    os.makedirs("tests/temp", exist_ok=True)
-    yield "tests/temp"
-    shutil.rmtree("tests/temp")
+    test_temp = pathlib.Path("tests/temp")
+    test_temp.mkdir(parents=True, exist_ok=True)
+    yield test_temp
+    shutil.rmtree(test_temp)
 
 
 class TestCompressedFlatFileParser:
