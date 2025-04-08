@@ -287,31 +287,31 @@ def test_japanese_filename_end_to_end(temp_dir):
     assert (extract_dir / "画像フォルダ" / "写真.txt").read_text() == "写真のプレースホルダー"
 
 
-def test_get_zip_archiver(source_dir: pathlib.Path):
+def test_get_zip_archiver(sample_dir: pathlib.Path):
     """ZIP アーカイバを取得できるかテスト"""
-    archiver = get_artifact_archiver("zip", source_dir, [])
+    archiver = get_artifact_archiver("zip", sample_dir, [])
     assert isinstance(archiver, ZipArtifactPackageCompressor)
 
 
-def test_get_targz_archiver(source_dir: pathlib.Path):
+def test_get_targz_archiver(sample_dir: pathlib.Path):
     """tar.gz アーカイバを取得できるかテスト"""
-    archiver = get_artifact_archiver("tar.gz", source_dir, [])
+    archiver = get_artifact_archiver("tar.gz", sample_dir, [])
     assert isinstance(archiver, TarGzArtifactPackageCompressor)
 
-    archiver = get_artifact_archiver("targz", source_dir, [])
+    archiver = get_artifact_archiver("targz", sample_dir, [])
     assert isinstance(archiver, TarGzArtifactPackageCompressor)
 
-    archiver = get_artifact_archiver("tgz", source_dir, [])
+    archiver = get_artifact_archiver("tgz", sample_dir, [])
     assert isinstance(archiver, TarGzArtifactPackageCompressor)
 
 
-def test_get_unsupported_archiver(source_dir: pathlib.Path):
+def test_get_unsupported_archiver(sample_dir: pathlib.Path):
     """サポートされていない形式でエラーが発生するかテスト"""
     with pytest.raises(ValueError, match="Unsupported archive format"):
-        get_artifact_archiver("invalid", source_dir, [])
+        get_artifact_archiver("invalid", sample_dir, [])
 
 
-def test_exclude_patterns_are_passed(source_dir: pathlib.Path):
+def test_exclude_patterns_are_passed(sample_dir: pathlib.Path):
     exclude_patterns = [".DS_Store", "__MACOSX"]
-    archiver = get_artifact_archiver("zip", source_dir, exclude_patterns)
+    archiver = get_artifact_archiver("zip", sample_dir, exclude_patterns)
     assert archiver.exclude_patterns == exclude_patterns
