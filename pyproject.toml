@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.1.1"
+version = "1.2.0"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "Sonokawa Hayato", email = "SONOKAWA.Hayato@nims.go.jp" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -42,6 +42,7 @@ dependencies = [
     "pyarrow>=17.0.0",
     "tqdm>=4.67.0",
     "pip>=24.3.1",
+    "markdown>=3.7",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"

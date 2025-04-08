@@ -1,17 +1,17 @@
-"""テストスイート
-1 送り状
-    1-1 ファイル(ex: sample.txt)
-    1-2 フォルダ(ex: sample1.txt, sample2.txt)
-    1-3 なし
+"""Test Suite
+1 Invoice
+    1-1 File (e.g., sample.txt)
+    1-2 Folder (e.g., sample1.txt, sample2.txt)
+    1-3 None
 2 ExcelInvoice
-    2-1 ファイル(ex: sample.zip(1ファイルのみ圧縮)+ *_excel_invoice.xlsx)
-    2-2 フォルダ(ex: sample.zip(フォルダ圧縮)+ *_excel_invoice.xlsx)
-    2-3 なし(ex: *_excel_invoice.xlsx)
-3 RDEFormat (ex: *.zip, tasksupport/rdeformat.txt)
-4 マルチモード(ex: sample1.txt, sample2.txt, sample3.txt)
+    2-1 File (e.g., sample.zip (compressed single file) + *_excel_invoice.xlsx)
+    2-2 Folder (e.g., sample.zip (compressed folder) + *_excel_invoice.xlsx)
+    2-3 None (e.g., *_excel_invoice.xlsx)
+3 RDEFormat (e.g., *.zip, tasksupport/rdeformat.txt)
+4 Multi-Mode (e.g., sample1.txt, sample2.txt, sample3.txt)
 
 Note:
-    テスト実行後、dataフォルダというフォルダは削除されるのでご注意ください。
+    After running the tests, the folder named 'data' will be deleted, so please be cautious.
 """
 
 from pathlib import Path

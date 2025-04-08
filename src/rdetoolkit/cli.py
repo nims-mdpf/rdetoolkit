@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import pathlib
 from datetime import datetime
@@ -6,6 +8,7 @@ from typing import Literal
 import click
 import pytz
 
+from rdetoolkit.cmd.archive import CreateArtifactCommand
 from rdetoolkit.cmd.command import InitCommand, VersionCommand
 from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
 
@@ -100,6 +103,30 @@ def make_excelinvoice(invoice_schema_json_path: pathlib.Path, output_path: pathl
     cmd.invoke()
 
 
+@click.command(help="Create an artifact (.zip) for submission to RDE by archiving the specified source directory, excluding specified files or directories.")
+@click.option("--source-dir", "-s", required=True, type=click.Path(exists=True, file_okay=False), help="The source directory to compress and scan.")
+@click.option("--output-archive", "-o", required=False, default=None, type=click.Path(), help="Output archive file (e.g. rde_template.zip).")
+@click.option("--exclude", "-e", multiple=True, default=None, help="Exclude directory names. Defaults to 'venv' and 'site-packages'.")
+def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list[str] | None) -> None:
+    """Create an artifact (.zip) for submission to RDE by archiving the specified source directory, excluding specified files or directories.
+
+    Args:
+        source_dir (str): The path to the source directory to be archived.
+        output_archive (str | None): The path where the output archive file will be created. Defaults to None.
+        exclude (list[str] | None): A list of file or directory patterns to exclude from the archive. Defaults to None.
+
+    Returns:
+        None
+    """
+    cmd = CreateArtifactCommand(
+        pathlib.Path(source_dir),
+        output_archive_path=(pathlib.Path(output_archive) if output_archive else None),
+        exclude_patterns=exclude,
+    )
+    cmd.invoke()
+
+
 cli.add_command(init)
 cli.add_command(version)
 cli.add_command(make_excelinvoice)
+cli.add_command(artifact)
