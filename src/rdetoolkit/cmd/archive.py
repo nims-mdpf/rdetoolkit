@@ -80,7 +80,7 @@ class CreateArtifactCommand:
                 except ValueError:
                     continue
 
-        if _result:
+        if _target_path is not None:
             click.echo(click.style(f"{self.MARK_SUCCESS} {result_message} found!: {_target_path}"))
         else:
             click.echo(click.style(f"{self.MARK_WARNING} {result_message} not found.", fg="yellow"))
