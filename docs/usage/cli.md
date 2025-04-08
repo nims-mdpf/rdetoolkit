@@ -89,3 +89,84 @@ container
     ```powershell
     py -m rdetoolkit version
     ```
+
+## artifact: RDE提出用アーカイブの作成
+
+`artifact`コマンドを使用して、RDEに提出するためのアーカイブ（.zip）を作成することができます。指定したソースディレクトリを圧縮し、除外パターンに一致するファイルやディレクトリを除外します。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit artifact --source-dir <ソースディレクトリ> --output-archive <出力アーカイブファイル> --exclude <除外パターン>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit artifact --source-dir <ソースディレクトリ> --output-archive <出力アーカイブファイル> --exclude <除外パターン>
+    ```
+
+利用可能なオプションは以下の通りです。
+
+| オプション           | 説明                                                                            | 必須 |
+| -------------------- | ------------------------------------------------------------------------------- | ---- |
+| -s(--source-dir)     | 圧縮・スキャン対象のソースディレクトリ                                          | o    |
+| -o(--output-archive) | 出力アーカイブファイル（例：rde_template.zip）                                  | -    |
+| -e(--exclude)        | 除外するディレクトリ名。デフォルトでは 'venv' と 'site-packages' が除外されます | -    |
+
+アーカイブが作成されると、以下のような実行レポートが生成されます：
+
+- Dockerfileやrequirements.txtの存在確認
+- 含まれるディレクトリとファイルのリスト
+- コードスキャン結果（セキュリティリスクの検出）
+- 外部通信チェック結果
+
+以下は実行レポートのサンプルです：
+
+---
+
+```markdown
+# Execution Report
+
+**Execution Date:** 2025-04-08 02:58:44
+
+- **Dockerfile:** [Exists]: 🐳　container/Dockerfile
+- **Requirements:** [Exists]: 🐍 container/requirements.txt
+
+## Included Directories
+
+- container/requirements.txt
+- container/Dockerfile
+- container/vuln.py
+- container/external.py
+
+## Code Scan Results
+
+### container/vuln.py
+
+**Description**: Usage of eval() poses the risk of arbitrary code execution.
+
+```python
+def insecure():
+
+    value = eval("1+2")
+
+    print(value)
+```
+
+## External Communication Check Results
+
+### **container/external.py**
+
+```python
+1:
+2: import requests
+3: def fetch():
+4:     response = requests.get("https://example.com")
+5:     return response.text
+```
+```
+
+!!! Tip
+    `--output-archive`を指定しない場合、デフォルトのファイル名でアーカイブが作成されます。
+    `--exclude`オプションは複数回指定することができます（例：`--exclude venv --exclude .git`）。
