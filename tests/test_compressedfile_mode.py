@@ -236,7 +236,7 @@ class TestZipArtifactPackageCompressor:
 
 class TestGetArtifactArchiver:
     def test_get_zip_archiver(self, sample_dir):
-        """Test if the ZIP archiver can be correctly retrived."""
+        """Test if the ZIP archiver can be correctly retrieved."""
         archiver = get_artifact_archiver("zip", sample_dir, [])
         assert isinstance(archiver, ZipArtifactPackageCompressor)
 
