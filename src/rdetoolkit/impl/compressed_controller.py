@@ -324,7 +324,7 @@ class ZipArtifactPackageCompressor(IArtifactPackageCompressor):
     def _is_excluded(self, path: str) -> bool:
         """Check if path matches any compiled exclude pattern."""
         return any(
-            re.search(pattern, path) for pattern in self.exclude_patterns
+            pattern.search(path) for pattern in self._exclude_patterns
         )
 
 
@@ -386,7 +386,7 @@ class TarGzArtifactPackageCompressor(IArtifactPackageCompressor):
     def _is_excluded(self, path: str) -> bool:
         """Check if path matches any compiled exclude pattern."""
         return any(
-            re.search(pattern, path) for pattern in self.exclude_patterns
+            pattern.search(path) for pattern in self._exclude_patterns
         )
 
 
