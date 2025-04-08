@@ -3,6 +3,7 @@ import pathlib
 import platform
 import shutil
 from unittest import mock
+import zipfile
 
 import pandas as pd
 import pytest
@@ -10,6 +11,9 @@ from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl.compressed_controller import (
     CompressedFlatFileParser,
     CompressedFolderParser,
+    ZipArtifactPackageCompressor,
+    TarGzArtifactPackageCompressor,
+    get_artifact_archiver,
 )
 
 
@@ -155,3 +159,159 @@ class TestCompressedFolderParser:
 
             assert len(verification_files) == 1
             assert "test1.txt" in [p.name for p in verification_files["tests/temp/sample"]]
+
+
+@pytest.fixture
+def sample_dir(temp_dir):
+    source_dir = pathlib.Path(temp_dir) / "source"
+    source_dir.mkdir()
+
+    sub_dir1 = source_dir / "subdir1"
+    sub_dir1.mkdir()
+    (sub_dir1 / "file1.txt").write_text("Content1")
+    (sub_dir1 / "file2.txt").write_text("Content2")
+
+    sub_dir2 = source_dir / "subdir2"
+    sub_dir2.mkdir()
+    (sub_dir2 / "file3.txt").write_text("Content3")
+
+    jp_dir = source_dir / "日本語ディレクトリ"
+    jp_dir.mkdir()
+    (jp_dir / "日本語ファイル.txt").write_text("日本語コンテンツ")
+
+    # 除外されるべきファイル
+    mac_dir = source_dir / "__MACOSX"
+    mac_dir.mkdir()
+    (mac_dir / "some_file.txt").write_text("Should be excluded")
+    (source_dir / ".DS_Store").write_text("Should be excluded")
+    (source_dir / "~$temp.docx").write_text("Should be excluded")
+
+    yield source_dir
+
+    if source_dir.exists():
+        shutil.rmtree(source_dir)
+
+
+class TestZipArtifactPackageCompressor:
+    @pytest.fixture
+    def compressor(self, sample_dir):
+        exclude_patterns = [
+            r"__MACOSX", r"\.DS_Store", r"~\$.*\.(docx|xlsx|pptx)"
+        ]
+        return ZipArtifactPackageCompressor(sample_dir, exclude_patterns=exclude_patterns)
+
+    def test_archive_basic(self, compressor, temp_dir):
+        output_zip = pathlib.Path(temp_dir) / "archive.zip"
+        file_paths = compressor.archive(output_zip)
+
+        assert output_zip.exists()
+
+        assert len(file_paths) == 4
+        file_names = [str(p) for p in file_paths]
+        assert "subdir1/file1.txt" in file_names
+        assert "subdir1/file2.txt" in file_names
+        assert "subdir2/file3.txt" in file_names
+        assert "日本語ディレクトリ/日本語ファイル.txt" in file_names
+
+        with zipfile.ZipFile(output_zip) as zipf:
+            # Check if the files are in the zip
+            assert "__MACOSX/some_file.txt" not in zipf.namelist()
+            assert ".DS_Store" not in zipf.namelist()
+            assert "~$temp.docx" not in zipf.namelist()
+
+    def test_case_insensitive_duplicate_detection(self, sample_dir, temp_dir):
+        if platform.system() == "Darwin":
+            pytest.skip("Skipping case sensitivity test on macOS")
+        (sample_dir / "CaseSensitive").mkdir()
+        (sample_dir / "CaseSensitive" / "file.txt").write_text("Content")
+        (sample_dir / "casesensitive").mkdir()
+        (sample_dir / "casesensitive" / "file.txt").write_text("Content")
+
+        compresor = ZipArtifactPackageCompressor(sample_dir, [])
+        output_zip = temp_dir / "duplicate.zip"
+        with pytest.raises(StructuredError, match="Case-insensitive duplicate path detected"):
+            compresor.archive(output_zip)
+
+
+class TestGetArtifactArchiver:
+    def test_get_zip_archiver(self, sample_dir):
+        """Test if the ZIP archiver can be correctly retrived."""
+        archiver = get_artifact_archiver("zip", sample_dir, [])
+        assert isinstance(archiver, ZipArtifactPackageCompressor)
+
+    def test_get_targz_archiver(self, sample_dir):
+        """Test if the tar.gz archiver can be correctly retrived."""
+        archiver = get_artifact_archiver("tar.gz", sample_dir, [])
+        assert isinstance(archiver, TarGzArtifactPackageCompressor)
+
+        archiver = get_artifact_archiver("targz", sample_dir, [])
+        assert isinstance(archiver, TarGzArtifactPackageCompressor)
+
+        archiver = get_artifact_archiver("tgz", sample_dir, [])
+        assert isinstance(archiver, TarGzArtifactPackageCompressor)
+
+    def test_unsupported_format(self, sample_dir):
+        """Test if ValueError is raised for unsupported formats."""
+        with pytest.raises(ValueError, match="Unsupported archive format"):
+            get_artifact_archiver("unsupported", sample_dir, [])
+
+
+def test_japanese_filename_end_to_end(temp_dir):
+    """End-to-end test for Japanese filenames."""
+    source_dir = pathlib.Path(temp_dir) / "source"
+    source_dir.mkdir()
+
+    (source_dir / "文書フォルダ").mkdir()
+    (source_dir / "文書フォルダ" / "重要資料.txt").write_text("重要な文書内容")
+    (source_dir / "画像フォルダ").mkdir()
+    (source_dir / "画像フォルダ" / "写真.txt").write_text("写真のプレースホルダー")
+
+    output_zip = pathlib.Path(temp_dir) / "日本語アーカイブ.zip"
+    compressor = ZipArtifactPackageCompressor(source_dir, [])
+    file_paths = compressor.archive(output_zip)
+
+    assert len(file_paths) == 2
+    file_names = [str(p) for p in file_paths]
+    assert "文書フォルダ/重要資料.txt" in file_names
+    assert "画像フォルダ/写真.txt" in file_names
+
+    extract_dir = pathlib.Path(temp_dir) / "extracted"
+    extract_dir.mkdir()
+
+    with zipfile.ZipFile(output_zip, 'r') as zip_ref:
+        zip_ref.extractall(extract_dir)
+
+    assert (extract_dir / "文書フォルダ" / "重要資料.txt").exists()
+    assert (extract_dir / "文書フォルダ" / "重要資料.txt").read_text() == "重要な文書内容"
+    assert (extract_dir / "画像フォルダ" / "写真.txt").exists()
+    assert (extract_dir / "画像フォルダ" / "写真.txt").read_text() == "写真のプレースホルダー"
+
+
+def test_get_zip_archiver(source_dir: pathlib.Path):
+    """ZIP アーカイバを取得できるかテスト"""
+    archiver = get_artifact_archiver("zip", source_dir, [])
+    assert isinstance(archiver, ZipArtifactPackageCompressor)
+
+
+def test_get_targz_archiver(source_dir: pathlib.Path):
+    """tar.gz アーカイバを取得できるかテスト"""
+    archiver = get_artifact_archiver("tar.gz", source_dir, [])
+    assert isinstance(archiver, TarGzArtifactPackageCompressor)
+
+    archiver = get_artifact_archiver("targz", source_dir, [])
+    assert isinstance(archiver, TarGzArtifactPackageCompressor)
+
+    archiver = get_artifact_archiver("tgz", source_dir, [])
+    assert isinstance(archiver, TarGzArtifactPackageCompressor)
+
+
+def test_get_unsupported_archiver(source_dir: pathlib.Path):
+    """サポートされていない形式でエラーが発生するかテスト"""
+    with pytest.raises(ValueError, match="Unsupported archive format"):
+        get_artifact_archiver("invalid", source_dir, [])
+
+
+def test_exclude_patterns_are_passed(source_dir: pathlib.Path):
+    exclude_patterns = [".DS_Store", "__MACOSX"]
+    archiver = get_artifact_archiver("zip", source_dir, exclude_patterns)
+    assert archiver.exclude_patterns == exclude_patterns

@@ -4,6 +4,7 @@ import platform
 import shutil
 from distutils.version import StrictVersion
 from pathlib import Path
+import textwrap
 from unittest.mock import patch
 
 
@@ -22,6 +23,9 @@ from rdetoolkit.cmd.command import (
     InvoiceSchemaJsonGenerator,
     MetadataDefJsonGenerator,
 )
+
+from rdetoolkit.cmd.archive import CreateArtifactCommand
+from rdetoolkit.models.reports import CodeSnippet, ReportItem
 
 
 def test_make_main_py():
@@ -90,7 +94,7 @@ def test_make_requirements_txt():
 # ex.
 # pandas==2.0.3
 # numpy
-rdetoolkit==1.1.1
+rdetoolkit==1.2.0
 """
     assert content == expected_content
     test_path.unlink()
@@ -416,3 +420,101 @@ def test_json_file_validation(tmp_path, ivnoice_schema_json_with_full_sample_inf
         ],
     )
     assert result.exit_code == 0
+
+
+@pytest.fixture
+def temp_source_dir(tmp_path: Path) -> Path:
+    """
+    Create a temporary source directory for testing.
+    - Includes Dockerfile and requirements.txt
+    - Contains a Python file with a vulnerability (vuln.py) using eval
+    - Contains a Python file with external communication (external.py) using requests.get
+    """
+    src_dir = tmp_path / "source"
+    src_dir.mkdir()
+    sub_dir = src_dir / "container"
+    sub_dir.mkdir()
+
+    # Required files
+    (sub_dir / "Dockerfile").write_text("FROM python:3.8")
+    (sub_dir / "requirements.txt").write_text("click\npytz")
+
+    # Vulnerable file
+    vuln_file = sub_dir / "vuln.py"
+    vuln_file.write_text(textwrap.dedent("""
+        def insecure():
+            value = eval("1+2")
+            print(value)
+    """))
+    # File with external communication
+    ext_file = sub_dir / "external.py"
+    ext_file.write_text(textwrap.dedent("""
+        import requests
+        def fetch():
+            response = requests.get("https://example.com")
+            return response.text
+    """))
+    return src_dir
+
+
+@pytest.fixture
+def temp_output_archive(tmp_path: Path) -> Path:
+    """
+    Temporary file path to be used as the output archive (with a .zip extension).
+    """
+    return tmp_path / "output.zip"
+
+
+def test_invoke_with_default_values(temp_source_dir, capsys):
+    """Uses default values for the output archive path and exclude_patterns."""
+    command = CreateArtifactCommand(
+        source_dir=temp_source_dir
+    )
+
+    command.invoke()
+
+    # Check that the default output file is generated
+    report_files = list(temp_source_dir.parent.glob("*_rde_artifact.md"))
+    assert len(report_files) == 1, "Default named report file was not generated"
+
+    report_content = report_files[0].read_text(encoding="utf-8")
+    assert "Execution Report" in report_content
+
+    # Verify standard output
+    captured = capsys.readouterr().out
+    assert "Archiving project files" in captured
+
+
+def test_invoke_creates_report(temp_source_dir, temp_output_archive, capsys):
+    """
+    Execute CreateArtifactCommand.invoke() and verify:
+    - The process runs correctly when the required files exist in the source directory.
+    - After invoking, a Markdown report (.md file) is generated in the same location as the output_archive.
+    - The generated report contains information such as Dockerfile and requirements.txt details.
+    - The output of click.echo includes the expected strings.
+    """
+    # Initially, the output_archive (.zip file) does not need to exist.
+    if temp_output_archive.exists():
+        temp_output_archive.unlink()
+
+    exclude_patterns = ["venv", "site-packages"]
+    command = CreateArtifactCommand(temp_source_dir, output_archive_path=temp_output_archive, exclude_patterns=exclude_patterns)
+
+    # Directly call invoke() (internally performs archiving, scanning, and report generation).
+    command.invoke()
+
+    # The generated report file should have the same name as output_archive but with a .md extension.
+    report_path = temp_output_archive.with_suffix(".md")
+    assert report_path.exists(), "The report file was not generated."
+
+    report_content = report_path.read_text(encoding="utf-8")
+    # Verify that the expected items exist in the template (contents depend on the implementation).
+    assert "Execution Report" in report_content or "Execution Date:" in report_content
+    assert "Dockerfile" in report_content, "Dockerfile information is missing in the report."
+    assert "requirements.txt" in report_content, "requirements.txt information is missing in the report."
+
+    # Also, check the content echoed to standard output.
+    captured = capsys.readouterr().out
+    assert "Archiving project files" in captured
+    assert "Source Directory:" in captured
+    assert "Output Archive:" in captured
