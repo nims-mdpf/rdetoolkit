@@ -41,6 +41,7 @@ dependencies = [
     "tqdm>=4.67.0",
     "pip>=24.3.1",
     "markdown>=3.7",
+    "minio>=7.2.15",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
