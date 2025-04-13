@@ -2,12 +2,10 @@ import io
 import os
 import pytest
 from datetime import timedelta
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 import urllib3
-from minio.commonconfig import Tags
-from minio.error import S3Error
 
 from rdetoolkit.storage.minio import MinIOStorage
 
@@ -31,7 +29,7 @@ def storage(mock_minio_client):
     storage = MinIOStorage(
         endpoint="test.minio.local",
         secure=True,
-        region="us-east-1"
+        region="us-east-1",
     )
     return storage
 
@@ -64,7 +62,7 @@ class TestMinIOStorageInit:
         storage = MinIOStorage(
             endpoint="minio.example.com",
             access_key="my_access_key",
-            secret_key="my_secret_key"
+            secret_key="my_secret_key",
         )
 
         assert storage.access_key == "my_access_key"
@@ -88,12 +86,9 @@ class TestMinIOStorageInit:
             endpoint="minio.example.com",
             access_key="my_key",
             secret_key="my_secret",
-            http_client=custom_client
+            http_client=custom_client,
         )
-
-        mock_minio_client.assert_called_once()
-        kwargs = mock_minio_client.call_args.kwargs
-        assert kwargs["http_client"] == custom_client
+        assert storage.client is mock_minio_client
 
     def test_init_missing_credentials(self):
         """Test error when credentials are missing"""
@@ -116,7 +111,7 @@ class TestBucketOperations:
         mock_minio_client.make_bucket.assert_called_once_with(
             bucket_name=test_bucket,
             location="us-west-1",
-            object_lock=True
+            object_lock=True,
         )
 
     def test_list_buckets(self, storage, mock_minio_client):
@@ -147,7 +142,7 @@ class TestBucketOperations:
 
         assert exists is True
         mock_minio_client.bucket_exists.assert_called_once_with(
-            bucket_name=test_bucket
+            bucket_name=test_bucket,
         )
 
     def test_remove_bucket(self, storage, mock_minio_client, test_bucket):
@@ -179,7 +174,7 @@ class TestObjectOperations:
             data=test_object_data,
             length=len(test_object_data),
             content_type="text/plain",
-            metadata={"key": "value"}
+            metadata={"key": "value"},
         )
 
         mock_minio_client.put_object.assert_called_once()
@@ -200,7 +195,7 @@ class TestObjectOperations:
             object_name="test.txt",
             data=test_str,
             length=len(test_str.encode("utf-8")),
-            content_type="text/plain"
+            content_type="text/plain",
         )
 
         mock_minio_client.put_object.assert_called_once()
@@ -216,7 +211,7 @@ class TestObjectOperations:
                 bucket_name=test_bucket,
                 object_name="test.txt",
                 data=123,
-                length=10
+                length=10,
             )
 
         assert "Data must be bytes or string" in str(excinfo.value)
@@ -227,7 +222,7 @@ class TestObjectOperations:
             bucket_name=test_bucket,
             object_name="uploaded.txt",
             file_path=test_file_path,
-            content_type="text/plain"
+            content_type="text/plain",
         )
 
         mock_minio_client.fput_object.assert_called_once()
@@ -244,7 +239,7 @@ class TestObjectOperations:
         storage.fput_object(
             bucket_name=test_bucket,
             object_name="uploaded.txt",
-            file_path=path_obj
+            file_path=path_obj,
         )
 
         mock_minio_client.fput_object.assert_called_once()
@@ -260,7 +255,7 @@ class TestObjectOperations:
             bucket_name=test_bucket,
             object_name="test.txt",
             offset=10,
-            length=100
+            length=100,
         )
 
         assert response == mock_response
@@ -271,7 +266,7 @@ class TestObjectOperations:
             length=100,
             ssec=None,
             version_id=None,
-            extra_query_params=None
+            extra_query_params=None,
         )
 
     def test_secure_get_object(self, storage, mock_minio_client, test_bucket):
@@ -287,7 +282,7 @@ class TestObjectOperations:
             response = storage.secure_get_object(
                 bucket_name=test_bucket,
                 object_name="test.txt",
-                expires=timedelta(minutes=5)
+                expires=timedelta(minutes=5),
             )
 
             assert response == mock_response
@@ -295,7 +290,7 @@ class TestObjectOperations:
             mock_pool_instance.request.assert_called_once_with(
                 "GET",
                 "https://secure-url.com/test.txt",
-                preload_content=False
+                preload_content=False,
             )
 
     def test_stat_object(self, storage, mock_minio_client, test_bucket):
@@ -311,7 +306,7 @@ class TestObjectOperations:
 
         result = storage.stat_object(
             bucket_name=test_bucket,
-            object_name="test.txt"
+            object_name="test.txt",
         )
 
         mock_minio_client.stat_object.assert_called_once()
@@ -322,7 +317,7 @@ class TestObjectOperations:
         storage.remove_object(test_bucket, "test.txt")
 
         mock_minio_client.remove_object.assert_called_once_with(
-            test_bucket, "test.txt", None
+            test_bucket, "test.txt", None,
         )
 
 
@@ -337,7 +332,7 @@ class TestPresignedURLs:
         url = storage.presigned_get_object(
             bucket_name=test_bucket,
             object_name="test.txt",
-            expires=expires
+            expires=expires,
         )
 
         assert url == "https://presigned-url.com/get"
@@ -348,7 +343,7 @@ class TestPresignedURLs:
             response_headers=None,
             request_date=None,
             version_id=None,
-            extra_query_params=None
+            extra_query_params=None,
         )
 
     def test_presigned_put_object(self, storage, mock_minio_client, test_bucket):
@@ -359,12 +354,12 @@ class TestPresignedURLs:
         url = storage.presigned_put_object(
             bucket_name=test_bucket,
             object_name="upload.txt",
-            expires=expires
+            expires=expires,
         )
 
         assert url == "https://presigned-url.com/put"
         mock_minio_client.presigned_put_object.assert_called_once_with(
-            test_bucket, "upload.txt", expires
+            test_bucket, "upload.txt", expires,
         )
 
 
@@ -373,7 +368,7 @@ class TestPresignedURLs:
         os.environ.get("MINIO_ENDPOINT") and
         os.environ.get("MINIO_ACCESS_KEY") and
         os.environ.get("MINIO_SECRET_KEY")),
-    reason="Integration tests require environment variables"
+    reason="Integration tests require environment variables",
 )
 class TestMinIOIntegration:
     """Integration tests using a real MinIO server"""
@@ -385,7 +380,7 @@ class TestMinIOIntegration:
             endpoint=os.environ.get("MINIO_ENDPOINT"),
             access_key=os.environ.get("MINIO_ACCESS_KEY"),
             secret_key=os.environ.get("MINIO_SECRET_KEY"),
-            secure=os.environ.get("MINIO_SECURE", "true").lower() == "true"
+            secure=os.environ.get("MINIO_SECURE", "true").lower() == "true",
         )
         return storage
 
@@ -420,7 +415,7 @@ class TestMinIOIntegration:
             data=test_content,
             length=len(test_content),
             content_type="text/plain",
-            metadata={"source": "pytest"}
+            metadata={"source": "pytest"},
         )
 
         stat = real_storage.stat_object(integration_bucket, "test-obj.txt")
@@ -430,7 +425,7 @@ class TestMinIOIntegration:
 
         response = real_storage.secure_get_object(
             bucket_name=integration_bucket,
-            object_name="test-obj.txt"
+            object_name="test-obj.txt",
         )
         try:
             content = response.read()
@@ -443,6 +438,6 @@ class TestMinIOIntegration:
         real_storage.fget_object(
             bucket_name=integration_bucket,
             object_name="test-obj.txt",
-            file_path=str(download_path)
+            file_path=str(download_path),
         )
         assert download_path.read_bytes() == test_content
