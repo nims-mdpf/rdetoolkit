@@ -223,19 +223,7 @@ class ExternalConnScanner(ICodeScanner):
             "pycurl",
         ]
 
-    def scan(self) -> list[CodeSnippet]:
-        """Scans the source directory for Python files and extracts code snippets that match specified patterns for external communication package usage.
-
-        Returns:
-            list[CodeSnippet]: A list of `CodeSnippet` objects containing the file
-            path and the relevant code snippet for each match.
-        """
-        snippets: list[CodeSnippet] = []
-        if not self.source_dir.exists() or not self.source_dir.is_dir():
-            emsg = "Error: The provided source directory does not exist or is not a directory."
-            logger.error(emsg)
-            return snippets
-
+    def _build_pattern(self) -> re.Pattern:
         import_patterns = [
             r"import\s+({0})",
             r"from\s+({0})(\.\w+)?\s+import",
@@ -247,48 +235,89 @@ class ExternalConnScanner(ICodeScanner):
         usage_patterns = [
             r"({0})\.\w+\(",
         ]
+
         patterns = []
         for pkg in self.external_comm_packages:
             for pattern in import_patterns + usage_patterns:
                 patterns.append(pattern.format(pkg))
-        combined_pattern = re.compile("|".join(patterns), re.MULTILINE)
 
+        return re.compile("|".join(patterns), re.MULTILINE)
+
+    def _is_excluded_path(self, path: Path) -> bool:
+        path_str = str(path)
+        return "site-packages" in path_str or "venv" in path_str
+
+    def _extract_snippet(self, content: str, match: re.Match, lines: list[str]) -> str:
+        match_pos = match.start()
+        line_number = content[: match_pos].count('\n')
+        start_line = max(0, line_number - 5)
+        end_line = min(len(lines), line_number + 6)
+
+        snippet_lines = [f"{i+1}: {lines[i]}" for i in range(start_line, end_line)]
+        snippet = "\n".join(snippet_lines)
+        return snippet.strip("\n")
+
+    def _process_file(self, path: Path, pattern: re.Pattern) -> list[CodeSnippet]:
+        """Scans the given file using the provided regex pattern, extracts matching code snippets, and returns them as a list of CodeSnippet objects.
+
+        Args:
+            path (Path): Path to the Python file to scan.
+            pattern (re.Pattern): Compiled regex pattern to detect external communication usage.
+
+        Returns:
+            list[CodeSnippet]: List of CodeSnippet objects found in the file.
+        """
+        snippets = []
+
+        try:
+            with open(path, encoding="utf-8") as file:
+                content = file.read()
+
+            matches = list(pattern.finditer(content))
+            if not matches:
+                return []
+
+            lines = content.splitlines()
+            for match in matches:
+                snippet_cleaned = self._extract_snippet(content, match, lines)
+                try:
+                    rel_path = path.relative_to(self.source_dir)
+                except ValueError:
+                    rel_path = path
+
+                snippets.append(
+                    CodeSnippet(
+                        file_path=str(rel_path),
+                        snippet=snippet_cleaned,
+                        description=None,
+                    ),
+                )
+                break
+        except Exception as e:
+            logger.error(f"An error occurred while processing file {path}: {e}")
+
+        return snippets
+
+    def scan(self) -> list[CodeSnippet]:
+        """Scans the source directory for Python files and extracts code snippets that match specified patterns for external communication package usage.
+
+        Returns:
+            list[CodeSnippet]: A list of `CodeSnippet` objects containing the file
+            path and the relevant code snippet for each match.
+        """
+        if not self.source_dir.exists() or not self.source_dir.is_dir():
+            emsg = "Error: The provided source directory does not exist or is not a directory."
+            logger.error(emsg)
+            return []
+
+        pattern = self._build_pattern()
+        snippets: list[CodeSnippet] = []
         for path in self.source_dir.rglob("*.py"):
-            if "site-packages" in str(path) or "venv" in str(path):
+            if self._is_excluded_path(path):
                 continue
-            try:
-                with open(path, encoding="utf-8") as file:
-                    content = file.read()
-                matches = list(combined_pattern.finditer(content))
-                if not matches:
-                    continue
-                lines = content.splitlines()
-                for match in matches:
-                    match_pos = match.start()
-                    line_number = content[: match_pos].count('\n')
-                    start_line = max(0, line_number - 5)
-                    end_line = min(len(lines), line_number + 6)
 
-                    snippet_lines = [f"{i+1}: {lines[i]}" for i in range(start_line, end_line)]
-                    snippet = "\n".join(snippet_lines)
-                    snippet_cleaned = snippet.strip("\n")
-
-                    try:
-                        rel_path = path.relative_to(self.source_dir)
-                    except ValueError:
-                        rel_path = path
-
-                    snippets.append(
-                        CodeSnippet(
-                            file_path=str(rel_path),
-                            snippet=snippet_cleaned,
-                            description=None,
-                        ),
-                    )
-                    break
-            except Exception as e:
-                logger.error(f"An error occurred while processing file {path}: {e}")
-                continue
+            snippets = self._process_file(path, pattern)
+            snippets.extend(snippets)
 
         return snippets
 
