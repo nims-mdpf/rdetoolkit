@@ -46,6 +46,7 @@ six==1.16.0
 toml==0.10.2
 tomlkit==0.13.2
 tqdm==4.67.0
+types-pytz==2025.2.0.20250326
 typing-extensions==4.12.2
 tzdata==2024.2
 urllib3==2.4.0
