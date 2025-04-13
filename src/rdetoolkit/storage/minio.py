@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 import os
 from pathlib import Path
@@ -11,12 +13,10 @@ try:
 except ImportError:
     from urllib3.response import HTTPResponse as BaseHTTPResponse
 
-from minio.credentials import Provider
 from minio import Minio
 from minio.sse import SseCustomerKey
 from minio.commonconfig import Tags
 from minio.retention import Retention
-
 
 
 class MinIOStorage:
@@ -54,7 +54,8 @@ class MinIOStorage:
         self.secret_key = secret_key if secret_key else os.environ.get("MINIO_SECRET_KEY")
 
         if not self.access_key or not self.secret_key:
-            raise ValueError("Access key and secret key are required.")
+            emsg = "Access key and secret key are required."
+            raise ValueError(emsg)
 
         if http_client is None:
             http_client = self.create_default_http_client()
@@ -65,7 +66,7 @@ class MinIOStorage:
             secret_key=secret_key,
             secure=secure,
             region=region,
-            http_client=http_client
+            http_client=http_client,
         )
 
     @staticmethod
@@ -111,7 +112,7 @@ class MinIOStorage:
         cert_reqs: str = "CERT_REQUIRED",
         ca_certs: str | None = None,
         retries: Any = None,
-    ):
+    ) -> ProxyManager:
         """Creates a proxy client with specified settings.
 
         Args:
@@ -187,7 +188,8 @@ class MinIOStorage:
         if self.client.bucket_exists(bucket_name):
             self.client.remove_bucket(bucket_name)
         else:
-            raise ValueError(f"Bucket {bucket_name} does not exist.")
+            emsg = f"Bucket {bucket_name} does not exist."
+            raise ValueError(emsg)
 
     def put_object(
         self,
@@ -217,7 +219,8 @@ class MinIOStorage:
         elif isinstance(data, str):
             _data = io.BytesIO(data.encode("utf-8"))
         else:
-            raise ValueError("Data must be bytes or string.")
+            emsg = "Data must be bytes or string."
+            raise ValueError(emsg)
 
         return self.client.put_object(
             bucket_name=bucket_name,
@@ -240,7 +243,7 @@ class MinIOStorage:
         num_parallel_uploads: int = 3,
         tags: Tags | None = None,
         retention: Retention | None = None,
-        legal_hold: bool = False
+        legal_hold: bool = False,
     ) -> Any:
         """Uploads a file from local storage to a bucket.
 
@@ -283,7 +286,7 @@ class MinIOStorage:
         length: int = 0,
         ssec: SseCustomerKey | None = None,
         version_id: str | None = None,
-        extra_query_params=None
+        extra_query_params: dict[str, Any] | None = None,
     ) -> BaseHTTPResponse:
         """Retrieves an object from a bucket.
 
@@ -306,7 +309,7 @@ class MinIOStorage:
             length=length,
             ssec=ssec,
             version_id=version_id,
-            extra_query_params=extra_query_params
+            extra_query_params=extra_query_params,
         )
 
     def fget_object(
@@ -318,7 +321,7 @@ class MinIOStorage:
         ssec: SseCustomerKey | None = None,
         version_id: str | None = None,
         extra_query_params: dict[str, Any] | None = None,
-        tmp_file_path: str | None = None
+        tmp_file_path: str | None = None,
     ) -> BaseHTTPResponse:
         """Downloads an object to a file.
 
@@ -343,7 +346,7 @@ class MinIOStorage:
             ssec=ssec,
             version_id=version_id,
             extra_query_params=extra_query_params,
-            tmp_file_path=tmp_file_path
+            tmp_file_path=tmp_file_path,
         )
 
     def stat_object(
@@ -392,7 +395,7 @@ class MinIOStorage:
         response_headers: dict[str, Any] | None = None,
         request_date: datetime | None = None,
         version_id: str | None = None,
-        extra_query_params: dict[str, Any] | None = None
+        extra_query_params: dict[str, Any] | None = None,
     ) -> str:
         """Generates a presigned GET URL.
 
@@ -415,14 +418,14 @@ class MinIOStorage:
             response_headers=response_headers,
             request_date=request_date,
             version_id=version_id,
-            extra_query_params=extra_query_params
+            extra_query_params=extra_query_params,
         )
 
     def presigned_put_object(
         self,
         bucket_name: str,
         object_name: str,
-        expires: timedelta = timedelta(days=7)
+        expires: timedelta = timedelta(days=7),
     ) -> str:
         """Generates a presigned PUT URL.
 
@@ -445,9 +448,10 @@ class MinIOStorage:
         expires: timedelta = timedelta(minutes=15),
         ssec: SseCustomerKey | None = None,
         version_id: str | None = None,
-        use_ssl: bool = True
+        use_ssl: bool = True,
     ) -> BaseHTTPResponse:
         """Recommended method for securely retrieving objects.
+
         Generates a short-lived presigned URL and accesses it with a dedicated client.
 
         Args:
@@ -474,7 +478,7 @@ class MinIOStorage:
             object_name=object_name,
             expires=expires,
             response_headers=response_headers,
-            version_id=version_id
+            version_id=version_id,
         )
 
         http_client = PoolManager(
@@ -487,10 +491,8 @@ class MinIOStorage:
             ),
         )
 
-        response = http_client.request(
+        return http_client.request(
             "GET",
             presigned_url,
-            preload_content=False
+            preload_content=False,
         )
-
-        return response
