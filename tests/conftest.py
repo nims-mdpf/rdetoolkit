@@ -2,7 +2,7 @@ import os
 import pathlib
 import shutil
 import zipfile
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 import yaml

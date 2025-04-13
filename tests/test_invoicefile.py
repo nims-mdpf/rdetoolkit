@@ -89,7 +89,7 @@ def sample_df():
     return pd.DataFrame({
         'col1': ['a', 'b', 'c'],
         'col2': [1, 2, 3],
-        'col3': ['x', 'y', 'z']
+        'col3': ['x', 'y', 'z'],
     })
 
 
@@ -691,7 +691,7 @@ class TestExcelinvoice:
             invoice=sample_df,
             index=index,
             header=header,
-            sheet_name=sheet_name
+            sheet_name=sheet_name,
         )
         assert os.path.exists("test_excelinvoice.xlsx")
 
@@ -715,7 +715,7 @@ class TestExcelinvoice:
                 invoice=sample_df,
                 index=index,
                 header=header,
-                sheet_name=sheet_name
+                sheet_name=sheet_name,
             )
             assert str(e.value) == "Failed to save the invoice file."
 

@@ -2,7 +2,7 @@ import pytest
 
 import polars as pl
 
-from src.rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
+from src.rdetoolkit.exceptions import DataRetrievalError
 from src.rdetoolkit.models.invoice import GeneralTermRegistry, SpecificTermRegistry
 
 
@@ -35,7 +35,7 @@ class TestSpecificTermRegistry:
         results = registry.search(
             columns=["key_name"],
             values=["KeyA"],
-            out_cols=["sample_class_id", "en"]
+            out_cols=["sample_class_id", "en"],
         )
         assert len(results) == 1
         assert results[0]["sample_class_id"] == "1"
@@ -46,7 +46,7 @@ class TestSpecificTermRegistry:
         results = registry.search(
             columns=["key_name", "en"],
             values=["KeyB", "EnglishB"],
-            out_cols=["sample_class_id", "term_id"]
+            out_cols=["sample_class_id", "term_id"],
         )
         assert len(results) == 1
         assert results[0]["sample_class_id"] == "2"
@@ -58,7 +58,7 @@ class TestSpecificTermRegistry:
             registry.search(
                 columns=["key_name", "en"],
                 values=["KeyA"],
-                out_cols=["sample_class_id"]
+                out_cols=["sample_class_id"],
             )
         assert "The lengths of 'columns' and 'values' must be the same." in str(exc_info.value)
 
@@ -68,7 +68,7 @@ class TestSpecificTermRegistry:
             registry.search(
                 columns=["non_existent_column"],
                 values=["Value"],
-                out_cols=["sample_class_id", "term_id", "key_name", "ja"]
+                out_cols=["sample_class_id", "term_id", "key_name", "ja"],
             )
 
         # エラーメッセージの部分一致で検証
@@ -76,7 +76,7 @@ class TestSpecificTermRegistry:
         assert any([
             "unable to find column" in error_message,
             "non_existent_column" in error_message,
-            "An error occurred while searching for terms" in error_message
+            "An error occurred while searching for terms" in error_message,
         ])
 
     def test_by_term_and_class_id_success(self, sample_csv):
@@ -153,7 +153,7 @@ class TestGeneralTermRegistry:
         results = registry.search(
             column="key_name",
             value="KeyA",
-            out_cols=["term_id", "en"]
+            out_cols=["term_id", "en"],
         )
         assert len(results) == 1
         assert results[0]["term_id"] == "101"
@@ -164,7 +164,7 @@ class TestGeneralTermRegistry:
         results = registry.search(
             column="key_name",
             value="NonExistentKey",
-            out_cols=["term_id"]
+            out_cols=["term_id"],
         )
         assert len(results) == 0
 
@@ -174,7 +174,7 @@ class TestGeneralTermRegistry:
             registry.search(
                 column="non_existent_column",
                 value="Value",
-                out_cols=["term_id"]
+                out_cols=["term_id"],
             )
 
     def test_search_invalid_out_cols(self, sample_general_term_csv):
@@ -183,7 +183,7 @@ class TestGeneralTermRegistry:
             registry.search(
                 column="key_name",
                 value="KeyA",
-                out_cols=["term_id", "non_existent_column"]
+                out_cols=["term_id", "non_existent_column"],
             )
 
     def test_by_term_id_success(self, sample_general_term_csv):
@@ -238,7 +238,7 @@ class TestGeneralTermRegistry:
         results = registry.search(
             column="term_id",
             value="101",
-            out_cols=["term_id", "key_name"]
+            out_cols=["term_id", "key_name"],
         )
         assert len(results) == 2
         assert results[0]["key_name"] == "KeyA"
@@ -249,6 +249,6 @@ class TestGeneralTermRegistry:
         results = registry.search(
             column="key_name",
             value="KeyA",
-            out_cols=[]
+            out_cols=[],
         )
         assert len(results) == 0

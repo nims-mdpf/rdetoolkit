@@ -2,7 +2,7 @@ import json
 import os
 import pathlib
 import shutil
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 
@@ -128,7 +128,7 @@ def metadata_json_non_constat() -> Generator[str, None, None]:
                 "test_feature_meta1": {"value": "test-value1"},
                 "test_feature_meta2": {"value": "test-value2", "unit": "V"},
                 "test_feature_meta3": {"value": "test-value3", "unit": "V"},
-            }
+            },
         ],
     }
 

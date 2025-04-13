@@ -26,7 +26,6 @@ from rdetoolkit.cmd.command import (
 )
 
 from rdetoolkit.cmd.archive import CreateArtifactCommand
-from rdetoolkit.models.reports import CodeSnippet, ReportItem
 
 
 def test_make_main_py():
@@ -272,7 +271,7 @@ def test_make_excelinvoice_file_mode_success(ivnoice_schema_json_with_full_sampl
         [
             str(ivnoice_schema_json_with_full_sample_info),
             '-o',
-            str(temp_output_path)
+            str(temp_output_path),
         ],
     )
 
@@ -425,8 +424,7 @@ def test_json_file_validation(tmp_path, ivnoice_schema_json_with_full_sample_inf
 
 @pytest.fixture
 def temp_source_dir(tmp_path: Path) -> Path:
-    """
-    Create a temporary source directory for testing.
+    """Create a temporary source directory for testing.
     - Includes Dockerfile and requirements.txt
     - Contains a Python file with a vulnerability (vuln.py) using eval
     - Contains a Python file with external communication (external.py) using requests.get
@@ -460,8 +458,7 @@ def temp_source_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def temp_output_archive(tmp_path: Path) -> Path:
-    """
-    Temporary file path to be used as the output archive (with a .zip extension).
+    """Temporary file path to be used as the output archive (with a .zip extension).
     """
     return tmp_path / "output.zip"
 
@@ -469,7 +466,7 @@ def temp_output_archive(tmp_path: Path) -> Path:
 def test_invoke_with_default_values(temp_source_dir, capsys):
     """Uses default values for the output archive path and exclude_patterns."""
     command = CreateArtifactCommand(
-        source_dir=temp_source_dir
+        source_dir=temp_source_dir,
     )
 
     command.invoke()
@@ -487,8 +484,7 @@ def test_invoke_with_default_values(temp_source_dir, capsys):
 
 
 def test_invoke_creates_report(temp_source_dir, temp_output_archive, capsys):
-    """
-    Execute CreateArtifactCommand.invoke() and verify:
+    """Execute CreateArtifactCommand.invoke() and verify:
     - The process runs correctly when the required files exist in the source directory.
     - After invoking, a Markdown report (.md file) is generated in the same location as the output_archive.
     - The generated report contains information such as Dockerfile and requirements.txt details.
@@ -523,8 +519,7 @@ def test_invoke_creates_report(temp_source_dir, temp_output_archive, capsys):
 
 
 def test_report_generation_failure(temp_source_dir, temp_output_archive, capsys):
-    """
-    Test that an exception (click.Abort) is raised when the report output path
+    """Test that an exception (click.Abort) is raised when the report output path
     is a directory during report generation.
     """
     report_path = temp_output_archive.with_suffix(".md")
