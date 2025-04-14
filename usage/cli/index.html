@@ -368,6 +368,31 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#artifact-rde">
+<span class="md-ellipsis">
+      artifact: RDE提出用アーカイブの作成
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#external-communication-check-results">
+<span class="md-ellipsis">
+      External Communication Check Results
+    </span>
+</a>
+<nav aria-label="External Communication Check Results" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#containerexternalpy">
+<span class="md-ellipsis">
+      container/external.py
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </li>
@@ -471,12 +496,36 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
 <span class="md-ellipsis">
-    Docker
+    オブジェクトストレージを使用する
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            オブジェクトストレージを使用する
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../object_storage/">
+<span class="md-ellipsis">
+    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Docker
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
 <span class="md-nav__icon md-icon"></span>
             Docker
           </label>
@@ -612,12 +661,36 @@
 <input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
 <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
 <span class="md-ellipsis">
-    core module
+    storage
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            storage
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rdetoolkit/storage/minio/">
+<span class="md-ellipsis">
+    MinIO Storage
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    core module
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
 <span class="md-nav__icon md-icon"></span>
             core module
           </label>
@@ -771,6 +844,31 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#artifact-rde">
+<span class="md-ellipsis">
+      artifact: RDE提出用アーカイブの作成
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#external-communication-check-results">
+<span class="md-ellipsis">
+      External Communication Check Results
+    </span>
+</a>
+<nav aria-label="External Communication Check Results" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#containerexternalpy">
+<span class="md-ellipsis">
+      container/external.py
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </div>
@@ -900,6 +998,126 @@
 </div>
 </div>
 </input></input></div>
+<h2 id="artifact-rde">artifact: RDE提出用アーカイブの作成</h2>
+<p><code>artifact</code>コマンドを使用して、RDEに提出するためのアーカイブ（.zip）を作成することができます。指定したソースディレクトリを圧縮し、除外パターンに一致するファイルやディレクトリを除外します。</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio"><input id="__tabbed_4_2" name="__tabbed_4" type="radio"><div class="tabbed-labels"><label for="__tabbed_4_1">Unix/macOS</label><label for="__tabbed_4_2">Windows</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>python3<span style="color: #bbbbbb"> </span>-m<span style="color: #bbbbbb"> </span>rdetoolkit<span style="color: #bbbbbb"> </span>artifact<span style="color: #bbbbbb"> </span>--source-dir<span style="color: #bbbbbb"> </span>&lt;ソースディレクトリ&gt;<span style="color: #bbbbbb"> </span>--output-archive<span style="color: #bbbbbb"> </span>&lt;出力アーカイブファイル&gt;<span style="color: #bbbbbb"> </span>--exclude<span style="color: #bbbbbb"> </span>&lt;除外パターン&gt;
+</code></pre></div></td></tr></table></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>py -m rdetoolkit artifact --source-dir &lt;ソースディレクトリ&gt; --output-archive &lt;出力アーカイブファイル&gt; --exclude &lt;除外パターン&gt;
+</code></pre></div></td></tr></table></div>
+</div>
+</div>
+</input></input></div>
+<p>利用可能なオプションは以下の通りです。</p>
+<table>
+<thead>
+<tr>
+<th>オプション</th>
+<th>説明</th>
+<th>必須</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-s(--source-dir)</td>
+<td>圧縮・スキャン対象のソースディレクトリ</td>
+<td>o</td>
+</tr>
+<tr>
+<td>-o(--output-archive)</td>
+<td>出力アーカイブファイル（例：rde_template.zip）</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-e(--exclude)</td>
+<td>除外するディレクトリ名。デフォルトでは 'venv' と 'site-packages' が除外されます</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>アーカイブが作成されると、以下のような実行レポートが生成されます：</p>
+<ul>
+<li>Dockerfileやrequirements.txtの存在確認</li>
+<li>含まれるディレクトリとファイルのリスト</li>
+<li>コードスキャン結果（セキュリティリスクの検出）</li>
+<li>外部通信チェック結果</li>
+</ul>
+<p>以下は実行レポートのサンプルです：</p>
+<hr/>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #000080; font-weight: bold"># Execution Report</span>
+
+<span style="font-weight: bold">**Execution Date:**</span> 2025-04-08 02:58:44
+
+<span style="color: #008800; font-weight: bold">-</span><span style="color: #bbbbbb"> </span><span style="font-weight: bold">**Dockerfile:**</span> [Exists]: 🐳　container/Dockerfile
+<span style="color: #008800; font-weight: bold">-</span><span style="color: #bbbbbb"> </span><span style="font-weight: bold">**Requirements:**</span> [Exists]: 🐍 container/requirements.txt
+
+<span style="color: #800080; font-weight: bold">## Included Directories</span>
+
+<span style="color: #008800; font-weight: bold">-</span><span style="color: #bbbbbb"> </span>container/requirements.txt
+<span style="color: #008800; font-weight: bold">-</span><span style="color: #bbbbbb"> </span>container/Dockerfile
+<span style="color: #008800; font-weight: bold">-</span><span style="color: #bbbbbb"> </span>container/vuln.py
+<span style="color: #008800; font-weight: bold">-</span><span style="color: #bbbbbb"> </span>container/external.py
+
+<span style="color: #800080; font-weight: bold">## Code Scan Results</span>
+
+<span style="color: #800080; font-weight: bold">### container/vuln.py</span>
+
+<span style="font-weight: bold">**Description**</span>: Usage of eval() poses the risk of arbitrary code execution.
+
+```python
+def insecure():
+
+    value = eval("1+2")
+
+    print(value)
+</code></pre></div></td></tr></table></div>
+<h2 id="external-communication-check-results">External Communication Check Results</h2>
+<h3 id="containerexternalpy"><strong>container/external.py</strong></h3>
+<p><div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #0000DD; font-weight: bold">1</span>:
+<span style="color: #0000DD; font-weight: bold">2</span>: <span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">requests</span>
+<span style="color: #0000DD; font-weight: bold">3</span>: <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">fetch</span>():
+<span style="color: #0000DD; font-weight: bold">4</span>:     response <span style="color: #333333">=</span> requests<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"https://example.com"</span>)
+<span style="color: #0000DD; font-weight: bold">5</span>:     <span style="color: #008800; font-weight: bold">return</span> response<span style="color: #333333">.</span>text
+</code></pre></div></td></tr></table></div>
+```</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><code>--output-archive</code>を指定しない場合、デフォルトのファイル名でアーカイブが作成されます。
+<code>--exclude</code>オプションは複数回指定することができます（例：<code>--exclude venv --exclude .git</code>）。</p>
+</div>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

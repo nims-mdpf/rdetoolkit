@@ -435,12 +435,36 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
 <span class="md-ellipsis">
-    Docker
+    オブジェクトストレージを使用する
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            オブジェクトストレージを使用する
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/object_storage/">
+<span class="md-ellipsis">
+    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Docker
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
 <span class="md-nav__icon md-icon"></span>
             Docker
           </label>
@@ -576,12 +600,36 @@
 <input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
 <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
 <span class="md-ellipsis">
-    core module
+    storage
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            storage
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../storage/minio/">
+<span class="md-ellipsis">
+    MinIO Storage
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    core module
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
 <span class="md-nav__icon md-icon"></span>
             core module
           </label>
@@ -655,13 +703,6 @@
 <a class="md-nav__link" href="#src.rdetoolkit.rde2util.Meta.writefile">
 <span class="md-ellipsis">
       writefile
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rde2util.Meta._metadata_validation">
-<span class="md-ellipsis">
-      _metadata_validation
     </span>
 </a>
 </li>
@@ -988,13 +1029,6 @@
 <a class="md-nav__link" href="#src.rdetoolkit.rde2util.Meta.writefile">
 <span class="md-ellipsis">
       writefile
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rde2util.Meta._metadata_validation">
-<span class="md-ellipsis">
-      _metadata_validation
     </span>
 </a>
 </li>
@@ -1540,123 +1574,6 @@ and 'unknown' contains the set of keys from 'metaDef' that were not used.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.rde2util.Meta._metadata_validation">
-<code class="highlight language-python">_metadata_validation(vsrc, outtype, outfmt, orgtype, outunit)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Casts the input metadata to the specified format and performs validation to check.</p>
-<p>if it can be cast to the specified data type. The formats for various metadata are described in metadata-def.json.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>vsrc</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The value of the input metadata.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>outtype</code></td>
-<td>
-<code>Optional[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The data type of the converted metadata.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>outfmt</code></td>
-<td>
-<code>Optional[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The format of the converted metadata.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>orgtype</code></td>
-<td>
-<code>Optional[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The data type of the original metadata.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>outunit</code></td>
-<td>
-<code>Optional[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The unit of the converted metadata.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dict[str, bool | int | float | str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Union[bool, int, float, str]]: Returns the conversion result in the form of metadata for metadata.json.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>original func: _vDict()</p>
-</details>
 </div>
 </div>
 <div class="doc doc-object doc-function">

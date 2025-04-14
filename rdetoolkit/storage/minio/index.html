@@ -5,11 +5,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="../../" rel="prev"/>
-<link href="../input_controller/" rel="next"/>
+<link href="../../models/rde2types/" rel="prev"/>
+<link href="../../core/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>compressed_controller - RDEToolKit Documentation</title>
+<title>MinIO Storage - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,7 +23,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#compressed_controller">
+<a class="md-skip" href="#minio-storage">
           Skip to content
         </a>
 </div>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              compressed_controller
+              MinIO Storage
             
           </span>
 </div>
@@ -503,157 +503,29 @@
   </span>
 </a>
 </li>
-<li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
 <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
 <span class="md-ellipsis">
     impl
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="false" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_4_2">
 <span class="md-nav__icon md-icon"></span>
             impl
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--active">
-<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
-<label class="md-nav__link md-nav__link--active" for="__toc">
-<span class="md-ellipsis">
-    compressed_controller
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<a class="md-nav__link md-nav__link--active" href="./">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/compressed_controller/">
 <span class="md-ellipsis">
     compressed_controller
   </span>
 </a>
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
-<label class="md-nav__title" for="__toc">
-<span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#compressedflatfileparser">
-<span class="md-ellipsis">
-      CompressedFlatFileParser
-    </span>
-</a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser">
-<span class="md-ellipsis">
-      CompressedFlatFileParser
-    </span>
-</a>
-<nav aria-label="CompressedFlatFileParser" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.read">
-<span class="md-ellipsis">
-      read
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._extract_zip_with_encoding">
-<span class="md-ellipsis">
-      _extract_zip_with_encoding
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._unpacked">
-<span class="md-ellipsis">
-      _unpacked
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#compressedfolderparser">
-<span class="md-ellipsis">
-      CompressedFolderParser
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser">
-<span class="md-ellipsis">
-      CompressedFolderParser
-    </span>
-</a>
-<nav aria-label="CompressedFolderParser" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.read">
-<span class="md-ellipsis">
-      read
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._unpacked">
-<span class="md-ellipsis">
-      _unpacked
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._extract_zip_with_encoding">
-<span class="md-ellipsis">
-      _extract_zip_with_encoding
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.validation_uniq_fspath">
-<span class="md-ellipsis">
-      validation_uniq_fspath
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#parse_compressedfile_mode">
-<span class="md-ellipsis">
-      parse_compressedfile_mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.parse_compressedfile_mode">
-<span class="md-ellipsis">
-      parse_compressedfile_mode
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../input_controller/">
+<a class="md-nav__link" href="../../impl/input_controller/">
 <span class="md-ellipsis">
     input_controller
   </span>
@@ -724,26 +596,164 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
 <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
 <span class="md-ellipsis">
     storage
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="true" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_4_5">
 <span class="md-nav__icon md-icon"></span>
             storage
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../storage/minio/">
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    MinIO Storage
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
     MinIO Storage
   </span>
 </a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#miniostorage">
+<span class="md-ellipsis">
+      MinIOStorage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage">
+<span class="md-ellipsis">
+      MinIOStorage
+    </span>
+</a>
+<nav aria-label="MinIOStorage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.create_default_http_client">
+<span class="md-ellipsis">
+      create_default_http_client
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.create_proxy_client">
+<span class="md-ellipsis">
+      create_proxy_client
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
+<span class="md-ellipsis">
+      make_bucket
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
+<span class="md-ellipsis">
+      list_buckets
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
+<span class="md-ellipsis">
+      bucket_exists
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
+<span class="md-ellipsis">
+      remove_bucket
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.put_object">
+<span class="md-ellipsis">
+      put_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fput_object">
+<span class="md-ellipsis">
+      fput_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.get_object">
+<span class="md-ellipsis">
+      get_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
+<span class="md-ellipsis">
+      fget_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<span class="md-ellipsis">
+      stat_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
+<span class="md-ellipsis">
+      remove_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.presigned_get_object">
+<span class="md-ellipsis">
+      presigned_get_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.presigned_put_object">
+<span class="md-ellipsis">
+      presigned_put_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.secure_get_object">
+<span class="md-ellipsis">
+      secure_get_object
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -891,117 +901,127 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#compressedflatfileparser">
+<a class="md-nav__link" href="#miniostorage">
 <span class="md-ellipsis">
-      CompressedFlatFileParser
+      MinIOStorage
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage">
 <span class="md-ellipsis">
-      CompressedFlatFileParser
+      MinIOStorage
     </span>
 </a>
-<nav aria-label="CompressedFlatFileParser" class="md-nav">
+<nav aria-label="MinIOStorage" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.read">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.create_default_http_client">
 <span class="md-ellipsis">
-      read
+      create_default_http_client
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._extract_zip_with_encoding">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.create_proxy_client">
 <span class="md-ellipsis">
-      _extract_zip_with_encoding
+      create_proxy_client
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._unpacked">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
 <span class="md-ellipsis">
-      _unpacked
+      make_bucket
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._is_excluded">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
 <span class="md-ellipsis">
-      _is_excluded
+      list_buckets
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
+<span class="md-ellipsis">
+      bucket_exists
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
+<span class="md-ellipsis">
+      remove_bucket
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.put_object">
+<span class="md-ellipsis">
+      put_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fput_object">
+<span class="md-ellipsis">
+      fput_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.get_object">
+<span class="md-ellipsis">
+      get_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
+<span class="md-ellipsis">
+      fget_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<span class="md-ellipsis">
+      stat_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
+<span class="md-ellipsis">
+      remove_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.presigned_get_object">
+<span class="md-ellipsis">
+      presigned_get_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.presigned_put_object">
+<span class="md-ellipsis">
+      presigned_put_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.secure_get_object">
+<span class="md-ellipsis">
+      secure_get_object
     </span>
 </a>
 </li>
 </ul>
 </nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#compressedfolderparser">
-<span class="md-ellipsis">
-      CompressedFolderParser
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser">
-<span class="md-ellipsis">
-      CompressedFolderParser
-    </span>
-</a>
-<nav aria-label="CompressedFolderParser" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.read">
-<span class="md-ellipsis">
-      read
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._unpacked">
-<span class="md-ellipsis">
-      _unpacked
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._extract_zip_with_encoding">
-<span class="md-ellipsis">
-      _extract_zip_with_encoding
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.validation_uniq_fspath">
-<span class="md-ellipsis">
-      validation_uniq_fspath
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#parse_compressedfile_mode">
-<span class="md-ellipsis">
-      parse_compressedfile_mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.parse_compressedfile_mode">
-<span class="md-ellipsis">
-      parse_compressedfile_mode
-    </span>
-</a>
 </li>
 </ul>
 </nav>
@@ -1010,19 +1030,15 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="compressed_controller">compressed_controller</h1>
-<p>In <code>compressed_controller</code>, processes are defined for handling compressed files input from RDE.</p>
-<h2 id="compressedflatfileparser">CompressedFlatFileParser</h2>
+<h1 id="minio-storage">MinIO Storage</h1>
+<p>MinIO is a high-performance, S3-compatible object storage service. It is designed for large-scale data storage and retrieval, making it an ideal choice for applications that require fast access to large datasets.</p>
+<h2 id="miniostorage">MinIOStorage</h2>
 <div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>compressed_controller<span style="color: #333333">.</span>CompressedFlatFileParser(xlsx_invoice)</code>
+<h2 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>storage<span style="color: #333333">.</span>minio<span style="color: #333333">.</span>MinIOStorage(endpoint, access_key<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, secret_key<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, secure<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, region<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, http_client<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
 </h2>
 <div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.ICompressedFileStructParser">ICompressedFileStructParser</span></code></p>
-<p>Parser for compressed flat files, providing functionality to read and extract the contents.</p>
-<p>This parser specifically deals with flat files that are compressed. It extracts the files
-and ensures they match the expected structure described in an excelinvoice.</p>
+<p>Handles file operations on MinIO.</p>
 <p><span class="doc-section-title">Attributes:</span></p>
 <table>
 <thead>
@@ -1034,26 +1050,41 @@ and ensures they match the expected structure described in an excelinvoice.</p>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.xlsx_invoice">xlsx_invoice</span></code></td>
+<td><code><span title="src.rdetoolkit.storage.minio.MinIOStorage.access_key">access_key</span></code></td>
 <td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
+<code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>DataFrame representing the expected structure or content description
-of the compressed files.</p>
+<p>MinIO access key.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><span title="src.rdetoolkit.storage.minio.MinIOStorage.secret_key">secret_key</span></code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>MinIO secret key.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><span title="src.rdetoolkit.storage.minio.MinIOStorage.client">client</span></code></td>
+<td>
+<code><span title="minio.Minio">Minio</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>MinIO client instance.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.read">
-<code class="highlight language-python">read(zipfile, target_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts the contents of the zipfile to the target path and checks their existence against the Excelinvoice.</p>
+<p>Initializes the MinIOStorage.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
 <table>
 <thead>
@@ -1066,13 +1097,13 @@ of the compressed files.</p>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>zipfile</code></td>
+<td><code>endpoint</code></td>
 <td>
-<code><span title="pathlib.Path">Path</span></code>
+<code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path to the compressed flat file to be read.</p>
+<p>MinIO endpoint.</p>
 </div>
 </td>
 <td>
@@ -1080,98 +1111,73 @@ of the compressed files.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>target_path</code></td>
+<td><code>access_key</code></td>
 <td>
-<code><span title="pathlib.Path">Path</span></code>
+<code>str | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Destination directory where the zipfile will be extracted to.</p>
+<p>Access key value. Defaults to environment variable.</p>
 </div>
 </td>
 <td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>List[Tuple[Path, ...]]: A list of tuples containing file paths. Each tuple</p>
-</div>
+<code>None</code>
 </td>
 </tr>
 <tr class="doc-section-item">
+<td><code>secret_key</code></td>
 <td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
+<code>str | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>represents files from the compressed archive that matched the xlsx_invoice structure.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._extract_zip_with_encoding">
-<code class="highlight language-python">_extract_zip_with_encoding(zip_path, extract_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.</p>
-<p>This function attempts to detect and correct the encoding of filenames within the ZIP file to ensure they are extracted with the correct filenames, avoiding issues with garbled text due to encoding mismatches.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>zip_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the ZIP file to be extracted.</p>
+<p>Secret key value. Defaults to environment variable.</p>
 </div>
 </td>
 <td>
-<em>required</em>
+<code>None</code>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>extract_path</code></td>
+<td><code>secure</code></td>
 <td>
-<code><span title="pathlib.Path">Path</span> | str</code>
+<code>bool</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The directory where the contents of the ZIP file will be extracted.</p>
+<p>Whether SSL is required.</p>
 </div>
 </td>
 <td>
-<em>required</em>
+<code>True</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>region</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Region of the bucket.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>http_client</code></td>
+<td>
+<code><span title="urllib3.PoolManager">PoolManager</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>HTTP client for the Minio instance.</p>
+</div>
+</td>
+<td>
+<code>None</code>
 </td>
 </tr>
 </tbody>
@@ -1191,53 +1197,54 @@ of the compressed files.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>If encoding detection fails for any filename within the ZIP archive.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>UnicodeDecodeError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If a filename cannot be decoded with the detected or specified encoding.</p>
+<p>If access_key or secret_key is not provided.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<details class="example" open="">
-<summary>Example</summary>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>zip_path = 'path/to/your/archive.zip'
-extract_path = 'path/to/extract/directory'
-encoding = 'utf-8'  # or 'cp932' for Japanese text, for example
-self._extract_zip_with_encoding(zip_path, extract_path)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</details>
+<div class="doc doc-children">
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.create_default_http_client">
+<code class="highlight language-python">create_default_http_client()</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+<p>Creates a default HTTP client with optional proxy.</p>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="urllib3.ProxyManager">ProxyManager</span> | <span title="urllib3.PoolManager">PoolManager</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>ProxyManager | PoolManager: Configured proxy or pool manager.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._unpacked">
-<code class="highlight language-python">_unpacked(zipfile, target_dir)</code>
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.create_proxy_client">
+<code class="highlight language-python">create_proxy_client(proxy_url, timeout<span style="color: #333333">=</span>urllib3<span style="color: #333333">.</span>Timeout<span style="color: #333333">.</span>DEFAULT_TIMEOUT, cert_reqs<span style="color: #333333">=</span><span style="background-color: #fff0f0">'CERT_REQUIRED'</span>, ca_certs<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, retries<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+</span>
 </h3>
 <div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._is_excluded">
-<code class="highlight language-python">_is_excluded(file)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Checks a specific file pattern to determine whether it should be excluded.</p>
-<p>This method checks if the file matches any of the predefined excluded patterns or regex.
-The excluded patterns are <code>__MACOSX</code> and <code>.DS_Store</code>.
-The excluded regex matches any file that starts with <code>~$</code> and ends with <code>.docx</code>, <code>.xlsx</code>, or <code>.pptx</code>.</p>
+<p>Creates a proxy client with specified settings.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
 <table>
 <thead>
@@ -1250,13 +1257,216 @@ The excluded regex matches any file that starts with <code>~$</code> and ends wi
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>file</code></td>
+<td><code>proxy_url</code></td>
 <td>
-<code><span title="pathlib.Path">Path</span></code>
+<code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The file to check.</p>
+<p>The proxy URL.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>timeout</code></td>
+<td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Timeout object or setting.</p>
+</div>
+</td>
+<td>
+<code><span title="urllib3.Timeout.DEFAULT_TIMEOUT">DEFAULT_TIMEOUT</span></code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>cert_reqs</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Certificate requirement level.</p>
+</div>
+</td>
+<td>
+<code>'CERT_REQUIRED'</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ca_certs</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Path to CA bundle file.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>retries</code></td>
+<td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Retry settings.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>ProxyManager</code></td> <td>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A configured proxy manager instance.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
+<code class="highlight language-python">make_bucket(backet_name, location<span style="color: #333333">=</span><span style="background-color: #fff0f0">'us-east-1'</span>, object_lock<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Creates a new bucket in MinIO.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>backet_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>location</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Region for the bucket.</p>
+</div>
+</td>
+<td>
+<code>'us-east-1'</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_lock</code></td>
+<td>
+<code>bool</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Whether to enable object lock.</p>
+</div>
+</td>
+<td>
+<code>False</code>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
+<code class="highlight language-python">list_buckets()</code>
+</h3>
+<div class="doc doc-contents">
+<p>Lists all existing buckets.</p>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: List of bucket information.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
+<code class="highlight language-python">bucket_exists(bucket_name)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Checks if a bucket exists.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
 </div>
 </td>
 <td>
@@ -1280,66 +1490,20 @@ The excluded regex matches any file that starts with <code>~$</code> and ends wi
 </td>
 <td>
 <div class="doc-md-description">
-<p>True if the file should be excluded, False otherwise.</p>
+<p>True if bucket exists, else False.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<details class="rules" open="">
-<summary>Rules</summary>
-<p>Specifically, the files to be excluded are:</p>
-<ul>
-<li>Files containing "__MACOSX" or ".DS_Store" in their paths.</li>
-<li>Files starting with "~$" and ending with ".docx", ".xlsx", or ".pptx".</li>
-</ul>
-</details>
 </div>
 </div>
-</div>
-</div>
-</div><h2 id="compressedfolderparser">CompressedFolderParser</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>compressed_controller<span style="color: #333333">.</span>CompressedFolderParser(xlsx_invoice)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.ICompressedFileStructParser">ICompressedFileStructParser</span></code></p>
-<p>Parser for compressed folders, extracting contents and ensuring they match an expected structure.</p>
-<p>This parser is specifically designed for compressed folders. It extracts the content
-and verifies against a provided xlsx invoice structure.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.xlsx_invoice">xlsx_invoice</span></code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>DataFrame representing the expected structure or content description
-of the compressed folder contents.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.read">
-<code class="highlight language-python">read(zipfile, target_path)</code>
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
+<code class="highlight language-python">remove_bucket(bucket_name)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Extracts the contents of the zipfile and returns validated file paths.</p>
+<p>Removes an existing bucket.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
 <table>
 <thead>
@@ -1352,115 +1516,13 @@ of the compressed folder contents.</p>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>zipfile</code></td>
+<td><code>bucket_name</code></td>
 <td>
-<code><span title="pathlib.Path">Path</span></code>
+<code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path to the compressed folder to be read.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>target_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Destination directory where the zipfile will be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>List[Tuple[Path, ...]]: A list of tuples containing file paths that have been</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>validated based on unique directory names.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._unpacked">
-<code class="highlight language-python">_unpacked(zipfile, target_dir)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._extract_zip_with_encoding">
-<code class="highlight language-python">_extract_zip_with_encoding(zip_path, extract_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.</p>
-<p>This function attempts to detect and correct the encoding of filenames within the ZIP file to ensure they are extracted with the correct filenames, avoiding issues with garbled text due to encoding mismatches.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>zip_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the ZIP file to be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>extract_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The directory where the contents of the ZIP file will be extracted.</p>
+<p>Name of the bucket.</p>
 </div>
 </td>
 <td>
@@ -1484,43 +1546,20 @@ of the compressed folder contents.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>If encoding detection fails for any filename within the ZIP archive.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>UnicodeDecodeError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If a filename cannot be decoded with the detected or specified encoding.</p>
+<p>If bucket does not exist.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<details class="example" open="">
-<summary>Example</summary>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>zip_path = 'path/to/your/archive.zip'
-extract_path = 'path/to/extract/directory'
-encoding = 'utf-8'  # or 'cp932' for Japanese text, for example
-self._extract_zip_with_encoding(zip_path, extract_path)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</details>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.validation_uniq_fspath">
-<code class="highlight language-python">validation_uniq_fspath(target_path, exclude_names)</code>
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.put_object">
+<code class="highlight language-python">put_object(bucket_name, object_name, data, length, <span style="color: #333333">*</span>, content_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">'application/octet-stream'</span>, metadata<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Check if there are any non-unique directory names under the target directory.</p>
+<p>Uploads data as an object to a bucket.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
 <table>
 <thead>
@@ -1533,13 +1572,13 @@ self._extract_zip_with_encoding(zip_path, extract_path)</p>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>target_path</code></td>
+<td><code>bucket_name</code></td>
 <td>
-<code>Union[str, <span title="pathlib.Path">Path</span>]</code>
+<code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The directory path to scan</p>
+<p>Name of the bucket.</p>
 </div>
 </td>
 <td>
@@ -1547,106 +1586,73 @@ self._extract_zip_with_encoding(zip_path, extract_path)</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>exclude_names</code></td>
+<td><code>object_name</code></td>
 <td>
-<code>list[str]</code>
+<code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Excluded files</p>
+<p>Object name in the bucket.</p>
 </div>
 </td>
 <td>
 <em>required</em>
 </td>
 </tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
 <tr class="doc-section-item">
+<td><code>data</code></td>
 <td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+<code>bytes | str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>An exception is raised when duplicate directory names are detected</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dict[str, list[<span title="pathlib.Path">Path</span>]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Path]: Returns the unique directory names and a list of files under each directory</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>This function checks for the existence of folders with the same name,
-differing only in case (e.g., 'folder1' and 'Folder1'). In a Unix-based filesystem,
-such folders can coexist when creating a zip file. However, Windows does not allow
-for this coexistence when downloading and unzipping the file, leading to an unzip
-failure in my environment. Therefore, it's necessary to check for folders whose names
-differ only in case.</p>
-</details>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._is_excluded">
-<code class="highlight language-python">_is_excluded(file)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Checks a specific file pattern to determine whether it should be excluded.</p>
-<p>This method checks if the file matches any of the predefined excluded patterns or regex.
-The excluded patterns are <code>__MACOSX</code> and <code>.DS_Store</code>.
-The excluded regex matches any file that starts with <code>~$</code> and ends with <code>.docx</code>, <code>.xlsx</code>, or <code>.pptx</code>.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>file</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file to check.</p>
+<p>Data to upload.</p>
 </div>
 </td>
 <td>
 <em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>length</code></td>
+<td>
+<code>int</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Size of the data.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>content_type</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>MIME type of the object.</p>
+</div>
+</td>
+<td>
+<code>'application/octet-stream'</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>metadata</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Additional metadata.</p>
+</div>
+</td>
+<td>
+<code>None</code>
 </td>
 </tr>
 </tbody>
@@ -1661,59 +1667,188 @@ The excluded regex matches any file that starts with <code>~$</code> and ends wi
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>bool</code></td> <td>
+<td><code>Any</code></td> <td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Information about the upload result.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.fput_object">
+<code class="highlight language-python">fput_object(bucket_name, object_name, file_path, content_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">'application/octet-stream'</span>, metadata<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, sse<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, part_size<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">0</span>, num_parallel_uploads<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">3</span>, tags<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, retention<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, legal_hold<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Uploads a file from local storage to a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>file_path</code></td>
+<td>
+<code>str | <span title="pathlib.Path">Path</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Path to source file.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>content_type</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>MIME type of the file.</p>
+</div>
+</td>
+<td>
+<code>'application/octet-stream'</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>metadata</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Additional metadata.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>sse</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Server-side encryption.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>part_size</code></td>
+<td>
+<code>int</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Part size for multipart upload.</p>
+</div>
+</td>
+<td>
+<code>0</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>num_parallel_uploads</code></td>
+<td>
+<code>int</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Number of parallel uploads.</p>
+</div>
+</td>
+<td>
+<code>3</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>tags</code></td>
+<td>
+<code><span title="minio.commonconfig.Tags">Tags</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Key-value tags for the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>retention</code></td>
+<td>
+<code><span title="minio.retention.Retention">Retention</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Retention configuration.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>legal_hold</code></td>
+<td>
 <code>bool</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>True if the file should be excluded, False otherwise.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="rules" open="">
-<summary>Rules</summary>
-<p>Specifically, the files to be excluded are:</p>
-<ul>
-<li>Files containing "__MACOSX" or ".DS_Store" in their paths.</li>
-<li>Files starting with "~$" and ending with ".docx", ".xlsx", or ".pptx".</li>
-</ul>
-</details>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="parse_compressedfile_mode">parse_compressedfile_mode</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.parse_compressedfile_mode">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>compressed_controller<span style="color: #333333">.</span>parse_compressedfile_mode(xlsx_invoice)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Parses the mode of a compressed file and returns the corresponding parser object.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>xlsx_invoice</code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The invoice data in Excel format.</p>
+<p>Whether to enable legal hold.</p>
 </div>
 </td>
 <td>
-<em>required</em>
+<code>False</code>
 </td>
 </tr>
 </tbody>
@@ -1728,17 +1863,845 @@ The excluded regex matches any file that starts with <code>~$</code> and ends wi
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>ICompressedFileStructParser</code></td> <td>
-<code><span title="rdetoolkit.interfaces.filechecker.ICompressedFileStructParser">ICompressedFileStructParser</span></code>
+<td><code>Any</code></td> <td>
+<code><span title="typing.Any">Any</span></code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>An instance of the compressed file structure parser.</p>
+<p>Information about the upload result.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.get_object">
+<code class="highlight language-python">get_object(bucket_name, object_name, offset<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">0</span>, length<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">0</span>, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_query_params<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Retrieves an object from a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>offset</code></td>
+<td>
+<code>int</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Start byte of the requested range.</p>
+</div>
+</td>
+<td>
+<code>0</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>length</code></td>
+<td>
+<code>int</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Number of bytes to read.</p>
+</div>
+</td>
+<td>
+<code>0</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ssec</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Server-side encryption key.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>extra_query_params</code></td>
+<td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Extra query parameters.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>BaseHTTPResponse</code></td> <td>
+<code><span title="urllib3.response.HTTPResponse">HTTPResponse</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The retrieved object data response.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
+<code class="highlight language-python">fget_object(bucket_name, object_name, file_path, request_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_query_params<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, tmp_file_path<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Downloads an object to a file.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>file_path</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Destination path for the downloaded file.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>request_headers</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Extra request headers.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ssec</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Encryption key.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>extra_query_params</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Extra query parameters.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>tmp_file_path</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Temporary file path.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>BaseHTTPResponse</code></td> <td>
+<code><span title="urllib3.response.HTTPResponse">HTTPResponse</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The downloaded file response.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<code class="highlight language-python">stat_object(bucket_name, object_name, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Fetches metadata of an object in a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ssec</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Encryption key.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>extra_headers</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Additional headers.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>Any</code></td> <td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Metadata of the requested object.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
+<code class="highlight language-python">remove_object(bucket_name, object_name, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Removes an object from a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.presigned_get_object">
+<code class="highlight language-python">presigned_get_object(bucket_name, object_name, expires<span style="color: #333333">=</span>timedelta(days<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">7</span>), response_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, request_date<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_query_params<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Generates a presigned GET URL.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>expires</code></td>
+<td>
+<code><span title="datetime.timedelta">timedelta</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>URL expiration time.</p>
+</div>
+</td>
+<td>
+<code><span title="datetime.timedelta">timedelta</span>(days=7)</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>response_headers</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Custom response headers.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>request_date</code></td>
+<td>
+<code><span title="datetime.datetime">datetime</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A specific request date.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>extra_query_params</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Extra parameters.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>str</code></td> <td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The presigned URL.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.presigned_put_object">
+<code class="highlight language-python">presigned_put_object(bucket_name, object_name, expires<span style="color: #333333">=</span>timedelta(days<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">7</span>))</code>
+</h3>
+<div class="doc doc-contents">
+<p>Generates a presigned PUT URL.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>expires</code></td>
+<td>
+<code><span title="datetime.timedelta">timedelta</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>URL expiration time.</p>
+</div>
+</td>
+<td>
+<code><span title="datetime.timedelta">timedelta</span>(days=7)</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>str</code></td> <td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The presigned URL.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.secure_get_object">
+<code class="highlight language-python">secure_get_object(bucket_name, object_name, <span style="color: #333333">*</span>, expires<span style="color: #333333">=</span>timedelta(minutes<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">15</span>), ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, use_ssl<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Recommended method for securely retrieving objects.</p>
+<p>Generates a short-lived presigned URL and accesses it with a dedicated client.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the object to retrieve.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>expires</code></td>
+<td>
+<code><span title="datetime.timedelta">timedelta</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Expiration time for the URL (default: 15 minutes).</p>
+</div>
+</td>
+<td>
+<code><span title="datetime.timedelta">timedelta</span>(minutes=15)</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ssec</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Server-side encryption key.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>use_ssl</code></td>
+<td>
+<code>bool</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Whether to use SSL connection.</p>
+</div>
+</td>
+<td>
+<code>True</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>BaseHTTPResponse</code></td> <td>
+<code><span title="urllib3.response.HTTPResponse">HTTPResponse</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>HTTP response containing object data.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="notes" open="">
+<summary>Notes</summary>
+<p>This method is recommended over the traditional get_object method.
+The expiration time is intentionally short for improved security.</p>
+</details>
+</div>
+</div>
+</div>
 </div>
 </div>
 </article>
