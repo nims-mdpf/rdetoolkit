@@ -439,7 +439,6 @@ class MinIOStorage:
         """
         return self.client.presigned_put_object(bucket_name, object_name, expires)
 
-
     def secure_get_object(
         self,
         bucket_name: str,
