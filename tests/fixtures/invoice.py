@@ -2,7 +2,7 @@ import json
 import os
 import pathlib
 import shutil
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 
@@ -65,62 +65,62 @@ def ivnoice_schema_json_with_full_sample_info() -> Generator[str, None, None]:
         "type": "object",
         "required": [
             "custom",
-            "sample"
+            "sample",
         ],
         "properties": {
             "custom": {
                 "type": "object",
                 "label": {
                     "ja": "固有情報",
-                    "en": "Custom Information"
+                    "en": "Custom Information",
                 },
                 "required": [
                     "sample1",
-                    "sample2"
+                    "sample2",
                 ],
                 "properties": {
                     "sample1": {
                         "label": {
                             "ja": "サンプル1",
-                            "en": "sample1"
+                            "en": "sample1",
                         },
                         "type": "string",
                         "format": "date",
                         "options": {
-                            "unit": "A"
-                        }
+                            "unit": "A",
+                        },
                     },
                     "sample2": {
                         "label": {
                             "ja": "サンプル2",
-                            "en": "sample2"
+                            "en": "sample2",
                         },
                         "type": "number",
                         "options": {
-                            "unit": "b"
-                        }
+                            "unit": "b",
+                        },
                     },
                     "sample3": {
                         "label": {
                             "ja": "サンプル3",
-                            "en": "sample3"
+                            "en": "sample3",
                         },
                         "type": "integer",
                         "options": {
                             "unit": "c",
                             "placeholder": {
                                 "ja": "Please Enter text",
-                                "en": "Please Enter text"
-                            }
-                        }
+                                "en": "Please Enter text",
+                            },
+                        },
                     },
-                }
+                },
             },
             "sample": {
                 "type": "object",
                 "label": {
                     "ja": "試料情報",
-                    "en": "Sample Information"
+                    "en": "Sample Information",
                 },
                 "properties": {
                     "generalAttributes": {
@@ -129,70 +129,70 @@ def ivnoice_schema_json_with_full_sample_info() -> Generator[str, None, None]:
                             {
                                 "type": "object",
                                 "required": [
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "termId": {
-                                        "const": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e"
-                                    }
-                                }
+                                        "const": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "termId": {
-                                        "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057"
-                                    }
-                                }
+                                        "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "termId": {
-                                        "const": "efcf34e7-4308-c195-6691-6f4d28ffc9bb"
-                                    }
-                                }
+                                        "const": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "termId": {
-                                        "const": "1e70d11d-cbdd-bfd1-9301-9612c29b4060"
-                                    }
-                                }
+                                        "const": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "termId": {
-                                        "const": "5e166ac4-bfcd-457a-84bc-8626abe9188f"
-                                    }
-                                }
+                                        "const": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "termId": {
-                                        "const": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166"
-                                    }
-                                }
+                                        "const": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+                                    },
+                                },
                             },
-                        ]
+                        ],
                     },
                     "specificAttributes": {
                         "type": "array",
@@ -201,67 +201,67 @@ def ivnoice_schema_json_with_full_sample_info() -> Generator[str, None, None]:
                                 "type": "object",
                                 "required": [
                                     "classId",
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "classId": {
-                                        "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                                        "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                                     },
                                     "termId": {
-                                        "const": "3250c45d-0ed6-1438-43b5-eb679918604a"
-                                    }
-                                }
+                                        "const": "3250c45d-0ed6-1438-43b5-eb679918604a",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
                                     "classId",
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "classId": {
-                                        "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                                        "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                                     },
                                     "termId": {
-                                        "const": "70c2c751-5404-19b7-4a5e-981e6cebbb15"
-                                    }
-                                }
+                                        "const": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
                                     "classId",
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "classId": {
-                                        "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                                        "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                                     },
                                     "termId": {
-                                        "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057"
-                                    }
-                                }
+                                        "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
                                 "required": [
                                     "classId",
-                                    "termId"
+                                    "termId",
                                 ],
                                 "properties": {
                                     "classId": {
-                                        "const": "342ba516-4d02-171c-9bc4-70a3134b47a8"
+                                        "const": "342ba516-4d02-171c-9bc4-70a3134b47a8",
                                     },
                                     "termId": {
-                                        "const": "518e26a0-4262-86f5-3598-80e18e6ff2af"
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        }
+                                        "const": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+        },
     }
     # setup
     invoice_dir.mkdir(parents=True, exist_ok=True)
@@ -328,7 +328,7 @@ def ivnoice_json_magic_filename_variable() -> Generator[str, None, None]:
             "sample7": "#h1",
             "sample8": "itemA",
             "sample9": "II",
-            "sample10": "S10"
+            "sample10": "S10",
         },
         "sample": {
             "sampleId": "",
@@ -339,57 +339,57 @@ def ivnoice_json_magic_filename_variable() -> Generator[str, None, None]:
             "generalAttributes": [
                 {
                     "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
-                    "value": None
-                }
+                    "value": None,
+                },
             ],
             "specificAttributes": [
                 {
                     "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                     "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                     "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                     "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
-                    "value": None
+                    "value": None,
                 },
                 {
                     "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
                     "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
-                    "value": None
-                }
+                    "value": None,
+                },
             ],
-            "ownerId": "de17c7b3f0ff5126831c2d519f481055ba466ddb6238666132316439"
-        }
+            "ownerId": "de17c7b3f0ff5126831c2d519f481055ba466ddb6238666132316439",
+        },
     }
 
     # setup

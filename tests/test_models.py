@@ -117,6 +117,6 @@ def test_create_invoice_schema_json():
         schema_id="https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",
         description="RDEデータセットテンプレートテスト用ファイル",
         type="object",
-        properties=Properties()
+        properties=Properties(),
     )
     assert isinstance(obj.model_dump_json(), str)

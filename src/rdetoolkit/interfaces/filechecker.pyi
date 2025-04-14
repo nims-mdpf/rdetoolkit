@@ -16,3 +16,7 @@ class IInputFileChecker(ABC, metaclass=abc.ABCMeta):
 class ICompressedFileStructParser(ABC, metaclass=abc.ABCMeta):
     @abstractmethod
     def read(self, zipfile: Path, target_path: Path) -> list[tuple[Path, ...]]: ...
+
+class IArtifactPackageCompressor(ABC, metaclass=abc.ABCMeta):
+    @abstractmethod
+    def archive(self, output_zip: str | Path) -> list[Path]: ...

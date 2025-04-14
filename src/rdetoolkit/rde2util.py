@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import json
 import os
 import pathlib
@@ -510,13 +511,18 @@ class Meta:
                 stract = stract.replace(srckey, f'"{realval}"' if isinstance(realval, str) else str(realval))
         vobj["value"] = eval(stract)
 
-    def __convert_to_str(self, value: str | float | list) -> str | list[str]:
+    def __convert_to_str(self, value: str | float | list | datetime.datetime) -> str | list[str]:
         """Convert the given value to string or list of strings."""
         if isinstance(value, (str, int, float, bool)):
             return str(value)
+        if isinstance(value, datetime.datetime):
+            return value.isoformat()
         if isinstance(value, list):
             return list(map(str, value))
-        return ""
+        try:
+            return str(value)
+        except Exception:
+            return ""
 
     def writefile(self, meta_filepath: str, enc: str = "utf_8") -> dict[str, Any]:
         """Writes the metadata to a file after processing units and actions.
@@ -605,7 +611,7 @@ class Meta:
                 continue
             if val_src_element == "" and opt_ignore_emptystr:
                 continue
-            self.metaVar[idx][key] = self._metadata_validation(val_src_element, outtype, outfmt, orgtype, outunit)
+            self.metaVar[idx][key] = self.metadata_validation(val_src_element, outtype, outfmt, orgtype, outunit)
 
     def __set_const_metadata(
         self,
@@ -618,9 +624,9 @@ class Meta:
         orgtype = metadefvalue.get("originalType")
         outunit = metadefvalue.get("unit")
         if not isinstance(metavalue, list):
-            self.metaConst[key] = self._metadata_validation(metavalue, outtype, outfmt, orgtype, outunit)
+            self.metaConst[key] = self.metadata_validation(metavalue, outtype, outfmt, orgtype, outunit)
 
-    def _metadata_validation(
+    def metadata_validation(
         self,
         vsrc: str,
         outtype: str | None,
@@ -656,12 +662,12 @@ class Meta:
             vstr = valpair.value
             # Check if the value can be interpreted.
             # We only care if the process completes without exceptions.
-            _casted_value = castval(vstr, orgtype, outfmt)
+            _casted_value = castval(vstr, outtype, outfmt)
         else:
             vstr = vsrc
             # Check if the value can be interpreted.
             # We only care if the process completes without exceptions.
-            _casted_value = castval(vstr, orgtype, outfmt)
+            _casted_value = castval(vstr, outtype, outfmt)
 
         if outunit:
             return {

@@ -1,7 +1,7 @@
 import os
 import pathlib
 import shutil
-from typing import Generator
+from collections.abc import Generator
 
 import pandas as pd
 import pytest

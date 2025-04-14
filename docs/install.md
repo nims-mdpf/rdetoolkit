@@ -18,6 +18,24 @@ rdetoolkitのインストール方法は以下の通りです。
     py -m pip install rdetoolkit==<指定バージョン>
     ```
 
+### MinIO機能付きインストール
+
+MinIOを利用する場合は、extras オプション `[minio]` を指定してインストールしてください。
+
+=== "Unix/macOS"
+
+```shell
+python3 -m pip install "rdetoolkit[minio]"
+python3 -m pip install "rdetoolkit[minio]==<指定バージョン>"
+```
+
+=== "Windows"
+
+```powershell
+py -m pip install "rdetoolkit[minio]"
+py -m pip install "rdetoolkit[minio]==<指定バージョン>"
+```
+
 ### Githubリポジトリからインストール
 
 Githubリポジトリから直接インストールしたい場合や、開発版のパッケージをインストールする場合、リポジトリから直接インストールしてください。
@@ -38,18 +56,4 @@ Githubリポジトリから直接インストールしたい場合や、開発�
 
 本パッケージは、以下のライブラリ群に依存しています。
 
-```text
-chardet>=5.2.0
-charset-normalizer>=3.2.0
-matplotlib>=3.7.2
-openpyxl>=3.1.2
-pandas>=2.0.3
-build>=1.0.3
-click>=8.1.7
-toml>=0.10.2
-pydantic>=2.6.3
-jsonschema>=4.21.1
-tomlkit>=0.12.4
-PyYAML>=6.0.1
-eval_type_backport>=0.2.0
-```
+- [pyproject.toml - nims-dpfc/rdetoolkit](https://github.com/nims-dpfc/rdetoolkit/blob/main/pyproject.toml)

@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.1.1"
+version = "1.2.0"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "Sonokawa Hayato", email = "SONOKAWA.Hayato@nims.go.jp" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -25,36 +25,40 @@ classifiers = [
 dependencies = [
     "chardet>=5.2.0",
     "charset-normalizer>=3.2.0",
-    "matplotlib>=3.7.2",
     "openpyxl>=3.1.2",
-    "pandas==2.2.0",
+    "pandas>=2.2.3",
     "build>=1.0.3",
     "click>=8.1.7",
     "toml>=0.10.2",
-    "pydantic>=2.6.3",
+    "pydantic>=2.8.3",
     "jsonschema>=4.21.1",
     "tomlkit>=0.12.4",
     "PyYAML>=6.0.1",
     "eval_type_backport>=0.2.0",
-    "Pillow>=10.4.0",
-    "numpy==1.26.4",
+    "numpy>=1.26.4",
     "polars>=1.9.0",
-    "pyarrow>=17.0.0",
+    "pyarrow>=19.0.0",
     "tqdm>=4.67.0",
     "pip>=24.3.1",
+    "markdown>=3.7",
+    "types-pytz>=2025.2.0.20250326",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
 
+[project.optional-dependencies]
+minio = ["minio>=7.2.15"]
+
 [tool.setuptools]
 package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
+
 
 [project.urls]
 "Homepage" = "https://github.com/nims-dpfc/rdetoolkit"
 "Bug Tracker" = "https://github.com/nims-dpfc/rdetoolkit"
 
 [build-system]
-requires = ["maturin>=1.2,<2.0"]
+requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
 # requires = ["hatchling"]
 # build-backend = "hatchling.build"
@@ -99,6 +103,7 @@ select = [
     "TID",  # flake8-tidy-imports
 ]
 ignore = [
+    "I001",
     "D100",
     "D101",
     "D104",
@@ -161,6 +166,7 @@ convention = "google"
 [tool.ruff.per-file-ignores]
 # Unused imports are allowed in __init__.py.
 "__init__.py" = ["F401", "F403"]
+"**/*.pyi" = ["ALL"]
 
 [tool.mypy]
 show_error_context = true
@@ -208,6 +214,7 @@ dev-dependencies = [
     "ruff>=0.5.5",
     "jsonschema-markdown>=0.3.8",
     "mike>=2.1.3",
+    "minio>=7.2.15",
 ]
 
 [tool.rye.scripts]

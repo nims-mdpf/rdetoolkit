@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import tempfile
@@ -49,6 +50,16 @@ def meta_const_instance():
             "name": {"ja": "日時", "en": "date"},
             "schema": {"type": "string"},
         },
+        "datetime": {
+            "name": {
+                "ja": "分析年月日",
+                "en": "Measured date",
+            },
+            "schema": {
+                "type": "string",
+                "format": "date",
+            },
+        },
         "reference": {
             "name": {"ja": "参考文献", "en": "Reference"},
             "schema": {"type": "string"},
@@ -80,10 +91,11 @@ def test_assignVals_unknown_key(meta_const_instance):
 
 
 def test_assignVals_exsit_key(meta_const_instance):
-    entry_dict_meta = {"date": "2022-01-01", "reference": "sample.com"}
+    entry_dict_meta = {"date": "2022-01-01", "datetime": datetime.datetime(2012, 12, 16, 0, 0), "reference": "sample.com"}
     result = meta_const_instance.assign_vals(entry_dict_meta)
+    assert meta_const_instance.metaConst["datetime"]["value"] == "2012-12-16"
     assert result["unknown"] == set()
-    assert result["assigned"] == {"reference", "date"}
+    assert result["assigned"] == {"reference", "date", "datetime"}
 
 
 def test_empty_writefile(meta_const_instance):
@@ -227,7 +239,7 @@ def test_detect_text_file_encoding_utf_8_sig(utf_8_sig_file):
 
 # read_invoice_json_fileのテスト
 def test_read_from_json_file_valid_json_file(ivnoice_json_none_sample_info):
-    """version1.2.0で削除予定 """
+    """version1.2.0で削除予定"""
     expect_json = {
         "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
         "basic": {
@@ -326,3 +338,50 @@ def test_convert_to_date_format():
 
     with pytest.raises(StructuredError, match="ERROR: unknown format in metaDef"):
         ValueCaster.convert_to_date_format("2021-01-01", "unknown-format")
+
+
+@pytest.mark.parametrize(
+    "vsrc, outtype, outfmt, orgtype, outunit, expected",
+    [
+        # Case 1: orgtype=None case (castval is called directly)
+        ("100", "integer", None, None, None, {"value": 100}),
+        ("true", "boolean", None, None, None, {"value": True}),
+        ("test", "string", None, None, None, {"value": "test"}),
+        ("2023-01-01", "string", "date", None, None, {"value": "2023-01-01"}),
+
+        # Case 2: orgtype=integer with unit
+        ("100kg", "integer", None, "integer", None, {"value": 100}),
+        ("50.5m", "number", None, "integer", None, {"value": 50.5}), # integerなので小数点以下が切り捨て
+
+        # Case 3: orgtype=number with unit
+        ("100.5kg", "number", None, "number", None, {"value": 100.5}),
+
+        # Case 4: orgtype=string (other types)
+        ("test", "string", None, "string", None, {"value": "test"}),
+
+        # Case 5: with outunit (unit information included)
+        ("100", "integer", None, None, "kg", {"value": 100, "unit": "kg"}),
+        ("test", "string", None, "string", "m", {"value": "test", "unit": "m"}),
+
+        # Case 6: input value with whitespace (should be trimmed)
+        ("  100  ", "integer", None, None, None, {"value": 100}),
+
+        # Case 7: combination of unit and format
+        ("2023-01-01", "string", "date", None, "UTC", {"value": "2023-01-01", "unit": "UTC"}),
+    ],
+)
+def test_metadata_validation(meta_const_instance, vsrc, outtype, outfmt, orgtype, outunit, expected):
+    """Meta.metadata_validation"""
+    result = meta_const_instance.metadata_validation(vsrc, outtype, outfmt, orgtype, outunit)
+    assert result == expected
+
+
+def test_metadata_validation_error(meta_const_instance):
+    """Error testing with invalid input or type"""
+    # Cases where castval throws an error with an invalid type
+    with pytest.raises(StructuredError, match="ERROR: unknown value type in metaDef"):
+        meta_const_instance.metadata_validation("test", "invalid_type", None, None, None)
+
+    # Cases in which castval throws an error with invalid value
+    with pytest.raises(StructuredError, match="ERROR: failed to cast metaDef value"):
+        meta_const_instance.metadata_validation("abc", "integer", None, None, None)

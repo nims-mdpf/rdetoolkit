@@ -1,9 +1,8 @@
 from pathlib import Path
 from rdetoolkit.fileops import readf_json, writef_json
 import json
-from unittest.mock import mock_open, patch, MagicMock
+from unittest.mock import mock_open, patch
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.core import detect_encoding
 import pytest
 
 
@@ -85,7 +84,7 @@ def test_readf_json_raise_structured_error_on_exception():
 
     with patch('rdetoolkit.fileops.detect_encoding', return_value=mock_encoding) as mock_detect:
         with patch('builtins.open', mock_open()) as mock_file:
-            mock_file.side_effect = IOError('File not found')
+            mock_file.side_effect = OSError('File not found')
 
             with pytest.raises(StructuredError) as exc_info:
                 readf_json(test_path)
@@ -107,7 +106,7 @@ def test_writef_json_basic(tmp_path):
 
     assert file_path.exists()
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding='utf-8') as f:
         file_content = json.load(f)
     assert file_content == test_data
 
@@ -126,7 +125,7 @@ def test_writf_json_with_path_object(tmp_path):
 
     assert file_path.exists()
 
-    with open(file_path, "r", encoding="utf_8") as f:
+    with open(file_path, encoding="utf_8") as f:
         file_content = json.load(f)
     assert file_content == test_data
 
@@ -134,8 +133,7 @@ def test_writf_json_with_path_object(tmp_path):
 
 
 def test_writef_json_with_different_encoding(tmp_path):
-    """
-    異なるエンコーディングでの書き込みテスト:
+    """異なるエンコーディングでの書き込みテスト:
     異なる文字エンコーディング（例: 'utf_16'）を使用してファイルを書き込み、正しくエンコーディングが適用されていることを確認します。
     """
     test_data = {"japanese": "テスト", "emoji": "😊"}
@@ -146,7 +144,7 @@ def test_writef_json_with_different_encoding(tmp_path):
 
     assert file_path.exists()
 
-    with open(file_path, "r", encoding=encoding) as f:
+    with open(file_path, encoding=encoding) as f:
         file_content = json.load(f)
     assert file_content == test_data
 
@@ -165,7 +163,7 @@ def test_writef_json_empty_dict(tmp_path):
 
     assert file_path.exists()
 
-    with open(file_path, "r", encoding="utf_8") as f:
+    with open(file_path, encoding="utf_8") as f:
         file_content = json.load(f)
     assert file_content == test_data
 

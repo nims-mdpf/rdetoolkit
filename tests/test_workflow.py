@@ -86,7 +86,7 @@ def test_run_config_args(inputfile_single, tasksupport, metadata_def_json_file, 
 
 @pytest.mark.parametrize("config_file", ["rdeconfig.yaml", "pyproject.toml", "rdeconfig.yml"])
 def test_run_config_file_rdeformat_mode(
-    inputfile_rdeformat, tasksupport, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json, config_file
+    inputfile_rdeformat, tasksupport, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json, config_file,
 ):
     """configが引数Noneでファイルとして渡された場合"""
     if Path("data/tasksupport/rdeconfig.yml").exists():
@@ -104,7 +104,7 @@ def test_run_config_file_rdeformat_mode(
 
 @pytest.mark.parametrize("config_file", ["rdeconfig.yaml", "pyproject.toml", "rdeconfig.yml"])
 def test_run_config_file_multifile_mode(
-    inputfile_multimode, tasksupport, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json, config_file
+    inputfile_multimode, tasksupport, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json, config_file,
 ):
     """configが引数Noneでファイルとして渡された場合"""
     if Path("data/tasksupport/rdeconfig.yml").exists():
@@ -121,7 +121,7 @@ def test_run_config_file_multifile_mode(
 
 
 def test_run_empty_config(
-    inputfile_single, tasksupport_empty_config, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json
+    inputfile_single, tasksupport_empty_config, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json,
 ):
     """configファイルの実態はあるがファイル内容が空の場合"""
     config = Config(system=SystemSettings(extended_mode=None, save_raw=True, save_thumbnail_image=False, magic_variable=False), multidata_tile=MultiDataTileSettings(ignore_errors=False))
