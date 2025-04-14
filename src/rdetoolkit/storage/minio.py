@@ -13,10 +13,14 @@ try:
 except ImportError:
     from urllib3.response import HTTPResponse as BaseHTTPResponse
 
-from minio import Minio
-from minio.sse import SseCustomerKey
-from minio.commonconfig import Tags
-from minio.retention import Retention
+try:
+    from minio import Minio
+    from minio.sse import SseCustomerKey
+    from minio.commonconfig import Tags
+    from minio.retention import Retention
+    HAS_MINIO = True
+except ImportError:
+    HAS_MINIO = False
 
 
 class MinIOStorage:
@@ -50,6 +54,10 @@ class MinIOStorage:
         Raises:
             ValueError: If access_key or secret_key is not provided.
         """
+        if not HAS_MINIO:
+            import_err_msg = "Minio is not installed. Please install it using 'pip install rdetoolkit[minio]'."
+            raise ImportError(import_err_msg)
+
         self.access_key = access_key if access_key else os.environ.get("MINIO_ACCESS_KEY")
         self.secret_key = secret_key if secret_key else os.environ.get("MINIO_SECRET_KEY")
 
