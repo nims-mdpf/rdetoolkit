@@ -311,15 +311,15 @@ class ExternalConnScanner(ICodeScanner):
             return []
 
         pattern = self._build_pattern()
-        snippets: list[CodeSnippet] = []
+        collected_snippets: list[CodeSnippet] = []
         for path in self.source_dir.rglob("*.py"):
             if self._is_excluded_path(path):
                 continue
 
-            snippets = self._process_file(path, pattern)
-            snippets.extend(snippets)
+            file_snippets = self._process_file(path, pattern)
+            collected_snippets.extend(file_snippets)
 
-        return snippets
+        return collected_snippets
 
 
 def get_scanner(scanner_type: Literal["vulnerability", "external"], source_dir: str | Path) -> ICodeScanner:
