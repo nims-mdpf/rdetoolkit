@@ -41,14 +41,17 @@ dependencies = [
     "tqdm>=4.67.0",
     "pip>=24.3.1",
     "markdown>=3.7",
-    "minio>=7.2.15",
     "types-pytz>=2025.2.0.20250326",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
 
+[project.optional-dependencies]
+minio = ["minio>=7.2.15"]
+
 [tool.setuptools]
 package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
+
 
 [project.urls]
 "Homepage" = "https://github.com/nims-dpfc/rdetoolkit"
