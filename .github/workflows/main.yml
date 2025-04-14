@@ -29,6 +29,8 @@ jobs:
         run: echo "Running tests for Python ${{ matrix.python-version }} with ${{ matrix.tox-env }}"
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libarrow-dev libparquet-dev
           python -m pip install --upgrade pip
           pip install tox
       - name: Test with tox
@@ -87,6 +89,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libarrow-dev libparquet-dev
           python -m pip install --upgrade pip
           pip install build setuptools
       - name: Build
