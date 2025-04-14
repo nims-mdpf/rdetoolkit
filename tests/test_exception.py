@@ -6,8 +6,7 @@ from rdetoolkit.errors import skip_exception_context, format_simplified_tracebac
 
 
 def test_structured_error_initialization():
-    """
-    Test the initialization of the StructuredError class.
+    """Test the initialization of the StructuredError class.
 
     This test verifies that the StructuredError class correctly initializes its properties
     with the provided arguments.
@@ -35,8 +34,7 @@ def test_structured_error_initialization():
 
 
 def test_structured_error_default_initialization():
-    """
-    Test the default initialization of the StructuredError class.
+    """Test the default initialization of the StructuredError class.
 
     This test verifies that the StructuredError class correctly initializes its properties
     with default values when no arguments are provided.
@@ -58,8 +56,7 @@ def test_structured_error_default_initialization():
 
 
 def test_format_simplified_traceback():
-    """
-    Test the format_simplified_traceback function.
+    """Test the format_simplified_traceback function.
 
     This test verifies that the format_simplified_traceback function correctly formats
     a list of traceback.FrameSummary objects into a readable string representation.
@@ -85,8 +82,7 @@ def test_format_simplified_traceback():
 
 
 def test_catch_exception_with_message_verbose(capfd):
-    """
-    Test catch_exception_with_message with verbose output.
+    """Test catch_exception_with_message with verbose output.
 
     This test verifies that the decorator correctly catches an exception and writes the original
     traceback to standard error when verbose is set to True.
@@ -131,8 +127,7 @@ def test_catch_exception_with_message_verbose(capfd):
 
 
 def test_catch_exception_with_message_custom_eobj():
-    """
-    Test catch_exception_with_message with a custom error object.
+    """Test catch_exception_with_message with a custom error object.
 
     This test verifies that the decorator correctly catches an exception and re-raises
     a StructuredError with a custom error object.
@@ -170,8 +165,7 @@ def test_catch_exception_with_message_custom_eobj():
 
 
 def test_catch_exception_with_message_custom_code():
-    """
-    Test catch_exception_with_message with a custom error code.
+    """Test catch_exception_with_message with a custom error code.
 
     This test verifies that the decorator correctly catches an exception and re-raises
     a StructuredError with a custom error code.
@@ -209,8 +203,7 @@ def test_catch_exception_with_message_custom_code():
 
 
 def test_catch_exception_with_message_custom_message():
-    """
-    Test catch_exception_with_message with a custom error message.
+    """Test catch_exception_with_message with a custom error message.
 
     This test verifies that the decorator correctly catches an exception and re-raises
     a StructuredError with a custom error message.
@@ -248,8 +241,7 @@ def test_catch_exception_with_message_custom_message():
 
 
 def test_catch_exception_with_message_default():
-    """
-    Test catch_exception_with_message with default parameters.
+    """Test catch_exception_with_message with default parameters.
 
     This test verifies that the decorator correctly catches an exception and re-raises
     a StructuredError with the default error message and error code.
@@ -285,8 +277,7 @@ def test_catch_exception_with_message_default():
 
 
 def test_catch_exception_with_message_exception():
-    """
-    Test the handle_exception function.
+    """Test the handle_exception function.
 
     This test verifies that the handle_exception function correctly handles exceptions,
     and returns a StructuredError object with the appropriate error message and traceback information.
@@ -313,8 +304,7 @@ def test_catch_exception_with_message_exception():
 
 
 def test_handle_exception_default():
-    """
-    Test handle_exception with default parameters.
+    """Test handle_exception with default parameters.
 
     This test verifies that the handle_exception function correctly handles an exception
     and returns a StructuredError with the default error message and error code.
@@ -345,8 +335,7 @@ def test_handle_exception_default():
 
 
 def test_handle_exception_custom_message():
-    """
-    Test handle_exception with a custom error message.
+    """Test handle_exception with a custom error message.
 
     This test verifies that the handle_exception function correctly handles an exception
     and returns a StructuredError with a custom error message.
@@ -379,8 +368,7 @@ def test_handle_exception_custom_message():
 
 
 def test_handle_exception_custom_code():
-    """
-    Test handle_exception with a custom error code.
+    """Test handle_exception with a custom error code.
 
     This test verifies that the handle_exception function correctly handles an exception
     and returns a StructuredError with a custom error code.
@@ -413,8 +401,7 @@ def test_handle_exception_custom_code():
 
 
 def test_handle_exception_custom_eobj():
-    """
-    Test handle_exception with a custom error object.
+    """Test handle_exception with a custom error object.
 
     This test verifies that the handle_exception function correctly handles an exception
     and returns a StructuredError with a custom error object.
@@ -447,8 +434,7 @@ def test_handle_exception_custom_eobj():
 
 
 def test_handle_exception_verbose(capfd):
-    """
-    Test handle_exception with verbose output.
+    """Test handle_exception with verbose output.
 
     This test verifies that the handle_exception function correctly handles an exception
     and writes the original traceback to standard error when verbose is set to True.

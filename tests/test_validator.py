@@ -191,7 +191,7 @@ def test_invoice_validate():
 
 
 def test_invalid_invoice_validate():
-    """input file: invoice_invalid.json
+    """Input file: invoice_invalid.json
     "custom": {
         "sample1": null,
         "sample2": null,

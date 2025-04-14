@@ -53,12 +53,12 @@ def meta_const_instance():
         "datetime": {
             "name": {
                 "ja": "分析年月日",
-                "en": "Measured date"
+                "en": "Measured date",
             },
             "schema": {
                 "type": "string",
-                "format": "date"
-            }
+                "format": "date",
+            },
         },
         "reference": {
             "name": {"ja": "参考文献", "en": "Reference"},
@@ -239,7 +239,7 @@ def test_detect_text_file_encoding_utf_8_sig(utf_8_sig_file):
 
 # read_invoice_json_fileのテスト
 def test_read_from_json_file_valid_json_file(ivnoice_json_none_sample_info):
-    """version1.2.0で削除予定 """
+    """version1.2.0で削除予定"""
     expect_json = {
         "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
         "basic": {
@@ -368,7 +368,7 @@ def test_convert_to_date_format():
 
         # Case 7: combination of unit and format
         ("2023-01-01", "string", "date", None, "UTC", {"value": "2023-01-01", "unit": "UTC"}),
-    ]
+    ],
 )
 def test_metadata_validation(meta_const_instance, vsrc, outtype, outfmt, orgtype, outunit, expected):
     """Meta.metadata_validation"""

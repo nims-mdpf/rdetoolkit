@@ -10,7 +10,7 @@ def test_workflow_execution_status_creation():
         error_code=None,
         error_message=None,
         target="example_target",
-        stacktrace=None
+        stacktrace=None,
     )
 
     assert status.run_id == "0001"
@@ -61,7 +61,7 @@ def test_workflow_result_manager_add_status():
         error_code=None,
         error_message=None,
         target="example_target",
-        stacktrace=None
+        stacktrace=None,
     )
     manager.add_status(status)
     assert len(manager) == 1

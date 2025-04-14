@@ -3,7 +3,7 @@ import logging.handlers
 import os
 import pathlib
 import shutil
-from typing import Generator
+from collections.abc import Generator
 from unittest import mock
 
 import pytest
@@ -39,7 +39,7 @@ def test_log_decorator(caplog):
 
         calls = [
             mock.call.info('test_func       --> Start'),
-            mock.call.info('test_func       <-- End')
+            mock.call.info('test_func       <-- End'),
         ]
         logger_mock.get_logger.return_value.assert_has_calls(calls)
 
@@ -215,7 +215,7 @@ class TestLazyFileHandler:
             lineno=1,
             msg="Test message",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
 
         handler.emit(record)
@@ -237,7 +237,7 @@ class TestLazyFileHandler:
             lineno=1,
             msg="Test message",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
 
         handler.emit(record)

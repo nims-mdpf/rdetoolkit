@@ -1,4 +1,3 @@
-import os
 import pathlib
 import platform
 import shutil
@@ -197,7 +196,7 @@ class TestZipArtifactPackageCompressor:
     @pytest.fixture
     def compressor(self, sample_dir):
         exclude_patterns = [
-            r"__MACOSX", r"\.DS_Store", r"~\$.*\.(docx|xlsx|pptx)"
+            r"__MACOSX", r"\.DS_Store", r"~\$.*\.(docx|xlsx|pptx)",
         ]
         return ZipArtifactPackageCompressor(sample_dir, exclude_patterns=exclude_patterns)
 

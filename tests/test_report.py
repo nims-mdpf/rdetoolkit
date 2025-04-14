@@ -6,7 +6,7 @@ from rdetoolkit.artifact.report import (
     TemplateMarkdownReportGenerator,
     CodeSecurityScanner,
     ExternalConnScanner,
-    get_scanner
+    get_scanner,
 )
 from rdetoolkit.models.reports import ReportItem, CodeSnippet
 
@@ -38,15 +38,15 @@ def sample_report_item():
             CodeSnippet(
                 file_path="src/example.py",
                 snippet="1: eval('1+2')\n2: print('vuln')",
-                description="Usage of eval() poses the risk of arbitrary code execution."
-            )
+                description="Usage of eval() poses the risk of arbitrary code execution.",
+            ),
         ],
         code_ext_requests_scan_results=[
             CodeSnippet(
                 file_path="src/api.py",
                 snippet="1: import requests\n2: requests.get('https://example.com')",
-                description=None
-            )
+                description=None,
+            ),
         ],
     )
 

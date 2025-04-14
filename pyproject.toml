@@ -41,12 +41,17 @@ dependencies = [
     "tqdm>=4.67.0",
     "pip>=24.3.1",
     "markdown>=3.7",
+    "types-pytz>=2025.2.0.20250326",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
 
+[project.optional-dependencies]
+minio = ["minio>=7.2.15"]
+
 [tool.setuptools]
 package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
+
 
 [project.urls]
 "Homepage" = "https://github.com/nims-dpfc/rdetoolkit"
@@ -98,6 +103,7 @@ select = [
     "TID",  # flake8-tidy-imports
 ]
 ignore = [
+    "I001",
     "D100",
     "D101",
     "D104",
@@ -160,6 +166,7 @@ convention = "google"
 [tool.ruff.per-file-ignores]
 # Unused imports are allowed in __init__.py.
 "__init__.py" = ["F401", "F403"]
+"**/*.pyi" = ["ALL"]
 
 [tool.mypy]
 show_error_context = true
