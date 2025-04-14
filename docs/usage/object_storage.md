@@ -1,4 +1,4 @@
-# MinIOStorage マニュアル
+# rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
 
 ## 概要
 
@@ -14,7 +14,7 @@ MinIOStorageは、オブジェクトストレージサービスであるMinIOと
 rdetoolkitパッケージの一部として提供されているため、以下のコマンドでインストールできます：
 
 ```bash
-pip install rdetoolkit
+pip install rdetoolkit[minio]
 ```
 
 ## 基本的な使い方

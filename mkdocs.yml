@@ -47,6 +47,8 @@ nav:
           - usage/metadata_definition_file.md
       - バリデーション:
           - usage/validation.md
+      - オブジェクトストレージを使用する:
+          - usage/object_storage.md
       - Docker:
           - usage/docker.md
   - API Documentation:
@@ -60,6 +62,8 @@ nav:
           - rdetoolkit/models/invoice_schema.md
           - rdetoolkit/models/metadata.md
           - rdetoolkit/models/rde2types.md
+      - storage:
+          - rdetoolkit/storage/minio.md
       - core module:
           - rdetoolkit/core.md
       - rdetoolkit/config.md
