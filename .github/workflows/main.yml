@@ -1,4 +1,7 @@
 name: test
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:
@@ -13,28 +16,45 @@ on:
       - develop*
 
 jobs:
-  test:
+  test-module:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-        tox-env: [module, ruff, lizard, mypy]
+      max-parallel: 3
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Print
-        run: echo "Running tests for Python ${{ matrix.python-version }} with ${{ matrix.tox-env }}"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install tox
-      - name: Test with tox
-        run: tox -e py${{ matrix.python-version }}-${{ matrix.tox-env }}
+      - name: Test with tox (module)
+        run: tox -e py${{ matrix.python-version }}-module
+
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tox-env: [ruff, lizard, mypy]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox
+      - name: Lint/Static Analysis with tox
+        run: tox -e py311-${{ matrix.tox-env }}
 
   test_rs:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -42,39 +62,33 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         rust: [stable]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-
+      max-parallel: 2
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
       - name: Install Python development headers (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get install python3-dev
-
       - name: Install Python development headers (macOS)
         if: runner.os == 'macOS'
         run: brew install python
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
           override: true
-
       - name: Set environment variables
         run: |
           echo "PYTHON_INCLUDE_DIR=$(python3 -c 'from distutils.sysconfig import get_python_inc(); print(get_python_inc())')" >> $GITHUB_ENV
-          echo "PYTHON_LIB_DIR=$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')" >> $GITHUB_ENV
-
+          echo "PYTHON_LIB_DIR=$(python3 -c 'import sysconfig; print(sysconfig.get_config_var(\"LIBDIR\"))')" >> $GITHUB_ENV
       - name: Run tests
         run: cargo test --no-default-features
 
   build-check:
-    needs: test
+    needs: test-module
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -93,7 +107,7 @@ jobs:
         run: python -m build
 
   coverage:
-    needs: test
+    needs: test-module
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
