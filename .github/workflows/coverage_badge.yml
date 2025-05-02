@@ -5,6 +5,8 @@ concurrency:
 
 on:
   push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   test:

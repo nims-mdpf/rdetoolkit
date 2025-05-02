@@ -12,6 +12,7 @@ on:
 
 jobs:
   linux:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -42,6 +43,7 @@ jobs:
           mv Cargo.toml.bak Cargo.toml
 
   linux-cross:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     env:
       SKIP_BUILD_RS: "1"
@@ -74,6 +76,7 @@ jobs:
           mv Cargo.toml.bak Cargo.toml
 
   musllinux:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     env:
       SKIP_BUILD_RS: "1"
@@ -108,6 +111,7 @@ jobs:
           mv Cargo.toml.bak Cargo.toml
 
   musllinux-cross:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     env:
       SKIP_BUILD_RS: "1"
@@ -144,6 +148,7 @@ jobs:
           mv Cargo.toml.bak Cargo.toml
 
   windows:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ matrix.platform.runner }}
     env:
       SKIP_BUILD_RS: "1"
@@ -185,6 +190,7 @@ jobs:
           mv Cargo.toml.bak Cargo.toml
 
   macos:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ matrix.platform.runner }}
     env:
       SKIP_BUILD_RS: "1"
@@ -271,7 +277,8 @@ jobs:
           MATURIN_PYPI_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
         with:
           command: upload
-          args: --non-interactive --skip-existing --repository-url https://test.pypi.org/legacy/ dist/**/*.whl dist/**/*.tar.gz
+          repository-url: https://test.pypi.org/legacy/
+          args: --non-interactive --skip-existing dist/**/*.whl dist/**/*.tar.gz
 
   release-to-pypi:
     name: Release to PyPI
@@ -291,6 +298,8 @@ jobs:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         with:
           command: upload
+          # 既定のリポジトリURLを明示化し、Bad URLエラーを回避
+          repository-url: https://upload.pypi.org/legacy/
           args: --non-interactive --skip-existing dist/**/*.whl dist/**/*.tar.gz
 
   github-release:
