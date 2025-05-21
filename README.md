@@ -5,25 +5,29 @@
 ![workflow](https://github.com/nims-dpfc/rdetoolkit/actions/workflows/main.yml/badge.svg)
 ![coverage](docs/img/coverage.svg)
 
+> [日本語ドキュメント](docs/README_ja.md)
+
 # RDEToolKit
 
-RDEToolKitは、RDE構造化プログラムのワークフローを作成するための基本的なPythonパッケージです。
-RDEToolKitの各種モジュールを使うことで、RDEへの研究・実験データの登録処理を簡単に構築できます。
-また、ユーザーが研究や実験データに対して使用されているPythonモジュールと組み合わせることで、データの登録から加工、グラフ化などより多様な処理を実現できます。
+
+
+RDEToolKit is a fundamental Python package for creating workflows of RDE-structured programs.
+By utilizing various modules provided by RDEToolKit, you can easily build processes for registering research and experimental data into RDE.
+Additionally, by combining RDEToolKit with Python modules used in your research or experiments, you can achieve a wide range of tasks, from data registration to processing and visualization.
 
 ## Documents
 
-See [documentation](https://nims-dpfc.github.io/rdetoolkit/) for more details.
+See the [documentation](https://nims-mdpf.github.io/rdetoolkit/) for more details.
 
 ## Contributing
 
-変更を加える場合、以下のドキュメントを一読お願いします。
+If you wish to make changes, please read the following document first:
 
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Install
 
-インストールは、下記コマンドを実行してください。
+To install, run the following command:
 
 ```shell
 pip install rdetoolkit
@@ -31,32 +35,32 @@ pip install rdetoolkit
 
 ## Usage
 
-RDE構造化プログラム構築の一例です。
+Below is an example of building an RDE-structured program.
 
-### プロジェクトを作成する
+### Create a Project
 
-まず、RDE構造化プログラムに必要なファイルを準備します。以下のコマンドをターミナルやシェル上で実行してください。
+First, prepare the necessary files for the RDE-structured program. Run the following command in your terminal or shell:
 
 ```python
 python3 -m rdetoolkit init
 ```
 
-コマンドが正しく動作すると、下記で示したファイル・ディレクトリが生成されます。
+If the command runs successfully, the following files and directories will be generated.
 
-この例では、`container`というディレクトリを作成して、開発を進めます。
+In this example, development proceeds within a directory named `container`.
 
 - **requirements.txt**
-  - 構造化プログラム構築で使用したいPythonパッケージを追加してください。必要に応じて`pip install`を実行してください。
+  - Add any Python packages you wish to use for building the structured program. Run `pip install` as needed.
 - **modules**
-  - 構造化処理で使用したいプログラムを格納してください。別セクションで説明します。
+  - Store programs you want to use for structured processing here. Details are explained in a later section.
 - **main.py**
-  - 構造化プログラムの起動処理を定義
+  - Defines the entry point for the structured program.
 - **data/inputdata**
-  - 構造化処理対象データファイルを配置してください。
+  - Place data files to be processed here.
 - **data/invoice**
-  - ローカル実行させるためには空ファイルでも必要になります。
+  - Required even as an empty file for local execution.
 - **data/tasksupport**
-  - 構造化処理の補助するファイル群を配置してください。
+  - Place supporting files for structured processing here.
 
 ```shell
 container
@@ -72,21 +76,21 @@ container
 └── requirements.txt
 ```
 
-### 構造化処理の実装
+### Implementing Structured Processing
 
-入力データに対してデータ加工・グラフ化・機械学習用のcsvファイルの作成など処理を実行し、RDEへデータを登録できます。下記の書式に従っていただければ、独自の処理をRDEの構造化処理のフローに組み込み込むことが可能です。
+You can process input data (e.g., data transformation, visualization, creation of CSV files for machine learning) and register the results into RDE. By following the format below, you can incorporate your own processing into the RDE structured workflow.
 
-`dataset()`は、以下の2つの引数を渡してください。
+The `dataset()` function should accept the following two arguments:
 
-- srcpaths (RdeInputDirPaths): 処理のための入力リソースへのパス
-- resource_paths (RdeOutputResourcePath): 処理結果を保存するための出力リソースへのパス
+- srcpaths (RdeInputDirPaths): Paths to input resources for processing
+- resource_paths (RdeOutputResourcePath): Paths to output resources for saving results
 
 ```python
 def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     ...
 ```
 
-今回の例では、`modules`以下に、`def display_messsage()`というダミー処理を定義し、独自の構造化処理を定義したいと思います。`modules/modules.py`というファイルを作成します。
+In this example, we define a dummy function `display_messsage()` under `modules` to demonstrate how to implement custom structured processing. Create a file named `modules/modules.py` as follows:
 
 ```python
 # modules/modules.py
@@ -98,23 +102,23 @@ def dataset(srcpaths, resource_paths):
     display_messsage(resource_paths)
 ```
 
-### 起動処理について
+### About the Entry Point
 
-続いて、`rdetoolkit.workflow.run()`を使って、起動処理を定義します。起動処理で主に実行処理は、
+Next, use `rdetoolkit.workflow.run()` to define the entry point. The main tasks performed in the entry point are:
 
-- 入力ファイルのチェック
-- 入力ファイルとRDE構造化で規定する各種ディレクトリパスを取得する
-- ユーザーごとで定義した具体的な構造化処理を実行
+- Checking input files
+- Obtaining various directory paths as specified by RDE structure
+- Executing user-defined structured processing
 
 ```python
 import rdetoolkit
-from modules.modules import datase  #独自で定義した構造化処理関数
+from modules.modules import dataset  # User-defined structured processing function
 
-#独自で定義した構造化処理関数を引数として渡す
+# Pass the user-defined structured processing function as an argument
 rdetoolkit.workflows.run(custom_dataset_function=dataset)
 ```
 
-もし、独自の構造化処理を渡さない場合、以下のように定義してください。
+If you do not wish to pass a custom structured processing function, define as follows:
 
 ```python
 import rdetoolkit
@@ -122,9 +126,9 @@ import rdetoolkit
 rdetoolkit.workflows.run()
 ```
 
-### ローカル環境で動作させる場合
+### Running in a Local Environment
 
-各自のローカル環境で、デバッグやテスト的にRDEの構造化処理を実行したい場合、`data`ディレクトリに必要な入力データを追加することで、ローカル環境でも実行可能です。ディレクトリ構造は、以下のように、main.pyと同じ階層にdataディレクトリを配置していただければ動作します。
+To debug or test the RDE structured process in your local environment, simply add the necessary input data to the `data` directory. As long as the `data` directory is placed at the same level as `main.py`, it will work as shown below:
 
 ```shell
 container/
@@ -134,7 +138,7 @@ container/
 │   └── modules.py
 └── data/
     ├── inputdata/
-    │   └── <処理したい実験データ>
+    │   └── <experimental data to process>
     ├── invoice/
     │   └── invoice.json
     └── tasksupport/
