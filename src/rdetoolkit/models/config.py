@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class SystemSettings(BaseModel):
@@ -22,6 +22,32 @@ class SystemSettings(BaseModel):
         default=False,
         description="The feature where specifying '${filename}' as the data name results in the filename being transcribed as the data name.",
     )
+
+    @model_validator(mode='after')
+    @classmethod
+    def check_at_least_one_save_option_enabled(cls, v) -> bool:
+        """Validates that at least one of 'save_raw' or 'save_nonshared_raw' is enabled.
+
+        This class method is used as a Pydantic model validator (mode='after') to ensure
+        that at least one of the two boolean fields, 'save_raw' or 'save_nonshared_raw',
+        is set to True. If both are False, a ValueError is raised.
+
+        Args:
+            v: The model instance being validated.
+
+        Returns:
+            The validated model instance.
+
+        Raises:
+            ValueError: If both 'save_raw' and 'save_nonshared_raw' are False.
+
+        """
+        save_raw = v.save_raw
+        save_nonshared_raw = v.save_nonshared_raw
+        if not save_raw and not save_nonshared_raw:
+            emsg = "At least one of 'save_raw' or 'save_nonshared_raw' must be True."
+            raise ValueError(emsg)
+        return v
 
 
 class MultiDataTileSettings(BaseModel):
