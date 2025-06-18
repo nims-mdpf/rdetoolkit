@@ -49,6 +49,16 @@ class IInputFileChecker(ABC):
     This interface is designed to define the structure for classes that handle the parsing of source input files. It's responsible for validating and extracting necessary information from these files.
     """
 
+    @property
+    @abstractmethod
+    def checker_type(self) -> str:
+        """Return the type identifier for this checker.
+        
+        Returns:
+            str: A string identifier representing the checker type.
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def parse(self, src_input_path: Path) -> tuple[RawFiles, Path | None]:
         """Parses the given source input path and extracts relevant information.

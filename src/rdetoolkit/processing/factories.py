@@ -10,10 +10,12 @@ from rdetoolkit.processing.processors import (
     DescriptionUpdater,
     StandardInvoiceInitializer,
     ExcelInvoiceInitializer,
+    SmartTableInvoiceInitializer,
     FileCopier,
     InvoiceValidator,
     MetadataValidator,
     RDEFormatFileCopier,
+    SmartTableFileCopier,
     ThumbnailGenerator,
     VariableApplier,
 )
@@ -25,6 +27,7 @@ class ProcessingMode(Enum):
     MULTIDATATILE = "multidatatile"
     EXCELINVOICE = "excelinvoice"
     INVOICE = "invoice"
+    SMARTTABLEINVOICE = "smarttableinvoice"
 
 
 class PipelineBuilder(ABC):
@@ -102,6 +105,22 @@ class InvoicePipelineBuilder(PipelineBuilder):
                 .add(InvoiceValidator()))
 
 
+class SmartTableInvoicePipelineBuilder(PipelineBuilder):
+    """Builder for SmartTableInvoice mode pipelines."""
+
+    def build(self) -> Pipeline:
+        """Build SmartTableInvoice pipeline."""
+        return (self._create_base_pipeline()
+                .add(SmartTableInvoiceInitializer())
+                .add(SmartTableFileCopier())
+                .add(DatasetRunner())
+                .add(ThumbnailGenerator())
+                .add(VariableApplier())
+                .add(DescriptionUpdater())
+                .add(MetadataValidator())
+                .add(InvoiceValidator()))
+
+
 class PipelineFactory:
     """Factory for creating predefined processing pipelines with Pythonic design."""
 
@@ -110,6 +129,7 @@ class PipelineFactory:
         ProcessingMode.MULTIDATATILE: MultiFilePipelineBuilder,
         ProcessingMode.EXCELINVOICE: ExcelInvoicePipelineBuilder,
         ProcessingMode.INVOICE: InvoicePipelineBuilder,
+        ProcessingMode.SMARTTABLEINVOICE: SmartTableInvoicePipelineBuilder,
     }
 
     @classmethod
@@ -186,3 +206,12 @@ class PipelineFactory:
             Pipeline configured for Invoice mode
         """
         return PipelineFactory.create_pipeline(ProcessingMode.INVOICE)
+
+    @staticmethod
+    def create_smarttable_invoice_pipeline() -> Pipeline:
+        """Create a pipeline for SmartTableInvoice mode processing.
+
+        Returns:
+            Pipeline configured for SmartTableInvoice mode
+        """
+        return PipelineFactory.create_pipeline(ProcessingMode.SMARTTABLEINVOICE)

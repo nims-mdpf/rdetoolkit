@@ -2,10 +2,11 @@
 
 from .datasets import DatasetRunner
 from .descriptions import DescriptionUpdater
-from .files import FileCopier, RDEFormatFileCopier
+from .files import FileCopier, RDEFormatFileCopier, SmartTableFileCopier
 from .invoice import (
     StandardInvoiceInitializer,
     ExcelInvoiceInitializer,
+    SmartTableInvoiceInitializer,
     InvoiceInitializerFactory,
     # Backward compatibility aliases
     InvoiceHandler,
@@ -19,12 +20,14 @@ __all__ = [
     "DatasetRunner",
     "DescriptionUpdater",
     "StandardInvoiceInitializer",
-    "ExcelInvoiceInitializer", 
+    "ExcelInvoiceInitializer",
+    "SmartTableInvoiceInitializer",
     "InvoiceInitializerFactory",
     "FileCopier",
     "InvoiceValidator",
     "MetadataValidator",
     "RDEFormatFileCopier",
+    "SmartTableFileCopier",
     "ThumbnailGenerator",
     "VariableApplier",
     # Backward compatibility aliases

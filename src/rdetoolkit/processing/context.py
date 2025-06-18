@@ -26,6 +26,7 @@ class ProcessingContext:
     mode_name: str
     excel_file: Path | None = None
     excel_index: int | None = None
+    smarttable_file: Path | None = None
 
     @property
     def basedir(self) -> str:
@@ -66,3 +67,16 @@ class ProcessingContext:
             error_msg = "Excel file not set for this context"
             raise ValueError(error_msg)
         return self.excel_file
+
+    @property
+    def is_smarttable_mode(self) -> bool:
+        """Check if this is SmartTable processing mode."""
+        return self.smarttable_file is not None
+
+    @property
+    def smarttable_invoice_file(self) -> Path:
+        """Get the SmartTable file path (for SmartTable mode only)."""
+        if self.smarttable_file is None:
+            error_msg = "SmartTable file not set for this context"
+            raise ValueError(error_msg)
+        return self.smarttable_file

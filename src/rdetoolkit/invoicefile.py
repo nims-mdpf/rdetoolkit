@@ -1080,3 +1080,276 @@ def apply_magic_variable(invoice_path: str | Path, rawfile_path: str | Path, *, 
         contents = apply_default_filename_mapping_rule(replacement_rule, save_filepath)
 
     return contents
+
+
+class SmartTableFile:
+    """Handles SmartTable files (Excel/CSV/TSV) for invoice generation.
+
+    This class reads table files containing metadata and maps them to invoice structure
+    according to SmartTable format specifications. The first row (display names) is
+    skipped, and the second row is used as the mapping key headers.
+    """
+
+    def __init__(self, smarttable_path: Path):
+        """Initialize SmartTableFile with the path to the table file.
+
+        Args:
+            smarttable_path: Path to the SmartTable file (.xlsx, .csv, .tsv)
+
+        Raises:
+            StructuredError: If file format is not supported or file doesn't exist.
+        """
+        self.smarttable_path = smarttable_path
+        self._validate_file()
+        self._data: pd.DataFrame | None = None
+
+    def _validate_file(self) -> None:
+        """Validate the SmartTable file format and existence."""
+        if not self.smarttable_path.exists():
+            error_msg = f"SmartTable file not found: {self.smarttable_path}"
+            raise StructuredError(error_msg)
+
+        supported_extensions = [".xlsx", ".csv", ".tsv"]
+        if self.smarttable_path.suffix.lower() not in supported_extensions:
+            error_msg = f"Unsupported file format: {self.smarttable_path.suffix}. Supported formats: {supported_extensions}"
+            raise StructuredError(error_msg)
+
+        if not self.smarttable_path.name.startswith("smarttable_"):
+            error_msg = f"Invalid naming convention: {self.smarttable_path.name}. File must start with 'smarttable_'"
+            raise StructuredError(error_msg)
+
+    def read_table(self) -> pd.DataFrame:
+        """Read the SmartTable file and return as DataFrame.
+
+        The first row (display names) is skipped, and the second row is used
+        as column headers (mapping keys).
+
+        Returns:
+            DataFrame containing the table data with mapping key headers.
+
+        Raises:
+            StructuredError: If file reading fails or format is invalid.
+        """
+        if self._data is not None:
+            return self._data
+
+        try:
+            if self.smarttable_path.suffix.lower() == ".xlsx":
+                # Read Excel file, skip first row (display names), use second row as header
+                self._data = pd.read_excel(self.smarttable_path, sheet_name=0, dtype=str, skiprows=[0], header=0)
+            elif self.smarttable_path.suffix.lower() == ".csv":
+                # Read CSV file, skip first row (display names), use second row as header
+                self._data = pd.read_csv(self.smarttable_path, dtype=str, skiprows=[0], header=0)
+            elif self.smarttable_path.suffix.lower() == ".tsv":
+                # Read TSV file, skip first row (display names), use second row as header
+                self._data = pd.read_csv(self.smarttable_path, sep="\t", dtype=str, skiprows=[0], header=0)
+
+            # Validate that we have mapping key headers (should contain mapping prefixes)
+            mapping_prefixes = ["basic/", "custom/", "sample/", "meta/", "data_file_names/"]
+            has_mapping_keys = any(
+                any(col.startswith(prefix) for prefix in mapping_prefixes)
+                for col in self._data.columns
+            )
+            if not has_mapping_keys:
+                error_msg = "SmartTable file must have mapping keys with prefixes: basic/, custom/, sample/, meta/, data_file_names/"
+                raise StructuredError(error_msg)
+
+            return self._data
+
+        except Exception as e:
+            if isinstance(e, StructuredError):
+                raise
+            error_msg = f"Failed to read SmartTable file {self.smarttable_path}: {str(e)}"
+            raise StructuredError(error_msg) from e
+
+    def generate_individual_csvs(self, output_dir: Path) -> list[Path]:
+        """Generate individual CSV files for each row of the SmartTable.
+
+        Args:
+            output_dir: Directory to save individual CSV files.
+
+        Returns:
+            List of paths to generated CSV files.
+
+        Raises:
+            StructuredError: If CSV generation fails.
+        """
+        data = self.read_table()
+        csv_paths = []
+
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            for idx, row in data.iterrows():
+                # Create filename from index
+                csv_filename = f"smarttable_row_{idx:04d}.csv"
+                csv_path = output_dir / csv_filename
+
+                # Create single-row DataFrame preserving column structure
+                single_row_df = pd.DataFrame([row], columns=data.columns)
+
+                # Save as CSV
+                single_row_df.to_csv(csv_path, index=False)
+                csv_paths.append(csv_path)
+
+            return csv_paths
+
+        except Exception as e:
+            error_msg = f"Failed to generate individual CSV files: {str(e)}"
+            raise StructuredError(error_msg) from e
+
+    def generate_row_csvs_with_file_mapping(
+        self,
+        output_dir: Path,
+        extracted_files: list[Path] | None = None,
+    ) -> list[tuple[Path, tuple[Path, ...]]]:
+        """Generate individual CSV files for each row with file mapping.
+
+        This method creates a CSV file for each data row and maps inputdata<N> columns
+        to actual file paths from extracted zip files.
+
+        Args:
+            output_dir: Directory to save individual CSV files.
+            extracted_files: List of extracted files from zip (optional).
+
+        Returns:
+            List of tuples where each tuple contains:
+            - Path to the generated CSV file
+            - Tuple of related file paths based on inputdata<N> columns
+
+        Raises:
+            StructuredError: If CSV generation or file mapping fails.
+        """
+        data = self.read_table()
+        csv_file_mappings = []
+
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            inputdata_columns = [col for col in data.columns if col.startswith("inputdata")]
+
+            for idx, row in data.iterrows():
+                csv_filename = f"f{self.smarttable_path.stem}_{idx:04d}.csv"
+                csv_path = output_dir / csv_filename
+
+                single_row_df = pd.DataFrame([row], columns=data.columns)
+                single_row_df.to_csv(csv_path, index=False)
+
+                # Map inputdata<N> values to actual file paths
+                related_files = []
+                for col in inputdata_columns:
+                    file_relative_path = row[col]
+                    if pd.isna(file_relative_path) or file_relative_path == "":
+                        continue
+
+                    # Find matching file in extracted files
+                    if extracted_files:
+                        matching_file = self._find_file_by_relative_path(
+                            file_relative_path, extracted_files,
+                        )
+                        if matching_file:
+                            related_files.append(matching_file)
+
+                csv_file_mappings.append((csv_path, tuple(related_files)))
+            return csv_file_mappings
+
+        except Exception as e:
+            error_msg = f"Failed to generate CSV files with file mapping: {str(e)}"
+            raise StructuredError(error_msg) from e
+
+    def _find_file_by_relative_path(self, relative_path: str, extracted_files: list[Path]) -> Path | None:
+        """Find extracted file by relative path.
+
+        Args:
+            relative_path: Relative path from inputdata<N> column.
+            extracted_files: List of extracted files.
+
+        Returns:
+            Path to the matching file or None if not found.
+        """
+        # Normalize the relative path (remove leading/trailing slashes)
+        normalized_path = relative_path.strip("/\\")
+
+        for file_path in extracted_files:
+            file_str = str(file_path)
+
+            if file_str.replace("\\", "/").endswith(normalized_path.replace("\\", "/")):
+                return file_path
+
+            # Also check by exact relative path match
+            # Extract relative part after temp directory
+            path_parts = file_path.parts
+            if len(path_parts) >= 2:  # at least temp/file
+                relative_part = "/".join(path_parts[-len(Path(normalized_path).parts):])
+                if relative_part == normalized_path.replace("\\", "/"):
+                    return file_path
+        return None
+
+    def _process_basic_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any]) -> None:
+        """Process basic/ mapping keys."""
+        key = mapping_key.replace("basic/", "")
+        invoice_data["basic"][key] = value
+
+    def _process_custom_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any]) -> None:
+        """Process custom/ mapping keys."""
+        key = mapping_key.replace("custom/", "")
+        invoice_data["custom"][key] = value
+
+    def _process_sample_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any]) -> None:
+        """Process sample/ mapping keys."""
+        key = mapping_key.replace("sample/", "")
+        if key == "names":
+            invoice_data["sample"][key] = [value] if isinstance(value, str) else value
+        else:
+            invoice_data["sample"][key] = value
+
+    def _process_file_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any], extracted_files: list[Path]) -> None:
+        """Process data_file_names/ mapping keys."""
+        filename = value
+        matching_files = [f for f in extracted_files if f.name == filename]
+        if matching_files:
+            invoice_data.setdefault("_file_mappings", {})[mapping_key] = matching_files[0]
+
+    def _process_mapping_key(self, mapping_key: str, value: Any, invoice_data: dict[str, Any], extracted_files: list[Path] | None) -> None:
+        """Process a single mapping key-value pair."""
+        if mapping_key.startswith("basic/"):
+            self._process_basic_mapping(mapping_key, value, invoice_data)
+        elif mapping_key.startswith("custom/"):
+            self._process_custom_mapping(mapping_key, value, invoice_data)
+        elif mapping_key.startswith("sample/"):
+            self._process_sample_mapping(mapping_key, value, invoice_data)
+        elif mapping_key.startswith("data_file_names/") and extracted_files:
+            self._process_file_mapping(mapping_key, value, invoice_data, extracted_files)
+
+    def map_row_to_invoice(self, row_index: int, extracted_files: list[Path] | None = None) -> dict[str, Any]:
+        """Map a specific row to invoice JSON structure.
+
+        Args:
+            row_index: Index of the row to process.
+            extracted_files: List of extracted files from zip (optional).
+
+        Returns:
+            Dictionary representing the invoice JSON structure.
+
+        Raises:
+            StructuredError: If mapping fails or row index is invalid.
+        """
+        data = self.read_table()
+
+        if row_index >= len(data):
+            error_msg = f"Row index {row_index} out of range. Table has {len(data)} rows."
+            raise StructuredError(error_msg)
+
+        row = data.iloc[row_index]
+        invoice_data = {"basic": {}, "custom": {}, "sample": {}}
+
+        try:
+            for mapping_key, value in row.items():
+                if pd.isna(value) or value == "":
+                    continue
+                self._process_mapping_key(mapping_key, value, invoice_data, extracted_files)
+
+            return invoice_data
+
+        except Exception as e:
+            error_msg = f"Failed to map row {row_index} to invoice: {str(e)}"
+            raise StructuredError(error_msg) from e

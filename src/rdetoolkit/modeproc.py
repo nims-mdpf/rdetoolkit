@@ -10,6 +10,7 @@ from rdetoolkit.impl.input_controller import (
     InvoiceChecker,
     MultiFileChecker,
     RDEFormatChecker,
+    SmartTableChecker,
 )
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
 from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
@@ -231,6 +232,60 @@ def invoice_mode_process(
     return pipeline.execute(context)
 
 
+def smarttable_invoice_mode_process(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    smarttable_file: Path,
+    datasets_process_function: _CallbackType | None = None,
+) -> WorkflowExecutionStatus:
+    """Processes SmartTable files and generates invoice data for structured processing.
+
+    This function performs several steps:
+
+    1. Initializes invoice from SmartTable file data.
+    2. Copies input files to the rawfile directory.
+    3. Runs a custom dataset process function if provided.
+    4. Copies images to the thumbnail directory.
+    5. Replaces the placeholder '${filename}' in the invoice with the actual filename if necessary.
+    6. Attempts to update descriptions with features, ignoring any errors during this step.
+    7. Validates the metadata-def.json file.
+    8. Validates the invoice file against the invoice schema.
+
+    Args:
+        index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
+        srcpaths (RdeInputDirPaths): Input paths for the source data.
+        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
+        smarttable_file (Path): Path to the SmartTable file (.xlsx, .csv, .tsv).
+        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+
+    Raises:
+        StructuredError: When encountering issues related to SmartTable processing or during the validation steps.
+        Any exceptions raised by `datasets_process_function` will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+
+    Returns:
+        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
+            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
+            - title (str): A descriptive title for the workflow execution.
+            - status (str): The status of the workflow execution, either "success" or "failed".
+            - mode (str): The mode in which the workflow was executed, e.g., "SmartTableInvoice".
+            - error_code (int | None): The error code if an error occurred, otherwise None.
+            - error_message (str | None): The error message if an error occurred, otherwise None.
+            - target (str): The target directory or file path related to the workflow execution.
+    """
+    context = ProcessingContext(
+        index=index,
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=datasets_process_function,
+        mode_name="SmartTableInvoice",
+        smarttable_file=smarttable_file,
+    )
+
+    pipeline = PipelineFactory.create_smarttable_invoice_pipeline()
+    return pipeline.execute(context)
+
+
 def copy_input_to_rawfile_for_rdeformat(resource_paths: RdeOutputResourcePath) -> None:
     """Copy the input raw files to their respective directories based on the file's part names.
 
@@ -294,12 +349,15 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
         None, but callers should be aware that downstream exceptions can be raised by individual checker initializations.
     """
     input_files = list(src_paths.inputdata.glob("*"))
+    smarttable_files = [f for f in input_files if f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"]]
     excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
     mode = mode.lower() if mode is not None else ""
+    if smarttable_files:
+        return SmartTableChecker(unpacked_dir_path)
+    if excel_invoice_files:
+        return ExcelInvoiceChecker(unpacked_dir_path)
     if mode == "rdeformat":
         return RDEFormatChecker(unpacked_dir_path)
     if mode == "multidatatile":
         return MultiFileChecker(unpacked_dir_path)
-    if excel_invoice_files:
-        return ExcelInvoiceChecker(unpacked_dir_path)
     return InvoiceChecker(unpacked_dir_path)

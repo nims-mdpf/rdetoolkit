@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.invoicefile import ExcelInvoiceFile, InvoiceFile
+from rdetoolkit.invoicefile import ExcelInvoiceFile, InvoiceFile, SmartTableFile
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.fileops import writef_json
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
 
@@ -98,7 +99,8 @@ class ExcelInvoiceInitializer(Processor):
         try:
             return int(index)
         except ValueError as e:
-            raise ValueError(f"Invalid index format: {index}. Expected numeric string.") from e
+            emsg = f"Invalid index format: {index}. Expected numeric string."
+            raise ValueError(emsg) from e
 
 
 class InvoiceInitializerFactory:
@@ -121,10 +123,10 @@ class InvoiceInitializerFactory:
 
         if mode_lower in ("rdeformat", "multidatatile", "invoice"):
             return StandardInvoiceInitializer()
-        elif mode_lower == "excelinvoice":
+        if mode_lower == "excelinvoice":
             return ExcelInvoiceInitializer()
-        else:
-            raise ValueError(f"Unsupported mode for invoice initialization: {mode}")
+        emsg = f"Unsupported mode for invoice initialization: {mode}"
+        raise ValueError(emsg)
 
     @staticmethod
     def get_supported_modes() -> tuple[str, ...]:
@@ -139,3 +141,70 @@ class InvoiceInitializerFactory:
 # Backward compatibility aliases
 InvoiceHandler = StandardInvoiceInitializer
 ExcelInvoiceHandler = ExcelInvoiceInitializer
+
+
+class SmartTableInvoiceInitializer(Processor):
+    """Processor for initializing invoice from SmartTable files."""
+
+    def process(self, context: ProcessingContext) -> None:
+        """Process SmartTable file and generate invoice.
+
+        Args:
+            context: Processing context containing SmartTable file information
+
+        Raises:
+            ValueError: If SmartTable file is not provided in context
+            StructuredError: If SmartTable processing fails
+        """
+        logger.debug(f"Processing SmartTable invoice initialization for {context.mode_name}")
+
+        if not context.is_smarttable_mode:
+            error_msg = "SmartTable file not provided in processing context"
+            raise ValueError(error_msg)
+
+        try:
+            smarttable_file = context.smarttable_invoice_file
+            st_handler = SmartTableFile(smarttable_file)
+            data = st_handler.read_table()
+            logger.debug(f"Read SmartTable with {len(data)} rows")
+
+            # Process the row corresponding to the current context index
+            # The index corresponds to the row being processed in the current iteration
+            row_index = int(context.index)
+
+            if row_index >= len(data):
+                error_msg = f"Row index {row_index} out of range. SmartTable has {len(data)} rows."
+                raise StructuredError(error_msg)
+
+            # Get extracted files from rawfiles (excluding the CSV file itself)
+            extracted_files = None
+            if len(context.resource_paths.rawfiles) > 1:
+                # First file should be the CSV file, rest are extracted files
+                extracted_files = list(context.resource_paths.rawfiles[1:])
+
+            invoice_data = st_handler.map_row_to_invoice(row_index, extracted_files)
+
+            if "basic" not in invoice_data:
+                invoice_data["basic"] = {}
+            if "custom" not in invoice_data:
+                invoice_data["custom"] = {}
+            if "sample" not in invoice_data:
+                invoice_data["sample"] = {}
+
+            invoice_path = context.invoice_dst_filepath
+            invoice_path.parent.mkdir(parents=True, exist_ok=True)
+
+            writef_json(invoice_path, invoice_data)
+
+            logger.debug(f"Successfully generated invoice at {invoice_path}")
+
+        except Exception as e:
+            logger.error(f"SmartTable invoice initialization failed: {str(e)}")
+            if isinstance(e, StructuredError):
+                raise
+            error_msg = f"Failed to initialize invoice from SmartTable: {str(e)}"
+            raise StructuredError(error_msg) from e
+
+    def get_name(self) -> str:
+        """Get the name of this processor."""
+        return "SmartTableInvoiceInitializer"

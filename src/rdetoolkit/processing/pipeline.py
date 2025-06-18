@@ -8,6 +8,7 @@ from rdetoolkit.invoicefile import InvoiceFile
 from rdetoolkit.models.result import WorkflowExecutionStatus
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.exceptions import StructuredError
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
 
@@ -84,7 +85,12 @@ class Pipeline:
                     logger.debug(f"Processor {processor_name} completed successfully")
                 except Exception as e:
                     logger.error(f"Processor {processor_name} failed: {str(e)}")
-                    raise
+                    raise StructuredError(
+                        emsg=f"Processor {processor_name} failed",
+                        ecode=1,
+                        eobj=e,
+                        traceback_info=str(e),
+                    ) from e
 
             # Create success status
             return self._create_success_status(context)
