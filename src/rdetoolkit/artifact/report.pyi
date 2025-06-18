@@ -1,8 +1,7 @@
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from pathlib import Path
 from rdetoolkit.interfaces.report import ICodeScanner as ICodeScanner, IReportGenerator as IReportGenerator
 from rdetoolkit.models.reports import CodeSnippet as CodeSnippet, ReportItem as ReportItem
-from rdetoolkit.rdelogger import get_logger as get_logger
 from typing import Literal
 
 logger: Incomplete

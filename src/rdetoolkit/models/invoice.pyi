@@ -1,9 +1,8 @@
 import polars as pl
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from dataclasses import dataclass
 from pathlib import Path
 from pydantic import BaseModel
-from rdetoolkit.exceptions import DataRetrievalError as DataRetrievalError, InvalidSearchParametersError as InvalidSearchParametersError
 from rdetoolkit.models.invoice_schema import GeneralAttribute as GeneralAttribute, SpecificAttribute as SpecificAttribute
 from typing import Any, Literal
 

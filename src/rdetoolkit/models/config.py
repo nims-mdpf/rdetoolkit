@@ -25,7 +25,7 @@ class SystemSettings(BaseModel):
 
     @model_validator(mode='after')
     @classmethod
-    def check_at_least_one_save_option_enabled(cls, v) -> bool:
+    def check_at_least_one_save_option_enabled(cls, v) -> 'SystemSettings':
         """Validates that at least one of 'save_raw' or 'save_nonshared_raw' is enabled.
 
         This class method is used as a Pydantic model validator (mode='after') to ensure
@@ -54,12 +54,18 @@ class MultiDataTileSettings(BaseModel):
     ignore_errors: bool = Field(default=False, description="If true, errors encountered during processing will be ignored, and the process will continue without stopping.")
 
 
+class ExcelInvoiceSettings(BaseModel):
+    ignore_errors: bool = Field(default=False, description="If true, errors encountered during ExcelInvoice processing will be ignored, and the process will continue without stopping.")
+
+
 class Config(BaseModel, extra="allow"):
     """The configuration class used in RDEToolKit.
 
     Attributes:
         system (SystemSettings): System related settings.
         multidata_tile (MultiDataTileSettings | None): MultiDataTile related settings.
+        excel_invoice (ExcelInvoiceSettings | None): ExcelInvoice related settings.
     """
     system: SystemSettings = Field(default_factory=SystemSettings, description="System related settings")
     multidata_tile: MultiDataTileSettings | None = Field(default_factory=MultiDataTileSettings, description="MultiDataTile related settings")
+    excel_invoice: ExcelInvoiceSettings | None = Field(default_factory=ExcelInvoiceSettings, description="ExcelInvoice related settings")

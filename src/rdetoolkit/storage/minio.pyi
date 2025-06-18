@@ -1,13 +1,12 @@
 import urllib3
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from datetime import datetime, timedelta
 from minio.commonconfig import Tags as Tags
-from minio.credentials import Provider as Provider
 from minio.retention import Retention as Retention
 from minio.sse import SseCustomerKey as SseCustomerKey
 from pathlib import Path
 from typing import Any
-from urllib3 import PoolManager, ProxyManager
+from urllib3 import PoolManager as PoolManager, ProxyManager as ProxyManager
 from urllib3.response import HTTPResponse as BaseHTTPResponse
 
 class MinIOStorage:

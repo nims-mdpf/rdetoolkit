@@ -257,3 +257,80 @@ class MultiFileChecker(IInputFileChecker):
     def _unpacked(self, zipfile: Path, target_dir: Path) -> list[Path]:
         shutil.unpack_archive(zipfile, self.out_dir_temp)
         return [f for f in target_dir.glob("**/*") if f.is_file()]
+
+
+class SmartTableChecker(IInputFileChecker):
+    """A checker class to determine and parse the SmartTable invoice mode.
+
+    This class handles SmartTable files (Excel/CSV/TSV) and optionally zip files,
+    processing them for metadata extraction and invoice generation.
+
+    Attributes:
+        out_dir_temp (Path): Temporary directory for the unpacked content.
+    """
+
+    def __init__(self, unpacked_dir_basename: Path):
+        self.out_dir_temp = unpacked_dir_basename
+
+    def parse(self, src_dir_input: Path) -> tuple[RawFiles, Path | None]:
+        """Parses the source input directory for SmartTable files and zip files.
+
+        Args:
+            src_dir_input (Path): Source directory containing the input files.
+
+        Returns:
+            tuple[RawFiles, Path | None]:
+                - RawFiles: A list of tuples where each tuple contains file paths grouped for processing.
+                - Path | None: Path to the SmartTable file if found, otherwise None.
+
+        Raises:
+            StructuredError: If no SmartTable files are found or if multiple SmartTable files are present.
+        """
+        input_files = list(src_dir_input.glob("*"))
+
+        # Find SmartTable files
+        smarttable_files = [
+            f for f in input_files
+            if (f.name.startswith("smarttable_")
+                and f.suffix.lower() in [".xlsx", ".csv", ".tsv"])
+        ]
+
+        if not smarttable_files:
+            error_msg = "No SmartTable files found. Files must start with 'smarttable_' and have .xlsx, .csv, or .tsv extension."
+            raise StructuredError(error_msg)
+
+        if len(smarttable_files) > 1:
+            error_msg = f"Multiple SmartTable files found: {[f.name for f in smarttable_files]}. Only one SmartTable file is allowed."
+            raise StructuredError(error_msg)
+
+        smarttable_file = smarttable_files[0]
+
+        # Find zip files
+        zip_files = [f for f in input_files if f.suffix.lower() == ".zip"]
+
+        # Process files based on presence of zip files
+        if zip_files:
+            # Extract zip files and create raw files list
+            extracted_files = []
+            for zip_file in zip_files:
+                extracted_files.extend(self._unpacked_smarttable(zip_file))
+            
+            # Group extracted files for processing
+            rawfiles_list: list[tuple[Path, ...]] = [(f,) for f in extracted_files]
+        else:
+            # No zip files, create minimal raw files list with smarttable file
+            rawfiles_list: list[tuple[Path, ...]] = [(smarttable_file,)]
+
+        return sorted(rawfiles_list, key=lambda path: str(path)), smarttable_file
+
+    def _unpacked_smarttable(self, zipfile: Path) -> list[Path]:
+        """Extract zip file to temporary directory.
+
+        Args:
+            zipfile (Path): Path to the zip file to extract.
+
+        Returns:
+            list[Path]: List of extracted file paths.
+        """
+        shutil.unpack_archive(zipfile, self.out_dir_temp)
+        return [f for f in self.out_dir_temp.glob("**/*") if f.is_file()]
