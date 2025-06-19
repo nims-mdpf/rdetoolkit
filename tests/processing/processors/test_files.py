@@ -13,7 +13,7 @@ import zipfile
 class TestFileCopier:
     """Test cases for FileCopier processor."""
 
-    def test_process_with_save_raw_enabled(self, basic_processing_context, inputfile_single, ivnoice_json_with_sample_info, tasksupport):
+    def test_process_with_save_raw_enabled(self, basic_processing_context, inputfile_single, invoice_json_with_sample_info, tasksupport):
         """Test FileCopier when save_raw is enabled."""
         # Setup
         os.makedirs("data/raw", exist_ok=True)
