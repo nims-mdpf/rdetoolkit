@@ -86,7 +86,7 @@ class Pipeline:
                 except Exception as e:
                     logger.error(f"Processor {processor_name} failed: {str(e)}")
                     raise StructuredError(
-                        emsg=f"Processor {processor_name} failed",
+                        emsg=str(e),
                         ecode=1,
                         eobj=e,
                         traceback_info=str(e),

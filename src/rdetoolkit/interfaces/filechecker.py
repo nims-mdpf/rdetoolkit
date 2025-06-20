@@ -53,7 +53,7 @@ class IInputFileChecker(ABC):
     @abstractmethod
     def checker_type(self) -> str:
         """Return the type identifier for this checker.
-        
+
         Returns:
             str: A string identifier representing the checker type.
         """

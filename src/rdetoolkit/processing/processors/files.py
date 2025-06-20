@@ -87,6 +87,9 @@ class RDEFormatFileCopier(Processor):
 class SmartTableFileCopier(Processor):
     """Copies raw files for SmartTable mode, excluding generated CSV files."""
 
+    def __init__(self) -> None:
+        self.smarttable_suffix_length = 4
+
     def process(self, context: ProcessingContext) -> None:
         """Copy files based on configuration settings, excluding SmartTable CSV files.
 
@@ -153,8 +156,6 @@ class SmartTableFileCopier(Processor):
         Returns:
             True if this is a SmartTable generated CSV file
         """
-        min_smarttable_filename_parts = 3
-
         if file_path.suffix.lower() != '.csv':
             return False
 
@@ -169,12 +170,13 @@ class SmartTableFileCopier(Processor):
         parts = name_without_ext.split('_')
 
         # Must have at least 3 parts: ['fsmarttable', 'filename', 'number']
-        if len(parts) < min_smarttable_filename_parts:
+        min_parts = 3
+        if len(parts) < min_parts:
             return False
 
         # Last part must be numeric (4-digit number like 0000, 0001, etc.)
         last_part = parts[-1]
-        return last_part.isdigit()
+        return last_part.isdigit() and len(last_part) == self.smarttable_suffix_length
 
     def _copy_files(self, dest_dir: Path, source_files: tuple[Path, ...]) -> None:
         """Copy files to destination directory."""

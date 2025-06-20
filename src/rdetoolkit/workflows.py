@@ -14,7 +14,6 @@ from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import RawFiles, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.models.result import WorkflowExecutionStatus, WorkflowResultManager
 from rdetoolkit.modeproc import (
-    _CallbackType,
     excel_invoice_mode_process,
     invoice_mode_process,
     multifile_mode_process,
@@ -25,6 +24,36 @@ from rdetoolkit.modeproc import (
 from rdetoolkit.rde2util import StorageDir
 from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.core import DirectoryOps
+from typing import Callable, Any
+
+_CallbackType = Callable[[RdeInputDirPaths, RdeOutputResourcePath], None]
+
+
+def _create_error_status(
+    idx: int,
+    error_info: dict[str, Any],
+    rdeoutput_resource: RdeOutputResourcePath,
+    mode: str,
+) -> WorkflowExecutionStatus:
+    """Create error status from error information."""
+    _code = error_info.get("code")
+    code = 999
+    if isinstance(_code, int):
+        code = _code
+    elif isinstance(_code, str):
+        with contextlib.suppress(ValueError):
+            code = int(_code)
+
+    return WorkflowExecutionStatus(
+        run_id=str(idx),
+        title=f"Structured Process Failed: {mode}",
+        status="failed",
+        mode=mode,
+        error_code=code,
+        error_message=error_info.get("message"),
+        stacktrace=error_info.get("stacktrace"),
+        target=",".join(str(file) for file in rdeoutput_resource.rawfiles),
+    )
 
 
 def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFiles, Path | None, Path | None]:
@@ -144,6 +173,44 @@ def generate_folder_paths_iterator(
         yield rdeoutput_resource_path
 
 
+def _process_mode(
+    idx: int,
+    srcpaths: RdeInputDirPaths,
+    rdeoutput_resource: RdeOutputResourcePath,
+    config: Config,
+    excel_invoice_files: Path | None,
+    smarttable_file: Path | None,
+    custom_dataset_function: _CallbackType | None,
+    logger: Any,
+) -> tuple[WorkflowExecutionStatus, dict[str, Any] | None, str]:
+    """Process a single data tile based on the appropriate mode.
+
+    Returns:
+        tuple[WorkflowExecutionStatus, dict | None, str]: Status, error info if any, and mode
+    """
+    error_info = None
+
+    if smarttable_file is not None:
+        mode = "SmartTableInvoice"
+        status = smarttable_invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, smarttable_file, custom_dataset_function)
+    elif excel_invoice_files is not None:
+        mode = "Excelinvoice"
+        status = excel_invoice_mode_process(srcpaths, rdeoutput_resource, excel_invoice_files, idx, custom_dataset_function)
+    elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "rdeformat":
+        mode = "rdeformat"
+        status = rdeformat_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+    elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "multidatatile":
+        mode = "MultiDataTile"
+        ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
+        with skip_exception_context(Exception, logger=logger, enabled=ignore_error) as error_info:
+            status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+    else:
+        mode = "Invoice"
+        status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+
+    return status, error_info, mode
+
+
 def run(*, custom_dataset_function: _CallbackType | None = None, config: Config | None = None) -> str:  # pragma: no cover
     """RDE Structuring Processing Function.
 
@@ -224,45 +291,15 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
 
         with tqdm(total=total_items, desc="Processing data tiles", dynamic_ncols=True, leave=True) as pbar:
             for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
-                error_info = None  # Initialize error_info for each iteration
-                if smarttable_file is not None:
-                    mode = "SmartTableInvoice"
-                    status = smarttable_invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, smarttable_file, custom_dataset_function)
-                elif excel_invoice_files is not None:
-                    mode = "Excelinvoice"
-                    ignore_error = getattr(__config, 'excel_invoice', None) and __config.excel_invoice.ignore_errors
-                    with skip_exception_context(Exception, logger=logger, enabled=ignore_error) as error_info:
-                        status = excel_invoice_mode_process(srcpaths, rdeoutput_resource, excel_invoice_files, idx, custom_dataset_function)
-                elif __config.system.extended_mode is not None and __config.system.extended_mode.lower() == "rdeformat":
-                    mode = "rdeformat"
-                    status = rdeformat_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-                elif __config.system.extended_mode is not None and __config.system.extended_mode.lower() == "multidatatile":
-                    mode = "MultiDataTile"
-                    ignore_error = __config.multidata_tile.ignore_errors if __config.multidata_tile else False
-                    with skip_exception_context(Exception, logger=logger, enabled=ignore_error) as error_info:
-                        status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-                else:
-                    mode = "Invoice"
-                    status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+                status, error_info, mode = _process_mode(
+                    idx, srcpaths, rdeoutput_resource, __config,
+                    excel_invoice_files, smarttable_file,
+                    custom_dataset_function, logger,
+                )
 
                 if error_info and any(value is not None for value in error_info.values()):
-                    _code = error_info.get("code")
-                    code = 999
-                    if isinstance(_code, int):
-                        code = _code
-                    elif isinstance(_code, str):
-                        with contextlib.suppress(ValueError):
-                            code = int(_code)
-                    status = WorkflowExecutionStatus(
-                        run_id=str(idx),
-                        title=f"Structured Process Faild: {mode}",
-                        status="failed",
-                        mode=mode,
-                        error_code=code,
-                        error_message=error_info.get("message"),
-                        stacktrace=error_info.get("stacktrace"),
-                        target=",".join(str(file) for file in rdeoutput_resource.rawfiles),
-                    )
+                    status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
+
                 wf_manager.add_status(status)
                 pbar.update(1)  # Update progress bar
 

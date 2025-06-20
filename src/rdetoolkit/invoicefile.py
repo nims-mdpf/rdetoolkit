@@ -1144,14 +1144,13 @@ class SmartTableFile:
                 # Read TSV file, skip first row (display names), use second row as header
                 self._data = pd.read_csv(self.smarttable_path, sep="\t", dtype=str, skiprows=[0], header=0)
 
-            # Validate that we have mapping key headers (should contain mapping prefixes)
-            mapping_prefixes = ["basic/", "custom/", "sample/", "meta/", "data_file_names/"]
+            mapping_prefixes = ["basic/", "custom/", "sample/", "meta/", "inputdata"]
             has_mapping_keys = any(
                 any(col.startswith(prefix) for prefix in mapping_prefixes)
                 for col in self._data.columns
             )
             if not has_mapping_keys:
-                error_msg = "SmartTable file must have mapping keys with prefixes: basic/, custom/, sample/, meta/, data_file_names/"
+                error_msg = "SmartTable file must have mapping keys with prefixes: basic/, custom/, sample/, meta/, inputdata"
                 raise StructuredError(error_msg)
 
             return self._data
@@ -1160,42 +1159,6 @@ class SmartTableFile:
             if isinstance(e, StructuredError):
                 raise
             error_msg = f"Failed to read SmartTable file {self.smarttable_path}: {str(e)}"
-            raise StructuredError(error_msg) from e
-
-    def generate_individual_csvs(self, output_dir: Path) -> list[Path]:
-        """Generate individual CSV files for each row of the SmartTable.
-
-        Args:
-            output_dir: Directory to save individual CSV files.
-
-        Returns:
-            List of paths to generated CSV files.
-
-        Raises:
-            StructuredError: If CSV generation fails.
-        """
-        data = self.read_table()
-        csv_paths = []
-
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-
-            for idx, row in data.iterrows():
-                # Create filename from index
-                csv_filename = f"smarttable_row_{idx:04d}.csv"
-                csv_path = output_dir / csv_filename
-
-                # Create single-row DataFrame preserving column structure
-                single_row_df = pd.DataFrame([row], columns=data.columns)
-
-                # Save as CSV
-                single_row_df.to_csv(csv_path, index=False)
-                csv_paths.append(csv_path)
-
-            return csv_paths
-
-        except Exception as e:
-            error_msg = f"Failed to generate individual CSV files: {str(e)}"
             raise StructuredError(error_msg) from e
 
     def generate_row_csvs_with_file_mapping(
@@ -1228,6 +1191,7 @@ class SmartTableFile:
             inputdata_columns = [col for col in data.columns if col.startswith("inputdata")]
 
             for idx, row in data.iterrows():
+                # New naming convention: smarttable_<original_filename>_XXXX.csv
                 csv_filename = f"f{self.smarttable_path.stem}_{idx:04d}.csv"
                 csv_path = output_dir / csv_filename
 
@@ -1278,78 +1242,9 @@ class SmartTableFile:
             # Also check by exact relative path match
             # Extract relative part after temp directory
             path_parts = file_path.parts
-            if len(path_parts) >= 2:  # at least temp/file
+            min_parts = 2  # at least temp/file
+            if len(path_parts) >= min_parts:
                 relative_part = "/".join(path_parts[-len(Path(normalized_path).parts):])
                 if relative_part == normalized_path.replace("\\", "/"):
                     return file_path
         return None
-
-    def _process_basic_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any]) -> None:
-        """Process basic/ mapping keys."""
-        key = mapping_key.replace("basic/", "")
-        invoice_data["basic"][key] = value
-
-    def _process_custom_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any]) -> None:
-        """Process custom/ mapping keys."""
-        key = mapping_key.replace("custom/", "")
-        invoice_data["custom"][key] = value
-
-    def _process_sample_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any]) -> None:
-        """Process sample/ mapping keys."""
-        key = mapping_key.replace("sample/", "")
-        if key == "names":
-            invoice_data["sample"][key] = [value] if isinstance(value, str) else value
-        else:
-            invoice_data["sample"][key] = value
-
-    def _process_file_mapping(self, mapping_key: str, value: Any, invoice_data: dict[str, Any], extracted_files: list[Path]) -> None:
-        """Process data_file_names/ mapping keys."""
-        filename = value
-        matching_files = [f for f in extracted_files if f.name == filename]
-        if matching_files:
-            invoice_data.setdefault("_file_mappings", {})[mapping_key] = matching_files[0]
-
-    def _process_mapping_key(self, mapping_key: str, value: Any, invoice_data: dict[str, Any], extracted_files: list[Path] | None) -> None:
-        """Process a single mapping key-value pair."""
-        if mapping_key.startswith("basic/"):
-            self._process_basic_mapping(mapping_key, value, invoice_data)
-        elif mapping_key.startswith("custom/"):
-            self._process_custom_mapping(mapping_key, value, invoice_data)
-        elif mapping_key.startswith("sample/"):
-            self._process_sample_mapping(mapping_key, value, invoice_data)
-        elif mapping_key.startswith("data_file_names/") and extracted_files:
-            self._process_file_mapping(mapping_key, value, invoice_data, extracted_files)
-
-    def map_row_to_invoice(self, row_index: int, extracted_files: list[Path] | None = None) -> dict[str, Any]:
-        """Map a specific row to invoice JSON structure.
-
-        Args:
-            row_index: Index of the row to process.
-            extracted_files: List of extracted files from zip (optional).
-
-        Returns:
-            Dictionary representing the invoice JSON structure.
-
-        Raises:
-            StructuredError: If mapping fails or row index is invalid.
-        """
-        data = self.read_table()
-
-        if row_index >= len(data):
-            error_msg = f"Row index {row_index} out of range. Table has {len(data)} rows."
-            raise StructuredError(error_msg)
-
-        row = data.iloc[row_index]
-        invoice_data = {"basic": {}, "custom": {}, "sample": {}}
-
-        try:
-            for mapping_key, value in row.items():
-                if pd.isna(value) or value == "":
-                    continue
-                self._process_mapping_key(mapping_key, value, invoice_data, extracted_files)
-
-            return invoice_data
-
-        except Exception as e:
-            error_msg = f"Failed to map row {row_index} to invoice: {str(e)}"
-            raise StructuredError(error_msg) from e

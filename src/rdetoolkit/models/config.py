@@ -24,16 +24,12 @@ class SystemSettings(BaseModel):
     )
 
     @model_validator(mode='after')
-    @classmethod
-    def check_at_least_one_save_option_enabled(cls, v) -> 'SystemSettings':
+    def check_at_least_one_save_option_enabled(self) -> SystemSettings:
         """Validates that at least one of 'save_raw' or 'save_nonshared_raw' is enabled.
 
-        This class method is used as a Pydantic model validator (mode='after') to ensure
+        This method is used as a Pydantic model validator (mode='after') to ensure
         that at least one of the two boolean fields, 'save_raw' or 'save_nonshared_raw',
         is set to True. If both are False, a ValueError is raised.
-
-        Args:
-            v: The model instance being validated.
 
         Returns:
             The validated model instance.
@@ -42,20 +38,20 @@ class SystemSettings(BaseModel):
             ValueError: If both 'save_raw' and 'save_nonshared_raw' are False.
 
         """
-        save_raw = v.save_raw
-        save_nonshared_raw = v.save_nonshared_raw
+        save_raw = self.save_raw
+        save_nonshared_raw = self.save_nonshared_raw
         if not save_raw and not save_nonshared_raw:
             emsg = "At least one of 'save_raw' or 'save_nonshared_raw' must be True."
             raise ValueError(emsg)
-        return v
+        return self
 
 
 class MultiDataTileSettings(BaseModel):
     ignore_errors: bool = Field(default=False, description="If true, errors encountered during processing will be ignored, and the process will continue without stopping.")
 
 
-class ExcelInvoiceSettings(BaseModel):
-    ignore_errors: bool = Field(default=False, description="If true, errors encountered during ExcelInvoice processing will be ignored, and the process will continue without stopping.")
+# class ExcelInvoiceSettings(BaseModel):
+#     ignore_errors: bool = Field(default=False, description="If true, errors encountered during ExcelInvoice processing will be ignored, and the process will continue without stopping.")
 
 
 class Config(BaseModel, extra="allow"):
@@ -68,4 +64,4 @@ class Config(BaseModel, extra="allow"):
     """
     system: SystemSettings = Field(default_factory=SystemSettings, description="System related settings")
     multidata_tile: MultiDataTileSettings | None = Field(default_factory=MultiDataTileSettings, description="MultiDataTile related settings")
-    excel_invoice: ExcelInvoiceSettings | None = Field(default_factory=ExcelInvoiceSettings, description="ExcelInvoice related settings")
+    # excel_invoice: ExcelInvoiceSettings | None = Field(default_factory=ExcelInvoiceSettings, description="ExcelInvoice related settings")
