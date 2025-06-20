@@ -30,7 +30,7 @@ class TestFileCopier:
         if os.path.exists("data/raw"):
             shutil.rmtree("data/raw")
 
-    def test_process_with_save_nonshared_raw_enabled(self, basic_processing_context, inputfile_single, ivnoice_json_with_sample_info, tasksupport):
+    def test_process_with_save_nonshared_raw_enabled(self, basic_processing_context, inputfile_single, invoice_json_with_sample_info, tasksupport):
         """Test FileCopier when save_nonshared_raw is enabled."""
         # Setup
         os.makedirs("data/nonshared_raw", exist_ok=True)
@@ -47,7 +47,7 @@ class TestFileCopier:
         if os.path.exists("data"):
             shutil.rmtree("data")
 
-    def test_process_with_both_enabled(self, basic_processing_context, inputfile_single, ivnoice_json_with_sample_info, tasksupport):
+    def test_process_with_both_enabled(self, basic_processing_context, inputfile_single, invoice_json_with_sample_info, tasksupport):
         """Test FileCopier when both save options are enabled."""
         # Setup
         os.makedirs("data/raw", exist_ok=True)
@@ -67,7 +67,7 @@ class TestFileCopier:
         if os.path.exists("data"):
             shutil.rmtree("data")
 
-    def test_process_with_both_disabled(self, processing_context_disabled_features, inputfile_single, ivnoice_json_with_sample_info, tasksupport):
+    def test_process_with_both_disabled(self, processing_context_disabled_features, inputfile_single, invoice_json_with_sample_info, tasksupport):
         """Test FileCopier when both save options are disabled."""
         # Setup
         os.makedirs("data/raw", exist_ok=True)

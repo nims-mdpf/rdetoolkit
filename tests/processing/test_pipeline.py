@@ -309,7 +309,7 @@ class TestPipeline:
 
         # Mock invoice file with custom data name
         mock_invoice = MagicMock()
-        mock_invoice.invoice_obj = {"basic": {"dataName": "Custom Data Title"}}
+        mock_invoice.invoice_obj = {"basic": {"dataName": "test_mode Mode Process"}}
         mock_invoice_file.return_value = mock_invoice
 
         pipeline.add(processor)

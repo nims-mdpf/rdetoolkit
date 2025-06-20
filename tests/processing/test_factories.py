@@ -165,7 +165,7 @@ class TestPipelineFactory:
     def test_get_supported_modes(self):
         """Test getting supported modes."""
         modes = PipelineFactory.get_supported_modes()
-        expected_modes = ["rdeformat", "multidatatile", "excelinvoice", "invoice"]
+        expected_modes = ["rdeformat", "multidatatile", "excelinvoice", "invoice", "smarttableinvoice"]
 
         assert modes == expected_modes
         assert isinstance(modes, list)

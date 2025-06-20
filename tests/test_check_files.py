@@ -25,7 +25,7 @@ from rdetoolkit.workflows import check_files
 def test_check_files_single(inputfile_single, ivnoice_json_none_sample_info, tasksupport):
     """テスト1-1: 入力形式: 送り状 / 入力ファイルタイプ: ファイル / ファイル数: 1ファイル
     inputfile_single: data/inputdata/test_single.txt
-    ivnoice_json_with_sample_info: data/invoice/invoice.json
+    invoice_json_with_sample_info: data/invoice/invoice.json
     """
     expect_rawfiles = [(Path("data", "inputdata", "test_single.txt"),)]
 
@@ -36,16 +36,17 @@ def test_check_files_single(inputfile_single, ivnoice_json_none_sample_info, tas
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     assert raw_files_group == expect_rawfiles
     assert excel_invoice_files is None
+    assert smarttable_files is None
 
 
-def test_check_files_multi(tasksupport, ivnoice_json_with_sample_info, inputfile_multi):
+def test_check_files_multi(tasksupport, invoice_json_with_sample_info, inputfile_multi):
     """テスト1-2: 入力形式: 送り状 / 入力ファイルタイプ: フォルダ / ファイル数: 複数ファイル
     inputfile_multi: data/inputdata/test_child1.txt, data/inputdata/test_child2.txt
-    ivnoice_json_with_sample_info: data/invoice/invoice.json
+    invoice_json_with_sample_info: data/invoice/invoice.json
     """
     expect_rawfiles = [(Path("data/inputdata/test_child1.txt"), Path("data/inputdata/test_child2.txt"))]
 
@@ -56,17 +57,18 @@ def test_check_files_multi(tasksupport, ivnoice_json_with_sample_info, inputfile
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     # The order of appearance of the contents of the tuples is
     # not relevant to the content of the test
     assert set(raw_files_group[0]) == set(expect_rawfiles[0])
     assert excel_invoice_files is None
+    assert smarttable_files is None
 
 
-def test_check_files_invoice_non_file(tasksupport, ivnoice_json_with_sample_info):
+def test_check_files_invoice_non_file(tasksupport, invoice_json_with_sample_info):
     """テスト1-3: 入力形式: 送り状 / 入力ファイルタイプ: なし
-    ivnoice_json_with_sample_info: data/invoice/invoice.json
+    invoice_json_with_sample_info: data/invoice/invoice.json
     """
     expect_rawfiles = [()]
 
@@ -77,17 +79,18 @@ def test_check_files_invoice_non_file(tasksupport, ivnoice_json_with_sample_info
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     assert raw_files_group == expect_rawfiles
     assert excel_invoice_files is None
+    assert smarttable_files is None
 
 
 # テストスイート(No. 2-xx)
 # エクセルインボイスからのデータ登録についてテスト
 def test_check_files_excelinvoice_zip_with_file(
     tasksupport,
-    ivnoice_json_with_sample_info,
+    invoice_json_with_sample_info,
     inputfile_single_excelinvoice,
     inputfile_zip_with_file,
 ):
@@ -104,10 +107,11 @@ def test_check_files_excelinvoice_zip_with_file(
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     assert raw_files_group == expect_rawfiles
     assert excel_invoice_files == expect_excelinvoice
+    assert smarttable_files is None
 
 
 def test_check_files_excelinvoice_zip_with_folder(
@@ -132,13 +136,14 @@ def test_check_files_excelinvoice_zip_with_folder(
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     assert raw_files_group == expect_rawfiles
     assert excel_invoice_files == expect_excelinvoice
+    assert smarttable_files is None
 
 
-def test_check_files_excelinvoice_non_file(tasksupport, ivnoice_json_with_sample_info, non_inputfile_excelinvoice):
+def test_check_files_excelinvoice_non_file(tasksupport, invoice_json_with_sample_info, non_inputfile_excelinvoice):
     """テスト2-3: 入力形式: エクセルインボイス / 入力ファイルタイプ: なし"""
     expect_rawfiles = []
     expect_excelinvoice = Path("data/inputdata/test_excel_invoice.xlsx")
@@ -150,13 +155,14 @@ def test_check_files_excelinvoice_non_file(tasksupport, ivnoice_json_with_sample
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     assert raw_files_group == expect_rawfiles
     assert excel_invoice_files == expect_excelinvoice
+    assert smarttable_files is None
 
 
-def test_check_files_rdeformat_single(inputfile_rdeformat_divived, tasksupport, ivnoice_json_with_sample_info):
+def test_check_files_rdeformat_single(inputfile_rdeformat_divived, tasksupport, invoice_json_with_sample_info):
     """テスト3: 入力形式: RDEformat / 入力ファイルタイプ: *.zip, tasksupport/rdeformat.txt)"""
     expect_rawfiles = [
         (
@@ -184,18 +190,19 @@ def test_check_files_rdeformat_single(inputfile_rdeformat_divived, tasksupport, 
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
 
     assert set(raw_files_group[0]) == set(expect_rawfiles[0])
     assert set(raw_files_group[1]) == set(expect_rawfiles[1])
     assert set(raw_files_group[2]) == set(expect_rawfiles[2])
     assert excel_invoice_files == expect_excelinvoice
+    assert smarttable_files is None
 
 
-def test_check_files_invoice_multiformat(tasksupport, ivnoice_json_with_sample_info, inputfile_multi, inputfile_multimode):
+def test_check_files_invoice_multiformat(tasksupport, invoice_json_with_sample_info, inputfile_multi, inputfile_multimode):
     """テスト4: 入力形式: 送り状 / 入力ファイルタイプ: マルチモード / ファイル数: 複数ファイル
     inputfile_multi: data/inputdata/test_child1.txt, data/inputdata/test_child2.txt
-    ivnoice_json_with_sample_info: data/invoice/invoice.json
+    invoice_json_with_sample_info: data/invoice/invoice.json
     """
     expect_rawfiles = [
         (Path("data/inputdata/test_child1.txt"),),
@@ -210,6 +217,7 @@ def test_check_files_invoice_multiformat(tasksupport, ivnoice_json_with_sample_i
         tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
         config=format_flags,
     )
-    raw_files_group, excel_invoice_files = check_files(srcpaths, mode=format_flags.extended_mode)
+    raw_files_group, excel_invoice_files, smarttable_files = check_files(srcpaths, mode=format_flags.extended_mode)
     assert set(raw_files_group) == set(expect_rawfiles)
     assert excel_invoice_files == expect_excelinvoice
+    assert smarttable_files is None

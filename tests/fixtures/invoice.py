@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.fixture()
-def ivnoice_json_with_sample_info() -> Generator[str, None, None]:
+def invoice_json_with_sample_info() -> Generator[str, None, None]:
     """試料情報ありのinvoice.json"""
     invoice_dir = pathlib.Path("data", "invoice")
     invoice_json_path = pathlib.Path(str(invoice_dir), "invoice.json")
