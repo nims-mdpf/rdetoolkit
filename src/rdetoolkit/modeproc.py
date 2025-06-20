@@ -1,25 +1,23 @@
 from __future__ import annotations
 
-import contextlib
 import os
 import shutil
 from pathlib import Path
 from typing import Callable
 
-from rdetoolkit import img2thumb
-from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl.input_controller import (
     ExcelInvoiceChecker,
     InvoiceChecker,
     MultiFileChecker,
     RDEFormatChecker,
+    SmartTableChecker,
 )
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
-from rdetoolkit.invoicefile import ExcelInvoiceFile, InvoiceFile, apply_magic_variable, update_description_with_features
 from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.models.result import WorkflowExecutionStatus
+from rdetoolkit.processing.context import ProcessingContext
+from rdetoolkit.processing.factories import PipelineFactory
 from rdetoolkit.rdelogger import get_logger
-from rdetoolkit.validation import invoice_validate, metadata_validate
 
 _CallbackType = Callable[[RdeInputDirPaths, RdeOutputResourcePath], None]
 
@@ -65,45 +63,16 @@ def rdeformat_mode_process(
             - error_message (str | None): The error message if an error occurred, otherwise None.
             - target (str): The target directory or file path related to the workflow execution.
     """
-    basedir = resource_paths.rawfiles[0].parent if len(resource_paths.rawfiles) > 0 else ""
-
-    # rewriting the invoice
-    invoice_dst_filepath = resource_paths.invoice.joinpath("invoice.json")
-    InvoiceFile.copy_original_invoice(resource_paths.invoice_org, invoice_dst_filepath)
-    copy_input_to_rawfile_for_rdeformat(resource_paths)
-    invoice = InvoiceFile(invoice_dst_filepath)
-
-    # run custom dataset process
-    if datasets_process_function is not None:
-        datasets_process_function(srcpaths, resource_paths)
-
-    if srcpaths.config.system.save_thumbnail_image:
-        img2thumb.copy_images_to_thumbnail(
-            resource_paths.thumbnail,
-            resource_paths.main_image,
-        )
-
-    with contextlib.suppress(Exception):
-        update_description_with_features(resource_paths, invoice_dst_filepath, srcpaths.tasksupport.joinpath("metadata-def.json"))
-
-    # validate metadata.json
-    if resource_paths.meta.joinpath("metadata.json").exists():
-        metadata_validate(resource_paths.meta.joinpath("metadata.json"))
-
-    # validate invoice.schema.json / invoice.json
-    schema_path = srcpaths.tasksupport.joinpath("invoice.schema.json")
-    invoice_validate(invoice_dst_filepath, schema_path)
-
-    return WorkflowExecutionStatus(
-        run_id=index,
-        title=invoice.invoice_obj.get("basic", {}).get("dataName", "RDEFormat Mode Process"),
-        status="success",
-        mode="rdeformat",
-        error_code=None,
-        error_message=None,
-        target=str(basedir),
-        stacktrace=None,
+    context = ProcessingContext(
+        index=index,
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=datasets_process_function,
+        mode_name="rdeformat",
     )
+
+    pipeline = PipelineFactory.create_rdeformat_pipeline()
+    return pipeline.execute(context)
 
 
 def multifile_mode_process(
@@ -145,49 +114,16 @@ def multifile_mode_process(
             - error_message (str | None): The error message if an error occurred, otherwise None.
             - target (str): The target directory or file path related to the workflow execution.
     """
-    basedir = resource_paths.rawfiles[0].parent if len(resource_paths.rawfiles) > 0 else ""
-    invoice_dst_filepath = resource_paths.invoice.joinpath("invoice.json")
-    InvoiceFile.copy_original_invoice(resource_paths.invoice_org, invoice_dst_filepath)
-    invoice = InvoiceFile(invoice_dst_filepath)
-
-    if srcpaths.config.system.save_raw:
-        copy_input_to_rawfile(resource_paths.raw, resource_paths.rawfiles)
-
-    if srcpaths.config.system.save_nonshared_raw:
-        copy_input_to_rawfile(resource_paths.nonshared_raw, resource_paths.rawfiles)
-
-    # run custom dataset process
-    if datasets_process_function is not None:
-        datasets_process_function(srcpaths, resource_paths)
-
-    # rewriting support for ${filename} by default
-    if srcpaths.config.system.magic_variable:
-        apply_magic_variable(resource_paths.invoice.joinpath("invoice.json"), resource_paths.rawfiles[0])
-
-    if srcpaths.config.system.save_thumbnail_image:
-        img2thumb.copy_images_to_thumbnail(resource_paths.thumbnail, resource_paths.main_image)
-
-    with contextlib.suppress(Exception):
-        update_description_with_features(resource_paths, invoice_dst_filepath, srcpaths.tasksupport.joinpath("metadata-def.json"))
-
-    # validate metadata.json
-    if resource_paths.meta.joinpath("metadata.json").exists():
-        metadata_validate(resource_paths.meta.joinpath("metadata.json"))
-
-    # validate invoice.schema.json / invoice.json
-    schema_path = srcpaths.tasksupport.joinpath("invoice.schema.json")
-    invoice_validate(invoice_dst_filepath, schema_path)
-
-    return WorkflowExecutionStatus(
-        run_id=index,
-        title=invoice.invoice_obj.get("basic", {}).get("dataName", "MultiDataTile Mode Process"),
-        status="success",
-        mode="MultiDataTile",
-        error_code=None,
-        error_message=None,
-        target=str(basedir),
-        stacktrace=None,
+    context = ProcessingContext(
+        index=index,
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=datasets_process_function,
+        mode_name="MultiDataTile",
     )
+
+    pipeline = PipelineFactory.create_multifile_pipeline()
+    return pipeline.execute(context)
 
 
 def excel_invoice_mode_process(
@@ -232,70 +168,18 @@ def excel_invoice_mode_process(
             - error_message (str | None): The error message if an error occurred, otherwise None.
             - target (str): The target directory or file path related to the workflow execution.
     """
-    # rewriting the invoice
-    excel_invoice = ExcelInvoiceFile(excel_invoice_file)
-    try:
-        excel_invoice.overwrite(
-            resource_paths.invoice_org,
-            resource_paths.invoice.joinpath("invoice.json"),
-            resource_paths.invoice_schema_json,
-            idx,
-        )
-    except StructuredError:
-        raise
-    except Exception as e:
-        emsg = f"ERROR: failed to generate invoice file for data {idx:04d}"
-        raise StructuredError(
-            emsg,
-            eobj=e,
-        ) from e
-
-    if srcpaths.config.system.save_raw:
-        copy_input_to_rawfile(resource_paths.raw, resource_paths.rawfiles)
-
-    if srcpaths.config.system.save_nonshared_raw:
-        copy_input_to_rawfile(resource_paths.nonshared_raw, resource_paths.rawfiles)
-
-    # run custom dataset process
-    if datasets_process_function is not None:
-        datasets_process_function(srcpaths, resource_paths)
-
-    # rewriting support for ${filename} by default
-    # Excelinvoice applies to file mode only, folder mode is not supported.
-    # FileMode has only one element in resource_paths.rawfiles.
-    if srcpaths.config.system.magic_variable:
-        apply_magic_variable(resource_paths.invoice.joinpath("invoice.json"), resource_paths.rawfiles[0])
-
-    if srcpaths.config.system.save_thumbnail_image:
-        img2thumb.copy_images_to_thumbnail(resource_paths.thumbnail, resource_paths.main_image)
-
-    with contextlib.suppress(Exception):
-        update_description_with_features(
-            resource_paths,
-            resource_paths.invoice.joinpath("invoice.json"),
-            srcpaths.tasksupport.joinpath("metadata-def.json"),
-        )
-
-    # validate metadata.json
-    if resource_paths.meta.joinpath("metadata.json").exists():
-        metadata_validate(resource_paths.meta.joinpath("metadata.json"))
-
-    # validate invoice.schema.json / invoice.json
-    schema_path = srcpaths.tasksupport.joinpath("invoice.schema.json")
-    invoice_validate(resource_paths.invoice.joinpath("invoice.json"), schema_path)
-
-    invoice = InvoiceFile(resource_paths.invoice.joinpath("invoice.json"))
-    basedir = resource_paths.rawfiles[0].parent if len(resource_paths.rawfiles) > 0 else ""
-    return WorkflowExecutionStatus(
-        run_id=str(idx),
-        title=invoice.invoice_obj.get("basic", {}).get("dataName", "Excelinvoice Mode Process"),
-        status="success",
-        mode="Excelinvoice",
-        error_code=None,
-        error_message=None,
-        target=str(basedir),
-        stacktrace=None,
+    context = ProcessingContext(
+        index=str(idx),
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=datasets_process_function,
+        mode_name="Excelinvoice",
+        excel_file=excel_invoice_file,
+        excel_index=idx,
     )
+
+    pipeline = PipelineFactory.create_excel_pipeline()
+    return pipeline.execute(context)
 
 
 def invoice_mode_process(
@@ -336,50 +220,70 @@ def invoice_mode_process(
             - error_message (str | None): The error message if an error occurred, otherwise None.
             - target (str): The target directory or file path related to the workflow execution.
     """
-    if srcpaths.config.system.save_raw:
-        copy_input_to_rawfile(resource_paths.raw, resource_paths.rawfiles)
-
-    if srcpaths.config.system.save_nonshared_raw:
-        copy_input_to_rawfile(resource_paths.nonshared_raw, resource_paths.rawfiles)
-
-    # run custom dataset process
-    if datasets_process_function is not None:
-        datasets_process_function(srcpaths, resource_paths)
-
-    if srcpaths.config.system.save_thumbnail_image:
-        img2thumb.copy_images_to_thumbnail(resource_paths.thumbnail, resource_paths.main_image)
-
-    # rewriting support for ${filename} by default
-    if srcpaths.config.system.magic_variable:
-        apply_magic_variable(resource_paths.invoice.joinpath("invoice.json"), resource_paths.rawfiles[0])
-
-    with contextlib.suppress(Exception):
-        update_description_with_features(
-            resource_paths,
-            resource_paths.invoice.joinpath("invoice.json"),
-            srcpaths.tasksupport.joinpath("metadata-def.json"),
-        )
-
-    # validate metadata.json
-    if resource_paths.meta.joinpath("metadata.json").exists():
-        metadata_validate(resource_paths.meta.joinpath("metadata.json"))
-
-    # validate invoice.schema.json / invoice.json
-    schema_path = srcpaths.tasksupport.joinpath("invoice.schema.json")
-    invoice_validate(resource_paths.invoice.joinpath("invoice.json"), schema_path)
-
-    invoice = InvoiceFile(resource_paths.invoice.joinpath("invoice.json"))
-    basedir = resource_paths.rawfiles[0].parent if len(resource_paths.rawfiles) > 0 else ""
-    return WorkflowExecutionStatus(
-        run_id=index,
-        title=invoice.invoice_obj.get("basic", {}).get("dataName", "Invoice Mode Process"),
-        status="success",
-        mode="invoice",
-        error_code=None,
-        error_message=None,
-        target=str(basedir),
-        stacktrace=None,
+    context = ProcessingContext(
+        index=index,
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=datasets_process_function,
+        mode_name="invoice",
     )
+
+    pipeline = PipelineFactory.create_invoice_pipeline()
+    return pipeline.execute(context)
+
+
+def smarttable_invoice_mode_process(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    smarttable_file: Path,
+    datasets_process_function: _CallbackType | None = None,
+) -> WorkflowExecutionStatus:
+    """Processes SmartTable files and generates invoice data for structured processing.
+
+    This function performs several steps:
+
+    1. Initializes invoice from SmartTable file data.
+    2. Copies input files to the rawfile directory.
+    3. Runs a custom dataset process function if provided.
+    4. Copies images to the thumbnail directory.
+    5. Replaces the placeholder '${filename}' in the invoice with the actual filename if necessary.
+    6. Attempts to update descriptions with features, ignoring any errors during this step.
+    7. Validates the metadata-def.json file.
+    8. Validates the invoice file against the invoice schema.
+
+    Args:
+        index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
+        srcpaths (RdeInputDirPaths): Input paths for the source data.
+        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
+        smarttable_file (Path): Path to the SmartTable file (.xlsx, .csv, .tsv).
+        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+
+    Raises:
+        StructuredError: When encountering issues related to SmartTable processing or during the validation steps.
+        Any exceptions raised by `datasets_process_function` will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+
+    Returns:
+        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
+            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
+            - title (str): A descriptive title for the workflow execution.
+            - status (str): The status of the workflow execution, either "success" or "failed".
+            - mode (str): The mode in which the workflow was executed, e.g., "SmartTableInvoice".
+            - error_code (int | None): The error code if an error occurred, otherwise None.
+            - error_message (str | None): The error message if an error occurred, otherwise None.
+            - target (str): The target directory or file path related to the workflow execution.
+    """
+    context = ProcessingContext(
+        index=index,
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=datasets_process_function,
+        mode_name="SmartTableInvoice",
+        smarttable_file=smarttable_file,
+    )
+
+    pipeline = PipelineFactory.create_smarttable_invoice_pipeline()
+    return pipeline.execute(context)
 
 
 def copy_input_to_rawfile_for_rdeformat(resource_paths: RdeOutputResourcePath) -> None:
@@ -445,12 +349,15 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
         None, but callers should be aware that downstream exceptions can be raised by individual checker initializations.
     """
     input_files = list(src_paths.inputdata.glob("*"))
+    smarttable_files = [f for f in input_files if f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"]]
     excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
     mode = mode.lower() if mode is not None else ""
+    if smarttable_files:
+        return SmartTableChecker(unpacked_dir_path)
+    if excel_invoice_files:
+        return ExcelInvoiceChecker(unpacked_dir_path)
     if mode == "rdeformat":
         return RDEFormatChecker(unpacked_dir_path)
     if mode == "multidatatile":
         return MultiFileChecker(unpacked_dir_path)
-    if excel_invoice_files:
-        return ExcelInvoiceChecker(unpacked_dir_path)
     return InvoiceChecker(unpacked_dir_path)

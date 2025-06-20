@@ -210,7 +210,7 @@ def test_read_none_sample_excel_invoice_file_blankline(
     assert str(e.value) == "Error! Blank lines exist between lines"
 
 
-def test_excelinvoice_overwrite(inputfile_multi_excelinvoice, ivnoice_json_with_sample_info, ivnoice_schema_json_none_specificAttributes):
+def test_excelinvoice_overwrite(inputfile_multi_excelinvoice, invoice_json_with_sample_info, ivnoice_schema_json_none_specificAttributes):
     """試料情報ありの上書き処理
     上書き後のinvoice.jsonの内容を確認する
     上書き前のkey/value -> custom.key1: test1
@@ -220,7 +220,7 @@ def test_excelinvoice_overwrite(inputfile_multi_excelinvoice, ivnoice_json_with_
     excel_invoice_path = Path(inputfile_multi_excelinvoice)
 
     excel_invoice_file = ExcelInvoiceFile(excel_invoice_path)
-    excel_invoice_file.overwrite(ivnoice_json_with_sample_info, dist_path, ivnoice_schema_json_none_specificAttributes, 0)
+    excel_invoice_file.overwrite(invoice_json_with_sample_info, dist_path, ivnoice_schema_json_none_specificAttributes, 0)
 
     with open(dist_path, encoding="utf-8") as f:
         contents = json.load(f)

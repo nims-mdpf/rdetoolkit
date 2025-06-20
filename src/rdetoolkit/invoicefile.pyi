@@ -1,13 +1,8 @@
 import pandas as pd
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from pathlib import Path
-from rdetoolkit import __version__ as __version__, rde2util as rde2util
-from rdetoolkit.exceptions import InvoiceSchemaValidationError as InvoiceSchemaValidationError, StructuredError as StructuredError
-from rdetoolkit.fileops import readf_json as readf_json, writef_json as writef_json
-from rdetoolkit.models.invoice import FixedHeaders as FixedHeaders, GeneralAttributeConfig as GeneralAttributeConfig, GeneralTermRegistry as GeneralTermRegistry, SpecificAttributeConfig as SpecificAttributeConfig, SpecificTermRegistry as SpecificTermRegistry, TemplateConfig as TemplateConfig
-from rdetoolkit.models.invoice_schema import InvoiceSchemaJson as InvoiceSchemaJson, SampleField as SampleField, SpecificProperty as SpecificProperty
+from rdetoolkit.models.invoice import FixedHeaders as FixedHeaders, GeneralAttributeConfig as GeneralAttributeConfig, SpecificAttributeConfig as SpecificAttributeConfig, TemplateConfig as TemplateConfig
 from rdetoolkit.models.rde2types import RdeFsPath as RdeFsPath, RdeOutputResourcePath as RdeOutputResourcePath
-from rdetoolkit.rde2util import StorageDir as StorageDir
 from typing import Any, Literal, Protocol
 
 STATIC_DIR: Incomplete
@@ -73,3 +68,10 @@ class RuleBasedReplacer:
 
 def apply_default_filename_mapping_rule(replacement_rule: dict[str, Any], save_file_path: str | Path) -> dict[str, Any]: ...
 def apply_magic_variable(invoice_path: str | Path, rawfile_path: str | Path, *, save_filepath: str | Path | None = None) -> dict[str, Any]: ...
+
+class SmartTableFile:
+    smarttable_path: Incomplete
+    def __init__(self, smarttable_path: Path) -> None: ...
+    def read_table(self) -> pd.DataFrame: ...
+    def generate_individual_csvs(self, output_dir: Path) -> list[Path]: ...
+    def map_row_to_invoice(self, row_index: int, extracted_files: list[Path] | None = None) -> dict[str, Any]: ...

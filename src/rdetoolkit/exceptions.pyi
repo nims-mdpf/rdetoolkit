@@ -1,4 +1,4 @@
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from typing import Any
 
 class StructuredError(Exception):

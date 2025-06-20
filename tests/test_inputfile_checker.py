@@ -61,7 +61,7 @@ class TestInvoiceChecker:
         assert isinstance(rawfiles[0], tuple)
         assert all(isinstance(file, Path) for file in rawfiles[0])
 
-    def test_parse_non_data_only_invoice(self, ivnoice_json_with_sample_info):
+    def test_parse_non_data_only_invoice(self, invoice_json_with_sample_info):
         unpacked_dir_basename = Path("data/temp")
         src_dir_input = Path("data/inputdata")
 
