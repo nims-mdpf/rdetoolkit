@@ -499,7 +499,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -520,14 +520,14 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../impl/compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../impl/input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -551,7 +551,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -575,21 +575,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -654,9 +654,269 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.core">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      core
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#manageddirectory">
+<span class="md-ellipsis">
+      ManagedDirectory
+    </span>
+</a>
+<nav aria-label="ManagedDirectory" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#create">
+<span class="md-ellipsis">
+      create()
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list">
+<span class="md-ellipsis">
+      list()
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#__call__idx">
+<span class="md-ellipsis">
+      __call__(idx)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-path-structure">
+<span class="md-ellipsis">
+      Directory Path Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directoryops">
+<span class="md-ellipsis">
+      DirectoryOps
+    </span>
+</a>
+<nav aria-label="DirectoryOps" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_1">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_1">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#__getattr__name">
+<span class="md-ellipsis">
+      __getattr__(name)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#allidx">
+<span class="md-ellipsis">
+      all(idx)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#supported-directory-types">
+<span class="md-ellipsis">
+      Supported Directory Types
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#functions">
+<span class="md-ellipsis">
+      Functions
+    </span>
+</a>
+<nav aria-label="Functions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#resize_image_aspect_ratio">
+<span class="md-ellipsis">
+      resize_image_aspect_ratio
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#detect_encoding">
+<span class="md-ellipsis">
+      detect_encoding
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#read_file_with_encoding">
+<span class="md-ellipsis">
+      read_file_with_encoding
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-directory-management">
+<span class="md-ellipsis">
+      Basic Directory Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-with-indexed-directories">
+<span class="md-ellipsis">
+      Working with Indexed Directories
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-processing-workflow">
+<span class="md-ellipsis">
+      Image Processing Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-encoding-detection-and-processing">
+<span class="md-ellipsis">
+      File Encoding Detection and Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-exceptions">
+<span class="md-ellipsis">
+      Common Exceptions
+    </span>
+</a>
+<nav aria-label="Common Exceptions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#oserror">
+<span class="md-ellipsis">
+      OSError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#valueerror">
+<span class="md-ellipsis">
+      ValueError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ioerror">
+<span class="md-ellipsis">
+      IOError
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
     </span>
 </a>
 </li>
@@ -669,63 +929,63 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -785,9 +1045,269 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.core">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      core
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#manageddirectory">
+<span class="md-ellipsis">
+      ManagedDirectory
+    </span>
+</a>
+<nav aria-label="ManagedDirectory" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#create">
+<span class="md-ellipsis">
+      create()
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list">
+<span class="md-ellipsis">
+      list()
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#__call__idx">
+<span class="md-ellipsis">
+      __call__(idx)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-path-structure">
+<span class="md-ellipsis">
+      Directory Path Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directoryops">
+<span class="md-ellipsis">
+      DirectoryOps
+    </span>
+</a>
+<nav aria-label="DirectoryOps" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_1">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_1">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#__getattr__name">
+<span class="md-ellipsis">
+      __getattr__(name)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#allidx">
+<span class="md-ellipsis">
+      all(idx)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#supported-directory-types">
+<span class="md-ellipsis">
+      Supported Directory Types
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#functions">
+<span class="md-ellipsis">
+      Functions
+    </span>
+</a>
+<nav aria-label="Functions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#resize_image_aspect_ratio">
+<span class="md-ellipsis">
+      resize_image_aspect_ratio
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#detect_encoding">
+<span class="md-ellipsis">
+      detect_encoding
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#read_file_with_encoding">
+<span class="md-ellipsis">
+      read_file_with_encoding
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-directory-management">
+<span class="md-ellipsis">
+      Basic Directory Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-with-indexed-directories">
+<span class="md-ellipsis">
+      Working with Indexed Directories
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-processing-workflow">
+<span class="md-ellipsis">
+      Image Processing Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-encoding-detection-and-processing">
+<span class="md-ellipsis">
+      File Encoding Detection and Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-exceptions">
+<span class="md-ellipsis">
+      Common Exceptions
+    </span>
+</a>
+<nav aria-label="Common Exceptions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#oserror">
+<span class="md-ellipsis">
+      OSError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#valueerror">
+<span class="md-ellipsis">
+      ValueError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ioerror">
+<span class="md-ellipsis">
+      IOError
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
     </span>
 </a>
 </li>
@@ -799,19 +1319,519 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="core-module">Core Module</h1>
-<blockquote>
-<p><img alt="⚠" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/svg/26a0.svg" title=":warning:"> API documentation is currently under development.</img></p>
-</blockquote>
-<p>This module provides core functionality for rdetoolkit.</p>
-<div class="doc doc-object doc-module">
-<h2 class="doc doc-heading" id="src.rdetoolkit.core">
-<code>src.rdetoolkit.core</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-</div>
-</div>
-</div>
+<p>The <code>rdetoolkit.core</code> module provides essential functionality implemented in Rust for high-performance operations. This module includes directory management utilities, image processing functions, and file encoding detection capabilities.</p>
+<h2 id="overview">Overview</h2>
+<p>The core module is built using PyO3 and provides Python bindings for Rust implementations of performance-critical operations:</p>
+<ul>
+<li><strong>Directory Management</strong>: Efficient directory creation and management with support for indexed subdirectories</li>
+<li><strong>Image Processing</strong>: High-performance image resizing with aspect ratio preservation</li>
+<li><strong>File Operations</strong>: Fast encoding detection and file reading with automatic encoding handling</li>
+</ul>
+<h2 id="classes">Classes</h2>
+<h3 id="manageddirectory">ManagedDirectory</h3>
+<p>A directory manager that handles index-based subdirectories with automatic path construction.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>ManagedDirectory(base_dir: <span style="color: #007020">str</span>, dirname: <span style="color: #007020">str</span>, n_digit: Optional[<span style="color: #007020">int</span>] <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>, idx: Optional[<span style="color: #007020">int</span>] <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>base_dir</code> (str): Base directory path
+- <code>dirname</code> (str): Directory name to manage
+- <code>n_digit</code> (Optional[int]): Number of digits for index formatting (default: 4)
+- <code>idx</code> (Optional[int]): Initial index (default: 0)</p>
+<h4 id="attributes">Attributes</h4>
+<ul>
+<li><code>path</code> (str): The full path to the managed directory</li>
+<li><code>idx</code> (int): Current index of the directory</li>
+</ul>
+<h4 id="methods">Methods</h4>
+<h5 id="create">create()</h5>
+<p>Create the managed directory if it doesn't exist.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create</span>() <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Raises:</strong>
+- <code>OSError</code>: If directory creation fails</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> ManagedDirectory
+
+<span style="color: #888888"># Create a managed directory</span>
+managed_dir <span style="color: #333333">=</span> ManagedDirectory(<span style="background-color: #fff0f0">"/data"</span>, <span style="background-color: #fff0f0">"output"</span>)
+managed_dir<span style="color: #333333">.</span>create()  <span style="color: #888888"># Creates /data/output</span>
+</code></pre></div></td></tr></table></div></p>
+<h5 id="list">list()</h5>
+<p>List all files and directories in the managed directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">list</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>list[str]</code>: List of paths as strings</p>
+<p><strong>Raises:</strong>
+- <code>FileNotFoundError</code>: If the directory does not exist
+- <code>OSError</code>: If reading the directory fails</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># List contents of the managed directory</span>
+contents <span style="color: #333333">=</span> managed_dir<span style="color: #333333">.</span>list()
+<span style="color: #007020">print</span>(contents)  <span style="color: #888888"># ['file1.txt', 'subdir', ...]</span>
+</code></pre></div></td></tr></table></div></p>
+<h5 id="__call__idx">__call__(idx)</h5>
+<p>Create a new ManagedDirectory instance with the specified index.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__call__</span>(idx: <span style="color: #007020">int</span>) <span style="color: #333333">-&gt;</span> ManagedDirectory
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>idx</code> (int): Index for the new directory</p>
+<p><strong>Returns:</strong>
+- <code>ManagedDirectory</code>: New instance with the specified index</p>
+<p><strong>Raises:</strong>
+- <code>ValueError</code>: If idx is negative
+- <code>OSError</code>: If directory creation fails</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Create indexed subdirectories</span>
+base_dir <span style="color: #333333">=</span> ManagedDirectory(<span style="background-color: #fff0f0">"/data"</span>, <span style="background-color: #fff0f0">"output"</span>)
+indexed_dir <span style="color: #333333">=</span> base_dir(<span style="color: #0000DD; font-weight: bold">1</span>)  <span style="color: #888888"># Creates /data/divided/0001/output</span>
+</code></pre></div></td></tr></table></div></p>
+<h4 id="directory-path-structure">Directory Path Structure</h4>
+<p>The directory path is constructed as follows:</p>
+<ul>
+<li><strong>For idx=0</strong>: <code>{base_dir}/{dirname}</code></li>
+<li><strong>For idx&gt;0</strong>: <code>{base_dir}/divided/{idx:0{n_digit}d}/{dirname}</code></li>
+</ul>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Base directory (idx=0)</span>
+dir0 <span style="color: #333333">=</span> ManagedDirectory(<span style="background-color: #fff0f0">"/data"</span>, <span style="background-color: #fff0f0">"docs"</span>)
+<span style="color: #007020">print</span>(dir0<span style="color: #333333">.</span>path)  <span style="color: #888888"># "/data/docs"</span>
+
+<span style="color: #888888"># Indexed directory</span>
+dir1 <span style="color: #333333">=</span> dir0(<span style="color: #0000DD; font-weight: bold">1</span>)
+<span style="color: #007020">print</span>(dir1<span style="color: #333333">.</span>path)  <span style="color: #888888"># "/data/divided/0001/docs"</span>
+
+dir2 <span style="color: #333333">=</span> dir0(<span style="color: #0000DD; font-weight: bold">10</span>)
+<span style="color: #007020">print</span>(dir2<span style="color: #333333">.</span>path)  <span style="color: #888888"># "/data/divided/0010/docs"</span>
+</code></pre></div></td></tr></table></div></p>
+<h3 id="directoryops">DirectoryOps</h3>
+<p>Utility class for managing multiple directories with support for indexed subdirectories.</p>
+<h4 id="constructor_1">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>DirectoryOps(base_dir: <span style="color: #007020">str</span>, n_digit: Optional[<span style="color: #007020">int</span>] <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>base_dir</code> (str): Base directory path
+- <code>n_digit</code> (Optional[int]): Number of digits for index formatting (default: 4)</p>
+<h4 id="methods_1">Methods</h4>
+<h5 id="__getattr__name">__getattr__(name)</h5>
+<p>Access directories via attribute-style notation.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__getattr__</span>(name: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> ManagedDirectory
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>name</code> (str): Directory name</p>
+<p><strong>Returns:</strong>
+- <code>ManagedDirectory</code>: New ManagedDirectory instance for the specified directory</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> DirectoryOps
+
+ops <span style="color: #333333">=</span> DirectoryOps(<span style="background-color: #fff0f0">"/data"</span>)
+invoice_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>invoice  <span style="color: #888888"># Creates ManagedDirectory for "invoice"</span>
+raw_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>raw         <span style="color: #888888"># Creates ManagedDirectory for "raw"</span>
+</code></pre></div></td></tr></table></div></p>
+<h5 id="allidx">all(idx)</h5>
+<p>Create all supported directories and optionally their indexed subdirectories.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">all</span>(idx: Optional[<span style="color: #007020">int</span>] <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>idx</code> (Optional[int]): Maximum index for divided subdirectories</p>
+<p><strong>Returns:</strong>
+- <code>list[str]</code>: List of created directory paths</p>
+<p><strong>Raises:</strong>
+- <code>ValueError</code>: If idx is negative
+- <code>OSError</code>: If directory creation fails</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Create all base directories</span>
+ops <span style="color: #333333">=</span> DirectoryOps(<span style="background-color: #fff0f0">"/data"</span>)
+created_dirs <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>all()
+
+<span style="color: #888888"># Create base directories and indexed subdirectories</span>
+indexed_dirs <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>all(<span style="color: #0000DD; font-weight: bold">2</span>)  <span style="color: #888888"># Creates base + divided/0001, divided/0002 subdirs</span>
+</code></pre></div></td></tr></table></div></p>
+<h4 id="supported-directory-types">Supported Directory Types</h4>
+<p>The following directories are automatically supported:</p>
+<ul>
+<li><code>invoice</code></li>
+<li><code>raw</code></li>
+<li><code>structured</code></li>
+<li><code>main_image</code></li>
+<li><code>other_image</code></li>
+<li><code>thumbnail</code></li>
+<li><code>meta</code></li>
+<li><code>logs</code></li>
+<li><code>temp</code></li>
+<li><code>nonshared_raw</code></li>
+<li><code>invoice_patch</code></li>
+<li><code>attachment</code></li>
+</ul>
+<h2 id="functions">Functions</h2>
+<h3 id="resize_image_aspect_ratio">resize_image_aspect_ratio</h3>
+<p>Resize an image while preserving aspect ratio.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">resize_image_aspect_ratio</span>(input_path: <span style="color: #007020">str</span>, output_path: <span style="color: #007020">str</span>, width: <span style="color: #007020">int</span>, height: <span style="color: #007020">int</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>input_path</code> (str): Path to the input image file
+- <code>output_path</code> (str): Path where the resized image will be saved
+- <code>width</code> (int): Target width in pixels
+- <code>height</code> (int): Target height in pixels</p>
+<p><strong>Raises:</strong>
+- <code>ValueError</code>: If width or height is zero or negative
+- <code>IOError</code>: If input file cannot be read or output file cannot be written
+- <code>OSError</code>: If file operations fail</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> resize_image_aspect_ratio
+
+<span style="color: #888888"># Resize image to fit within 800x600 while preserving aspect ratio</span>
+resize_image_aspect_ratio(
+    <span style="background-color: #fff0f0">"input.jpg"</span>,
+    <span style="background-color: #fff0f0">"output.jpg"</span>,
+    <span style="color: #0000DD; font-weight: bold">800</span>,
+    <span style="color: #0000DD; font-weight: bold">600</span>
+)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="detect_encoding">detect_encoding</h3>
+<p>Detect the character encoding of a text file.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">detect_encoding</span>(path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">str</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str): Path to the file</p>
+<p><strong>Returns:</strong>
+- <code>str</code>: Detected encoding name (e.g., "utf-8", "shift_jis", "euc-jp")</p>
+<p><strong>Raises:</strong>
+- <code>IOError</code>: If file not found or cannot be read
+- <code>OSError</code>: If file operations fail</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> detect_encoding
+
+<span style="color: #888888"># Detect encoding of a text file</span>
+encoding <span style="color: #333333">=</span> detect_encoding(<span style="background-color: #fff0f0">"data.csv"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"File encoding: </span><span style="background-color: #eeeeee">{</span>encoding<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)  <span style="color: #888888"># File encoding: utf-8</span>
+</code></pre></div></td></tr></table></div></p>
+<h3 id="read_file_with_encoding">read_file_with_encoding</h3>
+<p>Read a file with automatic encoding detection.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">read_file_with_encoding</span>(file_path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">str</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>file_path</code> (str): Path to the file to read</p>
+<p><strong>Returns:</strong>
+- <code>str</code>: File contents as a string</p>
+<p><strong>Raises:</strong>
+- <code>IOError</code>: If file not found or cannot be read
+- <code>UnicodeDecodeError</code>: If file cannot be decoded
+- <code>OSError</code>: If file operations fail</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> read_file_with_encoding
+
+<span style="color: #888888"># Read file with automatic encoding detection</span>
+content <span style="color: #333333">=</span> read_file_with_encoding(<span style="background-color: #fff0f0">"data.txt"</span>)
+<span style="color: #007020">print</span>(content)
+</code></pre></div></td></tr></table></div></p>
+<h2 id="complete-usage-examples">Complete Usage Examples</h2>
+<h3 id="basic-directory-management">Basic Directory Management</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> DirectoryOps
+
+<span style="color: #888888"># Initialize directory operations</span>
+ops <span style="color: #333333">=</span> DirectoryOps(<span style="background-color: #fff0f0">"/project/data"</span>)
+
+<span style="color: #888888"># Create individual directories</span>
+invoice_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>invoice
+invoice_dir<span style="color: #333333">.</span>create()
+
+raw_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>raw
+raw_dir<span style="color: #333333">.</span>create()
+
+<span style="color: #888888"># Create all standard directories</span>
+all_dirs <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>all()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(all_dirs)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> directories"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="working-with-indexed-directories">Working with Indexed Directories</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> DirectoryOps
+
+ops <span style="color: #333333">=</span> DirectoryOps(<span style="background-color: #fff0f0">"/project/data"</span>)
+
+<span style="color: #888888"># Create directories for multiple datasets</span>
+<span style="color: #008800; font-weight: bold">for</span> i <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">range</span>(<span style="color: #0000DD; font-weight: bold">1</span>, <span style="color: #0000DD; font-weight: bold">4</span>):
+    <span style="color: #888888"># Create indexed subdirectories</span>
+    invoice_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>invoice(i)
+    raw_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>raw(i)
+
+    invoice_dir<span style="color: #333333">.</span>create()  <span style="color: #888888"># /project/data/divided/0001/invoice</span>
+    raw_dir<span style="color: #333333">.</span>create()      <span style="color: #888888"># /project/data/divided/0001/raw</span>
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created directories for dataset </span><span style="background-color: #eeeeee">{</span>i<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="image-processing-workflow">Image Processing Workflow</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> resize_image_aspect_ratio, DirectoryOps
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #888888"># Setup directories</span>
+ops <span style="color: #333333">=</span> DirectoryOps(<span style="background-color: #fff0f0">"/project/data"</span>)
+main_image_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>main_image
+thumbnail_dir <span style="color: #333333">=</span> ops<span style="color: #333333">.</span>thumbnail
+
+main_image_dir<span style="color: #333333">.</span>create()
+thumbnail_dir<span style="color: #333333">.</span>create()
+
+<span style="color: #888888"># Process images</span>
+input_images <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"input"</span>)<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.jpg"</span>)
+
+<span style="color: #008800; font-weight: bold">for</span> img_path <span style="color: #000000; font-weight: bold">in</span> input_images:
+    <span style="color: #888888"># Create main image (resized)</span>
+    main_output <span style="color: #333333">=</span> Path(main_image_dir<span style="color: #333333">.</span>path) <span style="color: #333333">/</span> img_path<span style="color: #333333">.</span>name
+    resize_image_aspect_ratio(
+        <span style="color: #007020">str</span>(img_path),
+        <span style="color: #007020">str</span>(main_output),
+        <span style="color: #0000DD; font-weight: bold">1920</span>, <span style="color: #0000DD; font-weight: bold">1080</span>
+    )
+
+    <span style="color: #888888"># Create thumbnail</span>
+    thumb_output <span style="color: #333333">=</span> Path(thumbnail_dir<span style="color: #333333">.</span>path) <span style="color: #333333">/</span> <span style="background-color: #fff0f0">f"thumb_</span><span style="background-color: #eeeeee">{</span>img_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+    resize_image_aspect_ratio(
+        <span style="color: #007020">str</span>(img_path),
+        <span style="color: #007020">str</span>(thumb_output),
+        <span style="color: #0000DD; font-weight: bold">300</span>, <span style="color: #0000DD; font-weight: bold">200</span>
+    )
+</code></pre></div></td></tr></table></div>
+<h3 id="file-encoding-detection-and-processing">File Encoding Detection and Processing</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.core</span> <span style="color: #008800; font-weight: bold">import</span> detect_encoding, read_file_with_encoding
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_text_files</span>(directory: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process all text files in a directory with encoding detection."""</span>
+
+    <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> Path(directory)<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.txt"</span>):
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #888888"># Detect encoding</span>
+            encoding <span style="color: #333333">=</span> detect_encoding(<span style="color: #007020">str</span>(file_path))
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>file_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>encoding<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+            <span style="color: #888888"># Read with automatic encoding handling</span>
+            content <span style="color: #333333">=</span> read_file_with_encoding(<span style="color: #007020">str</span>(file_path))
+
+            <span style="color: #888888"># Process content</span>
+            lines <span style="color: #333333">=</span> content<span style="color: #333333">.</span>splitlines()
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Lines: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(lines)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Error processing </span><span style="background-color: #eeeeee">{</span>file_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Usage</span>
+process_text_files(<span style="background-color: #fff0f0">"/data/input"</span>)
+</code></pre></div></td></tr></table></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="common-exceptions">Common Exceptions</h3>
+<p>The core module functions may raise the following exceptions:</p>
+<h4 id="oserror">OSError</h4>
+<p>Raised for general file system operations failures:
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">try</span>:
+    managed_dir<span style="color: #333333">.</span>create()
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">OSError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Failed to create directory: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h4 id="valueerror">ValueError</h4>
+<p>Raised for invalid parameter values:
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">try</span>:
+    resize_image_aspect_ratio(<span style="background-color: #fff0f0">"input.jpg"</span>, <span style="background-color: #fff0f0">"output.jpg"</span>, <span style="color: #0000DD; font-weight: bold">0</span>, <span style="color: #0000DD; font-weight: bold">100</span>)
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Invalid dimensions: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h4 id="ioerror">IOError</h4>
+<p>Raised for file I/O operations:
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">try</span>:
+    encoding <span style="color: #333333">=</span> detect_encoding(<span style="background-color: #fff0f0">"nonexistent.txt"</span>)
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">IOError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"File not found: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="best-practices">Best Practices</h3>
+<ol>
+<li>
+<p><strong>Always handle exceptions</strong> when working with file operations:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">try</span>:
+    content <span style="color: #333333">=</span> read_file_with_encoding(file_path)
+<span style="color: #008800; font-weight: bold">except</span> (<span style="color: #FF0000; font-weight: bold">IOError</span>, <span style="color: #FF0000; font-weight: bold">UnicodeDecodeError</span>) <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Failed to read </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Validate inputs</strong> before calling functions:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">if</span> width <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">0</span> <span style="color: #000000; font-weight: bold">and</span> height <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">0</span>:
+    resize_image_aspect_ratio(input_path, output_path, width, height)
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Invalid dimensions"</span>)
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Use Path objects</strong> for better path handling:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+input_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data"</span>) <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"input.jpg"</span>
+<span style="color: #008800; font-weight: bold">if</span> input_path<span style="color: #333333">.</span>exists():
+    resize_image_aspect_ratio(<span style="color: #007020">str</span>(input_path), <span style="color: #007020">str</span>(output_path), <span style="color: #0000DD; font-weight: bold">800</span>, <span style="color: #0000DD; font-weight: bold">600</span>)
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Create parent directories</strong> when needed:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>output_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"output"</span>) <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"processed"</span> <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"image.jpg"</span>
+output_path<span style="color: #333333">.</span>parent<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+resize_image_aspect_ratio(<span style="color: #007020">str</span>(input_path), <span style="color: #007020">str</span>(output_path), <span style="color: #0000DD; font-weight: bold">800</span>, <span style="color: #0000DD; font-weight: bold">600</span>)
+</code></pre></div></td></tr></table></div></p>
+</li>
+</ol>
+<h2 id="performance-notes">Performance Notes</h2>
+<ul>
+<li>All functions in this module are implemented in Rust for optimal performance</li>
+<li>Image processing operations use efficient algorithms with minimal memory allocation</li>
+<li>Directory operations are optimized for batch creation of multiple directories</li>
+<li>Encoding detection uses fast heuristic algorithms suitable for large files</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../config.md">Configuration Guide</a> - For configuring directory structures</li>
+<li><a href="../workflows.md">Workflows</a> - For integrating core functions into processing workflows</li>
+<li><a href="../fileops.md">File Operations</a> - For additional file handling utilities</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

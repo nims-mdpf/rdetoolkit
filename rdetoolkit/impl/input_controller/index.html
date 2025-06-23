@@ -9,7 +9,7 @@
 <link href="../../interface/filechecker/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>input_controller - RDEToolKit Documentation</title>
+<title>Input Controller Module - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,7 +23,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#input_controller">
+<a class="md-skip" href="#input-controller-module">
           Skip to content
         </a>
 </div>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              input_controller
+              Input Controller Module
             
           </span>
 </div>
@@ -499,7 +499,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -520,7 +520,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
@@ -528,13 +528,13 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
@@ -544,14 +544,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#invoicechecke">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      InvoiceChecke
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.InvoiceChecker">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoicechecker">
 <span class="md-ellipsis">
       InvoiceChecker
     </span>
@@ -559,18 +567,36 @@
 <nav aria-label="InvoiceChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.InvoiceChecker.parse">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      parse
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.InvoiceChecker._get_group_by_files">
+<a class="md-nav__link" href="#attributes">
 <span class="md-ellipsis">
-      _get_group_by_files
+      Attributes
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input">
+<span class="md-ellipsis">
+      parse(src_dir_input)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -581,63 +607,46 @@
       ExcelInvoiceChecker
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker">
-<span class="md-ellipsis">
-      ExcelInvoiceChecker
-    </span>
-</a>
 <nav aria-label="ExcelInvoiceChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker.get_index">
+<a class="md-nav__link" href="#constructor_1">
 <span class="md-ellipsis">
-      get_index
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._get_group_by_files">
+<a class="md-nav__link" href="#attributes_1">
 <span class="md-ellipsis">
-      _get_group_by_files
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._get_rawfiles">
+<a class="md-nav__link" href="#methods_1">
 <span class="md-ellipsis">
-      _get_rawfiles
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_1">
+<span class="md-ellipsis">
+      parse(src_dir_input)
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._validate_files">
+<a class="md-nav__link" href="#get_indexpaths-sort_items">
 <span class="md-ellipsis">
-      _validate_files
+      get_index(paths, sort_items)
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_zipfiles">
-<span class="md-ellipsis">
-      _detect_invalid_zipfiles
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_excel_invoice_files">
-<span class="md-ellipsis">
-      _detect_invalid_excel_invoice_files
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_other_files">
-<span class="md-ellipsis">
-      _detect_invalid_other_files
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -648,42 +657,39 @@
       RDEFormatChecker
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker">
-<span class="md-ellipsis">
-      RDEFormatChecker
-    </span>
-</a>
 <nav aria-label="RDEFormatChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker.parse">
+<a class="md-nav__link" href="#constructor_2">
 <span class="md-ellipsis">
-      parse
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker._get_zipfiles">
+<a class="md-nav__link" href="#attributes_2">
 <span class="md-ellipsis">
-      _get_zipfiles
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker._unpacked">
+<a class="md-nav__link" href="#methods_2">
 <span class="md-ellipsis">
-      _unpacked
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_2">
+<span class="md-ellipsis">
+      parse(src_dir_input)
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker._get_rawfiles">
-<span class="md-ellipsis">
-      _get_rawfiles
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -694,38 +700,148 @@
       MultiFileChecker
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker">
-<span class="md-ellipsis">
-      MultiFileChecker
-    </span>
-</a>
 <nav aria-label="MultiFileChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker.parse">
+<a class="md-nav__link" href="#constructor_3">
 <span class="md-ellipsis">
-      parse
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker._get_group_by_files">
+<a class="md-nav__link" href="#attributes_3">
 <span class="md-ellipsis">
-      _get_group_by_files
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker._unpacked">
+<a class="md-nav__link" href="#methods_3">
 <span class="md-ellipsis">
-      _unpacked
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_3">
+<span class="md-ellipsis">
+      parse(src_dir_input)
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#smarttablechecker">
+<span class="md-ellipsis">
+      SmartTableChecker
+    </span>
+</a>
+<nav aria-label="SmartTableChecker" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_4">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_4">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_4">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_4">
+<span class="md-ellipsis">
+      parse(src_dir_input)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-input-processing-workflow">
+<span class="md-ellipsis">
+      Basic Input Processing Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#excel-invoice-processing-with-validation">
+<span class="md-ellipsis">
+      Excel Invoice Processing with Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#smarttable-processing-with-file-mapping">
+<span class="md-ellipsis">
+      SmartTable Processing with File Mapping
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#multi-format-processing-pipeline">
+<span class="md-ellipsis">
+      Multi-Format Processing Pipeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-rde-format-processing">
+<span class="md-ellipsis">
+      Advanced RDE Format Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -750,7 +866,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -774,21 +890,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -846,63 +962,63 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -962,14 +1078,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#invoicechecke">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      InvoiceChecke
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.InvoiceChecker">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoicechecker">
 <span class="md-ellipsis">
       InvoiceChecker
     </span>
@@ -977,18 +1101,36 @@
 <nav aria-label="InvoiceChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.InvoiceChecker.parse">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      parse
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.InvoiceChecker._get_group_by_files">
+<a class="md-nav__link" href="#attributes">
 <span class="md-ellipsis">
-      _get_group_by_files
+      Attributes
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input">
+<span class="md-ellipsis">
+      parse(src_dir_input)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -999,63 +1141,46 @@
       ExcelInvoiceChecker
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker">
-<span class="md-ellipsis">
-      ExcelInvoiceChecker
-    </span>
-</a>
 <nav aria-label="ExcelInvoiceChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker.get_index">
+<a class="md-nav__link" href="#constructor_1">
 <span class="md-ellipsis">
-      get_index
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._get_group_by_files">
+<a class="md-nav__link" href="#attributes_1">
 <span class="md-ellipsis">
-      _get_group_by_files
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._get_rawfiles">
+<a class="md-nav__link" href="#methods_1">
 <span class="md-ellipsis">
-      _get_rawfiles
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_1">
+<span class="md-ellipsis">
+      parse(src_dir_input)
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._validate_files">
+<a class="md-nav__link" href="#get_indexpaths-sort_items">
 <span class="md-ellipsis">
-      _validate_files
+      get_index(paths, sort_items)
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_zipfiles">
-<span class="md-ellipsis">
-      _detect_invalid_zipfiles
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_excel_invoice_files">
-<span class="md-ellipsis">
-      _detect_invalid_excel_invoice_files
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_other_files">
-<span class="md-ellipsis">
-      _detect_invalid_other_files
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -1066,42 +1191,39 @@
       RDEFormatChecker
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker">
-<span class="md-ellipsis">
-      RDEFormatChecker
-    </span>
-</a>
 <nav aria-label="RDEFormatChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker.parse">
+<a class="md-nav__link" href="#constructor_2">
 <span class="md-ellipsis">
-      parse
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker._get_zipfiles">
+<a class="md-nav__link" href="#attributes_2">
 <span class="md-ellipsis">
-      _get_zipfiles
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker._unpacked">
+<a class="md-nav__link" href="#methods_2">
 <span class="md-ellipsis">
-      _unpacked
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_2">
+<span class="md-ellipsis">
+      parse(src_dir_input)
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.RDEFormatChecker._get_rawfiles">
-<span class="md-ellipsis">
-      _get_rawfiles
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -1112,38 +1234,148 @@
       MultiFileChecker
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker">
-<span class="md-ellipsis">
-      MultiFileChecker
-    </span>
-</a>
 <nav aria-label="MultiFileChecker" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker.parse">
+<a class="md-nav__link" href="#constructor_3">
 <span class="md-ellipsis">
-      parse
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker._get_group_by_files">
+<a class="md-nav__link" href="#attributes_3">
 <span class="md-ellipsis">
-      _get_group_by_files
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.input_controller.MultiFileChecker._unpacked">
+<a class="md-nav__link" href="#methods_3">
 <span class="md-ellipsis">
-      _unpacked
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_3">
+<span class="md-ellipsis">
+      parse(src_dir_input)
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#smarttablechecker">
+<span class="md-ellipsis">
+      SmartTableChecker
+    </span>
+</a>
+<nav aria-label="SmartTableChecker" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_4">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_4">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_4">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parsesrc_dir_input_4">
+<span class="md-ellipsis">
+      parse(src_dir_input)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-input-processing-workflow">
+<span class="md-ellipsis">
+      Basic Input Processing Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#excel-invoice-processing-with-validation">
+<span class="md-ellipsis">
+      Excel Invoice Processing with Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#smarttable-processing-with-file-mapping">
+<span class="md-ellipsis">
+      SmartTable Processing with File Mapping
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#multi-format-processing-pipeline">
+<span class="md-ellipsis">
+      Multi-Format Processing Pipeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-rde-format-processing">
+<span class="md-ellipsis">
+      Advanced RDE Format Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -1152,522 +1384,1088 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="input_controller">input_controller</h1>
-<p>In <code>input_controller</code>, processes for file operations according to various input modes of RDE are defined.</p>
-<p>Depending on the input file, RDE has the following four modes:</p>
+<h1 id="input-controller-module">Input Controller Module</h1>
+<p>The <code>rdetoolkit.impl.input_controller</code> module provides comprehensive input file processing capabilities for RDE (Research Data Exchange) workflows. This module includes specialized checker classes for different input file formats and modes, enabling automatic detection and processing of various data structures including Excel invoices, ZIP archives, multi-file inputs, and SmartTable formats.</p>
+<h2 id="overview">Overview</h2>
+<p>The input controller module offers specialized file processing capabilities for different RDE input modes:</p>
 <ul>
-<li>Invoice mode</li>
-<li>ExcelInvoice mode</li>
-<li>RDEformat mode</li>
-<li>Multifile mode</li>
+<li><strong>Invoice Processing</strong>: Handle general invoice files with flexible input types</li>
+<li><strong>Excel Invoice Processing</strong>: Process structured Excel invoice files with ZIP archive validation</li>
+<li><strong>RDE Format Processing</strong>: Handle structured RDE format ZIP archives with numbered directories</li>
+<li><strong>Multi-File Processing</strong>: Process multiple individual files simultaneously</li>
+<li><strong>SmartTable Processing</strong>: Handle SmartTable files with automatic CSV generation and file mapping</li>
 </ul>
-<h2 id="invoicechecke">InvoiceChecke</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.InvoiceChecker">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>input_controller<span style="color: #333333">.</span>InvoiceChecker(unpacked_dir_basename)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.IInputFileChecker">IInputFileChecker</span></code></p>
-<p>A checker class to determine and parse the invoice mode.</p>
-<p>This class groups and checks invoice files, specifically identifying zip files, Excel invoice files,
-and other types of files.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.input_controller.InvoiceChecker.out_dir_temp">out_dir_temp</span></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Temporary directory for the unpacked content.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>For the purpose of this checker, notable files are primarily Excel invoices with a specific naming convention.</p>
-</details>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.InvoiceChecker.parse">
-<code class="highlight language-python">parse(src_dir_input)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Parses the source input directory, grouping files based on their type.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>src_dir_input</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Source directory containing the input files.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>tuple[<span title="rdetoolkit.models.rde2types.RawFiles">RawFiles</span>, <span title="pathlib.Path">Path</span> | None]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[RawFiles, Optional[Path]]:</p>
+<h2 id="classes">Classes</h2>
+<h3 id="invoicechecker">InvoiceChecker</h3>
+<p>A basic checker class for processing invoice files with minimal validation requirements.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InvoiceChecker(unpacked_dir_basename: Path)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>unpacked_dir_basename</code> (Path): Temporary directory for unpacked content</p>
+<h4 id="attributes">Attributes</h4>
 <ul>
-<li>RawFiles: A list of tuples where each tuple contains file paths grouped as 'other files'.</li>
-<li>Optional[Path]: This is always None for this implementation.</li>
+<li><code>out_dir_temp</code> (Path): Temporary directory for the unpacked content</li>
+<li><code>checker_type</code> (str): Returns "invoice" as the type identifier</li>
 </ul>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.InvoiceChecker._get_group_by_files">
-<code class="highlight language-python">_get_group_by_files(input_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="excelinvoicechecker">ExcelInvoiceChecker</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>input_controller<span style="color: #333333">.</span>ExcelInvoiceChecker(unpacked_dir_basename)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.IInputFileChecker">IInputFileChecker</span></code></p>
-<p>A checker class to determine and parse the ExcelInvoice mode.</p>
-<p>This class is used to identify, group, and validate the files in ExcelInvoice mode. The primary focus is on
-determining the presence and validity of ZIP files, Excel Invoice files, and other file types.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker.out_dir_temp">out_dir_temp</span></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Temporary directory for unpacked content.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Methods:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker.parse">parse</span></code></td>
-<td>
-<div class="doc-md-description">
-<p>Path) -&gt; tuple[RawFiles, Optional[Path]]:
-Parse the source input directory, validate the file groups, and return the raw files and the Excel Invoice file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker.get_index">
-<code class="highlight language-python">get_index(paths, sort_items)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Retrieves the index of the <code>divided</code> folder.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>paths</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Directory path of the raw files.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>sort_items</code></td>
-<td>
-<code><span title="collections.abc.Sequence">Sequence</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>A list of files sorted in the order described in the Excel invoice.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>int</code></td> <td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The index number.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._get_group_by_files">
-<code class="highlight language-python">_get_group_by_files(input_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._get_rawfiles">
-<code class="highlight language-python">_get_rawfiles(zipfile, excel_invoice_file)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._validate_files">
-<code class="highlight language-python">_validate_files(zipfiles, excel_invoice_files, other_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_zipfiles">
-<code class="highlight language-python">_detect_invalid_zipfiles(zipfiles)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_excel_invoice_files">
-<code class="highlight language-python">_detect_invalid_excel_invoice_files(excel_invoice_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.ExcelInvoiceChecker._detect_invalid_other_files">
-<code class="highlight language-python">_detect_invalid_other_files(other_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="rdeformatchecker">RDEFormatChecker</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.RDEFormatChecker">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>input_controller<span style="color: #333333">.</span>RDEFormatChecker(unpacked_dir_basename)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.IInputFileChecker">IInputFileChecker</span></code></p>
-<p>A checker class to identify and parse the RDE Format.</p>
-<p>This class is designed to handle files in the RDE Format. It checks the presence of ZIP files,
-unpacks them, and retrieves raw files from the unpacked content.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.input_controller.RDEFormatChecker.out_dir_temp">out_dir_temp</span></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Temporary directory for unpacked content.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.RDEFormatChecker.parse">
-<code class="highlight language-python">parse(src_dir_input)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Parse the source input directory, identify ZIP files, unpack the ZIP file, and return the raw files.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>src_dir_input</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Source directory containing the input files.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>tuple[<span title="rdetoolkit.models.rde2types.RawFiles">RawFiles</span>, <span title="pathlib.Path">Path</span> | None]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[RawFiles, Optional[Path]]:</p>
+<h4 id="methods">Methods</h4>
+<h5 id="parsesrc_dir_input">parse(src_dir_input)</h5>
+<p>Parse the source input directory and group files by type.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse</span>(src_dir_input: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[RawFiles, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>src_dir_input</code> (Path): Source directory containing the input files</p>
+<p><strong>Returns:</strong>
+- <code>tuple[RawFiles, Path | None]</code>: Tuple containing list of raw file tuples and None</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceChecker
+
+<span style="color: #888888"># Create checker instance</span>
+checker <span style="color: #333333">=</span> InvoiceChecker(Path(<span style="background-color: #fff0f0">"temp"</span>))
+
+<span style="color: #888888"># Parse input directory</span>
+raw_files, invoice_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(Path(<span style="background-color: #fff0f0">"input_data"</span>))
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> file groups"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="excelinvoicechecker">ExcelInvoiceChecker</h3>
+<p>A sophisticated checker class for processing Excel invoice files with ZIP archive validation and structured data extraction.</p>
+<h4 id="constructor_1">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>ExcelInvoiceChecker(unpacked_dir_basename: Path)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>unpacked_dir_basename</code> (Path): Temporary directory for unpacked content</p>
+<h4 id="attributes_1">Attributes</h4>
 <ul>
-<li>RawFiles: List of tuples containing paths of raw files.</li>
-<li>Optional[Path]: This will always return None for this implementation.</li>
+<li><code>out_dir_temp</code> (Path): Temporary directory for unpacked content</li>
+<li><code>checker_type</code> (str): Returns "excel_invoice" as the type identifier</li>
 </ul>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.RDEFormatChecker._get_zipfiles">
-<code class="highlight language-python">_get_zipfiles(input_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.RDEFormatChecker._unpacked">
-<code class="highlight language-python">_unpacked(zipfile, target_dir)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.RDEFormatChecker._get_rawfiles">
-<code class="highlight language-python">_get_rawfiles(unpacked_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="multifilechecker">MultiFileChecker</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.MultiFileChecker">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>input_controller<span style="color: #333333">.</span>MultiFileChecker(unpacked_dir_basename)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.IInputFileChecker">IInputFileChecker</span></code></p>
-<p>A checker class to identify and parse the MultiFile mode.</p>
-<p>This class is designed to handle multiple file modes. It checks the files in the source input
-directory, groups them, and retrieves the raw files.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.input_controller.MultiFileChecker.out_dir_temp">out_dir_temp</span></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Temporary directory used for certain operations.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.MultiFileChecker.parse">
-<code class="highlight language-python">parse(src_dir_input)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Parse the source input directory, group ZIP files and other files, and return the raw files.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>src_dir_input</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Source directory containing the input files.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>tuple[<span title="rdetoolkit.models.rde2types.RawFiles">RawFiles</span>, <span title="pathlib.Path">Path</span> | None]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[RawFiles, Optional[Path]]:</p>
+<h4 id="methods_1">Methods</h4>
+<h5 id="parsesrc_dir_input_1">parse(src_dir_input)</h5>
+<p>Parse and validate Excel invoice files with optional ZIP archives.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse</span>(src_dir_input: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[RawFiles, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>src_dir_input</code> (Path): Source directory containing the input files</p>
+<p><strong>Returns:</strong>
+- <code>tuple[RawFiles, Path | None]</code>: Tuple containing list of raw file tuples and Excel invoice file path</p>
+<p><strong>Raises:</strong>
+- <code>StructuredError</code>: If validation fails or file structure is inconsistent</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> ExcelInvoiceChecker
+
+<span style="color: #888888"># Create checker with temporary directory</span>
+checker <span style="color: #333333">=</span> ExcelInvoiceChecker(Path(<span style="background-color: #fff0f0">"temp_extract"</span>))
+
+<span style="color: #888888"># Process Excel invoice with ZIP</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    raw_files, excel_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(Path(<span style="background-color: #fff0f0">"excel_invoice_data"</span>))
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Excel invoice: </span><span style="background-color: #eeeeee">{</span>excel_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Raw file groups: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Validation error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h5 id="get_indexpaths-sort_items">get_index(paths, sort_items)</h5>
+<p>Get the index of a file path based on sorted items from Excel invoice.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_index</span>(paths: Path, sort_items: Sequence) <span style="color: #333333">-&gt;</span> <span style="color: #007020">int</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>paths</code> (Path): Directory path of the raw files
+- <code>sort_items</code> (Sequence): List of files sorted in Excel invoice order</p>
+<p><strong>Returns:</strong>
+- <code>int</code>: The index number or length of sort_items if not found</p>
+<h3 id="rdeformatchecker">RDEFormatChecker</h3>
+<p>A checker class for processing structured RDE format ZIP archives with numbered directory organization.</p>
+<h4 id="constructor_2">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>RDEFormatChecker(unpacked_dir_basename: Path)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>unpacked_dir_basename</code> (Path): Temporary directory for unpacked content</p>
+<h4 id="attributes_2">Attributes</h4>
 <ul>
-<li>RawFiles: List of tuples containing paths of raw files.</li>
-<li>Optional[Path]: This will always return None for this implementation.</li>
+<li><code>out_dir_temp</code> (Path): Temporary directory for unpacked content</li>
+<li><code>checker_type</code> (str): Returns "rde_format" as the type identifier</li>
 </ul>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.MultiFileChecker._get_group_by_files">
-<code class="highlight language-python">_get_group_by_files(input_files)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.input_controller.MultiFileChecker._unpacked">
-<code class="highlight language-python">_unpacked(zipfile, target_dir)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div>
+<h4 id="methods_2">Methods</h4>
+<h5 id="parsesrc_dir_input_2">parse(src_dir_input)</h5>
+<p>Parse RDE format ZIP files and extract structured data.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse</span>(src_dir_input: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[RawFiles, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>src_dir_input</code> (Path): Source directory containing the input files</p>
+<p><strong>Returns:</strong>
+- <code>tuple[RawFiles, Path | None]</code>: Tuple containing list of raw file tuples grouped by directory numbers and None</p>
+<p><strong>Raises:</strong>
+- <code>StructuredError</code>: If no ZIP file or multiple ZIP files are found</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> RDEFormatChecker
+
+<span style="color: #888888"># Create RDE format checker</span>
+checker <span style="color: #333333">=</span> RDEFormatChecker(Path(<span style="background-color: #fff0f0">"rde_temp"</span>))
+
+<span style="color: #888888"># Process RDE format ZIP</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    raw_files, _ <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(Path(<span style="background-color: #fff0f0">"rde_archive"</span>))
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"RDE groups: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #008800; font-weight: bold">for</span> i, group <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(raw_files):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Group </span><span style="background-color: #eeeeee">{</span>i<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(group)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+<span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"RDE format error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="multifilechecker">MultiFileChecker</h3>
+<p>A checker class for processing multiple individual files without specific structural requirements.</p>
+<h4 id="constructor_3">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MultiFileChecker(unpacked_dir_basename: Path)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>unpacked_dir_basename</code> (Path): Temporary directory used for certain operations</p>
+<h4 id="attributes_3">Attributes</h4>
+<ul>
+<li><code>out_dir_temp</code> (Path): Temporary directory for operations</li>
+<li><code>checker_type</code> (str): Returns "multifile" as the type identifier</li>
+</ul>
+<h4 id="methods_3">Methods</h4>
+<h5 id="parsesrc_dir_input_3">parse(src_dir_input)</h5>
+<p>Parse multiple individual files from the input directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse</span>(src_dir_input: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[RawFiles, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>src_dir_input</code> (Path): Source directory containing the input files</p>
+<p><strong>Returns:</strong>
+- <code>tuple[RawFiles, Path | None]</code>: Tuple containing list of single-file tuples sorted by filename and None</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> MultiFileChecker
+
+<span style="color: #888888"># Create multi-file checker</span>
+checker <span style="color: #333333">=</span> MultiFileChecker(Path(<span style="background-color: #fff0f0">"multi_temp"</span>))
+
+<span style="color: #888888"># Process multiple files</span>
+raw_files, _ <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(Path(<span style="background-color: #fff0f0">"multiple_files"</span>))
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Individual files: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #008800; font-weight: bold">for</span> file_tuple <span style="color: #000000; font-weight: bold">in</span> raw_files:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  File: </span><span style="background-color: #eeeeee">{</span>file_tuple[<span style="color: #0000DD; font-weight: bold">0</span>]<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="smarttablechecker">SmartTableChecker</h3>
+<p>A sophisticated checker class for processing SmartTable files with automatic CSV generation and file mapping capabilities.</p>
+<h4 id="constructor_4">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>SmartTableChecker(unpacked_dir_basename: Path)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>unpacked_dir_basename</code> (Path): Temporary directory for unpacked content</p>
+<h4 id="attributes_4">Attributes</h4>
+<ul>
+<li><code>out_dir_temp</code> (Path): Temporary directory for unpacked content</li>
+<li><code>checker_type</code> (str): Returns "smarttable" as the type identifier</li>
+</ul>
+<h4 id="methods_4">Methods</h4>
+<h5 id="parsesrc_dir_input_4">parse(src_dir_input)</h5>
+<p>Parse SmartTable files and generate individual CSV files with file mappings.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse</span>(src_dir_input: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[RawFiles, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>src_dir_input</code> (Path): Source directory containing the input files</p>
+<p><strong>Returns:</strong>
+- <code>tuple[RawFiles, Path | None]</code>: Tuple containing list of CSV-file mapping tuples and SmartTable file path</p>
+<p><strong>Raises:</strong>
+- <code>StructuredError</code>: If no SmartTable files found or multiple SmartTable files present</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> SmartTableChecker
+
+<span style="color: #888888"># Create SmartTable checker</span>
+checker <span style="color: #333333">=</span> SmartTableChecker(Path(<span style="background-color: #fff0f0">"smarttable_temp"</span>))
+
+<span style="color: #888888"># Process SmartTable with related files</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    raw_files, smarttable_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(Path(<span style="background-color: #fff0f0">"smarttable_data"</span>))
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"SmartTable file: </span><span style="background-color: #eeeeee">{</span>smarttable_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">for</span> csv_file_tuple <span style="color: #000000; font-weight: bold">in</span> raw_files:
+        csv_file <span style="color: #333333">=</span> csv_file_tuple[<span style="color: #0000DD; font-weight: bold">0</span>]
+        related_files <span style="color: #333333">=</span> csv_file_tuple[<span style="color: #0000DD; font-weight: bold">1</span>:]
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"CSV: </span><span style="background-color: #eeeeee">{</span>csv_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> -&gt; </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(related_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> related files"</span>)
+
+<span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"SmartTable error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h2 id="complete-usage-examples">Complete Usage Examples</h2>
+<h3 id="basic-input-processing-workflow">Basic Input Processing Workflow</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> (
+    InvoiceChecker, ExcelInvoiceChecker, RDEFormatChecker,
+    MultiFileChecker, SmartTableChecker
+)
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">detect_and_process_input</span>(input_dir: <span style="color: #007020">str</span>, temp_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Automatically detect input type and process accordingly."""</span>
+
+    input_path <span style="color: #333333">=</span> Path(input_dir)
+    temp_path <span style="color: #333333">=</span> Path(temp_dir)
+    temp_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #888888"># Get list of input files</span>
+    input_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(input_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>))
+
+    <span style="color: #888888"># Detect input type based on file patterns</span>
+    has_excel_invoice <span style="color: #333333">=</span> <span style="color: #007020">any</span>(
+        f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">".xls"</span>, <span style="background-color: #fff0f0">".xlsx"</span>] <span style="color: #000000; font-weight: bold">and</span> f<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">"_excel_invoice"</span>)
+        <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files
+    )
+
+    has_smarttable <span style="color: #333333">=</span> <span style="color: #007020">any</span>(
+        f<span style="color: #333333">.</span>name<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"smarttable_"</span>) <span style="color: #000000; font-weight: bold">and</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">".xlsx"</span>, <span style="background-color: #fff0f0">".csv"</span>, <span style="background-color: #fff0f0">".tsv"</span>]
+        <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files
+    )
+
+    has_zip <span style="color: #333333">=</span> <span style="color: #007020">any</span>(f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #333333">==</span> <span style="background-color: #fff0f0">".zip"</span> <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files)
+
+    <span style="color: #888888"># Select appropriate checker</span>
+    <span style="color: #008800; font-weight: bold">if</span> has_smarttable:
+        checker <span style="color: #333333">=</span> SmartTableChecker(temp_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"🔍 Detected: SmartTable format"</span>)
+    <span style="color: #008800; font-weight: bold">elif</span> has_excel_invoice:
+        checker <span style="color: #333333">=</span> ExcelInvoiceChecker(temp_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"🔍 Detected: Excel Invoice format"</span>)
+    <span style="color: #008800; font-weight: bold">elif</span> has_zip <span style="color: #000000; font-weight: bold">and</span> <span style="color: #007020">len</span>([f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files <span style="color: #008800; font-weight: bold">if</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #333333">==</span> <span style="background-color: #fff0f0">".zip"</span>]) <span style="color: #333333">==</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+        checker <span style="color: #333333">=</span> RDEFormatChecker(temp_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"🔍 Detected: RDE Format"</span>)
+    <span style="color: #008800; font-weight: bold">elif</span> <span style="color: #007020">len</span>(input_files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+        checker <span style="color: #333333">=</span> MultiFileChecker(temp_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"🔍 Detected: Multi-file format"</span>)
+    <span style="color: #008800; font-weight: bold">else</span>:
+        checker <span style="color: #333333">=</span> InvoiceChecker(temp_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"🔍 Detected: General invoice format"</span>)
+
+    <span style="color: #888888"># Process input</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        raw_files, metadata_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(input_path)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Processing complete:"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Checker type: </span><span style="background-color: #eeeeee">{</span>checker<span style="color: #333333">.</span>checker_type<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  File groups: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Metadata file: </span><span style="background-color: #eeeeee">{</span>metadata_file<span style="color: #333333">.</span>name<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">if</span><span style="color: #bbbbbb"> </span>metadata_file<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">else</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'None'</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> raw_files, metadata_file, checker<span style="color: #333333">.</span>checker_type
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Processing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+raw_files, metadata, input_type <span style="color: #333333">=</span> detect_and_process_input(
+    input_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"input_data"</span>,
+    temp_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"temp_processing"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h3 id="excel-invoice-processing-with-validation">Excel Invoice Processing with Validation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> ExcelInvoiceChecker
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> StructuredError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_excel_invoice_with_validation</span>(input_dir: <span style="color: #007020">str</span>, temp_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process Excel invoice with comprehensive validation."""</span>
+
+    input_path <span style="color: #333333">=</span> Path(input_dir)
+    temp_path <span style="color: #333333">=</span> Path(temp_dir)
+
+    <span style="color: #888888"># Pre-validation</span>
+    input_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(input_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>))
+
+    <span style="color: #888888"># Check for Excel invoice files</span>
+    excel_files <span style="color: #333333">=</span> [
+        f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files
+        <span style="color: #008800; font-weight: bold">if</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">".xls"</span>, <span style="background-color: #fff0f0">".xlsx"</span>] <span style="color: #000000; font-weight: bold">and</span> f<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">"_excel_invoice"</span>)
+    ]
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> excel_files:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">"No Excel invoice files found"</span>)
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(excel_files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"Multiple Excel invoice files found: </span><span style="background-color: #eeeeee">{</span>[f<span style="color: #333333">.</span>name<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">for</span><span style="color: #bbbbbb"> </span>f<span style="color: #bbbbbb"> </span><span style="color: #000000; font-weight: bold">in</span><span style="color: #bbbbbb"> </span>excel_files]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Check ZIP files</span>
+    zip_files <span style="color: #333333">=</span> [f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files <span style="color: #008800; font-weight: bold">if</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #333333">==</span> <span style="background-color: #fff0f0">".zip"</span>]
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(zip_files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"Multiple ZIP files found: </span><span style="background-color: #eeeeee">{</span>[f<span style="color: #333333">.</span>name<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">for</span><span style="color: #bbbbbb"> </span>f<span style="color: #bbbbbb"> </span><span style="color: #000000; font-weight: bold">in</span><span style="color: #bbbbbb"> </span>zip_files]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📄 Excel invoice: </span><span style="background-color: #eeeeee">{</span>excel_files[<span style="color: #0000DD; font-weight: bold">0</span>]<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #008800; font-weight: bold">if</span> zip_files:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📦 ZIP archive: </span><span style="background-color: #eeeeee">{</span>zip_files[<span style="color: #0000DD; font-weight: bold">0</span>]<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Create checker and process</span>
+    checker <span style="color: #333333">=</span> ExcelInvoiceChecker(temp_path)
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        raw_files, excel_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(input_path)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Excel invoice processing complete:"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Raw file groups: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Files per group:"</span>)
+
+        <span style="color: #008800; font-weight: bold">for</span> i, group <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(raw_files):
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    Group </span><span style="background-color: #eeeeee">{</span>i<span style="color: #333333">+</span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(group)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+            <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> group:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"      - </span><span style="background-color: #eeeeee">{</span>file_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> raw_files, excel_file
+
+    <span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Excel invoice validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    raw_files, excel_file <span style="color: #333333">=</span> process_excel_invoice_with_validation(
+        input_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"excel_invoice_input"</span>,
+        temp_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"excel_temp"</span>
+    )
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Processing error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="smarttable-processing-with-file-mapping">SmartTable Processing with File Mapping</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> SmartTableChecker
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_smarttable_with_mapping</span>(input_dir: <span style="color: #007020">str</span>, temp_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process SmartTable files with detailed file mapping."""</span>
+
+    input_path <span style="color: #333333">=</span> Path(input_dir)
+    temp_path <span style="color: #333333">=</span> Path(temp_dir)
+    temp_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #888888"># Validate SmartTable files</span>
+    smarttable_files <span style="color: #333333">=</span> [
+        f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>)
+        <span style="color: #008800; font-weight: bold">if</span> f<span style="color: #333333">.</span>name<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"smarttable_"</span>) <span style="color: #000000; font-weight: bold">and</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">".xlsx"</span>, <span style="background-color: #fff0f0">".csv"</span>, <span style="background-color: #fff0f0">".tsv"</span>]
+    ]
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> smarttable_files:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">"No SmartTable files found (must start with 'smarttable_')"</span>)
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(smarttable_files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"Multiple SmartTable files: </span><span style="background-color: #eeeeee">{</span>[f<span style="color: #333333">.</span>name<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">for</span><span style="color: #bbbbbb"> </span>f<span style="color: #bbbbbb"> </span><span style="color: #000000; font-weight: bold">in</span><span style="color: #bbbbbb"> </span>smarttable_files]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📊 SmartTable file: </span><span style="background-color: #eeeeee">{</span>smarttable_files[<span style="color: #0000DD; font-weight: bold">0</span>]<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Check for ZIP files</span>
+    zip_files <span style="color: #333333">=</span> [f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.zip"</span>)]
+    <span style="color: #008800; font-weight: bold">if</span> zip_files:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📦 ZIP files: </span><span style="background-color: #eeeeee">{</span>[f<span style="color: #333333">.</span>name<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">for</span><span style="color: #bbbbbb"> </span>f<span style="color: #bbbbbb"> </span><span style="color: #000000; font-weight: bold">in</span><span style="color: #bbbbbb"> </span>zip_files]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Process with SmartTable checker</span>
+    checker <span style="color: #333333">=</span> SmartTableChecker(temp_path)
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        raw_files, smarttable_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(input_path)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ SmartTable processing complete:"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Generated CSV files: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  File mappings:"</span>)
+
+        <span style="color: #008800; font-weight: bold">for</span> i, file_tuple <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(raw_files):
+            csv_file <span style="color: #333333">=</span> file_tuple[<span style="color: #0000DD; font-weight: bold">0</span>]
+            related_files <span style="color: #333333">=</span> file_tuple[<span style="color: #0000DD; font-weight: bold">1</span>:]
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    Row </span><span style="background-color: #eeeeee">{</span>i<span style="color: #333333">+</span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> -&gt; </span><span style="background-color: #eeeeee">{</span>csv_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">if</span> related_files:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"      Related files: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(related_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+                <span style="color: #008800; font-weight: bold">for</span> related_file <span style="color: #000000; font-weight: bold">in</span> related_files:
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"        - </span><span style="background-color: #eeeeee">{</span>related_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">else</span>:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"      No related files"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> raw_files, smarttable_file
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ SmartTable processing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+raw_files, smarttable <span style="color: #333333">=</span> process_smarttable_with_mapping(
+    input_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"smarttable_input"</span>,
+    temp_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"smarttable_temp"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h3 id="multi-format-processing-pipeline">Multi-Format Processing Pipeline</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 84</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 85</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 86</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 87</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 88</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 89</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 90</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 91</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 92</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 93</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 94</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 95</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 96</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 97</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 98</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 99</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">100</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">101</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">102</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">103</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">104</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">105</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">106</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">107</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">108</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">109</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">110</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">111</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">112</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">113</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">114</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">115</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">116</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">117</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">118</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">119</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">120</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">121</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">122</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">123</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">124</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">125</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">126</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">127</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">128</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">129</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">130</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">131</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">132</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">133</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">134</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">135</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">136</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">typing</span> <span style="color: #008800; font-weight: bold">import</span> Dict, Any
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> (
+    InvoiceChecker, ExcelInvoiceChecker, RDEFormatChecker,
+    MultiFileChecker, SmartTableChecker
+)
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">InputProcessingPipeline</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Comprehensive input processing pipeline for multiple formats."""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, base_temp_dir: <span style="color: #007020">str</span>):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>base_temp_dir <span style="color: #333333">=</span> Path(base_temp_dir)
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>base_temp_dir<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_directory</span>(<span style="color: #007020">self</span>, input_dir: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> Dict[<span style="color: #007020">str</span>, Any]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Process a directory with automatic format detection."""</span>
+
+        input_path <span style="color: #333333">=</span> Path(input_dir)
+        temp_dir <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>base_temp_dir <span style="color: #333333">/</span> <span style="background-color: #fff0f0">f"temp_</span><span style="background-color: #eeeeee">{</span>input_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+        temp_dir<span style="color: #333333">.</span>mkdir(exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        result <span style="color: #333333">=</span> {
+            <span style="background-color: #fff0f0">'input_dir'</span>: <span style="color: #007020">str</span>(input_path),
+            <span style="background-color: #fff0f0">'input_type'</span>: <span style="color: #008800; font-weight: bold">None</span>,
+            <span style="background-color: #fff0f0">'raw_files'</span>: <span style="color: #008800; font-weight: bold">None</span>,
+            <span style="background-color: #fff0f0">'metadata_file'</span>: <span style="color: #008800; font-weight: bold">None</span>,
+            <span style="background-color: #fff0f0">'success'</span>: <span style="color: #008800; font-weight: bold">False</span>,
+            <span style="background-color: #fff0f0">'error'</span>: <span style="color: #008800; font-weight: bold">None</span>,
+            <span style="background-color: #fff0f0">'stats'</span>: {}
+        }
+
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #888888"># Detect format</span>
+            checker <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_detect_format(input_path, temp_dir)
+            result[<span style="background-color: #fff0f0">'input_type'</span>] <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>checker_type
+
+            <span style="color: #888888"># Process files</span>
+            raw_files, metadata_file <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(input_path)
+
+            result[<span style="background-color: #fff0f0">'raw_files'</span>] <span style="color: #333333">=</span> raw_files
+            result[<span style="background-color: #fff0f0">'metadata_file'</span>] <span style="color: #333333">=</span> metadata_file
+            result[<span style="background-color: #fff0f0">'success'</span>] <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">True</span>
+
+            <span style="color: #888888"># Calculate statistics</span>
+            result[<span style="background-color: #fff0f0">'stats'</span>] <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_calculate_stats(raw_files)
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ </span><span style="background-color: #eeeeee">{</span>input_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>checker<span style="color: #333333">.</span>checker_type<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> format, </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> groups"</span>)
+
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            result[<span style="background-color: #fff0f0">'error'</span>] <span style="color: #333333">=</span> <span style="color: #007020">str</span>(e)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ </span><span style="background-color: #eeeeee">{</span>input_path<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> result
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_detect_format</span>(<span style="color: #007020">self</span>, input_path: Path, temp_dir: Path):
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Detect input format and return appropriate checker."""</span>
+
+        input_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(input_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>))
+
+        <span style="color: #888888"># SmartTable detection</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">any</span>(f<span style="color: #333333">.</span>name<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"smarttable_"</span>) <span style="color: #000000; font-weight: bold">and</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">".xlsx"</span>, <span style="background-color: #fff0f0">".csv"</span>, <span style="background-color: #fff0f0">".tsv"</span>] <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files):
+            <span style="color: #008800; font-weight: bold">return</span> SmartTableChecker(temp_dir)
+
+        <span style="color: #888888"># Excel Invoice detection</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">any</span>(f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">".xls"</span>, <span style="background-color: #fff0f0">".xlsx"</span>] <span style="color: #000000; font-weight: bold">and</span> f<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">"_excel_invoice"</span>) <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files):
+            <span style="color: #008800; font-weight: bold">return</span> ExcelInvoiceChecker(temp_dir)
+
+        <span style="color: #888888"># RDE Format detection (single ZIP)</span>
+        zip_files <span style="color: #333333">=</span> [f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> input_files <span style="color: #008800; font-weight: bold">if</span> f<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #333333">==</span> <span style="background-color: #fff0f0">".zip"</span>]
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(zip_files) <span style="color: #333333">==</span> <span style="color: #0000DD; font-weight: bold">1</span> <span style="color: #000000; font-weight: bold">and</span> <span style="color: #007020">len</span>(input_files) <span style="color: #333333">==</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+            <span style="color: #008800; font-weight: bold">return</span> RDEFormatChecker(temp_dir)
+
+        <span style="color: #888888"># Multi-file detection</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(input_files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+            <span style="color: #008800; font-weight: bold">return</span> MultiFileChecker(temp_dir)
+
+        <span style="color: #888888"># Default to Invoice checker</span>
+        <span style="color: #008800; font-weight: bold">return</span> InvoiceChecker(temp_dir)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_calculate_stats</span>(<span style="color: #007020">self</span>, raw_files) <span style="color: #333333">-&gt;</span> Dict[<span style="color: #007020">str</span>, Any]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Calculate statistics for processed files."""</span>
+
+        total_files <span style="color: #333333">=</span> <span style="color: #007020">sum</span>(<span style="color: #007020">len</span>(group) <span style="color: #008800; font-weight: bold">for</span> group <span style="color: #000000; font-weight: bold">in</span> raw_files)
+        group_sizes <span style="color: #333333">=</span> [<span style="color: #007020">len</span>(group) <span style="color: #008800; font-weight: bold">for</span> group <span style="color: #000000; font-weight: bold">in</span> raw_files]
+
+        <span style="color: #008800; font-weight: bold">return</span> {
+            <span style="background-color: #fff0f0">'total_groups'</span>: <span style="color: #007020">len</span>(raw_files),
+            <span style="background-color: #fff0f0">'total_files'</span>: total_files,
+            <span style="background-color: #fff0f0">'avg_files_per_group'</span>: total_files <span style="color: #333333">/</span> <span style="color: #007020">len</span>(raw_files) <span style="color: #008800; font-weight: bold">if</span> raw_files <span style="color: #008800; font-weight: bold">else</span> <span style="color: #0000DD; font-weight: bold">0</span>,
+            <span style="background-color: #fff0f0">'min_group_size'</span>: <span style="color: #007020">min</span>(group_sizes) <span style="color: #008800; font-weight: bold">if</span> group_sizes <span style="color: #008800; font-weight: bold">else</span> <span style="color: #0000DD; font-weight: bold">0</span>,
+            <span style="background-color: #fff0f0">'max_group_size'</span>: <span style="color: #007020">max</span>(group_sizes) <span style="color: #008800; font-weight: bold">if</span> group_sizes <span style="color: #008800; font-weight: bold">else</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        }
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_multiple_directories</span>(<span style="color: #007020">self</span>, directories: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]) <span style="color: #333333">-&gt;</span> Dict[<span style="color: #007020">str</span>, Any]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Process multiple directories and return summary."""</span>
+
+        results <span style="color: #333333">=</span> []
+
+        <span style="color: #008800; font-weight: bold">for</span> directory <span style="color: #000000; font-weight: bold">in</span> directories:
+            result <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>process_directory(directory)
+            results<span style="color: #333333">.</span>append(result)
+
+        <span style="color: #888888"># Generate summary</span>
+        successful <span style="color: #333333">=</span> [r <span style="color: #008800; font-weight: bold">for</span> r <span style="color: #000000; font-weight: bold">in</span> results <span style="color: #008800; font-weight: bold">if</span> r[<span style="background-color: #fff0f0">'success'</span>]]
+        failed <span style="color: #333333">=</span> [r <span style="color: #008800; font-weight: bold">for</span> r <span style="color: #000000; font-weight: bold">in</span> results <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> r[<span style="background-color: #fff0f0">'success'</span>]]
+
+        format_counts <span style="color: #333333">=</span> {}
+        <span style="color: #008800; font-weight: bold">for</span> result <span style="color: #000000; font-weight: bold">in</span> successful:
+            format_type <span style="color: #333333">=</span> result[<span style="background-color: #fff0f0">'input_type'</span>]
+            format_counts[format_type] <span style="color: #333333">=</span> format_counts<span style="color: #333333">.</span>get(format_type, <span style="color: #0000DD; font-weight: bold">0</span>) <span style="color: #333333">+</span> <span style="color: #0000DD; font-weight: bold">1</span>
+
+        summary <span style="color: #333333">=</span> {
+            <span style="background-color: #fff0f0">'total_directories'</span>: <span style="color: #007020">len</span>(directories),
+            <span style="background-color: #fff0f0">'successful'</span>: <span style="color: #007020">len</span>(successful),
+            <span style="background-color: #fff0f0">'failed'</span>: <span style="color: #007020">len</span>(failed),
+            <span style="background-color: #fff0f0">'format_distribution'</span>: format_counts,
+            <span style="background-color: #fff0f0">'results'</span>: results
+        }
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">📊 Processing Summary:"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Total directories: </span><span style="background-color: #eeeeee">{</span>summary[<span style="background-color: #fff0f0">'total_directories'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Successful: </span><span style="background-color: #eeeeee">{</span>summary[<span style="background-color: #fff0f0">'successful'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Failed: </span><span style="background-color: #eeeeee">{</span>summary[<span style="background-color: #fff0f0">'failed'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Format distribution: </span><span style="background-color: #eeeeee">{</span>summary[<span style="background-color: #fff0f0">'format_distribution'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> summary
+
+<span style="color: #888888"># Usage</span>
+pipeline <span style="color: #333333">=</span> InputProcessingPipeline(<span style="background-color: #fff0f0">"temp_processing"</span>)
+
+<span style="color: #888888"># Process single directory</span>
+result <span style="color: #333333">=</span> pipeline<span style="color: #333333">.</span>process_directory(<span style="background-color: #fff0f0">"sample_input"</span>)
+
+<span style="color: #888888"># Process multiple directories</span>
+directories <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"excel_data"</span>, <span style="background-color: #fff0f0">"smarttable_data"</span>, <span style="background-color: #fff0f0">"rde_data"</span>, <span style="background-color: #fff0f0">"multi_files"</span>]
+summary <span style="color: #333333">=</span> pipeline<span style="color: #333333">.</span>process_multiple_directories(directories)
+</code></pre></div></td></tr></table></div>
+<h3 id="advanced-rde-format-processing">Advanced RDE Format Processing</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">collections</span> <span style="color: #008800; font-weight: bold">import</span> defaultdict
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.input_controller</span> <span style="color: #008800; font-weight: bold">import</span> RDEFormatChecker
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">analyze_rde_structure</span>(input_dir: <span style="color: #007020">str</span>, temp_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Analyze RDE format structure in detail."""</span>
+
+    input_path <span style="color: #333333">=</span> Path(input_dir)
+    temp_path <span style="color: #333333">=</span> Path(temp_dir)
+    temp_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #888888"># Validate RDE format</span>
+    zip_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(input_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.zip"</span>))
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(zip_files) <span style="color: #333333">!=</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"RDE format requires exactly one ZIP file, found </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(zip_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    zip_file <span style="color: #333333">=</span> zip_files[<span style="color: #0000DD; font-weight: bold">0</span>]
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📦 RDE ZIP file: </span><span style="background-color: #eeeeee">{</span>zip_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Process with RDE checker</span>
+    checker <span style="color: #333333">=</span> RDEFormatChecker(temp_path)
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        raw_files, _ <span style="color: #333333">=</span> checker<span style="color: #333333">.</span>parse(input_path)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ RDE format analysis:"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Directory groups: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(raw_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #888888"># Analyze structure</span>
+        structure_info <span style="color: #333333">=</span> defaultdict(<span style="color: #007020">list</span>)
+        total_files <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+
+        <span style="color: #008800; font-weight: bold">for</span> i, group <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(raw_files):
+            group_info <span style="color: #333333">=</span> {
+                <span style="background-color: #fff0f0">'group_index'</span>: i,
+                <span style="background-color: #fff0f0">'file_count'</span>: <span style="color: #007020">len</span>(group),
+                <span style="background-color: #fff0f0">'file_types'</span>: defaultdict(<span style="color: #007020">int</span>),
+                <span style="background-color: #fff0f0">'directories'</span>: <span style="color: #007020">set</span>(),
+                <span style="background-color: #fff0f0">'files'</span>: []
+            }
+
+            <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> group:
+                total_files <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+                group_info[<span style="background-color: #fff0f0">'files'</span>]<span style="color: #333333">.</span>append(file_path)
+                group_info[<span style="background-color: #fff0f0">'file_types'</span>][file_path<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower()] <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+                group_info[<span style="background-color: #fff0f0">'directories'</span>]<span style="color: #333333">.</span>add(<span style="color: #007020">str</span>(file_path<span style="color: #333333">.</span>parent))
+
+            structure_info[i] <span style="color: #333333">=</span> group_info
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Group </span><span style="background-color: #eeeeee">{</span>i<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">:"</span>)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    Files: </span><span style="background-color: #eeeeee">{</span>group_info[<span style="background-color: #fff0f0">'file_count'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    Types: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">dict</span>(group_info[<span style="background-color: #fff0f0">'file_types'</span>])<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    Directories: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(group_info[<span style="background-color: #fff0f0">'directories'</span>])<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Total files: </span><span style="background-color: #eeeeee">{</span>total_files<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> raw_files, structure_info
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ RDE analysis failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+raw_files, structure <span style="color: #333333">=</span> analyze_rde_structure(
+    input_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"rde_archive_input"</span>,
+    temp_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"rde_analysis_temp"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h2 id="performance-notes">Performance Notes</h2>
+<ul>
+<li>File pattern detection uses efficient glob operations for fast directory scanning</li>
+<li>ZIP extraction performance depends on archive size and compression ratio</li>
+<li>SmartTable CSV generation is optimized for memory efficiency with row-by-row processing</li>
+<li>Temporary directory operations use system temp space for optimal I/O performance</li>
+<li>File grouping operations use efficient sorting algorithms based on path structures</li>
+<li>Memory usage scales linearly with the number of files and their metadata</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../compressed_controller/">Compressed Controller</a> - For ZIP archive processing</li>
+<li><a href="invoicefile.md">Invoice File Module</a> - For Excel invoice and SmartTable operations</li>
+<li><a href="interfaces/filechecker.md">Interface Definitions</a> - For checker interface specifications</li>
+<li><a href="exceptions.md">Exceptions Module</a> - For custom exception types</li>
+<li><a href="models/rde2types.md">RDE Types Models</a> - For type definitions used in input processing</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

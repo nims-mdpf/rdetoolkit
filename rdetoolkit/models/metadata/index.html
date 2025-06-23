@@ -9,7 +9,7 @@
 <link href="../rde2types/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>metadata - RDEToolKit Documentation</title>
+<title>Metadata Module - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,7 +23,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#metadata">
+<a class="md-skip" href="#metadata-module">
           Skip to content
         </a>
 </div>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              metadata
+              Metadata Module
             
           </span>
 </div>
@@ -499,7 +499,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -520,14 +520,14 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../impl/compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../impl/input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -551,7 +551,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -575,7 +575,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
@@ -583,13 +583,13 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
@@ -599,38 +599,24 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#metadataitem">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      MetadataItem
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetadataItem">
+<a class="md-nav__link" href="#constants">
 <span class="md-ellipsis">
-      MetadataItem
+      Constants
     </span>
 </a>
-<nav aria-label="MetadataItem" class="md-nav">
+<nav aria-label="Constants" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetadataItem.constant">
+<a class="md-nav__link" href="#max_value_size">
 <span class="md-ellipsis">
-      constant
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetadataItem.variable">
-<span class="md-ellipsis">
-      variable
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#validableitems">
-<span class="md-ellipsis">
-      ValidableItems
+      MAX_VALUE_SIZE
     </span>
 </a>
 </li>
@@ -638,71 +624,15 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.ValidableItems">
+<a class="md-nav__link" href="#core-classes">
 <span class="md-ellipsis">
-      ValidableItems
+      Core Classes
     </span>
 </a>
-<nav aria-label="ValidableItems" class="md-nav">
+<nav aria-label="Core Classes" class="md-nav">
 <ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.ValidableItems.root">
-<span class="md-ellipsis">
-      root
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#metavalue">
-<span class="md-ellipsis">
-      MetaValue
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue">
-<span class="md-ellipsis">
-      MetaValue
-    </span>
-</a>
-<nav aria-label="MetaValue" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue.unit">
-<span class="md-ellipsis">
-      unit
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue.value">
-<span class="md-ellipsis">
-      value
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue.check_value_size">
-<span class="md-ellipsis">
-      check_value_size
-    </span>
-</a>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#variable">
-<span class="md-ellipsis">
-      Variable
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.Variable">
 <span class="md-ellipsis">
       Variable
     </span>
@@ -710,21 +640,248 @@
 <nav aria-label="Variable" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.Variable.variable">
+<a class="md-nav__link" href="#constructor-for-variable">
 <span class="md-ellipsis">
-      variable
+      Constructor for Variable
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.Variable.check_value_size">
+<a class="md-nav__link" href="#validation-rules-for-variable">
 <span class="md-ellipsis">
-      check_value_size
+      Validation Rules for Variable
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-variable">
+<span class="md-ellipsis">
+      Example: Variable
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metavalue">
+<span class="md-ellipsis">
+      MetaValue
+    </span>
+</a>
+<nav aria-label="MetaValue" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor-for-metavalue">
+<span class="md-ellipsis">
+      Constructor for MetaValue
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-rules-for-metavalue">
+<span class="md-ellipsis">
+      Validation Rules for MetaValue
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-metavalue">
+<span class="md-ellipsis">
+      Example: MetaValue
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validableitems">
+<span class="md-ellipsis">
+      ValidableItems
+    </span>
+</a>
+<nav aria-label="ValidableItems" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor-for-validableitems">
+<span class="md-ellipsis">
+      Constructor for ValidableItems
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-validableitems">
+<span class="md-ellipsis">
+      Example: ValidableItems
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metadataitem">
+<span class="md-ellipsis">
+      MetadataItem
+    </span>
+</a>
+<nav aria-label="MetadataItem" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example">
+<span class="md-ellipsis">
+      Example
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-metadata-for-scientific-measurements">
+<span class="md-ellipsis">
+      Creating Metadata for Scientific Measurements
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#handling-large-text-metadata-with-validation">
+<span class="md-ellipsis">
+      Handling Large Text Metadata with Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-with-complex-data-types">
+<span class="md-ellipsis">
+      Working with Complex Data Types
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#serialization-and-deserialization">
+<span class="md-ellipsis">
+      Serialization and Deserialization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-processing-metadata">
+<span class="md-ellipsis">
+      Batch Processing Metadata
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-errors">
+<span class="md-ellipsis">
+      Validation Errors
+    </span>
+</a>
+<nav aria-label="Validation Errors" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#size-limit-exceeded">
+<span class="md-ellipsis">
+      Size Limit Exceeded
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#utf-8-encoding-considerations">
+<span class="md-ellipsis">
+      UTF-8 Encoding Considerations
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-examples">
+<span class="md-ellipsis">
+      Integration Examples
+    </span>
+</a>
+<nav aria-label="Integration Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-with-file-metadata">
+<span class="md-ellipsis">
+      Working with File Metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-storage">
+<span class="md-ellipsis">
+      Database Storage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -732,7 +889,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -790,63 +947,63 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -906,38 +1063,24 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#metadataitem">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      MetadataItem
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetadataItem">
+<a class="md-nav__link" href="#constants">
 <span class="md-ellipsis">
-      MetadataItem
+      Constants
     </span>
 </a>
-<nav aria-label="MetadataItem" class="md-nav">
+<nav aria-label="Constants" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetadataItem.constant">
+<a class="md-nav__link" href="#max_value_size">
 <span class="md-ellipsis">
-      constant
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetadataItem.variable">
-<span class="md-ellipsis">
-      variable
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#validableitems">
-<span class="md-ellipsis">
-      ValidableItems
+      MAX_VALUE_SIZE
     </span>
 </a>
 </li>
@@ -945,71 +1088,15 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.ValidableItems">
+<a class="md-nav__link" href="#core-classes">
 <span class="md-ellipsis">
-      ValidableItems
+      Core Classes
     </span>
 </a>
-<nav aria-label="ValidableItems" class="md-nav">
+<nav aria-label="Core Classes" class="md-nav">
 <ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.ValidableItems.root">
-<span class="md-ellipsis">
-      root
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#metavalue">
-<span class="md-ellipsis">
-      MetaValue
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue">
-<span class="md-ellipsis">
-      MetaValue
-    </span>
-</a>
-<nav aria-label="MetaValue" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue.unit">
-<span class="md-ellipsis">
-      unit
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue.value">
-<span class="md-ellipsis">
-      value
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.MetaValue.check_value_size">
-<span class="md-ellipsis">
-      check_value_size
-    </span>
-</a>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#variable">
-<span class="md-ellipsis">
-      Variable
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.Variable">
 <span class="md-ellipsis">
       Variable
     </span>
@@ -1017,21 +1104,248 @@
 <nav aria-label="Variable" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.Variable.variable">
+<a class="md-nav__link" href="#constructor-for-variable">
 <span class="md-ellipsis">
-      variable
+      Constructor for Variable
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.models.metadata.Variable.check_value_size">
+<a class="md-nav__link" href="#validation-rules-for-variable">
 <span class="md-ellipsis">
-      check_value_size
+      Validation Rules for Variable
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-variable">
+<span class="md-ellipsis">
+      Example: Variable
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metavalue">
+<span class="md-ellipsis">
+      MetaValue
+    </span>
+</a>
+<nav aria-label="MetaValue" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor-for-metavalue">
+<span class="md-ellipsis">
+      Constructor for MetaValue
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-rules-for-metavalue">
+<span class="md-ellipsis">
+      Validation Rules for MetaValue
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-metavalue">
+<span class="md-ellipsis">
+      Example: MetaValue
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validableitems">
+<span class="md-ellipsis">
+      ValidableItems
+    </span>
+</a>
+<nav aria-label="ValidableItems" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor-for-validableitems">
+<span class="md-ellipsis">
+      Constructor for ValidableItems
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-validableitems">
+<span class="md-ellipsis">
+      Example: ValidableItems
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metadataitem">
+<span class="md-ellipsis">
+      MetadataItem
+    </span>
+</a>
+<nav aria-label="MetadataItem" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example">
+<span class="md-ellipsis">
+      Example
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-metadata-for-scientific-measurements">
+<span class="md-ellipsis">
+      Creating Metadata for Scientific Measurements
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#handling-large-text-metadata-with-validation">
+<span class="md-ellipsis">
+      Handling Large Text Metadata with Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-with-complex-data-types">
+<span class="md-ellipsis">
+      Working with Complex Data Types
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#serialization-and-deserialization">
+<span class="md-ellipsis">
+      Serialization and Deserialization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-processing-metadata">
+<span class="md-ellipsis">
+      Batch Processing Metadata
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-errors">
+<span class="md-ellipsis">
+      Validation Errors
+    </span>
+</a>
+<nav aria-label="Validation Errors" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#size-limit-exceeded">
+<span class="md-ellipsis">
+      Size Limit Exceeded
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#utf-8-encoding-considerations">
+<span class="md-ellipsis">
+      UTF-8 Encoding Considerations
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-examples">
+<span class="md-ellipsis">
+      Integration Examples
+    </span>
+</a>
+<nav aria-label="Integration Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-with-file-metadata">
+<span class="md-ellipsis">
+      Working with File Metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-storage">
+<span class="md-ellipsis">
+      Database Storage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -1040,296 +1354,1135 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="metadata">metadata</h1>
-<p>In <code>metadata</code>, models for validating metadata.json used in RDE are defined.</p>
-<h2 id="metadataitem">MetadataItem</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetadataItem">
-<code>src.rdetoolkit.models.metadata.MetadataItem</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
-<p>metadata-def.json class.</p>
-<p>Stores metadata extracted by the data structuring process.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.metadata.MetadataItem.constant" href="#src.rdetoolkit.models.metadata.MetadataItem.constant">constant</a></code></td>
-<td>
-<code>dict[str, <a class="autorefs autorefs-internal" title="src.rdetoolkit.models.metadata.MetaValue" href="#src.rdetoolkit.models.metadata.MetaValue">MetaValue</a>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>A set of metadata common to all measurements.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.metadata.MetadataItem.variable" href="#src.rdetoolkit.models.metadata.MetadataItem.variable">variable</a></code></td>
-<td>
-<code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.metadata.ValidableItems" href="#src.rdetoolkit.models.metadata.ValidableItems">ValidableItems</a></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An array of metadata sets that vary with each measurement.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetadataItem.constant">
-<code class="highlight language-python">constant: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, MetaValue]</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetadataItem.variable">
-<code class="highlight language-python">variable: ValidableItems</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h3 id="validableitems">ValidableItems</h3>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.models.metadata.ValidableItems">
-<code>src.rdetoolkit.models.metadata.ValidableItems</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="pydantic.RootModel">RootModel</span></code></p>
-<p>A class representing validatable items of metadata.</p>
-<p>This class inherits from <code>RootModel</code>, and the <code>root</code> attribute holds a list of dictionaries,
-where each dictionary has a string as a key and a <code>MetaValue</code> as a value.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.metadata.ValidableItems.root" href="#src.rdetoolkit.models.metadata.ValidableItems.root">root</a></code></td>
-<td>
-<code>list[dict[str, <a class="autorefs autorefs-internal" title="src.rdetoolkit.models.metadata.MetaValue" href="#src.rdetoolkit.models.metadata.MetaValue">MetaValue</a>]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>A list of validatable items of metadata.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.ValidableItems.root">
-<code class="highlight language-python">root: <span style="color: #007020">list</span>[<span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, MetaValue]]</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h3 id="metavalue">MetaValue</h3>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetaValue">
-<code>src.rdetoolkit.models.metadata.MetaValue</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
-<p>Metadata class for the 'value' and 'unit' attributes.</p>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetaValue.unit">
-<code class="highlight language-python">unit: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span></code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetaValue.value">
-<code class="highlight language-python">value: Any</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.MetaValue.check_value_size">
-<code class="highlight language-python">check_value_size(v)</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-<p>Validator that verifies that the size of the 'value' does not exceed 1024 bytes if it is a string.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>v</code></td>
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Value of the metadata</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>ValueError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Exception error if the value of the metadata is more than 1024 bytes</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h3 id="variable">Variable</h3>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.models.metadata.Variable">
-<code>src.rdetoolkit.models.metadata.Variable</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
-<p>Metadata class for the 'variable' attribute.</p>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.Variable.variable">
-<code class="highlight language-python">variable: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, Any]</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.models.metadata.Variable.check_value_size">
-<code class="highlight language-python">check_value_size(v)</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-<p>Validator that verifies that the size of the 'variable' type metadata value does not exceed 1024 bytes.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>v</code></td>
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Metadata of 'variable'</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>ValueError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Exception error if the value of the metadata is more than 1024 bytes</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
+<h1 id="metadata-module">Metadata Module</h1>
+<p>The <code>rdetoolkit.models.metadata</code> module provides Pydantic models for handling metadata extracted during RDE data structuring processes. This module implements validation rules for metadata values and provides a structured approach to managing both constant and variable metadata attributes.</p>
+<h2 id="overview">Overview</h2>
+<p>The metadata module implements a comprehensive validation system for metadata handling with the following capabilities:</p>
+<ul>
+<li><strong>Size Validation</strong>: Automatic validation of metadata value sizes with configurable limits</li>
+<li><strong>Type Safety</strong>: Strong typing with runtime validation using Pydantic models</li>
+<li><strong>Structured Storage</strong>: Separation of constant and variable metadata types</li>
+<li><strong>UTF-8 Encoding Support</strong>: Proper handling of multi-byte character encodings</li>
+<li><strong>Flexible Value Types</strong>: Support for various data types while maintaining validation</li>
+</ul>
+<h2 id="constants">Constants</h2>
+<h3 id="max_value_size">MAX_VALUE_SIZE</h3>
+<p>The maximum allowed size for metadata values in bytes.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MAX_VALUE_SIZE: Final[<span style="color: #007020">int</span>] <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1024</span>
+</code></pre></div></td></tr></table></div>
+<p>This constant defines the size limit for individual metadata values. Values exceeding this limit will raise a validation error during model creation.</p>
+<h2 id="core-classes">Core Classes</h2>
+<h3 id="variable">Variable</h3>
+<p>Model for handling variable-type metadata attributes.</p>
+<h4 id="constructor-for-variable">Constructor for <code>Variable</code></h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Variable(variable: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, Any])
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>variable</code> (dict[str, Any]): Dictionary containing variable metadata with string keys and any value types</li>
+</ul>
+<h4 id="validation-rules-for-variable">Validation Rules for <code>Variable</code></h4>
+<ul>
+<li>All string values in the dictionary must not exceed <code>MAX_VALUE_SIZE</code> bytes when UTF-8 encoded</li>
+<li>Non-string values are not subject to size validation</li>
+<li>Empty dictionaries are allowed</li>
+</ul>
+<h4 id="example-variable">Example: Variable</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> Variable
+
+<span style="color: #888888"># Valid variable metadata</span>
+valid_variable <span style="color: #333333">=</span> Variable(variable<span style="color: #333333">=</span>{
+    <span style="background-color: #fff0f0">"temperature"</span>: <span style="background-color: #fff0f0">"25.5"</span>,
+    <span style="background-color: #fff0f0">"pressure"</span>: <span style="background-color: #fff0f0">"1013.25"</span>,
+    <span style="background-color: #fff0f0">"humidity"</span>: <span style="background-color: #fff0f0">"60%"</span>,
+    <span style="background-color: #fff0f0">"operator"</span>: <span style="background-color: #fff0f0">"John Doe"</span>
+})
+
+<span style="color: #888888"># Invalid - value too large (will raise ValueError)</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    large_value <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"x"</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">2000</span>  <span style="color: #888888"># 2000 bytes</span>
+    invalid_variable <span style="color: #333333">=</span> Variable(variable<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"description"</span>: large_value})
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Validation error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="metavalue">MetaValue</h3>
+<p>Model for handling individual metadata values with optional units.</p>
+<h4 id="constructor-for-metavalue">Constructor for <code>MetaValue</code></h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MetaValue(value: Any, unit: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>value</code> (Any): The metadata value (can be any type)</li>
+<li><code>unit</code> (str | None): Optional unit description (default: None)</li>
+</ul>
+<h4 id="validation-rules-for-metavalue">Validation Rules for <code>MetaValue</code></h4>
+<ul>
+<li>If <code>value</code> is a string, it must not exceed <code>MAX_VALUE_SIZE</code> bytes when UTF-8 encoded</li>
+<li>Non-string values are not subject to size validation</li>
+<li>The <code>unit</code> field is optional and can be None</li>
+</ul>
+<h4 id="example-metavalue">Example: MetaValue</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetaValue
+
+<span style="color: #888888"># Numeric value with unit</span>
+temperature <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">25.5</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>)
+
+<span style="color: #888888"># String value without unit</span>
+sample_id <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"SAMPLE_001"</span>)
+
+<span style="color: #888888"># Complex value (not size-validated)</span>
+data_array <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span>[<span style="color: #0000DD; font-weight: bold">1</span>, <span style="color: #0000DD; font-weight: bold">2</span>, <span style="color: #0000DD; font-weight: bold">3</span>, <span style="color: #0000DD; font-weight: bold">4</span>, <span style="color: #0000DD; font-weight: bold">5</span>], unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"counts"</span>)
+
+<span style="color: #888888"># Boolean value</span>
+is_calibrated <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+<span style="color: #007020">print</span>(temperature<span style="color: #333333">.</span>value)  <span style="color: #888888"># 25.5</span>
+<span style="color: #007020">print</span>(temperature<span style="color: #333333">.</span>unit)   <span style="color: #888888"># "°C"</span>
+<span style="color: #007020">print</span>(sample_id<span style="color: #333333">.</span>unit)     <span style="color: #888888"># None</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="validableitems">ValidableItems</h3>
+<p>Container for collections of validatable metadata items.</p>
+<h4 id="constructor-for-validableitems">Constructor for <code>ValidableItems</code></h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>ValidableItems(root: <span style="color: #007020">list</span>[<span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, MetaValue]])
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>root</code> (list[dict[str, MetaValue]]): List of dictionaries mapping string keys to MetaValue instances</li>
+</ul>
+<h4 id="methods">Methods</h4>
+<p>The class inherits from <code>RootModel</code> and provides standard list-like access to the underlying data.</p>
+<h4 id="example-validableitems">Example: ValidableItems</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> ValidableItems, MetaValue
+
+<span style="color: #888888"># Create metadata items</span>
+items <span style="color: #333333">=</span> ValidableItems(root<span style="color: #333333">=</span>[
+    {
+        <span style="background-color: #fff0f0">"measurement_1"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">25.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>),
+        <span style="background-color: #fff0f0">"timestamp_1"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"2025-01-15T10:00:00Z"</span>)
+    },
+    {
+        <span style="background-color: #fff0f0">"measurement_2"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">26.5</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>),
+        <span style="background-color: #fff0f0">"timestamp_2"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"2025-01-15T10:05:00Z"</span>)
+    }
+])
+
+<span style="color: #888888"># Access items</span>
+<span style="color: #007020">print</span>(<span style="color: #007020">len</span>(items<span style="color: #333333">.</span>root))  <span style="color: #888888"># 2</span>
+<span style="color: #007020">print</span>(items<span style="color: #333333">.</span>root[<span style="color: #0000DD; font-weight: bold">0</span>][<span style="background-color: #fff0f0">"measurement_1"</span>]<span style="color: #333333">.</span>value)  <span style="color: #888888"># 25.0</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="metadataitem">MetadataItem</h3>
+<p>Main metadata container representing the complete metadata structure for a dataset.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MetadataItem(
+    constant: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, MetaValue],
+    variable: ValidableItems
+)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>constant</code> (dict[str, MetaValue]): Dictionary of constant metadata that applies to all measurements</li>
+<li><code>variable</code> (ValidableItems): Collection of variable metadata that changes between measurements</li>
+</ul>
+<h4 id="example">Example</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetadataItem, MetaValue, ValidableItems
+
+<span style="color: #888888"># Define constant metadata</span>
+constant_meta <span style="color: #333333">=</span> {
+    <span style="background-color: #fff0f0">"instrument"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"XRD_Analyzer_v2"</span>, unit<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>),
+    <span style="background-color: #fff0f0">"operator"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Dr. Smith"</span>),
+    <span style="background-color: #fff0f0">"calibration_date"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"2025-01-01"</span>),
+    <span style="background-color: #fff0f0">"lab_temperature"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">22.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>)
+}
+
+<span style="color: #888888"># Define variable metadata</span>
+variable_meta <span style="color: #333333">=</span> ValidableItems(root<span style="color: #333333">=</span>[
+    {
+        <span style="background-color: #fff0f0">"sample_temp"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">100.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>),
+        <span style="background-color: #fff0f0">"measurement_time"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"2025-01-15T10:00:00Z"</span>),
+        <span style="background-color: #fff0f0">"scan_rate"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">0.5</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°/min"</span>)
+    },
+    {
+        <span style="background-color: #fff0f0">"sample_temp"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">150.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>),
+        <span style="background-color: #fff0f0">"measurement_time"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"2025-01-15T11:00:00Z"</span>),
+        <span style="background-color: #fff0f0">"scan_rate"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">1.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°/min"</span>)
+    }
+])
+
+<span style="color: #888888"># Create complete metadata</span>
+metadata <span style="color: #333333">=</span> MetadataItem(
+    constant<span style="color: #333333">=</span>constant_meta,
+    variable<span style="color: #333333">=</span>variable_meta
+)
+
+<span style="color: #888888"># Access metadata</span>
+<span style="color: #007020">print</span>(metadata<span style="color: #333333">.</span>constant[<span style="background-color: #fff0f0">"instrument"</span>]<span style="color: #333333">.</span>value)  <span style="color: #888888"># "XRD_Analyzer_v2"</span>
+<span style="color: #007020">print</span>(metadata<span style="color: #333333">.</span>variable<span style="color: #333333">.</span>root[<span style="color: #0000DD; font-weight: bold">0</span>][<span style="background-color: #fff0f0">"sample_temp"</span>]<span style="color: #333333">.</span>value)  <span style="color: #888888"># 100.0</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="complete-usage-examples">Complete Usage Examples</h2>
+<h3 id="creating-metadata-for-scientific-measurements">Creating Metadata for Scientific Measurements</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">73</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetadataItem, MetaValue, ValidableItems
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_xrd_metadata</span>(measurements: <span style="color: #007020">list</span>[<span style="color: #007020">dict</span>]) <span style="color: #333333">-&gt;</span> MetadataItem:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Create metadata for XRD measurement series."""</span>
+
+    <span style="color: #888888"># Constant metadata - same for all measurements</span>
+    constant <span style="color: #333333">=</span> {
+        <span style="background-color: #fff0f0">"instrument_model"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Rigaku MiniFlex"</span>, unit<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>),
+        <span style="background-color: #fff0f0">"x_ray_source"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Cu Kα"</span>, unit<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>),
+        <span style="background-color: #fff0f0">"wavelength"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">1.5406</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Å"</span>),
+        <span style="background-color: #fff0f0">"detector_type"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"NaI scintillation"</span>),
+        <span style="background-color: #fff0f0">"operator"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Lab Technician A"</span>),
+        <span style="background-color: #fff0f0">"facility"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Materials Analysis Lab"</span>),
+        <span style="background-color: #fff0f0">"calibration_standard"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Si powder"</span>)
+    }
+
+    <span style="color: #888888"># Variable metadata - changes per measurement</span>
+    variable_data <span style="color: #333333">=</span> []
+    <span style="color: #008800; font-weight: bold">for</span> i, measurement <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(measurements):
+        variable_data<span style="color: #333333">.</span>append({
+            <span style="background-color: #fff0f0">"measurement_id"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"XRD_</span><span style="background-color: #eeeeee">{</span>i<span style="color: #333333">+</span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">:</span><span style="background-color: #fff0f0">03d</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>),
+            <span style="background-color: #fff0f0">"sample_temperature"</span>: MetaValue(
+                value<span style="color: #333333">=</span>measurement<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"temperature"</span>, <span style="color: #6600EE; font-weight: bold">25.0</span>),
+                unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>
+            ),
+            <span style="background-color: #fff0f0">"scan_range_start"</span>: MetaValue(
+                value<span style="color: #333333">=</span>measurement<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"start_angle"</span>, <span style="color: #6600EE; font-weight: bold">10.0</span>),
+                unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°"</span>
+            ),
+            <span style="background-color: #fff0f0">"scan_range_end"</span>: MetaValue(
+                value<span style="color: #333333">=</span>measurement<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"end_angle"</span>, <span style="color: #6600EE; font-weight: bold">80.0</span>),
+                unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°"</span>
+            ),
+            <span style="background-color: #fff0f0">"step_size"</span>: MetaValue(
+                value<span style="color: #333333">=</span>measurement<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"step_size"</span>, <span style="color: #6600EE; font-weight: bold">0.02</span>),
+                unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°"</span>
+            ),
+            <span style="background-color: #fff0f0">"scan_speed"</span>: MetaValue(
+                value<span style="color: #333333">=</span>measurement<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"scan_speed"</span>, <span style="color: #6600EE; font-weight: bold">1.0</span>),
+                unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°/min"</span>
+            ),
+            <span style="background-color: #fff0f0">"measurement_time"</span>: MetaValue(
+                value<span style="color: #333333">=</span>measurement<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"timestamp"</span>, <span style="background-color: #fff0f0">"2025-01-15T10:00:00Z"</span>)
+            )
+        })
+
+    <span style="color: #008800; font-weight: bold">return</span> MetadataItem(
+        constant<span style="color: #333333">=</span>constant,
+        variable<span style="color: #333333">=</span>ValidableItems(root<span style="color: #333333">=</span>variable_data)
+    )
+
+<span style="color: #888888"># Usage example</span>
+measurements <span style="color: #333333">=</span> [
+    {
+        <span style="background-color: #fff0f0">"temperature"</span>: <span style="color: #6600EE; font-weight: bold">25.0</span>,
+        <span style="background-color: #fff0f0">"start_angle"</span>: <span style="color: #6600EE; font-weight: bold">10.0</span>,
+        <span style="background-color: #fff0f0">"end_angle"</span>: <span style="color: #6600EE; font-weight: bold">80.0</span>,
+        <span style="background-color: #fff0f0">"step_size"</span>: <span style="color: #6600EE; font-weight: bold">0.02</span>,
+        <span style="background-color: #fff0f0">"scan_speed"</span>: <span style="color: #6600EE; font-weight: bold">1.0</span>,
+        <span style="background-color: #fff0f0">"timestamp"</span>: <span style="background-color: #fff0f0">"2025-01-15T10:00:00Z"</span>
+    },
+    {
+        <span style="background-color: #fff0f0">"temperature"</span>: <span style="color: #6600EE; font-weight: bold">100.0</span>,
+        <span style="background-color: #fff0f0">"start_angle"</span>: <span style="color: #6600EE; font-weight: bold">15.0</span>,
+        <span style="background-color: #fff0f0">"end_angle"</span>: <span style="color: #6600EE; font-weight: bold">75.0</span>,
+        <span style="background-color: #fff0f0">"step_size"</span>: <span style="color: #6600EE; font-weight: bold">0.01</span>,
+        <span style="background-color: #fff0f0">"scan_speed"</span>: <span style="color: #6600EE; font-weight: bold">0.5</span>,
+        <span style="background-color: #fff0f0">"timestamp"</span>: <span style="background-color: #fff0f0">"2025-01-15T11:30:00Z"</span>
+    }
+]
+
+xrd_metadata <span style="color: #333333">=</span> create_xrd_metadata(measurements)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created metadata for </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(xrd_metadata<span style="color: #333333">.</span>variable<span style="color: #333333">.</span>root)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> measurements"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="handling-large-text-metadata-with-validation">Handling Large Text Metadata with Validation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetaValue, Variable
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pydantic</span> <span style="color: #008800; font-weight: bold">import</span> ValidationError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">safe_create_metadata</span>(value: <span style="color: #007020">str</span>, unit: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> MetaValue <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Safely create metadata with size validation."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #008800; font-weight: bold">return</span> MetaValue(value<span style="color: #333333">=</span>value, unit<span style="color: #333333">=</span>unit)
+    <span style="color: #008800; font-weight: bold">except</span> ValidationError <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Validation failed for value: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+<span style="color: #888888"># Test with various value sizes</span>
+test_values <span style="color: #333333">=</span> [
+    <span style="background-color: #fff0f0">"Short description"</span>,
+    <span style="background-color: #fff0f0">"Medium length description that might be acceptable"</span>,
+    <span style="background-color: #fff0f0">"Very long description that exceeds the maximum allowed size limit"</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">50</span>,  <span style="color: #888888"># Too long</span>
+    <span style="background-color: #fff0f0">"日本語の説明文です。UTF-8エンコーディングでバイト数をチェックします。"</span>,
+    <span style="background-color: #fff0f0">"🌟 Unicode emoji and special characters 🔬"</span>,
+]
+
+metadata_items <span style="color: #333333">=</span> []
+<span style="color: #008800; font-weight: bold">for</span> i, value <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(test_values):
+    meta <span style="color: #333333">=</span> safe_create_metadata(value, <span style="background-color: #fff0f0">"description"</span>)
+    <span style="color: #008800; font-weight: bold">if</span> meta:
+        metadata_items<span style="color: #333333">.</span>append({<span style="background-color: #fff0f0">f"item_</span><span style="background-color: #eeeeee">{</span>i<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>: meta})
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Created metadata for item </span><span style="background-color: #eeeeee">{</span>i<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #008800; font-weight: bold">else</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Failed to create metadata for item </span><span style="background-color: #eeeeee">{</span>i<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Successfully created </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(metadata_items)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> metadata items"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="working-with-complex-data-types">Working with Complex Data Types</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetaValue, MetadataItem, ValidableItems
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">datetime</span> <span style="color: #008800; font-weight: bold">import</span> datetime
+
+<span style="color: #888888"># Handling various data types</span>
+metadata_examples <span style="color: #333333">=</span> {
+    <span style="color: #888888"># Numeric values</span>
+    <span style="background-color: #fff0f0">"temperature"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">25.5</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"°C"</span>),
+    <span style="background-color: #fff0f0">"pressure"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">1013.25</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"hPa"</span>),
+    <span style="background-color: #fff0f0">"count"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">12345</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"counts"</span>),
+
+    <span style="color: #888888"># String values</span>
+    <span style="background-color: #fff0f0">"sample_id"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"SAMPLE_2025_001"</span>),
+    <span style="background-color: #fff0f0">"batch_number"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"BATCH_A001"</span>),
+
+    <span style="color: #888888"># Boolean values</span>
+    <span style="background-color: #fff0f0">"is_calibrated"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>),
+    <span style="background-color: #fff0f0">"quality_check_passed"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>),
+
+    <span style="color: #888888"># List/Array values (not size validated)</span>
+    <span style="background-color: #fff0f0">"wavelengths"</span>: MetaValue(value<span style="color: #333333">=</span>[<span style="color: #0000DD; font-weight: bold">400</span>, <span style="color: #0000DD; font-weight: bold">500</span>, <span style="color: #0000DD; font-weight: bold">600</span>, <span style="color: #0000DD; font-weight: bold">700</span>], unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"nm"</span>),
+    <span style="background-color: #fff0f0">"coordinates"</span>: MetaValue(value<span style="color: #333333">=</span>[<span style="color: #6600EE; font-weight: bold">10.5</span>, <span style="color: #6600EE; font-weight: bold">20.3</span>, <span style="color: #6600EE; font-weight: bold">30.1</span>], unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"mm"</span>),
+
+    <span style="color: #888888"># Dictionary values (not size validated)</span>
+    <span style="background-color: #fff0f0">"settings"</span>: MetaValue(value<span style="color: #333333">=</span>{
+        <span style="background-color: #fff0f0">"gain"</span>: <span style="color: #6600EE; font-weight: bold">1.5</span>,
+        <span style="background-color: #fff0f0">"offset"</span>: <span style="color: #6600EE; font-weight: bold">0.1</span>,
+        <span style="background-color: #fff0f0">"mode"</span>: <span style="background-color: #fff0f0">"auto"</span>
+    }),
+
+    <span style="color: #888888"># None values</span>
+    <span style="background-color: #fff0f0">"optional_field"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>),
+}
+
+<span style="color: #888888"># Create metadata with mixed types</span>
+mixed_metadata <span style="color: #333333">=</span> MetadataItem(
+    constant<span style="color: #333333">=</span>metadata_examples,
+    variable<span style="color: #333333">=</span>ValidableItems(root<span style="color: #333333">=</span>[])
+)
+
+<span style="color: #888888"># Access and display metadata</span>
+<span style="color: #008800; font-weight: bold">for</span> key, meta_value <span style="color: #000000; font-weight: bold">in</span> mixed_metadata<span style="color: #333333">.</span>constant<span style="color: #333333">.</span>items():
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>key<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>meta_value<span style="color: #333333">.</span>value<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> </span><span style="background-color: #eeeeee">{</span>meta_value<span style="color: #333333">.</span>unit<span style="color: #bbbbbb"> </span><span style="color: #000000; font-weight: bold">or</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">''</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="serialization-and-deserialization">Serialization and Deserialization</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetadataItem, MetaValue, ValidableItems
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+
+<span style="color: #888888"># Create metadata</span>
+metadata <span style="color: #333333">=</span> MetadataItem(
+    constant<span style="color: #333333">=</span>{
+        <span style="background-color: #fff0f0">"instrument"</span>: MetaValue(value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Spectrometer X1"</span>, unit<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>),
+        <span style="background-color: #fff0f0">"wavelength"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">632.8</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"nm"</span>)
+    },
+    variable<span style="color: #333333">=</span>ValidableItems(root<span style="color: #333333">=</span>[
+        {
+            <span style="background-color: #fff0f0">"power"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">10.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"mW"</span>),
+            <span style="background-color: #fff0f0">"exposure"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">1.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"s"</span>)
+        },
+        {
+            <span style="background-color: #fff0f0">"power"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">20.0</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"mW"</span>),
+            <span style="background-color: #fff0f0">"exposure"</span>: MetaValue(value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">0.5</span>, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"s"</span>)
+        }
+    ])
+)
+
+<span style="color: #888888"># Serialize to dictionary</span>
+metadata_dict <span style="color: #333333">=</span> metadata<span style="color: #333333">.</span>model_dump()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Serialized metadata:"</span>)
+<span style="color: #007020">print</span>(json<span style="color: #333333">.</span>dumps(metadata_dict, indent<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">2</span>))
+
+<span style="color: #888888"># Serialize to JSON string</span>
+metadata_json <span style="color: #333333">=</span> metadata<span style="color: #333333">.</span>model_dump_json(indent<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">2</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">JSON representation:"</span>)
+<span style="color: #007020">print</span>(metadata_json)
+
+<span style="color: #888888"># Deserialize from dictionary</span>
+reconstructed <span style="color: #333333">=</span> MetadataItem(<span style="color: #333333">**</span>metadata_dict)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">Reconstructed metadata has </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(reconstructed<span style="color: #333333">.</span>variable<span style="color: #333333">.</span>root)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> variable entries"</span>)
+
+<span style="color: #888888"># Verify data integrity</span>
+original_instrument <span style="color: #333333">=</span> metadata<span style="color: #333333">.</span>constant[<span style="background-color: #fff0f0">"instrument"</span>]<span style="color: #333333">.</span>value
+reconstructed_instrument <span style="color: #333333">=</span> reconstructed<span style="color: #333333">.</span>constant[<span style="background-color: #fff0f0">"instrument"</span>]<span style="color: #333333">.</span>value
+<span style="color: #008800; font-weight: bold">assert</span> original_instrument <span style="color: #333333">==</span> reconstructed_instrument
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✓ Data integrity verified"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="batch-processing-metadata">Batch Processing Metadata</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">69</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetadataItem, MetaValue, ValidableItems
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">typing</span> <span style="color: #008800; font-weight: bold">import</span> List, Dict, Any
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_measurement_batch</span>(
+    constant_data: Dict[<span style="color: #007020">str</span>, Any],
+    measurements: List[Dict[<span style="color: #007020">str</span>, Any]]
+) <span style="color: #333333">-&gt;</span> MetadataItem:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process a batch of measurements into structured metadata."""</span>
+
+    <span style="color: #888888"># Convert constant data</span>
+    constant_meta <span style="color: #333333">=</span> {}
+    <span style="color: #008800; font-weight: bold">for</span> key, value <span style="color: #000000; font-weight: bold">in</span> constant_data<span style="color: #333333">.</span>items():
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">isinstance</span>(value, <span style="color: #007020">dict</span>) <span style="color: #000000; font-weight: bold">and</span> <span style="background-color: #fff0f0">"value"</span> <span style="color: #000000; font-weight: bold">in</span> value:
+            <span style="color: #888888"># Handle pre-structured data</span>
+            constant_meta[key] <span style="color: #333333">=</span> MetaValue(
+                value<span style="color: #333333">=</span>value[<span style="background-color: #fff0f0">"value"</span>],
+                unit<span style="color: #333333">=</span>value<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"unit"</span>)
+            )
+        <span style="color: #008800; font-weight: bold">else</span>:
+            <span style="color: #888888"># Handle simple values</span>
+            constant_meta[key] <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span>value)
+
+    <span style="color: #888888"># Convert variable data</span>
+    variable_data <span style="color: #333333">=</span> []
+    <span style="color: #008800; font-weight: bold">for</span> measurement <span style="color: #000000; font-weight: bold">in</span> measurements:
+        measurement_meta <span style="color: #333333">=</span> {}
+        <span style="color: #008800; font-weight: bold">for</span> key, value <span style="color: #000000; font-weight: bold">in</span> measurement<span style="color: #333333">.</span>items():
+            <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">isinstance</span>(value, <span style="color: #007020">dict</span>) <span style="color: #000000; font-weight: bold">and</span> <span style="background-color: #fff0f0">"value"</span> <span style="color: #000000; font-weight: bold">in</span> value:
+                measurement_meta[key] <span style="color: #333333">=</span> MetaValue(
+                    value<span style="color: #333333">=</span>value[<span style="background-color: #fff0f0">"value"</span>],
+                    unit<span style="color: #333333">=</span>value<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"unit"</span>)
+                )
+            <span style="color: #008800; font-weight: bold">else</span>:
+                measurement_meta[key] <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span>value)
+        variable_data<span style="color: #333333">.</span>append(measurement_meta)
+
+    <span style="color: #008800; font-weight: bold">return</span> MetadataItem(
+        constant<span style="color: #333333">=</span>constant_meta,
+        variable<span style="color: #333333">=</span>ValidableItems(root<span style="color: #333333">=</span>variable_data)
+    )
+
+<span style="color: #888888"># Example usage</span>
+batch_constant <span style="color: #333333">=</span> {
+    <span style="background-color: #fff0f0">"experiment_id"</span>: <span style="background-color: #fff0f0">"EXP_2025_001"</span>,
+    <span style="background-color: #fff0f0">"instrument"</span>: <span style="background-color: #fff0f0">"High-res Spectrometer"</span>,
+    <span style="background-color: #fff0f0">"operator"</span>: <span style="background-color: #fff0f0">"Dr. Johnson"</span>,
+    <span style="background-color: #fff0f0">"lab_conditions"</span>: {
+        <span style="background-color: #fff0f0">"value"</span>: <span style="background-color: #fff0f0">"Standard atmosphere"</span>,
+        <span style="background-color: #fff0f0">"unit"</span>: <span style="color: #008800; font-weight: bold">None</span>
+    }
+}
+
+batch_measurements <span style="color: #333333">=</span> [
+    {
+        <span style="background-color: #fff0f0">"sample_id"</span>: <span style="background-color: #fff0f0">"S001"</span>,
+        <span style="background-color: #fff0f0">"temperature"</span>: {<span style="background-color: #fff0f0">"value"</span>: <span style="color: #6600EE; font-weight: bold">20.0</span>, <span style="background-color: #fff0f0">"unit"</span>: <span style="background-color: #fff0f0">"°C"</span>},
+        <span style="background-color: #fff0f0">"intensity"</span>: {<span style="background-color: #fff0f0">"value"</span>: <span style="color: #0000DD; font-weight: bold">1500</span>, <span style="background-color: #fff0f0">"unit"</span>: <span style="background-color: #fff0f0">"counts"</span>},
+        <span style="background-color: #fff0f0">"timestamp"</span>: <span style="background-color: #fff0f0">"2025-01-15T09:00:00Z"</span>
+    },
+    {
+        <span style="background-color: #fff0f0">"sample_id"</span>: <span style="background-color: #fff0f0">"S002"</span>,
+        <span style="background-color: #fff0f0">"temperature"</span>: {<span style="background-color: #fff0f0">"value"</span>: <span style="color: #6600EE; font-weight: bold">25.0</span>, <span style="background-color: #fff0f0">"unit"</span>: <span style="background-color: #fff0f0">"°C"</span>},
+        <span style="background-color: #fff0f0">"intensity"</span>: {<span style="background-color: #fff0f0">"value"</span>: <span style="color: #0000DD; font-weight: bold">1750</span>, <span style="background-color: #fff0f0">"unit"</span>: <span style="background-color: #fff0f0">"counts"</span>},
+        <span style="background-color: #fff0f0">"timestamp"</span>: <span style="background-color: #fff0f0">"2025-01-15T09:15:00Z"</span>
+    }
+]
+
+batch_metadata <span style="color: #333333">=</span> process_measurement_batch(batch_constant, batch_measurements)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Processed batch with </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(batch_metadata<span style="color: #333333">.</span>variable<span style="color: #333333">.</span>root)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> measurements"</span>)
+</code></pre></div></td></tr></table></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="validation-errors">Validation Errors</h3>
+<p>The metadata module raises <code>ValueError</code> exceptions when validation fails:</p>
+<h4 id="size-limit-exceeded">Size Limit Exceeded</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetaValue, Variable
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pydantic</span> <span style="color: #008800; font-weight: bold">import</span> ValidationError
+
+<span style="color: #888888"># Test size limit for MetaValue</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    large_value <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"x"</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">2000</span>  <span style="color: #888888"># Exceeds 1024 byte limit</span>
+    invalid_meta <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span>large_value)
+<span style="color: #008800; font-weight: bold">except</span> ValidationError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"MetaValue validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Test size limit for Variable</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    large_description <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"y"</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">2000</span>  <span style="color: #888888"># Exceeds 1024 byte limit</span>
+    invalid_variable <span style="color: #333333">=</span> Variable(variable<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"description"</span>: large_description})
+<span style="color: #008800; font-weight: bold">except</span> ValidationError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Variable validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h4 id="utf-8-encoding-considerations">UTF-8 Encoding Considerations</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetaValue
+
+<span style="color: #888888"># Multi-byte characters count as multiple bytes</span>
+japanese_text <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"これは日本語のテストです。"</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">50</span>  <span style="color: #888888"># May exceed byte limit</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    meta <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span>japanese_text)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✓ Japanese text accepted"</span>)
+<span style="color: #008800; font-weight: bold">except</span> ValidationError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Japanese text too large: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Emoji and special characters</span>
+emoji_text <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"🔬"</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">300</span>  <span style="color: #888888"># Each emoji is 4 bytes in UTF-8</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    meta <span style="color: #333333">=</span> MetaValue(value<span style="color: #333333">=</span>emoji_text)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✓ Emoji text accepted"</span>)
+<span style="color: #008800; font-weight: bold">except</span> ValidationError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Emoji text too large: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="best-practices">Best Practices</h3>
+<ol>
+<li><strong>Validate Input Sizes</strong>: Check string sizes before creating metadata:</li>
+</ol>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">safe_create_meta_value</span>(value: Any, unit: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> MetaValue <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>:
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">isinstance</span>(value, <span style="color: #007020">str</span>):
+        byte_size <span style="color: #333333">=</span> <span style="color: #007020">len</span>(value<span style="color: #333333">.</span>encode(<span style="background-color: #fff0f0">'utf-8'</span>))
+        <span style="color: #008800; font-weight: bold">if</span> byte_size <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1024</span>:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Warning: Value size </span><span style="background-color: #eeeeee">{</span>byte_size<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> bytes exceeds limit"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+    <span style="color: #008800; font-weight: bold">return</span> MetaValue(value<span style="color: #333333">=</span>value, unit<span style="color: #333333">=</span>unit)
+</code></pre></div></td></tr></table></div>
+<ol>
+<li><strong>Handle Large Text Data</strong>: Truncate or summarize large text values:</li>
+</ol>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">truncate_large_text</span>(text: <span style="color: #007020">str</span>, max_bytes: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1000</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">str</span>:
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(text<span style="color: #333333">.</span>encode(<span style="background-color: #fff0f0">'utf-8'</span>)) <span style="color: #333333">&lt;=</span> max_bytes:
+        <span style="color: #008800; font-weight: bold">return</span> text
+
+    <span style="color: #888888"># Truncate while respecting UTF-8 boundaries</span>
+    encoded <span style="color: #333333">=</span> text<span style="color: #333333">.</span>encode(<span style="background-color: #fff0f0">'utf-8'</span>)
+    truncated <span style="color: #333333">=</span> encoded[:max_bytes]
+
+    <span style="color: #888888"># Ensure we don't break in the middle of a character</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #008800; font-weight: bold">return</span> truncated<span style="color: #333333">.</span>decode(<span style="background-color: #fff0f0">'utf-8'</span>) <span style="color: #333333">+</span> <span style="background-color: #fff0f0">"..."</span>
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">UnicodeDecodeError</span>:
+        <span style="color: #888888"># Back off until we find a valid boundary</span>
+        <span style="color: #008800; font-weight: bold">for</span> i <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">range</span>(max_bytes <span style="color: #333333">-</span> <span style="color: #0000DD; font-weight: bold">1</span>, max_bytes <span style="color: #333333">-</span> <span style="color: #0000DD; font-weight: bold">4</span>, <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">1</span>):
+            <span style="color: #008800; font-weight: bold">try</span>:
+                <span style="color: #008800; font-weight: bold">return</span> encoded[:i]<span style="color: #333333">.</span>decode(<span style="background-color: #fff0f0">'utf-8'</span>) <span style="color: #333333">+</span> <span style="background-color: #fff0f0">"..."</span>
+            <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">UnicodeDecodeError</span>:
+                <span style="color: #008800; font-weight: bold">continue</span>
+        <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">"..."</span>
+</code></pre></div></td></tr></table></div>
+<ol>
+<li><strong>Use Type Hints</strong>: Improve code clarity and IDE support:</li>
+</ol>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">typing</span> <span style="color: #008800; font-weight: bold">import</span> Dict, List, Any, Optional
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_metadata_from_dict</span>(
+    data: Dict[<span style="color: #007020">str</span>, Any]
+) <span style="color: #333333">-&gt;</span> Optional[MetadataItem]:
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Process data...</span>
+        <span style="color: #008800; font-weight: bold">return</span> MetadataItem(constant<span style="color: #333333">=</span>constant, variable<span style="color: #333333">=</span>variable)
+    <span style="color: #008800; font-weight: bold">except</span> ValidationError:
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<ol>
+<li><strong>Separate Large Data</strong>: Store large data separately and reference it:</li>
+</ol>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Instead of storing large data directly</span>
+large_data <span style="color: #333333">=</span> [<span style="color: #0000DD; font-weight: bold">1</span>] <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">10000</span>  <span style="color: #888888"># Large array</span>
+
+<span style="color: #888888"># Store a reference or summary</span>
+metadata <span style="color: #333333">=</span> MetaValue(
+    value<span style="color: #333333">=</span><span style="background-color: #fff0f0">"large_dataset_ref_001"</span>,
+    unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"dataset_id"</span>
+)
+</code></pre></div></td></tr></table></div>
+<ol>
+<li><strong>Validate Before Batch Operations</strong>: Check data validity before processing:</li>
+</ol>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_measurement_data</span>(measurements: List[Dict]) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+    <span style="color: #008800; font-weight: bold">for</span> measurement <span style="color: #000000; font-weight: bold">in</span> measurements:
+        <span style="color: #008800; font-weight: bold">for</span> key, value <span style="color: #000000; font-weight: bold">in</span> measurement<span style="color: #333333">.</span>items():
+            <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">isinstance</span>(value, <span style="color: #007020">str</span>):
+                <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(value<span style="color: #333333">.</span>encode(<span style="background-color: #fff0f0">'utf-8'</span>)) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1024</span>:
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Invalid measurement </span><span style="background-color: #eeeeee">{</span>key<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: value too large"</span>)
+                    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="performance-notes">Performance Notes</h2>
+<ul>
+<li>Validation occurs at object creation time, not during access</li>
+<li>String size validation uses UTF-8 encoding for accurate byte counting</li>
+<li>Non-string values bypass size validation for optimal performance</li>
+<li>Pydantic models provide efficient serialization and deserialization</li>
+<li>Large datasets should be referenced rather than embedded directly</li>
+</ul>
+<h2 id="integration-examples">Integration Examples</h2>
+<h3 id="working-with-file-metadata">Working with File Metadata</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetadataItem, MetaValue, ValidableItems
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">extract_file_metadata</span>(file_path: Path) <span style="color: #333333">-&gt;</span> MetadataItem:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Extract metadata from a file and create structured metadata."""</span>
+
+    stat <span style="color: #333333">=</span> file_path<span style="color: #333333">.</span>stat()
+
+    constant <span style="color: #333333">=</span> {
+        <span style="background-color: #fff0f0">"file_name"</span>: MetaValue(value<span style="color: #333333">=</span>file_path<span style="color: #333333">.</span>name),
+        <span style="background-color: #fff0f0">"file_extension"</span>: MetaValue(value<span style="color: #333333">=</span>file_path<span style="color: #333333">.</span>suffix),
+        <span style="background-color: #fff0f0">"file_size"</span>: MetaValue(value<span style="color: #333333">=</span>stat<span style="color: #333333">.</span>st_size, unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"bytes"</span>),
+        <span style="background-color: #fff0f0">"creation_time"</span>: MetaValue(value<span style="color: #333333">=</span>stat<span style="color: #333333">.</span>st_ctime),
+        <span style="background-color: #fff0f0">"modification_time"</span>: MetaValue(value<span style="color: #333333">=</span>stat<span style="color: #333333">.</span>st_mtime),
+    }
+
+    <span style="color: #888888"># Variable data might come from file contents</span>
+    variable <span style="color: #333333">=</span> ValidableItems(root<span style="color: #333333">=</span>[])
+
+    <span style="color: #008800; font-weight: bold">return</span> MetadataItem(constant<span style="color: #333333">=</span>constant, variable<span style="color: #333333">=</span>variable)
+
+<span style="color: #888888"># Usage</span>
+file_metadata <span style="color: #333333">=</span> extract_file_metadata(Path(<span style="background-color: #fff0f0">"data.txt"</span>))
+</code></pre></div></td></tr></table></div>
+<h3 id="database-storage">Database Storage</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.metadata</span> <span style="color: #008800; font-weight: bold">import</span> MetadataItem
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">sqlite3</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">store_metadata_in_db</span>(metadata: MetadataItem, db_path: <span style="color: #007020">str</span>, record_id: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Store metadata in a database."""</span>
+
+    conn <span style="color: #333333">=</span> sqlite3<span style="color: #333333">.</span>connect(db_path)
+    cursor <span style="color: #333333">=</span> conn<span style="color: #333333">.</span>cursor()
+
+    <span style="color: #888888"># Create table if it doesn't exist</span>
+    cursor<span style="color: #333333">.</span>execute(<span style="background-color: #fff0f0">"""</span>
+<span style="background-color: #fff0f0">        CREATE TABLE IF NOT EXISTS metadata (</span>
+<span style="background-color: #fff0f0">            id TEXT PRIMARY KEY,</span>
+<span style="background-color: #fff0f0">            constant_data TEXT,</span>
+<span style="background-color: #fff0f0">            variable_data TEXT</span>
+<span style="background-color: #fff0f0">        )</span>
+<span style="background-color: #fff0f0">    """</span>)
+
+    <span style="color: #888888"># Serialize metadata</span>
+    constant_json <span style="color: #333333">=</span> json<span style="color: #333333">.</span>dumps(metadata<span style="color: #333333">.</span>model_dump()[<span style="background-color: #fff0f0">"constant"</span>])
+    variable_json <span style="color: #333333">=</span> json<span style="color: #333333">.</span>dumps(metadata<span style="color: #333333">.</span>model_dump()[<span style="background-color: #fff0f0">"variable"</span>])
+
+    <span style="color: #888888"># Insert data</span>
+    cursor<span style="color: #333333">.</span>execute(<span style="background-color: #fff0f0">"""</span>
+<span style="background-color: #fff0f0">        INSERT OR REPLACE INTO metadata (id, constant_data, variable_data)</span>
+<span style="background-color: #fff0f0">        VALUES (?, ?, ?)</span>
+<span style="background-color: #fff0f0">    """</span>, (record_id, constant_json, variable_json))
+
+    conn<span style="color: #333333">.</span>commit()
+    conn<span style="color: #333333">.</span>close()
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_metadata_from_db</span>(db_path: <span style="color: #007020">str</span>, record_id: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> MetadataItem:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load metadata from database."""</span>
+
+    conn <span style="color: #333333">=</span> sqlite3<span style="color: #333333">.</span>connect(db_path)
+    cursor <span style="color: #333333">=</span> conn<span style="color: #333333">.</span>cursor()
+
+    cursor<span style="color: #333333">.</span>execute(<span style="background-color: #fff0f0">"""</span>
+<span style="background-color: #fff0f0">        SELECT constant_data, variable_data FROM metadata WHERE id = ?</span>
+<span style="background-color: #fff0f0">    """</span>, (record_id,))
+
+    row <span style="color: #333333">=</span> cursor<span style="color: #333333">.</span>fetchone()
+    conn<span style="color: #333333">.</span>close()
+
+    <span style="color: #008800; font-weight: bold">if</span> row:
+        constant_data <span style="color: #333333">=</span> json<span style="color: #333333">.</span>loads(row[<span style="color: #0000DD; font-weight: bold">0</span>])
+        variable_data <span style="color: #333333">=</span> json<span style="color: #333333">.</span>loads(row[<span style="color: #0000DD; font-weight: bold">1</span>])
+
+        <span style="color: #008800; font-weight: bold">return</span> MetadataItem(
+            constant<span style="color: #333333">=</span>constant_data,
+            variable<span style="color: #333333">=</span>variable_data
+        )
+    <span style="color: #008800; font-weight: bold">else</span>:
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"No metadata found for ID: </span><span style="background-color: #eeeeee">{</span>record_id<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../invoice_schema/">Invoice Schema Module</a> - For schema validation and structure definitions</li>
+<li><a href="../invoice/">Invoice Module</a> - For invoice template and term management</li>
+<li><a href="../../core/">Core Module</a> - For file operations and directory management</li>
+<li><a href="https://docs.pydantic.dev/">Pydantic Documentation</a> - For advanced validation patterns</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

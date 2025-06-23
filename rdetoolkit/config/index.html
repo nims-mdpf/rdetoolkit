@@ -9,7 +9,7 @@
 <link href="../workflows/" rel="next"/>
 <link href="../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>config - RDEToolKit Documentation</title>
+<title>Configuration Module - RDEToolKit Documentation</title>
 <link href="../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,7 +23,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#config">
+<a class="md-skip" href="#configuration-module">
           Skip to content
         </a>
 </div>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              config
+              Configuration Module
             
           </span>
 </div>
@@ -499,7 +499,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -520,14 +520,14 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../impl/compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../impl/input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -551,7 +551,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -575,21 +575,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -648,13 +648,13 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
@@ -664,14 +664,29 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#parse_config_file">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      parse_config_file
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.parse_config_file">
+<a class="md-nav__link" href="#constants">
+<span class="md-ellipsis">
+      Constants
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#functions">
+<span class="md-ellipsis">
+      Functions
+    </span>
+</a>
+<nav aria-label="Functions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parse_config_file">
 <span class="md-ellipsis">
       parse_config_file
     </span>
@@ -685,21 +700,7 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.find_config_files">
-<span class="md-ellipsis">
-      find_config_files
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#get_config">
-<span class="md-ellipsis">
-      get_config
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.get_config">
 <span class="md-ellipsis">
       get_config
     </span>
@@ -713,21 +714,15 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.load_config">
+<a class="md-nav__link" href="#utility-functions">
 <span class="md-ellipsis">
-      load_config
+      Utility Functions
     </span>
 </a>
-</li>
+<nav aria-label="Utility Functions" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#is_toml">
-<span class="md-ellipsis">
-      is_toml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.is_toml">
 <span class="md-ellipsis">
       is_toml
     </span>
@@ -741,23 +736,129 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.is_yaml">
-<span class="md-ellipsis">
-      is_yaml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#get_pyproject_toml">
 <span class="md-ellipsis">
       get_pyproject_toml
     </span>
 </a>
 </li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.get_pyproject_toml">
+<a class="md-nav__link" href="#configuration-file-formats">
 <span class="md-ellipsis">
-      get_pyproject_toml
+      Configuration File Formats
+    </span>
+</a>
+<nav aria-label="Configuration File Formats" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#yaml-configuration-rdeconfigyamlrdeconfigyml">
+<span class="md-ellipsis">
+      YAML Configuration (rdeconfig.yaml/rdeconfig.yml)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#toml-configuration-pyprojecttoml">
+<span class="md-ellipsis">
+      TOML Configuration (pyproject.toml)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-loading-examples">
+<span class="md-ellipsis">
+      Configuration Loading Examples
+    </span>
+</a>
+<nav aria-label="Configuration Loading Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-configuration-loading">
+<span class="md-ellipsis">
+      Basic Configuration Loading
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-discovery-and-validation">
+<span class="md-ellipsis">
+      Configuration Discovery and Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-priority-and-fallback">
+<span class="md-ellipsis">
+      Configuration Priority and Fallback
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-validation-errors">
+<span class="md-ellipsis">
+      Configuration Validation Errors
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-format-detection-and-handling">
+<span class="md-ellipsis">
+      File Format Detection and Handling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+<nav aria-label="Best Practices" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-specific-configuration">
+<span class="md-ellipsis">
+      Environment-Specific Configuration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
     </span>
 </a>
 </li>
@@ -767,56 +868,56 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -876,14 +977,29 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#parse_config_file">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      parse_config_file
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.parse_config_file">
+<a class="md-nav__link" href="#constants">
+<span class="md-ellipsis">
+      Constants
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#functions">
+<span class="md-ellipsis">
+      Functions
+    </span>
+</a>
+<nav aria-label="Functions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#parse_config_file">
 <span class="md-ellipsis">
       parse_config_file
     </span>
@@ -897,21 +1013,7 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.find_config_files">
-<span class="md-ellipsis">
-      find_config_files
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#get_config">
-<span class="md-ellipsis">
-      get_config
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.get_config">
 <span class="md-ellipsis">
       get_config
     </span>
@@ -925,21 +1027,15 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.load_config">
+<a class="md-nav__link" href="#utility-functions">
 <span class="md-ellipsis">
-      load_config
+      Utility Functions
     </span>
 </a>
-</li>
+<nav aria-label="Utility Functions" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#is_toml">
-<span class="md-ellipsis">
-      is_toml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.is_toml">
 <span class="md-ellipsis">
       is_toml
     </span>
@@ -953,23 +1049,129 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.is_yaml">
-<span class="md-ellipsis">
-      is_yaml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#get_pyproject_toml">
 <span class="md-ellipsis">
       get_pyproject_toml
     </span>
 </a>
 </li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.config.get_pyproject_toml">
+<a class="md-nav__link" href="#configuration-file-formats">
 <span class="md-ellipsis">
-      get_pyproject_toml
+      Configuration File Formats
+    </span>
+</a>
+<nav aria-label="Configuration File Formats" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#yaml-configuration-rdeconfigyamlrdeconfigyml">
+<span class="md-ellipsis">
+      YAML Configuration (rdeconfig.yaml/rdeconfig.yml)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#toml-configuration-pyprojecttoml">
+<span class="md-ellipsis">
+      TOML Configuration (pyproject.toml)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-loading-examples">
+<span class="md-ellipsis">
+      Configuration Loading Examples
+    </span>
+</a>
+<nav aria-label="Configuration Loading Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-configuration-loading">
+<span class="md-ellipsis">
+      Basic Configuration Loading
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-discovery-and-validation">
+<span class="md-ellipsis">
+      Configuration Discovery and Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-priority-and-fallback">
+<span class="md-ellipsis">
+      Configuration Priority and Fallback
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-validation-errors">
+<span class="md-ellipsis">
+      Configuration Validation Errors
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-format-detection-and-handling">
+<span class="md-ellipsis">
+      File Format Detection and Handling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+<nav aria-label="Best Practices" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-specific-configuration">
+<span class="md-ellipsis">
+      Environment-Specific Configuration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
     </span>
 </a>
 </li>
@@ -980,439 +1182,686 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="config">config</h1>
-<h2 id="parse_config_file">parse_config_file</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.parse_config_file">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>parse_config_file(<span style="color: #333333">*</span>, path<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Parse the configuration file and return a Config object.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>path</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the configuration file. If not provided, the function will attempt to find and parse the default configuration file.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>Config</code></td> <td>
-<code><span title="rdetoolkit.models.config.Config">Config</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The parsed configuration object.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>FileNotFoundError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If the specified configuration file does not exist.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="file-loading-priority" open="">
-<summary>File Loading Priority</summary>
-<ol>
-<li>If <code>path</code> is provided and the file extension is ".toml", the function will attempt to read the file as a TOML file.</li>
-<li>If <code>path</code> is provided and the file extension is ".yaml" or ".yml", the function will attempt to read the file as a YAML file.</li>
-<li>If <code>path</code> is not provided, the function will attempt to find and parse the default configuration file named "pyproject.toml" in the current working directory.</li>
-</ol>
-</details>
-<details class="accepted-config-files" open="">
-<summary>Accepted Config Files</summary>
+<h1 id="configuration-module">Configuration Module</h1>
+<p>The <code>rdetoolkit.config</code> module provides comprehensive configuration management functionality for RDE (Research Data Exchange) processing workflows. This module handles loading, parsing, and validation of configuration files in multiple formats, with automatic discovery and flexible configuration options.</p>
+<h2 id="overview">Overview</h2>
+<p>The config module offers robust configuration management capabilities:</p>
 <ul>
-<li>"rdeconfig.yaml"</li>
-<li>"rdeconfig.yml"</li>
-<li>"pyproject.toml"</li>
+<li><strong>Multiple Format Support</strong>: Support for YAML, YML, and TOML configuration files</li>
+<li><strong>Automatic Discovery</strong>: Intelligent configuration file discovery in directories</li>
+<li><strong>Validation</strong>: Pydantic-based configuration validation with detailed error reporting</li>
+<li><strong>Priority Loading</strong>: Configurable loading priority for different file types</li>
+<li><strong>Default Configurations</strong>: Fallback to default configurations when files are missing</li>
+<li><strong>Project Integration</strong>: Special support for pyproject.toml configuration sections</li>
+<li><strong>Path Flexibility</strong>: Support for both string and Path object inputs</li>
 </ul>
-</details>
-<details class="note" open="">
-<summary>Note</summary>
+<h2 id="constants">Constants</h2>
 <ul>
-<li>If the specified configuration file does not exist or is not in the correct format, an empty Config object will be returned.</li>
+<li><code>CONFIG_FILE</code>: <code>["rdeconfig.yaml", "rdeconfig.yml"]</code> - Standard configuration filenames</li>
+<li><code>PYPROJECT_CONFIG_FILES</code>: <code>["pyproject.toml"]</code> - Project configuration filenames</li>
+<li><code>CONFIG_FILES</code>: Combined list of all supported configuration filenames</li>
 </ul>
-</details>
-<details class="example" open="">
-<summary>Example</summary>
-<p>parse_config_file(path="config.yaml")</p>
-</details>
-</div>
-</div><h2 id="find_config_files">find_config_files</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.find_config_files">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>find_config_files(target_dir_path)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Find and return a list of configuration files in the given input directory.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>target_dir_path</code></td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>(RdeFsPath): An object containing the paths to the input directories.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>list[str]: A list of configuration file paths.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div><h2 id="get_config">get_config</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.get_config">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>get_config(target_dir_path)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Retrieves the configuration from the specified directory path.</p>
-<p>This function searches for configuration files in the specified directory.
-It parses each found configuration file until it finds a valid configuration,
-which it then returns. If no valid configuration is found in the directory,
-it searches for a pyproject.toml file, parses it, and returns its configuration
-if valid. If no valid configuration is found, it returns None.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>target_dir_path</code></td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path of the directory to search for configuration files.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.models.config.Config">Config</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional[Config]: The first valid configuration found, or None if no valid configuration is found.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div><h2 id="load_config">load_config</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.load_config">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>load_config(tasksupport_path, <span style="color: #333333">*</span>, config<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Loads the configuration for the RDE Toolkit.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>tasksupport_path</code></td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the tasksupport directory.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>config</code></td>
-<td>
-<code>Optional[<span title="rdetoolkit.models.config.Config">Config</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An optional existing configuration object.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>Config</code></td> <td>
-<code><span title="rdetoolkit.models.config.Config">Config</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The loaded configuration object.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div><h2 id="is_toml">is_toml</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.is_toml">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>is_toml(filename)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Check if the given filename has a .toml extension.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>filename</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The name of the file to check.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bool</code></td> <td>
-<code>bool</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>True if the filename has a .toml extension, False otherwise.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div><h2 id="is_yaml">is_yaml</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.is_yaml">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>is_yaml(filename)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Check if the given filename has a YAML file extension.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>filename</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The name of the file to check.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bool</code></td> <td>
-<code>bool</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>True if the filename has a YAML file extension, False otherwise.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div><h2 id="get_pyproject_toml">get_pyproject_toml</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.config.get_pyproject_toml">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>get_pyproject_toml()</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Get the pyproject.toml file.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="pathlib.Path">Path</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional[Path]: The path to the pyproject.toml file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<h2 id="functions">Functions</h2>
+<h3 id="parse_config_file">parse_config_file</h3>
+<p>Parse a configuration file and return a validated Config object.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse_config_file</span>(<span style="color: #333333">*</span>, path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> Config
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | None): Path to the configuration file (optional)</p>
+<p><strong>Returns:</strong>
+- <code>Config</code>: Parsed and validated configuration object</p>
+<p><strong>Raises:</strong>
+- <code>FileNotFoundError</code>: If the specified configuration file does not exist</p>
+<p><strong>File Loading Priority:</strong>
+1. If <code>path</code> is provided with <code>.toml</code> extension: Read as TOML file
+2. If <code>path</code> is provided with <code>.yaml</code>/<code>.yml</code> extension: Read as YAML file
+3. If <code>path</code> is None: Search for <code>pyproject.toml</code> in current working directory
+4. If file not found or invalid: Return default Config object</p>
+<p><strong>Supported Configuration Files:</strong>
+- <code>rdeconfig.yaml</code>
+- <code>rdeconfig.yml</code>
+- <code>pyproject.toml</code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> parse_config_file
+
+<span style="color: #888888"># Parse specific configuration file</span>
+config <span style="color: #333333">=</span> parse_config_file(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"config/rdeconfig.yaml"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Parse default pyproject.toml</span>
+default_config <span style="color: #333333">=</span> parse_config_file()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Save raw: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Handle missing configuration gracefully</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    config <span style="color: #333333">=</span> parse_config_file(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"nonexistent.yaml"</span>)
+    <span style="color: #888888"># Returns default config instead of raising error</span>
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">FileNotFoundError</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Configuration file not found"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="find_config_files">find_config_files</h3>
+<p>Find and return a list of configuration files in a specified directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">find_config_files</span>(target_dir_path: RdeFsPath) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>target_dir_path</code> (RdeFsPath): Directory path to search for configuration files</p>
+<p><strong>Returns:</strong>
+- <code>list[str]</code>: Sorted list of configuration file paths</p>
+<p><strong>Sorting Priority:</strong>
+- Files are sorted by type: TOML files first, then YAML files
+- Within each type, files are sorted alphabetically</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> find_config_files
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #888888"># Find configuration files in directory</span>
+config_dir <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+config_files <span style="color: #333333">=</span> find_config_files(config_dir)
+
+<span style="color: #008800; font-weight: bold">for</span> config_file <span style="color: #000000; font-weight: bold">in</span> config_files:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found config: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Check if any configuration files exist</span>
+<span style="color: #008800; font-weight: bold">if</span> config_files:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(config_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> configuration files"</span>)
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No configuration files found"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="get_config">get_config</h3>
+<p>Retrieve configuration from a specified directory with fallback options.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_config</span>(target_dir_path: RdeFsPath) <span style="color: #333333">-&gt;</span> Config <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>target_dir_path</code> (RdeFsPath): Directory path to search for configuration</p>
+<p><strong>Returns:</strong>
+- <code>Config | None</code>: First valid configuration found, or None if no valid configuration exists</p>
+<p><strong>Raises:</strong>
+- <code>ValueError</code>: If configuration file exists but contains invalid data</p>
+<p><strong>Search Strategy:</strong>
+1. Search for configuration files in the specified directory
+2. Parse each found file until a valid configuration is found
+3. If no valid configuration in directory, check for <code>pyproject.toml</code> in current working directory
+4. Return the first valid configuration, or None if none found</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> get_config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #888888"># Get configuration from tasksupport directory</span>
+config <span style="color: #333333">=</span> get_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+
+<span style="color: #008800; font-weight: bold">if</span> config:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration loaded successfully"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Save raw files: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No valid configuration found"</span>)
+
+<span style="color: #888888"># Handle validation errors</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    config <span style="color: #333333">=</span> get_config(<span style="background-color: #fff0f0">"data/invalid_config"</span>)
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="load_config">load_config</h3>
+<p>Load configuration for RDE Toolkit with optional override.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_config</span>(tasksupport_path: RdeFsPath, <span style="color: #333333">*</span>, config: Config <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> Config
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>tasksupport_path</code> (RdeFsPath): Path to the tasksupport directory
+- <code>config</code> (Config | None): Optional existing configuration object to use instead</p>
+<p><strong>Returns:</strong>
+- <code>Config</code>: Loaded configuration object (never None)</p>
+<p><strong>Behavior:</strong>
+- If <code>config</code> parameter is provided, returns that configuration
+- Otherwise, attempts to load configuration from <code>tasksupport_path</code>
+- If no configuration is found, returns default Config object
+- Guarantees non-None return value</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings
+
+<span style="color: #888888"># Load configuration from tasksupport directory</span>
+config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+
+<span style="color: #888888"># Load with custom configuration override</span>
+custom_config <span style="color: #333333">=</span> Config(
+    system<span style="color: #333333">=</span>SystemSettings(extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"rdeformat"</span>, save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+)
+config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>, config<span style="color: #333333">=</span>custom_config)
+
+<span style="color: #888888"># Always returns a valid configuration</span>
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="utility-functions">Utility Functions</h3>
+<h4 id="is_toml">is_toml</h4>
+<p>Check if a filename has a TOML extension.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">is_toml</span>(filename: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>filename</code> (str): Filename to check</p>
+<p><strong>Returns:</strong>
+- <code>bool</code>: True if filename ends with <code>.toml</code>, False otherwise</p>
+<h4 id="is_yaml">is_yaml</h4>
+<p>Check if a filename has a YAML extension.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">is_yaml</span>(filename: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>filename</code> (str): Filename to check</p>
+<p><strong>Returns:</strong>
+- <code>bool</code>: True if filename ends with <code>.yaml</code> or <code>.yml</code>, False otherwise</p>
+<h4 id="get_pyproject_toml">get_pyproject_toml</h4>
+<p>Get the pyproject.toml file path from the current working directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_pyproject_toml</span>() <span style="color: #333333">-&gt;</span> Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>Path | None</code>: Path to pyproject.toml if it exists, None otherwise</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> is_toml, is_yaml, get_pyproject_toml
+
+<span style="color: #888888"># Check file types</span>
+<span style="color: #007020">print</span>(is_toml(<span style="background-color: #fff0f0">"config.toml"</span>))        <span style="color: #888888"># True</span>
+<span style="color: #007020">print</span>(is_yaml(<span style="background-color: #fff0f0">"config.yaml"</span>))       <span style="color: #888888"># True</span>
+<span style="color: #007020">print</span>(is_yaml(<span style="background-color: #fff0f0">"config.yml"</span>))        <span style="color: #888888"># True</span>
+<span style="color: #007020">print</span>(is_toml(<span style="background-color: #fff0f0">"config.json"</span>))       <span style="color: #888888"># False</span>
+
+<span style="color: #888888"># Get pyproject.toml path</span>
+pyproject_path <span style="color: #333333">=</span> get_pyproject_toml()
+<span style="color: #008800; font-weight: bold">if</span> pyproject_path:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found pyproject.toml at: </span><span style="background-color: #eeeeee">{</span>pyproject_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No pyproject.toml found in current directory"</span>)
+</code></pre></div></td></tr></table></div>
+<h2 id="configuration-file-formats">Configuration File Formats</h2>
+<h3 id="yaml-configuration-rdeconfigyamlrdeconfigyml">YAML Configuration (rdeconfig.yaml/rdeconfig.yml)</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
+<span style="color: #bbbbbb">  </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"rdeformat"</span>
+<span style="color: #bbbbbb">  </span><span style="color: #007700">save_raw</span>:<span style="color: #bbbbbb"> </span>true
+<span style="color: #bbbbbb">  </span><span style="color: #007700">save_main_image</span>:<span style="color: #bbbbbb"> </span>false
+<span style="color: #bbbbbb">  </span><span style="color: #007700">save_thumbnail_image</span>:<span style="color: #bbbbbb"> </span>true
+<span style="color: #bbbbbb">  </span><span style="color: #007700">save_nonshared_raw</span>:<span style="color: #bbbbbb"> </span>false
+<span style="color: #bbbbbb">  </span><span style="color: #007700">magic_variable</span>:<span style="color: #bbbbbb"> </span>true
+
+<span style="color: #007700">multidata_tile</span>:
+<span style="color: #bbbbbb">  </span><span style="color: #007700">ignore_errors</span>:<span style="color: #bbbbbb"> </span>false
+</code></pre></div></td></tr></table></div>
+<h3 id="toml-configuration-pyprojecttoml">TOML Configuration (pyproject.toml)</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">[tool.rdetoolkit.system]</span>
+extended_mode<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"multidatatile"</span>
+save_raw<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">true</span>
+save_main_image<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">false</span>
+save_thumbnail_image<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">true</span>
+save_nonshared_raw<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">false</span>
+magic_variable<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">true</span>
+
+<span style="color: #008800; font-weight: bold">[tool.rdetoolkit.multidata_tile]</span>
+ignore_errors<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">false</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="configuration-loading-examples">Configuration Loading Examples</h2>
+<h3 id="basic-configuration-loading">Basic Configuration Loading</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config, parse_config_file
+
+<span style="color: #888888"># Load from tasksupport directory</span>
+config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+
+<span style="color: #888888"># Parse specific file</span>
+config <span style="color: #333333">=</span> parse_config_file(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"config/custom.yaml"</span>)
+
+<span style="color: #888888"># Use configuration</span>
+<span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"rdeformat"</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Using RDE format mode"</span>)
+
+<span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Raw files will be saved"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="configuration-discovery-and-validation">Configuration Discovery and Validation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> find_config_files, get_config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">setup_configuration</span>(config_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Setup configuration with discovery and validation."""</span>
+
+    <span style="color: #888888"># Find available configuration files</span>
+    config_files <span style="color: #333333">=</span> find_config_files(config_dir)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Available configurations: </span><span style="background-color: #eeeeee">{</span>config_files<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Load configuration with validation</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        config <span style="color: #333333">=</span> get_config(config_dir)
+        <span style="color: #008800; font-weight: bold">if</span> config:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✓ Configuration loaded successfully"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> config
+        <span style="color: #008800; font-weight: bold">else</span>:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"⚠ No configuration found, using defaults"</span>)
+            <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config
+            <span style="color: #008800; font-weight: bold">return</span> Config()
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Configuration validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+<span style="color: #888888"># Usage</span>
+config <span style="color: #333333">=</span> setup_configuration(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+<span style="color: #008800; font-weight: bold">if</span> config:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="configuration-priority-and-fallback">Configuration Priority and Fallback</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings, MultiDataTileSettings
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_configuration_with_fallback</span>(primary_path: <span style="color: #007020">str</span>, fallback_path: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load configuration with fallback options."""</span>
+
+    <span style="color: #888888"># Try primary configuration</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        config <span style="color: #333333">=</span> load_config(primary_path)
+        <span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #000000; font-weight: bold">or</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Loaded configuration from: </span><span style="background-color: #eeeeee">{</span>primary_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> config
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"⚠ Primary configuration failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Try fallback configuration</span>
+    <span style="color: #008800; font-weight: bold">if</span> fallback_path:
+        <span style="color: #008800; font-weight: bold">try</span>:
+            config <span style="color: #333333">=</span> load_config(fallback_path)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Loaded fallback configuration from: </span><span style="background-color: #eeeeee">{</span>fallback_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> config
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"⚠ Fallback configuration failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Use programmatic default</span>
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Using programmatic default configuration"</span>)
+    <span style="color: #008800; font-weight: bold">return</span> Config(
+        system<span style="color: #333333">=</span>SystemSettings(
+            extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"invoice"</span>,
+            save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
+            magic_variable<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>
+        ),
+        multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(
+            ignore_errors<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>
+        )
+    )
+
+<span style="color: #888888"># Usage</span>
+config <span style="color: #333333">=</span> load_configuration_with_fallback(
+    primary_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"data/tasksupport"</span>,
+    fallback_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"config"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="configuration-validation-errors">Configuration Validation Errors</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> get_config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pydantic</span> <span style="color: #008800; font-weight: bold">import</span> ValidationError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">safe_config_loading</span>(config_path: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Safely load configuration with comprehensive error handling."""</span>
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        config <span style="color: #333333">=</span> get_config(config_path)
+        <span style="color: #008800; font-weight: bold">if</span> config <span style="color: #000000; font-weight: bold">is</span> <span style="color: #008800; font-weight: bold">None</span>:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No configuration found"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+        <span style="color: #888888"># Validate specific settings</span>
+        <span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">"invoice"</span>, <span style="background-color: #fff0f0">"rdeformat"</span>, <span style="background-color: #fff0f0">"multidatatile"</span>]:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Warning: Unknown extended_mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> config
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration validation error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">FileNotFoundError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration file not found: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Unexpected configuration error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+<span style="color: #888888"># Usage</span>
+config <span style="color: #333333">=</span> safe_config_loading(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+<span style="color: #008800; font-weight: bold">if</span> config:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Configuration loaded successfully"</span>)
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Using default configuration"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="file-format-detection-and-handling">File Format Detection and Handling</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> is_toml, is_yaml, parse_config_file
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_config_by_type</span>(config_file: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load configuration with format-specific handling."""</span>
+
+    <span style="color: #008800; font-weight: bold">if</span> is_toml(config_file):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Loading TOML configuration: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #008800; font-weight: bold">return</span> parse_config_file(path<span style="color: #333333">=</span>config_file)
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"TOML parsing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+    <span style="color: #008800; font-weight: bold">elif</span> is_yaml(config_file):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Loading YAML configuration: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #008800; font-weight: bold">return</span> parse_config_file(path<span style="color: #333333">=</span>config_file)
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"YAML parsing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+    <span style="color: #008800; font-weight: bold">else</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Unsupported configuration format: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+<span style="color: #888888"># Usage</span>
+config_files <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"config.toml"</span>, <span style="background-color: #fff0f0">"config.yaml"</span>, <span style="background-color: #fff0f0">"config.json"</span>]
+<span style="color: #008800; font-weight: bold">for</span> config_file <span style="color: #000000; font-weight: bold">in</span> config_files:
+    config <span style="color: #333333">=</span> load_config_by_type(config_file)
+    <span style="color: #008800; font-weight: bold">if</span> config:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Successfully loaded: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">break</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="configuration-management">Configuration Management</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Always use load_config for guaranteed non-None results</span>
+config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+
+<span style="color: #888888"># Use get_config when you need to handle None results</span>
+config <span style="color: #333333">=</span> get_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+<span style="color: #008800; font-weight: bold">if</span> config <span style="color: #000000; font-weight: bold">is</span> <span style="color: #008800; font-weight: bold">None</span>:
+    <span style="color: #888888"># Handle missing configuration</span>
+    <span style="color: #008800; font-weight: bold">pass</span>
+
+<span style="color: #888888"># Validate configuration after loading</span>
+<span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">"invoice"</span>, <span style="background-color: #fff0f0">"rdeformat"</span>, <span style="background-color: #fff0f0">"multidatatile"</span>]:
+    <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"Invalid extended_mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="environment-specific-configuration">Environment-Specific Configuration</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_environment_config</span>(environment: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"production"</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load configuration based on environment."""</span>
+
+    config_paths <span style="color: #333333">=</span> {
+        <span style="background-color: #fff0f0">"development"</span>: <span style="background-color: #fff0f0">"config/dev"</span>,
+        <span style="background-color: #fff0f0">"testing"</span>: <span style="background-color: #fff0f0">"config/test"</span>,
+        <span style="background-color: #fff0f0">"production"</span>: <span style="background-color: #fff0f0">"data/tasksupport"</span>
+    }
+
+    config_path <span style="color: #333333">=</span> config_paths<span style="color: #333333">.</span>get(environment, <span style="background-color: #fff0f0">"data/tasksupport"</span>)
+    <span style="color: #008800; font-weight: bold">return</span> load_config(config_path)
+
+<span style="color: #888888"># Usage</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">os</span>
+env <span style="color: #333333">=</span> os<span style="color: #333333">.</span>getenv(<span style="background-color: #fff0f0">"RDE_ENVIRONMENT"</span>, <span style="background-color: #fff0f0">"production"</span>)
+config <span style="color: #333333">=</span> load_environment_config(env)
+</code></pre></div></td></tr></table></div>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../models/config/">Models - Config</a> - For Config, SystemSettings, and MultiDataTileSettings data structures</li>
+<li><a href="../models/rde2types/">Models - RDE2 Types</a> - For RdeFsPath type definitions</li>
+<li><a href="../workflows/">Workflows</a> - For configuration usage in workflow processing</li>
+<li><a href="../../usage/config/config/">Usage - Configuration</a> - For practical configuration examples and patterns</li>
+<li><a href="../../usage/config/mode/">Usage - Mode</a> - For configuration mode usage examples</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

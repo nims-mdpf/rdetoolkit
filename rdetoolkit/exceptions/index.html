@@ -9,7 +9,7 @@
 <link href="../../contribute/home/" rel="next"/>
 <link href="../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>exceptions - RDEToolKit Documentation</title>
+<title>Exceptions Module - RDEToolKit Documentation</title>
 <link href="../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,7 +23,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#exceptions">
+<a class="md-skip" href="#exceptions-module">
           Skip to content
         </a>
 </div>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              exceptions
+              Exceptions Module
             
           </span>
 </div>
@@ -499,7 +499,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -520,14 +520,14 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../impl/compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../impl/input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -551,7 +551,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -575,21 +575,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -647,56 +647,56 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
@@ -704,13 +704,13 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
@@ -720,14 +720,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#structurederror">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      StructuredError
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError">
+<a class="md-nav__link" href="#exception-classes">
+<span class="md-ellipsis">
+      Exception Classes
+    </span>
+</a>
+<nav aria-label="Exception Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#structurederror">
 <span class="md-ellipsis">
       StructuredError
     </span>
@@ -735,81 +743,29 @@
 <nav aria-label="StructuredError" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.ecode">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
+      Constructor
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mode-specific-exception-classes">
+<span class="md-ellipsis">
+      Mode-Specific Exception Classes
+    </span>
+</a>
+<nav aria-label="Mode-Specific Exception Classes" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#invoicemodeerror">
 <span class="md-ellipsis">
       InvoiceModeError
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError">
-<span class="md-ellipsis">
-      InvoiceModeError
-    </span>
-</a>
-<nav aria-label="InvoiceModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#excelinvoicemodeerror">
@@ -819,89 +775,11 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError">
-<span class="md-ellipsis">
-      ExcelInvoiceModeError
-    </span>
-</a>
-<nav aria-label="ExcelInvoiceModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#multidatatilemodeerror">
 <span class="md-ellipsis">
       MultiDataTileModeError
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError">
-<span class="md-ellipsis">
-      MultiDataTileModeError
-    </span>
-</a>
-<nav aria-label="MultiDataTileModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#rdeformatmodeerror">
@@ -910,45 +788,17 @@
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError">
-<span class="md-ellipsis">
-      RdeFormatModeError
-    </span>
-</a>
-<nav aria-label="RdeFormatModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-exception-classes">
+<span class="md-ellipsis">
+      Validation Exception Classes
+    </span>
+</a>
+<nav aria-label="Validation Exception Classes" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#invoiceschemavalidationerror">
 <span class="md-ellipsis">
@@ -957,47 +807,56 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceSchemaValidationError">
-<span class="md-ellipsis">
-      InvoiceSchemaValidationError
-    </span>
-</a>
-<nav aria-label="InvoiceSchemaValidationError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceSchemaValidationError.message">
-<span class="md-ellipsis">
-      message
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#metadatavalidationerror">
 <span class="md-ellipsis">
       MetadataValidationError
     </span>
 </a>
 </li>
+</ul>
+</nav>
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MetadataValidationError">
+<a class="md-nav__link" href="#data-retrieval-exception-classes">
 <span class="md-ellipsis">
-      MetadataValidationError
+      Data Retrieval Exception Classes
     </span>
 </a>
-<nav aria-label="MetadataValidationError" class="md-nav">
+<nav aria-label="Data Retrieval Exception Classes" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MetadataValidationError.message">
+<a class="md-nav__link" href="#dataretrievalerror">
 <span class="md-ellipsis">
-      message
+      DataRetrievalError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#noresultsfounderror">
+<span class="md-ellipsis">
+      NoResultsFoundError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invalidsearchparameterserror">
+<span class="md-ellipsis">
+      InvalidSearchParametersError
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -1058,14 +917,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#structurederror">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      StructuredError
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError">
+<a class="md-nav__link" href="#exception-classes">
+<span class="md-ellipsis">
+      Exception Classes
+    </span>
+</a>
+<nav aria-label="Exception Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#structurederror">
 <span class="md-ellipsis">
       StructuredError
     </span>
@@ -1073,81 +940,29 @@
 <nav aria-label="StructuredError" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.ecode">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.StructuredError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
+      Constructor
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mode-specific-exception-classes">
+<span class="md-ellipsis">
+      Mode-Specific Exception Classes
+    </span>
+</a>
+<nav aria-label="Mode-Specific Exception Classes" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#invoicemodeerror">
 <span class="md-ellipsis">
       InvoiceModeError
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError">
-<span class="md-ellipsis">
-      InvoiceModeError
-    </span>
-</a>
-<nav aria-label="InvoiceModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#excelinvoicemodeerror">
@@ -1157,89 +972,11 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError">
-<span class="md-ellipsis">
-      ExcelInvoiceModeError
-    </span>
-</a>
-<nav aria-label="ExcelInvoiceModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#multidatatilemodeerror">
 <span class="md-ellipsis">
       MultiDataTileModeError
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError">
-<span class="md-ellipsis">
-      MultiDataTileModeError
-    </span>
-</a>
-<nav aria-label="MultiDataTileModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#rdeformatmodeerror">
@@ -1248,45 +985,17 @@
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError">
-<span class="md-ellipsis">
-      RdeFormatModeError
-    </span>
-</a>
-<nav aria-label="RdeFormatModeError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.ecode">
-<span class="md-ellipsis">
-      ecode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.emsg">
-<span class="md-ellipsis">
-      emsg
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.eobj">
-<span class="md-ellipsis">
-      eobj
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.RdeFormatModeError.traceback_info">
-<span class="md-ellipsis">
-      traceback_info
-    </span>
-</a>
-</li>
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-exception-classes">
+<span class="md-ellipsis">
+      Validation Exception Classes
+    </span>
+</a>
+<nav aria-label="Validation Exception Classes" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#invoiceschemavalidationerror">
 <span class="md-ellipsis">
@@ -1295,47 +1004,56 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceSchemaValidationError">
-<span class="md-ellipsis">
-      InvoiceSchemaValidationError
-    </span>
-</a>
-<nav aria-label="InvoiceSchemaValidationError" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.InvoiceSchemaValidationError.message">
-<span class="md-ellipsis">
-      message
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#metadatavalidationerror">
 <span class="md-ellipsis">
       MetadataValidationError
     </span>
 </a>
 </li>
+</ul>
+</nav>
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MetadataValidationError">
+<a class="md-nav__link" href="#data-retrieval-exception-classes">
 <span class="md-ellipsis">
-      MetadataValidationError
+      Data Retrieval Exception Classes
     </span>
 </a>
-<nav aria-label="MetadataValidationError" class="md-nav">
+<nav aria-label="Data Retrieval Exception Classes" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.exceptions.MetadataValidationError.message">
+<a class="md-nav__link" href="#dataretrievalerror">
 <span class="md-ellipsis">
-      message
+      DataRetrievalError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#noresultsfounderror">
+<span class="md-ellipsis">
+      NoResultsFoundError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invalidsearchparameterserror">
+<span class="md-ellipsis">
+      InvalidSearchParametersError
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -1344,884 +1062,837 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="exceptions">exceptions</h1>
-<h2 id="structurederror">StructuredError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.StructuredError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>StructuredError(emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">''</span>, ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">1</span>, eobj<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, traceback_info<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>A custom exception class providing structured error information.</p>
-<p>This class extends the standard Exception class to include additional information
-such as an error message, an error code, an error object, and traceback information.
-This allows for a more detailed representation of errors.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>emsg</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The error message.</p>
-</div>
-</td>
-<td>
-<code>''</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>ecode</code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The error code. Defaults to 1.</p>
-</div>
-</td>
-<td>
-<code>1</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>eobj</code></td>
-<td>
-<code>any</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An additional error object. This can be an object of any type to provide more context to the error.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>traceback_info</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Additional traceback information. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.StructuredError.ecode">
-<code class="highlight language-python">ecode: Incomplete <span style="color: #333333">=</span> ecode</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.StructuredError.emsg">
-<code class="highlight language-python">emsg: Incomplete <span style="color: #333333">=</span> emsg</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.StructuredError.eobj">
-<code class="highlight language-python">eobj: Incomplete <span style="color: #333333">=</span> eobj</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.StructuredError.traceback_info">
-<code class="highlight language-python">traceback_info: Incomplete <span style="color: #333333">=</span> traceback_info</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="invoicemodeerror">InvoiceModeError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceModeError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>InvoiceModeError(emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">''</span>, ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">100</span>, eobj<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, traceback_info<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>Exception raised for errors related to invoice mode.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.InvoiceModeError.emsg" href="#src.rdetoolkit.exceptions.InvoiceModeError.emsg">emsg</a></code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.InvoiceModeError.ecode" href="#src.rdetoolkit.exceptions.InvoiceModeError.ecode">ecode</a></code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 100.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.InvoiceModeError.eobj" href="#src.rdetoolkit.exceptions.InvoiceModeError.eobj">eobj</a></code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the exception. Default is None.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.InvoiceModeError.traceback_info" href="#src.rdetoolkit.exceptions.InvoiceModeError.traceback_info">traceback_info</a></code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>emsg</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-<td>
-<code>''</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>ecode</code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 100.</p>
-</div>
-</td>
-<td>
-<code>100</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>eobj</code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the exception. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>traceback_info</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceModeError.ecode">
-<code class="highlight language-python">ecode: Incomplete <span style="color: #333333">=</span> ecode</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceModeError.emsg">
-<code class="highlight language-python">emsg: Incomplete <span style="color: #333333">=</span> emsg</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceModeError.eobj">
-<code class="highlight language-python">eobj: Incomplete <span style="color: #333333">=</span> eobj</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceModeError.traceback_info">
-<code class="highlight language-python">traceback_info: Incomplete <span style="color: #333333">=</span> traceback_info</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="excelinvoicemodeerror">ExcelInvoiceModeError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.ExcelInvoiceModeError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>ExcelInvoiceModeError(emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">''</span>, ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">101</span>, eobj<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, traceback_info<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>Exception raised for errors related to Excelinvoice mode.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.ExcelInvoiceModeError.emsg" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.emsg">emsg</a></code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.ExcelInvoiceModeError.ecode" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.ecode">ecode</a></code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 101.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.ExcelInvoiceModeError.eobj" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.eobj">eobj</a></code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the exception. Default is None.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.ExcelInvoiceModeError.traceback_info" href="#src.rdetoolkit.exceptions.ExcelInvoiceModeError.traceback_info">traceback_info</a></code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>emsg</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-<td>
-<code>''</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>ecode</code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 102.</p>
-</div>
-</td>
-<td>
-<code>101</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>eobj</code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the exception. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>traceback_info</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.ExcelInvoiceModeError.ecode">
-<code class="highlight language-python">ecode: Incomplete <span style="color: #333333">=</span> ecode</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.ExcelInvoiceModeError.emsg">
-<code class="highlight language-python">emsg: Incomplete <span style="color: #333333">=</span> emsg</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.ExcelInvoiceModeError.eobj">
-<code class="highlight language-python">eobj: Incomplete <span style="color: #333333">=</span> eobj</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.ExcelInvoiceModeError.traceback_info">
-<code class="highlight language-python">traceback_info: Incomplete <span style="color: #333333">=</span> traceback_info</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="multidatatilemodeerror">MultiDataTileModeError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.MultiDataTileModeError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>MultiDataTileModeError(emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">''</span>, ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">102</span>, eobj<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, traceback_info<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>Exception raised for errors in MultiData tile mode operations.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.MultiDataTileModeError.emsg" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.emsg">emsg</a></code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.MultiDataTileModeError.ecode" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.ecode">ecode</a></code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 102.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.MultiDataTileModeError.eobj" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.eobj">eobj</a></code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the error. Default is None.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.MultiDataTileModeError.traceback_info" href="#src.rdetoolkit.exceptions.MultiDataTileModeError.traceback_info">traceback_info</a></code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>emsg</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-<td>
-<code>''</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>ecode</code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 101.</p>
-</div>
-</td>
-<td>
-<code>102</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>eobj</code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the error. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>traceback_info</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.MultiDataTileModeError.ecode">
-<code class="highlight language-python">ecode: Incomplete <span style="color: #333333">=</span> ecode</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.MultiDataTileModeError.emsg">
-<code class="highlight language-python">emsg: Incomplete <span style="color: #333333">=</span> emsg</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.MultiDataTileModeError.eobj">
-<code class="highlight language-python">eobj: Incomplete <span style="color: #333333">=</span> eobj</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.MultiDataTileModeError.traceback_info">
-<code class="highlight language-python">traceback_info: Incomplete <span style="color: #333333">=</span> traceback_info</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="rdeformatmodeerror">RdeFormatModeError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.RdeFormatModeError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>RdeFormatModeError(emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">''</span>, ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">103</span>, eobj<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, traceback_info<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>Exception raised for errors in the RDE format mode.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.RdeFormatModeError.emsg" href="#src.rdetoolkit.exceptions.RdeFormatModeError.emsg">emsg</a></code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.RdeFormatModeError.ecode" href="#src.rdetoolkit.exceptions.RdeFormatModeError.ecode">ecode</a></code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 103.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.RdeFormatModeError.eobj" href="#src.rdetoolkit.exceptions.RdeFormatModeError.eobj">eobj</a></code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the error. Default is None.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.exceptions.RdeFormatModeError.traceback_info" href="#src.rdetoolkit.exceptions.RdeFormatModeError.traceback_info">traceback_info</a></code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>emsg</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error message describing the exception.</p>
-</div>
-</td>
-<td>
-<code>''</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>ecode</code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Error code associated with the exception. Default is 103.</p>
-</div>
-</td>
-<td>
-<code>103</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>eobj</code></td>
-<td>
-<code><span title="typing.Any">Any</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional object related to the error. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>traceback_info</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional traceback information. Default is None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.RdeFormatModeError.ecode">
-<code class="highlight language-python">ecode: Incomplete <span style="color: #333333">=</span> ecode</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.RdeFormatModeError.emsg">
-<code class="highlight language-python">emsg: Incomplete <span style="color: #333333">=</span> emsg</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.RdeFormatModeError.eobj">
-<code class="highlight language-python">eobj: Incomplete <span style="color: #333333">=</span> eobj</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.RdeFormatModeError.traceback_info">
-<code class="highlight language-python">traceback_info: Incomplete <span style="color: #333333">=</span> traceback_info</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="invoiceschemavalidationerror">InvoiceSchemaValidationError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceSchemaValidationError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>InvoiceSchemaValidationError(message<span style="color: #333333">=</span><span style="background-color: #fff0f0">'Validation error'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>Raised when a validation error occurs.</p>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.InvoiceSchemaValidationError.message">
-<code class="highlight language-python">message: Incomplete <span style="color: #333333">=</span> message</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="metadatavalidationerror">MetadataValidationError</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.exceptions.MetadataValidationError">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>exceptions<span style="color: #333333">.</span>MetadataValidationError(message<span style="color: #333333">=</span><span style="background-color: #fff0f0">'Validation error'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code>Exception</code></p>
-<p>Raised when a validation error occurs.</p>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.exceptions.MetadataValidationError.message">
-<code class="highlight language-python">message: Incomplete <span style="color: #333333">=</span> message</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div>
+<h1 id="exceptions-module">Exceptions Module</h1>
+<p>The <code>rdetoolkit.exceptions</code> module provides a comprehensive set of custom exception classes for RDE (Research Data Exchange) processing workflows. These exceptions enable precise error handling, detailed error reporting, and structured error management across all RDE operations.</p>
+<h2 id="overview">Overview</h2>
+<p>The exceptions module offers specialized exception types for different RDE components and operations:</p>
+<ul>
+<li><strong>Structured Error Handling</strong>: Base exception with detailed error information including codes and context</li>
+<li><strong>Mode-Specific Exceptions</strong>: Specialized exceptions for different processing modes (Invoice, Excel, MultiDataTile, RDE Format)</li>
+<li><strong>Validation Exceptions</strong>: Dedicated exceptions for schema and metadata validation errors</li>
+<li><strong>Data Retrieval Exceptions</strong>: Specialized exceptions for data access and search operations</li>
+<li><strong>Enhanced Error Context</strong>: Support for error codes, additional objects, and traceback information</li>
+<li><strong>Consistent Error Messaging</strong>: Standardized error message formatting across all exception types</li>
+</ul>
+<h2 id="exception-classes">Exception Classes</h2>
+<h3 id="structurederror">StructuredError</h3>
+<p>A comprehensive base exception class providing structured error information with detailed context.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>StructuredError(
+    emsg: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">""</span>,
+    ecode: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1</span>,
+    eobj: Any <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>,
+    traceback_info: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>
+) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>emsg</code> (str): The error message describing what went wrong
+- <code>ecode</code> (int): Numeric error code for programmatic error identification (default: 1)
+- <code>eobj</code> (Any | None): Additional error object providing context (optional)
+- <code>traceback_info</code> (str | None): Additional traceback information (optional)</p>
+<p><strong>Attributes:</strong>
+- <code>emsg</code> (str): The error message
+- <code>ecode</code> (int): The error code
+- <code>eobj</code> (Any | None): Additional error object
+- <code>traceback_info</code> (str | None): Traceback information</p>
+<p><strong>Use Cases:</strong>
+- General RDE processing errors
+- File operation failures
+- Configuration errors
+- Data processing failures
+- Base class for more specific exceptions</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 84</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 85</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 86</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 87</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 88</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 89</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 90</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 91</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 92</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 93</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 94</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 95</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 96</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 97</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 98</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 99</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">100</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">101</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">102</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">103</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">104</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">105</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">106</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">107</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">108</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">109</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">110</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">111</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">112</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">113</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">114</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">115</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">116</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">117</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">118</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">119</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">120</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">121</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">122</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">123</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">124</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">125</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">126</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">127</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">128</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">129</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">130</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">131</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">132</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">133</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">134</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">135</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">136</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">137</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">138</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">139</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">140</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">141</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">142</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">143</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">144</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">145</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">146</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">147</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">148</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">149</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">150</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">151</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">152</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">153</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">154</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">155</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">156</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">157</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">158</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">159</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">160</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">161</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">162</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">163</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">164</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">165</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">166</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">167</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">168</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">169</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">170</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">171</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">172</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">173</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">174</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">175</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">176</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">177</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">178</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">179</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">180</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">181</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">182</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">183</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">184</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">185</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> StructuredError
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">traceback</span>
+
+<span style="color: #888888"># Basic usage</span>
+<span style="color: #008800; font-weight: bold">try</span>:
+    <span style="color: #888888"># Some operation that might fail</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> file_exists:
+        <span style="color: #008800; font-weight: bold">raise</span> StructuredError(<span style="background-color: #fff0f0">"Required file not found"</span>, ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">404</span>)
+<span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Error </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>ecode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>emsg<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Enhanced usage with context object</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_data_file</span>(file_path: <span style="color: #007020">str</span>, config: <span style="color: #007020">dict</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process data file with structured error handling."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Validate file</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> Path(file_path)<span style="color: #333333">.</span>exists():
+            <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Data file not found: </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">404</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"file_path"</span>: file_path, <span style="background-color: #fff0f0">"config"</span>: config}
+            )
+
+        <span style="color: #888888"># Validate configuration</span>
+        required_keys <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"input_format"</span>, <span style="background-color: #fff0f0">"output_format"</span>, <span style="background-color: #fff0f0">"validation_rules"</span>]
+        missing_keys <span style="color: #333333">=</span> [key <span style="color: #008800; font-weight: bold">for</span> key <span style="color: #000000; font-weight: bold">in</span> required_keys <span style="color: #008800; font-weight: bold">if</span> key <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> config]
+        <span style="color: #008800; font-weight: bold">if</span> missing_keys:
+            <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Missing required configuration keys: </span><span style="background-color: #eeeeee">{</span>missing_keys<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">400</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"missing_keys"</span>: missing_keys, <span style="background-color: #fff0f0">"provided_config"</span>: config}
+            )
+
+        <span style="color: #888888"># Process file (example)</span>
+        <span style="color: #008800; font-weight: bold">return</span> {<span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"success"</span>, <span style="background-color: #fff0f0">"processed_file"</span>: file_path}
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #888888"># Wrap unexpected errors</span>
+        <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+            emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Unexpected error during file processing: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+            ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">500</span>,
+            eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"original_exception"</span>: e, <span style="background-color: #fff0f0">"file_path"</span>: file_path},
+            traceback_info<span style="color: #333333">=</span>traceback<span style="color: #333333">.</span>format_exc()
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+
+<span style="color: #888888"># Usage with comprehensive error handling</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">robust_file_processor</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Demonstrate robust file processing with StructuredError."""</span>
+
+    files_to_process <span style="color: #333333">=</span> [
+        (<span style="background-color: #fff0f0">"data/valid_file.json"</span>, {<span style="background-color: #fff0f0">"input_format"</span>: <span style="background-color: #fff0f0">"json"</span>, <span style="background-color: #fff0f0">"output_format"</span>: <span style="background-color: #fff0f0">"csv"</span>, <span style="background-color: #fff0f0">"validation_rules"</span>: [<span style="background-color: #fff0f0">"schema"</span>]}),
+        (<span style="background-color: #fff0f0">"data/missing_file.json"</span>, {<span style="background-color: #fff0f0">"input_format"</span>: <span style="background-color: #fff0f0">"json"</span>, <span style="background-color: #fff0f0">"output_format"</span>: <span style="background-color: #fff0f0">"csv"</span>}),
+        (<span style="background-color: #fff0f0">"data/another_file.json"</span>, {<span style="background-color: #fff0f0">"input_format"</span>: <span style="background-color: #fff0f0">"json"</span>, <span style="background-color: #fff0f0">"output_format"</span>: <span style="background-color: #fff0f0">"csv"</span>, <span style="background-color: #fff0f0">"validation_rules"</span>: [<span style="background-color: #fff0f0">"schema"</span>]})
+    ]
+
+    results <span style="color: #333333">=</span> []
+
+    <span style="color: #008800; font-weight: bold">for</span> file_path, config <span style="color: #000000; font-weight: bold">in</span> files_to_process:
+        <span style="color: #008800; font-weight: bold">try</span>:
+            result <span style="color: #333333">=</span> process_data_file(file_path, config)
+            results<span style="color: #333333">.</span>append({<span style="background-color: #fff0f0">"file"</span>: file_path, <span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"success"</span>, <span style="background-color: #fff0f0">"result"</span>: result})
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Successfully processed: </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+            error_info <span style="color: #333333">=</span> {
+                <span style="background-color: #fff0f0">"file"</span>: file_path,
+                <span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"error"</span>,
+                <span style="background-color: #fff0f0">"error_code"</span>: e<span style="color: #333333">.</span>ecode,
+                <span style="background-color: #fff0f0">"error_message"</span>: e<span style="color: #333333">.</span>emsg,
+                <span style="background-color: #fff0f0">"error_context"</span>: e<span style="color: #333333">.</span>eobj
+            }
+            results<span style="color: #333333">.</span>append(error_info)
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Error processing </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">:"</span>)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Code: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>ecode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Message: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>emsg<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">if</span> e<span style="color: #333333">.</span>eobj:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Context: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>eobj<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">if</span> e<span style="color: #333333">.</span>traceback_info:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Traceback: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>traceback_info<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">return</span> results
+
+<span style="color: #888888"># Advanced error context usage</span>
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">DataProcessor</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Example class demonstrating StructuredError usage."""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, processor_id: <span style="color: #007020">str</span>):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>processor_id <span style="color: #333333">=</span> processor_id
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>processed_count <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>error_count <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_item</span>(<span style="color: #007020">self</span>, item: <span style="color: #007020">dict</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Process a single item with detailed error context."""</span>
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #888888"># Validate item structure</span>
+            required_fields <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"id"</span>, <span style="background-color: #fff0f0">"type"</span>, <span style="background-color: #fff0f0">"data"</span>]
+            <span style="color: #008800; font-weight: bold">for</span> field <span style="color: #000000; font-weight: bold">in</span> required_fields:
+                <span style="color: #008800; font-weight: bold">if</span> field <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> item:
+                    <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                        emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Missing required field: </span><span style="background-color: #eeeeee">{</span>field<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                        ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">400</span>,
+                        eobj<span style="color: #333333">=</span>{
+                            <span style="background-color: #fff0f0">"processor_id"</span>: <span style="color: #007020">self</span><span style="color: #333333">.</span>processor_id,
+                            <span style="background-color: #fff0f0">"item"</span>: item,
+                            <span style="background-color: #fff0f0">"required_fields"</span>: required_fields,
+                            <span style="background-color: #fff0f0">"processed_count"</span>: <span style="color: #007020">self</span><span style="color: #333333">.</span>processed_count
+                        }
+                    )
+
+            <span style="color: #888888"># Process based on type</span>
+            <span style="color: #008800; font-weight: bold">if</span> item[<span style="background-color: #fff0f0">"type"</span>] <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"numeric"</span>:
+                result <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_process_numeric(item[<span style="background-color: #fff0f0">"data"</span>])
+            <span style="color: #008800; font-weight: bold">elif</span> item[<span style="background-color: #fff0f0">"type"</span>] <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"text"</span>:
+                result <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_process_text(item[<span style="background-color: #fff0f0">"data"</span>])
+            <span style="color: #008800; font-weight: bold">else</span>:
+                <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                    emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Unknown item type: </span><span style="background-color: #eeeeee">{</span>item[<span style="background-color: #fff0f0">'type'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                    ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">422</span>,
+                    eobj<span style="color: #333333">=</span>{
+                        <span style="background-color: #fff0f0">"processor_id"</span>: <span style="color: #007020">self</span><span style="color: #333333">.</span>processor_id,
+                        <span style="background-color: #fff0f0">"item_id"</span>: item<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">"id"</span>),
+                        <span style="background-color: #fff0f0">"unknown_type"</span>: item[<span style="background-color: #fff0f0">"type"</span>],
+                        <span style="background-color: #fff0f0">"supported_types"</span>: [<span style="background-color: #fff0f0">"numeric"</span>, <span style="background-color: #fff0f0">"text"</span>]
+                    }
+                )
+
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>processed_count <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+            <span style="color: #008800; font-weight: bold">return</span> {<span style="background-color: #fff0f0">"id"</span>: item[<span style="background-color: #fff0f0">"id"</span>], <span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"processed"</span>, <span style="background-color: #fff0f0">"result"</span>: result}
+
+        <span style="color: #008800; font-weight: bold">except</span> StructuredError:
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>error_count <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+            <span style="color: #008800; font-weight: bold">raise</span>
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>error_count <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+            <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Unexpected processing error: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">500</span>,
+                eobj<span style="color: #333333">=</span>{
+                    <span style="background-color: #fff0f0">"processor_id"</span>: <span style="color: #007020">self</span><span style="color: #333333">.</span>processor_id,
+                    <span style="background-color: #fff0f0">"item"</span>: item,
+                    <span style="background-color: #fff0f0">"original_exception"</span>: <span style="color: #007020">str</span>(e),
+                    <span style="background-color: #fff0f0">"processed_count"</span>: <span style="color: #007020">self</span><span style="color: #333333">.</span>processed_count,
+                    <span style="background-color: #fff0f0">"error_count"</span>: <span style="color: #007020">self</span><span style="color: #333333">.</span>error_count
+                }
+            ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_process_numeric</span>(<span style="color: #007020">self</span>, data: <span style="color: #007020">any</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">float</span>:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Process numeric data."""</span>
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #007020">float</span>(data) <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">2</span>  <span style="color: #888888"># Example processing</span>
+        <span style="color: #008800; font-weight: bold">except</span> (<span style="color: #FF0000; font-weight: bold">ValueError</span>, <span style="color: #FF0000; font-weight: bold">TypeError</span>) <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Invalid numeric data: </span><span style="background-color: #eeeeee">{</span>data<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">422</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"data"</span>: data, <span style="background-color: #fff0f0">"data_type"</span>: <span style="color: #007020">type</span>(data)<span style="color: #333333">.</span><span style="color: #996633">__name__</span>}
+            ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_process_text</span>(<span style="color: #007020">self</span>, data: <span style="color: #007020">any</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">str</span>:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Process text data."""</span>
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #007020">str</span>(data)<span style="color: #333333">.</span>upper()  <span style="color: #888888"># Example processing</span>
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #008800; font-weight: bold">raise</span> StructuredError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Text processing failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">422</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"data"</span>: data, <span style="background-color: #fff0f0">"data_type"</span>: <span style="color: #007020">type</span>(data)<span style="color: #333333">.</span><span style="color: #996633">__name__</span>}
+            ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+
+<span style="color: #888888"># Usage example</span>
+processor <span style="color: #333333">=</span> DataProcessor(<span style="background-color: #fff0f0">"PROC_001"</span>)
+test_items <span style="color: #333333">=</span> [
+    {<span style="background-color: #fff0f0">"id"</span>: <span style="background-color: #fff0f0">"1"</span>, <span style="background-color: #fff0f0">"type"</span>: <span style="background-color: #fff0f0">"numeric"</span>, <span style="background-color: #fff0f0">"data"</span>: <span style="background-color: #fff0f0">"42.5"</span>},
+    {<span style="background-color: #fff0f0">"id"</span>: <span style="background-color: #fff0f0">"2"</span>, <span style="background-color: #fff0f0">"type"</span>: <span style="background-color: #fff0f0">"text"</span>, <span style="background-color: #fff0f0">"data"</span>: <span style="background-color: #fff0f0">"hello world"</span>},
+    {<span style="background-color: #fff0f0">"id"</span>: <span style="background-color: #fff0f0">"3"</span>, <span style="background-color: #fff0f0">"type"</span>: <span style="background-color: #fff0f0">"unknown"</span>, <span style="background-color: #fff0f0">"data"</span>: <span style="background-color: #fff0f0">"test"</span>},  <span style="color: #888888"># Will cause error</span>
+    {<span style="background-color: #fff0f0">"id"</span>: <span style="background-color: #fff0f0">"4"</span>, <span style="background-color: #fff0f0">"data"</span>: <span style="background-color: #fff0f0">"missing type"</span>},  <span style="color: #888888"># Will cause error</span>
+    {<span style="background-color: #fff0f0">"id"</span>: <span style="background-color: #fff0f0">"5"</span>, <span style="background-color: #fff0f0">"type"</span>: <span style="background-color: #fff0f0">"numeric"</span>, <span style="background-color: #fff0f0">"data"</span>: <span style="background-color: #fff0f0">"invalid"</span>}  <span style="color: #888888"># Will cause error</span>
+]
+
+<span style="color: #008800; font-weight: bold">for</span> item <span style="color: #000000; font-weight: bold">in</span> test_items:
+    <span style="color: #008800; font-weight: bold">try</span>:
+        result <span style="color: #333333">=</span> processor<span style="color: #333333">.</span>process_item(item)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ </span><span style="background-color: #eeeeee">{</span>result<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Item </span><span style="background-color: #eeeeee">{</span>item<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'id'</span>,<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'unknown'</span>)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>emsg<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> (Code: </span><span style="background-color: #eeeeee">{</span>e<span style="color: #333333">.</span>ecode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">)"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="mode-specific-exception-classes">Mode-Specific Exception Classes</h3>
+<h4 id="invoicemodeerror">InvoiceModeError</h4>
+<p>Exception for errors in standard invoice processing mode.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InvoiceModeError(
+    emsg: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">""</span>,
+    ecode: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">100</span>,
+    eobj: Any <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>,
+    traceback_info: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>
+) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Default Error Code:</strong> 100</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceModeError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_invoice_file</span>(invoice_path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process invoice file with mode-specific error handling."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Invoice processing logic</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> invoice_path<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'.json'</span>):
+            <span style="color: #008800; font-weight: bold">raise</span> InvoiceModeError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Invalid invoice file format. Expected .json file."</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">101</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"file_path"</span>: invoice_path, <span style="background-color: #fff0f0">"expected_format"</span>: <span style="background-color: #fff0f0">".json"</span>}
+            )
+
+        <span style="color: #888888"># More processing...</span>
+        <span style="color: #008800; font-weight: bold">return</span> {<span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"processed"</span>}
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> InvoiceModeError(
+            emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Invoice processing failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+            ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">102</span>,
+            eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"file_path"</span>: invoice_path, <span style="background-color: #fff0f0">"original_error"</span>: <span style="color: #007020">str</span>(e)}
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="excelinvoicemodeerror">ExcelInvoiceModeError</h4>
+<p>Exception for errors in Excel invoice processing mode.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>ExcelInvoiceModeError(
+    emsg: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">""</span>,
+    ecode: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">101</span>,
+    eobj: Any <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>,
+    traceback_info: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>
+) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Default Error Code:</strong> 101</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> ExcelInvoiceModeError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_excel_invoice</span>(excel_path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process Excel invoice with specific error handling."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> excel_path<span style="color: #333333">.</span>endswith((<span style="background-color: #fff0f0">'.xlsx'</span>, <span style="background-color: #fff0f0">'.xls'</span>)):
+            <span style="color: #008800; font-weight: bold">raise</span> ExcelInvoiceModeError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Invalid Excel file format"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">111</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"file_path"</span>: excel_path, <span style="background-color: #fff0f0">"supported_formats"</span>: [<span style="background-color: #fff0f0">".xlsx"</span>, <span style="background-color: #fff0f0">".xls"</span>]}
+            )
+
+        <span style="color: #888888"># Excel processing logic...</span>
+        <span style="color: #008800; font-weight: bold">return</span> {<span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"processed"</span>}
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> ExcelInvoiceModeError(
+            emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Excel invoice processing failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+            ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">112</span>,
+            eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"file_path"</span>: excel_path}
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="multidatatilemodeerror">MultiDataTileModeError</h4>
+<p>Exception for errors in multi-data tile processing mode.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MultiDataTileModeError(
+    emsg: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">""</span>,
+    ecode: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">102</span>,
+    eobj: Any <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>,
+    traceback_info: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>
+) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Default Error Code:</strong> 102</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> MultiDataTileModeError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_multi_data_tiles</span>(tile_configs: <span style="color: #007020">list</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process multiple data tiles with error handling."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> tile_configs:
+            <span style="color: #008800; font-weight: bold">raise</span> MultiDataTileModeError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">"No data tile configurations provided"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">121</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"provided_configs"</span>: tile_configs}
+            )
+
+        <span style="color: #888888"># Multi-tile processing logic...</span>
+        <span style="color: #008800; font-weight: bold">return</span> {<span style="background-color: #fff0f0">"tiles_processed"</span>: <span style="color: #007020">len</span>(tile_configs)}
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> MultiDataTileModeError(
+            emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Multi-data tile processing failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+            ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">122</span>,
+            eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"tile_count"</span>: <span style="color: #007020">len</span>(tile_configs) <span style="color: #008800; font-weight: bold">if</span> tile_configs <span style="color: #008800; font-weight: bold">else</span> <span style="color: #0000DD; font-weight: bold">0</span>}
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="rdeformatmodeerror">RdeFormatModeError</h4>
+<p>Exception for errors in RDE format processing mode.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>RdeFormatModeError(
+    emsg: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">""</span>,
+    ecode: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">103</span>,
+    eobj: Any <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>,
+    traceback_info: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>
+) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Default Error Code:</strong> 103</p>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> RdeFormatModeError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_rde_format</span>(format_spec: <span style="color: #007020">dict</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Process RDE format with specific error handling."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        required_fields <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"version"</span>, <span style="background-color: #fff0f0">"schema"</span>, <span style="background-color: #fff0f0">"data"</span>]
+        missing_fields <span style="color: #333333">=</span> [field <span style="color: #008800; font-weight: bold">for</span> field <span style="color: #000000; font-weight: bold">in</span> required_fields <span style="color: #008800; font-weight: bold">if</span> field <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> format_spec]
+
+        <span style="color: #008800; font-weight: bold">if</span> missing_fields:
+            <span style="color: #008800; font-weight: bold">raise</span> RdeFormatModeError(
+                emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"Missing required RDE format fields: </span><span style="background-color: #eeeeee">{</span>missing_fields<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+                ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">131</span>,
+                eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"missing_fields"</span>: missing_fields, <span style="background-color: #fff0f0">"provided_spec"</span>: format_spec}
+            )
+
+        <span style="color: #888888"># RDE format processing logic...</span>
+        <span style="color: #008800; font-weight: bold">return</span> {<span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"processed"</span>}
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> RdeFormatModeError(
+            emsg<span style="color: #333333">=</span><span style="background-color: #fff0f0">f"RDE format processing failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>,
+            ecode<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">132</span>,
+            eobj<span style="color: #333333">=</span>{<span style="background-color: #fff0f0">"format_spec"</span>: format_spec}
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="validation-exception-classes">Validation Exception Classes</h3>
+<h4 id="invoiceschemavalidationerror">InvoiceSchemaValidationError</h4>
+<p>Exception for invoice schema validation failures.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InvoiceSchemaValidationError(message: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"Validation error"</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceSchemaValidationError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_invoice_schema</span>(invoice_data: <span style="color: #007020">dict</span>, schema: <span style="color: #007020">dict</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Validate invoice against schema."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Schema validation logic</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="background-color: #fff0f0">"basic"</span> <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> invoice_data:
+            <span style="color: #008800; font-weight: bold">raise</span> InvoiceSchemaValidationError(
+                <span style="background-color: #fff0f0">"Missing required 'basic' section in invoice"</span>
+            )
+
+        <span style="color: #008800; font-weight: bold">if</span> <span style="background-color: #fff0f0">"title"</span> <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> invoice_data[<span style="background-color: #fff0f0">"basic"</span>]:
+            <span style="color: #008800; font-weight: bold">raise</span> InvoiceSchemaValidationError(
+                <span style="background-color: #fff0f0">"Missing required field 'title' in basic section"</span>
+            )
+
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> InvoiceSchemaValidationError(
+            <span style="background-color: #fff0f0">f"Schema validation failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="metadatavalidationerror">MetadataValidationError</h4>
+<p>Exception for metadata validation failures.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MetadataValidationError(message: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"Validation error"</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> MetadataValidationError
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_metadata</span>(metadata: <span style="color: #007020">dict</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Validate metadata structure."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        required_sections <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"constant"</span>, <span style="background-color: #fff0f0">"variable"</span>]
+        <span style="color: #008800; font-weight: bold">for</span> section <span style="color: #000000; font-weight: bold">in</span> required_sections:
+            <span style="color: #008800; font-weight: bold">if</span> section <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> metadata:
+                <span style="color: #008800; font-weight: bold">raise</span> MetadataValidationError(
+                    <span style="background-color: #fff0f0">f"Missing required metadata section: </span><span style="background-color: #eeeeee">{</span>section<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+                )
+
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> MetadataValidationError(
+            <span style="background-color: #fff0f0">f"Metadata validation failed: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="data-retrieval-exception-classes">Data Retrieval Exception Classes</h3>
+<h4 id="dataretrievalerror">DataRetrievalError</h4>
+<p>Exception for data access and retrieval failures.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>DataRetrievalError(message: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"Data retrieval error"</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="noresultsfounderror">NoResultsFoundError</h4>
+<p>Exception when search operations return no results.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>NoResultsFoundError(message: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"No results found"</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="invalidsearchparameterserror">InvalidSearchParametersError</h4>
+<p>Exception for invalid search parameters or terms.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InvalidSearchParametersError(message: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"Invalid search term"</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Example:</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> (
+    DataRetrievalError,
+    NoResultsFoundError,
+    InvalidSearchParametersError
+)
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">search_data</span>(query: <span style="color: #007020">str</span>, filters: <span style="color: #007020">dict</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Search data with comprehensive error handling."""</span>
+
+    <span style="color: #888888"># Validate search parameters</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> query <span style="color: #000000; font-weight: bold">or</span> <span style="color: #007020">len</span>(query<span style="color: #333333">.</span>strip()) <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">2</span>:
+        <span style="color: #008800; font-weight: bold">raise</span> InvalidSearchParametersError(
+            <span style="background-color: #fff0f0">f"Search query too short: '</span><span style="background-color: #eeeeee">{</span>query<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">'. Minimum 2 characters required."</span>
+        )
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Simulate data retrieval</span>
+        results <span style="color: #333333">=</span> []  <span style="color: #888888"># Would contain actual search results</span>
+
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> results:
+            <span style="color: #008800; font-weight: bold">raise</span> NoResultsFoundError(
+                <span style="background-color: #fff0f0">f"No results found for query: '</span><span style="background-color: #eeeeee">{</span>query<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">' with filters: </span><span style="background-color: #eeeeee">{</span>filters<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+            )
+
+        <span style="color: #008800; font-weight: bold">return</span> results
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> DataRetrievalError(
+            <span style="background-color: #fff0f0">f"Failed to retrieve data for query '</span><span style="background-color: #eeeeee">{</span>query<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">': </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+        ) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../core/">Core Module</a> - For core functionality that may raise these exceptions</li>
+<li><a href="../validation/">Validation</a> - For validation functions that raise validation exceptions</li>
+<li><a href="../workflows/">Workflows</a> - For workflow processing that uses structured error handling</li>
+<li><a href="../fileops/">File Operations</a> - For file operations that may raise StructuredError</li>
+<li><a href="../invoicefile/">Invoice File</a> - For invoice processing that uses mode-specific exceptions</li>
+<li><a href="../rdelogger/">RDE Logger</a> - For logging integration with exception handling</li>
+<li><a href="../../usage/structured_process/errorhandling/">Usage - Error Handling</a> - For practical error handling examples</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

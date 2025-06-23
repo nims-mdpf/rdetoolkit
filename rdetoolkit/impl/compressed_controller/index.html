@@ -9,7 +9,7 @@
 <link href="../input_controller/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>compressed_controller - RDEToolKit Documentation</title>
+<title>Compressed Controller Module - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,7 +23,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#compressed_controller">
+<a class="md-skip" href="#compressed-controller-module">
           Skip to content
         </a>
 </div>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              compressed_controller
+              Compressed Controller Module
             
           </span>
 </div>
@@ -499,7 +499,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -521,13 +521,13 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
@@ -537,14 +537,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#compressedflatfileparser">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      CompressedFlatFileParser
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#compressedflatfileparser">
 <span class="md-ellipsis">
       CompressedFlatFileParser
     </span>
@@ -552,32 +560,36 @@
 <nav aria-label="CompressedFlatFileParser" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.read">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      read
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._extract_zip_with_encoding">
+<a class="md-nav__link" href="#attributes">
 <span class="md-ellipsis">
-      _extract_zip_with_encoding
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._unpacked">
+<a class="md-nav__link" href="#methods">
 <span class="md-ellipsis">
-      _unpacked
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#readzipfile-target_path">
+<span class="md-ellipsis">
+      read(zipfile, target_path)
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -588,53 +600,147 @@
       CompressedFolderParser
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser">
-<span class="md-ellipsis">
-      CompressedFolderParser
-    </span>
-</a>
 <nav aria-label="CompressedFolderParser" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.read">
+<a class="md-nav__link" href="#constructor_1">
 <span class="md-ellipsis">
-      read
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._unpacked">
+<a class="md-nav__link" href="#attributes_1">
 <span class="md-ellipsis">
-      _unpacked
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._extract_zip_with_encoding">
+<a class="md-nav__link" href="#methods_1">
 <span class="md-ellipsis">
-      _extract_zip_with_encoding
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#readzipfile-target_path_1">
+<span class="md-ellipsis">
+      read(zipfile, target_path)
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.validation_uniq_fspath">
+<a class="md-nav__link" href="#validation_uniq_fspathtarget_path-exclude_names">
 <span class="md-ellipsis">
-      validation_uniq_fspath
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
+      validation_uniq_fspath(target_path, exclude_names)
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#zipartifactpackagecompressor">
+<span class="md-ellipsis">
+      ZipArtifactPackageCompressor
+    </span>
+</a>
+<nav aria-label="ZipArtifactPackageCompressor" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_2">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_2">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_2">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#archiveoutput_zip">
+<span class="md-ellipsis">
+      archive(output_zip)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#targzartifactpackagecompressor">
+<span class="md-ellipsis">
+      TarGzArtifactPackageCompressor
+    </span>
+</a>
+<nav aria-label="TarGzArtifactPackageCompressor" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_3">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_3">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_3">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#archiveoutput_tar">
+<span class="md-ellipsis">
+      archive(output_tar)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#functions">
+<span class="md-ellipsis">
+      Functions
+    </span>
+</a>
+<nav aria-label="Functions" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#parse_compressedfile_mode">
 <span class="md-ellipsis">
@@ -643,9 +749,122 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.parse_compressedfile_mode">
+<a class="md-nav__link" href="#get_artifact_archiver">
 <span class="md-ellipsis">
-      parse_compressedfile_mode
+      get_artifact_archiver
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-archive-creation">
+<span class="md-ellipsis">
+      Basic Archive Creation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-archive-with-custom-exclusions">
+<span class="md-ellipsis">
+      Advanced Archive with Custom Exclusions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#compressed-file-extraction-and-validation">
+<span class="md-ellipsis">
+      Compressed File Extraction and Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-archive-processing">
+<span class="md-ellipsis">
+      Batch Archive Processing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#encoding-aware-archive-extraction">
+<span class="md-ellipsis">
+      Encoding-Aware Archive Extraction
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-exceptions">
+<span class="md-ellipsis">
+      Common Exceptions
+    </span>
+</a>
+<nav aria-label="Common Exceptions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#structurederror">
+<span class="md-ellipsis">
+      StructuredError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#valueerror">
+<span class="md-ellipsis">
+      ValueError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#unicodedecodeerror">
+<span class="md-ellipsis">
+      UnicodeDecodeError
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
     </span>
 </a>
 </li>
@@ -655,7 +874,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -679,7 +898,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -703,21 +922,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -775,63 +994,63 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -891,14 +1110,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#compressedflatfileparser">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      CompressedFlatFileParser
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#compressedflatfileparser">
 <span class="md-ellipsis">
       CompressedFlatFileParser
     </span>
@@ -906,32 +1133,36 @@
 <nav aria-label="CompressedFlatFileParser" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.read">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      read
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._extract_zip_with_encoding">
+<a class="md-nav__link" href="#attributes">
 <span class="md-ellipsis">
-      _extract_zip_with_encoding
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._unpacked">
+<a class="md-nav__link" href="#methods">
 <span class="md-ellipsis">
-      _unpacked
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#readzipfile-target_path">
+<span class="md-ellipsis">
+      read(zipfile, target_path)
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -942,53 +1173,147 @@
       CompressedFolderParser
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser">
-<span class="md-ellipsis">
-      CompressedFolderParser
-    </span>
-</a>
 <nav aria-label="CompressedFolderParser" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.read">
+<a class="md-nav__link" href="#constructor_1">
 <span class="md-ellipsis">
-      read
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._unpacked">
+<a class="md-nav__link" href="#attributes_1">
 <span class="md-ellipsis">
-      _unpacked
+      Attributes
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._extract_zip_with_encoding">
+<a class="md-nav__link" href="#methods_1">
 <span class="md-ellipsis">
-      _extract_zip_with_encoding
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#readzipfile-target_path_1">
+<span class="md-ellipsis">
+      read(zipfile, target_path)
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.validation_uniq_fspath">
+<a class="md-nav__link" href="#validation_uniq_fspathtarget_path-exclude_names">
 <span class="md-ellipsis">
-      validation_uniq_fspath
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._is_excluded">
-<span class="md-ellipsis">
-      _is_excluded
+      validation_uniq_fspath(target_path, exclude_names)
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#zipartifactpackagecompressor">
+<span class="md-ellipsis">
+      ZipArtifactPackageCompressor
+    </span>
+</a>
+<nav aria-label="ZipArtifactPackageCompressor" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_2">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_2">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_2">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#archiveoutput_zip">
+<span class="md-ellipsis">
+      archive(output_zip)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#targzartifactpackagecompressor">
+<span class="md-ellipsis">
+      TarGzArtifactPackageCompressor
+    </span>
+</a>
+<nav aria-label="TarGzArtifactPackageCompressor" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor_3">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_3">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_3">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#archiveoutput_tar">
+<span class="md-ellipsis">
+      archive(output_tar)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#functions">
+<span class="md-ellipsis">
+      Functions
+    </span>
+</a>
+<nav aria-label="Functions" class="md-nav">
+<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#parse_compressedfile_mode">
 <span class="md-ellipsis">
@@ -997,9 +1322,122 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.impl.compressed_controller.parse_compressedfile_mode">
+<a class="md-nav__link" href="#get_artifact_archiver">
 <span class="md-ellipsis">
-      parse_compressedfile_mode
+      get_artifact_archiver
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-archive-creation">
+<span class="md-ellipsis">
+      Basic Archive Creation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-archive-with-custom-exclusions">
+<span class="md-ellipsis">
+      Advanced Archive with Custom Exclusions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#compressed-file-extraction-and-validation">
+<span class="md-ellipsis">
+      Compressed File Extraction and Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-archive-processing">
+<span class="md-ellipsis">
+      Batch Archive Processing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#encoding-aware-archive-extraction">
+<span class="md-ellipsis">
+      Encoding-Aware Archive Extraction
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-exceptions">
+<span class="md-ellipsis">
+      Common Exceptions
+    </span>
+</a>
+<nav aria-label="Common Exceptions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#structurederror">
+<span class="md-ellipsis">
+      StructuredError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#valueerror">
+<span class="md-ellipsis">
+      ValueError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#unicodedecodeerror">
+<span class="md-ellipsis">
+      UnicodeDecodeError
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
     </span>
 </a>
 </li>
@@ -1010,737 +1448,1178 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="compressed_controller">compressed_controller</h1>
-<p>In <code>compressed_controller</code>, processes are defined for handling compressed files input from RDE.</p>
-<h2 id="compressedflatfileparser">CompressedFlatFileParser</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>compressed_controller<span style="color: #333333">.</span>CompressedFlatFileParser(xlsx_invoice)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.ICompressedFileStructParser">ICompressedFileStructParser</span></code></p>
-<p>Parser for compressed flat files, providing functionality to read and extract the contents.</p>
-<p>This parser specifically deals with flat files that are compressed. It extracts the files
-and ensures they match the expected structure described in an excelinvoice.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.xlsx_invoice">xlsx_invoice</span></code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>DataFrame representing the expected structure or content description
-of the compressed files.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser.read">
-<code class="highlight language-python">read(zipfile, target_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts the contents of the zipfile to the target path and checks their existence against the Excelinvoice.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>zipfile</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the compressed flat file to be read.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>target_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Destination directory where the zipfile will be extracted to.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>List[Tuple[Path, ...]]: A list of tuples containing file paths. Each tuple</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>represents files from the compressed archive that matched the xlsx_invoice structure.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._extract_zip_with_encoding">
-<code class="highlight language-python">_extract_zip_with_encoding(zip_path, extract_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.</p>
-<p>This function attempts to detect and correct the encoding of filenames within the ZIP file to ensure they are extracted with the correct filenames, avoiding issues with garbled text due to encoding mismatches.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>zip_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the ZIP file to be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>extract_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The directory where the contents of the ZIP file will be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>ValueError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If encoding detection fails for any filename within the ZIP archive.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>UnicodeDecodeError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If a filename cannot be decoded with the detected or specified encoding.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="example" open="">
-<summary>Example</summary>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>zip_path = 'path/to/your/archive.zip'
-extract_path = 'path/to/extract/directory'
-encoding = 'utf-8'  # or 'cp932' for Japanese text, for example
-self._extract_zip_with_encoding(zip_path, extract_path)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</details>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._unpacked">
-<code class="highlight language-python">_unpacked(zipfile, target_dir)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFlatFileParser._is_excluded">
-<code class="highlight language-python">_is_excluded(file)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Checks a specific file pattern to determine whether it should be excluded.</p>
-<p>This method checks if the file matches any of the predefined excluded patterns or regex.
-The excluded patterns are <code>__MACOSX</code> and <code>.DS_Store</code>.
-The excluded regex matches any file that starts with <code>~$</code> and ends with <code>.docx</code>, <code>.xlsx</code>, or <code>.pptx</code>.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>file</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file to check.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bool</code></td> <td>
-<code>bool</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>True if the file should be excluded, False otherwise.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="rules" open="">
-<summary>Rules</summary>
-<p>Specifically, the files to be excluded are:</p>
+<h1 id="compressed-controller-module">Compressed Controller Module</h1>
+<p>The <code>rdetoolkit.impl.compressed_controller</code> module provides comprehensive functionality for handling compressed files and creating archives. This module includes parsers for different compressed file structures, archive creation utilities, and encoding-aware extraction capabilities specifically designed for RDE (Research Data Exchange) workflows.</p>
+<h2 id="overview">Overview</h2>
+<p>The compressed controller module offers specialized archive management capabilities:</p>
 <ul>
-<li>Files containing "__MACOSX" or ".DS_Store" in their paths.</li>
-<li>Files starting with "~$" and ending with ".docx", ".xlsx", or ".pptx".</li>
+<li><strong>Compressed File Parsing</strong>: Extract and validate contents from ZIP files with different structural modes</li>
+<li><strong>Archive Creation</strong>: Create ZIP and TAR.GZ archives with customizable exclusion patterns</li>
+<li><strong>Encoding Handling</strong>: Robust filename encoding detection and correction during extraction</li>
+<li><strong>Structure Validation</strong>: Ensure extracted files match expected structures and avoid naming conflicts</li>
 </ul>
-</details>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="compressedfolderparser">CompressedFolderParser</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>compressed_controller<span style="color: #333333">.</span>CompressedFolderParser(xlsx_invoice)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="rdetoolkit.interfaces.filechecker.ICompressedFileStructParser">ICompressedFileStructParser</span></code></p>
-<p>Parser for compressed folders, extracting contents and ensuring they match an expected structure.</p>
-<p>This parser is specifically designed for compressed folders. It extracts the content
-and verifies against a provided xlsx invoice structure.</p>
-<p><span class="doc-section-title">Attributes:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.xlsx_invoice">xlsx_invoice</span></code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>DataFrame representing the expected structure or content description
-of the compressed folder contents.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.read">
-<code class="highlight language-python">read(zipfile, target_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts the contents of the zipfile and returns validated file paths.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>zipfile</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the compressed folder to be read.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>target_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Destination directory where the zipfile will be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>List[Tuple[Path, ...]]: A list of tuples containing file paths that have been</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>list[tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>validated based on unique directory names.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._unpacked">
-<code class="highlight language-python">_unpacked(zipfile, target_dir)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._extract_zip_with_encoding">
-<code class="highlight language-python">_extract_zip_with_encoding(zip_path, extract_path)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.</p>
-<p>This function attempts to detect and correct the encoding of filenames within the ZIP file to ensure they are extracted with the correct filenames, avoiding issues with garbled text due to encoding mismatches.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>zip_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the ZIP file to be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>extract_path</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The directory where the contents of the ZIP file will be extracted.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>ValueError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If encoding detection fails for any filename within the ZIP archive.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>UnicodeDecodeError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If a filename cannot be decoded with the detected or specified encoding.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="example" open="">
-<summary>Example</summary>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>zip_path = 'path/to/your/archive.zip'
-extract_path = 'path/to/extract/directory'
-encoding = 'utf-8'  # or 'cp932' for Japanese text, for example
-self._extract_zip_with_encoding(zip_path, extract_path)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</details>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser.validation_uniq_fspath">
-<code class="highlight language-python">validation_uniq_fspath(target_path, exclude_names)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Check if there are any non-unique directory names under the target directory.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>target_path</code></td>
-<td>
-<code>Union[str, <span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The directory path to scan</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>exclude_names</code></td>
-<td>
-<code>list[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Excluded files</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An exception is raised when duplicate directory names are detected</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dict[str, list[<span title="pathlib.Path">Path</span>]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Path]: Returns the unique directory names and a list of files under each directory</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>This function checks for the existence of folders with the same name,
-differing only in case (e.g., 'folder1' and 'Folder1'). In a Unix-based filesystem,
-such folders can coexist when creating a zip file. However, Windows does not allow
-for this coexistence when downloading and unzipping the file, leading to an unzip
-failure in my environment. Therefore, it's necessary to check for folders whose names
-differ only in case.</p>
-</details>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.CompressedFolderParser._is_excluded">
-<code class="highlight language-python">_is_excluded(file)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Checks a specific file pattern to determine whether it should be excluded.</p>
-<p>This method checks if the file matches any of the predefined excluded patterns or regex.
-The excluded patterns are <code>__MACOSX</code> and <code>.DS_Store</code>.
-The excluded regex matches any file that starts with <code>~$</code> and ends with <code>.docx</code>, <code>.xlsx</code>, or <code>.pptx</code>.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>file</code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file to check.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bool</code></td> <td>
-<code>bool</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>True if the file should be excluded, False otherwise.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="rules" open="">
-<summary>Rules</summary>
-<p>Specifically, the files to be excluded are:</p>
+<h2 id="classes">Classes</h2>
+<h3 id="compressedflatfileparser">CompressedFlatFileParser</h3>
+<p>Parser for compressed flat files that validates extracted contents against an Excel invoice structure.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>CompressedFlatFileParser(xlsx_invoice: pd<span style="color: #333333">.</span>DataFrame)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>xlsx_invoice</code> (pd.DataFrame): DataFrame representing the expected structure or content description of the compressed files</p>
+<h4 id="attributes">Attributes</h4>
 <ul>
-<li>Files containing "__MACOSX" or ".DS_Store" in their paths.</li>
-<li>Files starting with "~$" and ending with ".docx", ".xlsx", or ".pptx".</li>
+<li><code>xlsx_invoice</code> (pd.DataFrame): The Excel invoice DataFrame used for validation</li>
 </ul>
-</details>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="parse_compressedfile_mode">parse_compressedfile_mode</h2>
-<div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="src.rdetoolkit.impl.compressed_controller.parse_compressedfile_mode">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>impl<span style="color: #333333">.</span>compressed_controller<span style="color: #333333">.</span>parse_compressedfile_mode(xlsx_invoice)</code>
-</h2>
-<div class="doc doc-contents first">
-<p>Parses the mode of a compressed file and returns the corresponding parser object.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>xlsx_invoice</code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The invoice data in Excel format.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>ICompressedFileStructParser</code></td> <td>
-<code><span title="rdetoolkit.interfaces.filechecker.ICompressedFileStructParser">ICompressedFileStructParser</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An instance of the compressed file structure parser.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<h4 id="methods">Methods</h4>
+<h5 id="readzipfile-target_path">read(zipfile, target_path)</h5>
+<p>Extract ZIP file contents and validate against the Excel invoice structure.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">read</span>(zipfile: Path, target_path: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">tuple</span>[Path, <span style="color: #333333">...</span>]]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>zipfile</code> (Path): Path to the compressed flat file to be read
+- <code>target_path</code> (Path): Destination directory where the zipfile will be extracted</p>
+<p><strong>Returns:</strong>
+- <code>list[tuple[Path, ...]]</code>: List of tuples containing file paths that matched the xlsx_invoice structure</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> CompressedFlatFileParser
+
+<span style="color: #888888"># Create invoice DataFrame</span>
+invoice_df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>DataFrame({<span style="background-color: #fff0f0">'data_file_names/name'</span>: [<span style="background-color: #fff0f0">'file1.txt'</span>, <span style="background-color: #fff0f0">'file2.csv'</span>]})
+
+<span style="color: #888888"># Parse compressed flat file</span>
+parser <span style="color: #333333">=</span> CompressedFlatFileParser(invoice_df)
+matched_files <span style="color: #333333">=</span> parser<span style="color: #333333">.</span>read(
+    zipfile<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"data.zip"</span>),
+    target_path<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"extracted"</span>)
+)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="compressedfolderparser">CompressedFolderParser</h3>
+<p>Parser for compressed folders that extracts contents and validates unique directory structures.</p>
+<h4 id="constructor_1">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>CompressedFolderParser(xlsx_invoice: pd<span style="color: #333333">.</span>DataFrame)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>xlsx_invoice</code> (pd.DataFrame): DataFrame representing the expected structure or content description of the compressed folder contents</p>
+<h4 id="attributes_1">Attributes</h4>
+<ul>
+<li><code>xlsx_invoice</code> (pd.DataFrame): The Excel invoice DataFrame used for validation</li>
+</ul>
+<h4 id="methods_1">Methods</h4>
+<h5 id="readzipfile-target_path_1">read(zipfile, target_path)</h5>
+<p>Extract ZIP file contents and return validated file paths based on unique directory names.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">read</span>(zipfile: Path, target_path: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">tuple</span>[Path, <span style="color: #333333">...</span>]]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>zipfile</code> (Path): Path to the compressed folder to be read
+- <code>target_path</code> (Path): Destination directory where the zipfile will be extracted</p>
+<p><strong>Returns:</strong>
+- <code>list[tuple[Path, ...]]</code>: List of tuples containing file paths validated based on unique directory names</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> CompressedFolderParser
+
+<span style="color: #888888"># Parse compressed folder</span>
+parser <span style="color: #333333">=</span> CompressedFolderParser(invoice_df)
+folder_files <span style="color: #333333">=</span> parser<span style="color: #333333">.</span>read(
+    zipfile<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"folder_archive.zip"</span>),
+    target_path<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"extracted_folders"</span>)
+)
+</code></pre></div></td></tr></table></div></p>
+<h5 id="validation_uniq_fspathtarget_path-exclude_names">validation_uniq_fspath(target_path, exclude_names)</h5>
+<p>Check for unique directory names and detect case-sensitive duplicates.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validation_uniq_fspath</span>(target_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, exclude_names: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]) <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">list</span>[Path]]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>target_path</code> (str | Path): The directory path to scan
+- <code>exclude_names</code> (list[str]): List of filenames to exclude from validation</p>
+<p><strong>Returns:</strong>
+- <code>dict[str, list[Path]]</code>: Dictionary mapping unique directory names to lists of files</p>
+<p><strong>Raises:</strong>
+- <code>StructuredError</code>: When duplicate directory names are detected (case-insensitive)</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Validate unique folder structure</span>
+unique_folders <span style="color: #333333">=</span> parser<span style="color: #333333">.</span>validation_uniq_fspath(
+    target_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"extracted_data"</span>,
+    exclude_names<span style="color: #333333">=</span>[<span style="background-color: #fff0f0">"invoice_org.json"</span>, <span style="background-color: #fff0f0">".DS_Store"</span>]
+)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="zipartifactpackagecompressor">ZipArtifactPackageCompressor</h3>
+<p>Archive compressor for creating ZIP files with customizable exclusion patterns and case-insensitive duplicate detection.</p>
+<h4 id="constructor_2">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>ZipArtifactPackageCompressor(source_dir: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, exclude_patterns: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>])
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>source_dir</code> (str | Path): Source directory to be archived
+- <code>exclude_patterns</code> (list[str]): List of regex patterns for files/directories to exclude</p>
+<h4 id="attributes_2">Attributes</h4>
+<ul>
+<li><code>source_dir</code> (Path): The source directory path</li>
+<li><code>exclude_patterns</code> (list[str]): List of exclusion patterns (property with getter/setter)</li>
+</ul>
+<h4 id="methods_2">Methods</h4>
+<h5 id="archiveoutput_zip">archive(output_zip)</h5>
+<p>Create a ZIP archive from the source directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">archive</span>(output_zip: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[Path]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>output_zip</code> (str | Path): Path to the output ZIP file</p>
+<p><strong>Returns:</strong>
+- <code>list[Path]</code>: List of top-level directories included in the archive</p>
+<p><strong>Raises:</strong>
+- <code>StructuredError</code>: When case-insensitive duplicate paths are detected</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> ZipArtifactPackageCompressor
+
+<span style="color: #888888"># Create ZIP archive</span>
+compressor <span style="color: #333333">=</span> ZipArtifactPackageCompressor(
+    source_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"project_files"</span>,
+    exclude_patterns<span style="color: #333333">=</span>[<span style="background-color: #fff0f0">r"\.git"</span>, <span style="background-color: #fff0f0">r"__pycache__"</span>, <span style="background-color: #fff0f0">r"\.pyc$"</span>]
+)
+included_dirs <span style="color: #333333">=</span> compressor<span style="color: #333333">.</span>archive(<span style="background-color: #fff0f0">"project_archive.zip"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="targzartifactpackagecompressor">TarGzArtifactPackageCompressor</h3>
+<p>Archive compressor for creating TAR.GZ files with customizable exclusion patterns.</p>
+<h4 id="constructor_3">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>TarGzArtifactPackageCompressor(source_dir: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, exclude_patterns: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>])
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>source_dir</code> (str | Path): Source directory to be archived
+- <code>exclude_patterns</code> (list[str]): List of regex patterns for files/directories to exclude</p>
+<h4 id="attributes_3">Attributes</h4>
+<ul>
+<li><code>source_dir</code> (Path): The source directory path</li>
+<li><code>exclude_patterns</code> (list[str]): List of exclusion patterns (property with getter/setter)</li>
+</ul>
+<h4 id="methods_3">Methods</h4>
+<h5 id="archiveoutput_tar">archive(output_tar)</h5>
+<p>Create a TAR.GZ archive from the source directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">archive</span>(output_tar: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[Path]
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>output_tar</code> (str | Path): Path to the output TAR.GZ file</p>
+<p><strong>Returns:</strong>
+- <code>list[Path]</code>: List of top-level directories included in the archive</p>
+<p><strong>Raises:</strong>
+- <code>StructuredError</code>: When case-insensitive duplicate paths are detected</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> TarGzArtifactPackageCompressor
+
+<span style="color: #888888"># Create TAR.GZ archive</span>
+compressor <span style="color: #333333">=</span> TarGzArtifactPackageCompressor(
+    source_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"project_files"</span>,
+    exclude_patterns<span style="color: #333333">=</span>[<span style="background-color: #fff0f0">r"\.git"</span>, <span style="background-color: #fff0f0">r"node_modules"</span>, <span style="background-color: #fff0f0">r"\.log$"</span>]
+)
+included_dirs <span style="color: #333333">=</span> compressor<span style="color: #333333">.</span>archive(<span style="background-color: #fff0f0">"project_archive.tar.gz"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h2 id="functions">Functions</h2>
+<h3 id="parse_compressedfile_mode">parse_compressedfile_mode</h3>
+<p>Factory function to determine the appropriate parser based on Excel invoice structure.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse_compressedfile_mode</span>(xlsx_invoice: pd<span style="color: #333333">.</span>DataFrame) <span style="color: #333333">-&gt;</span> ICompressedFileStructParser
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>xlsx_invoice</code> (pd.DataFrame): The invoice data in Excel format</p>
+<p><strong>Returns:</strong>
+- <code>ICompressedFileStructParser</code>: Instance of either CompressedFlatFileParser or CompressedFolderParser</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> parse_compressedfile_mode
+
+<span style="color: #888888"># Auto-detect parser type</span>
+invoice_df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>DataFrame({<span style="background-color: #fff0f0">'data_file_names/name'</span>: [<span style="background-color: #fff0f0">'file1.txt'</span>]})
+parser <span style="color: #333333">=</span> parse_compressedfile_mode(invoice_df)  <span style="color: #888888"># Returns CompressedFlatFileParser</span>
+
+folder_invoice_df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>DataFrame({<span style="background-color: #fff0f0">'folder_structure'</span>: [<span style="background-color: #fff0f0">'data'</span>]})
+folder_parser <span style="color: #333333">=</span> parse_compressedfile_mode(folder_invoice_df)  <span style="color: #888888"># Returns CompressedFolderParser</span>
+</code></pre></div></td></tr></table></div></p>
+<h3 id="get_artifact_archiver">get_artifact_archiver</h3>
+<p>Factory function to get the appropriate archiver based on the specified format.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_artifact_archiver</span>(fmt: <span style="color: #007020">str</span>, source_dir: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, exclude_patterns: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]) <span style="color: #333333">-&gt;</span> IArtifactPackageCompressor
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>fmt</code> (str): The format of the archive ('zip', 'tar.gz', 'targz', 'tgz')
+- <code>source_dir</code> (str | Path): The source directory to be archived
+- <code>exclude_patterns</code> (list[str]): List of patterns to exclude</p>
+<p><strong>Returns:</strong>
+- <code>IArtifactPackageCompressor</code>: Instance of the appropriate archiver class</p>
+<p><strong>Raises:</strong>
+- <code>ValueError</code>: If the format is not supported</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> get_artifact_archiver
+
+<span style="color: #888888"># Get ZIP archiver</span>
+zip_archiver <span style="color: #333333">=</span> get_artifact_archiver(
+    fmt<span style="color: #333333">=</span><span style="background-color: #fff0f0">"zip"</span>,
+    source_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"my_project"</span>,
+    exclude_patterns<span style="color: #333333">=</span>[<span style="background-color: #fff0f0">r"\.git"</span>, <span style="background-color: #fff0f0">r"__pycache__"</span>]
+)
+
+<span style="color: #888888"># Get TAR.GZ archiver</span>
+tar_archiver <span style="color: #333333">=</span> get_artifact_archiver(
+    fmt<span style="color: #333333">=</span><span style="background-color: #fff0f0">"tar.gz"</span>,
+    source_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"my_project"</span>,
+    exclude_patterns<span style="color: #333333">=</span>[<span style="background-color: #fff0f0">r"\.git"</span>, <span style="background-color: #fff0f0">r"__pycache__"</span>]
+)
+</code></pre></div></td></tr></table></div></p>
+<h2 id="complete-usage-examples">Complete Usage Examples</h2>
+<h3 id="basic-archive-creation">Basic Archive Creation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> get_artifact_archiver
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_project_archive</span>(project_dir: <span style="color: #007020">str</span>, output_file: <span style="color: #007020">str</span>, format_type: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"zip"</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Create a project archive with standard exclusions."""</span>
+
+    <span style="color: #888888"># Standard exclusion patterns</span>
+    exclude_patterns <span style="color: #333333">=</span> [
+        <span style="background-color: #fff0f0">r"\.git"</span>,           <span style="color: #888888"># Git repository</span>
+        <span style="background-color: #fff0f0">r"__pycache__"</span>,     <span style="color: #888888"># Python cache</span>
+        <span style="background-color: #fff0f0">r"\.pyc$"</span>,          <span style="color: #888888"># Python compiled files</span>
+        <span style="background-color: #fff0f0">r"node_modules"</span>,    <span style="color: #888888"># Node.js modules</span>
+        <span style="background-color: #fff0f0">r"\.env$"</span>,          <span style="color: #888888"># Environment files</span>
+        <span style="background-color: #fff0f0">r"\.log$"</span>,          <span style="color: #888888"># Log files</span>
+        <span style="background-color: #fff0f0">r"\.tmp$"</span>,          <span style="color: #888888"># Temporary files</span>
+        <span style="background-color: #fff0f0">r"\.DS_Store$"</span>,     <span style="color: #888888"># macOS metadata</span>
+    ]
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Get appropriate archiver</span>
+        archiver <span style="color: #333333">=</span> get_artifact_archiver(
+            fmt<span style="color: #333333">=</span>format_type,
+            source_dir<span style="color: #333333">=</span>project_dir,
+            exclude_patterns<span style="color: #333333">=</span>exclude_patterns
+        )
+
+        <span style="color: #888888"># Create archive</span>
+        included_files <span style="color: #333333">=</span> archiver<span style="color: #333333">.</span>archive(output_file)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Archive created: </span><span style="background-color: #eeeeee">{</span>output_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📁 Files included: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(included_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> included_files
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Archive creation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+included <span style="color: #333333">=</span> create_project_archive(
+    project_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"my_python_project"</span>,
+    output_file<span style="color: #333333">=</span><span style="background-color: #fff0f0">"backup.zip"</span>,
+    format_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">"zip"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h3 id="advanced-archive-with-custom-exclusions">Advanced Archive with Custom Exclusions</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">80</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> ZipArtifactPackageCompressor
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">CustomArchiver</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Custom archiver with advanced exclusion logic."""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, source_dir: <span style="color: #007020">str</span>):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir <span style="color: #333333">=</span> Path(source_dir)
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>base_exclusions <span style="color: #333333">=</span> [
+            <span style="background-color: #fff0f0">r"\.git"</span>,
+            <span style="background-color: #fff0f0">r"__pycache__"</span>,
+            <span style="background-color: #fff0f0">r"\.pyc$"</span>,
+            <span style="background-color: #fff0f0">r"\.pyo$"</span>,
+        ]
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_source_archive</span>(<span style="color: #007020">self</span>, output_path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[Path]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create archive with source code only."""</span>
+
+        source_exclusions <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>base_exclusions <span style="color: #333333">+</span> [
+            <span style="background-color: #fff0f0">r"build"</span>,
+            <span style="background-color: #fff0f0">r"dist"</span>,
+            <span style="background-color: #fff0f0">r"\.egg-info"</span>,
+            <span style="background-color: #fff0f0">r"coverage"</span>,
+            <span style="background-color: #fff0f0">r"\.pytest_cache"</span>,
+            <span style="background-color: #fff0f0">r"\.mypy_cache"</span>,
+        ]
+
+        compressor <span style="color: #333333">=</span> ZipArtifactPackageCompressor(
+            source_dir<span style="color: #333333">=</span><span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir,
+            exclude_patterns<span style="color: #333333">=</span>source_exclusions
+        )
+
+        <span style="color: #008800; font-weight: bold">return</span> compressor<span style="color: #333333">.</span>archive(output_path)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_deployment_archive</span>(<span style="color: #007020">self</span>, output_path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[Path]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create archive for deployment (includes dependencies)."""</span>
+
+        deployment_exclusions <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>base_exclusions <span style="color: #333333">+</span> [
+            <span style="background-color: #fff0f0">r"tests?"</span>,          <span style="color: #888888"># Test directories</span>
+            <span style="background-color: #fff0f0">r"\.pytest_cache"</span>,
+            <span style="background-color: #fff0f0">r"\.coverage"</span>,
+            <span style="background-color: #fff0f0">r"docs?"</span>,           <span style="color: #888888"># Documentation</span>
+            <span style="background-color: #fff0f0">r"examples?"</span>,       <span style="color: #888888"># Example files</span>
+            <span style="background-color: #fff0f0">r"\.md$"</span>,           <span style="color: #888888"># Markdown files</span>
+        ]
+
+        compressor <span style="color: #333333">=</span> ZipArtifactPackageCompressor(
+            source_dir<span style="color: #333333">=</span><span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir,
+            exclude_patterns<span style="color: #333333">=</span>deployment_exclusions
+        )
+
+        <span style="color: #008800; font-weight: bold">return</span> compressor<span style="color: #333333">.</span>archive(output_path)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_full_backup</span>(<span style="color: #007020">self</span>, output_path: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[Path]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create complete backup archive."""</span>
+
+        minimal_exclusions <span style="color: #333333">=</span> [
+            <span style="background-color: #fff0f0">r"\.git/objects"</span>,   <span style="color: #888888"># Exclude large git objects only</span>
+            <span style="background-color: #fff0f0">r"__pycache__"</span>,
+            <span style="background-color: #fff0f0">r"\.pyc$"</span>,
+        ]
+
+        compressor <span style="color: #333333">=</span> ZipArtifactPackageCompressor(
+            source_dir<span style="color: #333333">=</span><span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir,
+            exclude_patterns<span style="color: #333333">=</span>minimal_exclusions
+        )
+
+        <span style="color: #008800; font-weight: bold">return</span> compressor<span style="color: #333333">.</span>archive(output_path)
+
+<span style="color: #888888"># Usage</span>
+archiver <span style="color: #333333">=</span> CustomArchiver(<span style="background-color: #fff0f0">"my_project"</span>)
+
+<span style="color: #888888"># Create different types of archives</span>
+source_files <span style="color: #333333">=</span> archiver<span style="color: #333333">.</span>create_source_archive(<span style="background-color: #fff0f0">"source_code.zip"</span>)
+deployment_files <span style="color: #333333">=</span> archiver<span style="color: #333333">.</span>create_deployment_archive(<span style="background-color: #fff0f0">"deployment.zip"</span>)
+backup_files <span style="color: #333333">=</span> archiver<span style="color: #333333">.</span>create_full_backup(<span style="background-color: #fff0f0">"full_backup.zip"</span>)
+
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Source archive: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(source_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Deployment archive: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(deployment_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Full backup: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(backup_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="compressed-file-extraction-and-validation">Compressed File Extraction and Validation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> parse_compressedfile_mode
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">extract_and_validate_archive</span>(archive_path: <span style="color: #007020">str</span>, invoice_file: <span style="color: #007020">str</span>, extract_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Extract archive and validate contents against invoice."""</span>
+
+    archive_path <span style="color: #333333">=</span> Path(archive_path)
+    extract_path <span style="color: #333333">=</span> Path(extract_dir)
+
+    <span style="color: #888888"># Ensure extraction directory exists</span>
+    extract_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Load invoice DataFrame</span>
+        invoice_df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>read_excel(invoice_file)
+
+        <span style="color: #888888"># Get appropriate parser</span>
+        parser <span style="color: #333333">=</span> parse_compressedfile_mode(invoice_df)
+
+        <span style="color: #888888"># Extract and validate</span>
+        validated_files <span style="color: #333333">=</span> parser<span style="color: #333333">.</span>read(archive_path, extract_path)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Archive extracted successfully"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📁 Extraction directory: </span><span style="background-color: #eeeeee">{</span>extract_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✔️  Validated file groups: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(validated_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #888888"># Display validated files</span>
+        <span style="color: #008800; font-weight: bold">for</span> i, file_group <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(validated_files):
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Group </span><span style="background-color: #eeeeee">{</span>i<span style="color: #333333">+</span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(file_group)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+            <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> file_group:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    - </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> validated_files
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Extraction/validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+validated <span style="color: #333333">=</span> extract_and_validate_archive(
+    archive_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"data_archive.zip"</span>,
+    invoice_file<span style="color: #333333">=</span><span style="background-color: #fff0f0">"invoice.xlsx"</span>,
+    extract_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"extracted_data"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h3 id="batch-archive-processing">Batch Archive Processing</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">83</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> get_artifact_archiver
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">batch_archive_directories</span>(base_dir: <span style="color: #007020">str</span>, output_dir: <span style="color: #007020">str</span>, format_type: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"zip"</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Create archives for multiple directories."""</span>
+
+    base_path <span style="color: #333333">=</span> Path(base_dir)
+    output_path <span style="color: #333333">=</span> Path(output_dir)
+
+    <span style="color: #888888"># Ensure output directory exists</span>
+    output_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #888888"># Find all subdirectories</span>
+    subdirs <span style="color: #333333">=</span> [d <span style="color: #008800; font-weight: bold">for</span> d <span style="color: #000000; font-weight: bold">in</span> base_path<span style="color: #333333">.</span>iterdir() <span style="color: #008800; font-weight: bold">if</span> d<span style="color: #333333">.</span>is_dir()]
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> subdirs:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"No subdirectories found in </span><span style="background-color: #eeeeee">{</span>base_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span>
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(subdirs)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> directories to archive"</span>)
+
+    <span style="color: #888888"># Standard exclusions</span>
+    exclude_patterns <span style="color: #333333">=</span> [
+        <span style="background-color: #fff0f0">r"\.git"</span>, <span style="background-color: #fff0f0">r"__pycache__"</span>, <span style="background-color: #fff0f0">r"\.pyc$"</span>,
+        <span style="background-color: #fff0f0">r"node_modules"</span>, <span style="background-color: #fff0f0">r"\.DS_Store$"</span>
+    ]
+
+    results <span style="color: #333333">=</span> []
+
+    <span style="color: #008800; font-weight: bold">for</span> subdir <span style="color: #000000; font-weight: bold">in</span> subdirs:
+        archive_name <span style="color: #333333">=</span> <span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>subdir<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">_archive.</span><span style="background-color: #eeeeee">{</span>format_type<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+        archive_path <span style="color: #333333">=</span> output_path <span style="color: #333333">/</span> archive_name
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📦 Archiving: </span><span style="background-color: #eeeeee">{</span>subdir<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #888888"># Get archiver</span>
+            archiver <span style="color: #333333">=</span> get_artifact_archiver(
+                fmt<span style="color: #333333">=</span>format_type,
+                source_dir<span style="color: #333333">=</span>subdir,
+                exclude_patterns<span style="color: #333333">=</span>exclude_patterns
+            )
+
+            <span style="color: #888888"># Create archive</span>
+            included_files <span style="color: #333333">=</span> archiver<span style="color: #333333">.</span>archive(archive_path)
+
+            results<span style="color: #333333">.</span>append({
+                <span style="background-color: #fff0f0">'directory'</span>: subdir<span style="color: #333333">.</span>name,
+                <span style="background-color: #fff0f0">'archive'</span>: archive_path,
+                <span style="background-color: #fff0f0">'files_count'</span>: <span style="color: #007020">len</span>(included_files),
+                <span style="background-color: #fff0f0">'success'</span>: <span style="color: #008800; font-weight: bold">True</span>,
+                <span style="background-color: #fff0f0">'error'</span>: <span style="color: #008800; font-weight: bold">None</span>
+            })
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ✅ Success: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(included_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            results<span style="color: #333333">.</span>append({
+                <span style="background-color: #fff0f0">'directory'</span>: subdir<span style="color: #333333">.</span>name,
+                <span style="background-color: #fff0f0">'archive'</span>: <span style="color: #008800; font-weight: bold">None</span>,
+                <span style="background-color: #fff0f0">'files_count'</span>: <span style="color: #0000DD; font-weight: bold">0</span>,
+                <span style="background-color: #fff0f0">'success'</span>: <span style="color: #008800; font-weight: bold">False</span>,
+                <span style="background-color: #fff0f0">'error'</span>: <span style="color: #007020">str</span>(e)
+            })
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ❌ Failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Summary</span>
+    successful <span style="color: #333333">=</span> <span style="color: #007020">sum</span>(<span style="color: #0000DD; font-weight: bold">1</span> <span style="color: #008800; font-weight: bold">for</span> r <span style="color: #000000; font-weight: bold">in</span> results <span style="color: #008800; font-weight: bold">if</span> r[<span style="background-color: #fff0f0">'success'</span>])
+    total_files <span style="color: #333333">=</span> <span style="color: #007020">sum</span>(r[<span style="background-color: #fff0f0">'files_count'</span>] <span style="color: #008800; font-weight: bold">for</span> r <span style="color: #000000; font-weight: bold">in</span> results)
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">📊 Batch archiving complete:"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ✅ Successful: </span><span style="background-color: #eeeeee">{</span>successful<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">/</span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(subdirs)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  📁 Total files archived: </span><span style="background-color: #eeeeee">{</span>total_files<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">return</span> results
+
+<span style="color: #888888"># Usage</span>
+results <span style="color: #333333">=</span> batch_archive_directories(
+    base_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"projects"</span>,
+    output_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"archives"</span>,
+    format_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">"zip"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h3 id="encoding-aware-archive-extraction">Encoding-Aware Archive Extraction</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> CompressedFlatFileParser
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">extract_international_archive</span>(archive_path: <span style="color: #007020">str</span>, extract_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Extract archive with international filenames."""</span>
+
+    <span style="color: #888888"># Create a simple invoice for validation</span>
+    invoice_df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>DataFrame({
+        <span style="background-color: #fff0f0">'data_file_names/name'</span>: [<span style="background-color: #fff0f0">'*'</span>]  <span style="color: #888888"># Accept all files</span>
+    })
+
+    parser <span style="color: #333333">=</span> CompressedFlatFileParser(invoice_df)
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># The parser handles encoding detection automatically</span>
+        validated_files <span style="color: #333333">=</span> parser<span style="color: #333333">.</span>read(
+            zipfile<span style="color: #333333">=</span>Path(archive_path),
+            target_path<span style="color: #333333">=</span>Path(extract_dir)
+        )
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Archive with international filenames extracted"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"📁 Files extracted: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(validated_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #888888"># Display files with their detected encoding</span>
+        <span style="color: #008800; font-weight: bold">for</span> file_group <span style="color: #000000; font-weight: bold">in</span> validated_files:
+            <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> file_group:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  📄 </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+                <span style="color: #888888"># Check if filename contains non-ASCII characters</span>
+                <span style="color: #008800; font-weight: bold">try</span>:
+                    file_path<span style="color: #333333">.</span>name<span style="color: #333333">.</span>encode(<span style="background-color: #fff0f0">'ascii'</span>)
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    ✓ ASCII filename"</span>)
+                <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">UnicodeEncodeError</span>:
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"    🌐 International filename detected"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> validated_files
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Extraction failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">raise</span>
+
+<span style="color: #888888"># Usage</span>
+international_files <span style="color: #333333">=</span> extract_international_archive(
+    archive_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"国際的なファイル.zip"</span>,  <span style="color: #888888"># Archive with Japanese filename</span>
+    extract_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"extracted_international"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="common-exceptions">Common Exceptions</h3>
+<p>The compressed controller module may raise the following exceptions:</p>
+<h4 id="structurederror">StructuredError</h4>
+<p>Raised when structural validation fails or duplicate paths are detected:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> ZipArtifactPackageCompressor
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> StructuredError
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    compressor <span style="color: #333333">=</span> ZipArtifactPackageCompressor(
+        source_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"project_with_duplicates"</span>,
+        exclude_patterns<span style="color: #333333">=</span>[]
+    )
+    compressor<span style="color: #333333">.</span>archive(<span style="background-color: #fff0f0">"output.zip"</span>)
+<span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Structural error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #888888"># Handle case-insensitive duplicate paths</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="valueerror">ValueError</h4>
+<p>Raised when unsupported archive formats are specified:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> get_artifact_archiver
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    archiver <span style="color: #333333">=</span> get_artifact_archiver(
+        fmt<span style="color: #333333">=</span><span style="background-color: #fff0f0">"unsupported_format"</span>,
+        source_dir<span style="color: #333333">=</span><span style="background-color: #fff0f0">"project"</span>,
+        exclude_patterns<span style="color: #333333">=</span>[]
+    )
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Unsupported format: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #888888"># Use supported formats: 'zip', 'tar.gz', 'targz', 'tgz'</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="unicodedecodeerror">UnicodeDecodeError</h4>
+<p>May be raised during filename encoding detection:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.impl.compressed_controller</span> <span style="color: #008800; font-weight: bold">import</span> CompressedFlatFileParser
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    parser <span style="color: #333333">=</span> CompressedFlatFileParser(invoice_df)
+    parser<span style="color: #333333">.</span>read(archive_path, extract_path)
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">UnicodeDecodeError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Encoding error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #888888"># The parser attempts automatic encoding detection</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="best-practices">Best Practices</h3>
+<ol>
+<li>
+<p><strong>Validate paths before archiving</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_source_directory</span>(source_dir: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Validate source directory before archiving."""</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> source_dir<span style="color: #333333">.</span>exists():
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Source directory does not exist: </span><span style="background-color: #eeeeee">{</span>source_dir<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> source_dir<span style="color: #333333">.</span>is_dir():
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Source path is not a directory: </span><span style="background-color: #eeeeee">{</span>source_dir<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #888888"># Check for files to archive</span>
+    files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(source_dir<span style="color: #333333">.</span>rglob(<span style="background-color: #fff0f0">"*"</span>))
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> files:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"No files found in source directory: </span><span style="background-color: #eeeeee">{</span>source_dir<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Handle exclusion patterns carefully</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_safe_exclusions</span>(custom_patterns: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Create safe exclusion patterns with validation."""</span>
+    <span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">re</span>
+
+    safe_patterns <span style="color: #333333">=</span> []
+    <span style="color: #008800; font-weight: bold">for</span> pattern <span style="color: #000000; font-weight: bold">in</span> custom_patterns:
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #888888"># Test if pattern is valid regex</span>
+            re<span style="color: #333333">.</span>compile(pattern)
+            safe_patterns<span style="color: #333333">.</span>append(pattern)
+        <span style="color: #008800; font-weight: bold">except</span> re<span style="color: #333333">.</span>error <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Invalid regex pattern '</span><span style="background-color: #eeeeee">{</span>pattern<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">': </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">return</span> safe_patterns
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Monitor disk space and permissions</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">shutil</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">check_archive_requirements</span>(source_dir: Path, output_path: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Check system requirements for archiving."""</span>
+
+    <span style="color: #888888"># Estimate source size</span>
+    total_size <span style="color: #333333">=</span> <span style="color: #007020">sum</span>(
+        f<span style="color: #333333">.</span>stat()<span style="color: #333333">.</span>st_size <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> source_dir<span style="color: #333333">.</span>rglob(<span style="background-color: #fff0f0">"*"</span>) <span style="color: #008800; font-weight: bold">if</span> f<span style="color: #333333">.</span>is_file()
+    )
+
+    <span style="color: #888888"># Check available disk space (with 20% buffer)</span>
+    free_space <span style="color: #333333">=</span> shutil<span style="color: #333333">.</span>disk_usage(output_path<span style="color: #333333">.</span>parent)<span style="color: #333333">.</span>free
+    required_space <span style="color: #333333">=</span> <span style="color: #007020">int</span>(total_size <span style="color: #333333">*</span> <span style="color: #6600EE; font-weight: bold">1.2</span>)  <span style="color: #888888"># Compression may not reduce size much</span>
+
+    <span style="color: #008800; font-weight: bold">if</span> free_space <span style="color: #333333">&lt;</span> required_space:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Insufficient disk space. Required: </span><span style="background-color: #eeeeee">{</span>required_space<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">, Available: </span><span style="background-color: #eeeeee">{</span>free_space<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #888888"># Check write permissions</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        test_file <span style="color: #333333">=</span> output_path<span style="color: #333333">.</span>parent <span style="color: #333333">/</span> <span style="background-color: #fff0f0">".test_write"</span>
+        test_file<span style="color: #333333">.</span>touch()
+        test_file<span style="color: #333333">.</span>unlink()
+    <span style="color: #008800; font-weight: bold">except</span> (<span style="color: #FF0000; font-weight: bold">OSError</span>, <span style="color: #FF0000; font-weight: bold">PermissionError</span>):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"No write permission for: </span><span style="background-color: #eeeeee">{</span>output_path<span style="color: #333333">.</span>parent<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Implement progress tracking for large archives</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">os</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">typing</span> <span style="color: #008800; font-weight: bold">import</span> Callable
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">ProgressTrackingArchiver</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Archiver with progress tracking capabilities."""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, source_dir: Path, exclude_patterns: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir <span style="color: #333333">=</span> source_dir
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>exclude_patterns <span style="color: #333333">=</span> exclude_patterns
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>progress_callback: Callable[[<span style="color: #007020">int</span>, <span style="color: #007020">int</span>], <span style="color: #008800; font-weight: bold">None</span>] <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">set_progress_callback</span>(<span style="color: #007020">self</span>, callback: Callable[[<span style="color: #007020">int</span>, <span style="color: #007020">int</span>], <span style="color: #008800; font-weight: bold">None</span>]):
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Set callback for progress updates."""</span>
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>progress_callback <span style="color: #333333">=</span> callback
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">archive_with_progress</span>(<span style="color: #007020">self</span>, output_path: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[Path]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create archive with progress tracking."""</span>
+
+        <span style="color: #888888"># Count total files first</span>
+        total_files <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        <span style="color: #008800; font-weight: bold">for</span> root, dirs, files <span style="color: #000000; font-weight: bold">in</span> os<span style="color: #333333">.</span>walk(<span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir):
+            total_files <span style="color: #333333">+=</span> <span style="color: #007020">len</span>([f <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> files <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_is_excluded(os<span style="color: #333333">.</span>path<span style="color: #333333">.</span>join(root, f))])
+
+        <span style="color: #888888"># Create archive with progress</span>
+        processed_files <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+
+        compressor <span style="color: #333333">=</span> ZipArtifactPackageCompressor(
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>source_dir, <span style="color: #007020">self</span><span style="color: #333333">.</span>exclude_patterns
+        )
+
+        <span style="color: #888888"># This would need to be integrated into the actual archiver</span>
+        <span style="color: #888888"># For demonstration purposes</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>progress_callback:
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>progress_callback(processed_files, total_files)
+
+        <span style="color: #008800; font-weight: bold">return</span> compressor<span style="color: #333333">.</span>archive(output_path)
+</code></pre></div></td></tr></table></div></p>
+</li>
+</ol>
+<h2 id="performance-notes">Performance Notes</h2>
+<ul>
+<li>Archive creation performance scales with the number of files and their total size</li>
+<li>Exclusion pattern matching uses compiled regex for optimal performance</li>
+<li>Encoding detection during extraction may add overhead for files with international names</li>
+<li>Memory usage is minimized by streaming file operations</li>
+<li>TAR.GZ compression typically provides better compression ratios than ZIP but may be slower</li>
+<li>Case-insensitive duplicate detection requires additional processing but prevents extraction issues</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="interfaces/filechecker.md">Interface Definitions</a> - For compressor and parser interfaces</li>
+<li><a href="invoicefile.md">Invoice File Module</a> - For file validation functionality</li>
+<li><a href="exceptions.md">Exceptions Module</a> - For custom exception types</li>
+<li><a href="rdelogger.md">RDE Logger</a> - For logging functionality</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

@@ -7,7 +7,7 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>gen_excelinvoice - RDEToolKit Documentation</title>
+<title>Generate Excel Invoice Module - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -21,7 +21,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#gen_excelinvoice">
+<a class="md-skip" href="#generate-excel-invoice-module">
           Skip to content
         </a>
 </div>
@@ -45,7 +45,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              gen_excelinvoice
+              Generate Excel Invoice Module
             
           </span>
 </div>
@@ -497,7 +497,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -518,14 +518,14 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../impl/compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../impl/input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -549,7 +549,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -573,21 +573,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -645,63 +645,63 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -761,14 +761,22 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#generateexcelinvoicecommand">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      GenerateExcelInvoiceCommand
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.gen_excelinvoice.GenerateExcelInvoiceCommand">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generateexcelinvoicecommand">
 <span class="md-ellipsis">
       GenerateExcelInvoiceCommand
     </span>
@@ -776,14 +784,191 @@
 <nav aria-label="GenerateExcelInvoiceCommand" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.gen_excelinvoice.GenerateExcelInvoiceCommand.invoke">
+<a class="md-nav__link" href="#constructor">
 <span class="md-ellipsis">
-      invoke
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoke">
+<span class="md-ellipsis">
+      invoke()
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-naming-conventions">
+<span class="md-ellipsis">
+      File Naming Conventions
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-excel-invoice-generation">
+<span class="md-ellipsis">
+      Basic Excel Invoice Generation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-template-generation">
+<span class="md-ellipsis">
+      Batch Template Generation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-template-generation-with-validation">
+<span class="md-ellipsis">
+      Advanced Template Generation with Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-project-workflow">
+<span class="md-ellipsis">
+      Integration with Project Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command-line-integration-example">
+<span class="md-ellipsis">
+      Command-Line Integration Example
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-exceptions">
+<span class="md-ellipsis">
+      Common Exceptions
+    </span>
+</a>
+<nav aria-label="Common Exceptions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#clickabort">
+<span class="md-ellipsis">
+      click.Abort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#filenotfounderror">
+<span class="md-ellipsis">
+      FileNotFoundError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoiceschemavalidationerror">
+<span class="md-ellipsis">
+      InvoiceSchemaValidationError
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-other-modules">
+<span class="md-ellipsis">
+      Integration with Other Modules
+    </span>
+</a>
+<nav aria-label="Integration with Other Modules" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoice-file-integration">
+<span class="md-ellipsis">
+      Invoice File Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#exception-handling-integration">
+<span class="md-ellipsis">
+      Exception Handling Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#logging-integration">
+<span class="md-ellipsis">
+      Logging Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -792,73 +977,1036 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="gen_excelinvoice">gen_excelinvoice</h1>
-<h2 id="generateexcelinvoicecommand">GenerateExcelInvoiceCommand</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.gen_excelinvoice.GenerateExcelInvoiceCommand">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>gen_excelinvoice<span style="color: #333333">.</span>GenerateExcelInvoiceCommand(invoice_schema_file, output_path, mode)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.gen_excelinvoice.GenerateExcelInvoiceCommand.invoke">
-<code class="highlight language-python">invoke()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Invokes the command and generates an Excel invoice.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>ctx</code></td>
-<td>
-<code><span title="click.Context">Context</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The Click context object.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>None</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
+<h1 id="generate-excel-invoice-module">Generate Excel Invoice Module</h1>
+<p>The <code>rdetoolkit.cmd.gen_excelinvoice</code> module provides functionality for generating Excel invoice templates from JSON schema files. This module is designed to create standardized Excel files that conform to RDE (Research Data Exchange) invoice specifications, supporting both file and folder processing modes.</p>
+<h2 id="overview">Overview</h2>
+<p>The generate Excel invoice module offers specialized template generation capabilities:</p>
+<ul>
+<li><strong>Excel Template Generation</strong>: Create Excel invoice templates from JSON schema definitions</li>
+<li><strong>Schema Validation</strong>: Validate invoice schemas before template generation</li>
+<li><strong>Mode Support</strong>: Support for both file and folder processing modes</li>
+<li><strong>Error Handling</strong>: Comprehensive error handling with user-friendly messages</li>
+</ul>
+<h2 id="classes">Classes</h2>
+<h3 id="generateexcelinvoicecommand">GenerateExcelInvoiceCommand</h3>
+<p>A command class that generates Excel invoice templates based on JSON schema files with support for different processing modes.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>GenerateExcelInvoiceCommand(invoice_schema_file: pathlib<span style="color: #333333">.</span>Path, output_path: pathlib<span style="color: #333333">.</span>Path, mode: Literal[<span style="background-color: #fff0f0">"file"</span>, <span style="background-color: #fff0f0">"folder"</span>])
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>invoice_schema_file</code> (pathlib.Path): Path to the JSON schema file that defines the invoice structure
+- <code>output_path</code> (pathlib.Path): Path where the generated Excel template will be saved
+- <code>mode</code> (Literal["file", "folder"]): Processing mode - either "file" for single file processing or "folder" for batch processing</p>
+<h4 id="attributes">Attributes</h4>
+<ul>
+<li><code>invoice_schema_file</code> (pathlib.Path): The source schema file path</li>
+<li><code>output_path</code> (pathlib.Path): The target output file path</li>
+<li><code>mode</code> (Literal["file", "folder"]): The processing mode</li>
+</ul>
+<h4 id="methods">Methods</h4>
+<h5 id="invoke">invoke()</h5>
+<p>Execute the Excel invoice template generation process.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">invoke</span>() <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Raises:</strong>
+- <code>click.Abort</code>: If validation fails, schema file is not found, or generation encounters errors
+- <code>FileNotFoundError</code>: If the schema file does not exist
+- <code>InvoiceSchemaValidationError</code>: If the schema validation fails
+- <code>Exception</code>: For any unexpected errors during generation</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+<span style="color: #888888"># Generate Excel invoice template</span>
+schema_file <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"schemas/invoice.schema.json"</span>)
+output_file <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"templates/my_invoice_excel_invoice.xlsx"</span>)
+
+command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+    invoice_schema_file<span style="color: #333333">=</span>schema_file,
+    output_path<span style="color: #333333">=</span>output_file,
+    mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+)
+command<span style="color: #333333">.</span>invoke()
+</code></pre></div></td></tr></table></div></p>
+<h4 id="file-naming-conventions">File Naming Conventions</h4>
+<p>The generated Excel files must follow specific naming conventions:</p>
+<ul>
+<li><strong>Required Suffix</strong>: All output files must end with <code>_excel_invoice.xlsx</code></li>
+<li><strong>Example Valid Names</strong>:</li>
+<li><code>project_excel_invoice.xlsx</code></li>
+<li><code>2024_data_excel_invoice.xlsx</code></li>
+<li><code>research_template_excel_invoice.xlsx</code></li>
+</ul>
+<h2 id="complete-usage-examples">Complete Usage Examples</h2>
+<h3 id="basic-excel-invoice-generation">Basic Excel Invoice Generation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate_basic_invoice_template</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Generate a basic Excel invoice template."""</span>
+
+    <span style="color: #888888"># Define paths</span>
+    schema_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"data/invoice.schema.json"</span>)
+    output_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"output/basic_excel_invoice.xlsx"</span>)
+
+    <span style="color: #888888"># Create command instance</span>
+    command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+        invoice_schema_file<span style="color: #333333">=</span>schema_path,
+        output_path<span style="color: #333333">=</span>output_path,
+        mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+    )
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        command<span style="color: #333333">.</span>invoke()
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Template generated successfully: </span><span style="background-color: #eeeeee">{</span>output_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Generation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Usage</span>
+generate_basic_invoice_template()
+</code></pre></div></td></tr></table></div>
+<h3 id="batch-template-generation">Batch Template Generation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate_multiple_templates</span>(schemas_dir: <span style="color: #007020">str</span>, output_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Generate Excel templates for multiple schema files."""</span>
+
+    schemas_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(schemas_dir)
+    output_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(output_dir)
+
+    <span style="color: #888888"># Ensure output directory exists</span>
+    output_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #888888"># Find all schema files</span>
+    schema_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(schemas_path<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.schema.json"</span>))
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> schema_files:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"No schema files found in </span><span style="background-color: #eeeeee">{</span>schemas_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span>
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(schema_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> schema files"</span>)
+
+    <span style="color: #008800; font-weight: bold">for</span> schema_file <span style="color: #000000; font-weight: bold">in</span> schema_files:
+        <span style="color: #888888"># Generate output filename</span>
+        template_name <span style="color: #333333">=</span> schema_file<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>replace(<span style="background-color: #fff0f0">'.schema'</span>, <span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>)
+        output_file <span style="color: #333333">=</span> output_path <span style="color: #333333">/</span> template_name
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Processing: </span><span style="background-color: #eeeeee">{</span>schema_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">try</span>:
+            command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+                invoice_schema_file<span style="color: #333333">=</span>schema_file,
+                output_path<span style="color: #333333">=</span>output_file,
+                mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>  <span style="color: #888888"># Use "folder" mode for batch processing if supported</span>
+            )
+            command<span style="color: #333333">.</span>invoke()
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ✅ Generated: </span><span style="background-color: #eeeeee">{</span>output_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ❌ Failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Usage</span>
+generate_multiple_templates(<span style="background-color: #fff0f0">"schemas"</span>, <span style="background-color: #fff0f0">"templates"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="advanced-template-generation-with-validation">Advanced Template Generation with Validation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate_validated_template</span>(schema_file: <span style="color: #007020">str</span>, output_file: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Generate Excel template with pre-validation."""</span>
+
+    schema_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(schema_file)
+    output_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(output_file)
+
+    <span style="color: #888888"># Validate file naming convention</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> output_path<span style="color: #333333">.</span>name<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"❌ Error: Output filename must end with '_excel_invoice.xlsx'"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #888888"># Validate schema file exists and is valid JSON</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> schema_path<span style="color: #333333">.</span>exists():
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Error: Schema file not found: </span><span style="background-color: #eeeeee">{</span>schema_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># Test if schema is valid JSON</span>
+        <span style="color: #008800; font-weight: bold">with</span> <span style="color: #007020">open</span>(schema_path, <span style="background-color: #fff0f0">'r'</span>, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>) <span style="color: #008800; font-weight: bold">as</span> f:
+            schema_data <span style="color: #333333">=</span> json<span style="color: #333333">.</span>load(f)
+
+        <span style="color: #888888"># Check for required schema properties</span>
+        required_keys <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">'type'</span>, <span style="background-color: #fff0f0">'properties'</span>]
+        missing_keys <span style="color: #333333">=</span> [key <span style="color: #008800; font-weight: bold">for</span> key <span style="color: #000000; font-weight: bold">in</span> required_keys <span style="color: #008800; font-weight: bold">if</span> key <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> schema_data]
+
+        <span style="color: #008800; font-weight: bold">if</span> missing_keys:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Error: Schema missing required keys: </span><span style="background-color: #eeeeee">{</span>missing_keys<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Schema validation passed"</span>)
+
+        <span style="color: #888888"># Ensure output directory exists</span>
+        output_path<span style="color: #333333">.</span>parent<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        <span style="color: #888888"># Generate template</span>
+        command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+            invoice_schema_file<span style="color: #333333">=</span>schema_path,
+            output_path<span style="color: #333333">=</span>output_path,
+            mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+        )
+        command<span style="color: #333333">.</span>invoke()
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Template generated successfully: </span><span style="background-color: #eeeeee">{</span>output_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+
+    <span style="color: #008800; font-weight: bold">except</span> json<span style="color: #333333">.</span>JSONDecodeError <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Error: Invalid JSON in schema file: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Error: Template generation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+<span style="color: #888888"># Usage</span>
+success <span style="color: #333333">=</span> generate_validated_template(
+    <span style="background-color: #fff0f0">"schemas/project.schema.json"</span>,
+    <span style="background-color: #fff0f0">"templates/project_excel_invoice.xlsx"</span>
+)
+</code></pre></div></td></tr></table></div>
+<h3 id="integration-with-project-workflow">Integration with Project Workflow</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 84</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 85</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 86</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 87</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 88</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 89</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 90</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 91</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 92</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 93</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 94</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 95</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 96</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 97</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 98</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 99</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">100</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">101</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">102</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">103</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">104</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">105</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">106</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">107</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">108</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">109</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">110</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">111</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">112</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">113</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">114</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">115</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">116</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">117</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">118</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">119</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">typing</span> <span style="color: #008800; font-weight: bold">import</span> List, Tuple
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">ExcelInvoiceTemplateManager</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Manager class for Excel invoice template operations."""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, schemas_dir: <span style="color: #007020">str</span>, templates_dir: <span style="color: #007020">str</span>):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>schemas_dir <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(schemas_dir)
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>templates_dir <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(templates_dir)
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>templates_dir<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate_all_templates</span>(<span style="color: #007020">self</span>) <span style="color: #333333">-&gt;</span> List[Tuple[<span style="color: #007020">str</span>, <span style="color: #007020">bool</span>, <span style="color: #007020">str</span>]]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Generate templates for all schema files.</span>
+
+<span style="color: #DD4422">        Returns:</span>
+<span style="color: #DD4422">            List of tuples: (schema_name, success, message)</span>
+<span style="color: #DD4422">        """</span>
+        results <span style="color: #333333">=</span> []
+        schema_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(<span style="color: #007020">self</span><span style="color: #333333">.</span>schemas_dir<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.schema.json"</span>))
+
+        <span style="color: #008800; font-weight: bold">for</span> schema_file <span style="color: #000000; font-weight: bold">in</span> schema_files:
+            result <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_generate_single_template(schema_file)
+            results<span style="color: #333333">.</span>append(result)
+
+        <span style="color: #008800; font-weight: bold">return</span> results
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_generate_single_template</span>(<span style="color: #007020">self</span>, schema_file: pathlib<span style="color: #333333">.</span>Path) <span style="color: #333333">-&gt;</span> Tuple[<span style="color: #007020">str</span>, <span style="color: #007020">bool</span>, <span style="color: #007020">str</span>]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Generate template for a single schema file."""</span>
+
+        <span style="color: #888888"># Generate output filename</span>
+        template_name <span style="color: #333333">=</span> schema_file<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>replace(<span style="background-color: #fff0f0">'.schema'</span>, <span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>)
+        output_file <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>templates_dir <span style="color: #333333">/</span> template_name
+
+        <span style="color: #008800; font-weight: bold">try</span>:
+            command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+                invoice_schema_file<span style="color: #333333">=</span>schema_file,
+                output_path<span style="color: #333333">=</span>output_file,
+                mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+            )
+            command<span style="color: #333333">.</span>invoke()
+            <span style="color: #008800; font-weight: bold">return</span> (schema_file<span style="color: #333333">.</span>name, <span style="color: #008800; font-weight: bold">True</span>, <span style="background-color: #fff0f0">f"Generated: </span><span style="background-color: #eeeeee">{</span>output_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #008800; font-weight: bold">return</span> (schema_file<span style="color: #333333">.</span>name, <span style="color: #008800; font-weight: bold">False</span>, <span style="background-color: #fff0f0">f"Error: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">str</span>(e)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">update_templates</span>(<span style="color: #007020">self</span>, force_update: <span style="color: #007020">bool</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">False</span>) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Update existing templates if schema files are newer."""</span>
+
+        schema_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(<span style="color: #007020">self</span><span style="color: #333333">.</span>schemas_dir<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.schema.json"</span>))
+
+        <span style="color: #008800; font-weight: bold">for</span> schema_file <span style="color: #000000; font-weight: bold">in</span> schema_files:
+            template_name <span style="color: #333333">=</span> schema_file<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>replace(<span style="background-color: #fff0f0">'.schema'</span>, <span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>)
+            template_file <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>templates_dir <span style="color: #333333">/</span> template_name
+
+            <span style="color: #888888"># Check if update is needed</span>
+            <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> force_update <span style="color: #000000; font-weight: bold">and</span> template_file<span style="color: #333333">.</span>exists():
+                schema_mtime <span style="color: #333333">=</span> schema_file<span style="color: #333333">.</span>stat()<span style="color: #333333">.</span>st_mtime
+                template_mtime <span style="color: #333333">=</span> template_file<span style="color: #333333">.</span>stat()<span style="color: #333333">.</span>st_mtime
+
+                <span style="color: #008800; font-weight: bold">if</span> schema_mtime <span style="color: #333333">&lt;=</span> template_mtime:
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"⏭️  Skipping </span><span style="background-color: #eeeeee">{</span>schema_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> (template is up to date)"</span>)
+                    <span style="color: #008800; font-weight: bold">continue</span>
+
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"🔄 Updating template for </span><span style="background-color: #eeeeee">{</span>schema_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            schema_name, success, message <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>_generate_single_template(schema_file)
+
+            <span style="color: #008800; font-weight: bold">if</span> success:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ✅ </span><span style="background-color: #eeeeee">{</span>message<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">else</span>:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  ❌ </span><span style="background-color: #eeeeee">{</span>message<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">list_templates</span>(<span style="color: #007020">self</span>) <span style="color: #333333">-&gt;</span> List[pathlib<span style="color: #333333">.</span>Path]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""List all generated Excel invoice templates."""</span>
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #007020">list</span>(<span style="color: #007020">self</span><span style="color: #333333">.</span>templates_dir<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*_excel_invoice.xlsx"</span>))
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">cleanup_orphaned_templates</span>(<span style="color: #007020">self</span>) <span style="color: #333333">-&gt;</span> List[<span style="color: #007020">str</span>]:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Remove templates that no longer have corresponding schema files."""</span>
+
+        <span style="color: #888888"># Get all schema base names</span>
+        schema_names <span style="color: #333333">=</span> {f<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>replace(<span style="background-color: #fff0f0">'.schema'</span>, <span style="background-color: #fff0f0">''</span>) <span style="color: #008800; font-weight: bold">for</span> f <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>schemas_dir<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.schema.json"</span>)}
+
+        <span style="color: #888888"># Find orphaned templates</span>
+        orphaned <span style="color: #333333">=</span> []
+        <span style="color: #008800; font-weight: bold">for</span> template <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>list_templates():
+            template_base <span style="color: #333333">=</span> template<span style="color: #333333">.</span>stem<span style="color: #333333">.</span>replace(<span style="background-color: #fff0f0">'_excel_invoice'</span>, <span style="background-color: #fff0f0">''</span>)
+            <span style="color: #008800; font-weight: bold">if</span> template_base <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> schema_names:
+                template<span style="color: #333333">.</span>unlink()
+                orphaned<span style="color: #333333">.</span>append(template<span style="color: #333333">.</span>name)
+
+        <span style="color: #008800; font-weight: bold">return</span> orphaned
+
+<span style="color: #888888"># Usage example</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">manage_project_templates</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Complete template management workflow."""</span>
+
+    manager <span style="color: #333333">=</span> ExcelInvoiceTemplateManager(<span style="background-color: #fff0f0">"schemas"</span>, <span style="background-color: #fff0f0">"templates"</span>)
+
+    <span style="color: #888888"># Generate all templates</span>
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"🚀 Generating Excel invoice templates..."</span>)
+    results <span style="color: #333333">=</span> manager<span style="color: #333333">.</span>generate_all_templates()
+
+    <span style="color: #888888"># Report results</span>
+    successful <span style="color: #333333">=</span> <span style="color: #007020">sum</span>(<span style="color: #0000DD; font-weight: bold">1</span> <span style="color: #008800; font-weight: bold">for</span> _, success, _ <span style="color: #000000; font-weight: bold">in</span> results <span style="color: #008800; font-weight: bold">if</span> success)
+    total <span style="color: #333333">=</span> <span style="color: #007020">len</span>(results)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">📊 Generation complete: </span><span style="background-color: #eeeeee">{</span>successful<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">/</span><span style="background-color: #eeeeee">{</span>total<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> successful"</span>)
+
+    <span style="color: #008800; font-weight: bold">for</span> schema_name, success, message <span style="color: #000000; font-weight: bold">in</span> results:
+        status <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"✅"</span> <span style="color: #008800; font-weight: bold">if</span> success <span style="color: #008800; font-weight: bold">else</span> <span style="background-color: #fff0f0">"❌"</span>
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>status<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> </span><span style="background-color: #eeeeee">{</span>schema_name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>message<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># List generated templates</span>
+    templates <span style="color: #333333">=</span> manager<span style="color: #333333">.</span>list_templates()
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">📁 Generated templates (</span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(templates)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">):"</span>)
+    <span style="color: #008800; font-weight: bold">for</span> template <span style="color: #000000; font-weight: bold">in</span> templates:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  - </span><span style="background-color: #eeeeee">{</span>template<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Usage</span>
+manage_project_templates()
+</code></pre></div></td></tr></table></div>
+<h3 id="command-line-integration-example">Command-Line Integration Example</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">argparse</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">sys</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">main</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Command-line interface for Excel invoice generation."""</span>
+
+    parser <span style="color: #333333">=</span> argparse<span style="color: #333333">.</span>ArgumentParser(
+        description<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Generate Excel invoice templates from JSON schemas"</span>
+    )
+    parser<span style="color: #333333">.</span>add_argument(
+        <span style="background-color: #fff0f0">"schema_file"</span>,
+        <span style="color: #007020">type</span><span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path,
+        help<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Path to the invoice schema JSON file"</span>
+    )
+    parser<span style="color: #333333">.</span>add_argument(
+        <span style="background-color: #fff0f0">"output_file"</span>,
+        <span style="color: #007020">type</span><span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path,
+        help<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Path for the generated Excel template (must end with '_excel_invoice.xlsx')"</span>
+    )
+    parser<span style="color: #333333">.</span>add_argument(
+        <span style="background-color: #fff0f0">"--mode"</span>,
+        choices<span style="color: #333333">=</span>[<span style="background-color: #fff0f0">"file"</span>, <span style="background-color: #fff0f0">"folder"</span>],
+        default<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>,
+        help<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Processing mode (default: file)"</span>
+    )
+    parser<span style="color: #333333">.</span>add_argument(
+        <span style="background-color: #fff0f0">"--force"</span>,
+        action<span style="color: #333333">=</span><span style="background-color: #fff0f0">"store_true"</span>,
+        help<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Overwrite existing output file"</span>
+    )
+
+    args <span style="color: #333333">=</span> parser<span style="color: #333333">.</span>parse_args()
+
+    <span style="color: #888888"># Validate arguments</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> args<span style="color: #333333">.</span>schema_file<span style="color: #333333">.</span>exists():
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Error: Schema file not found: </span><span style="background-color: #eeeeee">{</span>args<span style="color: #333333">.</span>schema_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        sys<span style="color: #333333">.</span>exit(<span style="color: #0000DD; font-weight: bold">1</span>)
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> args<span style="color: #333333">.</span>output_file<span style="color: #333333">.</span>name<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"❌ Error: Output filename must end with '_excel_invoice.xlsx'"</span>)
+        sys<span style="color: #333333">.</span>exit(<span style="color: #0000DD; font-weight: bold">1</span>)
+
+    <span style="color: #008800; font-weight: bold">if</span> args<span style="color: #333333">.</span>output_file<span style="color: #333333">.</span>exists() <span style="color: #000000; font-weight: bold">and</span> <span style="color: #000000; font-weight: bold">not</span> args<span style="color: #333333">.</span>force:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Error: Output file exists: </span><span style="background-color: #eeeeee">{</span>args<span style="color: #333333">.</span>output_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Use --force to overwrite"</span>)
+        sys<span style="color: #333333">.</span>exit(<span style="color: #0000DD; font-weight: bold">1</span>)
+
+    <span style="color: #888888"># Generate template</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+            invoice_schema_file<span style="color: #333333">=</span>args<span style="color: #333333">.</span>schema_file,
+            output_path<span style="color: #333333">=</span>args<span style="color: #333333">.</span>output_file,
+            mode<span style="color: #333333">=</span>args<span style="color: #333333">.</span>mode
+        )
+        command<span style="color: #333333">.</span>invoke()
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">KeyboardInterrupt</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">⚠️  Generation cancelled by user"</span>)
+        sys<span style="color: #333333">.</span>exit(<span style="color: #0000DD; font-weight: bold">1</span>)
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ Generation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        sys<span style="color: #333333">.</span>exit(<span style="color: #0000DD; font-weight: bold">1</span>)
+
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #996633">__name__</span> <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"__main__"</span>:
+    main()
+</code></pre></div></td></tr></table></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="common-exceptions">Common Exceptions</h3>
+<p>The Excel invoice generation module may raise the following exceptions:</p>
+<h4 id="clickabort">click.Abort</h4>
+<p>Raised when command execution is aborted due to validation or processing errors:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+        invoice_schema_file<span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"schema.json"</span>),
+        output_path<span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"invalid_name.xlsx"</span>),  <span style="color: #888888"># Missing required suffix</span>
+        mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+    )
+    command<span style="color: #333333">.</span>invoke()
+<span style="color: #008800; font-weight: bold">except</span> click<span style="color: #333333">.</span>Abort:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Command execution was aborted"</span>)
+    <span style="color: #888888"># Check console output for specific error details</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="filenotfounderror">FileNotFoundError</h4>
+<p>Raised when the schema file cannot be found:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+
+schema_path <span style="color: #333333">=</span> pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"nonexistent_schema.json"</span>)
+
+<span style="color: #888888"># Always check file existence before processing</span>
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> schema_path<span style="color: #333333">.</span>exists():
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Schema file not found: </span><span style="background-color: #eeeeee">{</span>schema_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #008800; font-weight: bold">else</span>:
+    command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+        invoice_schema_file<span style="color: #333333">=</span>schema_path,
+        output_path<span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"output_excel_invoice.xlsx"</span>),
+        mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+    )
+    command<span style="color: #333333">.</span>invoke()
+</code></pre></div></td></tr></table></div>
+<h4 id="invoiceschemavalidationerror">InvoiceSchemaValidationError</h4>
+<p>Raised when the schema file is invalid or doesn't conform to expected format:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.gen_excelinvoice</span> <span style="color: #008800; font-weight: bold">import</span> GenerateExcelInvoiceCommand
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceSchemaValidationError
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span>
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    command <span style="color: #333333">=</span> GenerateExcelInvoiceCommand(
+        invoice_schema_file<span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"invalid_schema.json"</span>),
+        output_path<span style="color: #333333">=</span>pathlib<span style="color: #333333">.</span>Path(<span style="background-color: #fff0f0">"template_excel_invoice.xlsx"</span>),
+        mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"file"</span>
+    )
+    command<span style="color: #333333">.</span>invoke()
+<span style="color: #008800; font-weight: bold">except</span> InvoiceSchemaValidationError <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Schema validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Please check your schema file format and content"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="best-practices">Best Practices</h3>
+<ol>
+<li>
+<p><strong>Validate file paths before processing</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_paths</span>(schema_file: pathlib<span style="color: #333333">.</span>Path, output_file: pathlib<span style="color: #333333">.</span>Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Validate input and output paths."""</span>
+
+    <span style="color: #888888"># Check schema file</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> schema_file<span style="color: #333333">.</span>exists():
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Schema file not found: </span><span style="background-color: #eeeeee">{</span>schema_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> schema_file<span style="color: #333333">.</span>suffix <span style="color: #333333">==</span> <span style="background-color: #fff0f0">'.json'</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Schema file must be JSON: </span><span style="background-color: #eeeeee">{</span>schema_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #888888"># Check output file naming</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> output_file<span style="color: #333333">.</span>name<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Output file must end with '_excel_invoice.xlsx': </span><span style="background-color: #eeeeee">{</span>output_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #888888"># Check output directory</span>
+    output_file<span style="color: #333333">.</span>parent<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Handle schema validation gracefully</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_schema_content</span>(schema_file: pathlib<span style="color: #333333">.</span>Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Validate schema file content before processing."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #008800; font-weight: bold">with</span> <span style="color: #007020">open</span>(schema_file, <span style="background-color: #fff0f0">'r'</span>, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>) <span style="color: #008800; font-weight: bold">as</span> f:
+            schema <span style="color: #333333">=</span> json<span style="color: #333333">.</span>load(f)
+
+        <span style="color: #888888"># Check required fields</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="background-color: #fff0f0">'type'</span> <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> schema:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Schema missing 'type' field"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+        <span style="color: #008800; font-weight: bold">if</span> <span style="background-color: #fff0f0">'properties'</span> <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> schema:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Schema missing 'properties' field"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+
+    <span style="color: #008800; font-weight: bold">except</span> json<span style="color: #333333">.</span>JSONDecodeError <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Invalid JSON in schema file: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Error reading schema file: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Implement retry logic for transient failures</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">time</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate_with_retry</span>(command: GenerateExcelInvoiceCommand, max_retries: <span style="color: #007020">int</span> <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">3</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Generate template with retry logic."""</span>
+
+    <span style="color: #008800; font-weight: bold">for</span> attempt <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">range</span>(max_retries):
+        <span style="color: #008800; font-weight: bold">try</span>:
+            command<span style="color: #333333">.</span>invoke()
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #008800; font-weight: bold">if</span> attempt <span style="color: #333333">&lt;</span> max_retries <span style="color: #333333">-</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Attempt </span><span style="background-color: #eeeeee">{</span>attempt<span style="color: #bbbbbb"> </span><span style="color: #333333">+</span><span style="color: #bbbbbb"> </span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Retrying in </span><span style="background-color: #eeeeee">{</span><span style="color: #0000DD; font-weight: bold">2</span><span style="color: #bbbbbb"> </span><span style="color: #333333">**</span><span style="color: #bbbbbb"> </span>attempt<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> seconds..."</span>)
+                time<span style="color: #333333">.</span>sleep(<span style="color: #0000DD; font-weight: bold">2</span> <span style="color: #333333">**</span> attempt)
+            <span style="color: #008800; font-weight: bold">else</span>:
+                <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"All </span><span style="background-color: #eeeeee">{</span>max_retries<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> attempts failed"</span>)
+                <span style="color: #008800; font-weight: bold">raise</span>
+
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Monitor file permissions and disk space</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">shutil</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">check_system_requirements</span>(output_path: pathlib<span style="color: #333333">.</span>Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Check system requirements before generation."""</span>
+
+    <span style="color: #888888"># Check disk space (minimum 10MB)</span>
+    free_space <span style="color: #333333">=</span> shutil<span style="color: #333333">.</span>disk_usage(output_path<span style="color: #333333">.</span>parent)<span style="color: #333333">.</span>free
+    <span style="color: #008800; font-weight: bold">if</span> free_space <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">10</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">1024</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">1024</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Insufficient disk space (need at least 10MB)"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #888888"># Check write permissions</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        test_file <span style="color: #333333">=</span> output_path<span style="color: #333333">.</span>parent <span style="color: #333333">/</span> <span style="background-color: #fff0f0">".test_write"</span>
+        test_file<span style="color: #333333">.</span>touch()
+        test_file<span style="color: #333333">.</span>unlink()
+    <span style="color: #008800; font-weight: bold">except</span> (<span style="color: #FF0000; font-weight: bold">OSError</span>, <span style="color: #FF0000; font-weight: bold">PermissionError</span>):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"No write permission for directory: </span><span style="background-color: #eeeeee">{</span>output_path<span style="color: #333333">.</span>parent<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+</code></pre></div></td></tr></table></div></p>
+</li>
+</ol>
+<h2 id="performance-notes">Performance Notes</h2>
+<ul>
+<li>Template generation is typically fast for standard schemas (&lt; 1 second)</li>
+<li>Large schemas with many properties may take longer to process</li>
+<li>File I/O operations are optimized for typical Excel file sizes</li>
+<li>Memory usage scales with schema complexity and number of properties</li>
+<li>Network file systems may impact performance; use local storage when possible</li>
+</ul>
+<h2 id="integration-with-other-modules">Integration with Other Modules</h2>
+<h3 id="invoice-file-integration">Invoice File Integration</h3>
+<p>The module uses the ExcelInvoiceFile class for template generation:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.invoicefile</span> <span style="color: #008800; font-weight: bold">import</span> ExcelInvoiceFile
+
+<span style="color: #888888"># Used internally for actual Excel file generation</span>
+ExcelInvoiceFile<span style="color: #333333">.</span>generate_template(schema_file, output_path, mode)
+</code></pre></div></td></tr></table></div>
+<h3 id="exception-handling-integration">Exception Handling Integration</h3>
+<p>Uses custom exceptions for better error reporting:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceSchemaValidationError
+
+<span style="color: #888888"># Provides specific error types for schema validation issues</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="logging-integration">Logging Integration</h3>
+<p>Integrates with the RDE logging system:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.rdelogger</span> <span style="color: #008800; font-weight: bold">import</span> get_logger
+
+<span style="color: #888888"># Used for detailed error logging and debugging</span>
+logger <span style="color: #333333">=</span> get_logger(<span style="color: #996633">__name__</span>)
+</code></pre></div></td></tr></table></div>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="invoicefile.md">Invoice File Module</a> - For Excel invoice file operations</li>
+<li><a href="exceptions.md">Exceptions Module</a> - For custom exception types</li>
+<li><a href="rdelogger.md">RDE Logger</a> - For logging functionality</li>
+<li><a href="../command/">Command Module</a> - For other command-line utilities</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

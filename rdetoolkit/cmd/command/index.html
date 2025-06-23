@@ -7,7 +7,7 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>command - RDEToolKit Documentation</title>
+<title>Command Module - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -21,7 +21,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#command">
+<a class="md-skip" href="#command-module">
           Skip to content
         </a>
 </div>
@@ -45,7 +45,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              command
+              Command Module
             
           </span>
 </div>
@@ -497,7 +497,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../">
 <span class="md-ellipsis">
-    API Documentation
+    RDE Toolkit API Documentation
   </span>
 </a>
 </li>
@@ -518,14 +518,14 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../impl/compressed_controller/">
 <span class="md-ellipsis">
-    compressed_controller
+    Compressed Controller Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../impl/input_controller/">
 <span class="md-ellipsis">
-    input_controller
+    Input Controller Module
   </span>
 </a>
 </li>
@@ -549,7 +549,7 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../interface/filechecker/">
 <span class="md-ellipsis">
-    filechecker
+    File Checker Interfaces Module
   </span>
 </a>
 </li>
@@ -573,21 +573,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/invoice_schema/">
 <span class="md-ellipsis">
-    invoice_schema
+    Invoice Schema Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/metadata/">
 <span class="md-ellipsis">
-    metadata
+    Metadata Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/rde2types/">
 <span class="md-ellipsis">
-    rde2types
+    RDE2 Types Module
   </span>
 </a>
 </li>
@@ -645,63 +645,63 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../config/">
 <span class="md-ellipsis">
-    config
+    Configuration Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../workflows/">
 <span class="md-ellipsis">
-    workflows
+    Workflows Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rde2util/">
 <span class="md-ellipsis">
-    rde2util
+    rde2util Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../invoicefile/">
 <span class="md-ellipsis">
-    invoicefile
+    Invoice File Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../modeproc/">
 <span class="md-ellipsis">
-    modeproc
+    Mode Processing Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../validation/">
 <span class="md-ellipsis">
-    validation
+    Validation Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../img2thumb/">
 <span class="md-ellipsis">
-    img2thumb
+    Image to Thumbnail Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../rdelogger/">
 <span class="md-ellipsis">
-    rdelogger
+    RDE Logger Module
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../exceptions/">
 <span class="md-ellipsis">
-    exceptions
+    Exceptions Module
   </span>
 </a>
 </li>
@@ -761,18 +761,37 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#command_1">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
-      Command
+      Overview
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.Command">
+<a class="md-nav__link" href="#classes">
+<span class="md-ellipsis">
+      Classes
+    </span>
+</a>
+<nav aria-label="Classes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command">
 <span class="md-ellipsis">
       Command
     </span>
 </a>
+<nav aria-label="Command" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constructor">
+<span class="md-ellipsis">
+      Constructor
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#initcommand">
@@ -780,42 +799,57 @@
       InitCommand
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InitCommand">
-<span class="md-ellipsis">
-      InitCommand
-    </span>
-</a>
 <nav aria-label="InitCommand" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InitCommand.invoke">
+<a class="md-nav__link" href="#constructor_1">
 <span class="md-ellipsis">
-      invoke
+      Constructor
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InitCommand._info_msg">
+<a class="md-nav__link" href="#class-attributes">
 <span class="md-ellipsis">
-      _info_msg
+      Class Attributes
+    </span>
+</a>
+<nav aria-label="Class Attributes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#default_dirs">
+<span class="md-ellipsis">
+      default_dirs
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoke">
+<span class="md-ellipsis">
+      invoke()
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InitCommand._success_msg">
+<a class="md-nav__link" href="#private-methods">
 <span class="md-ellipsis">
-      _success_msg
+      Private Methods
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InitCommand._error_msg">
-<span class="md-ellipsis">
-      _error_msg
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -826,21 +860,32 @@
       VersionCommand
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.VersionCommand">
-<span class="md-ellipsis">
-      VersionCommand
-    </span>
-</a>
 <nav aria-label="VersionCommand" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.VersionCommand.invoke">
+<a class="md-nav__link" href="#constructor_2">
 <span class="md-ellipsis">
-      invoke
+      Constructor
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_1">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoke_1">
+<span class="md-ellipsis">
+      invoke()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -851,21 +896,39 @@
       DockerfileGenerator
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.DockerfileGenerator">
-<span class="md-ellipsis">
-      DockerfileGenerator
-    </span>
-</a>
 <nav aria-label="DockerfileGenerator" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.DockerfileGenerator.generate">
+<a class="md-nav__link" href="#constructor_3">
 <span class="md-ellipsis">
-      generate
+      Constructor
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_2">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate">
+<span class="md-ellipsis">
+      generate()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -876,21 +939,39 @@
       RequirementsTxtGenerator
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.RequirementsTxtGenerator">
-<span class="md-ellipsis">
-      RequirementsTxtGenerator
-    </span>
-</a>
 <nav aria-label="RequirementsTxtGenerator" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.RequirementsTxtGenerator.generate">
+<a class="md-nav__link" href="#constructor_4">
 <span class="md-ellipsis">
-      generate
+      Constructor
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_1">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_3">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_1">
+<span class="md-ellipsis">
+      generate()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -901,21 +982,39 @@
       InvoiceSchemaJsonGenerator
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InvoiceSchemaJsonGenerator">
-<span class="md-ellipsis">
-      InvoiceSchemaJsonGenerator
-    </span>
-</a>
 <nav aria-label="InvoiceSchemaJsonGenerator" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InvoiceSchemaJsonGenerator.generate">
+<a class="md-nav__link" href="#constructor_5">
 <span class="md-ellipsis">
-      generate
+      Constructor
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_2">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_4">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_2">
+<span class="md-ellipsis">
+      generate()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -926,21 +1025,39 @@
       MetadataDefJsonGenerator
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.MetadataDefJsonGenerator">
-<span class="md-ellipsis">
-      MetadataDefJsonGenerator
-    </span>
-</a>
 <nav aria-label="MetadataDefJsonGenerator" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.MetadataDefJsonGenerator.generate">
+<a class="md-nav__link" href="#constructor_6">
 <span class="md-ellipsis">
-      generate
+      Constructor
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_3">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_5">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_3">
+<span class="md-ellipsis">
+      generate()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -951,21 +1068,39 @@
       InvoiceJsonGenerator
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InvoiceJsonGenerator">
-<span class="md-ellipsis">
-      InvoiceJsonGenerator
-    </span>
-</a>
 <nav aria-label="InvoiceJsonGenerator" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.InvoiceJsonGenerator.generate">
+<a class="md-nav__link" href="#constructor_7">
 <span class="md-ellipsis">
-      generate
+      Constructor
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_4">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_6">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_4">
+<span class="md-ellipsis">
+      generate()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -976,24 +1111,187 @@
       MainScriptGenerator
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.MainScriptGenerator">
-<span class="md-ellipsis">
-      MainScriptGenerator
-    </span>
-</a>
 <nav aria-label="MainScriptGenerator" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.cmd.command.MainScriptGenerator.generate">
+<a class="md-nav__link" href="#constructor_8">
 <span class="md-ellipsis">
-      generate
+      Constructor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attributes_5">
+<span class="md-ellipsis">
+      Attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#methods_7">
+<span class="md-ellipsis">
+      Methods
+    </span>
+</a>
+<nav aria-label="Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_5">
+<span class="md-ellipsis">
+      generate()
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-usage-examples">
+<span class="md-ellipsis">
+      Complete Usage Examples
+    </span>
+</a>
+<nav aria-label="Complete Usage Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-project-initialization">
+<span class="md-ellipsis">
+      Basic Project Initialization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-file-generation">
+<span class="md-ellipsis">
+      Custom File Generation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-file-generation-for-multiple-environments">
+<span class="md-ellipsis">
+      Batch File Generation for Multiple Environments
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-project-template-creation">
+<span class="md-ellipsis">
+      Advanced Project Template Creation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#version-management-integration">
+<span class="md-ellipsis">
+      Version Management Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-exceptions">
+<span class="md-ellipsis">
+      Common Exceptions
+    </span>
+</a>
+<nav aria-label="Common Exceptions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#clickabort">
+<span class="md-ellipsis">
+      click.Abort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fileexistserror">
+<span class="md-ellipsis">
+      FileExistsError
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#permissionerror">
+<span class="md-ellipsis">
+      PermissionError
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-other-modules">
+<span class="md-ellipsis">
+      Integration with Other Modules
+    </span>
+</a>
+<nav aria-label="Integration with Other Modules" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#logging-integration">
+<span class="md-ellipsis">
+      Logging Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#schema-integration">
+<span class="md-ellipsis">
+      Schema Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#version-integration">
+<span class="md-ellipsis">
+      Version Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -1002,398 +1300,921 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="command">command</h1>
-<h2 id="command_1">Command</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.Command">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>Command(name, <span style="color: #333333">**</span>attrs)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="click.Command">Command</span></code></p>
-<div class="doc doc-children">
-</div>
-</div>
-</div><h2 id="initcommand">InitCommand</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InitCommand">
-<code>src.rdetoolkit.cmd.command.InitCommand</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InitCommand.invoke">
-<code class="highlight language-python">invoke()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Invokes the command and performs the necessary actions.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>ctx</code></td>
-<td>
-<code><span title="click.Context">Context</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The Click context object.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>None</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InitCommand._info_msg">
-<code class="highlight language-python">_info_msg(msg)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InitCommand._success_msg">
-<code class="highlight language-python">_success_msg(msg)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InitCommand._error_msg">
-<code class="highlight language-python">_error_msg(msg)</code>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="versioncommand">VersionCommand</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.VersionCommand">
-<code>src.rdetoolkit.cmd.command.VersionCommand</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.VersionCommand.invoke">
-<code class="highlight language-python">invoke()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Invokes the command and prints the version number.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>ctx</code></td>
-<td>
-<code><span title="click.Context">Context</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The Click context object.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>None</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="dockerfilegenerator">DockerfileGenerator</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.DockerfileGenerator">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>DockerfileGenerator(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">'Dockerfile'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.DockerfileGenerator.generate">
-<code class="highlight language-python">generate()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Generate a Dockerfile based on the specified path.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>list[str]: The content of the generated Dockerfile.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="requirementstxtgenerator">RequirementsTxtGenerator</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.RequirementsTxtGenerator">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>RequirementsTxtGenerator(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">'requirements.txt'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.RequirementsTxtGenerator.generate">
-<code class="highlight language-python">generate()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Generate a requirements.txt file based on the specified path.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>list[str]: The content of the generated requirements.txt file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="invoiceschemajsongenerator">InvoiceSchemaJsonGenerator</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InvoiceSchemaJsonGenerator">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>InvoiceSchemaJsonGenerator(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">'invoice.schema.json'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InvoiceSchemaJsonGenerator.generate">
-<code class="highlight language-python">generate()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Generate a invoice.schema.json file based on the specified path.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Any]: The content of the generated invoice.schema.json file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="metadatadefjsongenerator">MetadataDefJsonGenerator</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.MetadataDefJsonGenerator">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>MetadataDefJsonGenerator(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">'metadata-def.json'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.MetadataDefJsonGenerator.generate">
-<code class="highlight language-python">generate()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Generate a metadata-def.json file based on the specified path.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Any]: The content of the metadata-def.json file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="invoicejsongenerator">InvoiceJsonGenerator</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InvoiceJsonGenerator">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>InvoiceJsonGenerator(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">'invoice.json'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.InvoiceJsonGenerator.generate">
-<code class="highlight language-python">generate()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Generate a invoice.json file based on the specified path.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Any]: The content of the invoice.json file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><h2 id="mainscriptgenerator">MainScriptGenerator</h2>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.cmd.command.MainScriptGenerator">
-<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>cmd<span style="color: #333333">.</span>command<span style="color: #333333">.</span>MainScriptGenerator(path)</code>
-</h2>
-<div class="doc doc-contents first">
-<div class="doc doc-children">
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.cmd.command.MainScriptGenerator.generate">
-<code class="highlight language-python">generate()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Generates a script template for the source code.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[str]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>list[str]: A list of strings representing the contents of the generated script.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
+<h1 id="command-module">Command Module</h1>
+<p>The <code>rdetoolkit.cmd.command</code> module provides command-line interface functionality for RDE (Research Data Exchange) project initialization and management. This module includes commands for project setup, version display, and file generation utilities for structured RDE development environments.</p>
+<h2 id="overview">Overview</h2>
+<p>The command module offers comprehensive project initialization and management capabilities:</p>
+<ul>
+<li><strong>Project Initialization</strong>: Create complete RDE project structures with necessary directories and files</li>
+<li><strong>Version Management</strong>: Display current toolkit version information</li>
+<li><strong>File Generation</strong>: Automated creation of configuration files, scripts, and templates</li>
+<li><strong>Container Support</strong>: Generate Docker and containerization files for reproducible environments</li>
+</ul>
+<h2 id="classes">Classes</h2>
+<h3 id="command">Command</h3>
+<p>Extended Click command class for custom command functionality.</p>
+<h4 id="constructor">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Command(name: <span style="color: #007020">str</span>, <span style="color: #333333">**</span>attrs: Any)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>name</code> (str): The name of the command
+- <code>**attrs</code> (Any): Additional attributes passed to the parent Click command</p>
+<p><strong>Inherits from:</strong> <code>click.Command</code></p>
+<h3 id="initcommand">InitCommand</h3>
+<p>Command class for initializing RDE project structures with all necessary files and directories.</p>
+<h4 id="constructor_1">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InitCommand()
+</code></pre></div></td></tr></table></div>
+<h4 id="class-attributes">Class Attributes</h4>
+<h5 id="default_dirs">default_dirs</h5>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>default_dirs: <span style="color: #007020">list</span>[Path] <span style="color: #333333">=</span> [
+    Path(<span style="background-color: #fff0f0">"container/modules"</span>),
+    Path(<span style="background-color: #fff0f0">"container/data/inputdata"</span>),
+    Path(<span style="background-color: #fff0f0">"container/data/invoice"</span>),
+    Path(<span style="background-color: #fff0f0">"container/data/tasksupport"</span>),
+    Path(<span style="background-color: #fff0f0">"input/invoice"</span>),
+    Path(<span style="background-color: #fff0f0">"input/inputdata"</span>),
+    Path(<span style="background-color: #fff0f0">"templates/tasksupport"</span>),
+]
+</code></pre></div></td></tr></table></div>
+<p>List of default directories created during project initialization.</p>
+<h4 id="methods">Methods</h4>
+<h5 id="invoke">invoke()</h5>
+<p>Execute the complete project initialization process.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">invoke</span>() <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Raises:</strong>
+- <code>click.Abort</code>: If any step in the initialization process fails</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> InitCommand
+
+<span style="color: #888888"># Initialize a new RDE project</span>
+init_cmd <span style="color: #333333">=</span> InitCommand()
+init_cmd<span style="color: #333333">.</span>invoke()
+</code></pre></div></td></tr></table></div></p>
+<h5 id="private-methods">Private Methods</h5>
+<p>The class includes several private methods for specific file generation tasks:</p>
+<ul>
+<li><code>_info_msg(msg: str) -&gt; None</code>: Display information messages</li>
+<li><code>_success_msg(msg: str) -&gt; None</code>: Display success messages in green</li>
+<li><code>_error_msg(msg: str) -&gt; None</code>: Display error messages in red</li>
+</ul>
+<h3 id="versioncommand">VersionCommand</h3>
+<p>Command class for displaying the current toolkit version.</p>
+<h4 id="constructor_2">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>VersionCommand()
+</code></pre></div></td></tr></table></div>
+<h4 id="methods_1">Methods</h4>
+<h5 id="invoke_1">invoke()</h5>
+<p>Display the current RDEToolkit version.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">invoke</span>() <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> VersionCommand
+
+<span style="color: #888888"># Display version information</span>
+version_cmd <span style="color: #333333">=</span> VersionCommand()
+version_cmd<span style="color: #333333">.</span>invoke()  <span style="color: #888888"># Prints the current version</span>
+</code></pre></div></td></tr></table></div></p>
+<h3 id="dockerfilegenerator">DockerfileGenerator</h3>
+<p>Generator class for creating Dockerfile configurations.</p>
+<h4 id="constructor_3">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>DockerfileGenerator(path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"Dockerfile"</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | Path): Path where the Dockerfile will be created. Defaults to "Dockerfile"</p>
+<h4 id="attributes">Attributes</h4>
+<ul>
+<li><code>path</code> (str | Path): The target path for the generated Dockerfile</li>
+</ul>
+<h4 id="methods_2">Methods</h4>
+<h5 id="generate">generate()</h5>
+<p>Generate a Dockerfile with standard RDE configuration.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>list[str]</code>: List of strings representing the Dockerfile content</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> DockerfileGenerator
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #888888"># Generate Dockerfile in custom location</span>
+generator <span style="color: #333333">=</span> DockerfileGenerator(Path(<span style="background-color: #fff0f0">"docker/Dockerfile"</span>))
+content <span style="color: #333333">=</span> generator<span style="color: #333333">.</span>generate()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Generated Dockerfile with"</span>, <span style="color: #007020">len</span>(content), <span style="background-color: #fff0f0">"lines"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="requirementstxtgenerator">RequirementsTxtGenerator</h3>
+<p>Generator class for creating requirements.txt files with RDEToolkit dependencies.</p>
+<h4 id="constructor_4">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>RequirementsTxtGenerator(path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"requirements.txt"</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | Path): Path where the requirements.txt will be created. Defaults to "requirements.txt"</p>
+<h4 id="attributes_1">Attributes</h4>
+<ul>
+<li><code>path</code> (str | Path): The target path for the generated requirements.txt</li>
+</ul>
+<h4 id="methods_3">Methods</h4>
+<h5 id="generate_1">generate()</h5>
+<p>Generate a requirements.txt file with RDEToolkit dependency.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>list[str]</code>: List of strings representing the requirements.txt content</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> RequirementsTxtGenerator
+
+<span style="color: #888888"># Generate requirements.txt</span>
+generator <span style="color: #333333">=</span> RequirementsTxtGenerator(<span style="background-color: #fff0f0">"container/requirements.txt"</span>)
+content <span style="color: #333333">=</span> generator<span style="color: #333333">.</span>generate()
+</code></pre></div></td></tr></table></div></p>
+<h3 id="invoiceschemajsongenerator">InvoiceSchemaJsonGenerator</h3>
+<p>Generator class for creating invoice schema JSON files.</p>
+<h4 id="constructor_5">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InvoiceSchemaJsonGenerator(path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"invoice.schema.json"</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | Path): Path where the schema file will be created. Defaults to "invoice.schema.json"</p>
+<h4 id="attributes_2">Attributes</h4>
+<ul>
+<li><code>path</code> (str | Path): The target path for the generated schema file</li>
+</ul>
+<h4 id="methods_4">Methods</h4>
+<h5 id="generate_2">generate()</h5>
+<p>Generate an invoice schema JSON file based on RDE specifications.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, Any]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>dict[str, Any]</code>: Dictionary containing the generated schema structure</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceSchemaJsonGenerator
+
+<span style="color: #888888"># Generate invoice schema</span>
+generator <span style="color: #333333">=</span> InvoiceSchemaJsonGenerator(<span style="background-color: #fff0f0">"schemas/invoice.schema.json"</span>)
+schema <span style="color: #333333">=</span> generator<span style="color: #333333">.</span>generate()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Generated schema with </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(schema)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> top-level keys"</span>)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="metadatadefjsongenerator">MetadataDefJsonGenerator</h3>
+<p>Generator class for creating metadata definition JSON files.</p>
+<h4 id="constructor_6">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MetadataDefJsonGenerator(path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"metadata-def.json"</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | Path): Path where the metadata definition will be created. Defaults to "metadata-def.json"</p>
+<h4 id="attributes_3">Attributes</h4>
+<ul>
+<li><code>path</code> (str | Path): The target path for the generated metadata definition</li>
+</ul>
+<h4 id="methods_5">Methods</h4>
+<h5 id="generate_3">generate()</h5>
+<p>Generate a metadata definition JSON file.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, Any]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>dict[str, Any]</code>: Dictionary containing the metadata definition (initially empty)</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> MetadataDefJsonGenerator
+
+<span style="color: #888888"># Generate metadata definition</span>
+generator <span style="color: #333333">=</span> MetadataDefJsonGenerator(<span style="background-color: #fff0f0">"config/metadata-def.json"</span>)
+metadata <span style="color: #333333">=</span> generator<span style="color: #333333">.</span>generate()
+</code></pre></div></td></tr></table></div></p>
+<h3 id="invoicejsongenerator">InvoiceJsonGenerator</h3>
+<p>Generator class for creating invoice JSON files.</p>
+<h4 id="constructor_7">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>InvoiceJsonGenerator(path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"invoice.json"</span>)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | Path): Path where the invoice file will be created. Defaults to "invoice.json"</p>
+<h4 id="attributes_4">Attributes</h4>
+<ul>
+<li><code>path</code> (str | Path): The target path for the generated invoice file</li>
+</ul>
+<h4 id="methods_6">Methods</h4>
+<h5 id="generate_4">generate()</h5>
+<p>Generate an invoice JSON file with default RDE structure.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, Any]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>dict[str, Any]</code>: Dictionary containing the generated invoice data</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceJsonGenerator
+
+<span style="color: #888888"># Generate invoice file</span>
+generator <span style="color: #333333">=</span> InvoiceJsonGenerator(<span style="background-color: #fff0f0">"data/invoice.json"</span>)
+invoice_data <span style="color: #333333">=</span> generator<span style="color: #333333">.</span>generate()
+</code></pre></div></td></tr></table></div></p>
+<h3 id="mainscriptgenerator">MainScriptGenerator</h3>
+<p>Generator class for creating main Python script templates.</p>
+<h4 id="constructor_8">Constructor</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>MainScriptGenerator(path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path)
+</code></pre></div></td></tr></table></div>
+<p><strong>Parameters:</strong>
+- <code>path</code> (str | Path): Path where the main script will be created</p>
+<h4 id="attributes_5">Attributes</h4>
+<ul>
+<li><code>path</code> (str | Path): The target path for the generated main script</li>
+</ul>
+<h4 id="methods_7">Methods</h4>
+<h5 id="generate_5">generate()</h5>
+<p>Generate a main Python script template for RDE workflows.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate</span>() <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
+</code></pre></div></td></tr></table></div>
+<p><strong>Returns:</strong>
+- <code>list[str]</code>: List of strings representing the script content</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> MainScriptGenerator
+
+<span style="color: #888888"># Generate main script</span>
+generator <span style="color: #333333">=</span> MainScriptGenerator(<span style="background-color: #fff0f0">"container/main.py"</span>)
+script_lines <span style="color: #333333">=</span> generator<span style="color: #333333">.</span>generate()
+</code></pre></div></td></tr></table></div></p>
+<h2 id="complete-usage-examples">Complete Usage Examples</h2>
+<h3 id="basic-project-initialization">Basic Project Initialization</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> InitCommand
+
+<span style="color: #888888"># Initialize a complete RDE project</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">setup_new_project</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Set up a new RDE project with all necessary files."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        init_command <span style="color: #333333">=</span> InitCommand()
+        init_command<span style="color: #333333">.</span>invoke()
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Project initialized successfully!"</span>)
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Initialization failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+setup_new_project()
+</code></pre></div></td></tr></table></div>
+<h3 id="custom-file-generation">Custom File Generation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> (
+    DockerfileGenerator,
+    RequirementsTxtGenerator,
+    MainScriptGenerator
+)
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_custom_project_structure</span>(base_path: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Create a custom project structure with generated files."""</span>
+
+    base <span style="color: #333333">=</span> Path(base_path)
+    base<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    <span style="color: #888888"># Generate Dockerfile</span>
+    dockerfile_gen <span style="color: #333333">=</span> DockerfileGenerator(base <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"Dockerfile"</span>)
+    dockerfile_gen<span style="color: #333333">.</span>generate()
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created Dockerfile at </span><span style="background-color: #eeeeee">{</span>base<span style="color: #bbbbbb"> </span><span style="color: #333333">/</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'Dockerfile'</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Generate requirements.txt</span>
+    req_gen <span style="color: #333333">=</span> RequirementsTxtGenerator(base <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"requirements.txt"</span>)
+    req_gen<span style="color: #333333">.</span>generate()
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created requirements.txt at </span><span style="background-color: #eeeeee">{</span>base<span style="color: #bbbbbb"> </span><span style="color: #333333">/</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'requirements.txt'</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Generate main script</span>
+    main_gen <span style="color: #333333">=</span> MainScriptGenerator(base <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"main.py"</span>)
+    main_gen<span style="color: #333333">.</span>generate()
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created main.py at </span><span style="background-color: #eeeeee">{</span>base<span style="color: #bbbbbb"> </span><span style="color: #333333">/</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'main.py'</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Usage</span>
+create_custom_project_structure(<span style="background-color: #fff0f0">"my_rde_project"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="batch-file-generation-for-multiple-environments">Batch File Generation for Multiple Environments</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> (
+    DockerfileGenerator,
+    RequirementsTxtGenerator,
+    InvoiceSchemaJsonGenerator,
+    MetadataDefJsonGenerator,
+    InvoiceJsonGenerator
+)
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">setup_multiple_environments</span>(environments: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>], base_dir: <span style="color: #007020">str</span>):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Set up multiple RDE environments with generated files."""</span>
+
+    base_path <span style="color: #333333">=</span> Path(base_dir)
+
+    <span style="color: #008800; font-weight: bold">for</span> env <span style="color: #000000; font-weight: bold">in</span> environments:
+        env_path <span style="color: #333333">=</span> base_path <span style="color: #333333">/</span> env
+        env_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Setting up environment: </span><span style="background-color: #eeeeee">{</span>env<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #888888"># Create container files</span>
+        container_path <span style="color: #333333">=</span> env_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"container"</span>
+        container_path<span style="color: #333333">.</span>mkdir(exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        <span style="color: #888888"># Generate Docker files</span>
+        DockerfileGenerator(container_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"Dockerfile"</span>)<span style="color: #333333">.</span>generate()
+        RequirementsTxtGenerator(container_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"requirements.txt"</span>)<span style="color: #333333">.</span>generate()
+
+        <span style="color: #888888"># Create data directories and files</span>
+        data_path <span style="color: #333333">=</span> container_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"data"</span>
+        invoice_path <span style="color: #333333">=</span> data_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"invoice"</span>
+        tasksupport_path <span style="color: #333333">=</span> data_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"tasksupport"</span>
+
+        invoice_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+        tasksupport_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        <span style="color: #888888"># Generate JSON files</span>
+        InvoiceJsonGenerator(invoice_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"invoice.json"</span>)<span style="color: #333333">.</span>generate()
+        InvoiceSchemaJsonGenerator(tasksupport_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"invoice.schema.json"</span>)<span style="color: #333333">.</span>generate()
+        MetadataDefJsonGenerator(tasksupport_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"metadata-def.json"</span>)<span style="color: #333333">.</span>generate()
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✅ Environment </span><span style="background-color: #eeeeee">{</span>env<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> setup complete"</span>)
+
+<span style="color: #888888"># Usage</span>
+environments <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"development"</span>, <span style="background-color: #fff0f0">"testing"</span>, <span style="background-color: #fff0f0">"production"</span>]
+setup_multiple_environments(environments, <span style="background-color: #fff0f0">"rde_environments"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="advanced-project-template-creation">Advanced Project Template Creation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">84</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">85</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">86</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">87</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">88</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">89</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> InitCommand
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">shutil</span>
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">CustomRDEProject</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Custom RDE project creator with additional features."""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, project_name: <span style="color: #007020">str</span>, base_dir: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"."</span>):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>project_name <span style="color: #333333">=</span> project_name
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>base_dir <span style="color: #333333">=</span> Path(base_dir)
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>project_path <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>base_dir <span style="color: #333333">/</span> project_name
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">create_project</span>(<span style="color: #007020">self</span>, include_samples: <span style="color: #007020">bool</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">True</span>):
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create a complete RDE project with optional sample data."""</span>
+
+        <span style="color: #888888"># Create project directory</span>
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>project_path<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        <span style="color: #888888"># Change to project directory and initialize</span>
+        original_cwd <span style="color: #333333">=</span> Path<span style="color: #333333">.</span>cwd()
+        <span style="color: #008800; font-weight: bold">try</span>:
+            <span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">os</span>
+            os<span style="color: #333333">.</span>chdir(<span style="color: #007020">self</span><span style="color: #333333">.</span>project_path)
+
+            <span style="color: #888888"># Initialize standard RDE structure</span>
+            init_cmd <span style="color: #333333">=</span> InitCommand()
+            init_cmd<span style="color: #333333">.</span>invoke()
+
+            <span style="color: #008800; font-weight: bold">if</span> include_samples:
+                <span style="color: #007020">self</span><span style="color: #333333">.</span>_create_sample_data()
+
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>_create_readme()
+
+        <span style="color: #008800; font-weight: bold">finally</span>:
+            os<span style="color: #333333">.</span>chdir(original_cwd)
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Project '</span><span style="background-color: #eeeeee">{</span><span style="color: #007020">self</span><span style="color: #333333">.</span>project_name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">' created successfully at </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">self</span><span style="color: #333333">.</span>project_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_create_sample_data</span>(<span style="color: #007020">self</span>):
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create sample data files for development."""</span>
+        sample_data <span style="color: #333333">=</span> {
+            <span style="background-color: #fff0f0">"input/inputdata/sample.csv"</span>: <span style="background-color: #fff0f0">"id,name,value</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">1,Sample,100</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">2,Test,200</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">"</span>,
+            <span style="background-color: #fff0f0">"container/modules/sample_module.py"</span>: (
+                <span style="background-color: #fff0f0">"# Sample module for RDE processing</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n\n</span><span style="background-color: #fff0f0">"</span>
+                <span style="background-color: #fff0f0">"def process_data(data):</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">"</span>
+                <span style="background-color: #fff0f0">"    </span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\"\"\"</span><span style="background-color: #fff0f0">Process input data.</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\"\"\"\n</span><span style="background-color: #fff0f0">"</span>
+                <span style="background-color: #fff0f0">"    return data</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">"</span>
+            )
+        }
+
+        <span style="color: #008800; font-weight: bold">for</span> file_path, content <span style="color: #000000; font-weight: bold">in</span> sample_data<span style="color: #333333">.</span>items():
+            full_path <span style="color: #333333">=</span> Path(file_path)
+            full_path<span style="color: #333333">.</span>parent<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+            full_path<span style="color: #333333">.</span>write_text(content, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">"utf-8"</span>)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">_create_readme</span>(<span style="color: #007020">self</span>):
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Create a README file with project information."""</span>
+        readme_content <span style="color: #333333">=</span> <span style="background-color: #fff0f0">f"""# </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">self</span><span style="color: #333333">.</span>project_name<span style="background-color: #eeeeee">}</span>
+
+<span style="background-color: #fff0f0">RDE (Research Data Exchange) Project</span>
+
+<span style="background-color: #fff0f0">## Structure</span>
+
+<span style="background-color: #fff0f0">- `container/`: Main application container</span>
+<span style="background-color: #fff0f0">- `input/`: Input data and configurations</span>
+<span style="background-color: #fff0f0">- `templates/`: Template files for data processing</span>
+
+<span style="background-color: #fff0f0">## Getting Started</span>
+
+<span style="background-color: #fff0f0">1. Install dependencies:</span>
+<span style="background-color: #fff0f0">   ```bash</span>
+<span style="background-color: #fff0f0">   cd container</span>
+<span style="background-color: #fff0f0">   pip install -r requirements.txt</span>
+<span style="background-color: #fff0f0">   ```</span>
+
+<span style="background-color: #fff0f0">2. Run the main script:</span>
+<span style="background-color: #fff0f0">   ```bash</span>
+<span style="background-color: #fff0f0">   python main.py</span>
+<span style="background-color: #fff0f0">   ```</span>
+
+<span style="background-color: #fff0f0">## Generated with RDEToolkit</span>
+
+<span style="background-color: #fff0f0">This project was generated using RDEToolkit command utilities.</span>
+<span style="background-color: #fff0f0">"""</span>
+        (Path(<span style="background-color: #fff0f0">"README.md"</span>))<span style="color: #333333">.</span>write_text(readme_content, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">"utf-8"</span>)
+
+<span style="color: #888888"># Usage</span>
+project <span style="color: #333333">=</span> CustomRDEProject(<span style="background-color: #fff0f0">"my_research_project"</span>)
+project<span style="color: #333333">.</span>create_project(include_samples<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="version-management-integration">Version Management Integration</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> VersionCommand
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">subprocess</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">sys</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">check_toolkit_version</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Check and display toolkit version information."""</span>
+
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"RDEToolkit Version Information:"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"="</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">40</span>)
+
+    <span style="color: #888888"># Display current version</span>
+    version_cmd <span style="color: #333333">=</span> VersionCommand()
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Current version: "</span>, end<span style="color: #333333">=</span><span style="background-color: #fff0f0">""</span>)
+    version_cmd<span style="color: #333333">.</span>invoke()
+
+    <span style="color: #888888"># Check if updates are available (conceptual)</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># This would typically check against a package repository</span>
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">Checking for updates..."</span>)
+        result <span style="color: #333333">=</span> subprocess<span style="color: #333333">.</span>run([
+            sys<span style="color: #333333">.</span>executable, <span style="background-color: #fff0f0">"-m"</span>, <span style="background-color: #fff0f0">"pip"</span>, <span style="background-color: #fff0f0">"list"</span>, <span style="background-color: #fff0f0">"--outdated"</span>
+        ], capture_output<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, text<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+        <span style="color: #008800; font-weight: bold">if</span> <span style="background-color: #fff0f0">"rdetoolkit"</span> <span style="color: #000000; font-weight: bold">in</span> result<span style="color: #333333">.</span>stdout:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"⚠️  Update available!"</span>)
+        <span style="color: #008800; font-weight: bold">else</span>:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✅ You're using the latest version"</span>)
+
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Could not check for updates: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Usage</span>
+check_toolkit_version()
+</code></pre></div></td></tr></table></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="common-exceptions">Common Exceptions</h3>
+<p>The command module operations may raise the following exceptions:</p>
+<h4 id="clickabort">click.Abort</h4>
+<p>Raised when command execution is aborted due to errors:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> InitCommand
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    init_cmd <span style="color: #333333">=</span> InitCommand()
+    init_cmd<span style="color: #333333">.</span>invoke()
+<span style="color: #008800; font-weight: bold">except</span> click<span style="color: #333333">.</span>Abort:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Command execution was aborted"</span>)
+    <span style="color: #888888"># Check console output for specific error details</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="fileexistserror">FileExistsError</h4>
+<p>May be raised when files already exist and cannot be overwritten:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.command</span> <span style="color: #008800; font-weight: bold">import</span> DockerfileGenerator
+
+<span style="color: #888888"># Check if file exists before generation</span>
+dockerfile_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"Dockerfile"</span>)
+<span style="color: #008800; font-weight: bold">if</span> dockerfile_path<span style="color: #333333">.</span>exists():
+    response <span style="color: #333333">=</span> <span style="color: #007020">input</span>(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>dockerfile_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> exists. Overwrite? (y/N): "</span>)
+    <span style="color: #008800; font-weight: bold">if</span> response<span style="color: #333333">.</span>lower() <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">'y'</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Generation cancelled"</span>)
+    <span style="color: #008800; font-weight: bold">else</span>:
+        generator <span style="color: #333333">=</span> DockerfileGenerator(dockerfile_path)
+        generator<span style="color: #333333">.</span>generate()
+</code></pre></div></td></tr></table></div>
+<h4 id="permissionerror">PermissionError</h4>
+<p>May be raised if there are insufficient permissions to create files or directories:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">try</span>:
+    init_cmd <span style="color: #333333">=</span> InitCommand()
+    init_cmd<span style="color: #333333">.</span>invoke()
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">PermissionError</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Permission denied: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Check write permissions for the current directory"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="best-practices">Best Practices</h3>
+<ol>
+<li>
+<p><strong>Check directory permissions before initialization</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">os</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">check_permissions</span>(path: Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Check if directory is writable."""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        test_file <span style="color: #333333">=</span> path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">".test_write"</span>
+        test_file<span style="color: #333333">.</span>touch()
+        test_file<span style="color: #333333">.</span>unlink()
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">True</span>
+    <span style="color: #008800; font-weight: bold">except</span> (<span style="color: #FF0000; font-weight: bold">OSError</span>, <span style="color: #FF0000; font-weight: bold">PermissionError</span>):
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+<span style="color: #008800; font-weight: bold">if</span> check_permissions(Path<span style="color: #333333">.</span>cwd()):
+    init_cmd <span style="color: #333333">=</span> InitCommand()
+    init_cmd<span style="color: #333333">.</span>invoke()
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Insufficient permissions to create project files"</span>)
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Backup existing files before overwriting</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">shutil</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">safe_generate_file</span>(generator, target_path: Path):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Safely generate file with backup."""</span>
+    <span style="color: #008800; font-weight: bold">if</span> target_path<span style="color: #333333">.</span>exists():
+        backup_path <span style="color: #333333">=</span> target_path<span style="color: #333333">.</span>with_suffix(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>target_path<span style="color: #333333">.</span>suffix<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">.backup"</span>)
+        shutil<span style="color: #333333">.</span>copy2(target_path, backup_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Backed up existing file to </span><span style="background-color: #eeeeee">{</span>backup_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    generator<span style="color: #333333">.</span>generate()
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Validate project structure after initialization</strong>:
+   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validate_project_structure</span>():
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Validate that all required files were created."""</span>
+    required_files <span style="color: #333333">=</span> [
+        <span style="background-color: #fff0f0">"container/main.py"</span>,
+        <span style="background-color: #fff0f0">"container/Dockerfile"</span>,
+        <span style="background-color: #fff0f0">"container/requirements.txt"</span>,
+        <span style="background-color: #fff0f0">"input/invoice/invoice.json"</span>
+    ]
+
+    missing_files <span style="color: #333333">=</span> []
+    <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> required_files:
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> Path(file_path)<span style="color: #333333">.</span>exists():
+            missing_files<span style="color: #333333">.</span>append(file_path)
+
+    <span style="color: #008800; font-weight: bold">if</span> missing_files:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Warning: Missing files:"</span>)
+        <span style="color: #008800; font-weight: bold">for</span> file <span style="color: #000000; font-weight: bold">in</span> missing_files:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  - </span><span style="background-color: #eeeeee">{</span>file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #008800; font-weight: bold">else</span>:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✅ All required files created successfully"</span>)
+</code></pre></div></td></tr></table></div></p>
+</li>
+</ol>
+<h2 id="performance-notes">Performance Notes</h2>
+<ul>
+<li>File generation operations are lightweight and typically complete in milliseconds</li>
+<li>Directory creation is optimized with <code>parents=True</code> and <code>exist_ok=True</code> options</li>
+<li>JSON file generation uses efficient encoding with <code>ensure_ascii=False</code> for international character support</li>
+<li>The initialization process creates files sequentially; for large projects, consider parallel generation</li>
+<li>Memory usage is minimal as files are written directly to disk without buffering large content</li>
+</ul>
+<h2 id="integration-with-other-modules">Integration with Other Modules</h2>
+<h3 id="logging-integration">Logging Integration</h3>
+<p>The command module integrates with the RDE logging system:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.rdelogger</span> <span style="color: #008800; font-weight: bold">import</span> get_logger
+
+<span style="color: #888888"># Used internally for error logging and debugging</span>
+logger <span style="color: #333333">=</span> get_logger(<span style="color: #996633">__name__</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="schema-integration">Schema Integration</h3>
+<p>Commands use schema models for structured data generation:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.invoice_schema</span> <span style="color: #008800; font-weight: bold">import</span> InvoiceSchemaJson, Properties
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.cmd.default</span> <span style="color: #008800; font-weight: bold">import</span> INVOICE_JSON, PROPATIES
+
+<span style="color: #888888"># Used for generating valid invoice schemas and data</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="version-integration">Version Integration</h3>
+<p>Version information is automatically included in generated files:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span> <span style="color: #008800; font-weight: bold">import</span> __version__
+
+<span style="color: #888888"># Automatically included in requirements.txt and other generated files</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="default.md">Default Configuration</a> - For default values and templates</li>
+<li><a href="models/invoice_schema.md">Invoice Schema Models</a> - For schema data structures</li>
+<li><a href="rdelogger.md">RDE Logger</a> - For logging functionality</li>
+<li><a href="workflows.md">Workflows Module</a> - For processing workflows integration</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
