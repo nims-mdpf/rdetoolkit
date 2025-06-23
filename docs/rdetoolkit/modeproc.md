@@ -39,15 +39,18 @@ def invoice_mode_process(
 ```
 
 **Parameters:**
+
 - `index` (str): Unique workflow execution identifier (run_id)
 - `srcpaths` (RdeInputDirPaths): Input directory paths for source data
 - `resource_paths` (RdeOutputResourcePath): Output resource paths for processed data
 - `datasets_process_function` (_CallbackType | None): Optional custom dataset processing function
 
 **Returns:**
+
 - `WorkflowExecutionStatus`: Execution status containing run details, success/failure status, and error information
 
 **Processing Steps:**
+
 1. Copy input files to raw file directory
 2. Execute custom dataset processing function (if provided)
 3. Copy images to thumbnail directory
@@ -57,6 +60,7 @@ def invoice_mode_process(
 7. Validate invoice file against invoice schema
 
 **Raises:**
+
 - Propagates exceptions from `datasets_process_function`
 - Validation errors during metadata or invoice validation
 
@@ -119,6 +123,7 @@ def excel_invoice_mode_process(
 ```
 
 **Parameters:**
+
 - `srcpaths` (RdeInputDirPaths): Input directory paths for source data
 - `resource_paths` (RdeOutputResourcePath): Output resource paths for processed data
 - `excel_invoice_file` (Path): Path to the Excel invoice file
@@ -126,9 +131,11 @@ def excel_invoice_mode_process(
 - `datasets_process_function` (_CallbackType | None): Optional custom dataset processing function
 
 **Returns:**
+
 - `WorkflowExecutionStatus`: Detailed execution status information
 
 **Processing Steps:**
+
 1. Overwrite Excel invoice file with processed data
 2. Copy input files to raw file directory
 3. Execute custom dataset processing function (if provided)
@@ -139,6 +146,7 @@ def excel_invoice_mode_process(
 8. Validate invoice file against schema
 
 **Raises:**
+
 - `StructuredError`: Issues with Excel invoice processing or validation
 - Propagates exceptions from custom processing functions
 
@@ -189,6 +197,7 @@ def smarttable_invoice_mode_process(
 ```
 
 **Parameters:**
+
 - `index` (str): Unique workflow execution identifier
 - `srcpaths` (RdeInputDirPaths): Input directory paths
 - `resource_paths` (RdeOutputResourcePath): Output resource paths
@@ -196,9 +205,11 @@ def smarttable_invoice_mode_process(
 - `datasets_process_function` (_CallbackType | None): Optional custom processing function
 
 **Returns:**
+
 - `WorkflowExecutionStatus`: Execution status with SmartTable-specific details
 
 **Processing Steps:**
+
 1. Initialize invoice from SmartTable file data
 2. Copy input files to raw file directory
 3. Execute custom dataset processing function (if provided)
@@ -209,10 +220,12 @@ def smarttable_invoice_mode_process(
 8. Validate invoice file against schema
 
 **Raises:**
+
 - `StructuredError`: SmartTable processing or validation errors
 - Propagates exceptions from custom processing functions
 
 **Supported SmartTable Formats:**
+
 - Excel files (.xlsx, .xls)
 - CSV files (.csv)
 - TSV files (.tsv)
@@ -271,15 +284,18 @@ def rdeformat_mode_process(
 ```
 
 **Parameters:**
+
 - `index` (str): Unique workflow execution identifier
 - `srcpaths` (RdeInputDirPaths): Input directory paths
 - `resource_paths` (RdeOutputResourcePath): Output resource paths
 - `datasets_process_function` (_CallbackType | None): Optional custom processing function
 
 **Returns:**
+
 - `WorkflowExecutionStatus`: Execution status for RDE format processing
 
 **Processing Steps:**
+
 1. Overwrite invoice file with RDE format specifications
 2. Copy input files to raw file directory using RDE format rules
 3. Execute custom dataset processing function (if provided)
@@ -289,6 +305,7 @@ def rdeformat_mode_process(
 7. Validate invoice file against schema
 
 **RDE Format Features:**
+
 - Structured directory organization
 - Predefined metadata schemas
 - Standardized file naming conventions
@@ -358,15 +375,18 @@ def multifile_mode_process(
 ```
 
 **Parameters:**
+
 - `index` (str): Unique workflow execution identifier
 - `srcpaths` (RdeInputDirPaths): Input directory paths
 - `resource_paths` (RdeOutputResourcePath): Output resource paths
 - `datasets_process_function` (_CallbackType | None): Optional custom processing function
 
 **Returns:**
+
 - `WorkflowExecutionStatus`: Execution status for multi-file processing
 
 **Processing Steps:**
+
 1. Overwrite invoice file for multi-file context
 2. Copy all input files to raw file directory
 3. Execute custom dataset processing function (if provided)
@@ -377,6 +397,7 @@ def multifile_mode_process(
 8. Validate invoice file against schema
 
 **Multi-File Features:**
+
 - Parallel processing of multiple files
 - Batch operations on file groups
 - Coordinated metadata generation
@@ -478,10 +499,12 @@ def copy_input_to_rawfile(raw_dir_path: Path, raw_files: tuple[Path, ...]) -> No
 ```
 
 **Parameters:**
+
 - `raw_dir_path` (Path): Target directory for copying raw files
 - `raw_files` (tuple[Path, ...]): Tuple of source file paths to copy
 
 **Returns:**
+
 - `None`
 
 **Example:**
@@ -518,12 +541,15 @@ def copy_input_to_rawfile_for_rdeformat(resource_paths: RdeOutputResourcePath) -
 ```
 
 **Parameters:**
+
 - `resource_paths` (RdeOutputResourcePath): Resource paths containing source files and target directories
 
 **Returns:**
+
 - `None`
 
 **Directory Mapping:**
+
 - `raw` → `resource_paths.raw`
 - `main_image` → `resource_paths.main_image`
 - `other_image` → `resource_paths.other_image`
@@ -575,14 +601,17 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
 ```
 
 **Parameters:**
+
 - `src_paths` (RdeInputDirPaths): Source input file paths
 - `unpacked_dir_path` (Path): Directory path for unpacked files
 - `mode` (str | None): Processing mode specification
 
 **Returns:**
+
 - `IInputFileChecker`: Appropriate checker instance for the detected file type
 
 **Checker Selection Logic:**
+
 1. **SmartTableChecker**: If files starting with `smarttable_` and extensions `.xlsx`, `.csv`, `.tsv` are found
 2. **ExcelInvoiceChecker**: If Excel files ending with `_excel_invoice` are found
 3. **RDEFormatChecker**: If mode is `"rdeformat"`
@@ -679,6 +708,7 @@ else:
 ### Best Practices
 
 1. **Handle Custom Function Errors**:
+
    ```python
    def safe_processor(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
        try:
@@ -690,6 +720,7 @@ else:
    ```
 
 2. **Validate Inputs**:
+
    ```python
    def validated_processor(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
        if not resource_paths.rawfiles:
@@ -704,6 +735,7 @@ else:
    ```
 
 3. **Use Appropriate Error Tolerance**:
+
    ```python
    # In workflows.run() configuration
    config = Config(

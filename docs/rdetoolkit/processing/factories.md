@@ -293,12 +293,12 @@ from rdetoolkit.processing.factories import PipelineFactory
 
 def create_pipeline_for_mode(mode_name: str):
     """Create pipeline based on mode name with validation."""
-    
+
     supported_modes = PipelineFactory.get_supported_modes()
-    
+
     if mode_name.lower() not in supported_modes:
         raise ValueError(f"Unsupported mode: {mode_name}. Supported: {supported_modes}")
-    
+
     return PipelineFactory.create_pipeline(mode_name.lower())
 
 # Usage
@@ -316,20 +316,20 @@ from rdetoolkit.processing.factories import PipelineFactory, ProcessingMode
 
 def process_data_by_mode(context, mode_name: str):
     """Process data using the appropriate pipeline for the mode."""
-    
+
     # Convert string to enum for validation
     try:
         mode = ProcessingMode(mode_name.lower())
     except ValueError:
         supported = [m.value for m in ProcessingMode]
         raise ValueError(f"Unsupported mode: {mode_name}. Supported: {supported}")
-    
+
     # Create and execute pipeline
     pipeline = PipelineFactory.create_pipeline(mode)
-    
+
     print(f"Processing in {mode.value} mode")
     print(f"Pipeline processors: {pipeline.get_processor_names()}")
-    
+
     result = pipeline.execute(context)
     return result
 
@@ -346,7 +346,7 @@ from rdetoolkit.processing.processors import *
 
 class CustomPipelineBuilder(PipelineBuilder):
     """Custom builder for specialized processing."""
-    
+
     def build(self) -> Pipeline:
         """Build custom pipeline with specific processors."""
         return (self._create_base_pipeline()
@@ -368,13 +368,13 @@ from rdetoolkit.processing.factories import PipelineFactory
 
 def inspect_pipeline(mode: str):
     """Inspect pipeline configuration for a given mode."""
-    
+
     pipeline = PipelineFactory.create_pipeline(mode)
-    
+
     print(f"Pipeline for {mode} mode:")
     print(f"  Processor count: {pipeline.get_processor_count()}")
     print(f"  Processors:")
-    
+
     for i, name in enumerate(pipeline.get_processor_names(), 1):
         print(f"    {i}. {name}")
 
@@ -411,7 +411,7 @@ from rdetoolkit.processing.factories import PipelineFactory
 
 def safe_pipeline_creation(mode: str):
     """Safely create pipeline with comprehensive error handling."""
-    
+
     try:
         # Validate mode
         supported_modes = PipelineFactory.get_supported_modes()
@@ -419,15 +419,15 @@ def safe_pipeline_creation(mode: str):
             print(f"Error: '{mode}' is not supported")
             print(f"Supported modes: {', '.join(supported_modes)}")
             return None
-        
+
         # Create pipeline
         pipeline = PipelineFactory.create_pipeline(mode)
-        
+
         print(f"✓ Successfully created {mode} pipeline")
         print(f"  Processors: {', '.join(pipeline.get_processor_names())}")
-        
+
         return pipeline
-        
+
     except ValueError as e:
         print(f"✗ Value error: {e}")
         return None
@@ -485,23 +485,23 @@ from rdetoolkit.processing import Pipeline
 
 class CustomPipelineFactory:
     """Custom factory for application-specific pipelines."""
-    
+
     def __init__(self):
         self._builders: Dict[str, Type[PipelineBuilder]] = {}
-    
+
     def register_builder(self, mode: str, builder_class: Type[PipelineBuilder]):
         """Register a new builder for a mode."""
         self._builders[mode.lower()] = builder_class
-    
+
     def create_pipeline(self, mode: str) -> Pipeline:
         """Create pipeline for the specified mode."""
         builder_class = self._builders.get(mode.lower())
         if not builder_class:
             raise ValueError(f"No builder registered for mode: {mode}")
-        
+
         builder = builder_class()
         return builder.build()
-    
+
     def get_supported_modes(self) -> list[str]:
         """Get list of supported modes."""
         return list(self._builders.keys())

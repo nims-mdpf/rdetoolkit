@@ -64,10 +64,10 @@ class ExampleProcessor(Processor):
 ```python
 def process(self, context: ProcessingContext) -> None:
     config = context.srcpaths.config
-    
+
     if not config.some_feature_enabled:
         return  # Skip processing if disabled
-    
+
     # Perform processing
 ```
 
@@ -94,10 +94,10 @@ def process(self, context: ProcessingContext) -> None:
     # Access resources from context
     input_files = context.resource_paths.rawfiles
     output_dir = context.resource_paths.struct
-    
+
     # Create output directory if needed
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Process files
     for file in input_files:
         self._process_file(file, output_dir)
@@ -147,20 +147,20 @@ import json
 
 class MetadataProcessor(Processor):
     """Custom processor that creates metadata files."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         metadata = {
             "processing_mode": context.mode_name,
             "file_count": len(context.resource_paths.rawfiles),
             "timestamp": self._get_timestamp(),
         }
-        
+
         metadata_file = context.metadata_path
         metadata_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(metadata_file, 'w') as f:
             json.dump(metadata, f, indent=2)
-    
+
     def _get_timestamp(self) -> str:
         from datetime import datetime
         return datetime.now().isoformat()
@@ -177,21 +177,21 @@ from rdetoolkit.processing.processors import ThumbnailGenerator
 
 class ConditionalThumbnailGenerator(ThumbnailGenerator):
     """Thumbnail generator with additional conditions."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         config = context.srcpaths.config
-        
+
         # Check if thumbnails are enabled
         if not config.save_thumbnail_image:
             return
-        
+
         # Check if we have image files
-        image_files = [f for f in context.resource_paths.rawfiles 
+        image_files = [f for f in context.resource_paths.rawfiles
                       if f.suffix.lower() in ['.jpg', '.png', '.tiff']]
-        
+
         if not image_files:
             return  # No images to process
-        
+
         # Call parent implementation
         super().process(context)
 ```
@@ -204,21 +204,21 @@ from rdetoolkit.processing.pipeline import Processor
 
 class ProcessorFactory:
     """Factory for creating processors based on configuration."""
-    
+
     _processors: Dict[str, Type[Processor]] = {
         'files': FileCopier,
         'datasets': DatasetRunner,
         'thumbnails': ThumbnailGenerator,
         'validation': InvoiceValidator,
     }
-    
+
     @classmethod
     def create_processor(cls, processor_type: str) -> Processor:
         processor_class = cls._processors.get(processor_type)
         if not processor_class:
             raise ValueError(f"Unknown processor type: {processor_type}")
         return processor_class()
-    
+
     @classmethod
     def create_processors(cls, processor_types: list[str]) -> list[Processor]:
         return [cls.create_processor(ptype) for ptype in processor_types]
@@ -252,14 +252,14 @@ def process(self, context: ProcessingContext) -> None:
 ```python
 def process(self, context: ProcessingContext) -> None:
     failed_files = []
-    
+
     for raw_file in context.resource_paths.rawfiles:
         try:
             self._process_file(raw_file, context)
         except Exception as e:
             failed_files.append((raw_file, str(e)))
             logger.warning(f"Failed to process {raw_file}: {e}")
-    
+
     if failed_files:
         # Report failed files but don't stop processing
         logger.info(f"Completed with {len(failed_files)} failures")
@@ -279,12 +279,12 @@ class TestFileCopier(unittest.TestCase):
         self.processor = FileCopier()
         self.context = Mock()
         # Setup mock context attributes
-    
+
     def test_process_success(self):
         # Test successful processing
         self.processor.process(self.context)
         # Assert expected behavior
-    
+
     def test_process_error_handling(self):
         # Test error handling
         with self.assertRaises(SpecificError):
@@ -300,10 +300,10 @@ from rdetoolkit.processing.processors import FileCopier, DatasetRunner
 def test_processor_integration():
     # Create test context
     context = create_test_context()
-    
+
     # Create pipeline with processors
     pipeline = Pipeline().add(FileCopier()).add(DatasetRunner())
-    
+
     # Execute and verify results
     result = pipeline.execute(context)
     assert result.status == "success"

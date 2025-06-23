@@ -192,7 +192,7 @@ logger = logging.getLogger(__name__)
 
 def validate_with_detailed_logging(context):
     """Validate with detailed error logging."""
-    
+
     # Invoice validation
     invoice_validator = InvoiceValidator()
     try:
@@ -201,7 +201,7 @@ def validate_with_detailed_logging(context):
     except Exception as e:
         logger.error(f"Invoice validation: FAILED - {e}")
         raise
-    
+
     # Metadata validation
     metadata_validator = MetadataValidator()
     try:
@@ -210,7 +210,7 @@ def validate_with_detailed_logging(context):
     except Exception as e:
         logger.error(f"Metadata validation: FAILED - {e}")
         raise
-    
+
     logger.info("All validation checks completed successfully")
 
 # Execute validation
@@ -228,13 +228,13 @@ from pathlib import Path
 
 def conditional_validation(context):
     """Perform validation based on file existence."""
-    
+
     validation_results = {
         "invoice_validated": False,
         "metadata_validated": False,
         "errors": []
     }
-    
+
     # Check if invoice exists before validation
     if context.invoice_dst_filepath.exists():
         try:
@@ -245,7 +245,7 @@ def conditional_validation(context):
             validation_results["errors"].append(f"Invoice validation: {e}")
     else:
         validation_results["errors"].append("Invoice file not found")
-    
+
     # Check if metadata exists before validation
     if context.metadata_path.exists():
         try:
@@ -256,7 +256,7 @@ def conditional_validation(context):
             validation_results["errors"].append(f"Metadata validation: {e}")
     else:
         print("Metadata file not found - skipping validation")
-    
+
     return validation_results
 
 # Execute conditional validation
@@ -273,7 +273,7 @@ from pathlib import Path
 
 class ValidationWorkflow:
     """Custom validation workflow with reporting."""
-    
+
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir
         self.validation_report = {
@@ -282,27 +282,27 @@ class ValidationWorkflow:
             "metadata_validation": {"status": "pending", "errors": []},
             "overall_status": "pending"
         }
-    
+
     def run_validation(self, context):
         """Run complete validation workflow."""
         import datetime
-        
+
         self.validation_report["timestamp"] = datetime.datetime.now().isoformat()
-        
+
         # Invoice validation
         self._validate_invoice(context)
-        
+
         # Metadata validation
         self._validate_metadata(context)
-        
+
         # Determine overall status
         self._determine_overall_status()
-        
+
         # Save validation report
         self._save_report()
-        
+
         return self.validation_report
-    
+
     def _validate_invoice(self, context):
         """Validate invoice with error capture."""
         try:
@@ -312,7 +312,7 @@ class ValidationWorkflow:
         except Exception as e:
             self.validation_report["invoice_validation"]["status"] = "failed"
             self.validation_report["invoice_validation"]["errors"].append(str(e))
-    
+
     def _validate_metadata(self, context):
         """Validate metadata with error capture."""
         try:
@@ -322,17 +322,17 @@ class ValidationWorkflow:
         except Exception as e:
             self.validation_report["metadata_validation"]["status"] = "failed"
             self.validation_report["metadata_validation"]["errors"].append(str(e))
-    
+
     def _determine_overall_status(self):
         """Determine overall validation status."""
         invoice_passed = self.validation_report["invoice_validation"]["status"] == "passed"
         metadata_passed = self.validation_report["metadata_validation"]["status"] == "passed"
-        
+
         if invoice_passed and metadata_passed:
             self.validation_report["overall_status"] = "passed"
         else:
             self.validation_report["overall_status"] = "failed"
-    
+
     def _save_report(self):
         """Save validation report to file."""
         report_path = self.output_dir / "validation_report.json"
@@ -367,7 +367,7 @@ The invoice validation process follows these steps:
 
 # Invalid data types
 {
-    "error": "ValidationError", 
+    "error": "ValidationError",
     "message": "'25.5' is not of type 'number'",
     "path": "$.sample.generalAttributes[0].value"
 }
@@ -471,7 +471,7 @@ except json.JSONDecodeError as e:
    ```python
    if not context.schema_path.exists():
        raise FileNotFoundError(f"Schema file not found: {context.schema_path}")
-   
+
    # Optionally validate schema format
    try:
        with open(context.schema_path) as f:
@@ -512,7 +512,7 @@ def validate_inputs(context):
     if context.metadata_path.exists():
         metadata_validator = MetadataValidator()
         metadata_validator.process(context)
-        
+
 # Validate after processing
 def validate_outputs(context):
     """Validate outputs after main processing."""

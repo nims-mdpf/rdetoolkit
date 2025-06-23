@@ -291,11 +291,11 @@ class CustomProcessor(Processor):
     def process(self, context: ProcessingContext) -> None:
         # Access input configuration
         config = context.srcpaths.config
-        
+
         # Get output paths
         raw_dir = context.resource_paths.raw
         structured_dir = context.resource_paths.struct
-        
+
         # Check processing mode
         if context.is_excel_mode:
             excel_file = context.excel_invoice_file
@@ -306,7 +306,7 @@ class CustomProcessor(Processor):
         else:
             # Standard processing logic
             pass
-        
+
         # Access common paths
         invoice_dst = context.invoice_dst_filepath
         metadata_path = context.metadata_path

@@ -47,7 +47,7 @@ class CustomProcessor(Processor):
         # Access resources from context
         raw_files = context.resource_paths.rawfiles
         output_dir = context.resource_paths.struct
-        
+
         # Perform processing operations
         for file in raw_files:
             process_file(file, output_dir)
@@ -191,15 +191,15 @@ import shutil
 
 class FileBackupProcessor(Processor):
     """Processor that creates backups of raw files."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         backup_dir = context.resource_paths.raw.parent / "backup"
         backup_dir.mkdir(exist_ok=True)
-        
+
         for raw_file in context.resource_paths.rawfiles:
             backup_path = backup_dir / raw_file.name
             shutil.copy2(raw_file, backup_path)
-            
+
         print(f"Backed up {len(context.resource_paths.rawfiles)} files")
 ```
 
@@ -228,27 +228,27 @@ print(f"Processors: {pipeline.get_processor_names()}")
 ```python
 class ConditionalProcessor(Processor):
     """Processor that performs different operations based on context."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         config = context.srcpaths.config
-        
+
         if context.is_excel_mode:
             self._process_excel_mode(context)
         elif context.is_smarttable_mode:
             self._process_smarttable_mode(context)
         else:
             self._process_standard_mode(context)
-    
+
     def _process_excel_mode(self, context: ProcessingContext) -> None:
         excel_file = context.excel_invoice_file
         print(f"Processing Excel file: {excel_file}")
         # Excel-specific processing
-    
+
     def _process_smarttable_mode(self, context: ProcessingContext) -> None:
         smarttable_file = context.smarttable_invoice_file
         print(f"Processing SmartTable file: {smarttable_file}")
         # SmartTable-specific processing
-    
+
     def _process_standard_mode(self, context: ProcessingContext) -> None:
         print("Processing in standard mode")
         # Standard processing
@@ -259,7 +259,7 @@ class ConditionalProcessor(Processor):
 ```python
 class RobustProcessor(Processor):
     """Processor with comprehensive error handling."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         try:
             self._do_processing(context)
@@ -270,7 +270,7 @@ class RobustProcessor(Processor):
             # Log error and re-raise for pipeline to handle
             print(f"Error in {self.get_name()}: {e}")
             raise
-    
+
     def _do_processing(self, context: ProcessingContext) -> None:
         # Actual processing logic
         pass
@@ -281,13 +281,13 @@ class RobustProcessor(Processor):
 ```python
 def execute_pipeline_with_monitoring(pipeline: Pipeline, context: ProcessingContext):
     """Execute pipeline with detailed status monitoring."""
-    
+
     print(f"Starting pipeline with {pipeline.get_processor_count()} processors")
     print(f"Processors: {', '.join(pipeline.get_processor_names())}")
-    
+
     try:
         result = pipeline.execute(context)
-        
+
         if result.status == "success":
             print(f"✓ Pipeline completed successfully")
             print(f"  Title: {result.title}")
@@ -299,9 +299,9 @@ def execute_pipeline_with_monitoring(pipeline: Pipeline, context: ProcessingCont
             print(f"  Error Message: {result.error_message}")
             if result.stacktrace:
                 print(f"  Stack Trace: {result.stacktrace}")
-                
+
         return result
-        
+
     except Exception as e:
         print(f"✗ Pipeline execution failed with exception: {e}")
         raise
@@ -316,20 +316,20 @@ result = execute_pipeline_with_monitoring(pipeline, context)
 ```python
 class ParallelFileProcessor(Processor):
     """Processor designed for parallel execution."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         import concurrent.futures
-        
+
         raw_files = context.resource_paths.rawfiles
         output_dir = context.resource_paths.struct
-        
+
         # Process files in parallel
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             futures = [
                 executor.submit(self._process_single_file, file, output_dir)
                 for file in raw_files
             ]
-            
+
             # Wait for all tasks to complete
             for future in concurrent.futures.as_completed(futures):
                 try:
@@ -337,7 +337,7 @@ class ParallelFileProcessor(Processor):
                 except Exception as e:
                     print(f"Error processing file: {e}")
                     raise
-    
+
     def _process_single_file(self, file_path, output_dir):
         """Process a single file (thread-safe)."""
         # File processing logic here
@@ -351,20 +351,20 @@ class ParallelFileProcessor(Processor):
 ```python
 class TemplateProcessor(Processor):
     """Template processor with customizable steps."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         self._pre_process(context)
         self._main_process(context)
         self._post_process(context)
-    
+
     def _pre_process(self, context: ProcessingContext) -> None:
         """Override in subclasses for pre-processing."""
         pass
-    
+
     def _main_process(self, context: ProcessingContext) -> None:
         """Override in subclasses for main processing."""
         raise NotImplementedError
-    
+
     def _post_process(self, context: ProcessingContext) -> None:
         """Override in subclasses for post-processing."""
         pass
@@ -375,7 +375,7 @@ class TemplateProcessor(Processor):
 ```python
 class StrategyProcessor(Processor):
     """Processor using strategy pattern for different operations."""
-    
+
     def __init__(self, strategy_name: str):
         self._strategy_name = strategy_name
         self._strategies = {
@@ -383,22 +383,22 @@ class StrategyProcessor(Processor):
             "encrypt": self._encrypt_strategy,
             "archive": self._archive_strategy,
         }
-    
+
     def process(self, context: ProcessingContext) -> None:
         strategy = self._strategies.get(self._strategy_name)
         if not strategy:
             raise ValueError(f"Unknown strategy: {self._strategy_name}")
-        
+
         strategy(context)
-    
+
     def _compress_strategy(self, context: ProcessingContext) -> None:
         # Compression logic
         pass
-    
+
     def _encrypt_strategy(self, context: ProcessingContext) -> None:
         # Encryption logic
         pass
-    
+
     def _archive_strategy(self, context: ProcessingContext) -> None:
         # Archiving logic
         pass
@@ -420,7 +420,7 @@ The pipeline provides comprehensive error handling:
 ```python
 class ErrorHandlingProcessor(Processor):
     """Processor with custom error handling strategies."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         try:
             self._risky_operation(context)

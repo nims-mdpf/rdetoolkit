@@ -36,23 +36,28 @@ def process(context: ProcessingContext) -> None
 ```
 
 **Parameters:**
+
 - `context` (ProcessingContext): Processing context containing resource paths and configuration
 
 **Returns:**
+
 - `None`: This method does not return a value
 
 **Error Handling:**
+
 - Uses `contextlib.suppress(Exception)` to ignore any exceptions during processing
 - Logs warnings for any unexpected errors
 - Ensures pipeline continuation even if description updates fail
 
 **Processing Flow:**
+
 1. Logs the start of description update process
 2. Calls `update_description_with_features()` with context information
 3. Suppresses any exceptions that occur during processing
 4. Logs completion status
 
 **Example:**
+
 ```python
 from rdetoolkit.processing.processors.descriptions import DescriptionUpdater
 from rdetoolkit.processing.context import ProcessingContext
@@ -99,6 +104,7 @@ update_description_with_features(
 ```
 
 This function:
+
 - Reads existing invoice data
 - Extracts features from processed data
 - Updates description fields with feature information
@@ -145,16 +151,16 @@ from rdetoolkit.processing.context import ProcessingContext
 
 class ConditionalDescriptionProcessor(DescriptionUpdater):
     """Description processor with conditional execution."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         """Process only if features are available."""
-        
+
         # Check if feature extraction was successful
         if self._has_features(context):
             super().process(context)
         else:
             logger.info("Skipping description update - no features available")
-    
+
     def _has_features(self, context: ProcessingContext) -> bool:
         """Check if features are available for processing."""
         # Implementation to check feature availability
@@ -178,6 +184,7 @@ with contextlib.suppress(Exception):
 ```
 
 **Benefits:**
+
 - Prevents pipeline failures due to description update issues
 - Maintains processing continuity for other pipeline stages
 - Allows partial success in multi-stage processing
@@ -193,6 +200,7 @@ logger.debug("Description update completed (errors suppressed)")
 ```
 
 **Log Levels:**
+
 - `DEBUG`: Normal processing flow information
 - `WARNING`: Unexpected errors that are handled gracefully
 - `INFO`: Significant processing milestones
@@ -202,29 +210,29 @@ logger.debug("Description update completed (errors suppressed)")
 ```python
 class RobustDescriptionUpdater(DescriptionUpdater):
     """Enhanced description processor with error recovery."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         """Process with multiple error recovery strategies."""
-        
+
         try:
             # Attempt primary processing
             super().process(context)
-            
+
         except MemoryError:
             # Handle memory-specific issues
             logger.warning("Memory error during description update")
             self._cleanup_memory(context)
-            
+
         except FileNotFoundError:
             # Handle missing file issues
             logger.warning("Required files missing for description update")
             self._create_default_description(context)
-    
+
     def _cleanup_memory(self, context: ProcessingContext) -> None:
         """Clean up memory and retry with reduced processing."""
         # Implementation for memory cleanup
         pass
-    
+
     def _create_default_description(self, context: ProcessingContext) -> None:
         """Create default description when features are unavailable."""
         # Implementation for default description creation
@@ -294,42 +302,42 @@ import json
 
 class EnhancedDescriptionUpdater(DescriptionUpdater):
     """Enhanced description processor with additional features."""
-    
+
     def process(self, context: ProcessingContext) -> None:
         """Enhanced processing with custom feature extraction."""
-        
+
         # Pre-processing: extract custom features
         self._extract_custom_features(context)
-        
+
         # Standard description processing
         super().process(context)
-        
+
         # Post-processing: add metadata
         self._add_processing_metadata(context)
-    
+
     def _extract_custom_features(self, context: ProcessingContext) -> None:
         """Extract custom features before description update."""
-        
+
         custom_features = {
             "processing_timestamp": "2024-01-01T12:00:00Z",
             "feature_version": "1.0.0",
             "custom_tags": ["enhanced", "processed"]
         }
-        
+
         # Save custom features
         feature_file = context.resource_paths.meta / "custom_features.json"
         with feature_file.open("w") as f:
             json.dump(custom_features, f, indent=2)
-    
+
     def _add_processing_metadata(self, context: ProcessingContext) -> None:
         """Add processing metadata after description update."""
-        
+
         metadata = {
             "description_updated": True,
             "processor_version": "2.0.0",
             "processing_notes": "Enhanced description processing completed"
         }
-        
+
         # Save processing metadata
         metadata_file = context.resource_paths.meta / "processing_metadata.json"
         with metadata_file.open("w") as f:

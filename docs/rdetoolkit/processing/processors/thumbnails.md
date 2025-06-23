@@ -122,18 +122,18 @@ from rdetoolkit.processing.processors.thumbnails import ThumbnailGenerator
 
 def process_thumbnails_conditionally(context):
     """Generate thumbnails with configuration check."""
-    
+
     # Check if thumbnail generation is enabled
     if not context.srcpaths.config.system.save_thumbnail_image:
         print("Thumbnail generation disabled, skipping")
         return
-    
+
     # Check if main images exist
     main_image_path = context.resource_paths.main_image
     if not main_image_path.exists() or not any(main_image_path.iterdir()):
         print("No main images found for thumbnail generation")
         return
-    
+
     # Generate thumbnails
     generator = ThumbnailGenerator()
     generator.process(context)
@@ -152,35 +152,35 @@ import logging
 
 def generate_thumbnails_with_monitoring(context):
     """Generate thumbnails with detailed monitoring."""
-    
+
     logger = logging.getLogger(__name__)
-    
+
     # Pre-processing checks
     main_image_dir = context.resource_paths.main_image
     thumbnail_dir = context.resource_paths.thumbnail
-    
+
     if not main_image_dir.exists():
         logger.warning(f"Main image directory not found: {main_image_dir}")
         return
-    
+
     # Count source images
     image_extensions = {'.jpg', '.jpeg', '.png', '.tiff', '.tif', '.bmp', '.gif'}
     source_images = [
-        f for f in main_image_dir.iterdir() 
+        f for f in main_image_dir.iterdir()
         if f.is_file() and f.suffix.lower() in image_extensions
     ]
-    
+
     logger.info(f"Found {len(source_images)} source images for thumbnail generation")
-    
+
     # Generate thumbnails
     generator = ThumbnailGenerator()
     generator.process(context)
-    
+
     # Post-processing verification
     if thumbnail_dir.exists():
         thumbnail_files = list(thumbnail_dir.glob('*'))
         logger.info(f"Generated {len(thumbnail_files)} thumbnail files")
-        
+
         # Log thumbnail details
         for thumb_file in thumbnail_files:
             size = thumb_file.stat().st_size
@@ -200,13 +200,13 @@ from pathlib import Path
 
 def batch_thumbnail_processing(contexts):
     """Process thumbnails for multiple datasets."""
-    
+
     generator = ThumbnailGenerator()
     results = []
-    
+
     for i, context in enumerate(contexts):
         print(f"Processing thumbnails for dataset {i+1}/{len(contexts)}")
-        
+
         try:
             # Check configuration
             if context.srcpaths.config.system.save_thumbnail_image:
@@ -222,7 +222,7 @@ def batch_thumbnail_processing(contexts):
                     "status": "skipped",
                     "reason": "thumbnail generation disabled"
                 })
-                
+
         except Exception as e:
             # This should rarely happen as ThumbnailGenerator handles errors internally
             results.append({
@@ -230,7 +230,7 @@ def batch_thumbnail_processing(contexts):
                 "status": "error",
                 "error": str(e)
             })
-    
+
     return results
 
 # Create multiple contexts for batch processing
@@ -260,7 +260,7 @@ import shutil
 
 class ThumbnailWorkflow:
     """Custom workflow for thumbnail processing with additional features."""
-    
+
     def __init__(self, backup_enabled=False):
         self.backup_enabled = backup_enabled
         self.processing_stats = {
@@ -268,35 +268,35 @@ class ThumbnailWorkflow:
             "skipped": 0,
             "errors": 0
         }
-    
+
     def process_with_backup(self, context):
         """Process thumbnails with optional backup."""
-        
+
         thumbnail_dir = context.resource_paths.thumbnail
-        
+
         # Create backup if enabled
         backup_dir = None
         if self.backup_enabled and thumbnail_dir.exists():
             backup_dir = self._create_backup(thumbnail_dir)
-        
+
         try:
             # Generate thumbnails
             generator = ThumbnailGenerator()
             generator.process(context)
-            
+
             self.processing_stats["processed"] += 1
             return True
-            
+
         except Exception as e:
             self.processing_stats["errors"] += 1
-            
+
             # Restore backup if generation failed
             if backup_dir:
                 self._restore_backup(backup_dir, thumbnail_dir)
-            
+
             print(f"Thumbnail processing failed: {e}")
             return False
-    
+
     def _create_backup(self, thumbnail_dir: Path) -> Path:
         """Create backup of existing thumbnails."""
         backup_dir = thumbnail_dir.parent / f"{thumbnail_dir.name}_backup"
@@ -304,14 +304,14 @@ class ThumbnailWorkflow:
             shutil.rmtree(backup_dir)
         shutil.copytree(thumbnail_dir, backup_dir)
         return backup_dir
-    
+
     def _restore_backup(self, backup_dir: Path, thumbnail_dir: Path):
         """Restore thumbnails from backup."""
         if thumbnail_dir.exists():
             shutil.rmtree(thumbnail_dir)
         shutil.copytree(backup_dir, thumbnail_dir)
         shutil.rmtree(backup_dir)  # Clean up backup
-    
+
     def get_statistics(self):
         """Get processing statistics."""
         return self.processing_stats.copy()
@@ -333,24 +333,24 @@ import logging
 
 def verify_thumbnail_quality(context):
     """Generate thumbnails and verify quality."""
-    
+
     logger = logging.getLogger(__name__)
-    
+
     # Generate thumbnails
     generator = ThumbnailGenerator()
     generator.process(context)
-    
+
     # Verify generated thumbnails
     thumbnail_dir = context.resource_paths.thumbnail
     main_image_dir = context.resource_paths.main_image
-    
+
     if not thumbnail_dir.exists():
         logger.warning("No thumbnail directory created")
         return
-    
+
     # Check each thumbnail
     verification_results = []
-    
+
     for thumb_file in thumbnail_dir.iterdir():
         if thumb_file.is_file():
             try:
@@ -358,10 +358,10 @@ def verify_thumbnail_quality(context):
                 with Image.open(thumb_file) as img:
                     width, height = img.size
                     format_name = img.format
-                    
+
                     # Find corresponding source image
                     source_file = find_source_image(thumb_file.stem, main_image_dir)
-                    
+
                     verification_results.append({
                         "thumbnail": thumb_file.name,
                         "size": f"{width}x{height}",
@@ -369,29 +369,29 @@ def verify_thumbnail_quality(context):
                         "source_found": source_file is not None,
                         "file_size": thumb_file.stat().st_size
                     })
-                    
+
             except Exception as e:
                 logger.error(f"Failed to verify thumbnail {thumb_file}: {e}")
                 verification_results.append({
                     "thumbnail": thumb_file.name,
                     "error": str(e)
                 })
-    
+
     # Log verification results
     valid_thumbnails = [r for r in verification_results if "error" not in r]
     logger.info(f"Verified {len(valid_thumbnails)} valid thumbnails")
-    
+
     return verification_results
 
 def find_source_image(thumb_stem: str, main_image_dir: Path) -> Path:
     """Find source image for thumbnail."""
     extensions = ['.jpg', '.jpeg', '.png', '.tiff', '.tif', '.bmp', '.gif']
-    
+
     for ext in extensions:
         source_file = main_image_dir / f"{thumb_stem}{ext}"
         if source_file.exists():
             return source_file
-    
+
     return None
 
 # Usage
@@ -429,17 +429,17 @@ pipeline.process(context)
 ```python
 def create_image_processing_pipeline(config):
     """Create pipeline with conditional thumbnail generation."""
-    
+
     pipeline = ProcessingPipeline()
-    
+
     # Add standard image processors
     pipeline.add_processor(ImageFileProcessor())
     pipeline.add_processor(ImageResizer())
-    
+
     # Add thumbnail generator only if enabled
     if config.system.save_thumbnail_image:
         pipeline.add_processor(ThumbnailGenerator())
-    
+
     return pipeline
 
 # Usage
@@ -497,7 +497,7 @@ except Exception as e:
 4. **Monitor disk space for thumbnail storage**:
    ```python
    import shutil
-   
+
    # Check available space
    total, used, free = shutil.disk_usage(context.resource_paths.thumbnail.parent)
    if free < estimated_thumbnail_size:

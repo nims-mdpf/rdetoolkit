@@ -188,17 +188,17 @@ from rdetoolkit.processing.processors.variables import VariableApplier
 
 def process_with_variable_check(context):
     """Process with magic variable configuration check."""
-    
+
     # Check configuration
     if not context.srcpaths.config.system.magic_variable:
         print("Magic variables disabled, skipping processing")
         return
-    
+
     # Check for raw files
     if not context.resource_paths.rawfiles:
         print("No raw files available for variable extraction")
         return
-    
+
     # Apply magic variables
     applier = VariableApplier()
     try:
@@ -219,10 +219,10 @@ from pathlib import Path
 
 def process_multiple_files(contexts):
     """Process magic variables for multiple files."""
-    
+
     applier = VariableApplier()
     results = []
-    
+
     for i, context in enumerate(contexts):
         try:
             print(f"Processing file {i+1}/{len(contexts)}")
@@ -239,7 +239,7 @@ def process_multiple_files(contexts):
                 "file": str(context.invoice_dst_filepath),
                 "error": str(e)
             })
-    
+
     return results
 
 # Create multiple contexts
@@ -266,31 +266,31 @@ from pathlib import Path
 
 class MagicVariableWorkflow:
     """Custom workflow for magic variable processing."""
-    
+
     def __init__(self, backup_dir: Path):
         self.backup_dir = backup_dir
         self.backup_dir.mkdir(parents=True, exist_ok=True)
-    
+
     def process_with_backup(self, context):
         """Process magic variables with backup creation."""
-        
+
         # Create backup of original invoice
         backup_path = self._create_backup(context.invoice_dst_filepath)
-        
+
         try:
             # Apply magic variables
             applier = VariableApplier()
             applier.process(context)
-            
+
             print(f"Magic variables applied. Backup saved to: {backup_path}")
             return True
-            
+
         except Exception as e:
             # Restore from backup on failure
             self._restore_backup(backup_path, context.invoice_dst_filepath)
             print(f"Magic variable processing failed, restored from backup: {e}")
             return False
-    
+
     def _create_backup(self, invoice_path: Path) -> Path:
         """Create backup of invoice file."""
         if invoice_path.exists():
@@ -298,7 +298,7 @@ class MagicVariableWorkflow:
             shutil.copy2(invoice_path, backup_path)
             return backup_path
         return None
-    
+
     def _restore_backup(self, backup_path: Path, invoice_path: Path):
         """Restore invoice from backup."""
         if backup_path and backup_path.exists():
@@ -318,29 +318,29 @@ import re
 
 def validate_magic_variables(invoice_path: Path, available_variables: set):
     """Validate magic variables in invoice before processing."""
-    
+
     # Load invoice
     with open(invoice_path) as f:
         invoice_data = json.load(f)
-    
+
     # Convert to string for pattern matching
     invoice_str = json.dumps(invoice_data)
-    
+
     # Find all magic variables
     pattern = r'\$\{([^}]+)\}'
     found_variables = set(re.findall(pattern, invoice_str))
-    
+
     # Check for undefined variables
     undefined_variables = found_variables - available_variables
-    
+
     if undefined_variables:
         raise ValueError(f"Undefined magic variables: {undefined_variables}")
-    
+
     return found_variables
 
 # Define available variables
 available_vars = {
-    'filename', 'filepath', 'filesize', 'timestamp', 
+    'filename', 'filepath', 'filesize', 'timestamp',
     'index', 'date', 'time'
 }
 
@@ -348,11 +348,11 @@ available_vars = {
 try:
     used_vars = validate_magic_variables(context.invoice_dst_filepath, available_vars)
     print(f"Found valid magic variables: {used_vars}")
-    
+
     # Process magic variables
     applier = VariableApplier()
     applier.process(context)
-    
+
 except ValueError as e:
     print(f"Validation failed: {e}")
 ```
@@ -389,19 +389,19 @@ from rdetoolkit.processing.processors.variables import VariableApplier
 
 def create_conditional_pipeline(config):
     """Create pipeline with conditional magic variable processing."""
-    
+
     pipeline = ProcessingPipeline()
-    
+
     # Add standard processors
     pipeline.add_processor(StandardProcessor())
-    
+
     # Add variable applier only if enabled
     if config.system.magic_variable:
         pipeline.add_processor(VariableApplier())
-    
+
     # Add validation
     pipeline.add_processor(ValidationProcessor())
-    
+
     return pipeline
 
 # Usage

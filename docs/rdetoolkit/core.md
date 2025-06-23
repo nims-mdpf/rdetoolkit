@@ -195,7 +195,7 @@ indexed_dirs = ops.all(2)  # Creates base + divided/0001, divided/0002 subdirs
 The following directories are automatically supported:
 
 - `invoice`
-- `raw` 
+- `raw`
 - `structured`
 - `main_image`
 - `other_image`
@@ -235,7 +235,7 @@ from rdetoolkit.core import resize_image_aspect_ratio
 # Resize image to fit within 800x600 while preserving aspect ratio
 resize_image_aspect_ratio(
     "input.jpg",
-    "output.jpg", 
+    "output.jpg",
     800,
     600
 )
@@ -310,7 +310,7 @@ ops = DirectoryOps("/project/data")
 invoice_dir = ops.invoice
 invoice_dir.create()
 
-raw_dir = ops.raw  
+raw_dir = ops.raw
 raw_dir.create()
 
 # Create all standard directories
@@ -330,10 +330,10 @@ for i in range(1, 4):
     # Create indexed subdirectories
     invoice_dir = ops.invoice(i)
     raw_dir = ops.raw(i)
-    
+
     invoice_dir.create()  # /project/data/divided/0001/invoice
     raw_dir.create()      # /project/data/divided/0001/raw
-    
+
     print(f"Created directories for dataset {i}")
 ```
 
@@ -362,7 +362,7 @@ for img_path in input_images:
         str(main_output),
         1920, 1080
     )
-    
+
     # Create thumbnail
     thumb_output = Path(thumbnail_dir.path) / f"thumb_{img_path.name}"
     resize_image_aspect_ratio(
@@ -380,20 +380,20 @@ from pathlib import Path
 
 def process_text_files(directory: str):
     """Process all text files in a directory with encoding detection."""
-    
+
     for file_path in Path(directory).glob("*.txt"):
         try:
             # Detect encoding
             encoding = detect_encoding(str(file_path))
             print(f"{file_path.name}: {encoding}")
-            
+
             # Read with automatic encoding handling
             content = read_file_with_encoding(str(file_path))
-            
+
             # Process content
             lines = content.splitlines()
             print(f"  Lines: {len(lines)}")
-            
+
         except Exception as e:
             print(f"Error processing {file_path.name}: {e}")
 
@@ -416,7 +416,7 @@ except OSError as e:
     print(f"Failed to create directory: {e}")
 ```
 
-#### ValueError  
+#### ValueError
 Raised for invalid parameter values:
 ```python
 try:
@@ -455,7 +455,7 @@ except IOError as e:
 3. **Use Path objects** for better path handling:
    ```python
    from pathlib import Path
-   
+
    input_path = Path("data") / "input.jpg"
    if input_path.exists():
        resize_image_aspect_ratio(str(input_path), str(output_path), 800, 600)
