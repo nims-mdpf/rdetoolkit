@@ -227,7 +227,7 @@ class InvoiceSchemaJsonGenerator:
             version="https://json-schema.org/draft/2020-12/schema",
             schema_id="https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",
             description="RDEデータセットテンプレートテスト用ファイル",
-            type="object",
+            value_type="object",
             properties=Properties(),
         )
         cvt_obj = obj.model_dump(by_alias=True)
