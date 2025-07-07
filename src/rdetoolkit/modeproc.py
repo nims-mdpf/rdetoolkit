@@ -426,7 +426,7 @@ def copy_input_to_rawfile(raw_dir_path: Path, raw_files: tuple[Path, ...]) -> No
     raw_dir_path.mkdir(parents=True, exist_ok=True)
 
     for f in raw_files:
-        shutil.copy(f, os.path.join(raw_dir_path, f.name))
+        shutil.copy(f, raw_dir_path / f.name)
 
 
 def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path, mode: str | None) -> IInputFileChecker:
