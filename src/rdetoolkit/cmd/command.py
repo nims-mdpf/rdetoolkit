@@ -8,7 +8,7 @@ from typing import Any
 import click
 
 from rdetoolkit import __version__
-from rdetoolkit.cmd.default import INVOICE_JSON, PROPATIES
+from rdetoolkit.cmd.default import INVOICE_JSON, PROPERTIES
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, Properties
 from rdetoolkit.rdelogger import get_logger
 

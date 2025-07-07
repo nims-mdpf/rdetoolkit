@@ -2,7 +2,7 @@ import click
 from _typeshed import Incomplete
 from pathlib import Path
 from rdetoolkit import __version__ as __version__
-from rdetoolkit.cmd.default import INVOICE_JSON as INVOICE_JSON, PROPATIES as PROPATIES
+from rdetoolkit.cmd.default import INVOICE_JSON as INVOICE_JSON, PROPERTIES
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson as InvoiceSchemaJson, Properties as Properties
 from rdetoolkit.rdelogger import get_logger as get_logger
 from typing import Any
