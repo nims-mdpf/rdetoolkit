@@ -230,7 +230,7 @@ class InvoiceSchemaJsonGenerator:
             type="object",
             properties=Properties(),
         )
-        cvt_obj = obj.model_dump()
+        cvt_obj = obj.model_dump(by_alias=True)
         cvt_obj["required"] = ["custom", "sample"]
         cvt_obj["properties"] = PROPATIES
 

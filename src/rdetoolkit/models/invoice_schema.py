@@ -351,8 +351,8 @@ class InvoiceSchemaJson(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    version: str = Field(default="https://json-schema.org/draft/2020-12/schema", validation_alias="$schema")
-    schema_id: str = Field(default="https://rde.nims.go.jp/rde/dataset-templates/", validation_alias="$id")
+    version: str = Field(default="https://json-schema.org/draft/2020-12/schema", validation_alias="$schema", serialization_alias="$schema")
+    schema_id: str = Field(default="https://rde.nims.go.jp/rde/dataset-templates/", validation_alias="$id", serialization_alias="$id")
     description: Optional[str] = Field(default=None)
     value_type: Literal["object"] = Field(default="object", alias="type")
     required: Optional[list[Literal["custom", "sample"]]] = Field(default=None)
