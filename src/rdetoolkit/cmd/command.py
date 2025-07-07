@@ -8,7 +8,7 @@ from typing import Any
 import click
 
 from rdetoolkit import __version__
-from rdetoolkit.cmd.default import INVOICE_JSON, PROPATIES
+from rdetoolkit.cmd.default import INVOICE_JSON, PROPERTIES
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, Properties
 from rdetoolkit.rdelogger import get_logger
 
@@ -227,12 +227,12 @@ class InvoiceSchemaJsonGenerator:
             version="https://json-schema.org/draft/2020-12/schema",
             schema_id="https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",
             description="RDEデータセットテンプレートテスト用ファイル",
-            type="object",
+            value_type="object",
             properties=Properties(),
         )
-        cvt_obj = obj.model_dump()
+        cvt_obj = obj.model_dump(by_alias=True)
         cvt_obj["required"] = ["custom", "sample"]
-        cvt_obj["properties"] = PROPATIES
+        cvt_obj["properties"] = PROPERTIES
 
         with open(invoice_schema_path, mode="w", encoding="utf-8") as f:
             json.dump(cvt_obj, f, indent=4, ensure_ascii=False)

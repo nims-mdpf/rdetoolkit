@@ -120,3 +120,37 @@ def test_create_invoice_schema_json():
         properties=Properties(),
     )
     assert isinstance(obj.model_dump_json(), str)
+
+
+def test_invoice_schema_json_serialization_aliases():
+    """Test that InvoiceSchemaJson model correctly applies serialization aliases."""
+    obj = InvoiceSchemaJson(
+        version="https://json-schema.org/draft/2020-12/schema",
+        schema_id="https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",
+        description="Test description",
+        type="object",
+        properties=Properties(),
+    )
+
+    # Test with by_alias=False (default)
+    dumped_without_alias = obj.model_dump(by_alias=False)
+    assert "version" in dumped_without_alias
+    assert "schema_id" in dumped_without_alias
+    assert "value_type" in dumped_without_alias
+    assert "$schema" not in dumped_without_alias
+    assert "$id" not in dumped_without_alias
+    assert "type" not in dumped_without_alias
+
+    # Test with by_alias=True
+    dumped_with_alias = obj.model_dump(by_alias=True)
+    assert "$schema" in dumped_with_alias
+    assert dumped_with_alias["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert "$id" in dumped_with_alias
+    assert dumped_with_alias["$id"] == "https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json"
+    assert "type" in dumped_with_alias
+    assert dumped_with_alias["type"] == "object"
+
+    # Ensure old keys are not present when using aliases
+    assert "version" not in dumped_with_alias
+    assert "schema_id" not in dumped_with_alias
+    assert "value_type" not in dumped_with_alias
