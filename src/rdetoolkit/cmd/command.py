@@ -232,7 +232,7 @@ class InvoiceSchemaJsonGenerator:
         )
         cvt_obj = obj.model_dump(by_alias=True)
         cvt_obj["required"] = ["custom", "sample"]
-        cvt_obj["properties"] = PROPATIES
+        cvt_obj["properties"] = PROPERTIES
 
         with open(invoice_schema_path, mode="w", encoding="utf-8") as f:
             json.dump(cvt_obj, f, indent=4, ensure_ascii=False)
