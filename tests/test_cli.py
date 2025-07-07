@@ -121,14 +121,14 @@ def test_make_template_json():
 def test_make_schema_json():
     test_path = Path("test_template.json")
     gen = InvoiceSchemaJsonGenerator(test_path)
-    result = gen.generate()
+    _ = gen.generate()
 
     assert test_path.exists()
-    
+
     # Verify the content of generated JSON has correct keys
     with open(test_path, encoding="utf-8") as f:
         generated_json = json.load(f)
-    
+
     # Check that the correct keys are present
     assert "$schema" in generated_json
     assert generated_json["$schema"] == "https://json-schema.org/draft/2020-12/schema"
@@ -136,12 +136,12 @@ def test_make_schema_json():
     assert generated_json["$id"] == "https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json"
     assert "type" in generated_json
     assert generated_json["type"] == "object"
-    
+
     # Ensure old keys are not present
     assert "version" not in generated_json
     assert "schema_id" not in generated_json
     assert "value_type" not in generated_json
-    
+
     test_path.unlink()
 
     if os.path.exists("container"):
