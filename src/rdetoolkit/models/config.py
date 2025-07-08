@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class SystemSettings(BaseModel):
@@ -22,6 +22,21 @@ class SystemSettings(BaseModel):
         default=False,
         description="The feature where specifying '${filename}' as the data name results in the filename being transcribed as the data name.",
     )
+
+    @field_validator('extended_mode')
+    @classmethod
+    def validate_extended_mode(cls, v: str | None) -> str | None:
+        """Validate extended_mode to only allow exact matches for 'rdeformat' and 'MultiDataTile'."""
+        if v is None:
+            return v
+
+        valid_modes = ["rdeformat", "MultiDataTile"]
+
+        if v not in valid_modes:
+            error_msg = f'Invalid extended_mode "{v}". Valid options are: {valid_modes}'
+            raise ValueError(error_msg)
+
+        return v
 
 
 class MultiDataTileSettings(BaseModel):
