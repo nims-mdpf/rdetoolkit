@@ -157,7 +157,7 @@ class TestProcessingModeBehavior:
     def test_copy_input_with_save_raw_true_save_nonshared_raw_false(self, mock_paths):
         """Test copy behavior with save_raw=True, save_nonshared_raw=False."""
         input_paths, output_paths = mock_paths
-        
+
         system_settings = SystemSettings(save_raw=True, save_nonshared_raw=False)
         config = Config(system=system_settings)
         input_paths.config = config
@@ -179,7 +179,7 @@ class TestProcessingModeBehavior:
     def test_copy_input_with_save_raw_false_save_nonshared_raw_true(self, mock_paths):
         """Test copy behavior with save_raw=False, save_nonshared_raw=True."""
         input_paths, output_paths = mock_paths
-        
+
         system_settings = SystemSettings(save_raw=False, save_nonshared_raw=True)
         config = Config(system=system_settings)
         input_paths.config = config
@@ -201,7 +201,7 @@ class TestProcessingModeBehavior:
     def test_copy_input_with_save_raw_false_save_nonshared_raw_false(self, mock_paths):
         """Test copy behavior with both save parameters False."""
         input_paths, output_paths = mock_paths
-        
+
         system_settings = SystemSettings(save_raw=False, save_nonshared_raw=False)
         config = Config(system=system_settings)
         input_paths.config = config
@@ -220,7 +220,7 @@ class TestProcessingModeBehavior:
     def test_copy_input_with_both_true(self, mock_paths):
         """Test copy behavior with both save parameters True."""
         input_paths, output_paths = mock_paths
-        
+
         system_settings = SystemSettings(save_raw=True, save_nonshared_raw=True)
         config = Config(system=system_settings)
         input_paths.config = config
@@ -246,19 +246,19 @@ class TestPipelineIntegration:
     def test_multifile_mode_uses_pipeline(self, mock_factory):
         """Test that multifile_mode_process uses PipelineFactory."""
         from rdetoolkit.modeproc import multifile_mode_process
-        
+
         # Setup mocks
         mock_pipeline = MagicMock()
         mock_pipeline.execute.return_value = Mock(status="success")
         mock_factory.create_multifile_pipeline.return_value = mock_pipeline
-        
+
         # Create mock inputs
         input_paths = Mock(spec=RdeInputDirPaths)
         output_paths = Mock(spec=RdeOutputResourcePath)
-        
+
         # Call the function
         result = multifile_mode_process("0001", input_paths, output_paths)
-        
+
         # Verify pipeline was created and executed
         mock_factory.create_multifile_pipeline.assert_called_once()
         mock_pipeline.execute.assert_called_once()

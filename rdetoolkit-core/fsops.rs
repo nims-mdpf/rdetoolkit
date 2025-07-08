@@ -21,9 +21,9 @@ fn map_io_err(e: &IoError, context: &str, path: &Path) -> PyErr {
             path.display(),
         )),
         ErrorKind::PermissionDenied => {
-            PyPermissionError::new_err(format!("{} failed: Permission denied.", context))
+            PyPermissionError::new_err(format!("{context} failed: Permission denied."))
         }
-        _ => PyIOError::new_err(format!("{} failed: An I/O error occurred.", context,)),
+        _ => PyIOError::new_err(format!("{context} failed: An I/O error occurred.",)),
     }
 }
 
@@ -83,7 +83,7 @@ impl ManagedDirectory {
             let divided_dir =
                 base_dir
                     .join("divided")
-                    .join(format!("{:0width$}", idx, width = n_digit));
+                    .join(format!("{idx:0n_digit$}"));
             divided_dir.join(dirname)
         };
 
