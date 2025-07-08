@@ -28,7 +28,7 @@ class TestExtendedModeValidation:
 
         error = exc_info.value.errors()[0]
         assert error['type'] == 'value_error'
-        assert 'Invalid extended_mode "multidatatile"' in str(error['ctx'])
+        assert 'Invalid extended_mode "multidatatile"' in error['msg']
 
     def test_invalid_extended_mode_underscore_multidata_tile(self):
         """Test that 'multidata_tile' raises ValidationError."""
