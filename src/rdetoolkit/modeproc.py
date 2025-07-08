@@ -327,6 +327,9 @@ def copy_input_to_rawfile(raw_dir_path: Path, raw_files: tuple[Path, ...]) -> No
     Returns:
         None
     """
+    # Ensure the directory exists before copying files
+    raw_dir_path.mkdir(parents=True, exist_ok=True)
+
     for f in raw_files:
         shutil.copy(f, os.path.join(raw_dir_path, f.name))
 
