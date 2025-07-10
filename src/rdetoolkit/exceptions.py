@@ -33,7 +33,7 @@ class SkipRemainingProcessorsError(Exception):
     processing context.
     """
     def __init__(self, emsg: str = "", ecode: int = 101, eobj: Any | None = None, traceback_info: str | None = None) -> None:
-        emsg = f"ExcelInvoiceMode Error: {emsg}" if emsg else "ExcelInvoiceMode Error"
+        emsg = f"SmartTable Error: {emsg}" if emsg else "SmartTable Error"
         super().__init__(emsg)
         self.emsg = emsg
         self.ecode = ecode
