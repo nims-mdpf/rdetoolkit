@@ -2,6 +2,8 @@ import abc
 from abc import ABC, abstractmethod
 from enum import Enum
 from rdetoolkit.processing.pipeline import Pipeline as Pipeline
+from rdetoolkit.processing.processors import DatasetRunner as DatasetRunner, DescriptionUpdater as DescriptionUpdater, ExcelInvoiceInitializer as ExcelInvoiceInitializer, FileCopier as FileCopier, InvoiceValidator as InvoiceValidator, MetadataValidator as MetadataValidator, RDEFormatFileCopier as RDEFormatFileCopier, SmartTableFileCopier as SmartTableFileCopier, SmartTableInvoiceInitializer as SmartTableInvoiceInitializer, StandardInvoiceInitializer as StandardInvoiceInitializer, ThumbnailGenerator as ThumbnailGenerator, VariableApplier as VariableApplier
+from rdetoolkit.processing.processors.smarttable_early_exit import SmartTableEarlyExitProcessor as SmartTableEarlyExitProcessor
 
 class ProcessingMode(Enum):
     RDEFORMAT = 'rdeformat'

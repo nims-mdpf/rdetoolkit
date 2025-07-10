@@ -43,6 +43,15 @@ class MultiDataTileSettings(BaseModel):
     ignore_errors: bool = Field(default=False, description="If true, errors encountered during processing will be ignored, and the process will continue without stopping.")
 
 
+class SmartTableSettings(BaseModel):
+    """SmartTableSettings is a configuration model for SmartTable processing.
+
+    Attributes:
+        save_table_file (bool): Save original SmartTable file (smarttable_*.xlsx/csv/tsv) to raw/nonshared_raw directories. Default is False.
+    """
+    save_table_file: bool = Field(default=False, description="Save original SmartTable file (smarttable_*.xlsx/csv/tsv) to raw/nonshared_raw directories")
+
+
 # class ExcelInvoiceSettings(BaseModel):
 #     ignore_errors: bool = Field(default=False, description="If true, errors encountered during ExcelInvoice processing will be ignored, and the process will continue without stopping.")
 
@@ -53,8 +62,10 @@ class Config(BaseModel, extra="allow"):
     Attributes:
         system (SystemSettings): System related settings.
         multidata_tile (MultiDataTileSettings | None): MultiDataTile related settings.
+        smarttable (SmartTableSettings | None): SmartTable related settings.
         excel_invoice (ExcelInvoiceSettings | None): ExcelInvoice related settings.
     """
     system: SystemSettings = Field(default_factory=SystemSettings, description="System related settings")
     multidata_tile: MultiDataTileSettings | None = Field(default_factory=MultiDataTileSettings, description="MultiDataTile related settings")
+    smarttable: SmartTableSettings | None = Field(default=None, description="SmartTable related settings")
     # excel_invoice: ExcelInvoiceSettings | None = Field(default_factory=ExcelInvoiceSettings, description="ExcelInvoice related settings")

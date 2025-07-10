@@ -15,6 +15,7 @@ from rdetoolkit.impl.input_controller import (
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
 from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.models.result import WorkflowExecutionStatus
+from rdetoolkit.models.config import Config
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.factories import PipelineFactory
 from rdetoolkit.rdelogger import get_logger
@@ -334,7 +335,7 @@ def copy_input_to_rawfile(raw_dir_path: Path, raw_files: tuple[Path, ...]) -> No
         shutil.copy(f, os.path.join(raw_dir_path, f.name))
 
 
-def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path, mode: str | None) -> IInputFileChecker:
+def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path, mode: str | None, config: Config | None = None) -> IInputFileChecker:
     """Determine the appropriate input file checker based on the provided format flags and source paths.
 
     The function scans the source paths to identify the type of input files present. Based on the file type
@@ -343,7 +344,8 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
     Args:
         src_paths (RdeInputDirPaths): Paths for the source input files.
         unpacked_dir_path (Path): Directory path for unpacked files.
-        mode (Optional[str]): Format flags indicating which checker mode is enabled.
+        mode (str | None): Format flags indicating which checker mode is enabled. Expected values include "rdeformat", "multidatatile", or None.
+        config (Config | None): Configuration instance for structured processing execution. Defaults to None.
 
     Returns:
         IInputFileChecker: An instance of the appropriate input file checker based on the provided criteria.
@@ -356,7 +358,10 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
     excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
     mode = mode.lower() if mode is not None else ""
     if smarttable_files:
-        return SmartTableChecker(unpacked_dir_path)
+        save_table_file = False
+        if config and config.smarttable:
+            save_table_file = config.smarttable.save_table_file
+        return SmartTableChecker(unpacked_dir_path, save_table_file=save_table_file)
     if excel_invoice_files:
         return ExcelInvoiceChecker(unpacked_dir_path)
     if mode == "rdeformat":

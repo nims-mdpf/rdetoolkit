@@ -5,7 +5,7 @@ import shutil
 import pytest
 import yaml
 from rdetoolkit.config import is_toml, is_yaml, parse_config_file, get_config, load_config
-from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
+from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings, SmartTableSettings
 from tomlkit import document, table
 from tomlkit.toml_file import TOMLFile
 
@@ -324,3 +324,97 @@ def test_load_config_with_none_config_and_none_get_config():
     config = Config(system=system, multidata_tile=multi)
     result = load_config(dummpy_path)
     assert result == config
+
+
+def test_smarttable_settings_default_values():
+    """Test SmartTableSettings default values."""
+    settings = SmartTableSettings()
+    assert settings.save_table_file is False
+
+
+def test_smarttable_settings_with_custom_values():
+    """Test SmartTableSettings with custom values."""
+    settings = SmartTableSettings(save_table_file=True)
+    assert settings.save_table_file is True
+
+
+def test_config_with_smarttable_settings():
+    """Test Config with SmartTableSettings."""
+    system = SystemSettings(extended_mode="rdeformat", save_raw=True, save_nonshared_raw=False, save_thumbnail_image=True, magic_variable=False)
+    multi = MultiDataTileSettings(ignore_errors=False)
+    smarttable = SmartTableSettings(save_table_file=True)
+    config = Config(system=system, multidata_tile=multi, smarttable=smarttable)
+
+    assert config.smarttable.save_table_file is True
+    assert isinstance(config.smarttable, SmartTableSettings)
+
+
+@pytest.fixture()
+def config_yaml_with_smarttable():
+    """Create test YAML config with SmartTable settings."""
+    system_data = {"extended_mode": "rdeformat", "save_raw": True, "save_nonshared_raw": False, "magic_variable": False, "save_thumbnail_image": True}
+    multi_data = {"ignore_errors": False}
+    smarttable_data = {"save_table_file": True}
+    data = {"system": system_data, "multidata_tile": multi_data, "smarttable": smarttable_data}
+    test_yaml_path = "rdeconfig.yaml"
+    with open(test_yaml_path, mode="w", encoding="utf-8") as f:
+        yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+
+    yield test_yaml_path
+
+    if Path(test_yaml_path).exists():
+        Path(test_yaml_path).unlink()
+
+
+def test_parse_config_file_with_smarttable(config_yaml_with_smarttable):
+    """Test parsing config file with SmartTable settings."""
+    config = parse_config_file(path=config_yaml_with_smarttable)
+    assert isinstance(config, Config)
+    # Just verify that SmartTable settings are correctly parsed
+    assert hasattr(config, 'smarttable')
+    assert isinstance(config.smarttable, SmartTableSettings)
+    assert config.smarttable.save_table_file is True
+
+
+@pytest.fixture
+def pyproject_toml_with_smarttable():
+    """Create test TOML config with SmartTable settings."""
+    if Path(os.path.dirname(__file__), "pyproject.toml").exists():
+        # Backup existing file
+        backup_path = Path(os.path.dirname(__file__), "pyproject.toml.bak")
+        shutil.copy(Path(os.path.dirname(__file__), "pyproject.toml"), backup_path)
+    test_file = os.path.join(os.path.dirname(__file__), "samplefile/pyproject.toml")
+    toml = TOMLFile(test_file)
+    doc = document()
+    doc["tool"] = table()
+    doc["tool"]["rdetoolkit"] = table()
+    doc["tool"]["rdetoolkit"]["system"] = table()
+    doc["tool"]["rdetoolkit"]["multidata_tile"] = table()
+    doc["tool"]["rdetoolkit"]["smarttable"] = table()
+    doc["tool"]["rdetoolkit"]["system"]["extended_mode"] = "rdeformat"
+    doc["tool"]["rdetoolkit"]["system"]["save_raw"] = True
+    doc["tool"]["rdetoolkit"]["system"]["save_nonshared_raw"] = False
+    doc["tool"]["rdetoolkit"]["system"]["magic_variable"] = False
+    doc["tool"]["rdetoolkit"]["system"]["save_thumbnail_image"] = True
+    doc["tool"]["rdetoolkit"]["multidata_tile"]["ignore_errors"] = False
+    doc["tool"]["rdetoolkit"]["smarttable"]["save_table_file"] = True
+    toml.write(doc)
+    yield test_file
+
+    # Recover the original file if it was backed up
+    if Path(os.path.dirname(__file__), "pyproject.toml.bak").exists():
+        shutil.copy(Path(os.path.dirname(__file__), "pyproject.toml.bak"), Path(os.path.dirname(__file__), "pyproject.toml"))
+        Path(os.path.dirname(__file__), "pyproject.toml.bak").unlink()
+
+    if Path(test_file).exists():
+        Path(test_file).unlink()
+
+
+def test_parse_config_file_toml_with_smarttable(pyproject_toml_with_smarttable):
+    """Test parsing TOML config file with SmartTable settings."""
+    config = parse_config_file(path=pyproject_toml_with_smarttable)
+
+    assert isinstance(config, Config)
+    assert hasattr(config, 'smarttable')
+    assert isinstance(config.smarttable, SmartTableSettings)
+    assert config.smarttable.save_table_file is True
