@@ -251,7 +251,7 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
 
         ```python
         ### main.py
-        from rdetoolkit.config import Config, MultiDataTileSettings, SystemSettings
+        from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
         from rdetoolkit import workflow
         from custom import custom_dataset # User-defined structuring processing function
 
