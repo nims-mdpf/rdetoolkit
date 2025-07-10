@@ -8,7 +8,7 @@ import yaml
 from pydantic import ValidationError
 from tomlkit.toml_file import TOMLFile
 
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
+from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings, SmartTableSettings
 from rdetoolkit.models.rde2types import RdeFsPath
 
 CONFIG_FILE: Final = ["rdeconfig.yaml", "rdeconfig.yml"]
@@ -48,9 +48,10 @@ def parse_config_file(*, path: str | None = None) -> Config:
     config_data: dict[str, Any] = {
         "system": SystemSettings().model_dump(),
         "multidata_tile": MultiDataTileSettings().model_dump(),
+        "smarttable": SmartTableSettings().model_dump(),
     }
     if path is not None and Path(path).name not in CONFIG_FILES:
-        return Config(system=SystemSettings(), multidata_tile=MultiDataTileSettings())
+        return Config(system=SystemSettings(), multidata_tile=MultiDataTileSettings(), smarttable=SmartTableSettings())
 
     if path is not None and is_toml(path):
         config_data = __read_pyproject_toml(path)
@@ -62,10 +63,10 @@ def parse_config_file(*, path: str | None = None) -> Config:
         pyproject_toml = project_path.joinpath(PYPROJECT_CONFIG_FILES[0])
         config_data = __read_pyproject_toml(str(pyproject_toml))
     else:
-        return Config(system=SystemSettings(), multidata_tile=MultiDataTileSettings())
+        return Config(system=SystemSettings(), multidata_tile=MultiDataTileSettings(), smarttable=SmartTableSettings())
 
     if config_data is None:
-        return Config(system=SystemSettings(), multidata_tile=MultiDataTileSettings())
+        return Config(system=SystemSettings(), multidata_tile=MultiDataTileSettings(), smarttable=SmartTableSettings())
 
     return Config(**config_data)
 

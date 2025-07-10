@@ -56,7 +56,7 @@ def _create_error_status(
     )
 
 
-def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFiles, Path | None, Path | None]:
+def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> tuple[RawFiles, Path | None, Path | None]:
     """Classify input files to determine if the input pattern is appropriate.
 
     1. Invoice
@@ -110,7 +110,7 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFil
     if mode is None:
         mode = ""
 
-    input_checker = selected_input_checker(srcpaths, out_dir_temp, mode)
+    input_checker = selected_input_checker(srcpaths, out_dir_temp, mode, config)
     rawfiles, special_file = input_checker.parse(srcpaths.inputdata)
 
     # Use checker_type property to distinguish between different checkers
@@ -118,7 +118,7 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFil
         return rawfiles, None, special_file  # excelinvoice=None, smarttable_file=Path
     if input_checker.checker_type == "excel_invoice":
         return rawfiles, special_file, None  # excelinvoice=Path, smarttable_file=None
-    return rawfiles, None, None  # 通常のInvoiceモード
+    return rawfiles, None, None  # InvoiceMode
 
 
 def generate_folder_paths_iterator(
@@ -278,7 +278,7 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
         __config = load_config(str(srcpaths.tasksupport), config=config)
         srcpaths.config = __config
 
-        raw_files_group, excel_invoice_files, smarttable_file = check_files(srcpaths, mode=__config.system.extended_mode)
+        raw_files_group, excel_invoice_files, smarttable_file = check_files(srcpaths, mode=__config.system.extended_mode, config=__config)
 
         # Backup of invoice.json
         invoice_org_filepath = backup_invoice_json_files(excel_invoice_files, __config.system.extended_mode)
