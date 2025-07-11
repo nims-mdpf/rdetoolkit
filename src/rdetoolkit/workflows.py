@@ -4,8 +4,6 @@ import contextlib
 from collections.abc import Generator
 from pathlib import Path
 
-from tqdm import tqdm
-
 from rdetoolkit.config import load_config
 from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error, skip_exception_context
 from rdetoolkit.exceptions import StructuredError
@@ -286,22 +284,18 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
 
         # Execution of data set structuring process based on various modes
         # Use iterator directly to avoid loading all items into memory at once
-        total_items = len(raw_files_group)
         rde_data_tiles_iterator = generate_folder_paths_iterator(raw_files_group, invoice_org_filepath, invoice_schema_filepath)
 
-        with tqdm(total=total_items, desc="Processing data tiles", dynamic_ncols=True, leave=True) as pbar:
-            for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
-                status, error_info, mode = _process_mode(
-                    idx, srcpaths, rdeoutput_resource, __config,
-                    excel_invoice_files, smarttable_file,
-                    custom_dataset_function, logger,
-                )
+        for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
+            status, error_info, mode = _process_mode(
+                idx, srcpaths, rdeoutput_resource, __config,
+                excel_invoice_files, smarttable_file,
+                custom_dataset_function, logger,
+            )
+            if error_info and any(value is not None for value in error_info.values()):
+                status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
 
-                if error_info and any(value is not None for value in error_info.values()):
-                    status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
-
-                wf_manager.add_status(status)
-                pbar.update(1)  # Update progress bar
+            wf_manager.add_status(status)
 
     except StructuredError as e:
         handle_and_exit_on_structured_error(e, logger)
