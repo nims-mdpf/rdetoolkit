@@ -13,7 +13,7 @@ InputFilesGroup = tuple[ZipFilesPathList, ExcelInvoicePathList, OtherFilesPathLi
 RawFiles = Sequence[PathTuple]
 MetaType = dict[str, str | int | float | list | bool]
 RepeatedMetaType = dict[str, list[str | int | float | list | bool]]
-MetaItem = dict[str, str | int | float | list | bool | bool]
+MetaItem = dict[str, str | int | float | list | bool]
 RdeFsPath = str | Path
 
 @dataclass
