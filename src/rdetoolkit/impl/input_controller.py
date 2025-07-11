@@ -34,6 +34,7 @@ class InvoiceChecker(IInputFileChecker):
 
     def __init__(self, unpacked_dir_basename: Path):
         self.out_dir_temp = unpacked_dir_basename
+
     @property
     def checker_type(self) -> str:
         """Return the type identifier for this checker."""
@@ -288,8 +289,9 @@ class SmartTableChecker(IInputFileChecker):
         out_dir_temp (Path): Temporary directory for the unpacked content.
     """
 
-    def __init__(self, unpacked_dir_basename: Path):
+    def __init__(self, unpacked_dir_basename: Path, save_table_file: bool = False):
         self.out_dir_temp = unpacked_dir_basename
+        self.save_table_file = save_table_file
 
     @property
     def checker_type(self) -> str:
@@ -346,10 +348,14 @@ class SmartTableChecker(IInputFileChecker):
 
         # Convert to RawFiles format: each mapping becomes a tuple
         raw_files = []
+
+        # First entry: SmartTable file only (if save_table_file is True)
+        if self.save_table_file:
+            raw_files.append((smarttable_file,))
+
+        # Subsequent entries: Each CSV file with its related files
         for csv_path, related_files in csv_file_mappings:
-            # Combine CSV file with its related files into a single tuple
-            file_tuple = (csv_path,) + related_files
-            raw_files.append(file_tuple)
+            raw_files.append((csv_path,) + related_files)
 
         return raw_files, smarttable_file
 

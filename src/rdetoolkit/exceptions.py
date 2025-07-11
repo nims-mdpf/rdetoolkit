@@ -25,6 +25,22 @@ class StructuredError(Exception):
         self.traceback_info = traceback_info
 
 
+class SkipRemainingProcessorsError(Exception):
+    """Exception to signal that remaining processors in the pipeline should be skipped.
+
+    This exception is used for flow control in the pipeline, allowing a processor
+    to indicate that all subsequent processors should be skipped for the current
+    processing context.
+    """
+    def __init__(self, emsg: str = "", ecode: int = 101, eobj: Any | None = None, traceback_info: str | None = None) -> None:
+        emsg = f"SmartTable Error: {emsg}" if emsg else "SmartTable Error"
+        super().__init__(emsg)
+        self.emsg = emsg
+        self.ecode = ecode
+        self.eobj = eobj
+        self.traceback_info = traceback_info
+
+
 class InvoiceModeError(Exception):
     """Exception raised for errors related to invoice mode.
 

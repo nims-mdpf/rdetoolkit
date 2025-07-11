@@ -70,6 +70,8 @@ class TestSmartTableFileCopier:
         mock_context = Mock()
         mock_context.srcpaths.config.system.save_raw = True
         mock_context.srcpaths.config.system.save_nonshared_raw = False
+        mock_context.is_smarttable_mode = False  # Not in SmartTable mode
+        mock_context.srcpaths.config.smarttable = None
         mock_context.resource_paths.rawfiles = (
             Path("/data/temp/fsmarttable_test_0000.csv"),
             Path("/data/temp/extracted_file.txt"),
@@ -93,6 +95,8 @@ class TestSmartTableFileCopier:
         mock_context = Mock()
         mock_context.srcpaths.config.system.save_raw = False
         mock_context.srcpaths.config.system.save_nonshared_raw = True
+        mock_context.is_smarttable_mode = False  # Not in SmartTable mode
+        mock_context.srcpaths.config.smarttable = None
         mock_context.resource_paths.rawfiles = (
             Path("/data/temp/fsmarttable_test_0000.csv"),
             Path("/data/temp/data_file.txt"),
@@ -116,6 +120,8 @@ class TestSmartTableFileCopier:
         mock_context = Mock()
         mock_context.srcpaths.config.system.save_raw = True
         mock_context.srcpaths.config.system.save_nonshared_raw = True
+        mock_context.is_smarttable_mode = False  # Not in SmartTable mode
+        mock_context.srcpaths.config.smarttable = None
         mock_context.resource_paths.rawfiles = (
             Path("/data/temp/fsmarttable_test_0000.csv"),
             Path("/data/temp/extracted_file.txt"),
@@ -220,3 +226,151 @@ class TestSmartTableFileCopier:
 
         for test_path in false_cases:
             assert copier._is_smarttable_generated_csv(test_path) is False
+
+    def test_process_with_smarttable_file_save_enabled(self):
+        """Test processing with SmartTable file save enabled."""
+        copier = SmartTableFileCopier()
+
+        # Create mock context
+        mock_context = Mock()
+        mock_context.srcpaths.config.system.save_raw = True
+        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        mock_context.is_smarttable_mode = True
+        mock_context.srcpaths.config.smarttable = Mock()
+        mock_context.srcpaths.config.smarttable.save_table_file = True
+        mock_context.smarttable_file = Path("/data/inputdata/smarttable_test.xlsx")
+        # rawfiles now includes the SmartTable file in the first entry
+        mock_context.resource_paths.rawfiles = (
+            Path("/data/inputdata/smarttable_test.xlsx"),  # SmartTable file
+            Path("/data/temp/fsmarttable_test_0000.csv"),  # Generated CSV
+            Path("/data/temp/extracted_file.txt"),  # Other file
+        )
+        mock_context.resource_paths.raw = Path("/output/raw")
+
+        with patch.object(copier, '_copy_files') as mock_copy:
+            copier.process(mock_context)
+
+            # Should call _copy_files with SmartTable file and extracted file (CSV filtered out)
+            expected_files = (
+                Path("/data/inputdata/smarttable_test.xlsx"),
+                Path("/data/temp/extracted_file.txt")
+            )
+            mock_copy.assert_called_once_with(
+                Path("/output/raw"),
+                expected_files
+            )
+
+    def test_process_with_smarttable_file_save_disabled(self):
+        """Test processing with SmartTable file save disabled."""
+        copier = SmartTableFileCopier()
+
+        # Create mock context
+        mock_context = Mock()
+        mock_context.srcpaths.config.system.save_raw = True
+        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        mock_context.is_smarttable_mode = True
+        mock_context.srcpaths.config.smarttable = Mock()
+        mock_context.srcpaths.config.smarttable.save_table_file = False
+        mock_context.smarttable_file = Path("/data/inputdata/smarttable_test.xlsx")
+        # rawfiles includes the SmartTable file, but it should be filtered out
+        mock_context.resource_paths.rawfiles = (
+            Path("/data/inputdata/smarttable_test.xlsx"),  # SmartTable file (should be filtered)
+            Path("/data/temp/fsmarttable_test_0000.csv"),  # Generated CSV (should be filtered)
+            Path("/data/temp/extracted_file.txt"),  # Other file (should be kept)
+        )
+        mock_context.resource_paths.raw = Path("/output/raw")
+
+        with patch.object(copier, '_copy_files') as mock_copy:
+            copier.process(mock_context)
+
+            # Should call _copy_files with only extracted file (SmartTable file and CSV filtered out)
+            mock_copy.assert_called_once_with(
+                Path("/output/raw"),
+                (Path("/data/temp/extracted_file.txt"),)
+            )
+
+    def test_process_with_smarttable_settings_none(self):
+        """Test processing when smarttable settings is None."""
+        copier = SmartTableFileCopier()
+
+        # Create mock context
+        mock_context = Mock()
+        mock_context.srcpaths.config.system.save_raw = True
+        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        mock_context.is_smarttable_mode = True
+        mock_context.srcpaths.config.smarttable = None
+        mock_context.smarttable_file = Path("/input/smarttable_test.xlsx")
+        mock_context.resource_paths.rawfiles = (
+            Path("/data/temp/fsmarttable_test_0000.csv"),
+            Path("/data/temp/extracted_file.txt"),
+        )
+        mock_context.resource_paths.raw = Path("/output/raw")
+
+        with patch.object(copier, '_copy_files') as mock_copy:
+            copier.process(mock_context)
+
+            # Should call _copy_files with only filtered files (no smarttable file)
+            mock_copy.assert_called_once_with(
+                Path("/output/raw"),
+                (Path("/data/temp/extracted_file.txt"),)
+            )
+
+    def test_process_not_smarttable_mode(self):
+        """Test processing when not in SmartTable mode."""
+        copier = SmartTableFileCopier()
+
+        # Create mock context
+        mock_context = Mock()
+        mock_context.srcpaths.config.system.save_raw = True
+        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        mock_context.is_smarttable_mode = False
+        mock_context.resource_paths.rawfiles = (
+            Path("/data/temp/fsmarttable_test_0000.csv"),
+            Path("/data/temp/extracted_file.txt"),
+        )
+        mock_context.resource_paths.raw = Path("/output/raw")
+
+        with patch.object(copier, '_copy_files') as mock_copy:
+            copier.process(mock_context)
+
+            # Should call _copy_files with only filtered files (no smarttable file)
+            mock_copy.assert_called_once_with(
+                Path("/output/raw"),
+                (Path("/data/temp/extracted_file.txt"),)
+            )
+
+    def test_process_with_smarttable_save_both_directories(self):
+        """Test processing with SmartTable file save for both raw and nonshared_raw."""
+        copier = SmartTableFileCopier()
+
+        # Create mock context
+        mock_context = Mock()
+        mock_context.srcpaths.config.system.save_raw = True
+        mock_context.srcpaths.config.system.save_nonshared_raw = True
+        mock_context.is_smarttable_mode = True
+        mock_context.srcpaths.config.smarttable = Mock()
+        mock_context.srcpaths.config.smarttable.save_table_file = True
+        mock_context.smarttable_file = Path("/data/inputdata/smarttable_data.csv")
+        # rawfiles now includes the SmartTable file
+        mock_context.resource_paths.rawfiles = (
+            Path("/data/inputdata/smarttable_data.csv"),  # SmartTable file
+            Path("/data/temp/fsmarttable_test_0000.csv"),  # Generated CSV (filtered)
+            Path("/data/temp/important_file.txt"),  # Other file
+        )
+        mock_context.resource_paths.raw = Path("/output/raw")
+        mock_context.resource_paths.nonshared_raw = Path("/output/nonshared_raw")
+
+        with patch.object(copier, '_copy_files') as mock_copy:
+            copier.process(mock_context)
+
+            # Should call _copy_files twice with both SmartTable file and important file
+            assert mock_copy.call_count == 2
+
+            expected_files = (
+                Path("/data/inputdata/smarttable_data.csv"),
+                Path("/data/temp/important_file.txt")
+            )
+
+            calls = mock_copy.call_args_list
+            assert calls[0][0] == (Path("/output/raw"), expected_files)
+            assert calls[1][0] == (Path("/output/nonshared_raw"), expected_files)

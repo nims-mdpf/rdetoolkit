@@ -5,120 +5,277 @@
 #   pre: false
 #   features: []
 #   all-features: false
+#   with-sources: false
+#   generate-hashes: false
+#   universal: false
 
---trusted-host pypi.python.org
---trusted-host pypi.org
---trusted-host files.pythonhosted.org
 -e file:.
 annotated-types==0.7.0
+    # via pydantic
 argon2-cffi==23.1.0
+    # via minio
 argon2-cffi-bindings==21.2.0
+    # via argon2-cffi
 attrs==24.2.0
+    # via jsonschema
+    # via referencing
 babel==2.16.0
+    # via mkdocs-material
 beautifulsoup4==4.12.3
+    # via mkdocs-mermaid2-plugin
 black==24.8.0
 build==1.2.2
+    # via rdetoolkit
 cachetools==5.5.0
+    # via tox
 certifi==2024.8.30
+    # via minio
+    # via requests
 cffi==1.17.1
+    # via argon2-cffi-bindings
 cfgv==3.4.0
+    # via pre-commit
 chardet==5.2.0
+    # via rdetoolkit
+    # via tox
 charset-normalizer==3.3.2
+    # via rdetoolkit
+    # via requests
 click==8.1.7
+    # via black
+    # via jsonschema-markdown
+    # via mkdocs
+    # via mkdocstrings
+    # via rdetoolkit
 colorama==0.4.6
+    # via griffe
+    # via mkdocs-material
+    # via tox
 coverage==7.6.1
+    # via pytest-cov
 distlib==0.3.8
+    # via virtualenv
 editorconfig==0.12.4
+    # via jsbeautifier
 et-xmlfile==1.1.0
+    # via openpyxl
 eval-type-backport==0.2.0
+    # via rdetoolkit
 filelock==3.16.1
+    # via tox
+    # via virtualenv
 flake8==7.0.0
+    # via pyproject-flake8
 ghp-import==2.1.0
+    # via mkdocs
 griffe==1.3.1
+    # via mkdocstrings-python
 identify==2.6.1
+    # via pre-commit
 idna==3.10
+    # via requests
 importlib-metadata==8.5.0
+    # via mike
 importlib-resources==6.4.5
+    # via mike
 iniconfig==2.0.0
+    # via pytest
 isort==5.13.2
 jinja2==3.1.4
+    # via mike
+    # via mkdocs
+    # via mkdocs-material
+    # via mkdocstrings
+    # via mkdocstrings-crystal
 jsbeautifier==1.15.1
+    # via mkdocs-mermaid2-plugin
 jsonref==1.1.0
+    # via jsonschema-markdown
 jsonschema==4.23.0
+    # via rdetoolkit
 jsonschema-markdown==0.3.10
 jsonschema-specifications==2023.12.1
+    # via jsonschema
 lizard==1.17.10
 loguru==0.7.2
+    # via jsonschema-markdown
 markdown==3.7
+    # via markdown-callouts
+    # via mkdocs
+    # via mkdocs-autorefs
+    # via mkdocs-material
+    # via mkdocstrings
+    # via pymdown-extensions
+    # via rdetoolkit
 markdown-callouts==0.4.0
+    # via mkdocstrings-crystal
 markupsafe==2.1.5
+    # via jinja2
+    # via mkdocs
+    # via mkdocs-autorefs
+    # via mkdocstrings
+    # via mkdocstrings-crystal
 mccabe==0.7.0
+    # via flake8
 mergedeep==1.3.4
+    # via mkdocs
+    # via mkdocs-get-deps
 mike==2.1.3
 minio==7.2.15
 mkdocs==1.6.1
+    # via mike
+    # via mkdocs-autorefs
+    # via mkdocs-material
+    # via mkdocs-mermaid2-plugin
+    # via mkdocstrings
 mkdocs-autorefs==1.2.0
+    # via mkdocstrings
+    # via mkdocstrings-crystal
+    # via mkdocstrings-python
 mkdocs-get-deps==0.2.0
+    # via mkdocs
 mkdocs-material==9.5.38
 mkdocs-material-extensions==1.3.1
+    # via mkdocs-material
 mkdocs-mermaid2-plugin==1.1.1
 mkdocstrings==0.27.0
+    # via mkdocstrings-crystal
+    # via mkdocstrings-python
 mkdocstrings-crystal==0.3.7
+    # via mkdocstrings
 mkdocstrings-python==1.11.1
+    # via mkdocstrings
 mypy==1.11.2
 mypy-extensions==1.0.0
+    # via black
+    # via mypy
 nodeenv==1.9.1
+    # via pre-commit
 numpy==1.26.4
+    # via pandas
+    # via rdetoolkit
 openpyxl==3.1.5
+    # via rdetoolkit
 packaging==24.1
+    # via black
+    # via build
+    # via mkdocs
+    # via pyproject-api
+    # via pytest
+    # via tox
 paginate==0.5.7
+    # via mkdocs-material
 pandas==2.2.3
+    # via rdetoolkit
 pathspec==0.12.1
+    # via black
+    # via mkdocs
+pip==24.3.1
+    # via rdetoolkit
 platformdirs==4.3.6
+    # via black
+    # via mkdocs-get-deps
+    # via mkdocstrings
+    # via tox
+    # via virtualenv
 pluggy==1.5.0
+    # via pytest
+    # via tox
 polars==1.9.0
+    # via rdetoolkit
 pre-commit==3.8.0
 pyarrow==19.0.1
+    # via rdetoolkit
 pycodestyle==2.11.1
+    # via flake8
 pycparser==2.22
+    # via cffi
 pycryptodome==3.22.0
+    # via minio
 pydantic==2.9.2
+    # via rdetoolkit
 pydantic-core==2.23.4
+    # via pydantic
 pyflakes==3.2.0
+    # via flake8
 pygments==2.18.0
+    # via mkdocs-material
 pymdown-extensions==10.10.2
+    # via mkdocs-material
+    # via mkdocs-mermaid2-plugin
+    # via mkdocstrings
 pyparsing==3.1.4
+    # via mike
 pyproject-api==1.8.0
+    # via tox
 pyproject-flake8==7.0.0
 pyproject-hooks==1.1.0
+    # via build
 pytest==8.3.3
+    # via pytest-cov
+    # via pytest-mock
 pytest-cov==5.0.0
 pytest-mock==3.14.0
 python-dateutil==2.9.0.post0
+    # via ghp-import
+    # via pandas
 pytz==2024.2
+    # via pandas
 pyyaml==6.0.2
+    # via mike
+    # via mkdocs
+    # via mkdocs-get-deps
+    # via pre-commit
+    # via pymdown-extensions
+    # via pyyaml-env-tag
+    # via rdetoolkit
 pyyaml-env-tag==0.1
+    # via mike
+    # via mkdocs
 referencing==0.35.1
+    # via jsonschema
+    # via jsonschema-specifications
 regex==2024.9.11
+    # via mkdocs-material
 requests==2.32.3
+    # via mkdocs-material
+    # via mkdocs-mermaid2-plugin
 rpds-py==0.20.0
+    # via jsonschema
+    # via referencing
 ruff==0.6.8
+setuptools==75.1.0
+    # via mkdocs-mermaid2-plugin
 six==1.16.0
+    # via jsbeautifier
+    # via python-dateutil
 soupsieve==2.6
+    # via beautifulsoup4
 toml==0.10.2
+    # via rdetoolkit
 tomlkit==0.13.2
+    # via rdetoolkit
 tox==4.20.0
-tqdm==4.67.0
 types-python-dateutil==2.9.0.20240906
 types-pytz==2025.2.0.20250326
+    # via rdetoolkit
 types-pyyaml==6.0.12.20240917
 typing-extensions==4.12.2
+    # via minio
+    # via mypy
+    # via pydantic
+    # via pydantic-core
 tzdata==2024.2
+    # via pandas
 urllib3==2.2.3
+    # via minio
+    # via requests
 verspec==0.1.0
+    # via mike
 virtualenv==20.26.5
+    # via pre-commit
+    # via tox
 watchdog==5.0.2
+    # via mkdocs
 zipp==3.20.2
-# The following packages are considered to be unsafe in a requirements file:
-pip==24.3.1
-setuptools==75.1.0
+    # via importlib-metadata

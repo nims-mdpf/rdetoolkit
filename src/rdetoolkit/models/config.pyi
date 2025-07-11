@@ -7,15 +7,15 @@ class SystemSettings(BaseModel):
     save_thumbnail_image: bool
     magic_variable: bool
     @classmethod
-    def check_at_least_one_save_option_enabled(cls, v) -> SystemSettings: ...
+    def validate_extended_mode(cls, v: str | None) -> str | None: ...
 
 class MultiDataTileSettings(BaseModel):
     ignore_errors: bool
 
-# class ExcelInvoiceSettings(BaseModel):
-#     ignore_errors: bool
+class SmartTableSettings(BaseModel):
+    save_table_file: bool
 
 class Config(BaseModel, extra='allow'):
     system: SystemSettings
     multidata_tile: MultiDataTileSettings | None
-    # excel_invoice: ExcelInvoiceSettings | None
+    smarttable: SmartTableSettings | None

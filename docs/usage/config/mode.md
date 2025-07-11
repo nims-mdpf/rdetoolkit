@@ -427,6 +427,86 @@ data
 }
 ```
 
+### SmartTable設定オプション
+
+SmartTableInvoiceモードでは、以下の設定オプションが利用できます：
+
+#### save_table_file
+
+オリジナルのSmartTableファイル（smarttable_*.xlsx/csv/tsv）をraw/nonshared_rawディレクトリに保存するかどうかを制御します。
+
+**設定項目**: `smarttable.save_table_file`
+**デフォルト値**: `false`
+**データ型**: boolean
+
+```yaml
+# YAML設定例
+smarttable:
+  save_table_file: true  # SmartTableファイルを保存する場合
+```
+
+```toml
+# TOML設定例
+[smarttable]
+save_table_file = true
+```
+
+#### 動作の違い
+
+**save_table_file: false（デフォルト）の場合:**
+- SmartTableファイルはraw/nonshared_rawディレクトリに保存されません
+- CSV生成ファイルのみが処理対象となります
+- ストレージ使用量を節約できます
+
+**save_table_file: trueの場合:**
+- オリジナルのSmartTableファイルがraw/nonshared_rawディレクトリに保存されます
+- データの完全な監査証跡を維持できます
+- SmartTableファイルとCSV生成ファイルの両方が処理されます
+
+#### 設定例と出力ファイル構成
+
+**save_table_file: falseの場合の出力:**
+```shell
+data
+├── divided
+│   ├── 0001
+│   │   ├── raw
+│   │   │   ├── file1.txt  # zipから展開されたファイル
+│   │   │   └── file2.txt
+│   │   └── (その他フォルダ)
+│   └── 0002
+│       ├── raw
+│       │   ├── file3.txt
+│       │   └── file4.txt
+│       └── (その他フォルダ)
+└── temp
+    ├── fsmarttable_experiment_0001.csv  # 生成されたCSVファイル
+    ├── fsmarttable_experiment_0002.csv
+    └── (展開されたファイル)
+```
+
+**save_table_file: trueの場合の出力:**
+```shell
+data
+├── divided
+│   ├── 0001
+│   │   ├── raw
+│   │   │   ├── file1.txt
+│   │   │   └── file2.txt
+│   │   └── (その他フォルダ)
+│   └── 0002
+│       ├── raw
+│       │   ├── file3.txt
+│       │   └── file4.txt
+│       └── (その他フォルダ)
+├── raw  # または nonshared_raw
+│   └── smarttable_experiment.xlsx  # オリジナルファイルが保存
+└── temp
+    ├── fsmarttable_experiment_0001.csv
+    ├── fsmarttable_experiment_0002.csv
+    └── (展開されたファイル)
+```
+
 ### 注意事項
 
 - テーブルファイルの命名規則（`smarttable_*.{xlsx,csv,tsv}`）に従う必要があります
@@ -434,6 +514,7 @@ data
 - 既存のinvoice.jsonがある場合、SmartTableで指定されていない値は保持されます
 - `meta/`プレフィックスのデータはinvoice.jsonに出力されません
 - zipファイルがない場合でも動作しますが、`inputdataX`列は無視されます
+- `save_table_file`設定は、システム設定の`save_raw`または`save_nonshared_raw`が有効な場合にのみ動作します
 
 ## RDEformatモード
 

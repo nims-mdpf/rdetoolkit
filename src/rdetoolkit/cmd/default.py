@@ -9,7 +9,7 @@ CUSTOM_FIELDS = {
 
 SAMPLE_FIELDS = {"type": "object", "label": {"ja": "試料情報", "en": "Sample Information"}, "properties": {}}
 
-PROPATIES = {"custom": CUSTOM_FIELDS, "sample": SAMPLE_FIELDS}
+PROPERTIES = {"custom": CUSTOM_FIELDS, "sample": SAMPLE_FIELDS}
 
 
 INVOICE_JSON = {

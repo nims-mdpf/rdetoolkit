@@ -21,8 +21,7 @@ pub fn resize_image_aspect_ratio(
     const MAX_DIMENSION: u32 = 10_000;
     if width > MAX_DIMENSION || height > MAX_DIMENSION {
         return Err(exceptions::PyValueError::new_err(format!(
-            "Width and height must not exceed {}.",
-            MAX_DIMENSION
+            "Width and height must not exceed {MAX_DIMENSION}."
         )));
     }
 
@@ -36,8 +35,7 @@ pub fn resize_image_aspect_ratio(
         Ok(image) => image,
         Err(e) => {
             return Err(exceptions::PyIOError::new_err(format!(
-                "Failed to load image: {}",
-                e
+                "Failed to load image: {e}"
             )));
         }
     };
@@ -72,8 +70,7 @@ pub fn resize_image_aspect_ratio(
         }
         _ => {
             return Err(exceptions::PyValueError::new_err(format!(
-                "Unsupported color type: {:?}",
-                color_type
+                "Unsupported color type: {color_type:?}"
             )));
         }
     };
@@ -84,13 +81,11 @@ pub fn resize_image_aspect_ratio(
             // Copy original image if save fails.
             if let Err(copy_e) = fs::copy(input, output) {
                 Err(exceptions::PyIOError::new_err(format!(
-                    "Failed to save the image or copy the original image. {}",
-                    copy_e
+                    "Failed to save the image or copy the original image. {copy_e}"
                 )))
             } else {
                 Err(exceptions::PyIOError::new_err(format!(
-                    "Resizing failed, but I copied the original image. {}",
-                    e
+                    "Resizing failed, but I copied the original image. {e}"
                 )))
             }
         }

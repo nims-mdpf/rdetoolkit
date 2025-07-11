@@ -255,7 +255,7 @@ result = run(custom_dataset_function=custom_dataset)
 
 ```python
 from rdetoolkit.workflows import run
-from rdetoolkit.config import Config, SystemSettings, MultiDataTileSettings
+from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
 
 # Standard configuration
 config = Config(
@@ -287,7 +287,7 @@ result = run(config=advanced_config)
 
 ```python
 from rdetoolkit.workflows import run
-from rdetoolkit.config import Config, SystemSettings
+from rdetoolkit.models.config import Config, SystemSettings
 from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 from pathlib import Path
 import json
@@ -484,7 +484,7 @@ Failed processing creates detailed error status information:
 
 ```python
 from rdetoolkit.workflows import run
-from rdetoolkit.config import load_config, Config
+from rdetoolkit.models.config import load_config, Config
 from pathlib import Path
 
 # Load configuration from file

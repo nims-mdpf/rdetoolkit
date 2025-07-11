@@ -4,8 +4,6 @@ import contextlib
 from collections.abc import Generator
 from pathlib import Path
 
-from tqdm import tqdm
-
 from rdetoolkit.config import load_config
 from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error, skip_exception_context
 from rdetoolkit.exceptions import StructuredError
@@ -56,7 +54,7 @@ def _create_error_status(
     )
 
 
-def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFiles, Path | None, Path | None]:
+def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> tuple[RawFiles, Path | None, Path | None]:
     """Classify input files to determine if the input pattern is appropriate.
 
     1. Invoice
@@ -110,7 +108,7 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFil
     if mode is None:
         mode = ""
 
-    input_checker = selected_input_checker(srcpaths, out_dir_temp, mode)
+    input_checker = selected_input_checker(srcpaths, out_dir_temp, mode, config)
     rawfiles, special_file = input_checker.parse(srcpaths.inputdata)
 
     # Use checker_type property to distinguish between different checkers
@@ -118,7 +116,7 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None) -> tuple[RawFil
         return rawfiles, None, special_file  # excelinvoice=None, smarttable_file=Path
     if input_checker.checker_type == "excel_invoice":
         return rawfiles, special_file, None  # excelinvoice=Path, smarttable_file=None
-    return rawfiles, None, None  # 通常のInvoiceモード
+    return rawfiles, None, None  # InvoiceMode
 
 
 def generate_folder_paths_iterator(
@@ -251,7 +249,7 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
 
         ```python
         ### main.py
-        from rdetoolkit.config import Config, MultiDataTileSettings, SystemSettings
+        from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
         from rdetoolkit import workflow
         from custom import custom_dataset # User-defined structuring processing function
 
@@ -278,7 +276,7 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
         __config = load_config(str(srcpaths.tasksupport), config=config)
         srcpaths.config = __config
 
-        raw_files_group, excel_invoice_files, smarttable_file = check_files(srcpaths, mode=__config.system.extended_mode)
+        raw_files_group, excel_invoice_files, smarttable_file = check_files(srcpaths, mode=__config.system.extended_mode, config=__config)
 
         # Backup of invoice.json
         invoice_org_filepath = backup_invoice_json_files(excel_invoice_files, __config.system.extended_mode)
@@ -286,22 +284,18 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
 
         # Execution of data set structuring process based on various modes
         # Use iterator directly to avoid loading all items into memory at once
-        total_items = len(raw_files_group)
         rde_data_tiles_iterator = generate_folder_paths_iterator(raw_files_group, invoice_org_filepath, invoice_schema_filepath)
 
-        with tqdm(total=total_items, desc="Processing data tiles", dynamic_ncols=True, leave=True) as pbar:
-            for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
-                status, error_info, mode = _process_mode(
-                    idx, srcpaths, rdeoutput_resource, __config,
-                    excel_invoice_files, smarttable_file,
-                    custom_dataset_function, logger,
-                )
+        for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
+            status, error_info, mode = _process_mode(
+                idx, srcpaths, rdeoutput_resource, __config,
+                excel_invoice_files, smarttable_file,
+                custom_dataset_function, logger,
+            )
+            if error_info and any(value is not None for value in error_info.values()):
+                status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
 
-                if error_info and any(value is not None for value in error_info.values()):
-                    status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
-
-                wf_manager.add_status(status)
-                pbar.update(1)  # Update progress bar
+            wf_manager.add_status(status)
 
     except StructuredError as e:
         handle_and_exit_on_structured_error(e, logger)

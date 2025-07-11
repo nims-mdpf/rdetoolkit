@@ -19,6 +19,7 @@ from rdetoolkit.processing.processors import (
     ThumbnailGenerator,
     VariableApplier,
 )
+from rdetoolkit.processing.processors.smarttable_early_exit import SmartTableEarlyExitProcessor
 
 
 class ProcessingMode(Enum):
@@ -111,6 +112,7 @@ class SmartTableInvoicePipelineBuilder(PipelineBuilder):
     def build(self) -> Pipeline:
         """Build SmartTableInvoice pipeline."""
         return (self._create_base_pipeline()
+                .add(SmartTableEarlyExitProcessor())
                 .add(SmartTableInvoiceInitializer())
                 .add(SmartTableFileCopier())
                 .add(DatasetRunner())

@@ -31,12 +31,15 @@ class TestSmartTableChecker:
                 (Path("data/temp/row_1.csv"), (Path("file2.txt"),)),
             ]
 
-            checker = SmartTableChecker(Path("data/temp"))
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=True)
             rawfiles, smarttable_path = checker.parse(tmp_path)
 
-            assert len(rawfiles) == 2
-            assert rawfiles[0] == (Path("data/temp/row_0.csv"), Path("file1.txt"))
-            assert rawfiles[1] == (Path("data/temp/row_1.csv"), Path("file2.txt"))
+            assert len(rawfiles) == 3
+            # First entry: SmartTable file only
+            assert rawfiles[0] == (smarttable_file,)
+            # Subsequent entries: Each CSV with related files
+            assert rawfiles[1] == (Path("data/temp/row_0.csv"), Path("file1.txt"))
+            assert rawfiles[2] == (Path("data/temp/row_1.csv"), Path("file2.txt"))
             assert smarttable_path == smarttable_file
 
     def test_parse_with_csv_file(self, tmp_path):
@@ -51,11 +54,14 @@ class TestSmartTableChecker:
                 (Path("data/temp/row_0.csv"), ()),
             ]
 
-            checker = SmartTableChecker(Path("data/temp"))
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=True)
             rawfiles, smarttable_path = checker.parse(tmp_path)
 
-            assert len(rawfiles) == 1
-            assert rawfiles[0] == (Path("data/temp/row_0.csv"),)
+            assert len(rawfiles) == 2
+            # First entry: SmartTable file only
+            assert rawfiles[0] == (smarttable_file,)
+            # Second entry: CSV file only
+            assert rawfiles[1] == (Path("data/temp/row_0.csv"),)
             assert smarttable_path == smarttable_file
 
     def test_parse_with_tsv_file(self, tmp_path):
@@ -70,11 +76,14 @@ class TestSmartTableChecker:
                 (Path("data/temp/row_0.csv"), (Path("data1.txt"), Path("data2.txt"))),
             ]
 
-            checker = SmartTableChecker(Path("data/temp"))
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=True)
             rawfiles, smarttable_path = checker.parse(tmp_path)
 
-            assert len(rawfiles) == 1
-            assert rawfiles[0] == (Path("data/temp/row_0.csv"), Path("data1.txt"), Path("data2.txt"))
+            assert len(rawfiles) == 2
+            # First entry: SmartTable file only
+            assert rawfiles[0] == (smarttable_file,)
+            # Second entry: CSV file with related files
+            assert rawfiles[1] == (Path("data/temp/row_0.csv"), Path("data1.txt"), Path("data2.txt"))
             assert smarttable_path == smarttable_file
 
     def test_parse_with_zip_file(self, tmp_path):
@@ -98,11 +107,14 @@ class TestSmartTableChecker:
                 (Path("data/temp/row_0.csv"), (Path("data/temp/test_content.txt"),)),
             ]
 
-            checker = SmartTableChecker(Path("data/temp"))
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=True)
             rawfiles, smarttable_path = checker.parse(tmp_path)
 
-            assert len(rawfiles) == 1
-            assert rawfiles[0] == (Path("data/temp/row_0.csv"), Path("data/temp/test_content.txt"))
+            assert len(rawfiles) == 2
+            # First entry: SmartTable file only
+            assert rawfiles[0] == (smarttable_file,)
+            # Second entry: CSV file with extracted file
+            assert rawfiles[1] == (Path("data/temp/row_0.csv"), Path("data/temp/test_content.txt"))
             assert smarttable_path == smarttable_file
 
     def test_parse_no_smarttable_files(self, tmp_path):
@@ -184,10 +196,14 @@ class TestSmartTableChecker:
                 (Path("data/temp/row_0.csv"), ()),
             ]
 
-            checker = SmartTableChecker(Path("data/temp"))
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=True)
             rawfiles, smarttable_path = checker.parse(tmp_path)
 
-            assert len(rawfiles) == 1
+            assert len(rawfiles) == 2
+            # First entry: SmartTable file only
+            assert rawfiles[0] == (smarttable_file,)
+            # Second entry: CSV file only
+            assert rawfiles[1] == (Path("data/temp/row_0.csv"),)
             assert smarttable_path == smarttable_file
 
     def test_multiple_zip_files_handling(self, tmp_path):
@@ -213,9 +229,57 @@ class TestSmartTableChecker:
                 (Path("data/temp/row_0.csv"), (Path("data/temp/extracted_0.txt"), Path("data/temp/extracted_1.txt"))),
             ]
 
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=True)
+            rawfiles, smarttable_path = checker.parse(tmp_path)
+
+            assert len(rawfiles) == 2
+            # First entry: SmartTable file only
+            assert rawfiles[0] == (smarttable_file,)
+            # Second entry: CSV file + 2 extracted files
+            assert len(rawfiles[1]) == 3  # CSV file + 2 extracted files
+            assert rawfiles[1][0] == Path("data/temp/row_0.csv")  # First should be CSV file
+            assert smarttable_path == smarttable_file
+
+    def test_save_table_file_false(self, tmp_path):
+        """Test that when save_table_file=False, SmartTable file is not included in rawfiles."""
+        # Create test files
+        smarttable_file = tmp_path / "smarttable_test.xlsx"
+        smarttable_file.touch()
+
+        with patch('rdetoolkit.impl.input_controller.SmartTableFile') as mock_st:
+            mock_instance = Mock()
+            mock_st.return_value = mock_instance
+            mock_instance.generate_row_csvs_with_file_mapping.return_value = [
+                (Path("data/temp/row_0.csv"), (Path("file1.txt"),)),
+                (Path("data/temp/row_1.csv"), (Path("file2.txt"),)),
+            ]
+
+            # Default behavior: save_table_file=False
             checker = SmartTableChecker(Path("data/temp"))
             rawfiles, smarttable_path = checker.parse(tmp_path)
 
+            # Only CSV files should be in rawfiles, not the SmartTable file
+            assert len(rawfiles) == 2
+            assert rawfiles[0] == (Path("data/temp/row_0.csv"), Path("file1.txt"))
+            assert rawfiles[1] == (Path("data/temp/row_1.csv"), Path("file2.txt"))
+            assert smarttable_path == smarttable_file
+
+    def test_save_table_file_explicit_false(self, tmp_path):
+        """Test explicit save_table_file=False behavior."""
+        smarttable_file = tmp_path / "smarttable_data.csv"
+        smarttable_file.touch()
+
+        with patch('rdetoolkit.impl.input_controller.SmartTableFile') as mock_st:
+            mock_instance = Mock()
+            mock_st.return_value = mock_instance
+            mock_instance.generate_row_csvs_with_file_mapping.return_value = [
+                (Path("data/temp/row_0.csv"), ()),
+            ]
+
+            checker = SmartTableChecker(Path("data/temp"), save_table_file=False)
+            rawfiles, smarttable_path = checker.parse(tmp_path)
+
+            # Only CSV files should be in rawfiles
             assert len(rawfiles) == 1
-            assert len(rawfiles[0]) == 3  # CSV file + 2 extracted files
+            assert rawfiles[0] == (Path("data/temp/row_0.csv"),)
             assert smarttable_path == smarttable_file

@@ -116,11 +116,13 @@ class SmartTableFileCopier(Processor):
     def _copy_to_raw(self, context: ProcessingContext) -> None:
         """Copy files to raw directory, excluding SmartTable generated CSVs."""
         filtered_files = self._filter_smarttable_csvs(context.resource_paths.rawfiles)
+        filtered_files = self._filter_smarttable_original_file(context, filtered_files)
         self._copy_files(context.resource_paths.raw, filtered_files)
 
     def _copy_to_nonshared_raw(self, context: ProcessingContext) -> None:
         """Copy files to nonshared_raw directory, excluding SmartTable generated CSVs."""
         filtered_files = self._filter_smarttable_csvs(context.resource_paths.rawfiles)
+        filtered_files = self._filter_smarttable_original_file(context, filtered_files)
         self._copy_files(context.resource_paths.nonshared_raw, filtered_files)
 
     def _filter_smarttable_csvs(self, source_files: tuple[Path, ...]) -> tuple[Path, ...]:
@@ -146,6 +148,55 @@ class SmartTableFileCopier(Processor):
             filtered.append(file_path)
 
         return tuple(filtered)
+
+    def _filter_smarttable_original_file(self, context: ProcessingContext, source_files: tuple[Path, ...]) -> tuple[Path, ...]:
+        """Filter original SmartTable file based on configuration.
+
+        If save_table_file is False, remove original SmartTable files from the copy list.
+
+        Args:
+            context: Processing context containing configuration
+            source_files: Original list of files to copy
+
+        Returns:
+            Filtered list of files
+        """
+        if not context.is_smarttable_mode:
+            return source_files
+
+        save_table_file = False
+        if (context.srcpaths.config.smarttable and hasattr(context.srcpaths.config.smarttable, 'save_table_file')):
+            save_table_file = context.srcpaths.config.smarttable.save_table_file
+
+        if save_table_file:
+            return source_files
+
+        filtered = []
+        for file_path in source_files:
+            if not self._is_original_smarttable_file(file_path):
+                filtered.append(file_path)
+            else:
+                logger.debug(f"Skipping original SmartTable file (save_table_file=False): {file_path}")
+
+        return tuple(filtered)
+
+    def _is_original_smarttable_file(self, file_path: Path) -> bool:
+        """Check if the file is an original SmartTable file.
+
+        Args:
+            file_path: Path to check
+
+        Returns:
+            True if this is an original SmartTable file in inputdata directory
+        """
+        if 'inputdata' not in file_path.parts:
+            return False
+
+        if not file_path.name.startswith('smarttable_'):
+            return False
+
+        supported_extensions = ['.xlsx', '.csv', '.tsv']
+        return file_path.suffix.lower() in supported_extensions
 
     def _is_smarttable_generated_csv(self, file_path: Path) -> bool:
         """Check if the file is a SmartTable generated CSV file.

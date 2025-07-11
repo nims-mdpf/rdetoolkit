@@ -5,42 +5,77 @@
 #   pre: false
 #   features: []
 #   all-features: false
+#   with-sources: false
+#   generate-hashes: false
+#   universal: false
 
---trusted-host pypi.python.org
---trusted-host pypi.org
---trusted-host files.pythonhosted.org
 -e file:.
 annotated-types==0.7.0
+    # via pydantic
 attrs==24.2.0
+    # via jsonschema
+    # via referencing
 build==1.2.2
+    # via rdetoolkit
 chardet==5.2.0
+    # via rdetoolkit
 charset-normalizer==3.3.2
+    # via rdetoolkit
 click==8.1.7
+    # via rdetoolkit
 et-xmlfile==1.1.0
+    # via openpyxl
 eval-type-backport==0.2.0
+    # via rdetoolkit
 jsonschema==4.23.0
+    # via rdetoolkit
 jsonschema-specifications==2023.12.1
+    # via jsonschema
 markdown==3.7
+    # via rdetoolkit
 numpy==1.26.4
+    # via pandas
+    # via rdetoolkit
 openpyxl==3.1.5
+    # via rdetoolkit
 packaging==24.1
+    # via build
 pandas==2.2.3
-polars==1.9.0
-pyarrow==19.0.1
-pydantic==2.9.2
-pydantic-core==2.23.4
-pyproject-hooks==1.1.0
-python-dateutil==2.9.0.post0
-pytz==2024.2
-pyyaml==6.0.2
-referencing==0.35.1
-rpds-py==0.20.0
-six==1.16.0
-toml==0.10.2
-tomlkit==0.13.2
-tqdm==4.67.0
-types-pytz==2025.2.0.20250326
-typing-extensions==4.12.2
-tzdata==2024.2
-# The following packages are considered to be unsafe in a requirements file:
+    # via rdetoolkit
 pip==24.3.1
+    # via rdetoolkit
+polars==1.9.0
+    # via rdetoolkit
+pyarrow==19.0.1
+    # via rdetoolkit
+pydantic==2.9.2
+    # via rdetoolkit
+pydantic-core==2.23.4
+    # via pydantic
+pyproject-hooks==1.1.0
+    # via build
+python-dateutil==2.9.0.post0
+    # via pandas
+pytz==2024.2
+    # via pandas
+pyyaml==6.0.2
+    # via rdetoolkit
+referencing==0.35.1
+    # via jsonschema
+    # via jsonschema-specifications
+rpds-py==0.20.0
+    # via jsonschema
+    # via referencing
+six==1.16.0
+    # via python-dateutil
+toml==0.10.2
+    # via rdetoolkit
+tomlkit==0.13.2
+    # via rdetoolkit
+types-pytz==2025.2.0.20250326
+    # via rdetoolkit
+typing-extensions==4.12.2
+    # via pydantic
+    # via pydantic-core
+tzdata==2024.2
+    # via pandas
