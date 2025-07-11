@@ -17,8 +17,8 @@ PathTuple = tuple[Path, ...]
 InputFilesGroup = tuple[ZipFilesPathList, ExcelInvoicePathList, OtherFilesPathList]
 RawFiles = Sequence[PathTuple]
 MetaType = dict[str, Union[str, int, float, list, bool]]
-RepeatedMetaType = dict[str, list[Union[str, int, float]]]
-MetaItem = dict[str, Union[str, int, float, bool]]
+RepeatedMetaType = dict[str, list[Union[str, int, float, list, bool]]]
+MetaItem = dict[str, Union[str, int, float, list, bool]]
 RdeFsPath = Union[str, Path]
 
 
