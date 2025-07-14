@@ -83,7 +83,7 @@ class FixedHeaders(BaseModel):
         data = [row1, row2, row3, row4]
         columns = [get_column_letter(i) for i in range(1, 14)]
 
-        return pl.DataFrame(data, columns)
+        return pl.DataFrame(data, columns, orient="row")
 
 
 @dataclass
