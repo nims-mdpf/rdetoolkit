@@ -401,6 +401,10 @@ class ExcelInvoiceTemplateGenerator:
         for attr_config in attribute_configs:
             attrs = attr_config.attributes
             if not attrs or not attrs.items.root:
+                if isinstance(attr_config, GeneralAttributeConfig):
+                    registerd_general_terms = []
+                elif isinstance(attr_config, SpecificAttributeConfig):
+                    registerd_specific_terms = []
                 continue
 
             for prop in attrs.items.root:
@@ -434,8 +438,14 @@ class ExcelInvoiceTemplateGenerator:
                 name = key_name.replace(f"{attr_config.prefix}.", "")
                 base_df[key_name] = [None, attr_config.prefix, name, ja_name]
 
-        df_registerd_general = pd.DataFrame(registerd_general_terms)
-        df_registerd_specific = pd.DataFrame(registerd_specific_terms)
+        df_registerd_general = pd.DataFrame(
+            registerd_general_terms,
+            columns=["term_id", "key_name"] if not registerd_general_terms else None,
+        )
+        df_registerd_specific = pd.DataFrame(
+            registerd_specific_terms,
+            columns=["sample_class_id", "term_id", "key_name"] if not registerd_specific_terms else None,
+        )
 
         return base_df, df_registerd_general, df_registerd_specific
 

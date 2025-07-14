@@ -779,3 +779,76 @@ def test_save_border_settings(template_config_mode_file, ivnoice_schema_json_wit
 
     if os.path.exists(test_path):
         os.remove(test_path)
+
+
+def test_mixed_empty_and_defined_attributes(empty_general_attributes_schema, tmp_path):
+    """Test behavior when only some attributes are defined."""
+    output_file = tmp_path / "test_mixed_attributes.xlsx"
+
+    template_df, general_df, specific_df = ExcelInvoiceFile.generate_template(
+        empty_general_attributes_schema, output_file
+    )
+
+    # generalTerm should have header only
+    assert len(general_df) == 0
+    assert list(general_df.columns) == ["term_id", "key_name"]
+
+    # specificTerm should contain defined items
+    assert len(specific_df) > 0, "specificTerm should contain defined attributes"
+    assert list(specific_df.columns) == ["sample_class_id", "term_id", "key_name"]
+
+
+def test_backward_compatibility_with_defined_attributes(template_config_mode_file, ivnoice_schema_json_with_full_sample_info):
+    """Backward compatibility check for existing functionality (when attributes are defined)."""
+    generator = ExcelInvoiceTemplateGenerator(FixedHeaders())
+
+    # Generate template with existing schema file
+    template_df, general_df, specific_df, version_df = generator.generate(template_config_mode_file)
+
+    # Confirm that basic structure is maintained
+    assert template_df is not None
+    assert general_df is not None
+    assert specific_df is not None
+    assert version_df is not None
+
+    # Confirm that data is included (existing behavior)
+    if len(general_df) > 0:
+        assert "term_id" in general_df.columns
+        assert "key_name" in general_df.columns
+
+    if len(specific_df) > 0:
+        assert "sample_class_id" in specific_df.columns
+        assert "term_id" in specific_df.columns
+        assert "key_name" in specific_df.columns
+
+
+def test_cli_integration_header_only(empty_attributes_schema, tmp_path):
+    """CLI integration test (header-only case)."""
+    output_file = tmp_path / "cli_integration_test.xlsx"
+
+    # Verify that the generate_template method works correctly
+    try:
+        template_df, general_df, specific_df = ExcelInvoiceFile.generate_template(
+            empty_attributes_schema, output_file, "file"
+        )
+
+        # Verify that the file has been generated
+        assert output_file.exists(), "Excel template file should be created"
+
+        # Load the Excel file and check its contents
+        workbook = load_workbook(output_file)
+
+        # Verify that the required sheets exist
+        assert "invoice_form" in workbook.sheetnames
+        assert "generalTerm" in workbook.sheetnames
+        assert "specificTerm" in workbook.sheetnames
+
+        # Verify that sheets contain headers only
+        general_sheet = workbook["generalTerm"]
+        specific_sheet = workbook["specificTerm"]
+
+        assert general_sheet.max_row == 1, "generalTerm should have header only"
+        assert specific_sheet.max_row == 1, "specificTerm should have header only"
+
+    except Exception as e:
+        pytest.fail(f"CLI integration test failed: {str(e)}")

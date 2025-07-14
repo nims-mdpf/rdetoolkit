@@ -402,3 +402,89 @@ def ivnoice_json_magic_filename_variable() -> Generator[str, None, None]:
     # teardown
     if os.path.exists("data"):
         shutil.rmtree("data")
+
+
+@pytest.fixture
+def empty_attributes_schema(tmp_path):
+    """スキーマファイル（generalAttributes、specificAttributesが空）を作成."""
+    schema_content = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "test_empty_attributes",
+        "type": "object",
+        "required": ["custom", "sample"],
+        "properties": {
+            "custom": {
+                "type": "object",
+                "label": {"ja": "固有情報", "en": "Custom Information"},
+                "required": [],
+                "properties": {
+                    "test_field": {
+                        "label": {"ja": "テストフィールド", "en": "Test Field"},
+                        "type": "string"
+                    }
+                }
+            },
+            "sample": {
+                "type": "object",
+                "label": {"ja": "試料情報", "en": "Sample Information"},
+                "properties": {}
+            }
+        }
+    }
+    schema_file = tmp_path / "empty_attributes.schema.json"
+    with open(schema_file, "w", encoding="utf-8") as f:
+        json.dump(schema_content, f, ensure_ascii=False, indent=2)
+
+    return schema_file
+
+
+@pytest.fixture
+def empty_general_attributes_schema(tmp_path):
+    """スキーマファイル（generalAttributesのみ空）を作成."""
+    schema_content = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "test_empty_general_attributes",
+        "type": "object",
+        "required": [
+            "custom",
+            "sample"
+        ],
+        "properties": {
+            "custom": {
+                "type": "object",
+                "label": {"ja": "固有情報", "en": "Custom Information"},
+                "required": [],
+                "properties": {
+                    "test_field": {
+                        "label": {"ja": "テストフィールド", "en": "Test Field"},
+                        "type": "string"
+                    }
+                }
+            },
+            "sample": {
+                "type": "object",
+                "label": {"ja": "試料情報", "en": "Sample Information"},
+                "properties": {
+                    "specificAttributes": {
+                        "type": "array",
+                        "items": [
+                            {
+                                "type": "object",
+                                "required": ["classId", "termId"],
+                                "properties": {
+                                    "classId": {"const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"},
+                                    "termId": {"const": "3250c45d-0ed6-1438-43b5-eb679918604a"}
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+
+    schema_file = tmp_path / "empty_general_attributes.schema.json"
+    with open(schema_file, "w", encoding="utf-8") as f:
+        json.dump(schema_content, f, ensure_ascii=False, indent=2)
+
+    return schema_file
