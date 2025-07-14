@@ -396,11 +396,15 @@ class ExcelInvoiceTemplateGenerator:
                 requires_class_id=True,
             ),
         ]
-        registerd_general_terms = []
-        registerd_specific_terms = []
+        registered_general_terms = []
+        registered_specific_terms = []
         for attr_config in attribute_configs:
             attrs = attr_config.attributes
             if not attrs or not attrs.items.root:
+                if isinstance(attr_config, GeneralAttributeConfig):
+                    registered_general_terms = []
+                elif isinstance(attr_config, SpecificAttributeConfig):
+                    registered_specific_terms = []
                 continue
 
             for prop in attrs.items.root:
@@ -414,7 +418,7 @@ class ExcelInvoiceTemplateGenerator:
                     if isinstance(attr_config, SpecificAttributeConfig):
                         emsg = f"Could not find a result corresponding to term_id {term_id} and class_id {class_id}."
                         term = attr_config.registry.by_term_and_class_id(term_id, class_id)[0]
-                        registerd_specific_terms.append({
+                        registered_specific_terms.append({
                             "sample_class_id": class_id,
                             "term_id": term_id,
                             "key_name": term["key_name"],
@@ -422,7 +426,7 @@ class ExcelInvoiceTemplateGenerator:
                     else:
                         emsg = f"Could not find a result corresponding to term_id {term_id}."
                         term = attr_config.registry.by_term_id(term_id)[0]
-                        registerd_general_terms.append({
+                        registered_general_terms.append({
                             "term_id": term_id,
                             "key_name": term["key_name"],
                         })
@@ -434,10 +438,16 @@ class ExcelInvoiceTemplateGenerator:
                 name = key_name.replace(f"{attr_config.prefix}.", "")
                 base_df[key_name] = [None, attr_config.prefix, name, ja_name]
 
-        df_registerd_general = pd.DataFrame(registerd_general_terms)
-        df_registerd_specific = pd.DataFrame(registerd_specific_terms)
+        df_registered_general = pd.DataFrame(
+            registered_general_terms,
+            columns=["term_id", "key_name"] if not registered_general_terms else None,
+        )
+        df_registered_specific = pd.DataFrame(
+            registered_specific_terms,
+            columns=["sample_class_id", "term_id", "key_name"] if not registered_specific_terms else None,
+        )
 
-        return base_df, df_registerd_general, df_registerd_specific
+        return base_df, df_registered_general, df_registered_specific
 
     def save(self, dataframes: dict[str, pd.DataFrame], save_path: str) -> None:
         """Save the given DataFrame to an Excel file with specific formatting.
