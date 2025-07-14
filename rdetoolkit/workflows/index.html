@@ -1502,7 +1502,7 @@ result <span style="color: #333333">=</span> run(custom_dataset_function<span st
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings, MultiDataTileSettings
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings, MultiDataTileSettings
 
 <span style="color: #888888"># Standard configuration</span>
 config <span style="color: #333333">=</span> Config(
@@ -1595,7 +1595,7 @@ result <span style="color: #333333">=</span> run(config<span style="color: #3333
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings
 <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
 <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
 <span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
@@ -1839,7 +1839,7 @@ config <span style="color: #333333">=</span> Config(
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config, Config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config, Config
 <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
 
 <span style="color: #888888"># Load configuration from file</span>
