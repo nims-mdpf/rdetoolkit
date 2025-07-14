@@ -63,7 +63,7 @@ def check_at_least_one_save_option_enabled() -> SystemSettings
 
 **Example:**
 ```python
-from rdetoolkit.config import SystemSettings
+from rdetoolkit.models.config import SystemSettings
 
 # Valid configuration
 valid_config = SystemSettings(
@@ -101,7 +101,7 @@ MultiDataTileSettings(ignore_errors: bool = False)
 
 **Example:**
 ```python
-from rdetoolkit.config import MultiDataTileSettings
+from rdetoolkit.models.config import MultiDataTileSettings
 
 # Configure MultiDataTile to continue on errors
 mdt_settings = MultiDataTileSettings(ignore_errors=True)
@@ -134,7 +134,7 @@ Config(
 
 **Example:**
 ```python
-from rdetoolkit.config import Config, SystemSettings, MultiDataTileSettings
+from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
 
 # Create comprehensive configuration
 config = Config(

@@ -46,14 +46,14 @@ fn main() {
             .to_string();
 
         // Windows用の設定
-        println!("cargo:rustc-link-search=native={}", python_libs);
-        println!("cargo:rustc-link-lib=python{}", version);
-        println!("cargo:include={}", python_include);
+        println!("cargo:rustc-link-search=native={python_libs}");
+        println!("cargo:rustc-link-lib=python{version}");
+        println!("cargo:include={python_include}");
 
         // デバッグ情報を出力
-        println!("cargo:warning=Python version: {}", version);
-        println!("cargo:warning=Python libs path: {}", python_libs);
-        println!("cargo:warning=Python include path: {}", python_include);
+        println!("cargo:warning=Python version: {version}");
+        println!("cargo:warning=Python libs path: {python_libs}");
+        println!("cargo:warning=Python include path: {python_include}");
     } else {
         // Unix系OSの場合
         let python_version_output = Command::new("python3")
@@ -67,7 +67,7 @@ fn main() {
             .trim()
             .to_string();
 
-        println!("cargo:rustc-link-lib={}", python_version);
+        println!("cargo:rustc-link-lib={python_version}");
 
         let python_include_dir = Command::new("python3")
             .arg("-c")
@@ -91,7 +91,7 @@ fn main() {
             .trim()
             .to_string();
 
-        println!("cargo:include={}", python_include_dir);
-        println!("cargo:rustc-link-search=native={}", python_lib_dir);
+        println!("cargo:include={python_include_dir}");
+        println!("cargo:rustc-link-search=native={python_lib_dir}");
     }
 }

@@ -1,4 +1,4 @@
-from _typeshed import Incomplete as Incomplete
+from _typeshed import Incomplete
 from typing import Any
 
 class StructuredError(Exception):
@@ -7,6 +7,8 @@ class StructuredError(Exception):
     eobj: Incomplete
     traceback_info: Incomplete
     def __init__(self, emsg: str = '', ecode: int = 1, eobj: Any | None = None, traceback_info: str | None = None) -> None: ...
+
+class SkipRemainingProcessorsError(Exception): ...
 
 class InvoiceModeError(Exception):
     emsg: Incomplete

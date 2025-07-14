@@ -21,13 +21,13 @@ pub fn read_file_with_encoding(file_path: &str) -> PyResult<String> {
 #[pyfunction]
 pub fn detect_encoding(path: &str) -> PyResult<String> {
     if !std::path::Path::new(path).exists() {
-        return Err(PyIOError::new_err(format!("File not found: {}", path)));
+        return Err(PyIOError::new_err(format!("File not found: {path}")));
     }
     let mut file = File::open(path)?;
 
     let mut bytes = Vec::new();
     file.read_to_end(&mut bytes)
-        .map_err(|e| PyIOError::new_err(format!("Failed to read file: {}", e)))?;
+        .map_err(|e| PyIOError::new_err(format!("Failed to read file: {e}")))?;
 
     if bytes.is_empty() {
         return Err(PyValueError::new_err(
