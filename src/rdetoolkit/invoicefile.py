@@ -438,13 +438,13 @@ class ExcelInvoiceTemplateGenerator:
                 name = key_name.replace(f"{attr_config.prefix}.", "")
                 base_df[key_name] = [None, attr_config.prefix, name, ja_name]
 
-        df_registerd_general = pd.DataFrame(
-            registerd_general_terms,
-            columns=["term_id", "key_name"] if not registerd_general_terms else None,
+        df_registered_general = pd.DataFrame(
+            registered_general_terms,
+            columns=["term_id", "key_name"] if not registered_general_terms else None,
         )
-        df_registerd_specific = pd.DataFrame(
-            registerd_specific_terms,
-            columns=["sample_class_id", "term_id", "key_name"] if not registerd_specific_terms else None,
+        df_registered_specific = pd.DataFrame(
+            registered_specific_terms,
+            columns=["sample_class_id", "term_id", "key_name"] if not registered_specific_terms else None,
         )
 
         return base_df, df_registerd_general, df_registerd_specific
