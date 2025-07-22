@@ -7,6 +7,7 @@ on:
       - develop/*
       - develop/**
 
+# 同じPRに対する連続したpushがあった場合、前のジョブをキャンセル
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -54,23 +55,36 @@ jobs:
         run: |
           echo "Built wheels:"
           ls -la dist/
-
-      - name: Test wheel installation
+          
+      - name: Test wheel installation (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           # Create a virtual environment for testing
           python -m venv test_env
-
-          # Activate virtual environment based on OS
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            source test_env/Scripts/activate
-          else
-            source test_env/bin/activate
-          fi
-
+          
+          # Activate virtual environment
+          source test_env/bin/activate
+          
           # Install the built wheel
           pip install dist/*.whl
-
+          
+          # Test import
+          python -c "import rdetoolkit.core; print('Successfully imported rdetoolkit.core')"
+          
+      - name: Test wheel installation (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Create a virtual environment for testing
+          python -m venv test_env
+          
+          # Activate virtual environment
+          & test_env\Scripts\Activate.ps1
+          
+          # Install the built wheel
+          pip install (Get-ChildItem dist\*.whl).FullName
+          
           # Test import
           python -c "import rdetoolkit.core; print('Successfully imported rdetoolkit.core')"
 
