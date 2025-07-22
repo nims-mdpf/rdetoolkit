@@ -8,6 +8,7 @@ from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.processing.processors.invoice import (
     StandardInvoiceInitializer,
     ExcelInvoiceInitializer,
+    SmartTableInvoiceInitializer,
     InvoiceInitializerFactory,
     # Backward compatibility aliases
     InvoiceHandler,
@@ -236,6 +237,56 @@ class TestInvoiceInitializerFactory:
         """Test factory creates correct processor for each mode."""
         processor = InvoiceInitializerFactory.create(mode)
         assert isinstance(processor, expected_class)
+
+
+class TestSmartTableInvoiceInitializer:
+    """Test cases for SmartTableInvoiceInitializer processor."""
+
+    def test_get_name(self):
+        """Test processor name."""
+        processor = SmartTableInvoiceInitializer()
+        assert processor.get_name() == "SmartTableInvoiceInitializer"
+        
+    def test_ensure_required_fields_basic_structure(self):
+        """Test _ensure_required_fields basic functionality."""
+        processor = SmartTableInvoiceInitializer()
+        
+        # Test data without any fields
+        invoice_data = {}
+        processor._ensure_required_fields(invoice_data)
+        
+        # Should add only basic field (custom and sample fields are controlled by schema validation now)
+        assert "basic" in invoice_data
+        assert invoice_data["basic"] == {}
+        # custom and sample fields are no longer automatically added
+
+    def test_ensure_required_fields_preserve_existing(self):
+        """Test _ensure_required_fields preserves existing fields."""
+        processor = SmartTableInvoiceInitializer()
+        
+        # Test data with existing fields
+        existing_basic = {"dataName": "test"}
+        existing_custom = {"existing": "custom_data"}
+        existing_sample = {"existing": "sample_data"}
+        invoice_data = {"basic": existing_basic, "custom": existing_custom, "sample": existing_sample}
+        processor._ensure_required_fields(invoice_data)
+        
+        # Should preserve existing data
+        assert invoice_data["basic"] == existing_basic
+        assert invoice_data["custom"] == existing_custom
+        assert invoice_data["sample"] == existing_sample
+
+    def test_ensure_required_fields_partial_fields(self):
+        """Test _ensure_required_fields with existing basic field."""
+        processor = SmartTableInvoiceInitializer()
+        
+        # Test data with only basic field
+        invoice_data = {"basic": {"dataName": "test"}}
+        processor._ensure_required_fields(invoice_data)
+        
+        # Should preserve existing basic field (custom and sample fields are controlled by schema validation now)
+        assert invoice_data["basic"] == {"dataName": "test"}
+        # custom and sample fields are no longer automatically added
 
 
 class TestBackwardCompatibilityAliases:

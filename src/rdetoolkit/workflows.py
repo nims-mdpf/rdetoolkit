@@ -206,6 +206,10 @@ def _process_mode(
         mode = "Invoice"
         status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
 
+    if (status.status == "failed" and not (mode == "MultiDataTile" and config.multidata_tile and config.multidata_tile.ignore_errors)):
+        emsg = f"Processing failed in {mode} mode: {status.error_message}"
+        raise Exception(emsg)
+
     return status, error_info, mode
 
 

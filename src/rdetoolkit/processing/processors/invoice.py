@@ -295,10 +295,6 @@ class SmartTableInvoiceInitializer(Processor):
         """Ensure required fields are present in invoice data."""
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
-        if "custom" not in invoice_data:
-            invoice_data["custom"] = {}
-        if "sample" not in invoice_data:
-            invoice_data["sample"] = {}
 
     def get_name(self) -> str:
         """Get the name of this processor."""

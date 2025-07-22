@@ -134,6 +134,12 @@ class InvoiceValidator:
 
         validator = Draft202012Validator(self.schema, format_checker=FormatChecker())
         errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
+
+        # Custom validation: Check if invoice.json contains only required fields
+        required_fields_errors = self._validate_required_fields_only(data)
+        if required_fields_errors:
+            errors.extend(required_fields_errors)
+
         emsg = "Error in validating invoice.json:\n"
         for idx, error in enumerate(errors, start=1):
             emsg += f"{idx}. Field: {'.'.join(list(map(str, error.path)))}\n"
@@ -243,6 +249,37 @@ class InvoiceValidator:
             return [self._remove_none_values(item) for item in data if item is not None]
 
         return data
+
+    def _validate_required_fields_only(self, data: dict[str, Any]) -> list:
+        """Validate that invoice.json contains only fields listed in schema's required array.
+
+        Args:
+            data: The invoice data to validate
+
+        Returns:
+            List of validation errors for fields not in required array
+        """
+        errors = []
+
+        # Get required fields from schema
+        required_fields = set(self.schema.get("required", []))
+
+        # Always allow system-required fields
+        system_required = {"basic", "datasetId"}
+        required_fields.update(system_required)
+
+        # Check top-level fields in invoice data
+        for field_name in data:
+            if field_name not in required_fields:
+                # Create a mock validation error for consistency with JSONSchema errors
+                error = type('ValidationError', (), {
+                    'message': f"Field '{field_name}' is not allowed. Only required fields {sorted(required_fields)} are permitted in invoice.json",
+                    'path': [field_name],
+                    'validator': 'required_fields_only',
+                })()
+                errors.append(error)
+
+        return errors
 
 
 def invoice_validate(path: str | Path, schema: str | Path) -> None:

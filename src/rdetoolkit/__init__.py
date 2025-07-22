@@ -1,4 +1,4 @@
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 from rdetoolkit.core import DirectoryOps, ManagedDirectory, detect_encoding, resize_image_aspect_ratio
 

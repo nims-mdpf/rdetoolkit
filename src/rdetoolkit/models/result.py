@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class WorkflowExecutionStatus(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     run_id: str
     title: str
     status: str
@@ -14,6 +16,7 @@ class WorkflowExecutionStatus(BaseModel):
     error_message: str | None = Field(default=None)
     target: str | None
     stacktrace: str | None = Field(default=None)
+    exception_object: Exception | None = Field(default=None, exclude=True)  # Store original exception, excluded from JSON serialization
 
     @field_validator("run_id")
     @classmethod
@@ -30,7 +33,7 @@ class WorkflowResultManager:
     def __init__(self) -> None:
         self.statuses = WorkflowExecutionResults(statuses=[])
 
-    def add(self, run_id: str, title: str, status: str, mode: str, error_code: int | None = None, error_message: str | None = None, target: str | None = None, stacktrace: str | None = None) -> None:
+    def add(self, run_id: str, title: str, status: str, mode: str, error_code: int | None = None, error_message: str | None = None, target: str | None = None, stacktrace: str | None = None, exception_object: Exception | None = None) -> None:
         """Adds a new workflow execution status to the statuses list.
 
         Args:
@@ -42,6 +45,7 @@ class WorkflowResultManager:
             error_message (str, optional): The error message associated with the workflow execution, if any. Defaults to None.
             target (str, optional): target directory path, if any. Defaults to None.
             stacktrace (str, optional): The stack trace of the error, if any. Defaults to None.
+            exception_object (Exception, optional): The original exception object, if any. Defaults to None.
 
         Returns:
             None
@@ -56,6 +60,7 @@ class WorkflowResultManager:
             error_message=error_message,
             target=target,
             stacktrace=stacktrace,
+            exception_object=exception_object,
         )
         self.statuses.statuses.append(execution_status)
 
