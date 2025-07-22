@@ -79,14 +79,16 @@ jobs:
           # Create a virtual environment for testing
           python -m venv test_env
           
-          # Activate virtual environment
-          & test_env\Scripts\Activate.ps1
+          # Get the wheel file path
+          $wheelFile = (Get-ChildItem dist\*.whl).FullName
+          Write-Host "Installing wheel: $wheelFile"
           
-          # Install the built wheel
-          pip install (Get-ChildItem dist\*.whl).FullName
+          # Install using the venv's Python directly
+          & test_env\Scripts\python.exe -m pip install --upgrade pip
+          & test_env\Scripts\python.exe -m pip install $wheelFile
           
-          # Test import
-          python -c "import rdetoolkit.core; print('Successfully imported rdetoolkit.core')"
+          # Test import using the venv's Python
+          & test_env\Scripts\python.exe -c "import rdetoolkit.core; print('Successfully imported rdetoolkit.core')"
 
       - name: Upload built wheels as artifacts
         uses: actions/upload-artifact@v4
@@ -122,7 +124,7 @@ jobs:
           rust-toolchain: stable
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --release --out dist
+          args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
