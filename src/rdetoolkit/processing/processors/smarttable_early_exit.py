@@ -6,6 +6,7 @@ import shutil
 from rdetoolkit.exceptions import SkipRemainingProcessorsError
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
+from rdetoolkit.processing.processors.validation import MetadataValidator, InvoiceValidator
 from rdetoolkit.rdelogger import get_logger
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
@@ -23,33 +24,40 @@ class SmartTableEarlyExitProcessor(Processor):
     def process(self, context: ProcessingContext) -> None:
         """Check if processing should be terminated early and copy SmartTable file if needed.
 
+        For original SmartTable files, this processor:
+        1. Copies the file to appropriate directories (if save_table_file is enabled)
+        2. Performs validation of invoice.json and metadata.json
+        3. Terminates the pipeline early to avoid unnecessary processing
+
         Args:
             context: Processing context containing rawfiles and other information
 
         Raises:
             SkipRemainingProcessorsError: When the current entry contains an original SmartTable file
-                                   and save_table_file is enabled
+                                         after validation is completed
         """
         if not context.is_smarttable_mode:
-            return
-
-        # Check if save_table_file is enabled
-        save_table_file = False
-        if (context.srcpaths.config.smarttable and
-                hasattr(context.srcpaths.config.smarttable, 'save_table_file')):
-            save_table_file = context.srcpaths.config.smarttable.save_table_file
-
-        if not save_table_file:
             return
 
         for file_path in context.resource_paths.rawfiles:
             if self._is_original_smarttable_file(file_path):
                 logger.info(f"Original SmartTable file detected: {file_path}")
-                self._copy_smarttable_file(context, file_path)
 
-                # Skip remaining processors
+                # Copy SmartTable file if save_table_file is enabled
+                if self._should_save_table_file(context):
+                    self._copy_smarttable_file(context, file_path)
+
+                # Always validate files for SmartTable entries
+                try:
+                    self._validate_files(context)
+                    logger.info("SmartTable validation completed successfully")
+                except Exception as e:
+                    logger.error(f"SmartTable validation failed: {str(e)}")
+                    raise
+
+                # Skip remaining processors after validation
                 logger.info("Skipping remaining processors for SmartTable file entry")
-                msg = "SmartTable file processing completed"
+                msg = "SmartTable file processing and validation completed"
                 raise SkipRemainingProcessorsError(msg)
 
     def _is_original_smarttable_file(self, file_path: Path) -> bool:
@@ -98,3 +106,51 @@ class SmartTableEarlyExitProcessor(Processor):
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
         logger.debug(f"File copied: {source} -> {destination}")
+
+    def _should_save_table_file(self, context: ProcessingContext) -> bool:
+        """Check if save_table_file is enabled in the configuration.
+
+        Args:
+            context: Processing context
+
+        Returns:
+            True if save_table_file is enabled, False otherwise
+        """
+        if (context.srcpaths.config.smarttable and
+                hasattr(context.srcpaths.config.smarttable, 'save_table_file')):
+            return context.srcpaths.config.smarttable.save_table_file
+        return False
+
+    def _validate_files(self, context: ProcessingContext) -> None:
+        """Validate invoice.json and metadata.json files.
+
+        This method ensures that both invoice.json and metadata.json are validated
+        against their respective schemas, regardless of the save_table_file setting.
+
+        Args:
+            context: Processing context containing file paths
+
+        Raises:
+            Exception: If validation fails for either file
+        """
+        logger.debug("Starting SmartTable file validation")
+
+        # Validate metadata.json if it exists
+        try:
+            metadata_validator = MetadataValidator()
+            metadata_validator.process(context)
+            logger.debug("Metadata validation completed successfully")
+        except Exception as e:
+            logger.error(f"Metadata validation failed: {str(e)}")
+            raise
+
+        # Validate invoice.json against schema
+        try:
+            invoice_validator = InvoiceValidator()
+            invoice_validator.process(context)
+            logger.debug("Invoice validation completed successfully")
+        except Exception as e:
+            logger.error(f"Invoice validation failed: {str(e)}")
+            raise
+
+        logger.debug("All SmartTable validation completed successfully")

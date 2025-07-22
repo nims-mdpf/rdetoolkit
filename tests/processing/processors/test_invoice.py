@@ -247,186 +247,46 @@ class TestSmartTableInvoiceInitializer:
         processor = SmartTableInvoiceInitializer()
         assert processor.get_name() == "SmartTableInvoiceInitializer"
         
-    def test_ensure_required_fields_basic_structure(self, tmp_path):
-        """Test _ensure_required_fields basic functionality with temporary schema files."""
+    def test_ensure_required_fields_basic_structure(self):
+        """Test _ensure_required_fields basic functionality."""
         processor = SmartTableInvoiceInitializer()
         
-        # Create a temporary schema file
-        schema_file = tmp_path / "invoice.schema.json"
-        schema_data = {"required": ["custom", "sample"]}
-        with open(schema_file, 'w') as f:
-            import json
-            json.dump(schema_data, f)
+        # Test data without any fields
+        invoice_data = {}
+        processor._ensure_required_fields(invoice_data)
         
-        # Mock context with the temporary schema file
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data without custom and sample
-        invoice_data = {"basic": {}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should add both fields
+        # Should add only basic field (custom and sample fields are controlled by schema validation now)
         assert "basic" in invoice_data
-        assert "custom" in invoice_data
-        assert "sample" in invoice_data
-        assert invoice_data["custom"] == {}
-        assert invoice_data["sample"] == {}
+        assert invoice_data["basic"] == {}
+        # custom and sample fields are no longer automatically added
 
-    def test_ensure_required_fields_custom_only_schema(self, tmp_path):
-        """Test _ensure_required_fields when schema requires only custom."""
+    def test_ensure_required_fields_preserve_existing(self):
+        """Test _ensure_required_fields preserves existing fields."""
         processor = SmartTableInvoiceInitializer()
         
-        # Create schema requiring only custom
-        schema_file = tmp_path / "invoice.schema.json"
-        schema_data = {"required": ["custom"]}
-        with open(schema_file, 'w') as f:
-            import json
-            json.dump(schema_data, f)
-        
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data with sample field present
-        invoice_data = {"basic": {}, "sample": {"existing": "data"}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should add custom and remove sample
-        assert "basic" in invoice_data
-        assert "custom" in invoice_data
-        assert "sample" not in invoice_data
-
-    def test_ensure_required_fields_sample_only_schema(self, tmp_path):
-        """Test _ensure_required_fields when schema requires only sample."""
-        processor = SmartTableInvoiceInitializer()
-        
-        # Create schema requiring only sample
-        schema_file = tmp_path / "invoice.schema.json"
-        schema_data = {"required": ["sample"]}
-        with open(schema_file, 'w') as f:
-            import json
-            json.dump(schema_data, f)
-        
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data with custom field present
-        invoice_data = {"basic": {}, "custom": {"existing": "data"}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should add sample and remove custom
-        assert "basic" in invoice_data
-        assert "sample" in invoice_data
-        assert "custom" not in invoice_data
-
-    def test_ensure_required_fields_neither_required_schema(self, tmp_path):
-        """Test _ensure_required_fields when schema requires neither custom nor sample."""
-        processor = SmartTableInvoiceInitializer()
-        
-        # Create schema not requiring custom or sample
-        schema_file = tmp_path / "invoice.schema.json"
-        schema_data = {"required": []}
-        with open(schema_file, 'w') as f:
-            import json
-            json.dump(schema_data, f)
-        
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data with both fields present
-        invoice_data = {"basic": {}, "custom": {"data": "test"}, "sample": {"data": "test"}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should remove both custom and sample
-        assert "basic" in invoice_data
-        assert "custom" not in invoice_data
-        assert "sample" not in invoice_data
-
-    def test_ensure_required_fields_preserve_existing(self, tmp_path):
-        """Test _ensure_required_fields preserves existing required fields."""
-        processor = SmartTableInvoiceInitializer()
-        
-        # Create schema requiring both custom and sample
-        schema_file = tmp_path / "invoice.schema.json"
-        schema_data = {"required": ["custom", "sample"]}
-        with open(schema_file, 'w') as f:
-            import json
-            json.dump(schema_data, f)
-        
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data with both fields already present
+        # Test data with existing fields
+        existing_basic = {"dataName": "test"}
         existing_custom = {"existing": "custom_data"}
         existing_sample = {"existing": "sample_data"}
-        invoice_data = {"basic": {}, "custom": existing_custom, "sample": existing_sample}
-        processor._ensure_required_fields(invoice_data, context)
+        invoice_data = {"basic": existing_basic, "custom": existing_custom, "sample": existing_sample}
+        processor._ensure_required_fields(invoice_data)
         
         # Should preserve existing data
-        assert "basic" in invoice_data
+        assert invoice_data["basic"] == existing_basic
         assert invoice_data["custom"] == existing_custom
         assert invoice_data["sample"] == existing_sample
 
-    def test_ensure_required_fields_schema_not_found(self):
-        """Test _ensure_required_fields handles schema file not found."""
+    def test_ensure_required_fields_partial_fields(self):
+        """Test _ensure_required_fields with existing basic field."""
         processor = SmartTableInvoiceInitializer()
         
-        # Mock context with non-existent schema file
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = Path("/non/existent/file.json")
+        # Test data with only basic field
+        invoice_data = {"basic": {"dataName": "test"}}
+        processor._ensure_required_fields(invoice_data)
         
-        # Test data without custom and sample
-        invoice_data = {"basic": {}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should fallback to default behavior (add both fields)
-        assert "basic" in invoice_data
-        assert "custom" in invoice_data
-        assert "sample" in invoice_data
-
-    def test_ensure_required_fields_malformed_schema(self, tmp_path):
-        """Test _ensure_required_fields handles malformed JSON schema."""
-        processor = SmartTableInvoiceInitializer()
-        
-        # Create malformed JSON file
-        schema_file = tmp_path / "invoice.schema.json"
-        with open(schema_file, 'w') as f:
-            f.write("{ malformed json")
-        
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data without custom and sample
-        invoice_data = {"basic": {}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should fallback to default behavior
-        assert "basic" in invoice_data
-        assert "custom" in invoice_data
-        assert "sample" in invoice_data
-
-    def test_ensure_required_fields_no_required_field_in_schema(self, tmp_path):
-        """Test _ensure_required_fields when schema has no 'required' field."""
-        processor = SmartTableInvoiceInitializer()
-        
-        # Create schema without required field
-        schema_file = tmp_path / "invoice.schema.json"
-        schema_data = {"properties": {}}
-        with open(schema_file, 'w') as f:
-            import json
-            json.dump(schema_data, f)
-        
-        context = MagicMock()
-        context.resource_paths.invoice_schema_json = schema_file
-        
-        # Test data with custom and sample
-        invoice_data = {"basic": {}, "custom": {"data": "test"}, "sample": {"data": "test"}}
-        processor._ensure_required_fields(invoice_data, context)
-        
-        # Should remove both fields since required defaults to empty list
-        assert "basic" in invoice_data
-        assert "custom" not in invoice_data
-        assert "sample" not in invoice_data
+        # Should preserve existing basic field (custom and sample fields are controlled by schema validation now)
+        assert invoice_data["basic"] == {"dataName": "test"}
+        # custom and sample fields are no longer automatically added
 
 
 class TestBackwardCompatibilityAliases:

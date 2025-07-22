@@ -188,7 +188,7 @@ class SmartTableInvoiceInitializer(Processor):
                 self._process_mapping_key(col, value, invoice_data)
 
             # Ensure required fields are present
-            self._ensure_required_fields(invoice_data, context)
+            self._ensure_required_fields(invoice_data)
 
             invoice_path = context.invoice_dst_filepath
             invoice_path.parent.mkdir(parents=True, exist_ok=True)
@@ -291,50 +291,10 @@ class SmartTableInvoiceInitializer(Processor):
                     "value": value,
                 })
 
-    def _ensure_required_fields(self, invoice_data: dict, context: ProcessingContext) -> None:
-        """Ensure required fields are present in invoice data based on schema.
-        
-        Args:
-            invoice_data: Invoice data dictionary to update
-            context: Processing context containing schema information
-        """
-        # Always ensure basic field is present
+    def _ensure_required_fields(self, invoice_data: dict) -> None:
+        """Ensure required fields are present in invoice data."""
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
-            
-        # Load schema and determine required fields
-        try:
-            schema_data = readf_json(context.resource_paths.invoice_schema_json)
-            required_fields = schema_data.get("required", [])
-            
-            # Handle custom field
-            if "custom" in required_fields:
-                if "custom" not in invoice_data:
-                    invoice_data["custom"] = {}
-                    logger.warning("Added 'custom' field to invoice.json based on invoice.schema.json requirements")
-            else:
-                if "custom" in invoice_data:
-                    del invoice_data["custom"]
-                    logger.warning("Removed 'custom' field from invoice.json as it's not required by invoice.schema.json")
-                    
-            # Handle sample field
-            if "sample" in required_fields:
-                if "sample" not in invoice_data:
-                    invoice_data["sample"] = {}
-                    logger.warning("Added 'sample' field to invoice.json based on invoice.schema.json requirements")
-            else:
-                if "sample" in invoice_data:
-                    del invoice_data["sample"]
-                    logger.warning("Removed 'sample' field from invoice.json as it's not required by invoice.schema.json")
-                    
-        except Exception as e:
-            logger.error(f"Failed to load or parse invoice schema from {context.resource_paths.invoice_schema_json}: {str(e)}")
-            logger.warning("Falling back to default behavior: ensuring custom and sample fields are present")
-            # Fallback to original behavior
-            if "custom" not in invoice_data:
-                invoice_data["custom"] = {}
-            if "sample" not in invoice_data:
-                invoice_data["sample"] = {}
 
     def get_name(self) -> str:
         """Get the name of this processor."""

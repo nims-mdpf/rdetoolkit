@@ -133,6 +133,7 @@ class Pipeline:
             error_message=str(error),
             target=context.basedir,
             stacktrace=traceback.format_exc(),
+            exception_object=error,
         )
 
     def get_processor_count(self) -> int:
