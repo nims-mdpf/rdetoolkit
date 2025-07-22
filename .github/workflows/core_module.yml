@@ -20,6 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -37,6 +42,10 @@ jobs:
     steps:
       - name: Checkout Crate
         uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Set Toolchain
         uses: actions-rs/toolchain@v1
         with:
