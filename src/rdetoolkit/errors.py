@@ -153,7 +153,22 @@ def handle_exception(
     exc_type_name = exc_type.__name__ if exc_type else "UnknownException"
     tb_list = traceback.extract_tb(exc_traceback)
 
-    simplifed_traceback: str = format_simplified_traceback(tb_list)
+    combined_tb = tb_list
+
+    # Get information from chained exceptions if they exist
+    # If __cause__ or __context__ exists, include the original exception's traceback
+    if hasattr(e, '__cause__') and e.__cause__ is not None:
+        # Get the original exception's traceback and place it at the beginning
+        original_tb = traceback.extract_tb(e.__cause__.__traceback__)
+        _tb_list = original_tb + tb_list
+        combined_tb = traceback.StackSummary.from_list(_tb_list)
+    elif hasattr(e, '__context__') and e.__context__ is not None:
+        # Get the context exception's traceback and place it at the beginning
+        context_tb = traceback.extract_tb(e.__context__.__traceback__)
+        _tb_list = context_tb + tb_list
+        combined_tb = traceback.StackSummary.from_list(_tb_list)
+
+    simplifed_traceback: str = format_simplified_traceback(combined_tb)
     error_messages = (
         "\nTraceback (simplified message):\n",
         f"Call Path:\n{simplifed_traceback}\n",

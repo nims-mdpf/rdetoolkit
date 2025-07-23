@@ -72,7 +72,7 @@ def test_workflow_result_manager_repr():
     manager = WorkflowResultManager()
     manager.add(run_id="1", title="Test Workflow", status="success", mode="invoice", target='example_target', stacktrace=None)
     repr_str = repr(manager)
-    expected_repr = "WorkflowResultManager(statuses=[WorkflowExecutionStatus(run_id='0001', title='Test Workflow', status='success', mode='invoice', error_code=None, error_message=None, target='example_target', stacktrace=None)])"
+    expected_repr = "WorkflowResultManager(statuses=[WorkflowExecutionStatus(run_id='0001', title='Test Workflow', status='success', mode='invoice', error_code=None, error_message=None, target='example_target', stacktrace=None, exception_object=None)])"
     assert repr_str == expected_repr
 
 

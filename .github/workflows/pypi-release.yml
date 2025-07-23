@@ -21,30 +21,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Backup Cargo.toml
-        run: |
-          cp Cargo.toml Cargo.toml.bak
-          cp Cargo.toml.publish Cargo.toml
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           rust-toolchain: stable
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --release --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12 3.13
+          args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist
-      - name: Restore original config
-        run: |
-          mv Cargo.toml.bak Cargo.toml
 
   linux-cross:
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     strategy:
       matrix:
         target: [aarch64, armv7, s390x, ppc64le]
@@ -53,30 +44,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Backup Cargo.toml
-        run: |
-          cp Cargo.toml Cargo.toml.bak
-          cp Cargo.toml.publish Cargo.toml
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           rust-toolchain: stable
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --release --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12 3.13
+          args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist
-      - name: Restore original config
-        run: |
-          mv Cargo.toml.bak Cargo.toml
 
   musllinux:
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     strategy:
       matrix:
         target:
@@ -87,30 +69,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Backup Cargo.toml
-        run: |
-          cp Cargo.toml Cargo.toml.bak
-          cp Cargo.toml.publish Cargo.toml
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           rust-toolchain: stable
           target: ${{ matrix.target }}
           manylinux: musllinux_1_2
-          args: --release --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12 3.13
+          args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.target }}
           path: dist
-      - name: Restore original config
-        run: |
-          mv Cargo.toml.bak Cargo.toml
 
   musllinux-cross:
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     strategy:
       matrix:
         platform:
@@ -123,30 +96,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Backup Cargo.toml
-        run: |
-          cp Cargo.toml Cargo.toml.bak
-          cp Cargo.toml.publish Cargo.toml
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           rust-toolchain: stable
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_2
-          args: --release --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12 3.13
+          args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist
-      - name: Restore original config
-        run: |
-          mv Cargo.toml.bak Cargo.toml
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
-    env:
-      SKIP_BUILD_RS: "1"
     strategy:
       matrix:
         platform:
@@ -161,11 +125,6 @@ jobs:
         with:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
-      - name: Backup Cargo.toml
-        shell: bash
-        run: |
-          cp Cargo.toml Cargo.toml.bak
-          cp Cargo.toml.publish Cargo.toml
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -176,18 +135,9 @@ jobs:
         with:
           name: wheels-windows-${{ matrix.platform.target }}
           path: dist
-      - name: Restore original config
-        shell: bash
-        run: |
-          if [ -f Cargo.toml ]; then
-            rm Cargo.toml
-          fi
-          mv Cargo.toml.bak Cargo.toml
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
-    env:
-      SKIP_BUILD_RS: "1"
     strategy:
       matrix:
         platform:
@@ -200,10 +150,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: Backup Cargo.toml
-        run: |
-          cp Cargo.toml Cargo.toml.bak
-          cp Cargo.toml.publish Cargo.toml
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -214,14 +160,9 @@ jobs:
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
-      - name: Restore original config
-        run: |
-          mv Cargo.toml.bak Cargo.toml
 
   sdist:
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     steps:
       - uses: actions/checkout@v4
       - name: Build sdist
@@ -256,8 +197,6 @@ jobs:
   release-to-testpypi:
     name: Release to TestPyPI
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
@@ -276,8 +215,6 @@ jobs:
   release-to-pypi:
     name: Release to PyPI
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
@@ -297,8 +234,6 @@ jobs:
     name: Create GitHub Release
     needs: [release-to-pypi]
     runs-on: ubuntu-latest
-    env:
-      SKIP_BUILD_RS: "1"
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
