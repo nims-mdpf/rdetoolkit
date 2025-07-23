@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.target }}
-          path: dist
+          path: dist/*
 
   linux-cross:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.target }}
-          path: dist
+          path: dist/*
 
   musllinux:
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.target }}
-          path: dist
+          path: dist/*
 
   musllinux-cross:
     runs-on: ubuntu-latest
@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
-          path: dist
+          path: dist/*
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
@@ -134,7 +134,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-windows-${{ matrix.platform.target }}
-          path: dist
+          path: dist/*
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
@@ -159,7 +159,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-${{ matrix.platform.target }}
-          path: dist
+          path: dist/*
 
   sdist:
     runs-on: ubuntu-latest
@@ -174,7 +174,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-sdist
-          path: dist
+          path: dist/*
 
   test-dist:
     name: Test dist directory
@@ -185,6 +185,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          merge-multiple: true
       - name: Check dist directory contents
         run: |
           echo "Contents of dist directory:"
@@ -204,13 +205,19 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          merge-multiple: true
+      - name: List files for debugging
+        run: |
+          echo "Files prepared for upload:"
+          find dist -name "*.whl" -o -name "*.tar.gz" | head -20
+          echo "Total files: $(find dist -name "*.whl" -o -name "*.tar.gz" | wc -l)"
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
-          packages-dir: dist/
+          packages-dir: dist
 
   release-to-pypi:
     name: Release to PyPI
@@ -222,12 +229,18 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          merge-multiple: true
+      - name: List files for debugging
+        run: |
+          echo "Files prepared for upload:"
+          find dist -name "*.whl" -o -name "*.tar.gz" | head -20
+          echo "Total files: $(find dist -name "*.whl" -o -name "*.tar.gz" | wc -l)"
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
-          packages-dir: dist/
+          packages-dir: dist
 
   github-release:
     name: Create GitHub Release
