@@ -1,7 +1,14 @@
 name: Pytest and coverage measurement and create badges
 
 on:
-  push:
+  pull_request:
+    branches:
+      - 'develop-*'
+      - 'develop/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
