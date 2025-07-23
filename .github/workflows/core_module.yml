@@ -26,7 +26,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Python development headers
-        run: sudo apt-get update && sudo apt-get install -y python3-dev
+        run: sudo apt-get update && sudo apt-get install -y python3-dev libpython3-dev
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -36,7 +36,9 @@ jobs:
       - name: Run check
         run: cargo check
       - name: Run test
-        run: cargo test --no-default-features
+        run: |
+          export PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
+          cargo test --no-default-features
       - name: Run clippy
         run: cargo clippy -- -D warnings
 
@@ -51,11 +53,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install Python development headers
-        run: sudo apt-get update && sudo apt-get install -y python3-dev
+        run: sudo apt-get update && sudo apt-get install -y python3-dev libpython3-dev
 
       - name: Set Toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
       - name: Run Test
-        run: cargo test --no-default-features
+        run: |
+          export PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
+          cargo test --no-default-features
