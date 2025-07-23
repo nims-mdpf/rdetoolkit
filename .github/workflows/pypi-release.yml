@@ -204,16 +204,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
-      - name: Flatten artifacts and prepare for upload
+          path: dist
+          merge-multiple: true
+      - name: List files for debugging
         run: |
-          mkdir -p dist
-          # Move all wheel and tar.gz files to the dist directory
-          find artifacts -name "*.whl" -exec cp {} dist/ \;
-          find artifacts -name "*.tar.gz" -exec cp {} dist/ \;
-          # List what we have
           echo "Files prepared for upload:"
-          ls -la dist/
+          find dist -name "*.whl" -o -name "*.tar.gz" | head -20
+          echo "Total files: $(find dist -name "*.whl" -o -name "*.tar.gz" | wc -l)"
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -231,16 +228,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
-      - name: Flatten artifacts and prepare for upload
+          path: dist
+          merge-multiple: true
+      - name: List files for debugging
         run: |
-          mkdir -p dist
-          # Move all wheel and tar.gz files to the dist directory
-          find artifacts -name "*.whl" -exec cp {} dist/ \;
-          find artifacts -name "*.tar.gz" -exec cp {} dist/ \;
-          # List what we have
           echo "Files prepared for upload:"
-          ls -la dist/
+          find dist -name "*.whl" -o -name "*.tar.gz" | head -20
+          echo "Total files: $(find dist -name "*.whl" -o -name "*.tar.gz" | wc -l)"
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
