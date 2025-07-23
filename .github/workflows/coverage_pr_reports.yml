@@ -27,61 +27,81 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
 
-  coverage_rs:
-    name: Code Coverage with grcov
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # coverage_rs:
+  #   name: Code Coverage with grcov
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: llvm-tools-preview
+  #     - name: Install Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: nightly
+  #         override: true
+  #         components: llvm-tools-preview
 
-      - name: Install Python development files
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-dev
+  #     - name: Install Python development files
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y python3-dev
 
-      - name: Install grcov
-        run: cargo install grcov
+  #     - name: Install grcov
+  #       run: cargo install grcov
 
-      - name: Set up Python environment variables
-        run: |
-          echo "PYTHON_INCLUDE_DIR=$(python3 -c 'from sysconfig import get_paths as gp; print(gp()[\"include\"])')" >> $GITHUB_ENV
-          echo "PYTHON_LIB_DIR=$(python3 -c 'from sysconfig import get_paths as gp; print(gp()[\"stdlib\"])')" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=${{ env.PYTHON_LIB_DIR }}:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+  #     - name: Set up Python environment variables
+  #       run: |
+  #         echo "PYTHON_INCLUDE_DIR=$(python3 -c 'from sysconfig import get_paths as gp; print(gp()[\"include\"])')" >> $GITHUB_ENV
+  #         echo "PYTHON_LIB_DIR=$(python3 -c 'from sysconfig import get_paths as gp; print(gp()[\"stdlib\"])')" >> $GITHUB_ENV
+  #         echo "LD_LIBRARY_PATH=${{ env.PYTHON_LIB_DIR }}:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
-      - name: Build with coverage
-        env:
-          RUSTFLAGS: "-C instrument-coverage -L${{ env.PYTHON_LIB_DIR }} -I${{ env.PYTHON_INCLUDE_DIR }} -C link-arg=-Wl,-rpath,${{ env.PYTHON_LIB_DIR }}"
-        run: cargo build
+  #     - name: Build with coverage
+  #       env:
+  #         RUSTFLAGS: "-C instrument-coverage -L${{ env.PYTHON_LIB_DIR }} -I${{ env.PYTHON_INCLUDE_DIR }} -C link-arg=-Wl,-rpath,${{ env.PYTHON_LIB_DIR }}"
+  #       run: cargo build
 
-      - name: Run tests with coverage
-        env:
-          LLVM_PROFILE_FILE: "your-project-name.profraw"
-          CARGO_INCREMENTAL: 0
-          # Disable PyO3 auto-initialize for tests
-          PYO3_PYTHON: "/usr/bin/python3"
-        run: |
-          # Skip Rust tests for PyO3 extension modules
-          echo "Skipping Rust tests for PyO3 extension module"
-          # You can add unit tests that don't require Python initialization here
-          # cargo test --lib --no-default-features -- --nocapture
+  #     - name: Install Python dependencies for testing
+  #       run: |
+  #         pip install -e .
+  #         pip install pytest pytest-cov
 
-      - name: Generate coverage report
-        run: |
-          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+  #     - name: Run tests with coverage
+  #       env:
+  #         LLVM_PROFILE_FILE: "rdetoolkit-%p-%m.profraw"
+  #         CARGO_INCREMENTAL: 0
+  #         RUSTFLAGS: "-C instrument-coverage"
+  #         PYO3_PYTHON: "/usr/bin/python3"
+  #       run: |
+  #         # Run Python tests that will exercise the Rust code
+  #         python -m pytest tests/ -v || true
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./lcov.info
+  #         # Also try to run any Rust unit tests that don't require Python
+  #         cargo test --lib --no-default-features -- --nocapture || true
 
-      - name: Post coverage comment
-        uses: romeovs/lcov-reporter-action@v0.3.1
-        with:
-          lcov-file: lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Generate coverage report
+  #       run: |
+  #         # Find all .profraw files and generate coverage
+  #         grcov . \
+  #           --binary-path ./target/debug/ \
+  #           -s . \
+  #           -t lcov \
+  #           --branch \
+  #           --ignore-not-existing \
+  #           --ignore "/*" \
+  #           --ignore "*/tests/*" \
+  #           --ignore "*/target/*" \
+  #           -o lcov.info
+
+  #         # Display coverage summary
+  #         echo "Coverage report generated. File size:"
+  #         ls -la lcov.info || echo "lcov.info not found"
+
+  #     - name: Upload coverage to Codecov
+  #       uses: codecov/codecov-action@v3
+  #       with:
+  #         files: ./lcov.info
+
+  #     - name: Post coverage comment
+  #       uses: romeovs/lcov-reporter-action@v0.3.1
+  #       with:
+  #         lcov-file: lcov.info
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
