@@ -3,6 +3,9 @@ name: Build Test for Develop Branch PRs
 on:
   pull_request:
     branches:
+      - main
+  push:
+    branches:
       - develop
       - 'develop-*'
       - 'develop/**'
