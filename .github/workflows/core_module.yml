@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install Python development headers
+        run: sudo apt-get update && sudo apt-get install -y python3-dev
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -46,6 +49,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Install Python development headers
+        run: sudo apt-get update && sudo apt-get install -y python3-dev
+
       - name: Set Toolchain
         uses: actions-rs/toolchain@v1
         with:
