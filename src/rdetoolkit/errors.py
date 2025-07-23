@@ -161,13 +161,11 @@ def handle_exception(
         # Get the original exception's traceback and place it at the beginning
         original_tb = traceback.extract_tb(e.__cause__.__traceback__)
         _tb_list = original_tb + tb_list
-        _tb_list = _tb_list[::-1]
         combined_tb = traceback.StackSummary.from_list(_tb_list)
     elif hasattr(e, '__context__') and e.__context__ is not None:
         # Get the context exception's traceback and place it at the beginning
         context_tb = traceback.extract_tb(e.__context__.__traceback__)
         _tb_list = context_tb + tb_list
-        _tb_list = _tb_list[::-1]
         combined_tb = traceback.StackSummary.from_list(_tb_list)
 
     simplifed_traceback: str = format_simplified_traceback(combined_tb)
