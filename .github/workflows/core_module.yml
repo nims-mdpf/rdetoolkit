@@ -54,11 +54,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install system Python 3.11 with headers
+      - name: Install system Python 3.11 + libpython
         run: |
           sudo add-apt-repository -y ppa:deadsnakes/ppa
           sudo apt-get update
-          sudo apt-get install -y python3.11 python3.11-dev
+          sudo apt-get install -y python3.11 python3.11-dev libpython3.11
 
       - uses: actions/setup-python@v5
         with:
@@ -68,5 +68,5 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Cargo test (with auto-initialize)
+      - name: Cargo test (auto-initialize PyO3)
         run: cargo test --no-default-features --features test
