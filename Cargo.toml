@@ -20,6 +20,7 @@ tempfile = "3.14.0"
 [features]
 default = ["extension-module"]
 extension-module = ["pyo3/extension-module"]
+test = ["pyo3/auto-initialize"]
 
 [lints.clippy]
 dbg_macro = "warn"

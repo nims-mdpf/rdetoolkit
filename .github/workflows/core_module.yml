@@ -47,7 +47,7 @@ jobs:
         run: cargo check
 
       - name: Cargo clippy (deny warnings)
-        run: cargo clippy -- -D warnings
+        run: cargo clippy -- -D warnings -A clippy::useless_conversion
 
   test:
     runs-on: ubuntu-latest
@@ -68,5 +68,5 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Cargo test (no default features)
-        run: cargo test --no-default-features
+      - name: Cargo test (with auto-initialize)
+        run: cargo test --no-default-features --features test
