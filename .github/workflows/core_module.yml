@@ -69,5 +69,8 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Set rustflags for embedded Python
+        run: echo 'RUSTFLAGS=-L native=/usr/lib/x86_64-linux-gnu -lpython3.11' >> "$GITHUB_ENV"
+
       - name: Cargo test (auto-initialize PyO3)
         run: cargo test --no-default-features --features test
