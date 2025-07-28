@@ -633,7 +633,7 @@ class Meta:
         outfmt: str | None,
         orgtype: str | None,
         outunit: str | None,
-    ) -> dict[str, bool | int | float | str]:  # pragma: no cover
+    ) -> dict[str, str | int | float | list[Any] | bool]:  # pragma: no cover
         """Casts the input metadata to the specified format and performs validation to check.
 
         if it can be cast to the specified data type. The formats for various metadata are described in metadata-def.json.
