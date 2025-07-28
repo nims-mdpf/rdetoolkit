@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rde.nims.go.jp/rde/dataset-templates/restructured-test/invoice.schema.json",
+  "description": "Test schema for restructured invoice validation",
+  "type": "object",
+  "required": [
+    "sample"
+  ],
+  "properties": {
+    "sample": {
+      "type": "object",
+      "label": {
+        "ja": "試料情報",
+        "en": "Sample Information"
+      },
+      "properties": {
+        "generalAttributes": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "required": [
+                "termId"
+              ],
+              "properties": {
+                "termId": {
+                  "const": "test-general-term-id"
+                }
+              }
+            }
+          ]
+        },
+        "specificAttributes": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "required": [
+                "classId",
+                "termId"
+              ],
+              "properties": {
+                "classId": {
+                  "const": "test-class-id"
+                },
+                "termId": {
+                  "const": "test-specific-term-id"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+    "datasetId": "test-dataset-restructured",
+    "basic": {
+        "dateSubmitted": "2024-01-15",
+        "dataOwnerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
+        "dataName": "Restructured Test Data"
+    },
+    "sample": {
+        "sampleId": "019a6150-6f3b-4384-8f12-8f8950f51098",
+        "names": null,
+        "ownerId": null,
+        "composition": null,
+        "referenceUrl": null,
+        "description": null,
+        "generalAttributes": null,
+        "specificAttributes": null
+    }
+}
