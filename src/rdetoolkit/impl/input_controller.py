@@ -347,7 +347,7 @@ class SmartTableChecker(IInputFileChecker):
         )
 
         # Convert to RawFiles format: each mapping becomes a tuple
-        raw_files = []
+        raw_files: list[tuple[Path, ...]] = []
 
         # First entry: SmartTable file only (if save_table_file is True)
         if self.save_table_file:

@@ -396,8 +396,8 @@ class ExcelInvoiceTemplateGenerator:
                 requires_class_id=True,
             ),
         ]
-        registered_general_terms = []
-        registered_specific_terms = []
+        registered_general_terms: list[dict[str, Any]] = []
+        registered_specific_terms: list[dict[str, Any]] = []
         for attr_config in attribute_configs:
             attrs = attr_config.attributes
             if not attrs or not attrs.items.root:

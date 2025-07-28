@@ -297,3 +297,63 @@ def test_allow_invoice_json():
     assert data["custom"]["sample7"] == "#h1"
     # Noneの値は削除されているため、存在しない
     assert not data["custom"].get("sample3")
+
+
+def test_validate_required_fields_only():
+    """Test that _validate_required_fields_only correctly uses SchemaValidationError.
+    
+    This test ensures that the fix for issue #198 (ValidationError.__new__() error) 
+    doesn't regress by verifying that SchemaValidationError is used correctly.
+    """
+    # Create a minimal schema with only required fields
+    Path("temp").mkdir(parents=True, exist_ok=True)
+    schema_path = Path("temp").joinpath("test_schema.json")
+    schema_data = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+            "basic": {"type": "object"},
+            "datasetId": {"type": "string"},
+            "custom": {"type": "object"}
+        },
+        "required": ["basic", "datasetId", "custom"]  # Only these fields are allowed
+    }
+    
+    # Create invoice data with an extra field that's not in required
+    invoice_path = Path("temp").joinpath("test_invoice.json")
+    invoice_data = {
+        "basic": {
+            "dataOwnerId": "12345678901234567890123456789012345678901234567890123456",
+            "dateSubmitted": "2024-01-01",
+            "dataName": "Test Data"
+        },
+        "datasetId": "test123",
+        "custom": {"field1": "value1"},
+        "extraField": "This field is not in required list"  # This should trigger error
+    }
+    
+    try:
+        # Write test files
+        with open(schema_path, "w") as f:
+            json.dump(schema_data, f)
+        with open(invoice_path, "w") as f:
+            json.dump(invoice_data, f)
+        
+        # Test that validation fails with correct error
+        with pytest.raises(InvoiceSchemaValidationError) as exc_info:
+            invoice_validate(invoice_path, schema_path)
+        
+        error_msg = str(exc_info.value)
+        # Verify error message contains expected content
+        assert "Field 'extraField' is not allowed" in error_msg
+        assert "required_fields_only" in error_msg
+        assert "Only required fields" in error_msg
+        
+    finally:
+        # Clean up
+        if schema_path.exists():
+            schema_path.unlink()
+        if invoice_path.exists():
+            invoice_path.unlink()
+        if Path("temp").exists():
+            shutil.rmtree("temp")
