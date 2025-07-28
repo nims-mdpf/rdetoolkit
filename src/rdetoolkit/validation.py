@@ -270,7 +270,9 @@ class InvoiceValidator:
 
         for field_name in data:
             if field_name not in required_fields:
-                # Create a mock validation error for consistency with JSONSchema errors
+                # Create a SchemaValidationError for consistency with other jsonschema errors
+                # This will be processed together with other validation errors and eventually
+                # wrapped in InvoiceSchemaValidationError when raised (line 149)
                 error = SchemaValidationError(
                     message=f"Field '{field_name}' is not allowed. Only required fields {sorted(required_fields)} are permitted in invoice.json",
                     path=[field_name],
