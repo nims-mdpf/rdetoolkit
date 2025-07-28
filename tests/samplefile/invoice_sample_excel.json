@@ -1,0 +1,16 @@
+{
+    "datasetId": "test-dataset-excel",
+    "basic": {
+        "dateSubmitted": "2024-01-15",
+        "dataOwnerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
+        "dataName": "Excel Invoice Test Data"
+    },
+    "sample": {
+        "sampleId": "",
+        "names": ["Excel Sample"],
+        "ownerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
+        "composition": "Excel test composition",
+        "referenceUrl": "https://example.com",
+        "description": "Test sample for Excel invoice pattern"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "datasetId": "test-dataset-adding",
+    "basic": {
+        "dateSubmitted": "2024-01-15",
+        "dataOwnerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
+        "dataName": "Sample Adding Test Data"
+    },
+    "sample": {
+        "sampleId": "",
+        "names": ["New Sample"],
+        "ownerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
+        "composition": "Test composition",
+        "referenceUrl": "https://example.com",
+        "description": "Test sample for adding pattern"
+    }
+}
