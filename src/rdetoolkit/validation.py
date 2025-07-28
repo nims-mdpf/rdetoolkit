@@ -268,11 +268,10 @@ class InvoiceValidator:
         system_required = {"basic", "datasetId"}
         required_fields.update(system_required)
 
-        # Check top-level fields in invoice data
         for field_name in data:
             if field_name not in required_fields:
                 # Create a mock validation error for consistency with JSONSchema errors
-                error = ValidationError(
+                error = SchemaValidationError(
                     message=f"Field '{field_name}' is not allowed. Only required fields {sorted(required_fields)} are permitted in invoice.json",
                     path=[field_name],
                     validator='required_fields_only',
