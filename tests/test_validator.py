@@ -14,6 +14,7 @@ from rdetoolkit.validation import (
     invoice_validate,
     metadata_validate,
 )
+from jsonschema import validate
 
 
 @pytest.fixture
@@ -297,3 +298,196 @@ def test_allow_invoice_json():
     assert data["custom"]["sample7"] == "#h1"
     # Noneの値は削除されているため、存在しない
     assert not data["custom"].get("sample3")
+
+
+def test_validate_required_fields_only():
+    """Test that _validate_required_fields_only correctly uses SchemaValidationError.
+
+    This test ensures that the fix for issue #198 (ValidationError.__new__() error)
+    doesn't regress by verifying that SchemaValidationError is used correctly.
+    """
+    # Create a minimal schema with only required fields
+    Path("temp").mkdir(parents=True, exist_ok=True)
+    schema_path = Path("temp").joinpath("test_schema.json")
+    schema_data = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+            "basic": {"type": "object"},
+            "datasetId": {"type": "string"},
+            "custom": {"type": "object"}
+        },
+        "required": ["basic", "datasetId", "custom"]  # Only these fields are allowed
+    }
+
+    # Create invoice data with an extra field that's not in required
+    invoice_path = Path("temp").joinpath("test_invoice.json")
+    invoice_data = {
+        "basic": {
+            "dataOwnerId": "12345678901234567890123456789012345678901234567890123456",
+            "dateSubmitted": "2024-01-01",
+            "dataName": "Test Data"
+        },
+        "datasetId": "test123",
+        "custom": {"field1": "value1"},
+        "extraField": "This field is not in required list"  # This should trigger error
+    }
+
+    try:
+        # Write test files
+        with open(schema_path, "w") as f:
+            json.dump(schema_data, f)
+        with open(invoice_path, "w") as f:
+            json.dump(invoice_data, f)
+
+        # Test that validation fails with correct error
+        with pytest.raises(InvoiceSchemaValidationError) as exc_info:
+            invoice_validate(invoice_path, schema_path)
+
+        error_msg = str(exc_info.value)
+        # Verify error message contains expected content
+        assert "Field 'extraField' is not allowed" in error_msg
+        assert "required_fields_only" in error_msg
+        assert "Only required fields" in error_msg
+
+    finally:
+        # Clean up
+        if schema_path.exists():
+            schema_path.unlink()
+        if invoice_path.exists():
+            invoice_path.unlink()
+        if Path("temp").exists():
+            shutil.rmtree("temp")
+
+
+def test_restructured_invoice_validation():
+    """Test validation with restructured invoice (sampleWhenRestructured pattern)"""
+    invoice_path = Path(__file__).parent.joinpath("samplefile", "invoice_restructured.json")
+    schema_path = Path(__file__).parent.joinpath("samplefile", "invoice_schema_with_sample.json")
+
+    # Should not raise any exception
+    invoice_validate(invoice_path, schema_path)
+
+
+def test_restructured_sample_pattern_matches():
+    """Test that sampleWhenRestructured pattern correctly matches restructured data"""
+    schema_path = Path(__file__).parent.joinpath("samplefile", "invoice_schema_with_sample.json")
+    invoice_path = Path(__file__).parent.joinpath("samplefile", "invoice_restructured.json")
+
+    validator = InvoiceValidator(schema_path)
+    result = validator.validate(path=invoice_path)
+
+    # Verify the restructured data is properly validated
+    assert isinstance(result, dict)
+    assert result["sample"]["sampleId"] == "019a6150-6f3b-4384-8f12-8f8950f51098"
+    # Verify that null values are properly handled (removed by _remove_none_values)
+    assert "names" not in result["sample"]
+    assert "ownerId" not in result["sample"]
+
+
+def test_restructured_pattern_with_basic_schema():
+    """Test that restructured pattern works with invoice_basic_and_sample.schema_.json"""
+
+    # Load the basic schema directly
+    basic_schema_path = Path(__file__).parent.parent / "src" / "rdetoolkit" / "static" / "invoice_basic_and_sample.schema_.json"
+
+    with open(basic_schema_path, "r") as f:
+        schema = json.load(f)
+
+    # Load restructured invoice data
+    with open(Path(__file__).parent.joinpath("samplefile", "invoice_restructured.json"), "r") as f:
+        data = json.load(f)
+
+    # Should validate successfully against the basic schema
+    validate(instance=data, schema=schema)
+
+
+@pytest.mark.parametrize(
+    "pattern_name, invoice_file, expected_sample_id, expected_has_names",
+    [
+        ("sampleWhenAdding", "invoice_sample_adding.json", "", True),
+        ("sampleWhenRef", "invoice_sample_ref.json", "019a6150-6f3b-4384-8f12-8f8950f51098", True),
+        ("sampleWhenAddingExcelInvoice", "invoice_sample_excel.json", "", True),
+        ("sampleWhenRestructured", "invoice_restructured.json", "019a6150-6f3b-4384-8f12-8f8950f51098", False),
+    ]
+)
+def test_all_sample_patterns(pattern_name, invoice_file, expected_sample_id, expected_has_names):
+    """Test that all sample patterns work correctly"""
+    invoice_path = Path(__file__).parent.joinpath("samplefile", invoice_file)
+
+    # Use a schema that requires sample
+    schema_path = Path(__file__).parent.joinpath("samplefile", "invoice_schema_with_sample.json")
+
+    # Should validate successfully
+    invoice_validate(invoice_path, schema_path)
+
+    # Verify pattern-specific behavior
+    validator = InvoiceValidator(schema_path)
+    result = validator.validate(path=invoice_path)
+
+    if expected_sample_id:
+        assert result["sample"]["sampleId"] == expected_sample_id
+
+    # For restructured pattern, names should be removed due to null value
+    # For other patterns, names should be present
+    if expected_has_names:
+        assert "names" in result["sample"]
+    else:
+        assert "names" not in result["sample"]  # Removed by _remove_none_values
+
+
+def test_invalid_restructured_sample_id():
+    """Test that invalid sampleId format fails validation for restructured pattern"""
+    Path("temp").mkdir(parents=True, exist_ok=True)
+
+    # Create invalid restructured invoice with bad sampleId format
+    invalid_invoice_path = Path("temp").joinpath("invalid_restructured.json")
+    invalid_invoice_data = {
+        "datasetId": "test-dataset",
+        "basic": {
+            "dateSubmitted": "2024-01-15",
+            "dataOwnerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
+            "dataName": "Invalid Test Data"
+        },
+        "sample": {
+            "sampleId": "invalid-uuid-format",  # Invalid UUID format
+            "names": None,
+            "ownerId": None
+        }
+    }
+
+    schema_path = Path(__file__).parent.joinpath("samplefile", "invoice_schema_with_sample.json")
+
+    try:
+        with open(invalid_invoice_path, "w") as f:
+            json.dump(invalid_invoice_data, f)
+
+        # Should raise validation error due to invalid UUID pattern
+        with pytest.raises(InvoiceSchemaValidationError) as exc_info:
+            invoice_validate(invalid_invoice_path, schema_path)
+
+        # Verify error is related to pattern validation
+        error_msg = str(exc_info.value)
+        assert "pattern" in error_msg.lower() or "anyof" in error_msg.lower()
+
+    finally:
+        if invalid_invoice_path.exists():
+            invalid_invoice_path.unlink()
+        if Path("temp").exists():
+            shutil.rmtree("temp")
+
+
+def test_existing_patterns_still_work_after_restructured_addition():
+    """Test that existing sample patterns still work after adding sampleWhenRestructured"""
+    # Test with existing sample files that should still validate
+    existing_test_cases = [
+        ("invoice.json", "invoice.schema.json"),
+        ("invoice_allow_none.json", "invoice.schema.json"),
+    ]
+
+    for invoice_file, schema_file in existing_test_cases:
+        invoice_path = Path(__file__).parent.joinpath("samplefile", invoice_file)
+        schema_path = Path(__file__).parent.joinpath("samplefile", schema_file)
+
+        # Should still validate successfully
+        invoice_validate(invoice_path, schema_path)

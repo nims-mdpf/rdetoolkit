@@ -65,6 +65,9 @@
                 },
                 {
                     "$ref": "#/definitions/sample/sampleWhenAddingExcelInvoice"
+                },
+                {
+                    "$ref": "#/definitions/sample/sampleWhenRestructured"
                 }
             ]
         }
@@ -314,6 +317,62 @@
                                 ]
                             }
                         }
+                    }
+                }
+            },
+            "sampleWhenRestructured": {
+                "type": "object",
+                "required": [
+                    "sampleId"
+                ],
+                "properties": {
+                    "sampleId": {
+                        "type": "string",
+                        "pattern": "^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$"
+                    },
+                    "names": {
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "ownerId": {
+                        "description": "sample owner id",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^$|^([0-9a-zA-Z]{56})$"
+                    },
+                    "composition": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "referenceUrl": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "generalAttributes": {
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "specificAttributes": {
+                        "type": [
+                            "array",
+                            "null"
+                        ]
                     }
                 }
             }
