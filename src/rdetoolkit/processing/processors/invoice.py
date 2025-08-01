@@ -185,7 +185,11 @@ class SmartTableInvoiceInitializer(Processor):
                 if pd.isna(value) or value == "":
                     continue
 
-                self._process_mapping_key(col, value, invoice_data)
+                self._process_mapping_key(col, value, invoice_data, context)
+
+            # Set basic.dataName to SmartTable filename if save_table_file is enabled
+            if self._should_use_smarttable_filename(context) and context.smarttable_file:
+                invoice_data["basic"]["dataName"] = context.smarttable_file.name
 
             # Ensure required fields are present
             self._ensure_required_fields(invoice_data)
@@ -210,16 +214,20 @@ class SmartTableInvoiceInitializer(Processor):
             "sample": {},
         }
 
-    def _process_mapping_key(self, key: str, value: str, invoice_data: dict[str, Any]) -> None:
+    def _process_mapping_key(self, key: str, value: str, invoice_data: dict[str, Any], context: ProcessingContext) -> None:
         """Process a mapping key and assign value to appropriate location in invoice data.
 
         Args:
             key: Mapping key (e.g., "basic/dataName", "sample/generalAttributes.termId")
             value: Value to assign
             invoice_data: Invoice data dictionary to update
+            context: Processing context containing configuration
         """
         if key.startswith("basic/"):
             field = key.replace("basic/", "")
+            # Skip dataName if save_table_file is enabled - it will be set to SmartTable filename
+            if field == "dataName" and self._should_use_smarttable_filename(context):
+                return
             invoice_data["basic"][field] = value
 
         elif key.startswith("custom/"):
@@ -295,6 +303,21 @@ class SmartTableInvoiceInitializer(Processor):
         """Ensure required fields are present in invoice data."""
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
+
+    def _should_use_smarttable_filename(self, context: ProcessingContext) -> bool:
+        """Check if SmartTable filename should be used for basic.dataName.
+        
+        Returns True if save_table_file is enabled in the configuration.
+        
+        Args:
+            context: Processing context containing configuration
+            
+        Returns:
+            True if save_table_file is enabled, False otherwise
+        """
+        return (context.srcpaths.config.smarttable and 
+                hasattr(context.srcpaths.config.smarttable, 'save_table_file') and
+                context.srcpaths.config.smarttable.save_table_file)
 
     def get_name(self) -> str:
         """Get the name of this processor."""

@@ -295,7 +295,7 @@ TestSample,25"""
         assert result["custom"]["temperature"] == "25"
         assert "datasetId" not in result
 
-    def _create_mock_context(self, csv_file: Path, tmp_path: Path) -> Mock:
+    def _create_mock_context(self, csv_file: Path, tmp_path: Path, save_table_file: bool = False, smarttable_filename: str = None) -> Mock:
         """Create a mock processing context for testing."""
         context = Mock(spec=ProcessingContext)
         context.is_smarttable_mode = True
@@ -306,6 +306,19 @@ TestSample,25"""
         context.resource_paths.rawfiles = (csv_file,)
         context.resource_paths.invoice_org = tmp_path / "invoice_org.json"
         context.invoice_dst_filepath = tmp_path / "invoice.json"
+        
+        # Mock config for save_table_file
+        context.srcpaths = Mock()
+        context.srcpaths.config = Mock()
+        context.srcpaths.config.smarttable = Mock()
+        context.srcpaths.config.smarttable.save_table_file = save_table_file
+        
+        # Mock smarttable_file
+        if smarttable_filename:
+            context.smarttable_file = Mock()
+            context.smarttable_file.name = smarttable_filename
+        else:
+            context.smarttable_file = None
         
         # Ensure directories exist
         context.invoice_dst_filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -339,3 +352,144 @@ TestSample,25"""
             processor.process(context)
         
         assert "SmartTable file not provided in processing context" in str(exc_info.value)
+
+    def test_save_table_file_enabled_uses_smarttable_filename(self, tmp_path):
+        """Test that when save_table_file=True, basic.dataName is set to SmartTable filename."""
+        # Create test CSV file with basic/dataName column
+        csv_file = tmp_path / "fsmarttable_test_0000.csv"
+        csv_content = """basic/dataName,custom/temperature
+DataFromCSV,25"""
+        csv_file.write_text(csv_content)
+
+        # Create mock context with save_table_file enabled
+        smarttable_filename = "smarttable_sample.xlsx"
+        context = self._create_mock_context(csv_file, tmp_path, save_table_file=True, smarttable_filename=smarttable_filename)
+        
+        # Create original invoice
+        original_invoice = {"basic": {}, "custom": {}, "sample": {}}
+        context.resource_paths.invoice_org.write_text(json.dumps(original_invoice))
+
+        # Run processor
+        processor = SmartTableInvoiceInitializer()
+        processor.process(context)
+
+        # Check result
+        result_file = context.invoice_dst_filepath
+        assert result_file.exists()
+        
+        with open(result_file) as f:
+            result = json.load(f)
+        
+        # Verify dataName is set to SmartTable filename, not CSV value
+        assert result["basic"]["dataName"] == smarttable_filename
+        assert result["custom"]["temperature"] == "25"  # Other fields should still be processed
+
+    def test_save_table_file_disabled_uses_csv_value(self, tmp_path):
+        """Test that when save_table_file=False, basic.dataName is set from CSV data."""
+        # Create test CSV file with basic/dataName column
+        csv_file = tmp_path / "fsmarttable_test_0000.csv"
+        csv_content = """basic/dataName,custom/temperature
+DataFromCSV,25"""
+        csv_file.write_text(csv_content)
+
+        # Create mock context with save_table_file disabled
+        context = self._create_mock_context(csv_file, tmp_path, save_table_file=False, smarttable_filename="smarttable_sample.xlsx")
+        
+        # Create original invoice
+        original_invoice = {"basic": {}, "custom": {}, "sample": {}}
+        context.resource_paths.invoice_org.write_text(json.dumps(original_invoice))
+
+        # Run processor
+        processor = SmartTableInvoiceInitializer()
+        processor.process(context)
+
+        # Check result
+        result_file = context.invoice_dst_filepath
+        assert result_file.exists()
+        
+        with open(result_file) as f:
+            result = json.load(f)
+        
+        # Verify dataName is set from CSV data, not SmartTable filename
+        assert result["basic"]["dataName"] == "DataFromCSV"
+        assert result["custom"]["temperature"] == "25"
+
+    def test_save_table_file_no_config_uses_csv_value(self, tmp_path):
+        """Test that when smarttable config is missing, basic.dataName is set from CSV data."""
+        # Create test CSV file with basic/dataName column
+        csv_file = tmp_path / "fsmarttable_test_0000.csv"
+        csv_content = """basic/dataName,custom/temperature
+DataFromCSV,25"""
+        csv_file.write_text(csv_content)
+
+        # Create mock context without smarttable config
+        context = Mock(spec=ProcessingContext)
+        context.is_smarttable_mode = True
+        context.mode_name = "SmartTableInvoice"
+        
+        # Mock resource paths
+        context.resource_paths = Mock()
+        context.resource_paths.rawfiles = (csv_file,)
+        context.resource_paths.invoice_org = tmp_path / "invoice_org.json"
+        context.invoice_dst_filepath = tmp_path / "invoice.json"
+        
+        # Mock config without smarttable
+        context.srcpaths = Mock()
+        context.srcpaths.config = Mock()
+        context.srcpaths.config.smarttable = None
+        
+        context.smarttable_file = None
+        
+        # Ensure directories exist
+        context.invoice_dst_filepath.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create original invoice
+        original_invoice = {"basic": {}, "custom": {}, "sample": {}}
+        context.resource_paths.invoice_org.write_text(json.dumps(original_invoice))
+
+        # Run processor
+        processor = SmartTableInvoiceInitializer()
+        processor.process(context)
+
+        # Check result
+        result_file = context.invoice_dst_filepath
+        assert result_file.exists()
+        
+        with open(result_file) as f:
+            result = json.load(f)
+        
+        # Verify dataName is set from CSV data
+        assert result["basic"]["dataName"] == "DataFromCSV"
+        assert result["custom"]["temperature"] == "25"
+
+    def test_save_table_file_enabled_without_dataname_in_csv(self, tmp_path):
+        """Test that when save_table_file=True and no basic/dataName in CSV, SmartTable filename is used."""
+        # Create test CSV file without basic/dataName column
+        csv_file = tmp_path / "fsmarttable_test_0000.csv"
+        csv_content = """custom/temperature,sample/name
+25,TestSample"""
+        csv_file.write_text(csv_content)
+
+        # Create mock context with save_table_file enabled
+        smarttable_filename = "smarttable_experiment.xlsx"
+        context = self._create_mock_context(csv_file, tmp_path, save_table_file=True, smarttable_filename=smarttable_filename)
+        
+        # Create original invoice
+        original_invoice = {"basic": {}, "custom": {}, "sample": {}}
+        context.resource_paths.invoice_org.write_text(json.dumps(original_invoice))
+
+        # Run processor
+        processor = SmartTableInvoiceInitializer()
+        processor.process(context)
+
+        # Check result
+        result_file = context.invoice_dst_filepath
+        assert result_file.exists()
+        
+        with open(result_file) as f:
+            result = json.load(f)
+        
+        # Verify dataName is set to SmartTable filename
+        assert result["basic"]["dataName"] == smarttable_filename
+        assert result["custom"]["temperature"] == "25"
+        assert result["sample"]["name"] == "TestSample"
