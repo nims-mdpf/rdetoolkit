@@ -11,6 +11,7 @@ class WorkflowExecutionStatus(BaseModel):
     error_message: str | None
     target: str | None
     stacktrace: str | None
+    exception_object: Exception | None
     @classmethod
     def format_run_id(cls, v: str) -> str: ...
 
