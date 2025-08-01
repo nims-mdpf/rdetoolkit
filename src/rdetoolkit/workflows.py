@@ -213,8 +213,11 @@ def _process_mode(
             status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
 
         if status.status == "failed":
-            if hasattr(status, 'exception_object') and isinstance(status.exception_object, StructuredError):
-                raise status.exception_object
+            if hasattr(status, 'exception_object'):
+                if isinstance(status.exception_object, StructuredError):
+                    raise status.exception_object
+                else:
+                    logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
             emsg = f"Processing failed in {mode} mode: {status.error_message}"
             raise StructuredError(emsg, status.error_code or 999)
 
