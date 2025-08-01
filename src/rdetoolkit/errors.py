@@ -191,7 +191,7 @@ def handle_and_exit_on_structured_error(e: StructuredError, logger: logging.Logg
         e (StructuredError): StructuredError instance
         logger (logging.Logger): Logger instance
     """
-    if e.traceback_info:
+    if e.traceback_info is not None:
         sys.stderr.write(e.traceback_info + "\n")
     else:
         structured_error = handle_exception(e, verbose=True)
