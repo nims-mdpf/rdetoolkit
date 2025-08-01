@@ -2,7 +2,11 @@ import logging
 import traceback
 import pytest
 from rdetoolkit.exceptions import StructuredError, InvoiceModeError, ExcelInvoiceModeError, MultiDataTileModeError, RdeFormatModeError
-from rdetoolkit.errors import skip_exception_context, format_simplified_traceback, handle_exception, catch_exception_with_message
+from rdetoolkit.errors import skip_exception_context, format_simplified_traceback, handle_exception, catch_exception_with_message, handle_and_exit_on_structured_error
+from unittest.mock import Mock, patch
+import sys
+import tempfile
+import os
 
 
 def test_structured_error_initialization():
@@ -591,3 +595,101 @@ def test_skip_exception_context_enabled():
     assert error_info["code"] == exception_code, "Error codeが正しく設定されていません。"
     assert error_info["message"] == f"Error: {exception_message}", "Error messageが正しく設定されていません。"
     assert "Traceback" in error_info["stacktrace"], "Stack traceが正しく設定されていません。"
+
+
+def test_catch_exception_with_message_with_structured_error():
+    """Test catch_exception_with_message decorator when StructuredError is raised inside the decorated function.
+    
+    This test reproduces the issue reported in issue_203 where the custom error message
+    and error code from StructuredError should take precedence over the decorator's values.
+    
+    Steps:
+    1. Create a function decorated with catch_exception_with_message
+    2. Inside the function, raise a StructuredError with specific message and code
+    3. Verify that the resulting StructuredError has the values from the inner StructuredError,
+       not from the decorator
+    """
+    @catch_exception_with_message(error_message="Dataset processing failed", error_code=50)
+    def dataset_function():
+        raise StructuredError("error message in dataset()", 21)
+    
+    with pytest.raises(StructuredError) as exc_info:
+        dataset_function()
+    
+    # The inner StructuredError values should take precedence
+    assert exc_info.value.emsg == "Error: error message in dataset()"
+    assert exc_info.value.ecode == 21
+
+
+def test_catch_exception_with_message_with_generic_exception():
+    """Test catch_exception_with_message decorator when generic Exception is raised.
+    
+    This test verifies that when a generic exception is raised inside a decorated function,
+    the decorator's custom message and error code are used.
+    
+    Steps:
+    1. Create a function decorated with catch_exception_with_message
+    2. Inside the function, raise a generic Exception
+    3. Verify that the resulting StructuredError has the values from the decorator
+    """
+    @catch_exception_with_message(error_message="Wrapper error", error_code=100)
+    def dataset_function():
+        raise ValueError("Generic error")
+    
+    with pytest.raises(StructuredError) as exc_info:
+        dataset_function()
+    
+    # The decorator's values should be used
+    assert exc_info.value.emsg == "Error: Wrapper error"
+    assert exc_info.value.ecode == 100
+
+
+def test_handle_and_exit_on_structured_error_with_traceback_info(capfd):
+    """Test handle_and_exit_on_structured_error when StructuredError has traceback_info.
+    
+    This test verifies that when a StructuredError already has traceback_info,
+    that information is used directly without additional processing.
+    """
+    logger = Mock()
+    existing_traceback = "Existing traceback information"
+    error = StructuredError("Test error", 42, traceback_info=existing_traceback)
+    
+    with patch('rdetoolkit.errors.write_job_errorlog_file') as mock_write:
+        with pytest.raises(SystemExit):
+            handle_and_exit_on_structured_error(error, logger)
+    
+    # Check that existing traceback_info was used
+    captured = capfd.readouterr()
+    assert existing_traceback in captured.err
+    
+    # Check that job.failed was written with correct values
+    mock_write.assert_called_once_with(42, "Test error")
+    logger.exception.assert_called_once_with("Test error")
+
+
+def test_handle_and_exit_on_structured_error_without_traceback_info(capfd):
+    """Test handle_and_exit_on_structured_error when StructuredError has no traceback_info.
+    
+    This test verifies that when a StructuredError has no traceback_info,
+    handle_exception is called to generate a formatted traceback.
+    """
+    logger = Mock()
+    error = StructuredError("Test error", 42)
+    
+    with patch('rdetoolkit.errors.write_job_errorlog_file') as mock_write:
+        with patch('rdetoolkit.errors.handle_exception') as mock_handle:
+            mock_handle.return_value = StructuredError(traceback_info="Generated traceback")
+            
+            with pytest.raises(SystemExit):
+                handle_and_exit_on_structured_error(error, logger)
+    
+    # Check that handle_exception was called to generate traceback
+    mock_handle.assert_called_once_with(error, verbose=True)
+    
+    # Check that generated traceback was used
+    captured = capfd.readouterr()
+    assert "Generated traceback" in captured.err
+    
+    # Check that job.failed was written with correct values
+    mock_write.assert_called_once_with(42, "Test error")
+    logger.exception.assert_called_once_with("Test error")
