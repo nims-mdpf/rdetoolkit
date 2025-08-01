@@ -216,8 +216,7 @@ def _process_mode(
             if hasattr(status, 'exception_object'):
                 if isinstance(status.exception_object, StructuredError):
                     raise status.exception_object
-                else:
-                    logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
+                logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
             emsg = f"Processing failed in {mode} mode: {status.error_message}"
             raise StructuredError(emsg, status.error_code or 999)
 
