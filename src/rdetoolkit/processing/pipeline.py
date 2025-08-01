@@ -8,7 +8,7 @@ from rdetoolkit.invoicefile import InvoiceFile
 from rdetoolkit.models.result import WorkflowExecutionStatus
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.rdelogger import get_logger
-from rdetoolkit.exceptions import SkipRemainingProcessorsError
+from rdetoolkit.exceptions import SkipRemainingProcessorsError, StructuredError
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
 
@@ -86,13 +86,17 @@ class Pipeline:
                 except SkipRemainingProcessorsError as e:
                     logger.info(f"Processor {processor_name} requested to skip remaining processors: {str(e)}")
                     break  # Exit the for loop, skipping remaining processors
+                except StructuredError:
+                    logger.error(f"Processor {processor_name} failed with StructuredError")
+                    raise
                 except Exception as e:
                     logger.error(f"Processor {processor_name} failed: {str(e)}")
                     raise
 
-            # Create success status
             return self._create_success_status(context)
 
+        except StructuredError:
+            raise
         except Exception as e:
             logger.error(f"Pipeline execution failed: {str(e)}")
             return self._create_error_status(context, e)
@@ -118,6 +122,7 @@ class Pipeline:
             error_message=None,
             target=context.basedir,
             stacktrace=None,
+            exception_object=None,
         )
 
     def _create_error_status(self, context: ProcessingContext, error: Exception) -> WorkflowExecutionStatus:
