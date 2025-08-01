@@ -223,7 +223,6 @@ def _process_mode(
     except StructuredError:
         raise
     except Exception as e:
-        # その他の例外はStructuredErrorに変換
         emsg = f"Unexpected error in {mode} mode: {str(e)}"
         raise StructuredError(emsg, 999) from e
 
