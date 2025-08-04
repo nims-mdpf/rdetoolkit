@@ -1,663 +1,292 @@
-# Report Module
+# Report Generator API
 
-The `rdetoolkit.artifact.report` module provides comprehensive report generation and code analysis functionality for RDE (Research Data Exchange) artifact creation. This module offers security scanning, external communication detection, and automated markdown report generation capabilities.
+## Purpose
 
-## Overview
+This module defines report generation processing in RDEToolKit. It provides functionality for creating experimental result reports, data visualization, and security scanning.
 
-The report module offers specialized functionality for artifact analysis and reporting:
-
-- **Security Scanning**: Detection of common security vulnerabilities in Python code
-- **External Communication Analysis**: Identification of external network communication patterns
-- **Report Generation**: Automated markdown report creation with customizable templates
-- **Code Analysis**: Pattern-based code scanning with context extraction
-- **Flexible Architecture**: Interface-based design supporting multiple scanner types
-- **Logging Integration**: Comprehensive error logging and debugging support
-
-## Classes
-
-### TemplateMarkdownReportGenerator
-
-A report generator that creates markdown reports using customizable templates with data substitution.
-
-#### Constructor
-
-```python
-TemplateMarkdownReportGenerator(template_str: str | None = None) -> None
-```
-
-**Parameters:**
-
-- `template_str` (str | None): Custom template string (optional, uses default template if None)
-
-**Attributes:**
-
-- `template_str` (str): The template string with placeholder variables
-- `template` (Template): Python Template object for variable substitution
-- `text` (str): Generated report text after calling generate()
-
-**Default Template Structure:**
-
-- Execution date and status information
-- Dockerfile and requirements file status
-- Included directories listing
-- Code security scan results
-- External communication check results
-
-#### TemplateMarkdownReportGenerator Methods
-
-##### generate
-
-Generate a report string based on provided data.
-
-```python
-def generate(self, data: ReportItem) -> str
-```
-
-**Parameters:**
-
-- `data` (ReportItem): Object containing report data including scan results and metadata
-
-**Returns:**
-
-- `str`: Generated report as markdown string
-
-**Report Components:**
-
-- Dockerfile status (exists/not found with path)
-- Requirements file status (exists/not found with path)
-- List of included directories/files
-- Security vulnerability analysis results
-- External communication code snippets
-
-##### save
-
-Save the generated report to a specified file path.
-
-```python
-def save(self, output_path: str | Path) -> None
-```
-
-**Parameters:**
-
-- `output_path` (str | Path): Path where the report will be saved
-
-**Raises:**
-
-- `FileNotFoundError`: If no report has been generated (text is empty)
-
-**Example:**
-
-```python
-from rdetoolkit.artifact.report import TemplateMarkdownReportGenerator
-from rdetoolkit.models.reports import ReportItem
-from pathlib import Path
-
-# Create generator with default template
-generator = TemplateMarkdownReportGenerator()
-
-# Create custom template
-custom_template = """
-# Security Analysis Report
-
-**Date:** $exec_date
-
-## Infrastructure
-- Dockerfile: $dockerfile_status
-- Requirements: $requirements_status
-
-## Vulnerabilities
-$vuln_results
-
-## External Communications
-$ext_comm_results
-"""
-
-custom_generator = TemplateMarkdownReportGenerator(custom_template)
-
-# Generate report (assuming report_data is populated)
-report_text = generator.generate(report_data)
-
-# Save report
-generator.save("reports/security_analysis.md")
-```
-
-### CodeSecurityScanner
-
-A security scanner that detects common vulnerabilities in Python code using pattern matching.
-
-#### CodeSecurityScanner Constructor
-
-```python
-CodeSecurityScanner(source_dir: str | Path)
-```
-
-**Parameters:**
-
-- `source_dir` (str | Path): Directory path to scan for Python files
-
-**Attributes:**
-
-- `source_dir` (Path): Source directory for scanning
-- `results` (list[CodeSnippet]): List of detected vulnerability snippets
-- `_vuln_patterns` (tuple): Predefined vulnerability patterns to detect
-
-**Vulnerability Patterns Detected:**
-
-- `eval()` usage - Arbitrary code execution risk
-- `os.system()` usage - Command injection vulnerabilities
-- `subprocess` calls - Command injection risks
-- `pickle.load()` usage - Untrusted data deserialization
-- `mktemp()` usage - Race condition risks
-- SQL injection via string formatting
-
-#### CodeSecurityScanner Methods
-
-##### scan_file
-
-Scan a single file for security vulnerabilities.
-
-```python
-def scan_file(self, file_path: Path) -> None
-```
-
-**Parameters:**
-
-- `file_path` (Path): Path to the file to scan
-
-**Behavior:**
-
-- Reads file line by line
-- Searches for vulnerability patterns using regex
-- Extracts code snippets with context (3 lines before, 4 lines after)
-- Stores results in internal results list
-- Logs errors if file cannot be read
-
-##### scan
-
-Scan the entire source directory for Python files.
-
-```python
-def scan(self) -> list[CodeSnippet]
-```
-
-**Returns:**
-
-- `list[CodeSnippet]`: List of detected vulnerability code snippets
-
-**Behavior:**
-
-- Recursively traverses source directory
-- Excludes "venv" and "site-packages" directories
-- Processes only Python (.py) files
-- Returns accumulated scan results
-
-##### get_results
-
-Retrieve the current scan results.
-
-```python
-def get_results(self) -> list[CodeSnippet]
-```
-
-**Returns:**
-
-- `list[CodeSnippet]`: List of detected code snippets
-
-**Example:**
-
-```python
-from rdetoolkit.artifact.report import CodeSecurityScanner
-from pathlib import Path
-
-# Create scanner
-scanner = CodeSecurityScanner("src/myproject")
-
-# Scan all Python files
-vulnerabilities = scanner.scan()
-
-# Process results
-for vuln in vulnerabilities:
-    print(f"Vulnerability in {vuln.file_path}:")
-    print(f"Description: {vuln.description}")
-    print(f"Code snippet:\n{vuln.snippet}")
-    print("-" * 50)
-
-# Scan specific file
-scanner.scan_file(Path("src/myproject/utils.py"))
-specific_results = scanner.get_results()
-```
-
-### ExternalConnScanner
-
-A scanner that detects external communication patterns in Python code.
-
-#### ExternalConnScanner Constructor
-
-```python
-ExternalConnScanner(source_dir: str | Path)
-```
-
-**Parameters:**
-
-- `source_dir` (str | Path): Directory path to scan for external communication
-
-**Attributes:**
-
-- `source_dir` (Path): Source directory for scanning
-- `external_comm_packages` (list[str]): List of packages that indicate external communication
-
-**Monitored Packages:**
-
-- `requests`, `urllib`, `urllib3`
-- `httplib`, `http.client`
-- `socket`, `ftplib`, `telnetlib`
-- `smtplib`, `aiohttp`, `httpx`
-- `pycurl`
-
-#### ExternalConnScanner Methods
-
-##### scan_directory
-
-Scan the source directory for external communication patterns.
-
-```python
-def scan(self) -> list[CodeSnippet]
-```
-
-**Returns:**
-
-- `list[CodeSnippet]`: List of code snippets containing external communication
-
-**Behavior:**
-
-- Builds regex patterns for import statements and package usage
-- Scans Python files for pattern matches
-- Extracts code snippets with line numbers and context
-- Excludes "venv" and "site-packages" directories
-- Returns collected code snippets
-
-**Pattern Detection:**
-
-- Import statements (`import requests`)
-- From imports (`from urllib import request`)
-- Aliased imports (`import requests as req`)
-- Package usage (`requests.get()`)
-
-**Example:**
-
-```python
-from rdetoolkit.artifact.report import ExternalConnScanner
-
-# Create scanner
-ext_scanner = ExternalConnScanner("src/myproject")
-
-# Scan for external communication
-external_comms = ext_scanner.scan()
-
-# Process results
-for comm in external_comms:
-    print(f"External communication found in {comm.file_path}:")
-    print(f"Code snippet:\n{comm.snippet}")
-    print("-" * 50)
-
-# Check if any external communications were found
-if external_comms:
-    print(f"Found {len(external_comms)} instances of external communication")
-else:
-    print("No external communication detected")
-```
-
-## Functions
-
-### get_scanner
-
-Factory function to create scanner instances based on type.
-
-```python
-def get_scanner(scanner_type: Literal["vulnerability", "external"], source_dir: str | Path) -> ICodeScanner
-```
-
-**Parameters:**
-
-- `scanner_type` (Literal["vulnerability", "external"]): Type of scanner to create
-- `source_dir` (str | Path): Directory to scan
-
-**Returns:**
-
-- `ICodeScanner`: Instance of the appropriate scanner
-
-**Raises:**
-
-- `ValueError`: If scanner_type is not "vulnerability" or "external"
-
-**Example:**
-
-```python
-from rdetoolkit.artifact.report import get_scanner
-
-# Create vulnerability scanner
-vuln_scanner = get_scanner("vulnerability", "src/myproject")
-vulnerabilities = vuln_scanner.scan()
-
-# Create external communication scanner
-ext_scanner = get_scanner("external", "src/myproject")
-external_comms = ext_scanner.scan()
-
-# Process both types of results
-print(f"Found {len(vulnerabilities)} vulnerabilities")
-print(f"Found {len(external_comms)} external communications")
-```
-
-## Integrated Analysis Workflow
-
-### Basic Security Analysis
-
-```python
-from rdetoolkit.artifact.report import (
-    TemplateMarkdownReportGenerator,
-    get_scanner
-)
-from rdetoolkit.models.reports import ReportItem, CodeSnippet
-from datetime import datetime
-from pathlib import Path
-
-def analyze_project_security(project_dir: str, output_file: str):
-    """Perform comprehensive security analysis of a project."""
-
-    project_path = Path(project_dir)
-
-    # Create scanners
-    vuln_scanner = get_scanner("vulnerability", project_path)
-    ext_scanner = get_scanner("external", project_path)
-
-    # Perform scans
-    print("Scanning for vulnerabilities...")
-    vulnerabilities = vuln_scanner.scan()
-
-    print("Scanning for external communications...")
-    external_comms = ext_scanner.scan()
-
-    # Check for infrastructure files
-    dockerfile_path = project_path / "Dockerfile"
-    requirements_path = project_path / "requirements.txt"
-
-    # Collect directory information
-    include_dirs = [
-        str(p.relative_to(project_path))
-        for p in project_path.rglob("*")
-        if p.is_dir() and not any(exclude in str(p) for exclude in ["__pycache__", ".git", "venv"])
-    ]
-
-    # Create report data
-    report_data = ReportItem(
-        exec_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        dockerfile_path=str(dockerfile_path) if dockerfile_path.exists() else None,
-        requirements_path=str(requirements_path) if requirements_path.exists() else None,
-        include_dirs=include_dirs,
-        code_security_scan_results=vulnerabilities,
-        code_ext_requests_scan_results=external_comms
-    )
-
-    # Generate report
-    generator = TemplateMarkdownReportGenerator()
-    report_text = generator.generate(report_data)
-    generator.save(output_file)
-
-    print(f"Analysis complete. Report saved to: {output_file}")
-    print(f"Vulnerabilities found: {len(vulnerabilities)}")
-    print(f"External communications found: {len(external_comms)}")
-
-# Usage
-analyze_project_security("src/myproject", "reports/security_analysis.md")
-```
-
-### Custom Template Usage
-
-```python
-from rdetoolkit.artifact.report import TemplateMarkdownReportGenerator
-
-def create_custom_security_report(data, output_path):
-    """Create a security report with custom formatting."""
-
-    custom_template = """
-# 🔒 Security Analysis Report
-
-**Analysis Date:** $exec_date
-
----
-
-## 📋 Project Infrastructure
-
-| Component    | Status               |
-| ------------ | -------------------- |
-| Dockerfile   | $dockerfile_status   |
-| Requirements | $requirements_status |
-
-## 📁 Project Structure
-
-$included_dirs
-
----
-
-## ⚠️ Security Vulnerabilities
-
-$vuln_results
-
----
-
-## 🌐 External Communications
-
-$ext_comm_results
-
----
-
-**Report Generated by RDE Toolkit**
-"""
-
-    generator = TemplateMarkdownReportGenerator(custom_template)
-    report = generator.generate(data)
-    generator.save(output_path)
-
-    return report
-
-# Usage with custom template
-# custom_report = create_custom_security_report(report_data, "custom_report.md")
-```
-
-### Scanner Configuration and Filtering
-
-```python
-from rdetoolkit.artifact.report import CodeSecurityScanner, ExternalConnScanner
-
-def filtered_security_scan(source_dir: str, exclude_patterns: list[str] = None):
-    """Perform security scan with file filtering."""
-
-    exclude_patterns = exclude_patterns or ["test_", "_test.py", "tests/"]
-
-    # Create scanner
-    scanner = CodeSecurityScanner(source_dir)
-
-    # Get all Python files
-    source_path = Path(source_dir)
-    python_files = list(source_path.rglob("*.py"))
-
-    # Filter files
-    filtered_files = [
-        f for f in python_files
-        if not any(pattern in str(f) for pattern in exclude_patterns)
-    ]
-
-    # Scan filtered files
-    for file_path in filtered_files:
-        scanner.scan_file(file_path)
-
-    return scanner.get_results()
-
-def analyze_external_dependencies(source_dir: str):
-    """Analyze external dependencies and categorize them."""
-
-    ext_scanner = ExternalConnScanner(source_dir)
-    external_comms = ext_scanner.scan()
-
-    # Categorize by package type
-    categories = {
-        "HTTP": ["requests", "urllib", "httplib", "aiohttp", "httpx"],
-        "Network": ["socket", "ftplib", "telnetlib"],
-        "Email": ["smtplib"],
-        "Other": ["pycurl"]
-    }
-
-    categorized = {cat: [] for cat in categories}
-
-    for comm in external_comms:
-        snippet_lower = comm.snippet.lower()
-        categorized_item = False
-
-        for category, packages in categories.items():
-            if any(pkg in snippet_lower for pkg in packages):
-                categorized[category].append(comm)
-                categorized_item = True
-                break
-
-        if not categorized_item:
-            categorized["Other"].append(comm)
-
-    return categorized
-
-# Usage
-vulnerabilities = filtered_security_scan("src/myproject", ["test_", "demo_"])
-dependencies = analyze_external_dependencies("src/myproject")
-```
-
-## Error Handling
-
-### Scanner Error Management
-
-```python
-from rdetoolkit.artifact.report import CodeSecurityScanner
-import logging
-
-def robust_security_scan(source_dir: str):
-    """Perform security scan with comprehensive error handling."""
-
-    try:
-        scanner = CodeSecurityScanner(source_dir)
-
-        # Verify source directory exists
-        if not Path(source_dir).exists():
-            raise FileNotFoundError(f"Source directory not found: {source_dir}")
-
-        # Perform scan
-        results = scanner.scan()
-
-        if not results:
-            print("No security vulnerabilities detected")
-        else:
-            print(f"Found {len(results)} potential security issues")
-
-        return results
-
-    except FileNotFoundError as e:
-        logging.error(f"Directory error: {e}")
-        return []
-    except Exception as e:
-        logging.error(f"Scan error: {e}")
-        return []
-
-def safe_report_generation(data, output_path):
-    """Generate report with error handling."""
-
-    try:
-        generator = TemplateMarkdownReportGenerator()
-
-        # Validate data
-        if not hasattr(data, 'exec_date'):
-            raise ValueError("Invalid report data: missing exec_date")
-
-        # Generate and save
-        report = generator.generate(data)
-        generator.save(output_path)
-
-        return True
-
-    except FileNotFoundError as e:
-        logging.error(f"Report generation error: {e}")
-        return False
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return False
-
-# Usage
-results = robust_security_scan("src/myproject")
-success = safe_report_generation(report_data, "analysis.md")
-```
-
-## Best Practices
-
-### Scanner Usage
-
-```python
-# Always verify directory exists before scanning
-if Path(source_dir).exists():
-    scanner = get_scanner("vulnerability", source_dir)
-    results = scanner.scan()
-
-# Handle empty results gracefully
-vulnerabilities = vuln_scanner.scan()
-if not vulnerabilities:
-    print("No vulnerabilities detected")
-
-# Use appropriate scanner for the task
-vuln_scanner = get_scanner("vulnerability", source_dir)  # For security issues
-ext_scanner = get_scanner("external", source_dir)       # For external communications
-```
+## Key Features
 
 ### Report Generation
+- Markdown template-based report generation
+- Automatic report creation from experimental data
+- Customizable report formats
 
-```python
-# Always generate before saving
+### Security Scanning
+- Code security scanning
+- External connection scanning
+- Security report generation
+
+---
+
+::: src.rdetoolkit.artifact.report.TemplateMarkdownReportGenerator
+
+---
+
+::: src.rdetoolkit.artifact.report.CodeSecurityScanner
+
+---
+
+::: src.rdetoolkit.artifact.report.ExternalConnScanner
+
+---
+
+::: src.rdetoolkit.artifact.report.get_scanner
+
+---
+
+## Practical Usage
+
+### Basic Report Generation
+
+```python title="basic_report_generation.py"
+from rdetoolkit.artifact.report import TemplateMarkdownReportGenerator
+from pathlib import Path
+
+# Create report generator
 generator = TemplateMarkdownReportGenerator()
-report_text = generator.generate(data)  # Generate first
-generator.save(output_path)             # Then save
 
-# Validate template variables
-required_vars = ["exec_date", "dockerfile_status", "requirements_status"]
-for var in required_vars:
-    if f"${var}" not in generator.template_str:
-        print(f"Warning: Template missing variable: {var}")
+# Prepare experimental data
+experiment_data = {
+    "experiment_id": "EXP001",
+    "title": "Temperature Measurement Experiment",
+    "researcher": "John Doe",
+    "date": "2024-01-01",
+    "measurements": [
+        {"time": "09:00", "temperature": 25.0, "humidity": 60},
+        {"time": "10:00", "temperature": 26.5, "humidity": 58},
+        {"time": "11:00", "temperature": 28.0, "humidity": 55}
+    ]
+}
 
-# Use meaningful output paths
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-output_path = f"reports/security_analysis_{timestamp}.md"
+# Generate report
+try:
+    report_content = generator.generate(
+        template_name="experiment_report",
+        data=experiment_data
+    )
+    print(f"✓ Report generation completed")
+    
+    # Save report
+    output_path = Path("reports/experiment_001_report.md")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    generator.save(report_content, str(output_path))
+    print(f"✓ Report saved: {output_path}")
+    
+except Exception as e:
+    print(f"✗ Report generation error: {e}")
 ```
 
-## Integration with RDE Workflows
+### Security Scanning Execution
 
-```python
-# Integration with RDE processing
-from rdetoolkit.artifact.report import get_scanner, TemplateMarkdownReportGenerator
+```python title="security_scanning.py"
+from rdetoolkit.artifact.report import CodeSecurityScanner, ExternalConnScanner, get_scanner
+from pathlib import Path
 
-def integrate_security_analysis(workflow_results):
-    """Integrate security analysis into RDE workflow."""
+# Execute code security scan
+code_scanner = CodeSecurityScanner()
 
-    # Scan processed code
-    if workflow_results.get("processed_code_dir"):
-        vuln_scanner = get_scanner("vulnerability", workflow_results["processed_code_dir"])
-        vulnerabilities = vuln_scanner.scan()
+# Single file scan
+source_file = Path("src/rdetoolkit/workflows.py")
+if source_file.exists():
+    try:
+        scan_result = code_scanner.scan_file(str(source_file))
+        print(f"✓ File scan completed: {source_file}")
+        print(f"Issues detected: {len(scan_result.get('issues', []))}")
+        
+    except Exception as e:
+        print(f"✗ File scan error: {e}")
 
-        # Add to workflow results
-        workflow_results["security_scan"] = {
-            "vulnerabilities_count": len(vulnerabilities),
-            "vulnerabilities": vulnerabilities
+# Directory-wide scan
+source_dir = Path("src/rdetoolkit")
+if source_dir.exists():
+    try:
+        scan_results = code_scanner.scan(str(source_dir))
+        print(f"✓ Directory scan completed: {source_dir}")
+        
+        # Get results
+        results = code_scanner.get_results()
+        print(f"Total scanned files: {results.get('total_files', 0)}")
+        print(f"Total issues: {results.get('total_issues', 0)}")
+        
+    except Exception as e:
+        print(f"✗ Directory scan error: {e}")
+
+# Execute external connection scan
+external_scanner = ExternalConnScanner()
+
+try:
+    external_results = external_scanner.scan(source_dir)
+    print(f"✓ External connection scan completed")
+    print(f"External connections detected: {len(external_results.get('connections', []))}")
+    
+except Exception as e:
+    print(f"✗ External connection scan error: {e}")
+
+# Get appropriate scanner
+scanner = get_scanner("code_security")
+if scanner:
+    print(f"✓ Scanner acquisition successful: {type(scanner).__name__}")
+else:
+    print("✗ Scanner acquisition failed")
+```
+
+### Integrated Report System
+
+```python title="integrated_report_system.py"
+from rdetoolkit.artifact.report import (
+    TemplateMarkdownReportGenerator, 
+    CodeSecurityScanner, 
+    ExternalConnScanner
+)
+from pathlib import Path
+from datetime import datetime
+
+class IntegratedReportSystem:
+    """Integrated report system"""
+    
+    def __init__(self):
+        self.report_generator = TemplateMarkdownReportGenerator()
+        self.code_scanner = CodeSecurityScanner()
+        self.external_scanner = ExternalConnScanner()
+    
+    def generate_comprehensive_report(self, project_dir: Path) -> dict:
+        """Generate comprehensive project report"""
+        
+        report_data = {
+            "project_name": project_dir.name,
+            "scan_date": datetime.now().isoformat(),
+            "code_security": {},
+            "external_connections": {},
+            "summary": {}
         }
+        
+        # Code security scan
+        try:
+            print("Executing code security scan...")
+            self.code_scanner.scan(str(project_dir))
+            security_results = self.code_scanner.get_results()
+            
+            report_data["code_security"] = {
+                "total_files": security_results.get("total_files", 0),
+                "total_issues": security_results.get("total_issues", 0),
+                "high_severity": security_results.get("high_severity", 0),
+                "medium_severity": security_results.get("medium_severity", 0),
+                "low_severity": security_results.get("low_severity", 0)
+            }
+            
+            print(f"✓ Security scan completed: {security_results.get('total_issues', 0)} issues detected")
+            
+        except Exception as e:
+            print(f"✗ Security scan error: {e}")
+            report_data["code_security"]["error"] = str(e)
+        
+        # External connection scan
+        try:
+            print("Executing external connection scan...")
+            external_results = self.external_scanner.scan(project_dir)
+            
+            report_data["external_connections"] = {
+                "total_connections": len(external_results.get("connections", [])),
+                "unique_domains": len(set(conn.get("domain", "") for conn in external_results.get("connections", []))),
+                "protocols": list(set(conn.get("protocol", "") for conn in external_results.get("connections", [])))
+            }
+            
+            print(f"✓ External connection scan completed: {len(external_results.get('connections', []))} connections detected")
+            
+        except Exception as e:
+            print(f"✗ External connection scan error: {e}")
+            report_data["external_connections"]["error"] = str(e)
+        
+        # Generate summary
+        report_data["summary"] = {
+            "security_score": self._calculate_security_score(report_data["code_security"]),
+            "external_risk_level": self._assess_external_risk(report_data["external_connections"]),
+            "recommendations": self._generate_recommendations(report_data)
+        }
+        
+        # Generate and save report
+        try:
+            report_content = self.report_generator.generate(
+                template_name="security_report",
+                data=report_data
+            )
+            
+            report_file = project_dir / "reports" / f"security_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+            report_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            self.report_generator.save(report_content, str(report_file))
+            
+            report_data["report_file"] = str(report_file)
+            print(f"✓ Integrated report saved: {report_file}")
+            
+        except Exception as e:
+            print(f"✗ Report generation error: {e}")
+            report_data["report_error"] = str(e)
+        
+        return report_data
+    
+    def _calculate_security_score(self, security_data: dict) -> int:
+        """Calculate security score"""
+        if "error" in security_data:
+            return 0
+        
+        total_issues = security_data.get("total_issues", 0)
+        high_severity = security_data.get("high_severity", 0)
+        
+        if total_issues == 0:
+            return 100
+        elif high_severity > 0:
+            return max(0, 50 - high_severity * 10)
+        else:
+            return max(0, 80 - total_issues * 5)
+    
+    def _assess_external_risk(self, external_data: dict) -> str:
+        """Assess external risk level"""
+        if "error" in external_data:
+            return "unknown"
+        
+        total_connections = external_data.get("total_connections", 0)
+        
+        if total_connections == 0:
+            return "low"
+        elif total_connections < 5:
+            return "medium"
+        else:
+            return "high"
+    
+    def _generate_recommendations(self, report_data: dict) -> list:
+        """Generate recommendations"""
+        recommendations = []
+        
+        # Security-related recommendations
+        security_score = report_data["summary"]["security_score"]
+        if security_score < 70:
+            recommendations.append("Prioritize fixing security issues")
+        
+        # External connection-related recommendations
+        risk_level = report_data["summary"]["external_risk_level"]
+        if risk_level == "high":
+            recommendations.append("Consider reviewing external connections and strengthening security")
+        
+        if not recommendations:
+            recommendations.append("Current security status is good")
+        
+        return recommendations
 
-    return workflow_results
+# Usage example
+report_system = IntegratedReportSystem()
+project_directory = Path(".")
+
+print("=== Integrated Security Report Generation ===")
+comprehensive_report = report_system.generate_comprehensive_report(project_directory)
+
+print(f"\n=== Report Results ===")
+print(f"Project: {comprehensive_report['project_name']}")
+print(f"Security score: {comprehensive_report['summary']['security_score']}/100")
+print(f"External risk level: {comprehensive_report['summary']['external_risk_level']}")
+print(f"Recommendations: {', '.join(comprehensive_report['summary']['recommendations'])}")
+
+if "report_file" in comprehensive_report:
+    print(f"Detailed report: {comprehensive_report['report_file']}")
 ```
-
-## See Also
-
-- [Models - Reports](../models/reports.md) - For ReportItem and CodeSnippet data structures
-- [Interfaces - Report](../interfaces/report.md) - For ICodeScanner and IReportGenerator interfaces
-- [RDE Logger](../rdelogger.md) - For logging functionality used in scanners
-- [Artifact Processing](index.md) - For artifact creation and management workflows
-- [Usage - CLI](../../usage/cli.md) - For command-line report generation examples
