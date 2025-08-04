@@ -127,6 +127,8 @@ mkdocs==1.6.1
     # via mkdocs-autorefs
     # via mkdocs-material
     # via mkdocs-mermaid2-plugin
+    # via mkdocs-redirects
+    # via mkdocs-static-i18n
     # via mkdocstrings
 mkdocs-autorefs==1.2.0
     # via mkdocstrings
@@ -138,6 +140,8 @@ mkdocs-material==9.5.38
 mkdocs-material-extensions==1.3.1
     # via mkdocs-material
 mkdocs-mermaid2-plugin==1.1.1
+mkdocs-redirects==1.2.2
+mkdocs-static-i18n==1.3.0
 mkdocstrings==0.27.0
     # via mkdocstrings-crystal
     # via mkdocstrings-python
