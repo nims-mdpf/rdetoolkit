@@ -1,0 +1,3627 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="../config/" rel="prev"/>
+<link href="../invoice_schema/" rel="next"/>
+<link href="../../../../img/2585322.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
+<title>Invoice Models - RDEToolKit Documentation</title>
+<link href="../../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
+<link href="../../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Noto Sans JP";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<link href="../../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#invoice-models-api">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../../" title="RDEToolKit Documentation">
+<img alt="logo" src="../../../../img/2585322.png"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            RDEToolKit Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Invoice Models
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="Select language" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="../../../../rdetoolkit/models/invoice/" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-dpfc/rdetoolkit
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../">
+          
+  
+  Getting Started
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../usage/structured_process/structured/">
+          
+  
+  User Guide
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../../">
+          
+  
+  API Reference
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../development/">
+          
+  
+  Contributing
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../../" title="RDEToolKit Documentation">
+<img alt="logo" src="../../../../img/2585322.png"/>
+</a>
+    RDEToolKit Documentation
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-dpfc/rdetoolkit
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Getting Started
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_1">
+<span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../">
+<span class="md-ellipsis">
+    Introduction
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../installation/">
+<span class="md-ellipsis">
+    Installation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/quickstart/">
+<span class="md-ellipsis">
+    Quick Start
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-ellipsis">
+    User Guide
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Structured Processing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            Structured Processing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/structured/">
+<span class="md-ellipsis">
+    Building Structured Process
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    Development Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    Development Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/directory/">
+<span class="md-ellipsis">
+    Supported Directories
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/rdepath/">
+<span class="md-ellipsis">
+    Directory Path Access
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/errorhandling/">
+<span class="md-ellipsis">
+    Error Handling
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/feature_description/">
+<span class="md-ellipsis">
+    Feature Description
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Configuration &amp; CLI
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
+<span class="md-nav__icon md-icon"></span>
+            Configuration &amp; CLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/config/">
+<span class="md-ellipsis">
+    Configuration Files
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/mode/">
+<span class="md-ellipsis">
+    Data Registration Modes
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/file_folder_mode/">
+<span class="md-ellipsis">
+    File/Folder Modes
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/magic_variable/">
+<span class="md-ellipsis">
+    Magic Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/cli/">
+<span class="md-ellipsis">
+    Command Line Interface
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Templates &amp; Validation
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
+<span class="md-nav__icon md-icon"></span>
+            Templates &amp; Validation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/metadata_definition_file/">
+<span class="md-ellipsis">
+    Template Files
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/validation/">
+<span class="md-ellipsis">
+    Data Validation
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Integrations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            Integrations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/object_storage/">
+<span class="md-ellipsis">
+    Object Storage (MinIO)
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/docker/">
+<span class="md-ellipsis">
+    Docker Usage
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Core Modules
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
+<span class="md-nav__icon md-icon"></span>
+            Core Modules
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/">
+<span class="md-ellipsis">
+    Configuration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../core/">
+<span class="md-ellipsis">
+    Core Functions
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../workflows/">
+<span class="md-ellipsis">
+    Workflows
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../modeproc/">
+<span class="md-ellipsis">
+    Mode Processing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../invoicefile/">
+<span class="md-ellipsis">
+    Invoice Files
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rde2util/">
+<span class="md-ellipsis">
+    Utilities
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rdelogger/">
+<span class="md-ellipsis">
+    Logging
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../img2thumb/">
+<span class="md-ellipsis">
+    Image Processing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../validation/">
+<span class="md-ellipsis">
+    Validation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../exceptions/">
+<span class="md-ellipsis">
+    Exceptions
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../fileops/">
+<span class="md-ellipsis">
+    File Operations
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Data Models
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
+<span class="md-nav__icon md-icon"></span>
+            Data Models
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../config/">
+<span class="md-ellipsis">
+    Configuration Models
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Invoice Models
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Invoice Models
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-models">
+<span class="md-ellipsis">
+      Data Models
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders">
+<span class="md-ellipsis">
+      FixedHeaders
+    </span>
+</a>
+<nav aria-label="FixedHeaders" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row1">
+<span class="md-ellipsis">
+      row1
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row2">
+<span class="md-ellipsis">
+      row2
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row3">
+<span class="md-ellipsis">
+      row3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row4">
+<span class="md-ellipsis">
+      row4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.to_template_dataframe">
+<span class="md-ellipsis">
+      to_template_dataframe
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow1">
+<span class="md-ellipsis">
+      HeaderRow1
+    </span>
+</a>
+<nav aria-label="HeaderRow1" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow1.A1">
+<span class="md-ellipsis">
+      A1
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2">
+<span class="md-ellipsis">
+      HeaderRow2
+    </span>
+</a>
+<nav aria-label="HeaderRow2" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2.A2">
+<span class="md-ellipsis">
+      A2
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2.D2_G2">
+<span class="md-ellipsis">
+      D2_G2
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2.H2_M2">
+<span class="md-ellipsis">
+      H2_M2
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3">
+<span class="md-ellipsis">
+      HeaderRow3
+    </span>
+</a>
+<nav aria-label="HeaderRow3" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.A3">
+<span class="md-ellipsis">
+      A3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.B3">
+<span class="md-ellipsis">
+      B3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.C3">
+<span class="md-ellipsis">
+      C3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.D3">
+<span class="md-ellipsis">
+      D3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.E3">
+<span class="md-ellipsis">
+      E3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.F3">
+<span class="md-ellipsis">
+      F3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.G3">
+<span class="md-ellipsis">
+      G3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.H3">
+<span class="md-ellipsis">
+      H3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.I3">
+<span class="md-ellipsis">
+      I3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.J3">
+<span class="md-ellipsis">
+      J3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.K3">
+<span class="md-ellipsis">
+      K3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.L3">
+<span class="md-ellipsis">
+      L3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.M3">
+<span class="md-ellipsis">
+      M3
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4">
+<span class="md-ellipsis">
+      HeaderRow4
+    </span>
+</a>
+<nav aria-label="HeaderRow4" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.A4">
+<span class="md-ellipsis">
+      A4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.B4">
+<span class="md-ellipsis">
+      B4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.C4">
+<span class="md-ellipsis">
+      C4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.D4">
+<span class="md-ellipsis">
+      D4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.E4">
+<span class="md-ellipsis">
+      E4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.F4">
+<span class="md-ellipsis">
+      F4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.G4">
+<span class="md-ellipsis">
+      G4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.H4">
+<span class="md-ellipsis">
+      H4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.I4">
+<span class="md-ellipsis">
+      I4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.J4">
+<span class="md-ellipsis">
+      J4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.K4">
+<span class="md-ellipsis">
+      K4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.L4">
+<span class="md-ellipsis">
+      L4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.M4">
+<span class="md-ellipsis">
+      M4
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig">
+<span class="md-ellipsis">
+      TemplateConfig
+    </span>
+</a>
+<nav aria-label="TemplateConfig" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.general_term_path">
+<span class="md-ellipsis">
+      general_term_path
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.inputfile_mode">
+<span class="md-ellipsis">
+      inputfile_mode
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.schema_path">
+<span class="md-ellipsis">
+      schema_path
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.specific_term_path">
+<span class="md-ellipsis">
+      specific_term_path
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.BaseTermRegistry">
+<span class="md-ellipsis">
+      BaseTermRegistry
+    </span>
+</a>
+<nav aria-label="BaseTermRegistry" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.BaseTermRegistry.base_schema">
+<span class="md-ellipsis">
+      base_schema
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry">
+<span class="md-ellipsis">
+      GeneralTermRegistry
+    </span>
+</a>
+<nav aria-label="GeneralTermRegistry" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.df">
+<span class="md-ellipsis">
+      df
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.by_en">
+<span class="md-ellipsis">
+      by_en
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.by_ja">
+<span class="md-ellipsis">
+      by_ja
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.by_term_id">
+<span class="md-ellipsis">
+      by_term_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.search">
+<span class="md-ellipsis">
+      search
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry">
+<span class="md-ellipsis">
+      SpecificTermRegistry
+    </span>
+</a>
+<nav aria-label="SpecificTermRegistry" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.df">
+<span class="md-ellipsis">
+      df
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_en">
+<span class="md-ellipsis">
+      by_en
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_ja">
+<span class="md-ellipsis">
+      by_ja
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_key_name">
+<span class="md-ellipsis">
+      by_key_name
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_term_and_class_id">
+<span class="md-ellipsis">
+      by_term_and_class_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.search">
+<span class="md-ellipsis">
+      search
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig">
+<span class="md-ellipsis">
+      GeneralAttributeConfig
+    </span>
+</a>
+<nav aria-label="GeneralAttributeConfig" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.attributes">
+<span class="md-ellipsis">
+      attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.prefix">
+<span class="md-ellipsis">
+      prefix
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.registry">
+<span class="md-ellipsis">
+      registry
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.requires_class_id">
+<span class="md-ellipsis">
+      requires_class_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.type">
+<span class="md-ellipsis">
+      type
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig">
+<span class="md-ellipsis">
+      SpecificAttributeConfig
+    </span>
+</a>
+<nav aria-label="SpecificAttributeConfig" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.attributes">
+<span class="md-ellipsis">
+      attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.prefix">
+<span class="md-ellipsis">
+      prefix
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.registry">
+<span class="md-ellipsis">
+      registry
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.requires_class_id">
+<span class="md-ellipsis">
+      requires_class_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.type">
+<span class="md-ellipsis">
+      type
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fixed-header-management">
+<span class="md-ellipsis">
+      Fixed Header Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#term-registry-usage">
+<span class="md-ellipsis">
+      Term Registry Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attribute-configuration-management">
+<span class="md-ellipsis">
+      Attribute Configuration Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#template-configuration-usage">
+<span class="md-ellipsis">
+      Template Configuration Usage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../invoice_schema/">
+<span class="md-ellipsis">
+    Invoice Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../metadata/">
+<span class="md-ellipsis">
+    Metadata Models
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rde2types/">
+<span class="md-ellipsis">
+    Type Definitions
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../result/">
+<span class="md-ellipsis">
+    Result Models
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Implementation
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            Implementation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/compressed_controller/">
+<span class="md-ellipsis">
+    Compressed Controller
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/input_controller/">
+<span class="md-ellipsis">
+    Input Controller
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Interfaces
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            Interfaces
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../interface/filechecker/">
+<span class="md-ellipsis">
+    File Checker
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Commands
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            Commands
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cmd/command/">
+<span class="md-ellipsis">
+    Base Commands
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel Invoice Generation
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Storage
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            Storage
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../storage/minio/">
+<span class="md-ellipsis">
+    MinIO Integration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Artifacts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Artifacts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../artifact/report/">
+<span class="md-ellipsis">
+    Report Generation
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/docs/">
+<span class="md-ellipsis">
+    Documentation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/contributing/">
+<span class="md-ellipsis">
+    Source Code
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-models">
+<span class="md-ellipsis">
+      Data Models
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders">
+<span class="md-ellipsis">
+      FixedHeaders
+    </span>
+</a>
+<nav aria-label="FixedHeaders" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row1">
+<span class="md-ellipsis">
+      row1
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row2">
+<span class="md-ellipsis">
+      row2
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row3">
+<span class="md-ellipsis">
+      row3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.row4">
+<span class="md-ellipsis">
+      row4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.FixedHeaders.to_template_dataframe">
+<span class="md-ellipsis">
+      to_template_dataframe
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow1">
+<span class="md-ellipsis">
+      HeaderRow1
+    </span>
+</a>
+<nav aria-label="HeaderRow1" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow1.A1">
+<span class="md-ellipsis">
+      A1
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2">
+<span class="md-ellipsis">
+      HeaderRow2
+    </span>
+</a>
+<nav aria-label="HeaderRow2" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2.A2">
+<span class="md-ellipsis">
+      A2
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2.D2_G2">
+<span class="md-ellipsis">
+      D2_G2
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow2.H2_M2">
+<span class="md-ellipsis">
+      H2_M2
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3">
+<span class="md-ellipsis">
+      HeaderRow3
+    </span>
+</a>
+<nav aria-label="HeaderRow3" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.A3">
+<span class="md-ellipsis">
+      A3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.B3">
+<span class="md-ellipsis">
+      B3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.C3">
+<span class="md-ellipsis">
+      C3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.D3">
+<span class="md-ellipsis">
+      D3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.E3">
+<span class="md-ellipsis">
+      E3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.F3">
+<span class="md-ellipsis">
+      F3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.G3">
+<span class="md-ellipsis">
+      G3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.H3">
+<span class="md-ellipsis">
+      H3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.I3">
+<span class="md-ellipsis">
+      I3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.J3">
+<span class="md-ellipsis">
+      J3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.K3">
+<span class="md-ellipsis">
+      K3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.L3">
+<span class="md-ellipsis">
+      L3
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow3.M3">
+<span class="md-ellipsis">
+      M3
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4">
+<span class="md-ellipsis">
+      HeaderRow4
+    </span>
+</a>
+<nav aria-label="HeaderRow4" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.A4">
+<span class="md-ellipsis">
+      A4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.B4">
+<span class="md-ellipsis">
+      B4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.C4">
+<span class="md-ellipsis">
+      C4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.D4">
+<span class="md-ellipsis">
+      D4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.E4">
+<span class="md-ellipsis">
+      E4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.F4">
+<span class="md-ellipsis">
+      F4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.G4">
+<span class="md-ellipsis">
+      G4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.H4">
+<span class="md-ellipsis">
+      H4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.I4">
+<span class="md-ellipsis">
+      I4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.J4">
+<span class="md-ellipsis">
+      J4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.K4">
+<span class="md-ellipsis">
+      K4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.L4">
+<span class="md-ellipsis">
+      L4
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.HeaderRow4.M4">
+<span class="md-ellipsis">
+      M4
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig">
+<span class="md-ellipsis">
+      TemplateConfig
+    </span>
+</a>
+<nav aria-label="TemplateConfig" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.general_term_path">
+<span class="md-ellipsis">
+      general_term_path
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.inputfile_mode">
+<span class="md-ellipsis">
+      inputfile_mode
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.schema_path">
+<span class="md-ellipsis">
+      schema_path
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.TemplateConfig.specific_term_path">
+<span class="md-ellipsis">
+      specific_term_path
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.BaseTermRegistry">
+<span class="md-ellipsis">
+      BaseTermRegistry
+    </span>
+</a>
+<nav aria-label="BaseTermRegistry" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.BaseTermRegistry.base_schema">
+<span class="md-ellipsis">
+      base_schema
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry">
+<span class="md-ellipsis">
+      GeneralTermRegistry
+    </span>
+</a>
+<nav aria-label="GeneralTermRegistry" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.df">
+<span class="md-ellipsis">
+      df
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.by_en">
+<span class="md-ellipsis">
+      by_en
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.by_ja">
+<span class="md-ellipsis">
+      by_ja
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.by_term_id">
+<span class="md-ellipsis">
+      by_term_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralTermRegistry.search">
+<span class="md-ellipsis">
+      search
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry">
+<span class="md-ellipsis">
+      SpecificTermRegistry
+    </span>
+</a>
+<nav aria-label="SpecificTermRegistry" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.df">
+<span class="md-ellipsis">
+      df
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_en">
+<span class="md-ellipsis">
+      by_en
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_ja">
+<span class="md-ellipsis">
+      by_ja
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_key_name">
+<span class="md-ellipsis">
+      by_key_name
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.by_term_and_class_id">
+<span class="md-ellipsis">
+      by_term_and_class_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificTermRegistry.search">
+<span class="md-ellipsis">
+      search
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig">
+<span class="md-ellipsis">
+      GeneralAttributeConfig
+    </span>
+</a>
+<nav aria-label="GeneralAttributeConfig" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.attributes">
+<span class="md-ellipsis">
+      attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.prefix">
+<span class="md-ellipsis">
+      prefix
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.registry">
+<span class="md-ellipsis">
+      registry
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.requires_class_id">
+<span class="md-ellipsis">
+      requires_class_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.GeneralAttributeConfig.type">
+<span class="md-ellipsis">
+      type
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig">
+<span class="md-ellipsis">
+      SpecificAttributeConfig
+    </span>
+</a>
+<nav aria-label="SpecificAttributeConfig" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.attributes">
+<span class="md-ellipsis">
+      attributes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.prefix">
+<span class="md-ellipsis">
+      prefix
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.registry">
+<span class="md-ellipsis">
+      registry
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.requires_class_id">
+<span class="md-ellipsis">
+      requires_class_id
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice.SpecificAttributeConfig.type">
+<span class="md-ellipsis">
+      type
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fixed-header-management">
+<span class="md-ellipsis">
+      Fixed Header Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#term-registry-usage">
+<span class="md-ellipsis">
+      Term Registry Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#attribute-configuration-management">
+<span class="md-ellipsis">
+      Attribute Configuration Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#template-configuration-usage">
+<span class="md-ellipsis">
+      Template Configuration Usage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="invoice-models-api">Invoice Models API</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This module defines data models for invoices and Excel invoices in RDEToolKit. It provides structured invoice management, validation, registry management, and multi-language support through term registries.</p>
+<h2 id="key-features">Key Features</h2>
+<h3 id="data-models">Data Models</h3>
+<ul>
+<li>Excel invoice header structure definitions</li>
+<li>Template configuration management</li>
+<li>Multi-language support through term registries</li>
+</ul>
+<h3 id="configuration-management">Configuration Management</h3>
+<ul>
+<li>Fixed header management</li>
+<li>General and specific attribute configuration</li>
+<li>Term search and mapping functionality</li>
+</ul>
+<hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.FixedHeaders">
+<code>src.rdetoolkit.models.invoice.FixedHeaders</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+<p>Data class to hold the fixed header rows data of ExcelInvoice.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.FixedHeaders.row1">
+<code class="highlight language-python">row1: HeaderRow1 <span style="color: #333333">=</span> HeaderRow1()</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.FixedHeaders.row2">
+<code class="highlight language-python">row2: HeaderRow2 <span style="color: #333333">=</span> HeaderRow2()</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.FixedHeaders.row3">
+<code class="highlight language-python">row3: HeaderRow3 <span style="color: #333333">=</span> HeaderRow3()</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.FixedHeaders.row4">
+<code class="highlight language-python">row4: HeaderRow4 <span style="color: #333333">=</span> HeaderRow4()</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.FixedHeaders.to_template_dataframe">
+<code class="highlight language-python">to_template_dataframe()</code>
+</h3>
+<div class="doc doc-contents">
+<p>Converts the invoice data to a Polars DataFrame formatted for a template.</p>
+<p>This method organizes the invoice data into a DataFrame with specific padding
+and column structure suitable for template processing.</p>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="polars.DataFrame">DataFrame</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>pl.DataFrame: A Polars DataFrame containing the formatted invoice data.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow1">
+<code>src.rdetoolkit.models.invoice.HeaderRow1</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+<p>Data class to hold the first header row data of ExcelInvoice.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow1.A1">
+<code class="highlight language-python">A1: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'invoiceList_format_id'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow2">
+<code>src.rdetoolkit.models.invoice.HeaderRow2</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+<p>Data class to hold the second header row data of ExcelInvoice.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow2.A2">
+<code class="highlight language-python">A2: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'data_file_names'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow2.D2_G2">
+<code class="highlight language-python">D2_G2: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>] <span style="color: #333333">=</span> Field(default_factory<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">lambda</span>: [<span style="background-color: #fff0f0">'basic'</span>] <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">4</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow2.H2_M2">
+<code class="highlight language-python">H2_M2: <span style="color: #007020">list</span>[<span style="color: #007020">str</span>] <span style="color: #333333">=</span> Field(default_factory<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">lambda</span>: [<span style="background-color: #fff0f0">'sample'</span>] <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">6</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3">
+<code>src.rdetoolkit.models.invoice.HeaderRow3</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+<p>Data class to hold the third header row data of ExcelInvoice.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.A3">
+<code class="highlight language-python">A3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'name'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.B3">
+<code class="highlight language-python">B3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'dataset_title'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.C3">
+<code class="highlight language-python">C3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'dataOwner'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.D3">
+<code class="highlight language-python">D3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'dataOwnerId'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.E3">
+<code class="highlight language-python">E3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'dataName'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.F3">
+<code class="highlight language-python">F3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'experimentId'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.G3">
+<code class="highlight language-python">G3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'description'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.H3">
+<code class="highlight language-python">H3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'names'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.I3">
+<code class="highlight language-python">I3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'sampleId'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.J3">
+<code class="highlight language-python">J3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'ownerId'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.K3">
+<code class="highlight language-python">K3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'composition'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.L3">
+<code class="highlight language-python">L3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'referenceUrl'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow3.M3">
+<code class="highlight language-python">M3: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'description'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4">
+<code>src.rdetoolkit.models.invoice.HeaderRow4</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+<p>Data class to hold the fourth header row data of ExcelInvoice.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.A4">
+<code class="highlight language-python">A4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'ファイル名</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(拡張子も含め入力)</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(入力例:○○.txt)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.B4">
+<code class="highlight language-python">B4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'データセット名</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(必須)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.C4">
+<code class="highlight language-python">C4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'データ所有者</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(NIMS User ID)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.D4">
+<code class="highlight language-python">D4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'NIMS user UUID</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(必須)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.E4">
+<code class="highlight language-python">E4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'データ名</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(必須)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.F4">
+<code class="highlight language-python">F4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'実験ID'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.G4">
+<code class="highlight language-python">G4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'説明'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.H4">
+<code class="highlight language-python">H4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'試料名</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(ローカルID)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.I4">
+<code class="highlight language-python">I4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'試料UUID</span><span style="color: #666666; font-weight: bold; background-color: #fff0f0">\n</span><span style="background-color: #fff0f0">(必須)'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.J4">
+<code class="highlight language-python">J4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'試料管理者UUID'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.K4">
+<code class="highlight language-python">K4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'化学式・組成式・分子式など'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.L4">
+<code class="highlight language-python">L4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'参考URL'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.HeaderRow4.M4">
+<code class="highlight language-python">M4: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'試料の説明'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.TemplateConfig">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>models<span style="color: #333333">.</span>invoice<span style="color: #333333">.</span>TemplateConfig(schema_path, general_term_path, specific_term_path, inputfile_mode<span style="color: #333333">=...</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+</span>
+</h2>
+<div class="doc doc-contents first">
+<p>Data class to hold configuration settings for generating ExcelInvoice template files.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.TemplateConfig.general_term_path">
+<code class="highlight language-python">general_term_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.TemplateConfig.inputfile_mode">
+<code class="highlight language-python">inputfile_mode: Literal[<span style="background-color: #fff0f0">'file'</span>, <span style="background-color: #fff0f0">'folder'</span>] <span style="color: #333333">=</span> <span style="background-color: #fff0f0">'file'</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.TemplateConfig.schema_path">
+<code class="highlight language-python">schema_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.TemplateConfig.specific_term_path">
+<code class="highlight language-python">specific_term_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.BaseTermRegistry">
+<code>src.rdetoolkit.models.invoice.BaseTermRegistry</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Base class for term registries.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.BaseTermRegistry.base_schema">
+<code class="highlight language-python">base_schema: Incomplete <span style="color: #333333">=</span> {<span style="background-color: #fff0f0">'term_id'</span>: pl<span style="color: #333333">.</span>Utf8, <span style="background-color: #fff0f0">'key_name'</span>: pl<span style="color: #333333">.</span>Utf8, <span style="background-color: #fff0f0">'ja'</span>: pl<span style="color: #333333">.</span>Utf8, <span style="background-color: #fff0f0">'en'</span>: pl<span style="color: #333333">.</span>Utf8}</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralTermRegistry">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>models<span style="color: #333333">.</span>invoice<span style="color: #333333">.</span>GeneralTermRegistry(csv_path)</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.invoice.BaseTermRegistry" href="../../../../rdetoolkit/models/invoice/#src.rdetoolkit.models.invoice.BaseTermRegistry">BaseTermRegistry</a></code></p>
+<p>Class for managing general terms.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralTermRegistry.df">
+<code class="highlight language-python">df: Incomplete <span style="color: #333333">=</span> pl<span style="color: #333333">.</span>read_csv(csv_path, schema_overrides<span style="color: #333333">=</span><span style="color: #007020">self</span><span style="color: #333333">.</span>base_schema)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralTermRegistry.by_en">
+<code class="highlight language-python">by_en(en_text)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Search for terms in English text.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>en_text</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The English text to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries containing the search results with keys "term_id", "key_name", and "term_description".</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralTermRegistry.by_ja">
+<code class="highlight language-python">by_ja(ja_text)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Search for records with Japanese text.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>ja_text</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The Japanese text to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries containing the search results with keys "term_id", "key_name", and "term_description".</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralTermRegistry.by_term_id">
+<code class="highlight language-python">by_term_id(term_id)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Retrieve a list of dictionaries containing invoice details filtered by term ID.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>term_id</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The term ID to filter invoices by.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries, each containing the keys</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>"term_id", "key_name", and "term_description" with their corresponding values.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralTermRegistry.search">
+<code class="highlight language-python">search(column, value, out_cols)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Search for rows in the DataFrame where the specified column matches the given value and return selected columns.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>column</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The name of the column to search.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>value</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The value to search for in the specified column.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>out_cols</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A list of column names to include in the output.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries representing the rows that match the search criteria, with only the specified columns included.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>models<span style="color: #333333">.</span>invoice<span style="color: #333333">.</span>SpecificTermRegistry(csv_path)</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.invoice.BaseTermRegistry" href="../../../../rdetoolkit/models/invoice/#src.rdetoolkit.models.invoice.BaseTermRegistry">BaseTermRegistry</a></code></p>
+<p>Class for managing specific terms.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry.df">
+<code class="highlight language-python">df: Incomplete <span style="color: #333333">=</span> pl<span style="color: #333333">.</span>read_csv(csv_path, schema_overrides<span style="color: #333333">=</span>schema)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry.by_en">
+<code class="highlight language-python">by_en(en_text)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Search for records in the database using the provided English text.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>en_text</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The English text to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries containing the search results.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry.by_ja">
+<code class="highlight language-python">by_ja(ja_text)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Search for records by Japanese text.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>ja_text</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The Japanese text to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries containing the search results.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry.by_key_name">
+<code class="highlight language-python">by_key_name(key_name)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Retrieve a list of dictionaries containing specific fields for entries matching the given key name.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>key_name</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The key name to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries, each containing the fields "sample_class_id", "term_id", "key_name", "ja", and "en" for entries that match the key name.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry.by_term_and_class_id">
+<code class="highlight language-python">by_term_and_class_id(term_id, sample_class_id)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Retrieve a list of dictionaries containing specific fields for entries matching the given term and sample class IDs.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>term_id</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The term ID to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>sample_class_id</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The sample class ID to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries, each containing the fields "sample_class_id", "term_id", "key_name", "ja", and "en" for entries that match the term and sample class IDs.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificTermRegistry.search">
+<code class="highlight language-python">search(columns, values, out_cols)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Search for rows in the DataFrame where the specified column matches the given value and return the selected columns.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>columns</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The name of the column to search.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>values</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The value to search for in the specified column.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>out_cols</code></td>
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A list of column names to include in the output.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[dict[str, Any]]: A list of dictionaries representing the rows that match the search criteria, with only the specified columns included.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralAttributeConfig">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>models<span style="color: #333333">.</span>invoice<span style="color: #333333">.</span>GeneralAttributeConfig(<span style="color: #007020">type</span>, registry, prefix, attributes, requires_class_id)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+</span>
+</h2>
+<div class="doc doc-contents first">
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralAttributeConfig.attributes">
+<code class="highlight language-python">attributes: GeneralAttribute <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralAttributeConfig.prefix">
+<code class="highlight language-python">prefix: <span style="color: #007020">str</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralAttributeConfig.registry">
+<code class="highlight language-python">registry: GeneralTermRegistry</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralAttributeConfig.requires_class_id">
+<code class="highlight language-python">requires_class_id: Literal[<span style="color: #008800; font-weight: bold">False</span>]</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.GeneralAttributeConfig.type">
+<code class="highlight language-python"><span style="color: #007020">type</span>: <span style="color: #007020">str</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificAttributeConfig">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>models<span style="color: #333333">.</span>invoice<span style="color: #333333">.</span>SpecificAttributeConfig(<span style="color: #007020">type</span>, registry, prefix, attributes, requires_class_id)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+</span>
+</h2>
+<div class="doc doc-contents first">
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificAttributeConfig.attributes">
+<code class="highlight language-python">attributes: SpecificAttribute <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificAttributeConfig.prefix">
+<code class="highlight language-python">prefix: <span style="color: #007020">str</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificAttributeConfig.registry">
+<code class="highlight language-python">registry: SpecificTermRegistry</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificAttributeConfig.requires_class_id">
+<code class="highlight language-python">requires_class_id: Literal[<span style="color: #008800; font-weight: bold">True</span>]</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice.SpecificAttributeConfig.type">
+<code class="highlight language-python"><span style="color: #007020">type</span>: <span style="color: #007020">str</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<h2 id="practical-usage">Practical Usage</h2>
+<h3 id="fixed-header-management">Fixed Header Management</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">fixed_headers.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.invoice</span> <span style="color: #008800; font-weight: bold">import</span> FixedHeaders
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+
+<span style="color: #888888"># Create fixed headers</span>
+headers <span style="color: #333333">=</span> FixedHeaders()
+
+<span style="color: #888888"># Generate template DataFrame</span>
+template_df <span style="color: #333333">=</span> headers<span style="color: #333333">.</span>to_template_dataframe()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Template columns: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(template_df<span style="color: #333333">.</span>columns)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Template rows: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(template_df)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Display header structure</span>
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Header structure:"</span>)
+<span style="color: #008800; font-weight: bold">for</span> i, column <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(template_df<span style="color: #333333">.</span>columns):
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Column </span><span style="background-color: #eeeeee">{</span>i<span style="color: #333333">+</span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>column<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="term-registry-usage">Term Registry Usage</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">term_registry.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.invoice</span> <span style="color: #008800; font-weight: bold">import</span> GeneralTermRegistry, SpecificTermRegistry
+
+<span style="color: #888888"># General term registry usage</span>
+general_registry <span style="color: #333333">=</span> GeneralTermRegistry()
+
+<span style="color: #888888"># Search terms</span>
+search_results <span style="color: #333333">=</span> general_registry<span style="color: #333333">.</span>search(<span style="background-color: #fff0f0">"temperature"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Search results: </span><span style="background-color: #eeeeee">{</span>search_results<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Search by term ID</span>
+term_by_id <span style="color: #333333">=</span> general_registry<span style="color: #333333">.</span>by_term_id(<span style="background-color: #fff0f0">"TEMP001"</span>)
+<span style="color: #008800; font-weight: bold">if</span> term_by_id:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Term ID TEMP001: </span><span style="background-color: #eeeeee">{</span>term_by_id<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Search by Japanese term</span>
+term_by_ja <span style="color: #333333">=</span> general_registry<span style="color: #333333">.</span>by_ja(<span style="background-color: #fff0f0">"温度"</span>)
+<span style="color: #008800; font-weight: bold">if</span> term_by_ja:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Japanese '温度': </span><span style="background-color: #eeeeee">{</span>term_by_ja<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Search by English term</span>
+term_by_en <span style="color: #333333">=</span> general_registry<span style="color: #333333">.</span>by_en(<span style="background-color: #fff0f0">"temperature"</span>)
+<span style="color: #008800; font-weight: bold">if</span> term_by_en:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"English 'temperature': </span><span style="background-color: #eeeeee">{</span>term_by_en<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Specific term registry usage</span>
+specific_registry <span style="color: #333333">=</span> SpecificTermRegistry()
+
+<span style="color: #888888"># Search by term and class ID</span>
+specific_term <span style="color: #333333">=</span> specific_registry<span style="color: #333333">.</span>by_term_and_class_id(<span style="background-color: #fff0f0">"material"</span>, <span style="background-color: #fff0f0">"MAT001"</span>)
+<span style="color: #008800; font-weight: bold">if</span> specific_term:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Specific term: </span><span style="background-color: #eeeeee">{</span>specific_term<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="attribute-configuration-management">Attribute Configuration Management</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">attribute_config.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.invoice</span> <span style="color: #008800; font-weight: bold">import</span> GeneralAttributeConfig, SpecificAttributeConfig
+
+<span style="color: #888888"># General attribute configuration</span>
+general_config <span style="color: #333333">=</span> GeneralAttributeConfig(
+    term_id<span style="color: #333333">=</span><span style="background-color: #fff0f0">"TEMP001"</span>,
+    name_ja<span style="color: #333333">=</span><span style="background-color: #fff0f0">"温度"</span>,
+    name_en<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Temperature"</span>,
+    unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"℃"</span>,
+    data_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">"float"</span>,
+    required<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>
+)
+
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"General attribute: </span><span style="background-color: #eeeeee">{</span>general_config<span style="color: #333333">.</span>name_ja<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> (</span><span style="background-color: #eeeeee">{</span>general_config<span style="color: #333333">.</span>name_en<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">)"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Unit: </span><span style="background-color: #eeeeee">{</span>general_config<span style="color: #333333">.</span>unit<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Data type: </span><span style="background-color: #eeeeee">{</span>general_config<span style="color: #333333">.</span>data_type<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Required: </span><span style="background-color: #eeeeee">{</span>general_config<span style="color: #333333">.</span>required<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Specific attribute configuration</span>
+specific_config <span style="color: #333333">=</span> SpecificAttributeConfig(
+    class_id<span style="color: #333333">=</span><span style="background-color: #fff0f0">"MAT001"</span>,
+    term_id<span style="color: #333333">=</span><span style="background-color: #fff0f0">"DENSITY001"</span>,
+    name_ja<span style="color: #333333">=</span><span style="background-color: #fff0f0">"密度"</span>,
+    name_en<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Density"</span>,
+    unit<span style="color: #333333">=</span><span style="background-color: #fff0f0">"g/cm³"</span>,
+    data_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">"float"</span>,
+    required<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>,
+    default_value<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">1.0</span>
+)
+
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Specific attribute: </span><span style="background-color: #eeeeee">{</span>specific_config<span style="color: #333333">.</span>name_ja<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> (</span><span style="background-color: #eeeeee">{</span>specific_config<span style="color: #333333">.</span>name_en<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">)"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Class ID: </span><span style="background-color: #eeeeee">{</span>specific_config<span style="color: #333333">.</span>class_id<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Default value: </span><span style="background-color: #eeeeee">{</span>specific_config<span style="color: #333333">.</span>default_value<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="template-configuration-usage">Template Configuration Usage</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">template_config.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.invoice</span> <span style="color: #008800; font-weight: bold">import</span> TemplateConfig
+
+<span style="color: #888888"># Create template configuration</span>
+template_config <span style="color: #333333">=</span> TemplateConfig(
+    name<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Experiment Data Template"</span>,
+    version<span style="color: #333333">=</span><span style="background-color: #fff0f0">"1.0"</span>,
+    description<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Template for temperature measurement experiments"</span>,
+    author<span style="color: #333333">=</span><span style="background-color: #fff0f0">"John Doe"</span>,
+    created_date<span style="color: #333333">=</span><span style="background-color: #fff0f0">"2024-01-01"</span>
+)
+
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Template name: </span><span style="background-color: #eeeeee">{</span>template_config<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Version: </span><span style="background-color: #eeeeee">{</span>template_config<span style="color: #333333">.</span>version<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Description: </span><span style="background-color: #eeeeee">{</span>template_config<span style="color: #333333">.</span>description<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Author: </span><span style="background-color: #eeeeee">{</span>template_config<span style="color: #333333">.</span>author<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Created date: </span><span style="background-color: #eeeeee">{</span>template_config<span style="color: #333333">.</span>created_date<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #888888"># Validate template configuration</span>
+<span style="color: #008800; font-weight: bold">if</span> template_config<span style="color: #333333">.</span>validate():
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✓ Template configuration is valid"</span>)
+<span style="color: #008800; font-weight: bold">else</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✗ Template configuration has issues"</span>)
+</code></pre></div></td></tr></table></div>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/nims-dpfc/rdetoolkit" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-consent" data-md-component="consent" hidden="" id="__consent">
+<div class="md-consent__overlay"></div>
+<aside class="md-consent__inner">
+<form class="md-consent__form md-grid md-typeset" name="consent">
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" id="__settings" type="checkbox"/>
+<div class="md-consent__settings">
+<ul class="task-list">
+<li class="task-list-item">
+<label class="task-list-control">
+<input checked="" name="github" type="checkbox"/>
+<span class="task-list-indicator"></span>
+          GitHub
+        </label>
+</li>
+</ul>
+</div>
+<div class="md-consent__controls">
+<button class="md-button md-button--primary">Accept</button>
+<label class="md-button" for="__settings">Manage settings</label>
+</div>
+</form>
+</aside>
+</div>
+<script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+<script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
+<script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
+</body>
+</html>

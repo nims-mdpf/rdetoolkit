@@ -1,15 +1,15 @@
 
 <!DOCTYPE html>
 
-<html class="no-js" lang="en">
+<html class="no-js" lang="ja">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="../../models/rde2types/" rel="prev"/>
-<link href="../../core/" rel="next"/>
+<link href="../../cmd/gen_excelinvoice/" rel="prev"/>
+<link href="../../artifact/report/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>MinIO Storage - RDEToolKit Documentation</title>
+<title>MinIO 統合 - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,14 +23,14 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#minio-storage">
-          Skip to content
+<a class="md-skip" href="#minio-storage-api">
+          コンテンツにスキップ
         </a>
 </div>
 <div data-md-component="announce">
 </div>
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-<nav aria-label="Header" class="md-header__inner md-grid">
+<nav aria-label="ヘッダー" class="md-header__inner md-grid">
 <a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../../img/2585322.png"/>
 </a>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              MinIO Storage
+              MinIO 統合
             
           </span>
 </div>
@@ -64,6 +64,27 @@
 </label>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="言語切り替え" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../../en/rdetoolkit/storage/minio/" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <label class="md-header__button md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 </label>
@@ -71,13 +92,13 @@
 <label class="md-search__overlay" for="__search"></label>
 <div class="md-search__inner" role="search">
 <form class="md-search__form" name="search">
-<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<input aria-label="検索" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="検索" required="" spellcheck="false" type="text"/>
 <label class="md-search__icon md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </label>
-<nav aria-label="Search" class="md-search__options">
-<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<nav aria-label="検索" class="md-search__options">
+<button aria-label="クリア" class="md-search__icon md-icon" tabindex="-1" title="クリア" type="reset">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
 </button>
 </nav>
@@ -86,7 +107,7 @@
 <div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
 <div class="md-search-result" data-md-component="search-result">
 <div class="md-search-result__meta">
-            Initializing search
+            検索を初期化
           </div>
 <ol class="md-search-result__list" role="presentation"></ol>
 </div>
@@ -95,7 +116,7 @@
 </div>
 </div>
 <div class="md-header__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -105,30 +126,22 @@
 </a>
 </div>
 </nav>
-<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<nav aria-label="タブ" class="md-tabs" data-md-component="tabs">
 <div class="md-grid">
 <ul class="md-tabs__list">
 <li class="md-tabs__item">
 <a class="md-tabs__link" href="../../..">
           
   
-  Getting started
+  はじめに
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../install/">
+<a class="md-tabs__link" href="../../../usage/structured_process/structured/">
           
   
-  Installation
-
-        </a>
-</li>
-<li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../usage/quickstart/">
-          
-  
-  User Guide
+  ユーザーガイド
 
         </a>
 </li>
@@ -136,15 +149,15 @@
 <a class="md-tabs__link" href="../../">
           
   
-  API Documentation
+  API リファレンス
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../contribute/home/">
+<a class="md-tabs__link" href="../../../development/">
           
   
-  Development
+  コントリビューション
 
         </a>
 </li>
@@ -158,7 +171,7 @@
 <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<nav aria-label="ナビゲーション" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
 <label class="md-nav__title" for="__drawer">
 <a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../../img/2585322.png"/>
@@ -166,7 +179,7 @@
     RDEToolKit Documentation
   </label>
 <div class="md-nav__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -180,78 +193,30 @@
 <input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
 <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
 <span class="md-ellipsis">
-    Getting started
+    はじめに
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_1">
 <span class="md-nav__icon md-icon"></span>
-            Getting started
+            はじめに
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../..">
 <span class="md-ellipsis">
-    RDEToolKit
+    はじめに
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-<span class="md-ellipsis">
-    Installation
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_2">
-<span class="md-nav__icon md-icon"></span>
-            Installation
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../install/">
+<a class="md-nav__link" href="../../../installation/">
 <span class="md-ellipsis">
-    インストール方法
+    インストール
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-<span class="md-ellipsis">
-    User Guide
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_3">
-<span class="md-nav__icon md-icon"></span>
-            User Guide
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_1" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
-<span class="md-ellipsis">
-    Quick Start
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_1_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_1">
-<span class="md-nav__icon md-icon"></span>
-            Quick Start
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/quickstart/">
 <span class="md-ellipsis">
@@ -263,51 +228,72 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
 <span class="md-ellipsis">
-    構造化処理
+    ユーザーガイド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_2">
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
 <span class="md-nav__icon md-icon"></span>
-            構造化処理
+            ユーザーガイド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    構造化処理開発
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            構造化処理開発
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/structured_process/structured/">
 <span class="md-ellipsis">
-    構造化処理を構築する
+    構造化プロセスの構築
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    構造化処理開発ガイド
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/structured_process/directory/">
 <span class="md-ellipsis">
-    サポートするディレクトリ
+    対応ディレクトリ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/structured_process/rdepath/">
 <span class="md-ellipsis">
-    構造化ディレクトリパスの取得
+    ディレクトリパスアクセス
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/structured_process/errorhandling/">
 <span class="md-ellipsis">
-    構造化処理のエラーハンドリング
+    エラーハンドリング
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/structured_process/feature_description/">
 <span class="md-ellipsis">
-    データタイル説明欄への自動記述について
+    機能説明
   </span>
 </a>
 </li>
@@ -315,68 +301,51 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
 <span class="md-ellipsis">
-    コマンドライン機能
+    設定ファイルとCLI
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_3">
+<nav aria-expanded="false" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
 <span class="md-nav__icon md-icon"></span>
-            コマンドライン機能
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../usage/cli/">
-<span class="md-ellipsis">
-    コマンドライン機能について
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
-<span class="md-ellipsis">
-    設定ファイル
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_4">
-<span class="md-nav__icon md-icon"></span>
-            設定ファイル
+            設定ファイルとCLI
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/config/config/">
 <span class="md-ellipsis">
-    RDEToolKit設定ファイル
+    設定ファイル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/config/mode/">
 <span class="md-ellipsis">
-    RDEToolKitのデータ登録モード
+    データ登録モード
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/config/file_folder_mode/">
 <span class="md-ellipsis">
-    圧縮ファイルの形式について
+    ファイル/フォルダモード
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/config/magic_variable/">
 <span class="md-ellipsis">
-    Magic Variableによるデータ登録について
+    マジック変数
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/cli/">
+<span class="md-ellipsis">
+    コマンドライン操作
   </span>
 </a>
 </li>
@@ -384,17 +353,17 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
 <span class="md-ellipsis">
-    テンプレートファイル
+    テンプレートファイルと検証
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_5">
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
 <span class="md-nav__icon md-icon"></span>
-            テンプレートファイル
+            テンプレートファイルと検証
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
@@ -404,27 +373,10 @@
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
-<span class="md-ellipsis">
-    バリデーション
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_6">
-<span class="md-nav__icon md-icon"></span>
-            バリデーション
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/validation/">
 <span class="md-ellipsis">
-    バリデーション機能
+    データ検証
   </span>
 </a>
 </li>
@@ -432,47 +384,30 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
 <span class="md-ellipsis">
-    オブジェクトストレージを使用する
+    統合
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_7">
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
 <span class="md-nav__icon md-icon"></span>
-            オブジェクトストレージを使用する
+            統合
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/object_storage/">
 <span class="md-ellipsis">
-    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+    オブジェクトストレージ (MinIO)
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
-<span class="md-ellipsis">
-    Docker
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_8">
-<span class="md-nav__icon md-icon"></span>
-            Docker
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../../usage/docker/">
 <span class="md-ellipsis">
-    Using RDEToolKit with Docker
+    Docker の使用
   </span>
 </a>
 </li>
@@ -483,51 +418,114 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
 <span class="md-ellipsis">
-    API Documentation
+    API リファレンス
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_4">
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
 <span class="md-nav__icon md-icon"></span>
-            API Documentation
+            API リファレンス
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../">
 <span class="md-ellipsis">
-    RDE Toolkit API Documentation
+    概要
   </span>
 </a>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
 <span class="md-ellipsis">
-    impl
+    コアモジュール
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
 <span class="md-nav__icon md-icon"></span>
-            impl
+            コアモジュール
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../impl/compressed_controller/">
+<a class="md-nav__link" href="../../config/">
 <span class="md-ellipsis">
-    Compressed Controller Module
+    設定
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../impl/input_controller/">
+<a class="md-nav__link" href="../../core/">
 <span class="md-ellipsis">
-    Input Controller Module
+    コア機能
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../workflows/">
+<span class="md-ellipsis">
+    ワークフロー
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../modeproc/">
+<span class="md-ellipsis">
+    モード処理
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../invoicefile/">
+<span class="md-ellipsis">
+    Invoiceファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rde2util/">
+<span class="md-ellipsis">
+    ユーティリティ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rdelogger/">
+<span class="md-ellipsis">
+    ロギング
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../img2thumb/">
+<span class="md-ellipsis">
+    代表画像操作
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../validation/">
+<span class="md-ellipsis">
+    検証
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../exceptions/">
+<span class="md-ellipsis">
+    例外
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../fileops/">
+<span class="md-ellipsis">
+    ファイル操作
   </span>
 </a>
 </li>
@@ -535,61 +533,144 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
 <span class="md-ellipsis">
-    interface
+    データモデル
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
 <span class="md-nav__icon md-icon"></span>
-            interface
+            データモデル
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../interface/filechecker/">
+<a class="md-nav__link" href="../../models/config/">
 <span class="md-ellipsis">
-    File Checker Interfaces Module
+    設定モデル
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/invoice/">
 <span class="md-ellipsis">
-    models
+    Invoiceモデル
   </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_4">
-<span class="md-nav__icon md-icon"></span>
-            models
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/invoice_schema/">
 <span class="md-ellipsis">
-    Invoice Schema Module
+    Invoiceスキーマ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/metadata/">
 <span class="md-ellipsis">
-    Metadata Module
+    メタデータモデル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../models/rde2types/">
 <span class="md-ellipsis">
-    RDE2 Types Module
+    タイプ定義
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/result/">
+<span class="md-ellipsis">
+    結果出力
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    実装
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            実装
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/compressed_controller/">
+<span class="md-ellipsis">
+    圧縮
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/input_controller/">
+<span class="md-ellipsis">
+    入力ファイル
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    インターフェース
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            インターフェース
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../interface/filechecker/">
+<span class="md-ellipsis">
+    ファイルチェック
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    コマンド
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            コマンド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cmd/command/">
+<span class="md-ellipsis">
+    ベースコマンド
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel形式Invoice生成
   </span>
 </a>
 </li>
@@ -597,44 +678,69 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
 <span class="md-ellipsis">
-    storage
+    ストレージ
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_5">
+<nav aria-expanded="true" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
 <span class="md-nav__icon md-icon"></span>
-            storage
+            ストレージ
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--active">
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    MinIO Storage
+    MinIO 統合
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    MinIO Storage
+    MinIO 統合
   </span>
 </a>
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#miniostorage">
+<a class="md-nav__link" href="#purpose">
 <span class="md-ellipsis">
-      MinIOStorage
+      Purpose
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#object-storage-operations">
+<span class="md-ellipsis">
+      Object Storage Operations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-management">
+<span class="md-ellipsis">
+      Data Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage">
@@ -644,6 +750,34 @@
 </a>
 <nav aria-label="MinIOStorage" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.access_key">
+<span class="md-ellipsis">
+      access_key
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.client">
+<span class="md-ellipsis">
+      client
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.secret_key">
+<span class="md-ellipsis">
+      secret_key
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
+<span class="md-ellipsis">
+      bucket_exists
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.create_default_http_client">
 <span class="md-ellipsis">
@@ -659,37 +793,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
 <span class="md-ellipsis">
-      make_bucket
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
-<span class="md-ellipsis">
-      list_buckets
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
-<span class="md-ellipsis">
-      bucket_exists
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
-<span class="md-ellipsis">
-      remove_bucket
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.put_object">
-<span class="md-ellipsis">
-      put_object
+      fget_object
     </span>
 </a>
 </li>
@@ -708,23 +814,16 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
 <span class="md-ellipsis">
-      fget_object
+      list_buckets
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
 <span class="md-ellipsis">
-      stat_object
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
-<span class="md-ellipsis">
-      remove_object
+      make_bucket
     </span>
 </a>
 </li>
@@ -743,9 +842,62 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.put_object">
+<span class="md-ellipsis">
+      put_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
+<span class="md-ellipsis">
+      remove_bucket
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
+<span class="md-ellipsis">
+      remove_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.secure_get_object">
 <span class="md-ellipsis">
       secure_get_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<span class="md-ellipsis">
+      stat_object
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-minio-operations">
+<span class="md-ellipsis">
+      Basic MinIO Operations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-experimental-data-management">
+<span class="md-ellipsis">
+      Batch Experimental Data Management
     </span>
 </a>
 </li>
@@ -759,127 +911,64 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
 <span class="md-ellipsis">
-    core module
+    アーティファクト
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_6">
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
 <span class="md-nav__icon md-icon"></span>
-            core module
+            アーティファクト
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../core/">
+<a class="md-nav__link" href="../../artifact/report/">
 <span class="md-ellipsis">
-    Core Module
+    レポート生成
   </span>
 </a>
 </li>
 </ul>
 </nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../config/">
-<span class="md-ellipsis">
-    Configuration Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../workflows/">
-<span class="md-ellipsis">
-    Workflows Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../rde2util/">
-<span class="md-ellipsis">
-    rde2util Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../invoicefile/">
-<span class="md-ellipsis">
-    Invoice File Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../modeproc/">
-<span class="md-ellipsis">
-    Mode Processing Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../validation/">
-<span class="md-ellipsis">
-    Validation Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../img2thumb/">
-<span class="md-ellipsis">
-    Image to Thumbnail Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../rdelogger/">
-<span class="md-ellipsis">
-    RDE Logger Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../exceptions/">
-<span class="md-ellipsis">
-    Exceptions Module
-  </span>
-</a>
 </li>
 </ul>
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
 <span class="md-ellipsis">
-    Development
+    コントリビューション
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_5">
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
 <span class="md-nav__icon md-icon"></span>
-            Development
+            コントリビューション
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/home/">
+<a class="md-nav__link" href="../../../development/">
 <span class="md-ellipsis">
-    Top
+    概要
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/documents_contributing/">
+<a class="md-nav__link" href="../../../development/docs/">
 <span class="md-ellipsis">
-    Documents
+    ドキュメントへの貢献
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/sourcecode_contributing/">
+<a class="md-nav__link" href="../../../development/contributing/">
 <span class="md-ellipsis">
-    Source Code
+    ソースコードへの貢献
   </span>
 </a>
 </li>
@@ -894,18 +983,43 @@
 <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#miniostorage">
+<a class="md-nav__link" href="#purpose">
 <span class="md-ellipsis">
-      MinIOStorage
+      Purpose
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#object-storage-operations">
+<span class="md-ellipsis">
+      Object Storage Operations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-management">
+<span class="md-ellipsis">
+      Data Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage">
@@ -915,6 +1029,34 @@
 </a>
 <nav aria-label="MinIOStorage" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.access_key">
+<span class="md-ellipsis">
+      access_key
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.client">
+<span class="md-ellipsis">
+      client
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.secret_key">
+<span class="md-ellipsis">
+      secret_key
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
+<span class="md-ellipsis">
+      bucket_exists
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.create_default_http_client">
 <span class="md-ellipsis">
@@ -930,37 +1072,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
 <span class="md-ellipsis">
-      make_bucket
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
-<span class="md-ellipsis">
-      list_buckets
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
-<span class="md-ellipsis">
-      bucket_exists
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
-<span class="md-ellipsis">
-      remove_bucket
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.put_object">
-<span class="md-ellipsis">
-      put_object
+      fget_object
     </span>
 </a>
 </li>
@@ -979,23 +1093,16 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
 <span class="md-ellipsis">
-      fget_object
+      list_buckets
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
 <span class="md-ellipsis">
-      stat_object
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
-<span class="md-ellipsis">
-      remove_object
+      make_bucket
     </span>
 </a>
 </li>
@@ -1014,9 +1121,62 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.put_object">
+<span class="md-ellipsis">
+      put_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
+<span class="md-ellipsis">
+      remove_bucket
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
+<span class="md-ellipsis">
+      remove_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.secure_get_object">
 <span class="md-ellipsis">
       secure_get_object
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<span class="md-ellipsis">
+      stat_object
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-minio-operations">
+<span class="md-ellipsis">
+      Basic MinIO Operations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-experimental-data-management">
+<span class="md-ellipsis">
+      Batch Experimental Data Management
     </span>
 </a>
 </li>
@@ -1030,9 +1190,23 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="minio-storage">MinIO Storage</h1>
-<p>MinIO is a high-performance, S3-compatible object storage service. It is designed for large-scale data storage and retrieval, making it an ideal choice for applications that require fast access to large datasets.</p>
-<h2 id="miniostorage">MinIOStorage</h2>
+<h1 id="minio-storage-api">MinIO Storage API</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This module defines integration processing with MinIO object storage in RDEToolKit. It provides functionality for file upload, download, and object management.</p>
+<h2 id="key-features">Key Features</h2>
+<h3 id="object-storage-operations">Object Storage Operations</h3>
+<ul>
+<li>File upload and download</li>
+<li>Object listing and deletion</li>
+<li>Bucket management and access control</li>
+</ul>
+<h3 id="data-management">Data Management</h3>
+<ul>
+<li>Efficient transfer of large files</li>
+<li>Metadata management</li>
+<li>Version control and backup</li>
+</ul>
+<hr/>
 <div class="doc doc-object doc-class">
 <h2 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage">
 <code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>storage<span style="color: #333333">.</span>minio<span style="color: #333333">.</span>MinIOStorage(endpoint, access_key<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, secret_key<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, secure<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, region<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, http_client<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
@@ -1050,7 +1224,7 @@
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.storage.minio.MinIOStorage.access_key">access_key</span></code></td>
+<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.storage.minio.MinIOStorage.access_key" href="#src.rdetoolkit.storage.minio.MinIOStorage.access_key">access_key</a></code></td>
 <td>
 <code>str</code>
 </td>
@@ -1061,7 +1235,7 @@
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.storage.minio.MinIOStorage.secret_key">secret_key</span></code></td>
+<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.storage.minio.MinIOStorage.secret_key" href="#src.rdetoolkit.storage.minio.MinIOStorage.secret_key">secret_key</a></code></td>
 <td>
 <code>str</code>
 </td>
@@ -1072,7 +1246,7 @@
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.storage.minio.MinIOStorage.client">client</span></code></td>
+<td><code><a class="autorefs autorefs-internal" title="src.rdetoolkit.storage.minio.MinIOStorage.client" href="#src.rdetoolkit.storage.minio.MinIOStorage.client">client</a></code></td>
 <td>
 <code><span title="minio.Minio">Minio</span></code>
 </td>
@@ -1204,6 +1378,92 @@
 </tbody>
 </table>
 <div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.access_key">
+<code class="highlight language-python">access_key: Incomplete <span style="color: #333333">=</span> access_key <span style="color: #008800; font-weight: bold">if</span> access_key <span style="color: #008800; font-weight: bold">else</span> os<span style="color: #333333">.</span>environ<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'MINIO_ACCESS_KEY'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.client">
+<code class="highlight language-python">client: Incomplete <span style="color: #333333">=</span> Minio(endpoint<span style="color: #333333">=</span>endpoint, access_key<span style="color: #333333">=</span>access_key, secret_key<span style="color: #333333">=</span>secret_key, secure<span style="color: #333333">=</span>secure, region<span style="color: #333333">=</span>region, http_client<span style="color: #333333">=</span>http_client)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.secret_key">
+<code class="highlight language-python">secret_key: Incomplete <span style="color: #333333">=</span> secret_key <span style="color: #008800; font-weight: bold">if</span> secret_key <span style="color: #008800; font-weight: bold">else</span> os<span style="color: #333333">.</span>environ<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'MINIO_SECRET_KEY'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
+<code class="highlight language-python">bucket_exists(bucket_name)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Checks if a bucket exists.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bool</code></td> <td>
+<code>bool</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>True if bucket exists, else False.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.create_default_http_client">
 <code class="highlight language-python">create_default_http_client()</code>
@@ -1351,215 +1611,11 @@
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
-<code class="highlight language-python">make_bucket(backet_name, location<span style="color: #333333">=</span><span style="background-color: #fff0f0">'us-east-1'</span>, object_lock<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)</code>
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
+<code class="highlight language-python">fget_object(bucket_name, object_name, file_path, request_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_query_params<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, tmp_file_path<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Creates a new bucket in MinIO.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>backet_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Name of the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>location</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Region for the bucket.</p>
-</div>
-</td>
-<td>
-<code>'us-east-1'</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>object_lock</code></td>
-<td>
-<code>bool</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Whether to enable object lock.</p>
-</div>
-</td>
-<td>
-<code>False</code>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
-<code class="highlight language-python">list_buckets()</code>
-</h3>
-<div class="doc doc-contents">
-<p>Lists all existing buckets.</p>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>list[dict[str, Any]]: List of bucket information.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.bucket_exists">
-<code class="highlight language-python">bucket_exists(bucket_name)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Checks if a bucket exists.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bucket_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Name of the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bool</code></td> <td>
-<code>bool</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>True if bucket exists, else False.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
-<code class="highlight language-python">remove_bucket(bucket_name)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Removes an existing bucket.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bucket_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Name of the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Raises:</span></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>ValueError</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If bucket does not exist.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.put_object">
-<code class="highlight language-python">put_object(bucket_name, object_name, data, length, <span style="color: #333333">*</span>, content_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">'application/octet-stream'</span>, metadata<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Uploads data as an object to a bucket.</p>
+<p>Downloads an object to a file.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
 <table>
 <thead>
@@ -1600,55 +1656,83 @@
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>data</code></td>
-<td>
-<code>bytes | str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Data to upload.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>length</code></td>
-<td>
-<code>int</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Size of the data.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>content_type</code></td>
+<td><code>file_path</code></td>
 <td>
 <code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>MIME type of the object.</p>
+<p>Destination path for the downloaded file.</p>
 </div>
 </td>
 <td>
-<code>'application/octet-stream'</code>
+<em>required</em>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>metadata</code></td>
+<td><code>request_headers</code></td>
 <td>
 <code>dict[str, <span title="typing.Any">Any</span>] | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Additional metadata.</p>
+<p>Extra request headers.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ssec</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Encryption key.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>extra_query_params</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Extra query parameters.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>tmp_file_path</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Temporary file path.</p>
 </div>
 </td>
 <td>
@@ -1667,12 +1751,12 @@
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>Any</code></td> <td>
-<code><span title="typing.Any">Any</span></code>
+<td><code>BaseHTTPResponse</code></td> <td>
+<code><span title="urllib3.response.HTTPResponse">HTTPResponse</span></code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Information about the upload result.</p>
+<p>The downloaded file response.</p>
 </div>
 </td>
 </tr>
@@ -2017,152 +2101,27 @@
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.fget_object">
-<code class="highlight language-python">fget_object(bucket_name, object_name, file_path, request_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_query_params<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, tmp_file_path<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.list_buckets">
+<code class="highlight language-python">list_buckets()</code>
 </h3>
 <div class="doc doc-contents">
-<p>Downloads an object to a file.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bucket_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Name of the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>object_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Object name in the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>file_path</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Destination path for the downloaded file.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>request_headers</code></td>
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Extra request headers.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>ssec</code></td>
-<td>
-<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Encryption key.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>version_id</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Specific version of the object.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>extra_query_params</code></td>
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Extra query parameters.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>tmp_file_path</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Temporary file path.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
+<p>Lists all existing buckets.</p>
 <p><span class="doc-section-title">Returns:</span></p>
 <table>
 <thead>
 <tr>
-<th>Name</th> <th>Type</th>
+<th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>BaseHTTPResponse</code></td> <td>
-<code><span title="urllib3.response.HTTPResponse">HTTPResponse</span></code>
+<td>
+<code>list[dict[str, <span title="typing.Any">Any</span>]]</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The downloaded file response.</p>
+<p>list[dict[str, Any]]: List of bucket information.</p>
 </div>
 </td>
 </tr>
@@ -2171,11 +2130,11 @@
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
-<code class="highlight language-python">stat_object(bucket_name, object_name, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.make_bucket">
+<code class="highlight language-python">make_bucket(backet_name, location<span style="color: #333333">=</span><span style="background-color: #fff0f0">'us-east-1'</span>, object_lock<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Fetches metadata of an object in a bucket.</p>
+<p>Creates a new bucket in MinIO.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
 <table>
 <thead>
@@ -2188,7 +2147,7 @@
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code>bucket_name</code></td>
+<td><code>backet_name</code></td>
 <td>
 <code>str</code>
 </td>
@@ -2202,143 +2161,31 @@
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>object_name</code></td>
+<td><code>location</code></td>
 <td>
 <code>str</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Object name in the bucket.</p>
+<p>Region for the bucket.</p>
 </div>
 </td>
 <td>
-<em>required</em>
+<code>'us-east-1'</code>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code>ssec</code></td>
+<td><code>object_lock</code></td>
 <td>
-<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+<code>bool</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Encryption key.</p>
+<p>Whether to enable object lock.</p>
 </div>
 </td>
 <td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>version_id</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Specific version of the object.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>extra_headers</code></td>
-<td>
-<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Additional headers.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">Returns:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th> <th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>Any</code></td> <td>
-<code><span title="typing.Any">Any</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Metadata of the requested object.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
-<code class="highlight language-python">remove_object(bucket_name, object_name, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Removes an object from a bucket.</p>
-<p><span class="doc-section-title">Parameters:</span></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>bucket_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Name of the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>object_name</code></td>
-<td>
-<code>str</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Object name in the bucket.</p>
-</div>
-</td>
-<td>
-<em>required</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code>version_id</code></td>
-<td>
-<code>str | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Specific version of the object.</p>
-</div>
-</td>
-<td>
-<code>None</code>
+<code>False</code>
 </td>
 </tr>
 </tbody>
@@ -2570,6 +2417,251 @@
 </div>
 </div>
 <div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.put_object">
+<code class="highlight language-python">put_object(bucket_name, object_name, data, length, <span style="color: #333333">*</span>, content_type<span style="color: #333333">=</span><span style="background-color: #fff0f0">'application/octet-stream'</span>, metadata<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Uploads data as an object to a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>data</code></td>
+<td>
+<code>bytes | str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Data to upload.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>length</code></td>
+<td>
+<code>int</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Size of the data.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>content_type</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>MIME type of the object.</p>
+</div>
+</td>
+<td>
+<code>'application/octet-stream'</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>metadata</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Additional metadata.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>Any</code></td> <td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Information about the upload result.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.remove_bucket">
+<code class="highlight language-python">remove_bucket(bucket_name)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Removes an existing bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Raises:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>ValueError</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If bucket does not exist.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.remove_object">
+<code class="highlight language-python">remove_object(bucket_name, object_name, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Removes an object from a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.secure_get_object">
 <code class="highlight language-python">secure_get_object(bucket_name, object_name, <span style="color: #333333">*</span>, expires<span style="color: #333333">=</span>timedelta(minutes<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">15</span>), ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, use_ssl<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)</code>
 </h3>
@@ -2701,16 +2793,397 @@ The expiration time is intentionally short for improved security.</p>
 </details>
 </div>
 </div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.storage.minio.MinIOStorage.stat_object">
+<code class="highlight language-python">stat_object(bucket_name, object_name, ssec<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, version_id<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, extra_headers<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Fetches metadata of an object in a bucket.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bucket_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Name of the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>object_name</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Object name in the bucket.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>ssec</code></td>
+<td>
+<code><span title="minio.sse.SseCustomerKey">SseCustomerKey</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Encryption key.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>version_id</code></td>
+<td>
+<code>str | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Specific version of the object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>extra_headers</code></td>
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Additional headers.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>Any</code></td> <td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Metadata of the requested object.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
+</div>
+</div><hr/>
+<h2 id="practical-usage">Practical Usage</h2>
+<h3 id="basic-minio-operations">Basic MinIO Operations</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">basic_minio_operations.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.storage.minio</span> <span style="color: #008800; font-weight: bold">import</span> MinIOStorage
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #888888"># Create MinIO storage</span>
+storage <span style="color: #333333">=</span> MinIOStorage(
+    endpoint<span style="color: #333333">=</span><span style="background-color: #fff0f0">"localhost:9000"</span>,
+    access_key<span style="color: #333333">=</span><span style="background-color: #fff0f0">"minioadmin"</span>,
+    secret_key<span style="color: #333333">=</span><span style="background-color: #fff0f0">"minioadmin"</span>,
+    secure<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>
+)
+
+<span style="color: #888888"># Bucket name</span>
+bucket_name <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"rde-experiments"</span>
+
+<span style="color: #008800; font-weight: bold">try</span>:
+    <span style="color: #888888"># Create bucket</span>
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> storage<span style="color: #333333">.</span>bucket_exists(bucket_name):
+        storage<span style="color: #333333">.</span>make_bucket(bucket_name)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Bucket created: </span><span style="background-color: #eeeeee">{</span>bucket_name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Upload file</span>
+    local_file <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/experiment_001.csv"</span>)
+    object_name <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"experiments/2024/experiment_001.csv"</span>
+
+    <span style="color: #008800; font-weight: bold">if</span> local_file<span style="color: #333333">.</span>exists():
+        upload_result <span style="color: #333333">=</span> storage<span style="color: #333333">.</span>fput_object(
+            bucket_name<span style="color: #333333">=</span>bucket_name,
+            object_name<span style="color: #333333">=</span>object_name,
+            file_path<span style="color: #333333">=</span><span style="color: #007020">str</span>(local_file)
+        )
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Upload completed: </span><span style="background-color: #eeeeee">{</span>upload_result<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Get object information</span>
+    object_stat <span style="color: #333333">=</span> storage<span style="color: #333333">.</span>stat_object(bucket_name, object_name)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Object information: </span><span style="background-color: #eeeeee">{</span>object_stat<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #888888"># Download file</span>
+    download_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"downloads/experiment_001.csv"</span>)
+    download_path<span style="color: #333333">.</span>parent<span style="color: #333333">.</span>mkdir(parents<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
+
+    storage<span style="color: #333333">.</span>fget_object(
+        bucket_name<span style="color: #333333">=</span>bucket_name,
+        object_name<span style="color: #333333">=</span>object_name,
+        file_path<span style="color: #333333">=</span><span style="color: #007020">str</span>(download_path)
+    )
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Download completed: </span><span style="background-color: #eeeeee">{</span>download_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ MinIO operation error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="batch-experimental-data-management">Batch Experimental Data Management</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">experiment_data_management.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">84</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.storage.minio</span> <span style="color: #008800; font-weight: bold">import</span> MinIOStorage
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">typing</span> <span style="color: #008800; font-weight: bold">import</span> List, Dict
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">datetime</span> <span style="color: #008800; font-weight: bold">import</span> datetime
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">ExperimentDataManager</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Experimental data management system"""</span>
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, storage: MinIOStorage, bucket_name: <span style="color: #007020">str</span>):
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>storage <span style="color: #333333">=</span> storage
+        <span style="color: #007020">self</span><span style="color: #333333">.</span>bucket_name <span style="color: #333333">=</span> bucket_name
+
+        <span style="color: #888888"># Create bucket</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>storage<span style="color: #333333">.</span>bucket_exists(bucket_name):
+            <span style="color: #007020">self</span><span style="color: #333333">.</span>storage<span style="color: #333333">.</span>make_bucket(bucket_name)
+
+    <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">upload_experiment</span>(<span style="color: #007020">self</span>, experiment_id: <span style="color: #007020">str</span>, data_dir: Path) <span style="color: #333333">-&gt;</span> Dict:
+<span style="color: #bbbbbb">        </span><span style="color: #DD4422">"""Batch upload of experimental data"""</span>
+
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> data_dir<span style="color: #333333">.</span>exists():
+            <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"Data directory does not exist: </span><span style="background-color: #eeeeee">{</span>data_dir<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        upload_results <span style="color: #333333">=</span> {
+            <span style="background-color: #fff0f0">"experiment_id"</span>: experiment_id,
+            <span style="background-color: #fff0f0">"upload_time"</span>: datetime<span style="color: #333333">.</span>now()<span style="color: #333333">.</span>isoformat(),
+            <span style="background-color: #fff0f0">"uploaded_files"</span>: [],
+            <span style="background-color: #fff0f0">"failed_files"</span>: [],
+            <span style="background-color: #fff0f0">"total_size"</span>: <span style="color: #0000DD; font-weight: bold">0</span>
+        }
+
+        <span style="color: #888888"># Get all files in data directory</span>
+        all_files <span style="color: #333333">=</span> []
+        <span style="color: #008800; font-weight: bold">for</span> pattern <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">"**/*.csv"</span>, <span style="background-color: #fff0f0">"**/*.json"</span>, <span style="background-color: #fff0f0">"**/*.xlsx"</span>, <span style="background-color: #fff0f0">"**/*.jpg"</span>, <span style="background-color: #fff0f0">"**/*.png"</span>]:
+            all_files<span style="color: #333333">.</span>extend(data_dir<span style="color: #333333">.</span>glob(pattern))
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Starting upload for experiment </span><span style="background-color: #eeeeee">{</span>experiment_id<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(all_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
+
+        <span style="color: #008800; font-weight: bold">for</span> file_path <span style="color: #000000; font-weight: bold">in</span> all_files:
+            <span style="color: #008800; font-weight: bold">if</span> file_path<span style="color: #333333">.</span>is_file():
+                <span style="color: #008800; font-weight: bold">try</span>:
+                    <span style="color: #888888"># Generate object name</span>
+                    relative_path <span style="color: #333333">=</span> file_path<span style="color: #333333">.</span>relative_to(data_dir)
+                    object_name <span style="color: #333333">=</span> <span style="background-color: #fff0f0">f"experiments/</span><span style="background-color: #eeeeee">{</span>experiment_id<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">/</span><span style="background-color: #eeeeee">{</span>relative_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
+
+                    <span style="color: #888888"># Get file size</span>
+                    file_size <span style="color: #333333">=</span> file_path<span style="color: #333333">.</span>stat()<span style="color: #333333">.</span>st_size
+
+                    <span style="color: #888888"># Execute upload</span>
+                    result <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>storage<span style="color: #333333">.</span>fput_object(
+                        bucket_name<span style="color: #333333">=</span><span style="color: #007020">self</span><span style="color: #333333">.</span>bucket_name,
+                        object_name<span style="color: #333333">=</span>object_name,
+                        file_path<span style="color: #333333">=</span><span style="color: #007020">str</span>(file_path)
+                    )
+
+                    upload_results[<span style="background-color: #fff0f0">"uploaded_files"</span>]<span style="color: #333333">.</span>append({
+                        <span style="background-color: #fff0f0">"local_path"</span>: <span style="color: #007020">str</span>(file_path),
+                        <span style="background-color: #fff0f0">"object_name"</span>: object_name,
+                        <span style="background-color: #fff0f0">"size"</span>: file_size,
+                        <span style="background-color: #fff0f0">"etag"</span>: result<span style="color: #333333">.</span>etag <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">hasattr</span>(result, <span style="background-color: #fff0f0">'etag'</span>) <span style="color: #008800; font-weight: bold">else</span> <span style="color: #008800; font-weight: bold">None</span>
+                    })
+
+                    upload_results[<span style="background-color: #fff0f0">"total_size"</span>] <span style="color: #333333">+=</span> file_size
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Uploaded: </span><span style="background-color: #eeeeee">{</span>relative_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+                <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+                    upload_results[<span style="background-color: #fff0f0">"failed_files"</span>]<span style="color: #333333">.</span>append({
+                        <span style="background-color: #fff0f0">"local_path"</span>: <span style="color: #007020">str</span>(file_path),
+                        <span style="background-color: #fff0f0">"error"</span>: <span style="color: #007020">str</span>(e)
+                    })
+                    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Upload failed: </span><span style="background-color: #eeeeee">{</span>file_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> - </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #008800; font-weight: bold">return</span> upload_results
+
+<span style="color: #888888"># Usage example</span>
+storage <span style="color: #333333">=</span> MinIOStorage(
+    endpoint<span style="color: #333333">=</span><span style="background-color: #fff0f0">"localhost:9000"</span>,
+    access_key<span style="color: #333333">=</span><span style="background-color: #fff0f0">"minioadmin"</span>,
+    secret_key<span style="color: #333333">=</span><span style="background-color: #fff0f0">"minioadmin"</span>
+)
+
+manager <span style="color: #333333">=</span> ExperimentDataManager(storage, <span style="background-color: #fff0f0">"rde-experiments"</span>)
+result <span style="color: #333333">=</span> manager<span style="color: #333333">.</span>upload_experiment(<span style="background-color: #fff0f0">"EXP001"</span>, Path(<span style="background-color: #fff0f0">"data/experiment_001"</span>))
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Upload result: </span><span style="background-color: #eeeeee">{</span>result<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
 </div>
 <button class="md-top md-icon" data-md-component="top" hidden="" type="button">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
-  Back to top
+  ページトップへ戻る
 </button>
 </main>
 <footer class="md-footer">
@@ -2755,14 +3228,14 @@ The expiration time is intentionally short for improved security.</p>
 </ul>
 </div>
 <div class="md-consent__controls">
-<button class="md-button md-button--primary">Accept</button>
-<label class="md-button" for="__settings">Manage settings</label>
+<button class="md-button md-button--primary">同意</button>
+<label class="md-button" for="__settings">サイトの設定</label>
 </div>
 </form>
 </aside>
 </div>
 <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}}</script>
 <script src="../../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
 </body>

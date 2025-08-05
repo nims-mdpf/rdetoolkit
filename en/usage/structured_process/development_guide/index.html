@@ -1,0 +1,2807 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="./" rel="prev"/>
+<link href="../directory/" rel="next"/>
+<link href="../../../../img/2585322.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
+<title>Development Guide - RDEToolKit Documentation</title>
+<link href="../../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
+<link href="../../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Noto Sans JP";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<link href="../../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#implementing-structured-processing-with-real-data">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../../" title="RDEToolKit Documentation">
+<img alt="logo" src="../../../../img/2585322.png"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            RDEToolKit Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Development Guide
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="Select language" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="../../../../usage/structured_process/development_guide/" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-dpfc/rdetoolkit
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../">
+          
+  
+  Getting Started
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../structured/">
+          
+  
+  User Guide
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../rdetoolkit/">
+          
+  
+  API Reference
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../development/">
+          
+  
+  Contributing
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../../" title="RDEToolKit Documentation">
+<img alt="logo" src="../../../../img/2585322.png"/>
+</a>
+    RDEToolKit Documentation
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-dpfc/rdetoolkit
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Getting Started
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_1">
+<span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../">
+<span class="md-ellipsis">
+    Introduction
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../installation/">
+<span class="md-ellipsis">
+    Installation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quickstart/">
+<span class="md-ellipsis">
+    Quick Start
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+<span class="md-ellipsis">
+    User Guide
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Structured Processing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            Structured Processing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../structured/">
+<span class="md-ellipsis">
+    Building Structured Process
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Development Guide
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Development Guide
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementing-structured-processing-with-real-data">
+<span class="md-ellipsis">
+      Implementing Structured Processing with Real Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-usage-acknowledgments">
+<span class="md-ellipsis">
+      Data Usage Acknowledgments
+    </span>
+</a>
+<nav aria-label="Data Usage Acknowledgments" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#about-ras-files">
+<span class="md-ellipsis">
+      About RAS Files
+    </span>
+</a>
+<nav aria-label="About RAS Files" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-format-characteristics">
+<span class="md-ellipsis">
+      Data Format Characteristics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-structure">
+<span class="md-ellipsis">
+      File Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#building-rde-structured-processing-with-rdetoolkit">
+<span class="md-ellipsis">
+      Building RDE Structured Processing with rdetoolkit
+    </span>
+</a>
+<nav aria-label="Building RDE Structured Processing with rdetoolkit" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rde-structured-processing-development-process">
+<span class="md-ellipsis">
+      RDE Structured Processing Development Process
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#about-predefined-file-groups-required-for-rde-data-registration">
+<span class="md-ellipsis">
+      About Predefined File Groups Required for RDE Data Registration
+    </span>
+</a>
+<nav aria-label="About Predefined File Groups Required for RDE Data Registration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#selecting-metadata-to-extract-metadata-defjson">
+<span class="md-ellipsis">
+      Selecting Metadata to Extract (metadata-def.json)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-input-form-customization-invoiceschemajson">
+<span class="md-ellipsis">
+      Creating Input Form Customization (invoice.schema.json)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-setup">
+<span class="md-ellipsis">
+      Environment Setup
+    </span>
+</a>
+<nav aria-label="Environment Setup" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#project-initialization">
+<span class="md-ellipsis">
+      Project Initialization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#adding-configuration-files">
+<span class="md-ellipsis">
+      Adding Configuration Files
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-structure-recommended-by-rdetoolkit-for-structured-processing">
+<span class="md-ellipsis">
+      Basic Structure Recommended by rdetoolkit for Structured Processing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-of-mainpy">
+<span class="md-ellipsis">
+      Implementation of main.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-module-implementation">
+<span class="md-ellipsis">
+      Custom Module Implementation
+    </span>
+</a>
+<nav aria-label="Custom Module Implementation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step1-read-input-data">
+<span class="md-ellipsis">
+      Step1: Read Input Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step2-extract-metadata">
+<span class="md-ellipsis">
+      Step2: Extract Metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step3-save-measurement-data">
+<span class="md-ellipsis">
+      Step3: Save Measurement Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step4-create-plot-images">
+<span class="md-ellipsis">
+      Step4: Create Plot Images
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step5-add-exception-handling">
+<span class="md-ellipsis">
+      Step5: Add Exception Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step6-verify-structured-processing-operation">
+<span class="md-ellipsis">
+      Step6: Verify Structured Processing Operation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#when-errors-occur">
+<span class="md-ellipsis">
+      When Errors Occur
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#submit-structured-processing-to-rde">
+<span class="md-ellipsis">
+      Submit Structured Processing to RDE
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Development Guide
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Development Guide
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementing-structured-processing-with-real-data">
+<span class="md-ellipsis">
+      Implementing Structured Processing with Real Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-usage-acknowledgments">
+<span class="md-ellipsis">
+      Data Usage Acknowledgments
+    </span>
+</a>
+<nav aria-label="Data Usage Acknowledgments" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#about-ras-files">
+<span class="md-ellipsis">
+      About RAS Files
+    </span>
+</a>
+<nav aria-label="About RAS Files" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-format-characteristics">
+<span class="md-ellipsis">
+      Data Format Characteristics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-structure">
+<span class="md-ellipsis">
+      File Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#building-rde-structured-processing-with-rdetoolkit">
+<span class="md-ellipsis">
+      Building RDE Structured Processing with rdetoolkit
+    </span>
+</a>
+<nav aria-label="Building RDE Structured Processing with rdetoolkit" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rde-structured-processing-development-process">
+<span class="md-ellipsis">
+      RDE Structured Processing Development Process
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#about-predefined-file-groups-required-for-rde-data-registration">
+<span class="md-ellipsis">
+      About Predefined File Groups Required for RDE Data Registration
+    </span>
+</a>
+<nav aria-label="About Predefined File Groups Required for RDE Data Registration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#selecting-metadata-to-extract-metadata-defjson">
+<span class="md-ellipsis">
+      Selecting Metadata to Extract (metadata-def.json)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-input-form-customization-invoiceschemajson">
+<span class="md-ellipsis">
+      Creating Input Form Customization (invoice.schema.json)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-setup">
+<span class="md-ellipsis">
+      Environment Setup
+    </span>
+</a>
+<nav aria-label="Environment Setup" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#project-initialization">
+<span class="md-ellipsis">
+      Project Initialization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#adding-configuration-files">
+<span class="md-ellipsis">
+      Adding Configuration Files
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-structure-recommended-by-rdetoolkit-for-structured-processing">
+<span class="md-ellipsis">
+      Basic Structure Recommended by rdetoolkit for Structured Processing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-of-mainpy">
+<span class="md-ellipsis">
+      Implementation of main.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-module-implementation">
+<span class="md-ellipsis">
+      Custom Module Implementation
+    </span>
+</a>
+<nav aria-label="Custom Module Implementation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step1-read-input-data">
+<span class="md-ellipsis">
+      Step1: Read Input Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step2-extract-metadata">
+<span class="md-ellipsis">
+      Step2: Extract Metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step3-save-measurement-data">
+<span class="md-ellipsis">
+      Step3: Save Measurement Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step4-create-plot-images">
+<span class="md-ellipsis">
+      Step4: Create Plot Images
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step5-add-exception-handling">
+<span class="md-ellipsis">
+      Step5: Add Exception Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step6-verify-structured-processing-operation">
+<span class="md-ellipsis">
+      Step6: Verify Structured Processing Operation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#when-errors-occur">
+<span class="md-ellipsis">
+      When Errors Occur
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#submit-structured-processing-to-rde">
+<span class="md-ellipsis">
+      Submit Structured Processing to RDE
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../directory/">
+<span class="md-ellipsis">
+    Supported Directories
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdepath/">
+<span class="md-ellipsis">
+    Directory Path Access
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../errorhandling/">
+<span class="md-ellipsis">
+    Error Handling
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../feature_description/">
+<span class="md-ellipsis">
+    Feature Description
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Configuration &amp; CLI
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
+<span class="md-nav__icon md-icon"></span>
+            Configuration &amp; CLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/config/">
+<span class="md-ellipsis">
+    Configuration Files
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/mode/">
+<span class="md-ellipsis">
+    Data Registration Modes
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/file_folder_mode/">
+<span class="md-ellipsis">
+    File/Folder Modes
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/magic_variable/">
+<span class="md-ellipsis">
+    Magic Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cli/">
+<span class="md-ellipsis">
+    Command Line Interface
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Templates &amp; Validation
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
+<span class="md-nav__icon md-icon"></span>
+            Templates &amp; Validation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../metadata_definition_file/">
+<span class="md-ellipsis">
+    Template Files
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../validation/">
+<span class="md-ellipsis">
+    Data Validation
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Integrations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            Integrations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../object_storage/">
+<span class="md-ellipsis">
+    Object Storage (MinIO)
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../docker/">
+<span class="md-ellipsis">
+    Docker Usage
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Core Modules
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
+<span class="md-nav__icon md-icon"></span>
+            Core Modules
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/config/">
+<span class="md-ellipsis">
+    Configuration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/core/">
+<span class="md-ellipsis">
+    Core Functions
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/workflows/">
+<span class="md-ellipsis">
+    Workflows
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/modeproc/">
+<span class="md-ellipsis">
+    Mode Processing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/invoicefile/">
+<span class="md-ellipsis">
+    Invoice Files
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/rde2util/">
+<span class="md-ellipsis">
+    Utilities
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/rdelogger/">
+<span class="md-ellipsis">
+    Logging
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/img2thumb/">
+<span class="md-ellipsis">
+    Image Processing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/validation/">
+<span class="md-ellipsis">
+    Validation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/exceptions/">
+<span class="md-ellipsis">
+    Exceptions
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/fileops/">
+<span class="md-ellipsis">
+    File Operations
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Data Models
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
+<span class="md-nav__icon md-icon"></span>
+            Data Models
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/config/">
+<span class="md-ellipsis">
+    Configuration Models
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/invoice/">
+<span class="md-ellipsis">
+    Invoice Models
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/invoice_schema/">
+<span class="md-ellipsis">
+    Invoice Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/metadata/">
+<span class="md-ellipsis">
+    Metadata Models
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/rde2types/">
+<span class="md-ellipsis">
+    Type Definitions
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/result/">
+<span class="md-ellipsis">
+    Result Models
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Implementation
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            Implementation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/impl/compressed_controller/">
+<span class="md-ellipsis">
+    Compressed Controller
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/impl/input_controller/">
+<span class="md-ellipsis">
+    Input Controller
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Interfaces
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            Interfaces
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/interface/filechecker/">
+<span class="md-ellipsis">
+    File Checker
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Commands
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            Commands
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/command/">
+<span class="md-ellipsis">
+    Base Commands
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel Invoice Generation
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Storage
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            Storage
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/storage/minio/">
+<span class="md-ellipsis">
+    MinIO Integration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Artifacts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Artifacts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/artifact/report/">
+<span class="md-ellipsis">
+    Report Generation
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/docs/">
+<span class="md-ellipsis">
+    Documentation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/contributing/">
+<span class="md-ellipsis">
+    Source Code
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementing-structured-processing-with-real-data">
+<span class="md-ellipsis">
+      Implementing Structured Processing with Real Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-usage-acknowledgments">
+<span class="md-ellipsis">
+      Data Usage Acknowledgments
+    </span>
+</a>
+<nav aria-label="Data Usage Acknowledgments" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#about-ras-files">
+<span class="md-ellipsis">
+      About RAS Files
+    </span>
+</a>
+<nav aria-label="About RAS Files" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-format-characteristics">
+<span class="md-ellipsis">
+      Data Format Characteristics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-structure">
+<span class="md-ellipsis">
+      File Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#building-rde-structured-processing-with-rdetoolkit">
+<span class="md-ellipsis">
+      Building RDE Structured Processing with rdetoolkit
+    </span>
+</a>
+<nav aria-label="Building RDE Structured Processing with rdetoolkit" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rde-structured-processing-development-process">
+<span class="md-ellipsis">
+      RDE Structured Processing Development Process
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#about-predefined-file-groups-required-for-rde-data-registration">
+<span class="md-ellipsis">
+      About Predefined File Groups Required for RDE Data Registration
+    </span>
+</a>
+<nav aria-label="About Predefined File Groups Required for RDE Data Registration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#selecting-metadata-to-extract-metadata-defjson">
+<span class="md-ellipsis">
+      Selecting Metadata to Extract (metadata-def.json)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-input-form-customization-invoiceschemajson">
+<span class="md-ellipsis">
+      Creating Input Form Customization (invoice.schema.json)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-setup">
+<span class="md-ellipsis">
+      Environment Setup
+    </span>
+</a>
+<nav aria-label="Environment Setup" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#project-initialization">
+<span class="md-ellipsis">
+      Project Initialization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#adding-configuration-files">
+<span class="md-ellipsis">
+      Adding Configuration Files
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-structure-recommended-by-rdetoolkit-for-structured-processing">
+<span class="md-ellipsis">
+      Basic Structure Recommended by rdetoolkit for Structured Processing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-of-mainpy">
+<span class="md-ellipsis">
+      Implementation of main.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-module-implementation">
+<span class="md-ellipsis">
+      Custom Module Implementation
+    </span>
+</a>
+<nav aria-label="Custom Module Implementation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step1-read-input-data">
+<span class="md-ellipsis">
+      Step1: Read Input Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step2-extract-metadata">
+<span class="md-ellipsis">
+      Step2: Extract Metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step3-save-measurement-data">
+<span class="md-ellipsis">
+      Step3: Save Measurement Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step4-create-plot-images">
+<span class="md-ellipsis">
+      Step4: Create Plot Images
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step5-add-exception-handling">
+<span class="md-ellipsis">
+      Step5: Add Exception Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step6-verify-structured-processing-operation">
+<span class="md-ellipsis">
+      Step6: Verify Structured Processing Operation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#when-errors-occur">
+<span class="md-ellipsis">
+      When Errors Occur
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#submit-structured-processing-to-rde">
+<span class="md-ellipsis">
+      Submit Structured Processing to RDE
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1>Development Guide</h1>
+<h2 id="implementing-structured-processing-with-real-data">Implementing Structured Processing with Real Data</h2>
+<p>This document explains how to build structured processing for registering RAS files output from Rigaku's X-ray diffraction (XRD) equipment to RDE using the RDEToolKit library.</p>
+<h2 id="data-usage-acknowledgments">Data Usage Acknowledgments</h2>
+<p>The sample data and related technical information used in this document are provided by the "NIMS Materials Data Conversion Tools (M-DaC)" project of the National Institute for Materials Science (NIMS). The M-DaC project is the result of technology development aimed at efficient collection and high value-added processing of experimental data, developed in cooperation with measurement equipment manufacturers.</p>
+<p>Acknowledgments:</p>
+<ul>
+<li>Data Provider: National Institute for Materials Science (NIMS)</li>
+<li>Project: NIMS Materials Data Conversion Tools (M-DaC) for XRD</li>
+<li>Joint Development: Rigaku Corporation</li>
+<li>License: MIT License</li>
+<li>Citation: H. Nagao, S. Matsunami, M. Suzuki, and H. Yoshikawa: "NIMS Materials Data Conversion Tools (M-DaC) ver 1.1"</li>
+</ul>
+<p>By utilizing the results of this project, practical learning based on data formats used in actual research sites becomes possible. We deeply appreciate NIMS and all related researchers and engineers.</p>
+<h3 id="about-ras-files">About RAS Files</h3>
+<h4 id="data-format-characteristics">Data Format Characteristics</h4>
+<p>RAS files (Rigaku) are standard data formats output from Rigaku's X-ray diffraction equipment such as SmartLab. They have the following characteristics:</p>
+<ul>
+<li>ASCII format: Text-based file format that is human-readable</li>
+<li>Structured metadata: Systematic recording of measurement conditions, equipment settings, sample information, etc.</li>
+<li>3-column data: Measurement data consisting of three columns: angle, intensity, and attenuation correction coefficient</li>
+<li>Delimiter: Lines starting with asterisk (*) indicate metadata and comments</li>
+</ul>
+<h4 id="file-structure">File Structure</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>*RAS_DATA_START
+*FILE_DATETIME 2023-01-15 10:30:00
+*SAMPLE_NAME Al2O3_sample
+*TARGET_NAME Cu
+*TUBE_VOLTAGE 40.0
+*TUBE_CURRENT 30.0
+*SCAN_MODE continuous
+*SCAN_SPEED 2.0
+*SCAN_STEP 0.02
+*START_ANGLE 10.0
+*STOP_ANGLE 90.0
+*RAS_HEADER_START
+... (detailed metadata)
+*RAS_HEADER_END
+*RAS_INT_START
+10.0000 1200.0000 1.0000
+10.0200 1205.0000 1.0000
+10.0400 1198.0000 1.0000
+... (measurement data)
+*RAS_INT_END
+*RAS_DATA_END
+</code></pre></div></td></tr></table></div>
+<h2 id="building-rde-structured-processing-with-rdetoolkit">Building RDE Structured Processing with rdetoolkit</h2>
+<h3 id="rde-structured-processing-development-process">RDE Structured Processing Development Process</h3>
+<p>The development process shown in this document is an example. Please adjust according to user needs.</p>
+<pre class="mermaid"><code>flowchart TD
+    %% Specify overall direction as vertical (Top→Bottom)
+    subgraph RDE Structured Processing Development Process
+        direction TB
+        style RDE Structured Processing Development Process fill:#f0f4f8,stroke:#333,stroke-width:2px,rx:10,ry:10
+    end
+
+    %% Common style definition for nodes
+    classDef step fill:#cfe2f3,stroke:#333,stroke-width:1.5px,rx:5,ry:5,font-size:14px;
+
+    %% Each step
+    A[🔍 Select metadata to extract]:::step --&gt; B[🛠️ Environment setup]:::step
+    B --&gt; C[📄 Create necessary template files]:::step
+    C --&gt; D[💻 Develop structured processing]:::step
+    D --&gt; E[✅ Verify operation]:::step
+</code></pre>
+<h3 id="about-predefined-file-groups-required-for-rde-data-registration">About Predefined File Groups Required for RDE Data Registration</h3>
+<p>For reusable data registration in RDE, the following files are mandatory:</p>
+<ul>
+<li><code>templates/tasksupport/invoice.schema.json</code></li>
+<li><code>templates/tasksupport/metadata-def.json</code></li>
+</ul>
+<p>RDE uses a predefined metadata definition file <code>metadata-def.json</code> to extract metadata from files output by measurement equipment and daily experimental data files, and <code>invoice.schema.json</code> which allows flexible customization of data input forms for sample information (synthesis conditions, etc.) and measurement conditions that need to be recorded routinely in daily experiments.</p>
+<ul>
+<li>By creating <code>invoice.schema.json</code> during data registration, information necessary for daily experiments can be defined as a data input form.</li>
+<li>Predefined files for automatically extracting metadata from files during data registration: <code>metadata-def.json</code></li>
+</ul>
+<p>Furthermore, these file groups can be easily created using packages provided by our organization. In addition to the above files, <code>invoice.json</code> for building structured processing in personal environments can also be created.</p>
+<ul>
+<li><a href="https://github.com/nims-mdpf/RDE_datasettemplate-schemafile-make-tool">nims-mdpf/RDE_datasettemplate-schemafile-make-tool - Github</a></li>
+</ul>
+<h4 id="selecting-metadata-to-extract-metadata-defjson">Selecting Metadata to Extract (metadata-def.json)</h4>
+<p>Decide in advance which metadata to extract from input data. The number of predefined metadata varies depending on users and projects.</p>
+<p>This time, from the perspective of measurement conditions, sample information, time, and traceability, we will extract the following metadata:</p>
+<p><strong>A. Measurement Conditions</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>*MEAS_COND_XG_VOLTAGE "40"           # Tube voltage (kV)
+*MEAS_COND_XG_CURRENT "30"           # Tube current (mA)
+*HW_XG_TARGET_NAME "Cu"              # X-ray source (Cu)
+*HW_XG_WAVE_LENGTH_ALPHA1 "1.540593" # Wavelength α1 (Å)
+*HW_XG_WAVE_LENGTH_ALPHA2 "1.544414" # Wavelength α2 (Å)
+*MEAS_SCAN_START "25.0000"           # Measurement start angle
+*MEAS_SCAN_STOP "60.0000"            # Measurement end angle
+*MEAS_SCAN_STEP "0.0100"             # Measurement step
+*MEAS_SCAN_SPEED "8.0000"            # Measurement speed (deg/min)
+*MEAS_SCAN_MODE "CONTINUOUS"         # Measurement mode
+</code></pre></div></td></tr></table></div>
+<p><strong>B. Sample Information</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>*FILE_SAMPLE "Test Sample"           # Sample name
+*FILE_COMMENT "XRD example"          # Comment
+*FILE_MEMO "Rigaku XRD memo"         # Memo
+*FILE_OPERATOR "English"             # Operator
+*FILE_USERGROUP "Academic"           # User group
+</code></pre></div></td></tr></table></div>
+<p><strong>C. Temporal &amp; Traceability</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>*MEAS_SCAN_START_TIME "11/21/2017 08:32:31" # Measurement start time
+*MEAS_SCAN_END_TIME "11/21/2017 08:37:42"   # Measurement end time
+*MEAS_DATA_COUNT "3501"                     # Number of data points
+*FILE_VERSION "1"                           # File version
+</code></pre></div></td></tr></table></div>
+<p>Based on this information, define the following in <code>metadata-def.json</code>.</p>
+<blockquote>
+<p>Excerpt shown due to length.</p>
+</blockquote>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 84</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 85</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 86</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 87</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 88</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 89</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 90</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 91</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 92</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 93</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 94</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 95</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 96</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 97</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 98</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 99</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">100</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">101</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">102</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">103</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">104</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">105</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">106</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">107</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">108</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">109</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">110</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">111</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">112</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">113</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">114</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">115</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">116</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">117</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">118</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">119</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">120</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">121</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">122</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">123</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">124</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">125</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">126</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">127</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">128</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">129</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">130</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">131</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">132</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">133</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">134</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">135</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">136</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">137</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">138</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">139</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">140</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">141</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">142</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">143</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">144</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">145</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">146</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">147</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">148</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">149</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">150</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">151</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">152</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">153</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">154</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">155</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">156</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">157</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">158</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">159</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">160</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">161</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">162</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">163</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">164</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">165</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">166</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">167</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">168</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">169</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">170</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">171</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">172</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">173</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"file_sample"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Sample Name"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Sample Name"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"file_comment"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Comment"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Comment"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"file_memo"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Memo"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Memo"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"file_operator"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Operator"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Operator"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"file_usergroup"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"User Group"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"User Group"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_cond_xg_voltage"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Tube Voltage"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Tube Voltage"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_cond_xg_current"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Tube Current"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Tube Current"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"hw_xg_target_name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"X-ray Source"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"X-ray Source"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"hw_xg_wave_length_alpha1"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Wavelength α1"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Wavelength α1"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"hw_xg_wave_length_alpha2"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Wavelength α2"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Wavelength α2"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_start"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Start Angle"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Start Angle"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_stop"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement End Angle"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement End Angle"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_step"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Step"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Step"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_speed"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Speed"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Speed"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_mode"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Mode"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Mode"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_start_time"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Start Time"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement Start Time"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_scan_end_time"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement End Time"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Measurement End Time"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"meas_data_count"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Number of Data Points"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Number of Data Points"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"number"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>},
+<span style="color: #bbbbbb">    </span><span style="color: #007700">"file_version"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"name"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"File Version"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"File Version"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"schema"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">    </span>}
+}
+</code></pre></div></td></tr></table></div>
+<h4 id="creating-input-form-customization-invoiceschemajson">Creating Input Form Customization (invoice.schema.json)</h4>
+<p>Create <code>invoice.schema.json</code> to customize the input form. This time, we will create a form that allows input of sample information and measurement conditions.</p>
+<blockquote>
+<p>Excerpt shown due to length.</p>
+</blockquote>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">  9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 65</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 66</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 67</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 68</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 69</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 70</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 71</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 72</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 73</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 74</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 75</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 76</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 77</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 78</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 79</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 80</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 81</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 82</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 83</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 84</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 85</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 86</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 87</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 88</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 89</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 90</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 91</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 92</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 93</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 94</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 95</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 96</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 97</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 98</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 99</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">100</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">101</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">102</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">103</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">104</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">105</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">106</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">107</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">108</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">109</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">110</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">111</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">112</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">113</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">114</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">115</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">116</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">117</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">118</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">119</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #bbbbbb">  </span><span style="color: #007700">"$schema"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"https://json-schema.org/draft/2019-09/schema"</span>,
+<span style="color: #bbbbbb">  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">      </span><span style="color: #007700">"basic"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"label"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">          </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Basic Information"</span>,
+<span style="color: #bbbbbb">          </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Basic Information"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">          </span><span style="background-color: #fff0f0">"dataName"</span>
+<span style="color: #bbbbbb">        </span>],
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">          </span><span style="color: #007700">"dataName"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"string"</span>,
+<span style="color: #bbbbbb">            </span><span style="color: #007700">"label"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">              </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Data Name"</span>,
+<span style="color: #bbbbbb">              </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Data Name"</span>
+<span style="color: #bbbbbb">            </span>}
+<span style="color: #bbbbbb">          </span>}
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">      </span>},
+<span style="color: #bbbbbb">      </span><span style="color: #007700">"sample"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"label"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">          </span><span style="color: #007700">"ja"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Sample Information"</span>,
+<span style="color: #bbbbbb">          </span><span style="color: #007700">"en"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Sample Information"</span>
+<span style="color: #bbbbbb">        </span>},
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">          </span><span style="background-color: #fff0f0">"names"</span>
+<span style="color: #bbbbbb">        </span>],
+<span style="color: #bbbbbb">        </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">          </span><span style="color: #007700">"generalAttributes"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">              </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"array"</span>,
+<span style="color: #bbbbbb">              </span><span style="color: #007700">"items"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>},
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"e2d20d02-2e38-2cd3-b1b3-66fdb8a11057"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>},
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"efcf34e7-4308-c195-6691-6f4d28ffc9bb"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>},
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>},
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"1e70d11d-cbdd-bfd1-9301-9612c29b4060"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>},
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"5e166ac4-bfcd-457a-84bc-8626abe9188f"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>},
+<span style="color: #bbbbbb">                </span>{
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"type"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"object"</span>,
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"required"</span>:<span style="color: #bbbbbb"> </span>[
+<span style="color: #bbbbbb">                      </span><span style="background-color: #fff0f0">"termId"</span>
+<span style="color: #bbbbbb">                  </span>],
+<span style="color: #bbbbbb">                  </span><span style="color: #007700">"properties"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                      </span><span style="color: #007700">"termId"</span>:<span style="color: #bbbbbb"> </span>{
+<span style="color: #bbbbbb">                        </span><span style="color: #007700">"const"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"0d0417a3-3c3b-496a-b0fb-5a26f8a74166"</span>
+<span style="color: #bbbbbb">                      </span>}
+<span style="color: #bbbbbb">                  </span>}
+<span style="color: #bbbbbb">                </span>}
+<span style="color: #bbbbbb">              </span>]
+<span style="color: #bbbbbb">          </span>}
+<span style="color: #bbbbbb">        </span>}
+<span style="color: #bbbbbb">      </span>}
+<span style="color: #bbbbbb">  </span>}
+}
+</code></pre></div></td></tr></table></div>
+<h3 id="environment-setup">Environment Setup</h3>
+<h4 id="project-initialization">Project Initialization</h4>
+<p>First, create a directory for the structured processing project and initialize the environment.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>mkdir<span style="color: #bbbbbb"> </span>xrd_structured_processing
+<span style="color: #007020">cd</span><span style="color: #bbbbbb"> </span>xrd_structured_processing
+</code></pre></div></td></tr></table></div>
+<p>Initialize the project using uv (recommended) or pip.</p>
+<p><strong>Using uv (recommended)</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>uv<span style="color: #bbbbbb"> </span>init<span style="color: #bbbbbb"> </span>--python<span style="color: #bbbbbb"> </span><span style="color: #6600EE; font-weight: bold">3</span>.12
+uv<span style="color: #bbbbbb"> </span>add<span style="color: #bbbbbb"> </span>rdetoolkit
+</code></pre></div></td></tr></table></div>
+<p><strong>Using pip</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>python<span style="color: #bbbbbb"> </span>-m<span style="color: #bbbbbb"> </span>venv<span style="color: #bbbbbb"> </span>.venv
+<span style="color: #007020">source</span><span style="color: #bbbbbb"> </span>.venv/bin/activate<span style="color: #bbbbbb">  </span><span style="color: #888888"># On Windows: .venv\Scripts\activate</span>
+pip<span style="color: #bbbbbb"> </span>install<span style="color: #bbbbbb"> </span>rdetoolkit
+</code></pre></div></td></tr></table></div>
+<h4 id="adding-configuration-files">Adding Configuration Files</h4>
+<p>Add the necessary configuration files for RDE structured processing to the <code>data/tasksupport/rdeconfig.yml</code> directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
+<span style="color: #bbbbbb">    </span><span style="color: #007700">save_raw</span>:<span style="color: #bbbbbb"> </span>true
+<span style="color: #bbbbbb">    </span><span style="color: #007700">save_nonshared_raw</span>:<span style="color: #bbbbbb"> </span>false
+<span style="color: #bbbbbb">    </span><span style="color: #007700">magic_variable</span>:<span style="color: #bbbbbb"> </span>false
+<span style="color: #bbbbbb">    </span><span style="color: #007700">save_thumbnail_image</span>:<span style="color: #bbbbbb"> </span>true
+</code></pre></div></td></tr></table></div>
+<h3 id="basic-structure-recommended-by-rdetoolkit-for-structured-processing">Basic Structure Recommended by rdetoolkit for Structured Processing</h3>
+<p>rdetoolkit recommends the following basic directory structure for structured processing:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>container
+├──<span style="color: #bbbbbb"> </span>data
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>inputdata
+│<span style="color: #bbbbbb">   </span>│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>XRD_RIGAKU.ras
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>invoice
+│<span style="color: #bbbbbb">   </span>│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>invoice.json
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>tasksupport
+│<span style="color: #bbbbbb">       </span>├──<span style="color: #bbbbbb"> </span>invoice.schema.json
+│<span style="color: #bbbbbb">       </span>└──<span style="color: #bbbbbb"> </span>metadata-def.json
+├──<span style="color: #bbbbbb"> </span>Dockerfile
+├──<span style="color: #bbbbbb"> </span>main.py
+├──<span style="color: #bbbbbb"> </span>modules
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>__init__.py
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>mymodule.py
+└──<span style="color: #bbbbbb"> </span>requirements.txt
+</code></pre></div></td></tr></table></div>
+<table>
+<thead>
+<tr>
+<th>Directory/File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main.py</td>
+<td>Entry point for structured processing. Calls developed modules.</td>
+</tr>
+<tr>
+<td>modules</td>
+<td>Directory for placing custom modules.</td>
+</tr>
+<tr>
+<td>requirements.txt</td>
+<td>File defining required Python packages.</td>
+</tr>
+<tr>
+<td>data</td>
+<td>Directory for placing data used in structured processing.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>When rdetoolkit is installed, libraries necessary for data processing such as <code>pandas</code>, <code>numpy</code>, <code>matplotlib</code> are automatically installed. These libraries are useful for data manipulation and visualization in structured processing.</p>
+</blockquote>
+<h3 id="implementation-of-mainpy">Implementation of main.py</h3>
+<p>The default created <code>main.py</code> becomes the entry point file for this project. It is a script for calling module groups developed by each project/user.</p>
+<p>By passing the developed module as an argument to <code>rdetoolkit.workflows.run()</code> as shown below, you can implement structured processing including pre/post processing necessary for RDE structured processing.</p>
+<p>The module we will develop this time is <code>modules.mymodule.my_xrd_func()</code>. Specify this function in the <code>custom_dataset_function</code> argument of <code>run()</code>.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span>
+
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">modules.mymodule</span> <span style="color: #008800; font-weight: bold">import</span> my_xrd_func
+
+rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333333">.</span>run(custom_dataset_function<span style="color: #333333">=</span>my_xrd_func)
+</code></pre></div></td></tr></table></div>
+<h3 id="custom-module-implementation">Custom Module Implementation</h3>
+<p>Place custom modules in the <code>container/modules/</code> directory. Here, we will implement a function to process XRD data with the filename <code>mymodule.py</code>.</p>
+<p>The important point here is to include the following arguments in the function <code>my_xrd_func</code> you define:</p>
+<ul>
+<li><code>RdeInputDirPaths</code>: Data class containing path groups of data directories where various input data are stored.</li>
+<li><code>RdeOutputResourcePath</code>: Data class containing directory paths of output resources.</li>
+</ul>
+<p>By using the directory paths stored in these classes, you can safely and reliably register data in the RDE system.</p>
+<p>Furthermore, input files are stored in the <code>rawfiles</code> attribute of the <code>RdeInputDirPaths</code> class. Since they are stored in an array called <code>resource_paths.rawfiles</code> rather than <code>srcpaths</code>, we recommend using this attribute.</p>
+<blockquote>
+<p>In RDE, data is registered in units called data tiles within datasets. rdetoolkit automatically groups input data in units of these data tiles and passes data to custom structured processing, so we use files stored in the <code>rawfiles</code> attribute of <code>RdeInputDirPaths</code>.</p>
+</blockquote>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">my_xrd_func</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+    <span style="color: #008800; font-weight: bold">pass</span>
+</code></pre></div></td></tr></table></div>
+<p>Next, define the processing to be implemented within the <code>my_xrd_func</code> function. RDE structured processing allows users to flexibly define their own processing. The most common case is to implement the following processing system:</p>
+<ul>
+<li>Read input data</li>
+<li>Extract metadata</li>
+<li>Create structured files</li>
+<li>Create plot images (for viewing visualized graphs on RDE)</li>
+</ul>
+<p>We will implement according to the following policy:</p>
+<table>
+<thead>
+<tr>
+<th>Processing Content</th>
+<th>Processing Details</th>
+<th>Function Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read input data</td>
+<td>Read <code>.ras</code> file and separate measurement data and metadata</td>
+<td><code>read_ras_file</code></td>
+</tr>
+<tr>
+<td>Extract metadata</td>
+<td>Save separated metadata</td>
+<td><code>save_metadata</code></td>
+</tr>
+<tr>
+<td>Create structured files</td>
+<td>Save only measurement data to csv</td>
+<td>Use pandas to_csv()</td>
+</tr>
+<tr>
+<td>Create plot images</td>
+<td>Create XRD plot images</td>
+<td><code>xrd_plot</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="step1-read-input-data">Step1: Read Input Data</h4>
+<p>In the <code>read_ras_file</code> function, read input data and separate measurement data and metadata. Implement as follows:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">re</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse_ras_file</span>(filepath: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[<span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">str</span>], pd<span style="color: #333333">.</span>DataFrame]:
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Parse RAS file and extract metadata and measurement data"""</span>
+
+    filepath <span style="color: #333333">=</span> Path(filepath)
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> filepath<span style="color: #333333">.</span>exists():
+        <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">FileNotFoundError</span>(<span style="background-color: #fff0f0">f"File not found: </span><span style="background-color: #eeeeee">{</span>filepath<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    metadata <span style="color: #333333">=</span> {}
+    measurement_data <span style="color: #333333">=</span> []
+
+    <span style="color: #008800; font-weight: bold">with</span> <span style="color: #007020">open</span>(filepath, <span style="background-color: #fff0f0">'r'</span>, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>) <span style="color: #008800; font-weight: bold">as</span> file:
+        lines <span style="color: #333333">=</span> file<span style="color: #333333">.</span>readlines()
+
+    in_data_section <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    <span style="color: #008800; font-weight: bold">for</span> line <span style="color: #000000; font-weight: bold">in</span> lines:
+        line <span style="color: #333333">=</span> line<span style="color: #333333">.</span>strip()
+
+        <span style="color: #888888"># Skip empty lines</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> line:
+            <span style="color: #008800; font-weight: bold">continue</span>
+
+        <span style="color: #888888"># Start of measurement data section</span>
+        <span style="color: #008800; font-weight: bold">if</span> line <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"*RAS_INT_START"</span>:
+            in_data_section <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">True</span>
+            <span style="color: #008800; font-weight: bold">continue</span>
+
+        <span style="color: #888888"># End of measurement data section</span>
+        <span style="color: #008800; font-weight: bold">if</span> line <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"*RAS_INT_END"</span>:
+            in_data_section <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">False</span>
+            <span style="color: #008800; font-weight: bold">continue</span>
+
+        <span style="color: #888888"># Process measurement data</span>
+        <span style="color: #008800; font-weight: bold">if</span> in_data_section:
+            <span style="color: #008800; font-weight: bold">try</span>:
+                values <span style="color: #333333">=</span> line<span style="color: #333333">.</span>split()
+                <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(values) <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">3</span>:
+                    two_theta <span style="color: #333333">=</span> <span style="color: #007020">float</span>(values[<span style="color: #0000DD; font-weight: bold">0</span>])
+                    intensity <span style="color: #333333">=</span> <span style="color: #007020">float</span>(values[<span style="color: #0000DD; font-weight: bold">1</span>])
+                    correction <span style="color: #333333">=</span> <span style="color: #007020">float</span>(values[<span style="color: #0000DD; font-weight: bold">2</span>])
+                    measurement_data<span style="color: #333333">.</span>append({
+                        <span style="background-color: #fff0f0">'two_theta'</span>: two_theta,
+                        <span style="background-color: #fff0f0">'intensity'</span>: intensity,
+                        <span style="background-color: #fff0f0">'correction'</span>: correction
+                    })
+            <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>:
+                <span style="color: #008800; font-weight: bold">continue</span>
+
+        <span style="color: #888888"># Process metadata (lines starting with *)</span>
+        <span style="color: #008800; font-weight: bold">elif</span> line<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"*"</span>) <span style="color: #000000; font-weight: bold">and</span> <span style="color: #000000; font-weight: bold">not</span> line<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"*RAS_"</span>):
+            <span style="color: #888888"># Extract metadata using regular expressions</span>
+            match <span style="color: #333333">=</span> re<span style="color: #333333">.</span>match(<span style="background-color: #fff0f0">r'\*(\w+)\s+"?([^"]*)"?'</span>, line)
+            <span style="color: #008800; font-weight: bold">if</span> match:
+                key <span style="color: #333333">=</span> match<span style="color: #333333">.</span>group(<span style="color: #0000DD; font-weight: bold">1</span>)<span style="color: #333333">.</span>lower()
+                value <span style="color: #333333">=</span> match<span style="color: #333333">.</span>group(<span style="color: #0000DD; font-weight: bold">2</span>)<span style="color: #333333">.</span>strip()
+                metadata[key] <span style="color: #333333">=</span> value
+
+    <span style="color: #888888"># Convert measurement data to DataFrame</span>
+    df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>DataFrame(measurement_data)
+
+    <span style="color: #008800; font-weight: bold">return</span> metadata, df
+</code></pre></div></td></tr></table></div>
+<h4 id="step2-extract-metadata">Step2: Extract Metadata</h4>
+<p>In the <code>save_metadata</code> function, save the extracted metadata. Implement as follows:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.rde2util</span> <span style="color: #008800; font-weight: bold">import</span> Meta
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">save_metadata</span>(metadata: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">str</span>], metadata_def_json_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, save_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Save metadata using rdetoolkit Meta utility"""</span>
+
+    <span style="color: #888888"># Load metadata definition</span>
+    <span style="color: #008800; font-weight: bold">with</span> <span style="color: #007020">open</span>(metadata_def_json_path, <span style="background-color: #fff0f0">'r'</span>, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>) <span style="color: #008800; font-weight: bold">as</span> f:
+        metadata_def <span style="color: #333333">=</span> json<span style="color: #333333">.</span>load(f)
+
+    <span style="color: #888888"># Create Meta instance</span>
+    meta <span style="color: #333333">=</span> Meta(metadata_def)
+
+    <span style="color: #888888"># Map metadata to defined schema</span>
+    mapped_metadata <span style="color: #333333">=</span> {}
+    <span style="color: #008800; font-weight: bold">for</span> key, value <span style="color: #000000; font-weight: bold">in</span> metadata<span style="color: #333333">.</span>items():
+        <span style="color: #008800; font-weight: bold">if</span> key <span style="color: #000000; font-weight: bold">in</span> metadata_def:
+            mapped_metadata[key] <span style="color: #333333">=</span> value
+
+    <span style="color: #888888"># Save metadata</span>
+    meta<span style="color: #333333">.</span>save_meta_file(mapped_metadata, save_path)
+</code></pre></div></td></tr></table></div>
+<h4 id="step3-save-measurement-data">Step3: Save Measurement Data</h4>
+<p>Save the measurement data as a CSV file. Add the following to the <code>my_xrd_func</code> function:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">re</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">plt</span>
+
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.rde2util</span> <span style="color: #008800; font-weight: bold">import</span> Meta
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse_ras_file</span>(filepath: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[<span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">str</span>], pd<span style="color: #333333">.</span>DataFrame]:
+    <span style="color: #888888"># ... Omitted: Include the content of the above parse_ras_file function here ...</span>
+    <span style="color: #008800; font-weight: bold">return</span> metadata, df
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">save_metadata</span>(metadata: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">str</span>], metadata_def_json_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, save_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path):
+    <span style="color: #888888"># ... Omitted: Include the content of the above save_metadata function here ...</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">my_xrd_func</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+    metadata, dataframe <span style="color: #333333">=</span> parse_ras_file(resource_paths<span style="color: #333333">.</span>rawfiles[<span style="color: #0000DD; font-weight: bold">0</span>])
+
+    metadata_def_json_path <span style="color: #333333">=</span> srcpaths<span style="color: #333333">.</span>tasksupport<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"metadata-def.json"</span>)
+    save_path <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>meta<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"metadata.json"</span>)
+    save_metadata(metadata, metadata_def_json_path, save_path)
+
+    <span style="color: #888888"># **Added**: Save measurement data</span>
+    dataframe<span style="color: #333333">.</span>to_csv(resource_paths<span style="color: #333333">.</span>struct<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"mesurement.csv"</span>), index<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
+</code></pre></div></td></tr></table></div>
+<h4 id="step4-create-plot-images">Step4: Create Plot Images</h4>
+<p>In the <code>xrd_plot</code> function, create XRD data plot images. Implement as follows:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse_ras_file</span>(filepath: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[<span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">str</span>], pd<span style="color: #333333">.</span>DataFrame]:
+    <span style="color: #888888"># ... Omitted: Include the content of the above parse_ras_file function here ...</span>
+    <span style="color: #008800; font-weight: bold">return</span> metadata, df
+
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">save_metadata</span>(metadata: <span style="color: #007020">dict</span>[<span style="color: #007020">str</span>, <span style="color: #007020">str</span>], metadata_def_json_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path, save_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path):
+    <span style="color: #888888"># ... Omitted: Include the content of the above save_metadata function here ...</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">xrd_plot</span>(data: pd<span style="color: #333333">.</span>DataFrame, output_path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> Path):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Create XRD plot image"""</span>
+    plt<span style="color: #333333">.</span>figure(figsize<span style="color: #333333">=</span>(<span style="color: #0000DD; font-weight: bold">10</span>, <span style="color: #0000DD; font-weight: bold">6</span>))
+    plt<span style="color: #333333">.</span>plot(data[<span style="background-color: #fff0f0">'two_theta'</span>], data[<span style="background-color: #fff0f0">'intensity'</span>], label<span style="color: #333333">=</span><span style="background-color: #fff0f0">'Intensity'</span>)
+    plt<span style="color: #333333">.</span>xlabel(<span style="background-color: #fff0f0">'2Theta (degrees)'</span>)
+    plt<span style="color: #333333">.</span>ylabel(<span style="background-color: #fff0f0">'Intensity'</span>)
+    plt<span style="color: #333333">.</span>title(<span style="background-color: #fff0f0">'XRD Pattern'</span>)
+    plt<span style="color: #333333">.</span>legend()
+    plt<span style="color: #333333">.</span>grid()
+    plt<span style="color: #333333">.</span>savefig(output_path)
+    plt<span style="color: #333333">.</span>close()
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">my_xrd_func</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+    metadata, dataframe <span style="color: #333333">=</span> parse_ras_file(resource_paths<span style="color: #333333">.</span>rawfiles[<span style="color: #0000DD; font-weight: bold">0</span>])
+
+    metadata_def_json_path <span style="color: #333333">=</span> srcpaths<span style="color: #333333">.</span>tasksupport<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"metadata-def.json"</span>)
+    save_path <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>meta<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"metadata.json"</span>)
+    save_metadata(metadata, metadata_def_json_path, save_path)
+
+    <span style="color: #888888"># Save measurement data</span>
+    dataframe<span style="color: #333333">.</span>to_csv(resource_paths<span style="color: #333333">.</span>struct<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"mesurement.csv"</span>), index<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
+
+    <span style="color: #888888"># **Added**: Create plot image</span>
+    xrd_plot(dataframe, resource_paths<span style="color: #333333">.</span>main_image<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"xrd_graph.png"</span>))
+</code></pre></div></td></tr></table></div>
+<h4 id="step5-add-exception-handling">Step5: Add Exception Handling</h4>
+<p><code>rdetoolkit</code> defines exceptions that may occur during structured processing as <code>StructuredError</code>. By using this, we can display appropriate messages when errors occur.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">re</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pandas</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">pd</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">plt</span>
+
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.rde2util</span> <span style="color: #008800; font-weight: bold">import</span> Meta
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> StructuredError <span style="color: #888888"># **Added**</span>
+
+<span style="color: #888888"># ... Omitted: Include the content of the above function groups here ...</span>
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">my_xrd_func</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""XRD data processing main function"""</span>
+    <span style="color: #008800; font-weight: bold">try</span>:
+        <span style="color: #888888"># RAS file analysis</span>
+        metadata, dataframe <span style="color: #333333">=</span> parse_ras_file(resource_paths<span style="color: #333333">.</span>rawfiles[<span style="color: #0000DD; font-weight: bold">0</span>])
+
+        <span style="color: #888888"># Save metadata</span>
+        <span style="color: #008800; font-weight: bold">try</span>:
+            save_metadata(metadata,
+                        srcpaths<span style="color: #333333">.</span>tasksupport<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"metadata-def.json"</span>),
+                        resource_paths<span style="color: #333333">.</span>meta<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"metadata.json"</span>))
+        <span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Error saving metadata: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
+
+        <span style="color: #888888"># Save measurement data</span>
+        dataframe<span style="color: #333333">.</span>to_csv(resource_paths<span style="color: #333333">.</span>struct<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"mesurement.csv"</span>), index<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
+
+        <span style="color: #888888"># Create plot image</span>
+        xrd_plot(dataframe, resource_paths<span style="color: #333333">.</span>main_image<span style="color: #333333">.</span>joinpath(<span style="background-color: #fff0f0">"xrd_graph.png"</span>))
+    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
+        <span style="color: #008800; font-weight: bold">raise</span> StructuredError(<span style="background-color: #fff0f0">f"An error occurred during XRD processing: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>) <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">e</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="step6-verify-structured-processing-operation">Step6: Verify Structured Processing Operation</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007020">cd</span><span style="color: #bbbbbb"> </span>container
+python3<span style="color: #bbbbbb"> </span>main.py
+</code></pre></div></td></tr></table></div>
+<p>Confirm that the following files are generated. (Empty directories are excluded from display.)</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>container/data
+├──<span style="color: #bbbbbb"> </span>inputdata
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>XRD_RIGAKU.ras
+├──<span style="color: #bbbbbb"> </span>invoice
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>invoice.json
+├──<span style="color: #bbbbbb"> </span>job.failed
+├──<span style="color: #bbbbbb"> </span>main_image
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>xrd_graph.png
+├──<span style="color: #bbbbbb"> </span>meta
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>metadata.json
+├──<span style="color: #bbbbbb"> </span>nonshared_raw
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>XRD_RIGAKU.ras
+├──<span style="color: #bbbbbb"> </span>raw
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>XRD_RIGAKU.ras
+├──<span style="color: #bbbbbb"> </span>structured
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>mesurement.csv
+├──<span style="color: #bbbbbb"> </span>tasksupport
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>invoice.schema.json
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>metadata-def.json
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>rdeconfig.yml
+└──<span style="color: #bbbbbb"> </span>thumbnail
+<span style="color: #bbbbbb">    </span>└──<span style="color: #bbbbbb"> </span>xrd_graph.png
+</code></pre></div></td></tr></table></div>
+<h3 id="when-errors-occur">When Errors Occur</h3>
+<p>Logs are output to <code>rdesys.log</code> under <code>container/data/logs</code>. If errors occur, error messages are recorded here.</p>
+<h2 id="submit-structured-processing-to-rde">Submit Structured Processing to RDE</h2>
+<p>If there are no problems with operation, submit the structured processing to RDE. Execute the following command to generate a zip file, then submit this zip file to RDE.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>uv<span style="color: #bbbbbb"> </span>run<span style="color: #bbbbbb"> </span>python<span style="color: #bbbbbb"> </span>-m<span style="color: #bbbbbb"> </span>rdetoolkit<span style="color: #bbbbbb"> </span>artifact<span style="color: #bbbbbb"> </span>-s<span style="color: #bbbbbb"> </span>.<span style="color: #bbbbbb"> </span>-o<span style="color: #bbbbbb"> </span>rde_submit_files.zip
+</code></pre></div></td></tr></table></div>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Output</span>
+📦<span style="color: #bbbbbb"> </span>Archiving<span style="color: #bbbbbb"> </span>project<span style="color: #bbbbbb"> </span>files...
+📌<span style="color: #bbbbbb"> </span>-<span style="color: #bbbbbb"> </span>Source<span style="color: #bbbbbb"> </span>Directory:<span style="color: #bbbbbb"> </span>.
+📌<span style="color: #bbbbbb"> </span>-<span style="color: #bbbbbb"> </span>Output<span style="color: #bbbbbb"> </span>Archive:<span style="color: #bbbbbb"> </span>rde_submit_files.zip
+✅<span style="color: #bbbbbb"> </span>🐳<span style="color: #bbbbbb"> </span>Dockerfile<span style="color: #bbbbbb"> </span>found!:<span style="color: #bbbbbb"> </span>container/Dockerfile
+✅<span style="color: #bbbbbb"> </span>🐍<span style="color: #bbbbbb"> </span>requirements.txt<span style="color: #bbbbbb"> </span>found!:<span style="color: #bbbbbb"> </span>container/requirements.txt
+🔍<span style="color: #bbbbbb"> </span>Scanning<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">for</span><span style="color: #bbbbbb"> </span>external<span style="color: #bbbbbb"> </span>connections...OK
+🔍<span style="color: #bbbbbb"> </span>Scanning<span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">for</span><span style="color: #bbbbbb"> </span>code<span style="color: #bbbbbb"> </span>security<span style="color: #bbbbbb"> </span>vulnerabilities...OK
+✅<span style="color: #bbbbbb"> </span>Archive<span style="color: #bbbbbb"> </span>created<span style="color: #bbbbbb"> </span>successfully:<span style="color: #bbbbbb"> </span>rde_submit_files.zip
+✅<span style="color: #bbbbbb"> </span>Archive<span style="color: #bbbbbb"> </span>and<span style="color: #bbbbbb"> </span>report<span style="color: #bbbbbb"> </span>generation<span style="color: #bbbbbb"> </span>completed<span style="color: #bbbbbb"> </span>successfully.:<span style="color: #bbbbbb"> </span>rde_submit_files.md
+</code></pre></div></td></tr></table></div>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/nims-dpfc/rdetoolkit" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-consent" data-md-component="consent" hidden="" id="__consent">
+<div class="md-consent__overlay"></div>
+<aside class="md-consent__inner">
+<form class="md-consent__form md-grid md-typeset" name="consent">
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" id="__settings" type="checkbox"/>
+<div class="md-consent__settings">
+<ul class="task-list">
+<li class="task-list-item">
+<label class="task-list-control">
+<input checked="" name="github" type="checkbox"/>
+<span class="task-list-indicator"></span>
+          GitHub
+        </label>
+</li>
+</ul>
+</div>
+<div class="md-consent__controls">
+<button class="md-button md-button--primary">Accept</button>
+<label class="md-button" for="__settings">Manage settings</label>
+</div>
+</form>
+</aside>
+</div>
+<script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+<script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
+<script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
+<script>window.mermaidConfig = {default: {
+    startOnLoad: false
+}};</script></body>
+</html>

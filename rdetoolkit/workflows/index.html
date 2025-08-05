@@ -1,15 +1,15 @@
 
 <!DOCTYPE html>
 
-<html class="no-js" lang="en">
+<html class="no-js" lang="ja">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="../config/" rel="prev"/>
-<link href="../rde2util/" rel="next"/>
+<link href="../core/" rel="prev"/>
+<link href="../modeproc/" rel="next"/>
 <link href="../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>Workflows Module - RDEToolKit Documentation</title>
+<title>ワークフロー - RDEToolKit Documentation</title>
 <link href="../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,14 +23,14 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#workflows-module">
-          Skip to content
+<a class="md-skip" href="#workflows-api">
+          コンテンツにスキップ
         </a>
 </div>
 <div data-md-component="announce">
 </div>
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-<nav aria-label="Header" class="md-header__inner md-grid">
+<nav aria-label="ヘッダー" class="md-header__inner md-grid">
 <a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../img/2585322.png"/>
 </a>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              Workflows Module
+              ワークフロー
             
           </span>
 </div>
@@ -64,6 +64,27 @@
 </label>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="言語切り替え" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../en/rdetoolkit/workflows/" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <label class="md-header__button md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 </label>
@@ -71,13 +92,13 @@
 <label class="md-search__overlay" for="__search"></label>
 <div class="md-search__inner" role="search">
 <form class="md-search__form" name="search">
-<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<input aria-label="検索" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="検索" required="" spellcheck="false" type="text"/>
 <label class="md-search__icon md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </label>
-<nav aria-label="Search" class="md-search__options">
-<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<nav aria-label="検索" class="md-search__options">
+<button aria-label="クリア" class="md-search__icon md-icon" tabindex="-1" title="クリア" type="reset">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
 </button>
 </nav>
@@ -86,7 +107,7 @@
 <div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
 <div class="md-search-result" data-md-component="search-result">
 <div class="md-search-result__meta">
-            Initializing search
+            検索を初期化
           </div>
 <ol class="md-search-result__list" role="presentation"></ol>
 </div>
@@ -95,7 +116,7 @@
 </div>
 </div>
 <div class="md-header__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -105,30 +126,22 @@
 </a>
 </div>
 </nav>
-<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<nav aria-label="タブ" class="md-tabs" data-md-component="tabs">
 <div class="md-grid">
 <ul class="md-tabs__list">
 <li class="md-tabs__item">
 <a class="md-tabs__link" href="../..">
           
   
-  Getting started
+  はじめに
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../install/">
+<a class="md-tabs__link" href="../../usage/structured_process/structured/">
           
   
-  Installation
-
-        </a>
-</li>
-<li class="md-tabs__item">
-<a class="md-tabs__link" href="../../usage/quickstart/">
-          
-  
-  User Guide
+  ユーザーガイド
 
         </a>
 </li>
@@ -136,15 +149,15 @@
 <a class="md-tabs__link" href="../">
           
   
-  API Documentation
+  API リファレンス
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../contribute/home/">
+<a class="md-tabs__link" href="../../development/">
           
   
-  Development
+  コントリビューション
 
         </a>
 </li>
@@ -158,7 +171,7 @@
 <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<nav aria-label="ナビゲーション" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
 <label class="md-nav__title" for="__drawer">
 <a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../img/2585322.png"/>
@@ -166,7 +179,7 @@
     RDEToolKit Documentation
   </label>
 <div class="md-nav__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -180,78 +193,30 @@
 <input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
 <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
 <span class="md-ellipsis">
-    Getting started
+    はじめに
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_1">
 <span class="md-nav__icon md-icon"></span>
-            Getting started
+            はじめに
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../..">
 <span class="md-ellipsis">
-    RDEToolKit
+    はじめに
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-<span class="md-ellipsis">
-    Installation
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_2">
-<span class="md-nav__icon md-icon"></span>
-            Installation
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../install/">
+<a class="md-nav__link" href="../../installation/">
 <span class="md-ellipsis">
-    インストール方法
+    インストール
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-<span class="md-ellipsis">
-    User Guide
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_3">
-<span class="md-nav__icon md-icon"></span>
-            User Guide
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_1" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
-<span class="md-ellipsis">
-    Quick Start
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_1_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_1">
-<span class="md-nav__icon md-icon"></span>
-            Quick Start
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/quickstart/">
 <span class="md-ellipsis">
@@ -263,51 +228,72 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
 <span class="md-ellipsis">
-    構造化処理
+    ユーザーガイド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_2">
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
 <span class="md-nav__icon md-icon"></span>
-            構造化処理
+            ユーザーガイド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    構造化処理開発
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            構造化処理開発
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/structured/">
 <span class="md-ellipsis">
-    構造化処理を構築する
+    構造化プロセスの構築
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    構造化処理開発ガイド
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/directory/">
 <span class="md-ellipsis">
-    サポートするディレクトリ
+    対応ディレクトリ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/rdepath/">
 <span class="md-ellipsis">
-    構造化ディレクトリパスの取得
+    ディレクトリパスアクセス
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/errorhandling/">
 <span class="md-ellipsis">
-    構造化処理のエラーハンドリング
+    エラーハンドリング
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/feature_description/">
 <span class="md-ellipsis">
-    データタイル説明欄への自動記述について
+    機能説明
   </span>
 </a>
 </li>
@@ -315,68 +301,51 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
 <span class="md-ellipsis">
-    コマンドライン機能
+    設定ファイルとCLI
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_3">
+<nav aria-expanded="false" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
 <span class="md-nav__icon md-icon"></span>
-            コマンドライン機能
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../usage/cli/">
-<span class="md-ellipsis">
-    コマンドライン機能について
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
-<span class="md-ellipsis">
-    設定ファイル
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_4">
-<span class="md-nav__icon md-icon"></span>
-            設定ファイル
+            設定ファイルとCLI
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/config/">
 <span class="md-ellipsis">
-    RDEToolKit設定ファイル
+    設定ファイル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/mode/">
 <span class="md-ellipsis">
-    RDEToolKitのデータ登録モード
+    データ登録モード
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/file_folder_mode/">
 <span class="md-ellipsis">
-    圧縮ファイルの形式について
+    ファイル/フォルダモード
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/magic_variable/">
 <span class="md-ellipsis">
-    Magic Variableによるデータ登録について
+    マジック変数
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/cli/">
+<span class="md-ellipsis">
+    コマンドライン操作
   </span>
 </a>
 </li>
@@ -384,17 +353,17 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
 <span class="md-ellipsis">
-    テンプレートファイル
+    テンプレートファイルと検証
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_5">
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
 <span class="md-nav__icon md-icon"></span>
-            テンプレートファイル
+            テンプレートファイルと検証
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
@@ -404,27 +373,10 @@
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
-<span class="md-ellipsis">
-    バリデーション
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_6">
-<span class="md-nav__icon md-icon"></span>
-            バリデーション
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/validation/">
 <span class="md-ellipsis">
-    バリデーション機能
+    データ検証
   </span>
 </a>
 </li>
@@ -432,47 +384,30 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
 <span class="md-ellipsis">
-    オブジェクトストレージを使用する
+    統合
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_7">
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
 <span class="md-nav__icon md-icon"></span>
-            オブジェクトストレージを使用する
+            統合
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/object_storage/">
 <span class="md-ellipsis">
-    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+    オブジェクトストレージ (MinIO)
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
-<span class="md-ellipsis">
-    Docker
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_8">
-<span class="md-nav__icon md-icon"></span>
-            Docker
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/docker/">
 <span class="md-ellipsis">
-    Using RDEToolKit with Docker
+    Docker の使用
   </span>
 </a>
 </li>
@@ -483,171 +418,51 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
 <span class="md-ellipsis">
-    API Documentation
+    API リファレンス
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_4">
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
 <span class="md-nav__icon md-icon"></span>
-            API Documentation
+            API リファレンス
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../">
 <span class="md-ellipsis">
-    RDE Toolkit API Documentation
+    概要
   </span>
 </a>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
 <span class="md-ellipsis">
-    impl
+    コアモジュール
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_2">
+<nav aria-expanded="true" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
 <span class="md-nav__icon md-icon"></span>
-            impl
+            コアモジュール
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../impl/compressed_controller/">
-<span class="md-ellipsis">
-    Compressed Controller Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../impl/input_controller/">
-<span class="md-ellipsis">
-    Input Controller Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
-<span class="md-ellipsis">
-    interface
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_3">
-<span class="md-nav__icon md-icon"></span>
-            interface
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../interface/filechecker/">
-<span class="md-ellipsis">
-    File Checker Interfaces Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
-<span class="md-ellipsis">
-    models
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_4">
-<span class="md-nav__icon md-icon"></span>
-            models
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../models/invoice_schema/">
-<span class="md-ellipsis">
-    Invoice Schema Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../models/metadata/">
-<span class="md-ellipsis">
-    Metadata Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../models/rde2types/">
-<span class="md-ellipsis">
-    RDE2 Types Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
-<span class="md-ellipsis">
-    storage
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_5">
-<span class="md-nav__icon md-icon"></span>
-            storage
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../storage/minio/">
-<span class="md-ellipsis">
-    MinIO Storage
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
-<span class="md-ellipsis">
-    core module
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_6">
-<span class="md-nav__icon md-icon"></span>
-            core module
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../core/">
-<span class="md-ellipsis">
-    Core Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../config/">
 <span class="md-ellipsis">
-    Configuration Module
+    設定
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../core/">
+<span class="md-ellipsis">
+    コア機能
   </span>
 </a>
 </li>
@@ -655,83 +470,100 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    Workflows Module
+    ワークフロー
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    Workflows Module
+    ワークフロー
   </span>
 </a>
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
+<a class="md-nav__link" href="#purpose">
 <span class="md-ellipsis">
-      Overview
+      Purpose
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#functions">
+<a class="md-nav__link" href="#key-features">
 <span class="md-ellipsis">
-      Functions
+      Key Features
     </span>
 </a>
-<nav aria-label="Functions" class="md-nav">
+<nav aria-label="Key Features" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#check_files">
+<a class="md-nav__link" href="#file-classification-and-validation">
+<span class="md-ellipsis">
+      File Classification and Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-execution">
+<span class="md-ellipsis">
+      Workflow Execution
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.workflows.check_files">
 <span class="md-ellipsis">
       check_files
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#generate_folder_paths_iterator">
+<a class="md-nav__link" href="#src.rdetoolkit.workflows.generate_folder_paths_iterator">
 <span class="md-ellipsis">
       generate_folder_paths_iterator
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#run">
+<a class="md-nav__link" href="#src.rdetoolkit.workflows.run">
 <span class="md-ellipsis">
       run
     </span>
 </a>
-<nav aria-label="run" class="md-nav">
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#basic-usage">
+<a class="md-nav__link" href="#basic-workflow-execution">
 <span class="md-ellipsis">
-      Basic Usage
+      Basic Workflow Execution
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#with-custom-processing-function">
+<a class="md-nav__link" href="#configuration-based-workflow">
 <span class="md-ellipsis">
-      With Custom Processing Function
+      Configuration-based Workflow
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#with-custom-configuration">
+<a class="md-nav__link" href="#file-classification-verification">
 <span class="md-ellipsis">
-      With Custom Configuration
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#complete-workflow-example">
-<span class="md-ellipsis">
-      Complete Workflow Example
+      File Classification Verification
     </span>
 </a>
 </li>
@@ -742,178 +574,58 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#workflow-execution-process">
+<a class="md-nav__link" href="../modeproc/">
 <span class="md-ellipsis">
-      Workflow Execution Process
-    </span>
-</a>
-<nav aria-label="Workflow Execution Process" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#1-initialization">
-<span class="md-ellipsis">
-      1. Initialization
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#2-configuration-loading">
-<span class="md-ellipsis">
-      2. Configuration Loading
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#3-input-analysis">
-<span class="md-ellipsis">
-      3. Input Analysis
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#4-resource-path-generation">
-<span class="md-ellipsis">
-      4. Resource Path Generation
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#5-data-processing">
-<span class="md-ellipsis">
-      5. Data Processing
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#6-result-compilation">
-<span class="md-ellipsis">
-      6. Result Compilation
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#error-handling">
-<span class="md-ellipsis">
-      Error Handling
-    </span>
-</a>
-<nav aria-label="Error Handling" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#structured-errors">
-<span class="md-ellipsis">
-      Structured Errors
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#error-status-creation">
-<span class="md-ellipsis">
-      Error Status Creation
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#best-practices">
-<span class="md-ellipsis">
-      Best Practices
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#performance-considerations">
-<span class="md-ellipsis">
-      Performance Considerations
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#integration-examples">
-<span class="md-ellipsis">
-      Integration Examples
-    </span>
-</a>
-<nav aria-label="Integration Examples" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#with-configuration-management">
-<span class="md-ellipsis">
-      With Configuration Management
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#with-logging-integration">
-<span class="md-ellipsis">
-      with Logging Integration
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#see-also">
-<span class="md-ellipsis">
-      See Also
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../rde2util/">
-<span class="md-ellipsis">
-    rde2util Module
+    モード処理
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../invoicefile/">
 <span class="md-ellipsis">
-    Invoice File Module
+    Invoiceファイル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../modeproc/">
+<a class="md-nav__link" href="../rde2util/">
 <span class="md-ellipsis">
-    Mode Processing Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../validation/">
-<span class="md-ellipsis">
-    Validation Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../img2thumb/">
-<span class="md-ellipsis">
-    Image to Thumbnail Module
+    ユーティリティ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rdelogger/">
 <span class="md-ellipsis">
-    RDE Logger Module
+    ロギング
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../img2thumb/">
+<span class="md-ellipsis">
+    代表画像操作
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../validation/">
+<span class="md-ellipsis">
+    検証
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../exceptions/">
 <span class="md-ellipsis">
-    Exceptions Module
+    例外
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fileops/">
+<span class="md-ellipsis">
+    ファイル操作
   </span>
 </a>
 </li>
@@ -921,37 +633,233 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
 <span class="md-ellipsis">
-    Development
+    データモデル
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_5">
+<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
 <span class="md-nav__icon md-icon"></span>
-            Development
+            データモデル
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../contribute/home/">
+<a class="md-nav__link" href="../models/config/">
 <span class="md-ellipsis">
-    Top
+    設定モデル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../contribute/documents_contributing/">
+<a class="md-nav__link" href="../models/invoice/">
 <span class="md-ellipsis">
-    Documents
+    Invoiceモデル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../contribute/sourcecode_contributing/">
+<a class="md-nav__link" href="../models/invoice_schema/">
 <span class="md-ellipsis">
-    Source Code
+    Invoiceスキーマ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/metadata/">
+<span class="md-ellipsis">
+    メタデータモデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/rde2types/">
+<span class="md-ellipsis">
+    タイプ定義
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/result/">
+<span class="md-ellipsis">
+    結果出力
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    実装
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            実装
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../impl/compressed_controller/">
+<span class="md-ellipsis">
+    圧縮
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../impl/input_controller/">
+<span class="md-ellipsis">
+    入力ファイル
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    インターフェース
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            インターフェース
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../interface/filechecker/">
+<span class="md-ellipsis">
+    ファイルチェック
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    コマンド
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            コマンド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/command/">
+<span class="md-ellipsis">
+    ベースコマンド
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel形式Invoice生成
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<span class="md-ellipsis">
+    ストレージ
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            ストレージ
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../storage/minio/">
+<span class="md-ellipsis">
+    MinIO 統合
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    アーティファクト
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            アーティファクト
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../artifact/report/">
+<span class="md-ellipsis">
+    レポート生成
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+<span class="md-ellipsis">
+    コントリビューション
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            コントリビューション
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/">
+<span class="md-ellipsis">
+    概要
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/docs/">
+<span class="md-ellipsis">
+    ドキュメントへの貢献
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/contributing/">
+<span class="md-ellipsis">
+    ソースコードへの貢献
   </span>
 </a>
 </li>
@@ -966,206 +874,96 @@
 <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
+<a class="md-nav__link" href="#purpose">
 <span class="md-ellipsis">
-      Overview
+      Purpose
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#functions">
+<a class="md-nav__link" href="#key-features">
 <span class="md-ellipsis">
-      Functions
+      Key Features
     </span>
 </a>
-<nav aria-label="Functions" class="md-nav">
+<nav aria-label="Key Features" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#check_files">
+<a class="md-nav__link" href="#file-classification-and-validation">
+<span class="md-ellipsis">
+      File Classification and Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-execution">
+<span class="md-ellipsis">
+      Workflow Execution
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.workflows.check_files">
 <span class="md-ellipsis">
       check_files
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#generate_folder_paths_iterator">
+<a class="md-nav__link" href="#src.rdetoolkit.workflows.generate_folder_paths_iterator">
 <span class="md-ellipsis">
       generate_folder_paths_iterator
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#run">
+<a class="md-nav__link" href="#src.rdetoolkit.workflows.run">
 <span class="md-ellipsis">
       run
     </span>
 </a>
-<nav aria-label="run" class="md-nav">
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#basic-usage">
+<a class="md-nav__link" href="#basic-workflow-execution">
 <span class="md-ellipsis">
-      Basic Usage
+      Basic Workflow Execution
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#with-custom-processing-function">
+<a class="md-nav__link" href="#configuration-based-workflow">
 <span class="md-ellipsis">
-      With Custom Processing Function
+      Configuration-based Workflow
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#with-custom-configuration">
+<a class="md-nav__link" href="#file-classification-verification">
 <span class="md-ellipsis">
-      With Custom Configuration
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#complete-workflow-example">
-<span class="md-ellipsis">
-      Complete Workflow Example
+      File Classification Verification
     </span>
 </a>
 </li>
 </ul>
 </nav>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#workflow-execution-process">
-<span class="md-ellipsis">
-      Workflow Execution Process
-    </span>
-</a>
-<nav aria-label="Workflow Execution Process" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#1-initialization">
-<span class="md-ellipsis">
-      1. Initialization
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#2-configuration-loading">
-<span class="md-ellipsis">
-      2. Configuration Loading
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#3-input-analysis">
-<span class="md-ellipsis">
-      3. Input Analysis
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#4-resource-path-generation">
-<span class="md-ellipsis">
-      4. Resource Path Generation
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#5-data-processing">
-<span class="md-ellipsis">
-      5. Data Processing
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#6-result-compilation">
-<span class="md-ellipsis">
-      6. Result Compilation
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#error-handling">
-<span class="md-ellipsis">
-      Error Handling
-    </span>
-</a>
-<nav aria-label="Error Handling" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#structured-errors">
-<span class="md-ellipsis">
-      Structured Errors
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#error-status-creation">
-<span class="md-ellipsis">
-      Error Status Creation
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#best-practices">
-<span class="md-ellipsis">
-      Best Practices
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#performance-considerations">
-<span class="md-ellipsis">
-      Performance Considerations
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#integration-examples">
-<span class="md-ellipsis">
-      Integration Examples
-    </span>
-</a>
-<nav aria-label="Integration Examples" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#with-configuration-management">
-<span class="md-ellipsis">
-      With Configuration Management
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#with-logging-integration">
-<span class="md-ellipsis">
-      with Logging Integration
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#see-also">
-<span class="md-ellipsis">
-      See Also
-    </span>
-</a>
 </li>
 </ul>
 </nav>
@@ -1174,58 +972,77 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="workflows-module">Workflows Module</h1>
-<p>The <code>rdetoolkit.workflows</code> module provides the core workflow functionality for RDE (Research Data Exchange) data structuring processes. This module orchestrates the complete data processing pipeline, from input validation to structured output generation.</p>
-<h2 id="overview">Overview</h2>
-<p>The workflows module serves as the main entry point for RDE data processing operations. It handles:</p>
+<h1 id="workflows-api">Workflows API</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This module provides core functionality for executing structured processing workflows in RDEToolKit. It manages data classification, folder path generation, and structured processing execution.</p>
+<h2 id="key-features">Key Features</h2>
+<h3 id="file-classification-and-validation">File Classification and Validation</h3>
 <ul>
-<li><strong>Input File Classification</strong>: Automatic detection and classification of input data types</li>
-<li><strong>Mode Processing</strong>: Support for multiple processing modes (Invoice, ExcelInvoice, SmartTable, etc.)</li>
-<li><strong>Directory Management</strong>: Creation and management of output directory structures</li>
-<li><strong>Workflow Execution</strong>: Coordinated execution of the complete structuring pipeline</li>
-<li><strong>Error Handling</strong>: Comprehensive error management with structured reporting</li>
+<li>Determines appropriateness of input file patterns</li>
+<li>Supports Invoice, ExcelInvoice, RDEFormat, and MultiFile modes</li>
+<li>Automatic detection of file mode (single file) and folder mode (multiple files)</li>
 </ul>
-<h2 id="functions">Functions</h2>
-<h3 id="check_files">check_files</h3>
-<p>Classify input files to determine the appropriate processing pattern.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">check_files</span>(srcpaths: RdeInputDirPaths, <span style="color: #333333">*</span>, mode: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">tuple</span>[RawFiles, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>, Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>]
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>srcpaths</code> (RdeInputDirPaths): Input directory paths containing source data
-- <code>mode</code> (str | None): Processing mode override (optional)</p>
-<p><strong>Returns:</strong>
-- <code>tuple[RawFiles, Path | None, Path | None]</code>: A tuple containing:
-  - <code>RawFiles</code>: List of tuples with registered data file path groups
-  - <code>Path | None</code>: Excel invoice file path (if present)
-  - <code>Path | None</code>: SmartTable file path (if present)</p>
-<p><strong>Processing Modes:</strong></p>
+<h3 id="workflow-execution">Workflow Execution</h3>
+<ul>
+<li>Integration of custom dataset processing functions</li>
+<li>Configuration file-based behavior control</li>
+<li>Error handling and execution status tracking</li>
+</ul>
+<hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.workflows.check_files">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333333">.</span>check_files(srcpaths, <span style="color: #333333">*</span>, mode, config<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Classify input files to determine if the input pattern is appropriate.</p>
 <ol>
-<li><strong>Invoice Mode</strong></li>
-<li>File mode: Single file processing (e.g., <code>sample.txt</code>)</li>
-<li>Folder mode: Multiple file processing (e.g., <code>sample1.txt</code>, <code>sample2.txt</code>)</li>
-<li>
-<p>No input: Empty input processing</p>
-</li>
-<li>
-<p><strong>ExcelInvoice Mode</strong></p>
-</li>
-<li>File mode: ZIP file with Excel invoice (e.g., <code>sample.zip</code> + <code>*_excel_invoice.xlsx</code>)</li>
-<li>Folder mode: Compressed folder with Excel invoice</li>
-<li>
-<p>Excel-only: Excel invoice file without data files</p>
-</li>
-<li>
-<p><strong>Format Mode</strong></p>
-</li>
-<li>
-<p>ZIP files with RDE format specification (e.g., <code>*.zip</code>, <code>tasksupport/rdeformat.txt</code>)</p>
-</li>
-<li>
-<p><strong>Multiple Files Mode</strong></p>
-</li>
-<li>Flat structure with multiple files (e.g., <code>sample1.txt</code>, <code>sample2.txt</code>, <code>sample3.txt</code>)</li>
+<li>Invoice<ol>
+<li>File mode (e.g. sample.txt)</li>
+<li>Folder mode (e.g. sample1.txt, sample2.txt)</li>
+<li>Input file none</li>
 </ol>
-<p><strong>Examples:</strong></p>
+</li>
+<li>ExcelInvoice<ol>
+<li>File mode (e.g. sample.zip (compressed with only one file) + *_excel_invoice.xlsx)</li>
+<li>Folder mode (e.g. sample.zip (folder compressed) + <em>_excel_invoice.xlsx)
+2-3. None (e.g. </em>_excel_invoice.xlsx)</li>
+</ol>
+</li>
+<li>Format (e.g. *.zip, tasksupport/rdeformat.txt)</li>
+<li>Multiple Files in a Flat Structure (e.g., sample1.txt, sample2.txt, sample3.txt)</li>
+</ol>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>tuple</code></td> <td>
+<code>list[tuple[Path, ...]]), Optional[Path], Optional[Path]</code>
+</td>
+<td>
+<div class="doc-md-description">
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td></td> <td>
+<code><span title="pathlib.Path">Path</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Registered data file path group, presence of Excel invoice file, presence of SmartTable file</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="example" open="">
+<summary>Example</summary>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1248,63 +1065,268 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> check_files
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># MODE: Invoice / Mode: File / Input: single file</span>
+check_files(srcpaths, fmt_flags<span style="color: #333333">=</span>format_flags)
+<span style="color: #007020">tuple</span>([(Path(<span style="background-color: #fff0f0">'data/inputdata/sample.txt'</span>),)], <span style="color: #008800; font-weight: bold">None</span>)
 
-<span style="color: #888888"># Setup input paths</span>
-srcpaths <span style="color: #333333">=</span> RdeInputDirPaths(
-    inputdata<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"data/inputdata"</span>),
-    invoice<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"data/invoice"</span>),
-    tasksupport<span style="color: #333333">=</span>Path(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-)
+<span style="color: #888888"># MODE: Invoice / Mode: Folder / Input: multi files</span>
+check_files(srcpaths, fmt_flags<span style="color: #333333">=</span>format_flags)
+<span style="color: #007020">tuple</span>([(Path(<span style="background-color: #fff0f0">'data/inputdata/sample1.txt'</span>), (Path(<span style="background-color: #fff0f0">'data/inputdata/sample2.txt'</span>))], <span style="color: #008800; font-weight: bold">None</span>)
 
-<span style="color: #888888"># Invoice mode - single file</span>
-rawfiles, excel_file, smarttable_file <span style="color: #333333">=</span> check_files(srcpaths, mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"invoice"</span>)
-<span style="color: #888888"># Returns: ([(Path('data/inputdata/sample.txt'),)], None, None)</span>
+<span style="color: #888888"># MODE: Invoice / Mode: None / Input: no files</span>
+check_files(srcpaths, fmt_flags<span style="color: #333333">=</span>format_flags)
+<span style="color: #007020">tuple</span>([()], <span style="color: #008800; font-weight: bold">None</span>)
 
-<span style="color: #888888"># Invoice mode - multiple files</span>
-rawfiles, excel_file, smarttable_file <span style="color: #333333">=</span> check_files(srcpaths, mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"invoice"</span>)
-<span style="color: #888888"># Returns: ([(Path('data/inputdata/sample1.txt'), Path('data/inputdata/sample2.txt'))], None, None)</span>
+<span style="color: #888888"># MODE: ExcelInvoice / Mode: File / Input: zip + *_excel_invoice.xlsx</span>
+check_files(srcpaths, fmt_flags<span style="color: #333333">=</span>format_flags)
+<span style="color: #007020">tuple</span>([(Path(<span style="background-color: #fff0f0">'data/inputdata/sample.txt'</span>),)], Path(<span style="background-color: #fff0f0">"data/inputdata/dataset_excel_invoice.xlsx"</span>))
 
-<span style="color: #888888"># ExcelInvoice mode - with data files</span>
-rawfiles, excel_file, smarttable_file <span style="color: #333333">=</span> check_files(srcpaths, mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"excelinvoice"</span>)
-<span style="color: #888888"># Returns: ([(Path('data/temp/sample.txt'),)], Path("data/inputdata/dataset_excel_invoice.xlsx"), None)</span>
+<span style="color: #888888"># MODE: ExcelInvoice / Mode: Folder / Input: zip + *_excel_invoice.xlsx</span>
+checkFiles(srcpaths, fmt_flags<span style="color: #333333">=</span>format_flags)
+<span style="color: #007020">tuple</span>([(Path(<span style="background-color: #fff0f0">'data/inputdata/sample1.txt'</span>), (Path(<span style="background-color: #fff0f0">'data/inputdata/sample2.txt'</span>))], Path(<span style="background-color: #fff0f0">"data/inputdata/dataset_excel_invoice.xlsx"</span>))
 
-<span style="color: #888888"># SmartTable mode</span>
-rawfiles, excel_file, smarttable_file <span style="color: #333333">=</span> check_files(srcpaths, mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"smarttable"</span>)
-<span style="color: #888888"># Returns: ([(Path('data/temp/sample.txt'),)], None, Path("data/inputdata/dataset_smarttable.xlsx"))</span>
+<span style="color: #888888"># MODE: ExcelInvoice / Mode: None / Input: *_excel_invoice.xlsx</span>
+check_files(srcpaths, fmt_flags<span style="color: #333333">=</span>format_flags)
+<span style="color: #007020">tuple</span>([], Path(<span style="background-color: #fff0f0">"data/inputdata/dataset_excel_invoice.xlsx"</span>))
 </code></pre></div></td></tr></table></div>
-<p><strong>Note:</strong>
-- Destination paths differ between modes:
-  - Invoice: <code>/data/inputdata/&lt;registered_files&gt;</code>
-  - ExcelInvoice/SmartTable: <code>/data/temp/&lt;registered_files&gt;</code>
-- The function automatically detects file patterns and selects appropriate processing mode</p>
-<h3 id="generate_folder_paths_iterator">generate_folder_paths_iterator</h3>
-<p>Generate an iterator for RDE output folder paths with proper directory structure.</p>
+</details>
+<details class="note" open="">
+<summary>Note</summary>
+<p>The destination paths for reading input files are different for the shipping label and ExcelInvoice.
+invoice: /data/inputdata/<registered_files>
+excelinvoice: /data/temp/<registered_files></registered_files></registered_files></p>
+</details>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.workflows.generate_folder_paths_iterator">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333333">.</span>generate_folder_paths_iterator(raw_files_group, invoice_org_filepath, invoice_schema_filepath)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Generates iterator for RDE output folder paths.</p>
+<p>Create data folders for registration in the RDE system.
+Excel invoice: Create divided folders according to the number of registered data.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>raw_files_group</code></td>
+<td>
+<code>List[Tuple[<span title="pathlib.Path">Path</span>, ...]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A list of tuples containing raw file paths.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>invoice_org_filepath</code></td>
+<td>
+<code><span title="pathlib.Path">Path</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>invoice_org.json file path</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>invoice_schema_filepath</code></td>
+<td>
+<code><span title="pathlib.Path">Path</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>invoice.schema.json file path</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Yields:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>RdeOutputResourcePath</code></td> <td>
+<code><span title="rdetoolkit.models.rde2types.RdeOutputResourcePath">RdeOutputResourcePath</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A named tuple of output folder paths for RDE resources</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Raises:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Occurs when the structured process fails to process correctly.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="example" open="">
+<summary>Example</summary>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">generate_folder_paths_iterator</span>(
-    raw_files_group: RawFiles,
-    invoice_org_filepath: Path,
-    invoice_schema_filepath: Path,
-) <span style="color: #333333">-&gt;</span> Generator[RdeOutputResourcePath, <span style="color: #008800; font-weight: bold">None</span>, <span style="color: #008800; font-weight: bold">None</span>]
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rawfiles_tplList <span style="color: #333333">=</span> [(Path(<span style="background-color: #fff0f0">'data/temp/samle1.txt'</span>),), (Path(<span style="background-color: #fff0f0">'data/temp/sample2.txt'</span>),), (Path(<span style="background-color: #fff0f0">'data/temp/sample3.txt'</span>),)]
+
+excel_invoice_files <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/inputdata/sample_excel_invoice.xlsx"</span>)
+
+create_folders(raw_files_group, excel_invoice_files)
 </code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>raw_files_group</code> (RawFiles): List of tuples containing raw file paths
-- <code>invoice_org_filepath</code> (Path): Path to <code>invoice_org.json</code> file
-- <code>invoice_schema_filepath</code> (Path): Path to <code>invoice.schema.json</code> file</p>
-<p><strong>Yields:</strong>
-- <code>RdeOutputResourcePath</code>: Named tuple containing all output folder paths for RDE resources</p>
-<p><strong>Raises:</strong>
-- <code>StructuredError</code>: When the structured process fails to process correctly</p>
-<p><strong>Directory Structure:</strong></p>
-<p>The iterator creates the following directory structure for each data tile:</p>
+</details>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.workflows.run">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333333">.</span>run(<span style="color: #333333">*</span>, custom_dataset_function<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>, config<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>RDE Structuring Processing Function.</p>
+<p>This function executes the structuring process for RDE data. If you want to implement custom processing for the input data,
+you can pass a user-defined function as an argument. The function should accept the data class <code>RdeInputDirPaths</code>, which is
+internally parsed by RDE, and the data class <code>RdeOutputResourcePath</code>, which stores the output directory paths used by RDE.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>custom_dataset_function</code></td>
+<td>
+<code>Optional[<span title="src.rdetoolkit.workflows._CallbackType">_CallbackType</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>User-defined structuring function. Defaults to None.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>config</code></td>
+<td>
+<code>Optional[<span title="rdetoolkit.models.config.Config">Config</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Configuration class for the structuring process. If not specified, default values are loaded automatically. Defaults to None.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>str</code></td> <td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The JSON representation of the workflow execution results.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Raises:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If a structured error occurs during the process.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>Exception</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If a generic error occurs during the process.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="note" open="">
+<summary>Note</summary>
+<p>If <code>extended_mode</code> is specified, the evaluation of the execution mode is performed in the order of <code>extended_mode -&gt; excelinvoice -&gt; invoice</code>,
+and the structuring process is executed.</p>
+</details>
+<details class="example" open="">
+<summary>Example</summary>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1314,168 +1336,44 @@ rawfiles, excel_file, smarttable_file <span style="color: #333333">=</span> chec
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
-├── raw/                    # Raw data files
-├── structured/            # Processed/structured data
-├── main_image/           # Primary images
-├── other_image/          # Additional images
-├── thumbnail/            # Thumbnail images
-├── meta/                 # Metadata files
-├── logs/                 # Processing logs
-├── invoice/              # Invoice data
-├── temp/                 # Temporary files
-├── nonshared_raw/        # Non-shared raw data
-├── invoice_patch/        # Invoice patches
-└── attachment/           # File attachments
-</code></pre></div></td></tr></table></div>
-<p><strong>Example:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> generate_folder_paths_iterator
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
-
-<span style="color: #888888"># Example raw files</span>
-raw_files_group <span style="color: #333333">=</span> [
-    (Path(<span style="background-color: #fff0f0">'data/temp/sample1.txt'</span>),),
-    (Path(<span style="background-color: #fff0f0">'data/temp/sample2.txt'</span>),),
-    (Path(<span style="background-color: #fff0f0">'data/temp/sample3.txt'</span>),)
-]
-
-<span style="color: #888888"># Invoice file paths</span>
-invoice_org <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/invoice/invoice_org.json"</span>)
-invoice_schema <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/tasksupport/invoice.schema.json"</span>)
-
-<span style="color: #888888"># Generate folder paths</span>
-<span style="color: #008800; font-weight: bold">for</span> idx, resource_path <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(generate_folder_paths_iterator(
-    raw_files_group, invoice_org, invoice_schema
-)):
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Data tile </span><span style="background-color: #eeeeee">{</span>idx<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">:"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Raw: </span><span style="background-color: #eeeeee">{</span>resource_path<span style="color: #333333">.</span>raw<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Structured: </span><span style="background-color: #eeeeee">{</span>resource_path<span style="color: #333333">.</span>struct<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Main Image: </span><span style="background-color: #eeeeee">{</span>resource_path<span style="color: #333333">.</span>main_image<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  Thumbnail: </span><span style="background-color: #eeeeee">{</span>resource_path<span style="color: #333333">.</span>thumbnail<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #888888"># ... other paths</span>
-</code></pre></div></td></tr></table></div>
-<p><strong>RdeOutputResourcePath Attributes:</strong></p>
-<ul>
-<li><code>raw</code>: Raw data directory</li>
-<li><code>rawfiles</code>: Tuple of source raw file paths</li>
-<li><code>struct</code>: Structured data directory</li>
-<li><code>main_image</code>: Main image directory</li>
-<li><code>other_image</code>: Other images directory</li>
-<li><code>thumbnail</code>: Thumbnail directory</li>
-<li><code>meta</code>: Metadata directory</li>
-<li><code>logs</code>: Logs directory</li>
-<li><code>invoice</code>: Invoice directory</li>
-<li><code>invoice_schema_json</code>: Invoice schema file path</li>
-<li><code>invoice_org</code>: Original invoice file path</li>
-<li><code>temp</code>: Temporary directory</li>
-<li><code>nonshared_raw</code>: Non-shared raw data directory</li>
-<li><code>invoice_patch</code>: Invoice patch directory</li>
-<li><code>attachment</code>: Attachment directory</li>
-</ul>
-<h3 id="run">run</h3>
-<p>Execute the complete RDE structuring processing pipeline.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">run</span>(<span style="color: #333333">*</span>, custom_dataset_function: _CallbackType <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>, config: Config <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">str</span>
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>custom_dataset_function</code> (_CallbackType | None): User-defined structuring function (optional)
-- <code>config</code> (Config | None): Configuration for the structuring process (optional, defaults loaded automatically)</p>
-<p><strong>Returns:</strong>
-- <code>str</code>: JSON representation of workflow execution results</p>
-<p><strong>Raises:</strong>
-- <code>StructuredError</code>: If a structured error occurs during processing
-- <code>Exception</code>: If a generic error occurs during processing</p>
-<p><strong>Callback Function Type:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>_CallbackType <span style="color: #333333">=</span> Callable[[RdeInputDirPaths, RdeOutputResourcePath], <span style="color: #008800; font-weight: bold">None</span>]
-</code></pre></div></td></tr></table></div>
-<p>The custom dataset function receives:
-- <code>RdeInputDirPaths</code>: Parsed input directory paths
-- <code>RdeOutputResourcePath</code>: Output directory paths for the current data tile</p>
-<p><strong>Processing Modes:</strong></p>
-<p>The function evaluates execution modes in the following order:</p>
-<ol>
-<li><strong>SmartTableInvoice</strong>: If SmartTable file is detected</li>
-<li><strong>ExcelInvoice</strong>: If Excel invoice file is detected</li>
-<li><strong>RDEFormat</strong>: If <code>extended_mode = "rdeformat"</code> in config</li>
-<li><strong>MultiDataTile</strong>: If <code>extended_mode = "multidatatile"</code> in config</li>
-<li><strong>Invoice</strong>: Default mode for standard invoice processing</li>
-</ol>
-<p><strong>Examples:</strong></p>
-<h4 id="basic-usage">Basic Usage</h4>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-
-<span style="color: #888888"># Execute with default configuration</span>
-result <span style="color: #333333">=</span> run()
-<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Workflow completed:"</span>, result)
-</code></pre></div></td></tr></table></div>
-<h4 id="with-custom-processing-function">With Custom Processing Function</h4>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
-<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">shutil</span>
-
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888">### custom.py</span>
 <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">custom_dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>:
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Custom processing function for special data handling."""</span>
+    <span style="color: #333333">...</span>(original process)<span style="color: #333333">...</span>
 
-    <span style="color: #888888"># Custom processing logic</span>
-    <span style="color: #008800; font-weight: bold">for</span> raw_file <span style="color: #000000; font-weight: bold">in</span> resource_paths<span style="color: #333333">.</span>rawfiles:
-        <span style="color: #888888"># Copy raw files to structured directory with processing</span>
-        processed_file <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>struct <span style="color: #333333">/</span> <span style="background-color: #fff0f0">f"processed_</span><span style="background-color: #eeeeee">{</span>raw_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
-        shutil<span style="color: #333333">.</span>copy2(raw_file, processed_file)
+<span style="color: #888888">### main.py</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span> <span style="color: #008800; font-weight: bold">import</span> workflow
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">custom</span> <span style="color: #008800; font-weight: bold">import</span> custom_dataset <span style="color: #888888"># User-defined structuring processing function</span>
 
-        <span style="color: #888888"># Additional custom processing...</span>
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Processed: </span><span style="background-color: #eeeeee">{</span>raw_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> -&gt; </span><span style="background-color: #eeeeee">{</span>processed_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-<span style="color: #888888"># Execute with custom function</span>
-result <span style="color: #333333">=</span> run(custom_dataset_function<span style="color: #333333">=</span>custom_dataset)
+cfg <span style="color: #333333">=</span> Config(save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, save_main_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>, save_thumbnail_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>, magic_variable<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
+workflow<span style="color: #333333">.</span>run(custom_dataset_function<span style="color: #333333">=</span>custom_dataset, config<span style="color: #333333">=</span>cfg) <span style="color: #888888"># Execute structuring process</span>
 </code></pre></div></td></tr></table></div>
-<h4 id="with-custom-configuration">With Custom Configuration</h4>
+<p>If options are specified (setting the mode to "RDEformat"):</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888">### main.py</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, MultiDataTileSettings, SystemSettings
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span> <span style="color: #008800; font-weight: bold">import</span> workflow
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">custom</span> <span style="color: #008800; font-weight: bold">import</span> custom_dataset <span style="color: #888888"># User-defined structuring processing function</span>
+
+cfg <span style="color: #333333">=</span> Config(
+    system<span style="color: #333333">=</span>SystemSettings(extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"MultiDataTile"</span>, save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>, save_nonshared_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>, save_thumbnail_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>),
+    multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(ignore_errors<span style="color: #333333">=</span><span style="background-color: #fff0f0">"False"</span>)
+)
+workflow<span style="color: #333333">.</span>run(custom_dataset_function<span style="color: #333333">=</span>custom_dataset, config<span style="color: #333333">=</span>cfg) <span style="color: #888888"># Execute structuring process</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div><hr/>
+<h2 id="practical-usage">Practical Usage</h2>
+<h3 id="basic-workflow-execution">Basic Workflow Execution</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">basic_workflow.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -1494,366 +1392,29 @@ result <span style="color: #333333">=</span> run(custom_dataset_function<span st
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings, MultiDataTileSettings
-
-<span style="color: #888888"># Standard configuration</span>
-config <span style="color: #333333">=</span> Config(
-    save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
-    save_main_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>,
-    save_thumbnail_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>,
-    magic_variable<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>
-)
-
-result <span style="color: #333333">=</span> run(config<span style="color: #333333">=</span>config)
-
-<span style="color: #888888"># Advanced configuration with extended mode</span>
-advanced_config <span style="color: #333333">=</span> Config(
-    system<span style="color: #333333">=</span>SystemSettings(
-        extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"MultiDataTile"</span>,
-        save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>,
-        save_nonshared_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
-        save_thumbnail_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>
-    ),
-    multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(
-        ignore_errors<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>
-    )
-)
-
-result <span style="color: #333333">=</span> run(config<span style="color: #333333">=</span>advanced_config)
-</code></pre></div></td></tr></table></div>
-<h4 id="complete-workflow-example">Complete Workflow Example</h4>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">62</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">63</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">64</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">65</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span> <span style="color: #008800; font-weight: bold">import</span> workflows
 <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
-<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
 
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">advanced_custom_processor</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) <span style="color: #333333">-&gt;</span> <span style="color: #008800; font-weight: bold">None</span>:
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Advanced custom processing with metadata generation."""</span>
-
-    <span style="color: #888888"># Process each raw file</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">my_dataset_function</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Custom data processing function"""</span>
+    <span style="color: #888888"># Set metadata</span>
     metadata <span style="color: #333333">=</span> {
-        <span style="background-color: #fff0f0">"processed_files"</span>: [],
-        <span style="background-color: #fff0f0">"processing_timestamp"</span>: <span style="background-color: #fff0f0">"2024-01-01T00:00:00Z"</span>,
-        <span style="background-color: #fff0f0">"source_count"</span>: <span style="color: #007020">len</span>(resource_paths<span style="color: #333333">.</span>rawfiles)
+        <span style="background-color: #fff0f0">"experiment_date"</span>: <span style="background-color: #fff0f0">"2024-01-01"</span>,
+        <span style="background-color: #fff0f0">"researcher"</span>: <span style="background-color: #fff0f0">"John Doe"</span>,
+        <span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"completed"</span>
     }
 
-    <span style="color: #008800; font-weight: bold">for</span> raw_file <span style="color: #000000; font-weight: bold">in</span> resource_paths<span style="color: #333333">.</span>rawfiles:
-        <span style="color: #008800; font-weight: bold">if</span> raw_file<span style="color: #333333">.</span>suffix<span style="color: #333333">.</span>lower() <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">'.txt'</span>, <span style="background-color: #fff0f0">'.csv'</span>]:
-            <span style="color: #888888"># Text file processing</span>
-            content <span style="color: #333333">=</span> raw_file<span style="color: #333333">.</span>read_text(encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>)
-            processed_content <span style="color: #333333">=</span> content<span style="color: #333333">.</span>upper()  <span style="color: #888888"># Example processing</span>
+    <span style="color: #888888"># Create metadata file</span>
+    <span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">json</span>
+    <span style="color: #008800; font-weight: bold">with</span> <span style="color: #007020">open</span>(resource_paths<span style="color: #333333">.</span>meta <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"metadata.json"</span>, <span style="background-color: #fff0f0">"w"</span>) <span style="color: #008800; font-weight: bold">as</span> f:
+        json<span style="color: #333333">.</span>dump(metadata, f, ensure_ascii<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>, indent<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">2</span>)
 
-            <span style="color: #888888"># Save processed file</span>
-            output_file <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>struct <span style="color: #333333">/</span> <span style="background-color: #fff0f0">f"processed_</span><span style="background-color: #eeeeee">{</span>raw_file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
-            output_file<span style="color: #333333">.</span>write_text(processed_content, encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>)
-
-            metadata[<span style="background-color: #fff0f0">"processed_files"</span>]<span style="color: #333333">.</span>append({
-                <span style="background-color: #fff0f0">"source"</span>: <span style="color: #007020">str</span>(raw_file),
-                <span style="background-color: #fff0f0">"output"</span>: <span style="color: #007020">str</span>(output_file),
-                <span style="background-color: #fff0f0">"size"</span>: <span style="color: #007020">len</span>(processed_content)
-            })
-
-    <span style="color: #888888"># Save metadata</span>
-    meta_file <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>meta <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"processing_metadata.json"</span>
-    meta_file<span style="color: #333333">.</span>write_text(json<span style="color: #333333">.</span>dumps(metadata, indent<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">2</span>), encoding<span style="color: #333333">=</span><span style="background-color: #fff0f0">'utf-8'</span>)
-
-<span style="color: #888888"># Configuration for advanced processing</span>
-config <span style="color: #333333">=</span> Config(
-    system<span style="color: #333333">=</span>SystemSettings(
-        extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"MultiDataTile"</span>,
-        save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
-        save_nonshared_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>,
-        save_thumbnail_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>
-    ),
-    multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(
-        ignore_errors<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>  <span style="color: #888888"># Continue processing even if some tiles fail</span>
-    )
-)
-
-<span style="color: #888888"># Execute advanced workflow</span>
-<span style="color: #008800; font-weight: bold">try</span>:
-    result_json <span style="color: #333333">=</span> run(
-        custom_dataset_function<span style="color: #333333">=</span>advanced_custom_processor,
-        config<span style="color: #333333">=</span>config
-    )
-
-    <span style="color: #888888"># Parse and display results</span>
-    results <span style="color: #333333">=</span> json<span style="color: #333333">.</span>loads(result_json)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Processed </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(results<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'statuses'</span>,<span style="color: #bbbbbb"> </span>[]))<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> data tiles"</span>)
-
-    <span style="color: #008800; font-weight: bold">for</span> status <span style="color: #000000; font-weight: bold">in</span> results<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'statuses'</span>, []):
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Tile </span><span style="background-color: #eeeeee">{</span>status[<span style="background-color: #fff0f0">'run_id'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">: </span><span style="background-color: #eeeeee">{</span>status[<span style="background-color: #fff0f0">'status'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> (</span><span style="background-color: #eeeeee">{</span>status[<span style="background-color: #fff0f0">'mode'</span>]<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">)"</span>)
-
-<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Workflow failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #888888"># Execute workflow</span>
+result <span style="color: #333333">=</span> workflows<span style="color: #333333">.</span>run(custom_dataset_function<span style="color: #333333">=</span>my_dataset_function)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Execution result: </span><span style="background-color: #eeeeee">{</span>result<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
 </code></pre></div></td></tr></table></div>
-<h2 id="workflow-execution-process">Workflow Execution Process</h2>
-<p>The <code>run</code> function follows this execution sequence:</p>
-<h3 id="1-initialization">1. Initialization</h3>
-<ul>
-<li>Initialize logging system</li>
-<li>Create workflow result manager</li>
-<li>Setup input directory paths</li>
-</ul>
-<h3 id="2-configuration-loading">2. Configuration Loading</h3>
-<ul>
-<li>Load configuration from <code>tasksupport</code> directory</li>
-<li>Apply user-provided configuration overrides</li>
-<li>Validate configuration settings</li>
-</ul>
-<h3 id="3-input-analysis">3. Input Analysis</h3>
-<ul>
-<li>Classify input files using <code>check_files</code></li>
-<li>Determine processing mode</li>
-<li>Backup invoice files if needed</li>
-</ul>
-<h3 id="4-resource-path-generation">4. Resource Path Generation</h3>
-<ul>
-<li>Generate output directory structure</li>
-<li>Create iterator for processing multiple data tiles</li>
-<li>Setup progress tracking</li>
-</ul>
-<h3 id="5-data-processing">5. Data Processing</h3>
-<ul>
-<li>Iterate through each data tile</li>
-<li>Execute mode-specific processing:</li>
-<li><strong>SmartTableInvoice</strong>: Process with SmartTable integration</li>
-<li><strong>ExcelInvoice</strong>: Process with Excel invoice data</li>
-<li><strong>RDEFormat</strong>: Process using RDE format specifications</li>
-<li><strong>MultiDataTile</strong>: Process multiple data tiles with error tolerance</li>
-<li><strong>Invoice</strong>: Standard invoice processing</li>
-<li>Execute custom dataset function if provided</li>
-<li>Track processing status and errors</li>
-</ul>
-<h3 id="6-result-compilation">6. Result Compilation</h3>
-<ul>
-<li>Collect all processing statuses</li>
-<li>Generate comprehensive workflow results</li>
-<li>Return JSON representation of results</li>
-</ul>
-<h2 id="error-handling">Error Handling</h2>
-<h3 id="structured-errors">Structured Errors</h3>
-<p>The module provides comprehensive error handling for structured processing failures:</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.exceptions</span> <span style="color: #008800; font-weight: bold">import</span> StructuredError
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-
-<span style="color: #008800; font-weight: bold">try</span>:
-    result <span style="color: #333333">=</span> run()
-<span style="color: #008800; font-weight: bold">except</span> StructuredError <span style="color: #008800; font-weight: bold">as</span> e:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Structured processing error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #888888"># Handle specific structured errors</span>
-<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"General error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #888888"># Handle other exceptions</span>
-</code></pre></div></td></tr></table></div>
-<h3 id="error-status-creation">Error Status Creation</h3>
-<p>Failed processing creates detailed error status information:</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Error status structure</span>
-{
-    <span style="background-color: #fff0f0">"run_id"</span>: <span style="background-color: #fff0f0">"0"</span>,
-    <span style="background-color: #fff0f0">"title"</span>: <span style="background-color: #fff0f0">"Structured Process Failed: Invoice"</span>,
-    <span style="background-color: #fff0f0">"status"</span>: <span style="background-color: #fff0f0">"failed"</span>,
-    <span style="background-color: #fff0f0">"mode"</span>: <span style="background-color: #fff0f0">"Invoice"</span>,
-    <span style="background-color: #fff0f0">"error_code"</span>: <span style="color: #0000DD; font-weight: bold">999</span>,
-    <span style="background-color: #fff0f0">"error_message"</span>: <span style="background-color: #fff0f0">"Detailed error description"</span>,
-    <span style="background-color: #fff0f0">"stacktrace"</span>: <span style="background-color: #fff0f0">"Full stack trace"</span>,
-    <span style="background-color: #fff0f0">"target"</span>: <span style="background-color: #fff0f0">"processed_file1.txt,processed_file2.txt"</span>
-}
-</code></pre></div></td></tr></table></div>
-<h3 id="best-practices">Best Practices</h3>
-<ol>
-<li>
-<p><strong>Always handle exceptions</strong> in custom dataset functions:
-   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">safe_custom_processor</span>(srcpaths, resource_paths):
-    <span style="color: #008800; font-weight: bold">try</span>:
-        <span style="color: #888888"># Your processing logic</span>
-        <span style="color: #008800; font-weight: bold">pass</span>
-    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Custom processing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #888888"># Log error but don't re-raise to continue workflow</span>
-</code></pre></div></td></tr></table></div></p>
-</li>
-<li>
-<p><strong>Use appropriate configuration</strong> for error tolerance:
-   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># For production: strict error handling</span>
-config <span style="color: #333333">=</span> Config(
-    multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(ignore_errors<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
-)
-
-<span style="color: #888888"># For development: continue on errors</span>
-config <span style="color: #333333">=</span> Config(
-    multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(ignore_errors<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
-)
-</code></pre></div></td></tr></table></div></p>
-</li>
-<li>
-<p><strong>Validate inputs</strong> in custom functions:
-   <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">validated_processor</span>(srcpaths, resource_paths):
-    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> resource_paths<span style="color: #333333">.</span>rawfiles:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No raw files to process"</span>)
-        <span style="color: #008800; font-weight: bold">return</span>
-
-    <span style="color: #008800; font-weight: bold">for</span> raw_file <span style="color: #000000; font-weight: bold">in</span> resource_paths<span style="color: #333333">.</span>rawfiles:
-        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> raw_file<span style="color: #333333">.</span>exists():
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Raw file not found: </span><span style="background-color: #eeeeee">{</span>raw_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-            <span style="color: #008800; font-weight: bold">continue</span>
-        <span style="color: #888888"># Process file...</span>
-</code></pre></div></td></tr></table></div></p>
-</li>
-</ol>
-<h2 id="performance-considerations">Performance Considerations</h2>
-<ul>
-<li><strong>Memory Management</strong>: The module uses iterators to avoid loading all data tiles into memory simultaneously</li>
-<li><strong>Progress Tracking</strong>: Built-in progress bars provide real-time processing feedback</li>
-<li><strong>Parallel Processing</strong>: Consider using multiprocessing for CPU-intensive custom functions</li>
-<li><strong>Error Recovery</strong>: Configure error tolerance based on your processing requirements</li>
-</ul>
-<h2 id="integration-examples">Integration Examples</h2>
-<h3 id="with-configuration-management">With Configuration Management</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config, Config
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
-
-<span style="color: #888888"># Load configuration from file</span>
-config_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"config/custom_config.yaml"</span>)
-config <span style="color: #333333">=</span> load_config(<span style="color: #007020">str</span>(config_path))
-
-<span style="color: #888888"># Modify configuration programmatically</span>
-config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">True</span>
-config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_thumbnail_image <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">False</span>
-
-result <span style="color: #333333">=</span> run(config<span style="color: #333333">=</span>config)
-</code></pre></div></td></tr></table></div>
-<h3 id="with-logging-integration">with Logging Integration</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<h3 id="configuration-based-workflow">Configuration-based Workflow</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">config_workflow.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -1869,46 +1430,64 @@ result <span style="color: #333333">=</span> run(config<span style="color: #3333
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">logging</span>
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> run
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span> <span style="color: #008800; font-weight: bold">import</span> workflows
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings
 
-<span style="color: #888888"># Setup custom logging</span>
-logging<span style="color: #333333">.</span>basicConfig(
-    level<span style="color: #333333">=</span>logging<span style="color: #333333">.</span>INFO,
-    <span style="color: #007020">format</span><span style="color: #333333">=</span><span style="background-color: #fff0f0">'</span><span style="background-color: #eeeeee">%(asctime)s</span><span style="background-color: #fff0f0"> - </span><span style="background-color: #eeeeee">%(name)s</span><span style="background-color: #fff0f0"> - </span><span style="background-color: #eeeeee">%(levelname)s</span><span style="background-color: #fff0f0"> - </span><span style="background-color: #eeeeee">%(message)s</span><span style="background-color: #fff0f0">'</span>,
-    handlers<span style="color: #333333">=</span>[
-        logging<span style="color: #333333">.</span>FileHandler(<span style="background-color: #fff0f0">'workflow.log'</span>),
-        logging<span style="color: #333333">.</span>StreamHandler()
-    ]
+<span style="color: #888888"># Create configuration</span>
+config <span style="color: #333333">=</span> Config(
+    system<span style="color: #333333">=</span>SystemSettings(
+        save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
+        save_thumbnail_image<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
+        extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"MultiDataTile"</span>
+    )
 )
 
-logger <span style="color: #333333">=</span> logging<span style="color: #333333">.</span>getLogger(<span style="color: #996633">__name__</span>)
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">logged_processor</span>(srcpaths, resource_paths):
-    logger<span style="color: #333333">.</span>info(<span style="background-color: #fff0f0">f"Processing </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(resource_paths<span style="color: #333333">.</span>rawfiles)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> files"</span>)
-    <span style="color: #888888"># Your processing logic</span>
-    logger<span style="color: #333333">.</span>info(<span style="background-color: #fff0f0">"Processing completed successfully"</span>)
-
-result <span style="color: #333333">=</span> run(custom_dataset_function<span style="color: #333333">=</span>logged_processor)
+<span style="color: #888888"># Execute workflow with configuration</span>
+result <span style="color: #333333">=</span> workflows<span style="color: #333333">.</span>run(
+    custom_dataset_function<span style="color: #333333">=</span>my_dataset_function,
+    config<span style="color: #333333">=</span>config
+)
 </code></pre></div></td></tr></table></div>
-<h2 id="see-also">See Also</h2>
-<ul>
-<li><a href="../../usage/config/config/">Configuration Guide</a> - For detailed configuration options</li>
-<li><a href="../core/">Core Module</a> - For directory management and file operations</li>
-<li><a href="../models/rde2types/">Models</a> - For data type definitions and structures</li>
-<li><a href="../modeproc/">Mode Processing</a> - For specific processing mode implementations</li>
-</ul>
+<h3 id="file-classification-verification">File Classification Verification</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">file_classification.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.workflows</span> <span style="color: #008800; font-weight: bold">import</span> check_files
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.rde2types</span> <span style="color: #008800; font-weight: bold">import</span> RdeInputDirPaths
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.rde2util</span> <span style="color: #008800; font-weight: bold">import</span> StorageDir
+
+<span style="color: #888888"># Set input paths</span>
+srcpaths <span style="color: #333333">=</span> RdeInputDirPaths(
+    inputdata<span style="color: #333333">=</span>StorageDir<span style="color: #333333">.</span>get_specific_outputdir(<span style="color: #008800; font-weight: bold">False</span>, <span style="background-color: #fff0f0">"inputdata"</span>),
+    invoice<span style="color: #333333">=</span>StorageDir<span style="color: #333333">.</span>get_specific_outputdir(<span style="color: #008800; font-weight: bold">False</span>, <span style="background-color: #fff0f0">"invoice"</span>),
+    tasksupport<span style="color: #333333">=</span>StorageDir<span style="color: #333333">.</span>get_specific_outputdir(<span style="color: #008800; font-weight: bold">False</span>, <span style="background-color: #fff0f0">"tasksupport"</span>),
+)
+
+<span style="color: #888888"># Execute file classification</span>
+raw_files, excel_invoice <span style="color: #333333">=</span> check_files(srcpaths, mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"Invoice"</span>)
+
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Classified files: </span><span style="background-color: #eeeeee">{</span>raw_files<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Excel invoice: </span><span style="background-color: #eeeeee">{</span>excel_invoice<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
 </div>
 <button class="md-top md-icon" data-md-component="top" hidden="" type="button">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
-  Back to top
+  ページトップへ戻る
 </button>
 </main>
 <footer class="md-footer">
@@ -1953,14 +1532,14 @@ result <span style="color: #333333">=</span> run(custom_dataset_function<span st
 </ul>
 </div>
 <div class="md-consent__controls">
-<button class="md-button md-button--primary">Accept</button>
-<label class="md-button" for="__settings">Manage settings</label>
+<button class="md-button md-button--primary">同意</button>
+<label class="md-button" for="__settings">サイトの設定</label>
 </div>
 </form>
 </aside>
 </div>
 <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}}</script>
 <script src="../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
 </body>

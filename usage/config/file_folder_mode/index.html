@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 
-<html class="no-js" lang="en">
+<html class="no-js" lang="ja">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
@@ -9,7 +9,7 @@
 <link href="../magic_variable/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>圧縮ファイルの形式について - RDEToolKit Documentation</title>
+<title>ファイル/フォルダモード - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -24,13 +24,13 @@
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
 <a class="md-skip" href="#_1">
-          Skip to content
+          コンテンツにスキップ
         </a>
 </div>
 <div data-md-component="announce">
 </div>
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-<nav aria-label="Header" class="md-header__inner md-grid">
+<nav aria-label="ヘッダー" class="md-header__inner md-grid">
 <a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../../img/2585322.png"/>
 </a>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              圧縮ファイルの形式について
+              ファイル/フォルダモード
             
           </span>
 </div>
@@ -64,6 +64,27 @@
 </label>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="言語切り替え" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../../en/usage/config/file_folder_mode/" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <label class="md-header__button md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 </label>
@@ -71,13 +92,13 @@
 <label class="md-search__overlay" for="__search"></label>
 <div class="md-search__inner" role="search">
 <form class="md-search__form" name="search">
-<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<input aria-label="検索" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="検索" required="" spellcheck="false" type="text"/>
 <label class="md-search__icon md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </label>
-<nav aria-label="Search" class="md-search__options">
-<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<nav aria-label="検索" class="md-search__options">
+<button aria-label="クリア" class="md-search__icon md-icon" tabindex="-1" title="クリア" type="reset">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
 </button>
 </nav>
@@ -86,7 +107,7 @@
 <div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
 <div class="md-search-result" data-md-component="search-result">
 <div class="md-search-result__meta">
-            Initializing search
+            検索を初期化
           </div>
 <ol class="md-search-result__list" role="presentation"></ol>
 </div>
@@ -95,7 +116,7 @@
 </div>
 </div>
 <div class="md-header__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -105,30 +126,22 @@
 </a>
 </div>
 </nav>
-<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<nav aria-label="タブ" class="md-tabs" data-md-component="tabs">
 <div class="md-grid">
 <ul class="md-tabs__list">
 <li class="md-tabs__item">
 <a class="md-tabs__link" href="../../..">
           
   
-  Getting started
-
-        </a>
-</li>
-<li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../install/">
-          
-  
-  Installation
+  はじめに
 
         </a>
 </li>
 <li class="md-tabs__item md-tabs__item--active">
-<a class="md-tabs__link" href="../../quickstart/">
+<a class="md-tabs__link" href="../../structured_process/structured/">
           
   
-  User Guide
+  ユーザーガイド
 
         </a>
 </li>
@@ -136,15 +149,15 @@
 <a class="md-tabs__link" href="../../../rdetoolkit/">
           
   
-  API Documentation
+  API リファレンス
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../contribute/home/">
+<a class="md-tabs__link" href="../../../development/">
           
   
-  Development
+  コントリビューション
 
         </a>
 </li>
@@ -158,7 +171,7 @@
 <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<nav aria-label="ナビゲーション" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
 <label class="md-nav__title" for="__drawer">
 <a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../../img/2585322.png"/>
@@ -166,7 +179,7 @@
     RDEToolKit Documentation
   </label>
 <div class="md-nav__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -180,78 +193,30 @@
 <input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
 <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
 <span class="md-ellipsis">
-    Getting started
+    はじめに
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_1">
 <span class="md-nav__icon md-icon"></span>
-            Getting started
+            はじめに
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../..">
 <span class="md-ellipsis">
-    RDEToolKit
+    はじめに
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-<span class="md-ellipsis">
-    Installation
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_2">
-<span class="md-nav__icon md-icon"></span>
-            Installation
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../install/">
+<a class="md-nav__link" href="../../../installation/">
 <span class="md-ellipsis">
-    インストール方法
+    インストール
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
-<span class="md-ellipsis">
-    User Guide
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_3">
-<span class="md-nav__icon md-icon"></span>
-            User Guide
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_1" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
-<span class="md-ellipsis">
-    Quick Start
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_1_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_1">
-<span class="md-nav__icon md-icon"></span>
-            Quick Start
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../quickstart/">
 <span class="md-ellipsis">
@@ -262,52 +227,558 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
 <span class="md-ellipsis">
-    構造化処理
+    ユーザーガイド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_2">
+<nav aria-expanded="true" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
 <span class="md-nav__icon md-icon"></span>
-            構造化処理
+            ユーザーガイド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    構造化処理開発
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            構造化処理開発
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../structured_process/structured/">
 <span class="md-ellipsis">
-    構造化処理を構築する
+    構造化プロセスの構築
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../structured_process/development_guide/">
+<span class="md-ellipsis">
+    構造化処理開発ガイド
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../structured_process/directory/">
 <span class="md-ellipsis">
-    サポートするディレクトリ
+    対応ディレクトリ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../structured_process/rdepath/">
 <span class="md-ellipsis">
-    構造化ディレクトリパスの取得
+    ディレクトリパスアクセス
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../structured_process/errorhandling/">
 <span class="md-ellipsis">
-    構造化処理のエラーハンドリング
+    エラーハンドリング
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../structured_process/feature_description/">
 <span class="md-ellipsis">
-    データタイル説明欄への自動記述について
+    機能説明
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    設定ファイルとCLI
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
+<span class="md-nav__icon md-icon"></span>
+            設定ファイルとCLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../config/">
+<span class="md-ellipsis">
+    設定ファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mode/">
+<span class="md-ellipsis">
+    データ登録モード
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    ファイル/フォルダモード
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    ファイル/フォルダモード
+  </span>
+</a>
+<nav aria-label="目次" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_2">
+<span class="md-ellipsis">
+      目的
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_3">
+<span class="md-ellipsis">
+      課題と背景
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_4">
+<span class="md-ellipsis">
+      主要コンセプト
+    </span>
+</a>
+<nav aria-label="主要コンセプト" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_5">
+<span class="md-ellipsis">
+      モード判定の仕組み
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2">
+<span class="md-ellipsis">
+      2つのモードの比較
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_6">
+<span class="md-ellipsis">
+      ファイルモード
+    </span>
+</a>
+<nav aria-label="ファイルモード" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_7">
+<span class="md-ellipsis">
+      概要
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#zip">
+<span class="md-ellipsis">
+      ZIP構造例
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_8">
+<span class="md-ellipsis">
+      処理結果
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_9">
+<span class="md-ellipsis">
+      使用場面
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_10">
+<span class="md-ellipsis">
+      実装例
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_11">
+<span class="md-ellipsis">
+      フォルダモード
+    </span>
+</a>
+<nav aria-label="フォルダモード" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_12">
+<span class="md-ellipsis">
+      概要
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#zip_1">
+<span class="md-ellipsis">
+      ZIP構造例
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_13">
+<span class="md-ellipsis">
+      処理結果
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_14">
+<span class="md-ellipsis">
+      使用場面
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_15">
+<span class="md-ellipsis">
+      実装例
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_16">
+<span class="md-ellipsis">
+      自動モード判定
+    </span>
+</a>
+<nav aria-label="自動モード判定" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_17">
+<span class="md-ellipsis">
+      判定ロジック
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_18">
+<span class="md-ellipsis">
+      判定基準
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_19">
+<span class="md-ellipsis">
+      実践的な使用例
+    </span>
+</a>
+<nav aria-label="実践的な使用例" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_20">
+<span class="md-ellipsis">
+      ファイルモードの活用
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_21">
+<span class="md-ellipsis">
+      フォルダモードの活用
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_22">
+<span class="md-ellipsis">
+      トラブルシューティング
+    </span>
+</a>
+<nav aria-label="トラブルシューティング" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_23">
+<span class="md-ellipsis">
+      よくある問題と解決方法
+    </span>
+</a>
+<nav aria-label="よくある問題と解決方法" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_24">
+<span class="md-ellipsis">
+      期待したモードで処理されない
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_25">
+<span class="md-ellipsis">
+      ファイルが見つからない
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_26">
+<span class="md-ellipsis">
+      デバッグのヒント
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_27">
+<span class="md-ellipsis">
+      まとめ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_28">
+<span class="md-ellipsis">
+      次のステップ
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../magic_variable/">
+<span class="md-ellipsis">
+    マジック変数
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cli/">
+<span class="md-ellipsis">
+    コマンドライン操作
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+<span class="md-ellipsis">
+    テンプレートファイルと検証
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
+<span class="md-nav__icon md-icon"></span>
+            テンプレートファイルと検証
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../metadata_definition_file/">
+<span class="md-ellipsis">
+    テンプレートファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../validation/">
+<span class="md-ellipsis">
+    データ検証
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    統合
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            統合
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../object_storage/">
+<span class="md-ellipsis">
+    オブジェクトストレージ (MinIO)
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../docker/">
+<span class="md-ellipsis">
+    Docker の使用
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-ellipsis">
+    API リファレンス
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            API リファレンス
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/">
+<span class="md-ellipsis">
+    概要
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<span class="md-ellipsis">
+    コアモジュール
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
+<span class="md-nav__icon md-icon"></span>
+            コアモジュール
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/config/">
+<span class="md-ellipsis">
+    設定
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/core/">
+<span class="md-ellipsis">
+    コア機能
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/workflows/">
+<span class="md-ellipsis">
+    ワークフロー
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/modeproc/">
+<span class="md-ellipsis">
+    モード処理
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/invoicefile/">
+<span class="md-ellipsis">
+    Invoiceファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/rde2util/">
+<span class="md-ellipsis">
+    ユーティリティ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/rdelogger/">
+<span class="md-ellipsis">
+    ロギング
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/img2thumb/">
+<span class="md-ellipsis">
+    代表画像操作
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/validation/">
+<span class="md-ellipsis">
+    検証
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/exceptions/">
+<span class="md-ellipsis">
+    例外
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/fileops/">
+<span class="md-ellipsis">
+    ファイル操作
   </span>
 </a>
 </li>
@@ -318,119 +789,86 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
 <span class="md-ellipsis">
-    コマンドライン機能
+    データモデル
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_3">
 <span class="md-nav__icon md-icon"></span>
-            コマンドライン機能
+            データモデル
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../cli/">
+<a class="md-nav__link" href="../../../rdetoolkit/models/config/">
 <span class="md-ellipsis">
-    コマンドライン機能について
+    設定モデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/invoice/">
+<span class="md-ellipsis">
+    Invoiceモデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/invoice_schema/">
+<span class="md-ellipsis">
+    Invoiceスキーマ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/metadata/">
+<span class="md-ellipsis">
+    メタデータモデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/rde2types/">
+<span class="md-ellipsis">
+    タイプ定義
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/result/">
+<span class="md-ellipsis">
+    結果出力
   </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
 <span class="md-ellipsis">
-    設定ファイル
+    実装
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_4">
 <span class="md-nav__icon md-icon"></span>
-            設定ファイル
+            実装
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../config/">
+<a class="md-nav__link" href="../../../rdetoolkit/impl/compressed_controller/">
 <span class="md-ellipsis">
-    RDEToolKit設定ファイル
+    圧縮
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../mode/">
+<a class="md-nav__link" href="../../../rdetoolkit/impl/input_controller/">
 <span class="md-ellipsis">
-    RDEToolKitのデータ登録モード
-  </span>
-</a>
-</li>
-<li class="md-nav__item md-nav__item--active">
-<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
-<label class="md-nav__link md-nav__link--active" for="__toc">
-<span class="md-ellipsis">
-    圧縮ファイルの形式について
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<a class="md-nav__link md-nav__link--active" href="./">
-<span class="md-ellipsis">
-    圧縮ファイルの形式について
-  </span>
-</a>
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
-<label class="md-nav__title" for="__toc">
-<span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#_2">
-<span class="md-ellipsis">
-      ファイルモード
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#_3">
-<span class="md-ellipsis">
-      フォルダモード
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#_4">
-<span class="md-ellipsis">
-      その他
-    </span>
-</a>
-<nav aria-label="その他" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#_5">
-<span class="md-ellipsis">
-      表記したモードと圧縮ファイルの構成が異なる場合
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#_6">
-<span class="md-ellipsis">
-      この処理について
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../magic_variable/">
-<span class="md-ellipsis">
-    Magic Variableによるデータ登録について
+    入力ファイル
   </span>
 </a>
 </li>
@@ -441,20 +879,20 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
 <span class="md-ellipsis">
-    テンプレートファイル
+    インターフェース
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_5">
 <span class="md-nav__icon md-icon"></span>
-            テンプレートファイル
+            インターフェース
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../metadata_definition_file/">
+<a class="md-nav__link" href="../../../rdetoolkit/interface/filechecker/">
 <span class="md-ellipsis">
-    テンプレートファイル
+    ファイルチェック
   </span>
 </a>
 </li>
@@ -465,20 +903,27 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
 <span class="md-ellipsis">
-    バリデーション
+    コマンド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_6">
 <span class="md-nav__icon md-icon"></span>
-            バリデーション
+            コマンド
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../validation/">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/command/">
 <span class="md-ellipsis">
-    バリデーション機能
+    ベースコマンド
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel形式Invoice生成
   </span>
 </a>
 </li>
@@ -489,20 +934,20 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
 <span class="md-ellipsis">
-    オブジェクトストレージを使用する
+    ストレージ
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_7">
 <span class="md-nav__icon md-icon"></span>
-            オブジェクトストレージを使用する
+            ストレージ
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../object_storage/">
+<a class="md-nav__link" href="../../../rdetoolkit/storage/minio/">
 <span class="md-ellipsis">
-    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+    MinIO 統合
   </span>
 </a>
 </li>
@@ -513,20 +958,20 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
 <span class="md-ellipsis">
-    Docker
+    アーティファクト
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_8">
 <span class="md-nav__icon md-icon"></span>
-            Docker
+            アーティファクト
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../docker/">
+<a class="md-nav__link" href="../../../rdetoolkit/artifact/report/">
 <span class="md-ellipsis">
-    Using RDEToolKit with Docker
+    レポート生成
   </span>
 </a>
 </li>
@@ -540,262 +985,34 @@
 <input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
 <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
 <span class="md-ellipsis">
-    API Documentation
+    コントリビューション
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_4">
 <span class="md-nav__icon md-icon"></span>
-            API Documentation
+            コントリビューション
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/">
+<a class="md-nav__link" href="../../../development/">
 <span class="md-ellipsis">
-    RDE Toolkit API Documentation
-  </span>
-</a>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
-<span class="md-ellipsis">
-    impl
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_2">
-<span class="md-nav__icon md-icon"></span>
-            impl
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/impl/compressed_controller/">
-<span class="md-ellipsis">
-    Compressed Controller Module
+    概要
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/impl/input_controller/">
+<a class="md-nav__link" href="../../../development/docs/">
 <span class="md-ellipsis">
-    Input Controller Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
-<span class="md-ellipsis">
-    interface
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_3">
-<span class="md-nav__icon md-icon"></span>
-            interface
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/interface/filechecker/">
-<span class="md-ellipsis">
-    File Checker Interfaces Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
-<span class="md-ellipsis">
-    models
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_4">
-<span class="md-nav__icon md-icon"></span>
-            models
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/models/invoice_schema/">
-<span class="md-ellipsis">
-    Invoice Schema Module
+    ドキュメントへの貢献
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/models/metadata/">
+<a class="md-nav__link" href="../../../development/contributing/">
 <span class="md-ellipsis">
-    Metadata Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/models/rde2types/">
-<span class="md-ellipsis">
-    RDE2 Types Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
-<span class="md-ellipsis">
-    storage
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_5">
-<span class="md-nav__icon md-icon"></span>
-            storage
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/storage/minio/">
-<span class="md-ellipsis">
-    MinIO Storage
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
-<span class="md-ellipsis">
-    core module
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_6">
-<span class="md-nav__icon md-icon"></span>
-            core module
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/core/">
-<span class="md-ellipsis">
-    Core Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/config/">
-<span class="md-ellipsis">
-    Configuration Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/workflows/">
-<span class="md-ellipsis">
-    Workflows Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/rde2util/">
-<span class="md-ellipsis">
-    rde2util Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/invoicefile/">
-<span class="md-ellipsis">
-    Invoice File Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/modeproc/">
-<span class="md-ellipsis">
-    Mode Processing Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/validation/">
-<span class="md-ellipsis">
-    Validation Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/img2thumb/">
-<span class="md-ellipsis">
-    Image to Thumbnail Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/rdelogger/">
-<span class="md-ellipsis">
-    RDE Logger Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/exceptions/">
-<span class="md-ellipsis">
-    Exceptions Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-<span class="md-ellipsis">
-    Development
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_5">
-<span class="md-nav__icon md-icon"></span>
-            Development
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/home/">
-<span class="md-ellipsis">
-    Top
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/documents_contributing/">
-<span class="md-ellipsis">
-    Documents
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/sourcecode_contributing/">
-<span class="md-ellipsis">
-    Source Code
+    ソースコードへの貢献
   </span>
 </a>
 </li>
@@ -810,50 +1027,249 @@
 <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_2">
 <span class="md-ellipsis">
-      ファイルモード
+      目的
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_3">
 <span class="md-ellipsis">
-      フォルダモード
+      課題と背景
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_4">
 <span class="md-ellipsis">
-      その他
+      主要コンセプト
     </span>
 </a>
-<nav aria-label="その他" class="md-nav">
+<nav aria-label="主要コンセプト" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_5">
 <span class="md-ellipsis">
-      表記したモードと圧縮ファイルの構成が異なる場合
+      モード判定の仕組み
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_6">
+<a class="md-nav__link" href="#2">
 <span class="md-ellipsis">
-      この処理について
+      2つのモードの比較
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_6">
+<span class="md-ellipsis">
+      ファイルモード
+    </span>
+</a>
+<nav aria-label="ファイルモード" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_7">
+<span class="md-ellipsis">
+      概要
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#zip">
+<span class="md-ellipsis">
+      ZIP構造例
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_8">
+<span class="md-ellipsis">
+      処理結果
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_9">
+<span class="md-ellipsis">
+      使用場面
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_10">
+<span class="md-ellipsis">
+      実装例
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_11">
+<span class="md-ellipsis">
+      フォルダモード
+    </span>
+</a>
+<nav aria-label="フォルダモード" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_12">
+<span class="md-ellipsis">
+      概要
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#zip_1">
+<span class="md-ellipsis">
+      ZIP構造例
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_13">
+<span class="md-ellipsis">
+      処理結果
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_14">
+<span class="md-ellipsis">
+      使用場面
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_15">
+<span class="md-ellipsis">
+      実装例
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_16">
+<span class="md-ellipsis">
+      自動モード判定
+    </span>
+</a>
+<nav aria-label="自動モード判定" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_17">
+<span class="md-ellipsis">
+      判定ロジック
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_18">
+<span class="md-ellipsis">
+      判定基準
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_19">
+<span class="md-ellipsis">
+      実践的な使用例
+    </span>
+</a>
+<nav aria-label="実践的な使用例" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_20">
+<span class="md-ellipsis">
+      ファイルモードの活用
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_21">
+<span class="md-ellipsis">
+      フォルダモードの活用
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_22">
+<span class="md-ellipsis">
+      トラブルシューティング
+    </span>
+</a>
+<nav aria-label="トラブルシューティング" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_23">
+<span class="md-ellipsis">
+      よくある問題と解決方法
+    </span>
+</a>
+<nav aria-label="よくある問題と解決方法" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_24">
+<span class="md-ellipsis">
+      期待したモードで処理されない
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_25">
+<span class="md-ellipsis">
+      ファイルが見つからない
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_26">
+<span class="md-ellipsis">
+      デバッグのヒント
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_27">
+<span class="md-ellipsis">
+      まとめ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_28">
+<span class="md-ellipsis">
+      次のステップ
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -862,65 +1278,440 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="_1">圧縮ファイルの形式について</h1>
-<p>Excelinvoiceモードでデータを登録するとき、RDEには<strong>ファイルモード</strong>と<strong>フォルダモード</strong>という概念があります。
-このドキュメントでは、ファイルモードとフォルダモードの説明と、記述ルール、その他注意事項等についてまとめます。</p>
-<h2 id="_2">ファイルモード</h2>
-<p>Excelinvoiceのデータ列(A列)にファイル名を列挙し、記載したファイル名をデータセットに登録するモードのことを指します。</p>
-<p>起動条件や制約は以下の通りです。</p>
+<h1 id="_1">ファイルモードとフォルダモードとは</h1>
+<h2 id="_2">目的</h2>
+<p>ExcelInvoice処理におけるファイルモードとフォルダモードの違いと使い分けについて説明します。入力データの形式に応じた最適なモード選択と設定方法を理解できます。</p>
+<h2 id="_3">課題と背景</h2>
+<p>ExcelInvoiceを使用した一括データ登録において、以下のような多様な入力形式への対応が必要でした：</p>
 <ul>
-<li>下図の、A列のように<code>data_file_names</code>の次の行に<code>name</code>と記載する。(デフォルト)</li>
-<li>ファイル名には、ファイル名を記載する。(zip内のファイルパスではない。)</li>
+<li><strong>単一ファイル形式</strong>: 各データセットが1つのファイルで構成される場合</li>
+<li><strong>複数ファイル形式</strong>: 各データセットが複数のファイルで構成される場合</li>
+<li><strong>混在形式</strong>: ファイル数が異なる複数のデータセットを同時に処理する場合</li>
+<li><strong>効率性</strong>: 大量のデータセットを効率的に処理する必要性</li>
 </ul>
-<p><img alt="filemode_excelinvoice" src="../../../img/filemode_excelinvoice.png"/></p>
-<p>この時の入力zipファイルの構成は以下の通りです。zipファイル名は仮の名称とします。
-ファイルモードで入力するzipファイルには、ファイルが平置きで格納された状態で圧縮します。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>input.zip/
-|--<span style="color: #bbbbbb"> </span><span style="color: #6600EE; font-weight: bold">20100131045801</span><span style="color: #333333">(</span>2s<span style="color: #333333">)</span>.txt
-|--<span style="color: #bbbbbb"> </span><span style="color: #6600EE; font-weight: bold">20100131052029</span><span style="color: #333333">(</span>2p<span style="color: #333333">)</span>.txt
-</code></pre></div></td></tr></table></div>
-<h2 id="_3">フォルダモード</h2>
-<p>Excelinvoiceのデータ列(A列)にフォルダ名を列挙し、記載したフォルダ配下のファイルをデータセットに登録するモードのことを指します。</p>
-<p>このモードの利用想定は、Excelinvoiceを利用し、複数のファイルを一つのデータタイルに登録したい場合、このモードでデータ登録を行います。</p>
-<p><img alt="foldermode_excelinvoice.png" src="../../../img/foldermode_excelinvoice.png"/></p>
-<p>この時の入力zipファイルの構成は以下の通りです。zipファイル名は仮の名称とします。
-フォルダモードで入力するzipファイルには、フォルダが格納された状態で圧縮し登録します。このとき、フォルダが登録されるのではなく、フォルダ配下のファイルが登録されるため、あらかじめご注意ください。</p>
+<p>これらの課題に対応するため、ファイルモードとフォルダモードが設計されました。</p>
+<h2 id="_4">主要コンセプト</h2>
+<h3 id="_5">モード判定の仕組み</h3>
+<pre class="mermaid"><code>flowchart TD
+    A[ZIPファイル解凍] --&gt; B{ディレクトリ構造確認}
+    B --&gt;|フラット構造| C[ファイルモード]
+    B --&gt;|階層構造| D[フォルダモード]
+    C --&gt; E[ファイル単位で処理]
+    D --&gt; F[フォルダ単位で処理]
+</code></pre>
+<h3 id="2">2つのモードの比較</h3>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>ファイルモード</th>
+<th>フォルダモード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>入力形式</strong></td>
+<td>1データセット = 1ファイル</td>
+<td>1データセット = 1フォルダ</td>
+</tr>
+<tr>
+<td><strong>ZIP構造</strong></td>
+<td>フラット（ファイルが直接配置）</td>
+<td>階層（フォルダで分類）</td>
+</tr>
+<tr>
+<td><strong>適用場面</strong></td>
+<td>単純なデータファイル</td>
+<td>複合的なデータセット</td>
+</tr>
+<tr>
+<td><strong>処理単位</strong></td>
+<td>ファイル</td>
+<td>フォルダ</td>
+</tr>
+<tr>
+<td><strong>自動判定</strong></td>
+<td>○</td>
+<td>○</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">ファイルモード</h2>
+<h3 id="_7">概要</h3>
+<p>各データセットが単一のファイルで構成される場合に使用されます。</p>
+<h3 id="zip">ZIP構造例</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>input.zip/
-|--<span style="color: #bbbbbb"> </span>sample_folder_1/
-|<span style="color: #bbbbbb">   </span>|--<span style="color: #bbbbbb"> </span>file1.txt
-|<span style="color: #bbbbbb">   </span>|--<span style="color: #bbbbbb"> </span>file2.txt
-|
-|--<span style="color: #bbbbbb"> </span>sample_folder_2/
-|<span style="color: #bbbbbb">   </span>|--<span style="color: #bbbbbb"> </span>file3.txt
-|<span style="color: #bbbbbb">   </span>|--<span style="color: #bbbbbb"> </span>file4.txt
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>experiment_data.zip
+├── sample001.csv
+├── sample002.csv
+├── sample003.csv
+└── sample004.csv
 </code></pre></div></td></tr></table></div>
-<h2 id="_4">その他</h2>
-<h3 id="_5">表記したモードと圧縮ファイルの構成が異なる場合</h3>
-<p>Excelinvoiceに表記したモードと、入力するzipファイルの構成が異なる場合、エラーとなり処理を正しく実行できません。</p>
-<h3 id="_6">この処理について</h3>
-<p>この処理は、RdeToolKitで定義しています。該当ソースコードは以下のリポジトリのリンクを参照してください。</p>
-<div class="admonition reference">
-<p class="admonition-title">Reference</p>
+<h3 id="_8">処理結果</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
+├── divided/
+│   ├── 0001/  # sample001.csv用
+│   │   ├── raw/
+│   │   │   └── sample001.csv
+│   │   ├── structured/
+│   │   └── meta/
+│   ├── 0002/  # sample002.csv用
+│   │   ├── raw/
+│   │   │   └── sample002.csv
+│   │   ├── structured/
+│   │   └── meta/
+│   └── ...
+</code></pre></div></td></tr></table></div>
+<h3 id="_9">使用場面</h3>
 <ul>
-<li><a href="../../../rdetoolkit/impl/compressed_controller/#parse_compressedfile_mode">parse_compressedfile_mode - compressed_controller</a></li>
+<li><strong>測定データファイル</strong>: 各実験の結果が1つのCSVファイル</li>
+<li><strong>画像ファイル</strong>: 各サンプルの顕微鏡画像</li>
+<li><strong>ログファイル</strong>: 各実験セッションのログ</li>
+<li><strong>単純なデータセット</strong>: 追加ファイルが不要な場合</li>
 </ul>
-</div>
+<h3 id="_10">実装例</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">ファイルモード処理例</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_file_mode_data</span>(srcpaths, resource_paths):
+    <span style="color: #888888"># divided/0001, divided/0002, ... の各ディレクトリを処理</span>
+    divided_dirs <span style="color: #333333">=</span> [d <span style="color: #008800; font-weight: bold">for</span> d <span style="color: #000000; font-weight: bold">in</span> os<span style="color: #333333">.</span>listdir(<span style="background-color: #fff0f0">"data/divided"</span>) <span style="color: #008800; font-weight: bold">if</span> d<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"00"</span>)]
+
+    <span style="color: #008800; font-weight: bold">for</span> dir_name <span style="color: #000000; font-weight: bold">in</span> divided_dirs:
+        divided_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/divided"</span>) <span style="color: #333333">/</span> dir_name
+        raw_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>((divided_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"raw"</span>)<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>))
+
+        <span style="color: #888888"># 各ディレクトリには1つのファイルが存在</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(raw_files) <span style="color: #333333">==</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+            input_file <span style="color: #333333">=</span> raw_files[<span style="color: #0000DD; font-weight: bold">0</span>]
+            process_single_file(input_file, divided_path)
+</code></pre></div></td></tr></table></div>
+<h2 id="_11">フォルダモード</h2>
+<h3 id="_12">概要</h3>
+<p>各データセットが複数のファイルで構成される場合に使用されます。</p>
+<h3 id="zip_1">ZIP構造例</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>experiment_data.zip
+├── experiment_001/
+│   ├── data.csv
+│   ├── config.json
+│   └── image.png
+├── experiment_002/
+│   ├── data.csv
+│   ├── config.json
+│   └── image.png
+└── experiment_003/
+    ├── data.csv
+    ├── config.json
+    └── image.png
+</code></pre></div></td></tr></table></div>
+<h3 id="_13">処理結果</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
+├── divided/
+│   ├── 0001/  # experiment_001用
+│   │   ├── raw/
+│   │   │   ├── data.csv
+│   │   │   ├── config.json
+│   │   │   └── image.png
+│   │   ├── structured/
+│   │   └── meta/
+│   ├── 0002/  # experiment_002用
+│   │   ├── raw/
+│   │   │   ├── data.csv
+│   │   │   ├── config.json
+│   │   │   └── image.png
+│   │   ├── structured/
+│   │   └── meta/
+│   └── ...
+</code></pre></div></td></tr></table></div>
+<h3 id="_14">使用場面</h3>
+<ul>
+<li><strong>複合実験データ</strong>: データファイル + 設定ファイル + 画像</li>
+<li><strong>シミュレーション結果</strong>: 入力ファイル + 出力ファイル + ログ</li>
+<li><strong>機器データ</strong>: 測定データ + キャリブレーションファイル + メタデータ</li>
+<li><strong>関連ファイル群</strong>: 主データと補助ファイルのセット</li>
+</ul>
+<h3 id="_15">実装例</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">フォルダモード処理例</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_folder_mode_data</span>(srcpaths, resource_paths):
+    divided_dirs <span style="color: #333333">=</span> [d <span style="color: #008800; font-weight: bold">for</span> d <span style="color: #000000; font-weight: bold">in</span> os<span style="color: #333333">.</span>listdir(<span style="background-color: #fff0f0">"data/divided"</span>) <span style="color: #008800; font-weight: bold">if</span> d<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">"00"</span>)]
+
+    <span style="color: #008800; font-weight: bold">for</span> dir_name <span style="color: #000000; font-weight: bold">in</span> divided_dirs:
+        divided_path <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/divided"</span>) <span style="color: #333333">/</span> dir_name
+        raw_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>((divided_path <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"raw"</span>)<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>))
+
+        <span style="color: #888888"># 各ディレクトリには複数のファイルが存在</span>
+        <span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(raw_files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+            process_file_group(raw_files, divided_path)
+</code></pre></div></td></tr></table></div>
+<h2 id="_16">自動モード判定</h2>
+<h3 id="_17">判定ロジック</h3>
+<p>RDEToolKitは、ZIPファイルの構造を自動的に分析してモードを決定します：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">モード判定例</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">determine_excel_invoice_mode</span>(zip_path):
+    <span style="color: #008800; font-weight: bold">with</span> zipfile<span style="color: #333333">.</span>ZipFile(zip_path, <span style="background-color: #fff0f0">'r'</span>) <span style="color: #008800; font-weight: bold">as</span> zip_file:
+        file_list <span style="color: #333333">=</span> zip_file<span style="color: #333333">.</span>namelist()
+
+        <span style="color: #888888"># ディレクトリが含まれているかチェック</span>
+        has_directories <span style="color: #333333">=</span> <span style="color: #007020">any</span>(<span style="background-color: #fff0f0">'/'</span> <span style="color: #000000; font-weight: bold">in</span> name <span style="color: #008800; font-weight: bold">for</span> name <span style="color: #000000; font-weight: bold">in</span> file_list)
+
+        <span style="color: #008800; font-weight: bold">if</span> has_directories:
+            <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">"フォルダモード"</span>
+        <span style="color: #008800; font-weight: bold">else</span>:
+            <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">"ファイルモード"</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="_18">判定基準</h3>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>判定結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZIPファイル直下にファイルのみ</td>
+<td>ファイルモード</td>
+</tr>
+<tr>
+<td>ZIPファイル直下にフォルダが存在</td>
+<td>フォルダモード</td>
+</tr>
+<tr>
+<td>混在（ファイルとフォルダ両方）</td>
+<td>フォルダモード（優先）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_19">実践的な使用例</h2>
+<h3 id="_20">ファイルモードの活用</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">測定データ処理</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_measurement_files</span>(srcpaths, resource_paths):
+    <span style="color: #888888"># ファイルモード: 各CSVファイルを個別処理</span>
+    <span style="color: #008800; font-weight: bold">for</span> divided_dir <span style="color: #000000; font-weight: bold">in</span> get_divided_directories():
+        csv_file <span style="color: #333333">=</span> find_csv_file(divided_dir)
+
+        <span style="color: #888888"># データ読み込み</span>
+        df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>read_csv(csv_file)
+
+        <span style="color: #888888"># 統計処理</span>
+        stats <span style="color: #333333">=</span> calculate_statistics(df)
+
+        <span style="color: #888888"># 結果保存</span>
+        save_structured_data(stats, divided_dir)
+</code></pre></div></td></tr></table></div>
+<h3 id="_21">フォルダモードの活用</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">複合データ処理</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">process_experiment_folders</span>(srcpaths, resource_paths):
+    <span style="color: #888888"># フォルダモード: 関連ファイル群を統合処理</span>
+    <span style="color: #008800; font-weight: bold">for</span> divided_dir <span style="color: #000000; font-weight: bold">in</span> get_divided_directories():
+        files <span style="color: #333333">=</span> get_all_files(divided_dir)
+
+        <span style="color: #888888"># ファイル種別の識別</span>
+        data_file <span style="color: #333333">=</span> find_file_by_extension(files, <span style="background-color: #fff0f0">'.csv'</span>)
+        config_file <span style="color: #333333">=</span> find_file_by_extension(files, <span style="background-color: #fff0f0">'.json'</span>)
+        image_file <span style="color: #333333">=</span> find_file_by_extension(files, <span style="background-color: #fff0f0">'.png'</span>)
+
+        <span style="color: #888888"># 統合処理</span>
+        result <span style="color: #333333">=</span> process_experiment_set(data_file, config_file, image_file)
+
+        <span style="color: #888888"># 結果保存</span>
+        save_integrated_result(result, divided_dir)
+</code></pre></div></td></tr></table></div>
+<h2 id="_22">トラブルシューティング</h2>
+<h3 id="_23">よくある問題と解決方法</h3>
+<h4 id="_24">期待したモードで処理されない</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">モード確認</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">check_processing_mode</span>(zip_path):
+    <span style="color: #008800; font-weight: bold">with</span> zipfile<span style="color: #333333">.</span>ZipFile(zip_path, <span style="background-color: #fff0f0">'r'</span>) <span style="color: #008800; font-weight: bold">as</span> zip_file:
+        file_list <span style="color: #333333">=</span> zip_file<span style="color: #333333">.</span>namelist()
+
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"ZIPファイル内容:"</span>)
+        <span style="color: #008800; font-weight: bold">for</span> name <span style="color: #000000; font-weight: bold">in</span> file_list:
+            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  </span><span style="background-color: #eeeeee">{</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+        <span style="color: #888888"># モード判定結果</span>
+        mode <span style="color: #333333">=</span> determine_excel_invoice_mode(zip_path)
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"判定されたモード: </span><span style="background-color: #eeeeee">{</span>mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h4 id="_25">ファイルが見つからない</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">ファイル存在確認</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">verify_file_structure</span>(divided_dir):
+    raw_dir <span style="color: #333333">=</span> Path(divided_dir) <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"raw"</span>
+
+    <span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> raw_dir<span style="color: #333333">.</span>exists():
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"❌ rawディレクトリが存在しません: </span><span style="background-color: #eeeeee">{</span>raw_dir<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">False</span>
+
+    files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(raw_dir<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*"</span>))
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"rawディレクトリ内のファイル数: </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">for</span> file <span style="color: #000000; font-weight: bold">in</span> files:
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"  - </span><span style="background-color: #eeeeee">{</span>file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+
+    <span style="color: #008800; font-weight: bold">return</span> <span style="color: #007020">len</span>(files) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">0</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="_26">デバッグのヒント</h3>
+<table>
+<thead>
+<tr>
+<th>問題</th>
+<th>確認項目</th>
+<th>解決方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>モード判定エラー</td>
+<td>ZIP構造</td>
+<td>ZIPファイル内容を確認</td>
+</tr>
+<tr>
+<td>ファイル不足</td>
+<td>divided/00xx/raw/</td>
+<td>ファイル展開を確認</td>
+</tr>
+<tr>
+<td>処理エラー</td>
+<td>ログファイル</td>
+<td>data/logs/rdesys.log を確認</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_27">まとめ</h2>
+<p>ファイルモードとフォルダモードの特徴：</p>
+<ul>
+<li><strong>自動判定</strong>: ZIP構造に基づく自動モード選択</li>
+<li><strong>柔軟性</strong>: 多様な入力形式への対応</li>
+<li><strong>効率性</strong>: 大量データの一括処理</li>
+<li><strong>透明性</strong>: 明確な処理ルールと予測可能な結果</li>
+</ul>
+<h2 id="_28">次のステップ</h2>
+<p>ExcelInvoice処理をさらに活用するために、以下のドキュメントを参照してください：</p>
+<ul>
+<li><a href="../mode/">処理モード</a>でExcelInvoiceモードの詳細を学ぶ</li>
+<li><a href="../../structured_process/structured/">構造化処理の概念</a>で処理フローを理解する</li>
+<li><a href="../../structured_process/directory/">ディレクトリ構造</a>でdividedディレクトリの仕様を確認する</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
 </div>
 <button class="md-top md-icon" data-md-component="top" hidden="" type="button">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
-  Back to top
+  ページトップへ戻る
 </button>
 </main>
 <footer class="md-footer">
@@ -965,15 +1756,17 @@
 </ul>
 </div>
 <div class="md-consent__controls">
-<button class="md-button md-button--primary">Accept</button>
-<label class="md-button" for="__settings">Manage settings</label>
+<button class="md-button md-button--primary">同意</button>
+<label class="md-button" for="__settings">サイトの設定</label>
 </div>
 </form>
 </aside>
 </div>
 <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}}</script>
 <script src="../../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
-</body>
+<script>window.mermaidConfig = {default: {
+    startOnLoad: false
+}};</script></body>
 </html>

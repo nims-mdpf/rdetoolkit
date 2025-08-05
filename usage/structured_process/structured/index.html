@@ -1,15 +1,15 @@
 
 <!DOCTYPE html>
 
-<html class="no-js" lang="en">
+<html class="no-js" lang="ja">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="../../quickstart/" rel="prev"/>
-<link href="../directory/" rel="next"/>
+<link href="../development_guide/" rel="next"/>
 <link href="../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>構造化処理を構築する - RDEToolKit Documentation</title>
+<title>構造化プロセスの構築 - RDEToolKit Documentation</title>
 <link href="../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -24,13 +24,13 @@
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
 <a class="md-skip" href="#_1">
-          Skip to content
+          コンテンツにスキップ
         </a>
 </div>
 <div data-md-component="announce">
 </div>
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-<nav aria-label="Header" class="md-header__inner md-grid">
+<nav aria-label="ヘッダー" class="md-header__inner md-grid">
 <a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../../img/2585322.png"/>
 </a>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              構造化処理を構築する
+              構造化プロセスの構築
             
           </span>
 </div>
@@ -64,6 +64,27 @@
 </label>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="言語切り替え" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../../en/usage/structured_process/structured/" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <label class="md-header__button md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 </label>
@@ -71,13 +92,13 @@
 <label class="md-search__overlay" for="__search"></label>
 <div class="md-search__inner" role="search">
 <form class="md-search__form" name="search">
-<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<input aria-label="検索" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="検索" required="" spellcheck="false" type="text"/>
 <label class="md-search__icon md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </label>
-<nav aria-label="Search" class="md-search__options">
-<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<nav aria-label="検索" class="md-search__options">
+<button aria-label="クリア" class="md-search__icon md-icon" tabindex="-1" title="クリア" type="reset">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
 </button>
 </nav>
@@ -86,7 +107,7 @@
 <div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
 <div class="md-search-result" data-md-component="search-result">
 <div class="md-search-result__meta">
-            Initializing search
+            検索を初期化
           </div>
 <ol class="md-search-result__list" role="presentation"></ol>
 </div>
@@ -95,7 +116,7 @@
 </div>
 </div>
 <div class="md-header__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -105,30 +126,22 @@
 </a>
 </div>
 </nav>
-<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<nav aria-label="タブ" class="md-tabs" data-md-component="tabs">
 <div class="md-grid">
 <ul class="md-tabs__list">
 <li class="md-tabs__item">
 <a class="md-tabs__link" href="../../..">
           
   
-  Getting started
-
-        </a>
-</li>
-<li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../install/">
-          
-  
-  Installation
+  はじめに
 
         </a>
 </li>
 <li class="md-tabs__item md-tabs__item--active">
-<a class="md-tabs__link" href="../../quickstart/">
+<a class="md-tabs__link" href="./">
           
   
-  User Guide
+  ユーザーガイド
 
         </a>
 </li>
@@ -136,15 +149,15 @@
 <a class="md-tabs__link" href="../../../rdetoolkit/">
           
   
-  API Documentation
+  API リファレンス
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../../contribute/home/">
+<a class="md-tabs__link" href="../../../development/">
           
   
-  Development
+  コントリビューション
 
         </a>
 </li>
@@ -158,7 +171,7 @@
 <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<nav aria-label="ナビゲーション" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
 <label class="md-nav__title" for="__drawer">
 <a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../../img/2585322.png"/>
@@ -166,7 +179,7 @@
     RDEToolKit Documentation
   </label>
 <div class="md-nav__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -180,78 +193,30 @@
 <input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
 <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
 <span class="md-ellipsis">
-    Getting started
+    はじめに
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_1">
 <span class="md-nav__icon md-icon"></span>
-            Getting started
+            はじめに
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../..">
 <span class="md-ellipsis">
-    RDEToolKit
+    はじめに
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-<span class="md-ellipsis">
-    Installation
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_2">
-<span class="md-nav__icon md-icon"></span>
-            Installation
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../install/">
+<a class="md-nav__link" href="../../../installation/">
 <span class="md-ellipsis">
-    インストール方法
+    インストール
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
-<span class="md-ellipsis">
-    User Guide
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_3">
-<span class="md-nav__icon md-icon"></span>
-            User Guide
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_1" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
-<span class="md-ellipsis">
-    Quick Start
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_1_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_1">
-<span class="md-nav__icon md-icon"></span>
-            Quick Start
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../quickstart/">
 <span class="md-ellipsis">
@@ -262,65 +227,101 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
 <span class="md-ellipsis">
-    構造化処理
+    ユーザーガイド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_2">
+<nav aria-expanded="true" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
 <span class="md-nav__icon md-icon"></span>
-            構造化処理
+            ユーザーガイド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    構造化処理開発
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            構造化処理開発
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--active">
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    構造化処理を構築する
+    構造化プロセスの構築
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    構造化処理を構築する
+    構造化プロセスの構築
   </span>
 </a>
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#rdetoolkit">
+<a class="md-nav__link" href="#_2">
 <span class="md-ellipsis">
-      RDEToolKitがサポートする処理
+      目的
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_2">
-<span class="md-ellipsis">
-      起動処理
-    </span>
-</a>
-<nav aria-label="起動処理" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
 <a class="md-nav__link" href="#_3">
 <span class="md-ellipsis">
-      実装例
+      課題と背景
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_4">
 <span class="md-ellipsis">
-      具体的な処理について
+      主要コンセプト
+    </span>
+</a>
+<nav aria-label="主要コンセプト" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3">
+<span class="md-ellipsis">
+      3つのフェーズ
+    </span>
+</a>
+<nav aria-label="3つのフェーズ" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1">
+<span class="md-ellipsis">
+      1. 初期化フェーズ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2">
+<span class="md-ellipsis">
+      2. カスタム処理フェーズ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3_1">
+<span class="md-ellipsis">
+      3. 終了フェーズ
     </span>
 </a>
 </li>
@@ -330,22 +331,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_5">
 <span class="md-ellipsis">
-      カスタム用構造化処理関数の作成
+      標準ディレクトリ構造
     </span>
 </a>
-<nav aria-label="カスタム用構造化処理関数の作成" class="md-nav">
-<ul class="md-nav__list">
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_6">
 <span class="md-ellipsis">
-      実装例
+      データフロー
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_7">
 <span class="md-ellipsis">
-      起動処理へ組み込む
+      処理モード
     </span>
 </a>
 </li>
@@ -355,56 +355,309 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_8">
 <span class="md-ellipsis">
-      終了処理について
+      利点と効果
     </span>
 </a>
-<nav aria-label="終了処理について" class="md-nav">
+<nav aria-label="利点と効果" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_9">
 <span class="md-ellipsis">
-      各種ファイルのバリデーション
+      研究者にとっての利点
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_10">
 <span class="md-ellipsis">
-      説明欄への自動転記
+      組織にとっての利点
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_11">
+<span class="md-ellipsis">
+      まとめ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_12">
+<span class="md-ellipsis">
+      次のステップ
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../development_guide/">
+<span class="md-ellipsis">
+    構造化処理開発ガイド
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../directory/">
 <span class="md-ellipsis">
-    サポートするディレクトリ
+    対応ディレクトリ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rdepath/">
 <span class="md-ellipsis">
-    構造化ディレクトリパスの取得
+    ディレクトリパスアクセス
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../errorhandling/">
 <span class="md-ellipsis">
-    構造化処理のエラーハンドリング
+    エラーハンドリング
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../feature_description/">
 <span class="md-ellipsis">
-    データタイル説明欄への自動記述について
+    機能説明
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    設定ファイルとCLI
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
+<span class="md-nav__icon md-icon"></span>
+            設定ファイルとCLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/config/">
+<span class="md-ellipsis">
+    設定ファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/mode/">
+<span class="md-ellipsis">
+    データ登録モード
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/file_folder_mode/">
+<span class="md-ellipsis">
+    ファイル/フォルダモード
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/magic_variable/">
+<span class="md-ellipsis">
+    マジック変数
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cli/">
+<span class="md-ellipsis">
+    コマンドライン操作
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+<span class="md-ellipsis">
+    テンプレートファイルと検証
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
+<span class="md-nav__icon md-icon"></span>
+            テンプレートファイルと検証
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../metadata_definition_file/">
+<span class="md-ellipsis">
+    テンプレートファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../validation/">
+<span class="md-ellipsis">
+    データ検証
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    統合
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            統合
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../object_storage/">
+<span class="md-ellipsis">
+    オブジェクトストレージ (MinIO)
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../docker/">
+<span class="md-ellipsis">
+    Docker の使用
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-ellipsis">
+    API リファレンス
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            API リファレンス
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/">
+<span class="md-ellipsis">
+    概要
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<span class="md-ellipsis">
+    コアモジュール
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
+<span class="md-nav__icon md-icon"></span>
+            コアモジュール
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/config/">
+<span class="md-ellipsis">
+    設定
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/core/">
+<span class="md-ellipsis">
+    コア機能
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/workflows/">
+<span class="md-ellipsis">
+    ワークフロー
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/modeproc/">
+<span class="md-ellipsis">
+    モード処理
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/invoicefile/">
+<span class="md-ellipsis">
+    Invoiceファイル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/rde2util/">
+<span class="md-ellipsis">
+    ユーティリティ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/rdelogger/">
+<span class="md-ellipsis">
+    ロギング
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/img2thumb/">
+<span class="md-ellipsis">
+    代表画像操作
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/validation/">
+<span class="md-ellipsis">
+    検証
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/exceptions/">
+<span class="md-ellipsis">
+    例外
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/fileops/">
+<span class="md-ellipsis">
+    ファイル操作
   </span>
 </a>
 </li>
@@ -415,20 +668,55 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
 <span class="md-ellipsis">
-    コマンドライン機能
+    データモデル
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_3">
 <span class="md-nav__icon md-icon"></span>
-            コマンドライン機能
+            データモデル
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../cli/">
+<a class="md-nav__link" href="../../../rdetoolkit/models/config/">
 <span class="md-ellipsis">
-    コマンドライン機能について
+    設定モデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/invoice/">
+<span class="md-ellipsis">
+    Invoiceモデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/invoice_schema/">
+<span class="md-ellipsis">
+    Invoiceスキーマ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/metadata/">
+<span class="md-ellipsis">
+    メタデータモデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/rde2types/">
+<span class="md-ellipsis">
+    タイプ定義
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/models/result/">
+<span class="md-ellipsis">
+    結果出力
   </span>
 </a>
 </li>
@@ -439,41 +727,27 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
 <span class="md-ellipsis">
-    設定ファイル
+    実装
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_4">
 <span class="md-nav__icon md-icon"></span>
-            設定ファイル
+            実装
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../config/config/">
+<a class="md-nav__link" href="../../../rdetoolkit/impl/compressed_controller/">
 <span class="md-ellipsis">
-    RDEToolKit設定ファイル
+    圧縮
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../config/mode/">
+<a class="md-nav__link" href="../../../rdetoolkit/impl/input_controller/">
 <span class="md-ellipsis">
-    RDEToolKitのデータ登録モード
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../config/file_folder_mode/">
-<span class="md-ellipsis">
-    圧縮ファイルの形式について
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../config/magic_variable/">
-<span class="md-ellipsis">
-    Magic Variableによるデータ登録について
+    入力ファイル
   </span>
 </a>
 </li>
@@ -484,20 +758,20 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
 <span class="md-ellipsis">
-    テンプレートファイル
+    インターフェース
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_5">
 <span class="md-nav__icon md-icon"></span>
-            テンプレートファイル
+            インターフェース
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../metadata_definition_file/">
+<a class="md-nav__link" href="../../../rdetoolkit/interface/filechecker/">
 <span class="md-ellipsis">
-    テンプレートファイル
+    ファイルチェック
   </span>
 </a>
 </li>
@@ -508,20 +782,27 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
 <span class="md-ellipsis">
-    バリデーション
+    コマンド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_6">
 <span class="md-nav__icon md-icon"></span>
-            バリデーション
+            コマンド
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../validation/">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/command/">
 <span class="md-ellipsis">
-    バリデーション機能
+    ベースコマンド
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel形式Invoice生成
   </span>
 </a>
 </li>
@@ -532,20 +813,20 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
 <span class="md-ellipsis">
-    オブジェクトストレージを使用する
+    ストレージ
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_7">
 <span class="md-nav__icon md-icon"></span>
-            オブジェクトストレージを使用する
+            ストレージ
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../object_storage/">
+<a class="md-nav__link" href="../../../rdetoolkit/storage/minio/">
 <span class="md-ellipsis">
-    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+    MinIO 統合
   </span>
 </a>
 </li>
@@ -556,20 +837,20 @@
 <input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
 <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
 <span class="md-ellipsis">
-    Docker
+    アーティファクト
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_8">
 <span class="md-nav__icon md-icon"></span>
-            Docker
+            アーティファクト
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../docker/">
+<a class="md-nav__link" href="../../../rdetoolkit/artifact/report/">
 <span class="md-ellipsis">
-    Using RDEToolKit with Docker
+    レポート生成
   </span>
 </a>
 </li>
@@ -583,262 +864,34 @@
 <input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
 <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
 <span class="md-ellipsis">
-    API Documentation
+    コントリビューション
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_4">
 <span class="md-nav__icon md-icon"></span>
-            API Documentation
+            コントリビューション
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/">
+<a class="md-nav__link" href="../../../development/">
 <span class="md-ellipsis">
-    RDE Toolkit API Documentation
-  </span>
-</a>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
-<span class="md-ellipsis">
-    impl
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_2">
-<span class="md-nav__icon md-icon"></span>
-            impl
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/impl/compressed_controller/">
-<span class="md-ellipsis">
-    Compressed Controller Module
+    概要
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/impl/input_controller/">
+<a class="md-nav__link" href="../../../development/docs/">
 <span class="md-ellipsis">
-    Input Controller Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
-<span class="md-ellipsis">
-    interface
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_3">
-<span class="md-nav__icon md-icon"></span>
-            interface
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/interface/filechecker/">
-<span class="md-ellipsis">
-    File Checker Interfaces Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
-<span class="md-ellipsis">
-    models
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_4">
-<span class="md-nav__icon md-icon"></span>
-            models
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/models/invoice_schema/">
-<span class="md-ellipsis">
-    Invoice Schema Module
+    ドキュメントへの貢献
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/models/metadata/">
+<a class="md-nav__link" href="../../../development/contributing/">
 <span class="md-ellipsis">
-    Metadata Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/models/rde2types/">
-<span class="md-ellipsis">
-    RDE2 Types Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
-<span class="md-ellipsis">
-    storage
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_5">
-<span class="md-nav__icon md-icon"></span>
-            storage
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/storage/minio/">
-<span class="md-ellipsis">
-    MinIO Storage
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
-<span class="md-ellipsis">
-    core module
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_6">
-<span class="md-nav__icon md-icon"></span>
-            core module
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/core/">
-<span class="md-ellipsis">
-    Core Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/config/">
-<span class="md-ellipsis">
-    Configuration Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/workflows/">
-<span class="md-ellipsis">
-    Workflows Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/rde2util/">
-<span class="md-ellipsis">
-    rde2util Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/invoicefile/">
-<span class="md-ellipsis">
-    Invoice File Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/modeproc/">
-<span class="md-ellipsis">
-    Mode Processing Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/validation/">
-<span class="md-ellipsis">
-    Validation Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/img2thumb/">
-<span class="md-ellipsis">
-    Image to Thumbnail Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/rdelogger/">
-<span class="md-ellipsis">
-    RDE Logger Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../rdetoolkit/exceptions/">
-<span class="md-ellipsis">
-    Exceptions Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-<span class="md-ellipsis">
-    Development
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_5">
-<span class="md-nav__icon md-icon"></span>
-            Development
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/home/">
-<span class="md-ellipsis">
-    Top
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/documents_contributing/">
-<span class="md-ellipsis">
-    Documents
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../../contribute/sourcecode_contributing/">
-<span class="md-ellipsis">
-    Source Code
+    ソースコードへの貢献
   </span>
 </a>
 </li>
@@ -853,38 +906,60 @@
 <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#rdetoolkit">
+<a class="md-nav__link" href="#_2">
 <span class="md-ellipsis">
-      RDEToolKitがサポートする処理
+      目的
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_2">
-<span class="md-ellipsis">
-      起動処理
-    </span>
-</a>
-<nav aria-label="起動処理" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
 <a class="md-nav__link" href="#_3">
 <span class="md-ellipsis">
-      実装例
+      課題と背景
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_4">
 <span class="md-ellipsis">
-      具体的な処理について
+      主要コンセプト
+    </span>
+</a>
+<nav aria-label="主要コンセプト" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3">
+<span class="md-ellipsis">
+      3つのフェーズ
+    </span>
+</a>
+<nav aria-label="3つのフェーズ" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1">
+<span class="md-ellipsis">
+      1. 初期化フェーズ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2">
+<span class="md-ellipsis">
+      2. カスタム処理フェーズ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3_1">
+<span class="md-ellipsis">
+      3. 終了フェーズ
     </span>
 </a>
 </li>
@@ -894,22 +969,21 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_5">
 <span class="md-ellipsis">
-      カスタム用構造化処理関数の作成
+      標準ディレクトリ構造
     </span>
 </a>
-<nav aria-label="カスタム用構造化処理関数の作成" class="md-nav">
-<ul class="md-nav__list">
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_6">
 <span class="md-ellipsis">
-      実装例
+      データフロー
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_7">
 <span class="md-ellipsis">
-      起動処理へ組み込む
+      処理モード
     </span>
 </a>
 </li>
@@ -919,27 +993,41 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_8">
 <span class="md-ellipsis">
-      終了処理について
+      利点と効果
     </span>
 </a>
-<nav aria-label="終了処理について" class="md-nav">
+<nav aria-label="利点と効果" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_9">
 <span class="md-ellipsis">
-      各種ファイルのバリデーション
+      研究者にとっての利点
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_10">
 <span class="md-ellipsis">
-      説明欄への自動転記
+      組織にとっての利点
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_11">
+<span class="md-ellipsis">
+      まとめ
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_12">
+<span class="md-ellipsis">
+      次のステップ
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -948,97 +1036,55 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="_1">構造化処理を構築する</h1>
-<p>RDE構造化処理は、大きく分けて、以下の3つのフェーズに分けられます。</p>
-<pre class="mermaid"><code>graph LR
-    起動処理 --&gt; カスタム構造化処理
-    カスタム構造化処理 --&gt; 終了処理
-</code></pre>
-<p>起動処理、終了処理は、rdetoolkitを使うことで簡単に実行できます。そのため、ユーザー自身は、ご自身のデータに対する処理を実行する<code>カスタム構造化処理</code>を定義するだけです。</p>
-<h2 id="rdetoolkit">RDEToolKitがサポートする処理</h2>
+<h1 id="_1">構造化処理とは</h1>
+<h2 id="_2">目的</h2>
+<p>RDE構造化処理の基本概念と処理フローについて説明します。なぜ構造化処理が必要なのか、どのような仕組みで動作するのかを理解できます。</p>
+<h2 id="_3">課題と背景</h2>
+<p>研究データの管理において、以下のような課題がありました：</p>
 <ul>
-<li>起動モードの自動判定</li>
-<li>入力データを指定したディレクトリに保存する</li>
-<li>Main画像をサムネイル画像に保存する</li>
-<li>magic variableの適用</li>
-<li>invoice.schema.json, invoice.json等のバリデーション</li>
-<li>metadata-def.jsonからデータセットタイルの説明欄自動生成</li>
+<li><strong>データ形式の多様性</strong>: 実験装置や研究分野によって異なるデータ形式</li>
+<li><strong>メタデータの不統一</strong>: 研究者ごとに異なるメタデータの記述方法</li>
+<li><strong>再現性の確保</strong>: データ処理手順の標準化と記録の必要性</li>
+<li><strong>品質管理</strong>: データの整合性と妥当性の検証</li>
 </ul>
-<h2 id="_2">起動処理</h2>
-<p>起動処理では、カスタム構造化処理を実行する前の処理を実行します。</p>
-<div class="admonition reference">
-<p class="admonition-title">Reference</p>
-<p>API Documents: <a href="../../../rdetoolkit/workflows/#run">rdetoolkit.workflows.run</a></p>
-</div>
-<h3 id="_3">実装例</h3>
-<p>実装は、プログラムのエントリーポイントとなるファイルに実装することを推奨します。例えば、<code>main.py</code>や<code>run.py</code>というファイルを作成し、以下のように実装します。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">modules</span> <span style="color: #008800; font-weight: bold">import</span> process <span style="color: #888888">#独自で定義した構造化処理関数</span>
-<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span>
+<p>これらの課題を解決するために、RDE構造化処理という概念が生まれました。</p>
+<h2 id="_4">主要コンセプト</h2>
+<h3 id="3">3つのフェーズ</h3>
+<p>RDE構造化処理は、以下の3つのフェーズで構成されています：</p>
+<pre class="mermaid"><code>flowchart LR
+    A[初期化フェーズ] --&gt; B[カスタム処理フェーズ]
+    B --&gt; C[終了フェーズ]
 
-<span style="color: #888888"># run()がRDE構造化の起動処理と後処理を実行</span>
-rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333333">.</span>run(custom_dataset_function<span style="color: #333333">=</span>process<span style="color: #333333">.</span>dataset)
-</code></pre></div></td></tr></table></div>
-<h3 id="_4">具体的な処理について</h3>
-<p>起動処理は、次の処理を実行します。</p>
-<ul>
-<li>RDE構造化処理で必要なディレクトリの自動作成</li>
-<li>入力ファイルを<code>raw</code>ディレクトリへ自動保存</li>
-<li>入力ファイル・設定ファイルの内容から、各種モードに応じた読み込み処理</li>
-<li>読み込んだファイルを、独自で定義したカスタム構造化処理に渡し実行</li>
-</ul>
-<blockquote>
-<p>各種モードごとのファイル読み込みでは、ファイルの内容を読み込んでいません。そのため、ファイルに対する具体的な処理は、カスタム構造化処理等で定義してください。</p>
-</blockquote>
-<pre class="mermaid"><code>graph TD
-    init1[起動処理] --&gt; init2[ディレクトリ作成]
-    init2--&gt;init3{モード選択}
-    init3--&gt;|default|init6[invoiceモード]
-    init3--&gt;init7[Excelinvoiceモード]
-    init3--&gt;init8[マルチデータタイル]
-    init3--&gt;init9[RDEフォーマットモード]
-    init6--&gt;init10[カスタム構造化処理]
-    init7--&gt;init10
-    init8--&gt;init10
-    init9--&gt;init10
-    init10 --&gt; init11[入力データのrawフォルダに追加]
-    init11 --&gt; init12[[ユーザー定義の構造化処理実行]]
-    init12 --&gt; init13[サムネイル画像の自動保存]
-    init13 --&gt; init14[magic variable]
-    init14 --&gt; init15[終了]
+    A1[ディレクトリ作成<br/>ファイル検証<br/>設定読み込み] --&gt; A
+    B1[ユーザー定義処理<br/>データ変換<br/>メタデータ生成] --&gt; B
+    C1[出力検証<br/>ログ最終化<br/>クリーンアップ] --&gt; C
 </code></pre>
-<h2 id="_5">カスタム用構造化処理関数の作成</h2>
-<p>rdetoolkitでは、独自の処理をRDEの構造化処理のフローに組み込み込むことが可能です。独自の構造化処理は、入力データに対してデータ加工・グラフ化・機械学習用のcsvファイルの作成など、データセット固有の処理を定義することで、RDEへ柔軟にデータを登録可能です。</p>
-<h3 id="_6">実装例</h3>
-<p>ここでは、rdetoolkitへ渡す独自データセット関数を、<code>dataset()</code>とします。<code>dataset()</code>は、以下の2つの引数を渡してください。</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>独自のクラス・関数群を定義する場合、必ず<code>RdeInputDirPaths</code>, <code>RdeOutputResourcePath</code>を引数で受け取り可能な関数でwrapしてください。</p>
-</div>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># wrap用関数</span>
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    <span style="color: #888888"># この関数内でユーザ自身が定義したクラスや関数を呼び出す</span>
-    <span style="color: #333333">...</span>
-</code></pre></div></td></tr></table></div>
-<p>これの引数には、構造化するために必要な各種ディレクトリ情報やファイル情報が格納されています。特に、<code>RdeOutputResourcePath</code>には、ファイル保存先情報が格納されています。構造化処理内で上記のディレクトリ・ファイルパスを取得する方法は、<a href="../rdepath/">構造化ディレクトリパスの取得</a>を参照してください。</p>
+<h4 id="1">1. 初期化フェーズ</h4>
+<p>システムが自動的に実行する準備段階：</p>
 <ul>
-<li>srcpaths (RdeInputDirPaths): 入力されたリソースファイルのパス情報</li>
-<li>resource_paths (RdeOutputResourcePath): 処理結果を保存するための出力リソースパス情報</li>
+<li><strong>ディレクトリ構造の作成</strong>: 標準的な出力ディレクトリを自動生成</li>
+<li><strong>入力ファイルの検証</strong>: ファイル形式と整合性をチェック</li>
+<li><strong>設定の読み込み</strong>: 処理モードと設定パラメータを適用</li>
+<li><strong>ログシステムの初期化</strong>: 処理履歴の記録を開始</li>
 </ul>
-<div class="admonition reference">
-<p class="admonition-title">Reference</p>
+<h4 id="2">2. カスタム処理フェーズ</h4>
+<p>研究者が定義する核心的な処理段階：</p>
 <ul>
-<li>API Documentation: <a href="../../../rdetoolkit/models/rde2types/#rdeinputdirpaths">RdeInputDirPaths - rde2types</a></li>
-<li>API Documentation: <a href="../../../rdetoolkit/models/rde2types/#rdeoutputresourcepath">RdeOutputResourcePath - rde2types</a></li>
+<li><strong>データ変換</strong>: 生データを研究目的に応じて加工</li>
+<li><strong>品質管理</strong>: データの妥当性検証と異常値検出</li>
+<li><strong>メタデータ生成</strong>: 処理結果に関する情報を記録</li>
+<li><strong>可視化</strong>: グラフや図表の生成</li>
 </ul>
-</div>
-<p>今回の例では、<code>modules</code>以下に、<code>display_messsage()</code>, <code>custom_graph()</code>, <code>custom_extract_metadata()</code>というダミー処理を定義し、独自の構造化処理を定義します。これらの関数は、<code>modules/process.py</code>というファイルを作成し定義します。以下の2つの引数を渡す関数でなければ、rdetoolkitは正しく処理が実行できません。</p>
+<h4 id="3_1">3. 終了フェーズ</h4>
+<p>システムが自動的に実行する完了段階：</p>
+<ul>
+<li><strong>出力検証</strong>: 生成されたファイルの整合性確認</li>
+<li><strong>ログの最終化</strong>: 処理結果と統計情報の記録</li>
+<li><strong>一時ファイルのクリーンアップ</strong>: 不要なファイルの削除</li>
+<li><strong>実行結果の報告</strong>: 成功・失敗の判定と報告</li>
+</ul>
+<h3 id="_5">標準ディレクトリ構造</h3>
+<p>構造化処理では、以下の標準ディレクトリ構造を使用します：</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1050,165 +1096,95 @@ rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># modules/process.py</span>
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">display_messsage</span>(path):
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Test Message!: </span><span style="background-color: #eeeeee">{</span>path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">custom_graph</span>():
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"graph"</span>)
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">custom_extract_metadata</span>():
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"extract metadata"</span>)
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">dataset</span>(srcpaths, resource_paths):
-    display_messsage(srcpaths)
-    display_messsage(resource_paths)
-    custom_graph()
-    custom_extract_metadata()
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
+├──<span style="color: #bbbbbb"> </span>inputdata/<span style="color: #bbbbbb">      </span><span style="color: #888888"># 入力データ（研究者が配置）</span>
+├──<span style="color: #bbbbbb"> </span>invoice/<span style="color: #bbbbbb">        </span><span style="color: #888888"># 送り状データ（メタデータ）</span>
+├──<span style="color: #bbbbbb"> </span>tasksupport/<span style="color: #bbbbbb">    </span><span style="color: #888888"># 設定ファイル群</span>
+├──<span style="color: #bbbbbb"> </span>raw/<span style="color: #bbbbbb">            </span><span style="color: #888888"># 生データのコピー</span>
+├──<span style="color: #bbbbbb"> </span>structured/<span style="color: #bbbbbb">     </span><span style="color: #888888"># 処理済みデータ</span>
+├──<span style="color: #bbbbbb"> </span>meta/<span style="color: #bbbbbb">           </span><span style="color: #888888"># メタデータファイル</span>
+├──<span style="color: #bbbbbb"> </span>main_image/<span style="color: #bbbbbb">     </span><span style="color: #888888"># メイン表示画像</span>
+├──<span style="color: #bbbbbb"> </span>other_image/<span style="color: #bbbbbb">    </span><span style="color: #888888"># その他の画像</span>
+├──<span style="color: #bbbbbb"> </span>thumbnail/<span style="color: #bbbbbb">      </span><span style="color: #888888"># サムネイル画像</span>
+├──<span style="color: #bbbbbb"> </span>logs/<span style="color: #bbbbbb">           </span><span style="color: #888888"># 処理ログ</span>
+└──<span style="color: #bbbbbb"> </span>temp/<span style="color: #bbbbbb">           </span><span style="color: #888888"># 一時ファイル</span>
 </code></pre></div></td></tr></table></div>
-<h3 id="_7">起動処理へ組み込む</h3>
-<p>この<code>dataset()</code>を起動するためには、先ほどの起動処理で作成したエントリーポイントとなるファイル(<code>main.py</code>など)に以下のように定義します。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">modules</span> <span style="color: #008800; font-weight: bold">import</span> process <span style="color: #888888">#独自で定義した構造化処理関数</span>
-<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit</span>
+<h3 id="_6">データフロー</h3>
+<pre class="mermaid"><code>flowchart TD
+    A[生データ] --&gt; B[入力検証]
+    B --&gt; C[カスタム処理]
+    C --&gt; D[品質管理]
+    D --&gt; E[メタデータ生成]
+    E --&gt; F[出力検証]
+    F --&gt; G[RDEデータセット]
 
-<span style="color: #888888"># run()にカスタム構造化処理をを渡す</span>
-result <span style="color: #333333">=</span> rdetoolkit<span style="color: #333333">.</span>workflows<span style="color: #333333">.</span>run(custom_dataset_function<span style="color: #333333">=</span>process<span style="color: #333333">.</span>dataset)
-</code></pre></div></td></tr></table></div>
-<p><code>result</code>には、構造化処理の実行ステータスが格納されます。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #333333">{</span>
-<span style="color: #bbbbbb">  </span><span style="background-color: #fff0f0">"statuses"</span>:<span style="color: #bbbbbb"> </span><span style="color: #333333">[</span>
-<span style="color: #bbbbbb">    </span><span style="color: #333333">{</span>
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"run_id"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"0000"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"title"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"test-dataset"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"status"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"success"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"mode"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"MultiDataTile"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_code"</span>:<span style="color: #bbbbbb"> </span>null,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_message"</span>:<span style="color: #bbbbbb"> </span>null,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"target"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"data/inputdata"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"stacktrace"</span>:<span style="color: #bbbbbb"> </span>null
-<span style="color: #bbbbbb">    </span><span style="color: #333333">}</span>,
-<span style="color: #bbbbbb">    </span><span style="color: #333333">{</span>
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"run_id"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"0001"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"title"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"test-dataset"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"status"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"success"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"mode"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"MultiDataTile"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_code"</span>:<span style="color: #bbbbbb"> </span>null,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_message"</span>:<span style="color: #bbbbbb"> </span>null,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"target"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"data/inputdata"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"stacktrace"</span>:<span style="color: #bbbbbb"> </span>null
-<span style="color: #bbbbbb">    </span><span style="color: #333333">}</span>
-<span style="color: #bbbbbb">  </span><span style="color: #333333">]</span>
-<span style="color: #333333">}</span>
-</code></pre></div></td></tr></table></div>
-<p>失敗した時の<code>result</code>の出力</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #333333">{</span>
-<span style="color: #bbbbbb">  </span><span style="background-color: #fff0f0">"statuses"</span>:<span style="color: #bbbbbb"> </span><span style="color: #333333">[</span>
-<span style="color: #bbbbbb">    </span><span style="color: #333333">{</span>
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"run_id"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"0000"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"title"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Structured Process Faild: MultiDataTile"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"status"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"failed"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"mode"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"MultiDataTile"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_code"</span>:<span style="color: #bbbbbb"> </span><span style="color: #6600EE; font-weight: bold">999</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_message"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Error: Error in modules"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"target"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"data/inputdata/sample1.txt"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"stacktrace"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Traceback (most recent call last):\n  File \"/Users/myproject/.venv/lib/python3.10/site-packages/rdetoolkit/exceptions.py\", line 158, in skip_exception_context\n    yield error_info\n  File \"/Users/myproject/.venv/lib/python3.10/site-packages/rdetoolkit/workflows.py\", line 242, in run\n    status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)\n  File \"/Users/myproject/.venv/lib/python3.10/site-packages/rdetoolkit/modeproc.py\", line 157, in multifile_mode_process\n    datasets_process_function(srcpaths, resource_paths)\n  File \"/Users/myproject/modules/modules.py\", line 5, in error_modules\n    raise Exception(\"Error in modules\")\nException: Error in modules\n"</span>
-<span style="color: #bbbbbb">    </span><span style="color: #333333">}</span>,
-<span style="color: #bbbbbb">    </span><span style="color: #333333">{</span>
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"run_id"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"0001"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"title"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Structured Process Faild: MultiDataTile"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"status"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"failed"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"mode"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"MultiDataTile"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_code"</span>:<span style="color: #bbbbbb"> </span><span style="color: #6600EE; font-weight: bold">999</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"error_message"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Error: Error in modules"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"target"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"data/inputdata/sample2.txt"</span>,
-<span style="color: #bbbbbb">      </span><span style="background-color: #fff0f0">"stacktrace"</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"Traceback (most recent call last):\n  File \"/Users/myproject/.venv/lib/python3.10/site-packages/rdetoolkit/exceptions.py\", line 158, in skip_exception_context\n    yield error_info\n  File \"/Users/myproject/.venv/lib/python3.10/site-packages/rdetoolkit/workflows.py\", line 242, in run\n    status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)\n  File \"/Users/myproject/.venv/lib/python3.10/site-packages/rdetoolkit/modeproc.py\", line 157, in multifile_mode_process\n    datasets_process_function(srcpaths, resource_paths)\n  File \"/Users/myproject/modules/modules.py\", line 5, in error_modules\n    raise Exception(\"Error in modules\")\nException: Error in modules\n"</span>
-<span style="color: #bbbbbb">    </span><span style="color: #333333">}</span>
-<span style="color: #bbbbbb">  </span><span style="color: #333333">]</span>
-<span style="color: #333333">}</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="_8">終了処理について</h2>
-<p>続いて、<code>rdetoolkit.workflow.run()</code>が実行する終了処理について説明します。</p>
-<ul>
-<li>生成ファイル、入力ファイルのバリデーション</li>
-<li>Main画像から代表画像の自動保存</li>
-<li>データタイル説明欄へ指定メタデータの自動記述</li>
-</ul>
-<pre class="mermaid"><code>graph TD
-    end1[カスタム構造化処理] --&gt; end2[バリデーション]
-    end2 --&gt; end3{設定:save_thumbnail_image}
-    end3 --&gt;|False|end6[説明欄の自動記述]
-    end3--&gt;|True|end5[Main画像からサムネイル画像保存]
-    end5 --&gt; end6
-    end6 --&gt; end7[終了]
+    H[設定ファイル] --&gt; C
+    I[スキーマ定義] --&gt; B
+    I --&gt; F
 </code></pre>
-<h3 id="_9">各種ファイルのバリデーション</h3>
-<p>バリデーションは、次のファイルが対象となります。これらのファイルは、データセット開設時、データ登録時に重要なファイルとなります。</p>
+<h3 id="_7">処理モード</h3>
+<p>RDEToolKitは、データの種類と登録方法に応じて4つの処理モードを提供します：</p>
+<table>
+<thead>
+<tr>
+<th>モード</th>
+<th>用途</th>
+<th>特徴</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Invoice</strong></td>
+<td>標準的な単一データセット登録</td>
+<td>最も基本的なモード</td>
+</tr>
+<tr>
+<td><strong>ExcelInvoice</strong></td>
+<td>複数データセットの一括登録</td>
+<td>Excelファイルによる効率的な登録</td>
+</tr>
+<tr>
+<td><strong>MultiDataTile</strong></td>
+<td>関連データの統合管理</td>
+<td>複数のデータタイルを一つのデータセットとして管理</td>
+</tr>
+<tr>
+<td><strong>RDEFormat</strong></td>
+<td>既存データの移行・モック作成</td>
+<td>事前に構造化されたデータの登録</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_8">利点と効果</h2>
+<h3 id="_9">研究者にとっての利点</h3>
 <ul>
-<li><code>tasksupport/metadata-def.json</code></li>
-<li><code>tasksupport/invoice.shcema.json</code></li>
-<li><code>data/invoice/invoice.json</code></li>
+<li><strong>標準化</strong>: 統一されたデータ形式とメタデータ</li>
+<li><strong>再現性</strong>: 処理手順の記録と再実行</li>
+<li><strong>効率性</strong>: 自動化による作業時間の短縮</li>
+<li><strong>品質向上</strong>: 検証機能による信頼性の確保</li>
 </ul>
-<div class="admonition tips">
-<p class="admonition-title">Documents</p>
-<p><a href="../../metadata_definition_file/">テンプレートファイルについて</a></p>
-</div>
-<h3 id="_10">説明欄への自動転記</h3>
-<p>以下のドキュメントを参照してください。</p>
+<h3 id="_10">組織にとっての利点</h3>
 <ul>
-<li><a href="../feature_description/">データタイル説明欄への自動転記</a></li>
+<li><strong>データ管理</strong>: 統一されたデータ管理システム</li>
+<li><strong>検索性</strong>: 構造化されたメタデータによる高度な検索</li>
+<li><strong>共有</strong>: 標準化されたデータの効率的な共有</li>
+<li><strong>長期保存</strong>: 持続可能なデータ保存形式</li>
+</ul>
+<h2 id="_11">まとめ</h2>
+<p>RDE構造化処理は、研究データの品質と再現性を確保するための包括的なフレームワークです。主要な特徴は以下の通りです：</p>
+<ul>
+<li><strong>3段階の処理フロー</strong>: 初期化、カスタム処理、終了の明確な分離</li>
+<li><strong>標準化されたディレクトリ構造</strong>: 一貫したデータ組織化</li>
+<li><strong>柔軟な処理モード</strong>: 様々な研究ニーズに対応</li>
+<li><strong>自動化と検証</strong>: 人的エラーの削減と品質保証</li>
+</ul>
+<h2 id="_12">次のステップ</h2>
+<p>構造化処理の概念を理解したら、以下の実践的なガイドを参照してください：</p>
+<ul>
+<li><a href="../../quickstart/">クイックスタート</a>で実際に構造化処理を体験する</li>
+<li><a href="../../config/mode/">処理モード</a>で各モードの詳細を学ぶ</li>
+<li><a href="../../config/config/">設定ファイル</a>でカスタマイズ方法を確認する</li>
+<li><a href="../errorhandling/">エラーハンドリング</a>でトラブルシューティングを学ぶ</li>
 </ul>
 </article>
 </div>
@@ -1216,7 +1192,7 @@ result <span style="color: #333333">=</span> rdetoolkit<span style="color: #3333
 </div>
 <button class="md-top md-icon" data-md-component="top" hidden="" type="button">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
-  Back to top
+  ページトップへ戻る
 </button>
 </main>
 <footer class="md-footer">
@@ -1261,14 +1237,14 @@ result <span style="color: #333333">=</span> rdetoolkit<span style="color: #3333
 </ul>
 </div>
 <div class="md-consent__controls">
-<button class="md-button md-button--primary">Accept</button>
-<label class="md-button" for="__settings">Manage settings</label>
+<button class="md-button md-button--primary">同意</button>
+<label class="md-button" for="__settings">サイトの設定</label>
 </div>
 </form>
 </aside>
 </div>
 <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}}</script>
 <script src="../../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
 <script>window.mermaidConfig = {default: {

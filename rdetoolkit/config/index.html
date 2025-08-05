@@ -1,15 +1,15 @@
 
 <!DOCTYPE html>
 
-<html class="no-js" lang="en">
+<html class="no-js" lang="ja">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="../core/" rel="prev"/>
-<link href="../workflows/" rel="next"/>
+<link href="../" rel="prev"/>
+<link href="../core/" rel="next"/>
 <link href="../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>Configuration Module - RDEToolKit Documentation</title>
+<title>設定 - RDEToolKit Documentation</title>
 <link href="../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -23,14 +23,14 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#configuration-module">
-          Skip to content
+<a class="md-skip" href="#config-api">
+          コンテンツにスキップ
         </a>
 </div>
 <div data-md-component="announce">
 </div>
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-<nav aria-label="Header" class="md-header__inner md-grid">
+<nav aria-label="ヘッダー" class="md-header__inner md-grid">
 <a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../img/2585322.png"/>
 </a>
@@ -47,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              Configuration Module
+              設定
             
           </span>
 </div>
@@ -64,6 +64,27 @@
 </label>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="言語切り替え" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../en/rdetoolkit/config/" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <label class="md-header__button md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 </label>
@@ -71,13 +92,13 @@
 <label class="md-search__overlay" for="__search"></label>
 <div class="md-search__inner" role="search">
 <form class="md-search__form" name="search">
-<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<input aria-label="検索" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="検索" required="" spellcheck="false" type="text"/>
 <label class="md-search__icon md-icon" for="__search">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </label>
-<nav aria-label="Search" class="md-search__options">
-<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<nav aria-label="検索" class="md-search__options">
+<button aria-label="クリア" class="md-search__icon md-icon" tabindex="-1" title="クリア" type="reset">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
 </button>
 </nav>
@@ -86,7 +107,7 @@
 <div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
 <div class="md-search-result" data-md-component="search-result">
 <div class="md-search-result__meta">
-            Initializing search
+            検索を初期化
           </div>
 <ol class="md-search-result__list" role="presentation"></ol>
 </div>
@@ -95,7 +116,7 @@
 </div>
 </div>
 <div class="md-header__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -105,30 +126,22 @@
 </a>
 </div>
 </nav>
-<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<nav aria-label="タブ" class="md-tabs" data-md-component="tabs">
 <div class="md-grid">
 <ul class="md-tabs__list">
 <li class="md-tabs__item">
 <a class="md-tabs__link" href="../..">
           
   
-  Getting started
+  はじめに
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../install/">
+<a class="md-tabs__link" href="../../usage/structured_process/structured/">
           
   
-  Installation
-
-        </a>
-</li>
-<li class="md-tabs__item">
-<a class="md-tabs__link" href="../../usage/quickstart/">
-          
-  
-  User Guide
+  ユーザーガイド
 
         </a>
 </li>
@@ -136,15 +149,15 @@
 <a class="md-tabs__link" href="../">
           
   
-  API Documentation
+  API リファレンス
 
         </a>
 </li>
 <li class="md-tabs__item">
-<a class="md-tabs__link" href="../../contribute/home/">
+<a class="md-tabs__link" href="../../development/">
           
   
-  Development
+  コントリビューション
 
         </a>
 </li>
@@ -158,7 +171,7 @@
 <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<nav aria-label="ナビゲーション" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
 <label class="md-nav__title" for="__drawer">
 <a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="RDEToolKit Documentation">
 <img alt="logo" src="../../img/2585322.png"/>
@@ -166,7 +179,7 @@
     RDEToolKit Documentation
   </label>
 <div class="md-nav__source">
-<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="Go to repository">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-dpfc/rdetoolkit" title="リポジトリへ">
 <div class="md-source__icon md-icon">
 <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
 </div>
@@ -180,78 +193,30 @@
 <input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
 <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
 <span class="md-ellipsis">
-    Getting started
+    はじめに
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_1">
 <span class="md-nav__icon md-icon"></span>
-            Getting started
+            はじめに
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../..">
 <span class="md-ellipsis">
-    RDEToolKit
+    はじめに
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-<span class="md-ellipsis">
-    Installation
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_2">
-<span class="md-nav__icon md-icon"></span>
-            Installation
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../install/">
+<a class="md-nav__link" href="../../installation/">
 <span class="md-ellipsis">
-    インストール方法
+    インストール
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-<span class="md-ellipsis">
-    User Guide
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_3">
-<span class="md-nav__icon md-icon"></span>
-            User Guide
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_1" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
-<span class="md-ellipsis">
-    Quick Start
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_1_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_1">
-<span class="md-nav__icon md-icon"></span>
-            Quick Start
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/quickstart/">
 <span class="md-ellipsis">
@@ -263,51 +228,72 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
 <span class="md-ellipsis">
-    構造化処理
+    ユーザーガイド
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_2">
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
 <span class="md-nav__icon md-icon"></span>
-            構造化処理
+            ユーザーガイド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    構造化処理開発
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            構造化処理開発
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/structured/">
 <span class="md-ellipsis">
-    構造化処理を構築する
+    構造化プロセスの構築
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    構造化処理開発ガイド
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/directory/">
 <span class="md-ellipsis">
-    サポートするディレクトリ
+    対応ディレクトリ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/rdepath/">
 <span class="md-ellipsis">
-    構造化ディレクトリパスの取得
+    ディレクトリパスアクセス
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/errorhandling/">
 <span class="md-ellipsis">
-    構造化処理のエラーハンドリング
+    エラーハンドリング
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/structured_process/feature_description/">
 <span class="md-ellipsis">
-    データタイル説明欄への自動記述について
+    機能説明
   </span>
 </a>
 </li>
@@ -315,68 +301,51 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
 <span class="md-ellipsis">
-    コマンドライン機能
+    設定ファイルとCLI
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_3">
+<nav aria-expanded="false" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_2">
 <span class="md-nav__icon md-icon"></span>
-            コマンドライン機能
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../../usage/cli/">
-<span class="md-ellipsis">
-    コマンドライン機能について
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
-<span class="md-ellipsis">
-    設定ファイル
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_4">
-<span class="md-nav__icon md-icon"></span>
-            設定ファイル
+            設定ファイルとCLI
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/config/">
 <span class="md-ellipsis">
-    RDEToolKit設定ファイル
+    設定ファイル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/mode/">
 <span class="md-ellipsis">
-    RDEToolKitのデータ登録モード
+    データ登録モード
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/file_folder_mode/">
 <span class="md-ellipsis">
-    圧縮ファイルの形式について
+    ファイル/フォルダモード
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/config/magic_variable/">
 <span class="md-ellipsis">
-    Magic Variableによるデータ登録について
+    マジック変数
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/cli/">
+<span class="md-ellipsis">
+    コマンドライン操作
   </span>
 </a>
 </li>
@@ -384,17 +353,17 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
 <span class="md-ellipsis">
-    テンプレートファイル
+    テンプレートファイルと検証
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_5">
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
 <span class="md-nav__icon md-icon"></span>
-            テンプレートファイル
+            テンプレートファイルと検証
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
@@ -404,27 +373,10 @@
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
-<span class="md-ellipsis">
-    バリデーション
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_6">
-<span class="md-nav__icon md-icon"></span>
-            バリデーション
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/validation/">
 <span class="md-ellipsis">
-    バリデーション機能
+    データ検証
   </span>
 </a>
 </li>
@@ -432,47 +384,30 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
 <span class="md-ellipsis">
-    オブジェクトストレージを使用する
+    統合
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_7">
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
 <span class="md-nav__icon md-icon"></span>
-            オブジェクトストレージを使用する
+            統合
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/object_storage/">
 <span class="md-ellipsis">
-    rdetolkitでオブジェクトストレージ(MinIO)を利用する方法
+    オブジェクトストレージ (MinIO)
   </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
-<span class="md-ellipsis">
-    Docker
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_8">
-<span class="md-nav__icon md-icon"></span>
-            Docker
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../../usage/docker/">
 <span class="md-ellipsis">
-    Using RDEToolKit with Docker
+    Docker の使用
   </span>
 </a>
 </li>
@@ -483,361 +418,81 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
 <span class="md-ellipsis">
-    API Documentation
+    API リファレンス
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="true" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_4">
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
 <span class="md-nav__icon md-icon"></span>
-            API Documentation
+            API リファレンス
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
 <a class="md-nav__link" href="../">
 <span class="md-ellipsis">
-    RDE Toolkit API Documentation
+    概要
   </span>
 </a>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
 <span class="md-ellipsis">
-    impl
+    コアモジュール
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_2_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_2">
+<nav aria-expanded="true" aria-labelledby="__nav_3_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_2">
 <span class="md-nav__icon md-icon"></span>
-            impl
+            コアモジュール
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../impl/compressed_controller/">
-<span class="md-ellipsis">
-    Compressed Controller Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../impl/input_controller/">
-<span class="md-ellipsis">
-    Input Controller Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
-<span class="md-ellipsis">
-    interface
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_3">
-<span class="md-nav__icon md-icon"></span>
-            interface
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../interface/filechecker/">
-<span class="md-ellipsis">
-    File Checker Interfaces Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
-<span class="md-ellipsis">
-    models
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_4">
-<span class="md-nav__icon md-icon"></span>
-            models
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../models/invoice_schema/">
-<span class="md-ellipsis">
-    Invoice Schema Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../models/metadata/">
-<span class="md-ellipsis">
-    Metadata Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../models/rde2types/">
-<span class="md-ellipsis">
-    RDE2 Types Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
-<span class="md-ellipsis">
-    storage
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_5">
-<span class="md-nav__icon md-icon"></span>
-            storage
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../storage/minio/">
-<span class="md-ellipsis">
-    MinIO Storage
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
-<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
-<span class="md-ellipsis">
-    core module
-  </span>
-<span class="md-nav__icon md-icon"></span>
-</label>
-<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_4_6">
-<span class="md-nav__icon md-icon"></span>
-            core module
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="../core/">
-<span class="md-ellipsis">
-    Core Module
-  </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
 <li class="md-nav__item md-nav__item--active">
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    Configuration Module
+    設定
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    Configuration Module
+    設定
   </span>
 </a>
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
+<a class="md-nav__link" href="#purpose">
 <span class="md-ellipsis">
-      Overview
+      Purpose
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#constants">
+<a class="md-nav__link" href="#key-features">
 <span class="md-ellipsis">
-      Constants
+      Key Features
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#functions">
-<span class="md-ellipsis">
-      Functions
-    </span>
-</a>
-<nav aria-label="Functions" class="md-nav">
+<nav aria-label="Key Features" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#parse_config_file">
+<a class="md-nav__link" href="#configuration-file-parsing">
 <span class="md-ellipsis">
-      parse_config_file
+      Configuration File Parsing
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#find_config_files">
-<span class="md-ellipsis">
-      find_config_files
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#get_config">
-<span class="md-ellipsis">
-      get_config
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#load_config">
-<span class="md-ellipsis">
-      load_config
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#utility-functions">
-<span class="md-ellipsis">
-      Utility Functions
-    </span>
-</a>
-<nav aria-label="Utility Functions" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#is_toml">
-<span class="md-ellipsis">
-      is_toml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#is_yaml">
-<span class="md-ellipsis">
-      is_yaml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#get_pyproject_toml">
-<span class="md-ellipsis">
-      get_pyproject_toml
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-file-formats">
-<span class="md-ellipsis">
-      Configuration File Formats
-    </span>
-</a>
-<nav aria-label="Configuration File Formats" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#yaml-configuration-rdeconfigyamlrdeconfigyml">
-<span class="md-ellipsis">
-      YAML Configuration (rdeconfig.yaml/rdeconfig.yml)
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#toml-configuration-pyprojecttoml">
-<span class="md-ellipsis">
-      TOML Configuration (pyproject.toml)
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-loading-examples">
-<span class="md-ellipsis">
-      Configuration Loading Examples
-    </span>
-</a>
-<nav aria-label="Configuration Loading Examples" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#basic-configuration-loading">
-<span class="md-ellipsis">
-      Basic Configuration Loading
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-discovery-and-validation">
-<span class="md-ellipsis">
-      Configuration Discovery and Validation
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-priority-and-fallback">
-<span class="md-ellipsis">
-      Configuration Priority and Fallback
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#error-handling">
-<span class="md-ellipsis">
-      Error Handling
-    </span>
-</a>
-<nav aria-label="Error Handling" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-validation-errors">
-<span class="md-ellipsis">
-      Configuration Validation Errors
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#file-format-detection-and-handling">
-<span class="md-ellipsis">
-      File Format Detection and Handling
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#best-practices">
-<span class="md-ellipsis">
-      Best Practices
-    </span>
-</a>
-<nav aria-label="Best Practices" class="md-nav">
-<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#configuration-management">
 <span class="md-ellipsis">
@@ -845,79 +500,160 @@
     </span>
 </a>
 </li>
+</ul>
+</nav>
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#environment-specific-configuration">
+<a class="md-nav__link" href="#src.rdetoolkit.config.parse_config_file">
 <span class="md-ellipsis">
-      Environment-Specific Configuration
+      parse_config_file
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.find_config_files">
+<span class="md-ellipsis">
+      find_config_files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.get_config">
+<span class="md-ellipsis">
+      get_config
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.load_config">
+<span class="md-ellipsis">
+      load_config
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.is_toml">
+<span class="md-ellipsis">
+      is_toml
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.is_yaml">
+<span class="md-ellipsis">
+      is_yaml
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.get_pyproject_toml">
+<span class="md-ellipsis">
+      get_pyproject_toml
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-configuration-file-loading">
+<span class="md-ellipsis">
+      Basic Configuration File Loading
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-file-search-and-detection">
+<span class="md-ellipsis">
+      Configuration File Search and Detection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-retrieval-from-pyprojecttoml">
+<span class="md-ellipsis">
+      Configuration Retrieval from pyproject.toml
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#see-also">
-<span class="md-ellipsis">
-      See Also
-    </span>
-</a>
-</li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../core/">
+<span class="md-ellipsis">
+    コア機能
+  </span>
+</a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../workflows/">
 <span class="md-ellipsis">
-    Workflows Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../rde2util/">
-<span class="md-ellipsis">
-    rde2util Module
-  </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../invoicefile/">
-<span class="md-ellipsis">
-    Invoice File Module
+    ワークフロー
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../modeproc/">
 <span class="md-ellipsis">
-    Mode Processing Module
+    モード処理
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../validation/">
+<a class="md-nav__link" href="../invoicefile/">
 <span class="md-ellipsis">
-    Validation Module
+    Invoiceファイル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../img2thumb/">
+<a class="md-nav__link" href="../rde2util/">
 <span class="md-ellipsis">
-    Image to Thumbnail Module
+    ユーティリティ
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rdelogger/">
 <span class="md-ellipsis">
-    RDE Logger Module
+    ロギング
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../img2thumb/">
+<span class="md-ellipsis">
+    代表画像操作
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../validation/">
+<span class="md-ellipsis">
+    検証
   </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../exceptions/">
 <span class="md-ellipsis">
-    Exceptions Module
+    例外
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fileops/">
+<span class="md-ellipsis">
+    ファイル操作
   </span>
 </a>
 </li>
@@ -925,37 +661,233 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
-<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
 <span class="md-ellipsis">
-    Development
+    データモデル
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
-<label class="md-nav__title" for="__nav_5">
+<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
 <span class="md-nav__icon md-icon"></span>
-            Development
+            データモデル
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../contribute/home/">
+<a class="md-nav__link" href="../models/config/">
 <span class="md-ellipsis">
-    Top
+    設定モデル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../contribute/documents_contributing/">
+<a class="md-nav__link" href="../models/invoice/">
 <span class="md-ellipsis">
-    Documents
+    Invoiceモデル
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../contribute/sourcecode_contributing/">
+<a class="md-nav__link" href="../models/invoice_schema/">
 <span class="md-ellipsis">
-    Source Code
+    Invoiceスキーマ
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/metadata/">
+<span class="md-ellipsis">
+    メタデータモデル
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/rde2types/">
+<span class="md-ellipsis">
+    タイプ定義
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/result/">
+<span class="md-ellipsis">
+    結果出力
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    実装
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            実装
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../impl/compressed_controller/">
+<span class="md-ellipsis">
+    圧縮
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../impl/input_controller/">
+<span class="md-ellipsis">
+    入力ファイル
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    インターフェース
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            インターフェース
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../interface/filechecker/">
+<span class="md-ellipsis">
+    ファイルチェック
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    コマンド
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            コマンド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/command/">
+<span class="md-ellipsis">
+    ベースコマンド
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel形式Invoice生成
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<span class="md-ellipsis">
+    ストレージ
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            ストレージ
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../storage/minio/">
+<span class="md-ellipsis">
+    MinIO 統合
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    アーティファクト
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            アーティファクト
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../artifact/report/">
+<span class="md-ellipsis">
+    レポート生成
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+<span class="md-ellipsis">
+    コントリビューション
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            コントリビューション
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/">
+<span class="md-ellipsis">
+    概要
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/docs/">
+<span class="md-ellipsis">
+    ドキュメントへの貢献
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/contributing/">
+<span class="md-ellipsis">
+    ソースコードへの貢献
   </span>
 </a>
 </li>
@@ -970,187 +902,34 @@
 <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
-<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
 <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目次
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
+<a class="md-nav__link" href="#purpose">
 <span class="md-ellipsis">
-      Overview
+      Purpose
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#constants">
+<a class="md-nav__link" href="#key-features">
 <span class="md-ellipsis">
-      Constants
+      Key Features
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#functions">
-<span class="md-ellipsis">
-      Functions
-    </span>
-</a>
-<nav aria-label="Functions" class="md-nav">
+<nav aria-label="Key Features" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#parse_config_file">
+<a class="md-nav__link" href="#configuration-file-parsing">
 <span class="md-ellipsis">
-      parse_config_file
+      Configuration File Parsing
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#find_config_files">
-<span class="md-ellipsis">
-      find_config_files
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#get_config">
-<span class="md-ellipsis">
-      get_config
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#load_config">
-<span class="md-ellipsis">
-      load_config
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#utility-functions">
-<span class="md-ellipsis">
-      Utility Functions
-    </span>
-</a>
-<nav aria-label="Utility Functions" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#is_toml">
-<span class="md-ellipsis">
-      is_toml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#is_yaml">
-<span class="md-ellipsis">
-      is_yaml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#get_pyproject_toml">
-<span class="md-ellipsis">
-      get_pyproject_toml
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-file-formats">
-<span class="md-ellipsis">
-      Configuration File Formats
-    </span>
-</a>
-<nav aria-label="Configuration File Formats" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#yaml-configuration-rdeconfigyamlrdeconfigyml">
-<span class="md-ellipsis">
-      YAML Configuration (rdeconfig.yaml/rdeconfig.yml)
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#toml-configuration-pyprojecttoml">
-<span class="md-ellipsis">
-      TOML Configuration (pyproject.toml)
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-loading-examples">
-<span class="md-ellipsis">
-      Configuration Loading Examples
-    </span>
-</a>
-<nav aria-label="Configuration Loading Examples" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#basic-configuration-loading">
-<span class="md-ellipsis">
-      Basic Configuration Loading
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-discovery-and-validation">
-<span class="md-ellipsis">
-      Configuration Discovery and Validation
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-priority-and-fallback">
-<span class="md-ellipsis">
-      Configuration Priority and Fallback
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#error-handling">
-<span class="md-ellipsis">
-      Error Handling
-    </span>
-</a>
-<nav aria-label="Error Handling" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-validation-errors">
-<span class="md-ellipsis">
-      Configuration Validation Errors
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#file-format-detection-and-handling">
-<span class="md-ellipsis">
-      File Format Detection and Handling
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#best-practices">
-<span class="md-ellipsis">
-      Best Practices
-    </span>
-</a>
-<nav aria-label="Best Practices" class="md-nav">
-<ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#configuration-management">
 <span class="md-ellipsis">
@@ -1158,22 +937,89 @@
     </span>
 </a>
 </li>
+</ul>
+</nav>
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#environment-specific-configuration">
+<a class="md-nav__link" href="#src.rdetoolkit.config.parse_config_file">
 <span class="md-ellipsis">
-      Environment-Specific Configuration
+      parse_config_file
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.find_config_files">
+<span class="md-ellipsis">
+      find_config_files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.get_config">
+<span class="md-ellipsis">
+      get_config
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.load_config">
+<span class="md-ellipsis">
+      load_config
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.is_toml">
+<span class="md-ellipsis">
+      is_toml
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.is_yaml">
+<span class="md-ellipsis">
+      is_yaml
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.get_pyproject_toml">
+<span class="md-ellipsis">
+      get_pyproject_toml
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-configuration-file-loading">
+<span class="md-ellipsis">
+      Basic Configuration File Loading
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-file-search-and-detection">
+<span class="md-ellipsis">
+      Configuration File Search and Detection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-retrieval-from-pyprojecttoml">
+<span class="md-ellipsis">
+      Configuration Retrieval from pyproject.toml
     </span>
 </a>
 </li>
 </ul>
 </nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#see-also">
-<span class="md-ellipsis">
-      See Also
-    </span>
-</a>
 </li>
 </ul>
 </nav>
@@ -1182,622 +1028,457 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="configuration-module">Configuration Module</h1>
-<p>The <code>rdetoolkit.config</code> module provides comprehensive configuration management functionality for RDE (Research Data Exchange) processing workflows. This module handles loading, parsing, and validation of configuration files in multiple formats, with automatic discovery and flexible configuration options.</p>
-<h2 id="overview">Overview</h2>
-<p>The config module offers robust configuration management capabilities:</p>
+<h1 id="config-api">Config API</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This module handles loading, parsing, and managing configuration files for RDEToolKit. It supports YAML and TOML format configuration files and provides configuration information that controls the behavior of the entire system.</p>
+<h2 id="key-features">Key Features</h2>
+<h3 id="configuration-file-parsing">Configuration File Parsing</h3>
 <ul>
-<li><strong>Multiple Format Support</strong>: Support for YAML, YML, and TOML configuration files</li>
-<li><strong>Automatic Discovery</strong>: Intelligent configuration file discovery in directories</li>
-<li><strong>Validation</strong>: Pydantic-based configuration validation with detailed error reporting</li>
-<li><strong>Priority Loading</strong>: Configurable loading priority for different file types</li>
-<li><strong>Default Configurations</strong>: Fallback to default configurations when files are missing</li>
-<li><strong>Project Integration</strong>: Special support for pyproject.toml configuration sections</li>
-<li><strong>Path Flexibility</strong>: Support for both string and Path object inputs</li>
+<li>Automatic detection and loading of YAML and TOML format configuration files</li>
+<li>Configuration file search and discovery</li>
+<li>Configuration information extraction from pyproject.toml</li>
 </ul>
-<h2 id="constants">Constants</h2>
-<ul>
-<li><code>CONFIG_FILE</code>: <code>["rdeconfig.yaml", "rdeconfig.yml"]</code> - Standard configuration filenames</li>
-<li><code>PYPROJECT_CONFIG_FILES</code>: <code>["pyproject.toml"]</code> - Project configuration filenames</li>
-<li><code>CONFIG_FILES</code>: Combined list of all supported configuration filenames</li>
-</ul>
-<h2 id="functions">Functions</h2>
-<h3 id="parse_config_file">parse_config_file</h3>
-<p>Parse a configuration file and return a validated Config object.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">parse_config_file</span>(<span style="color: #333333">*</span>, path: <span style="color: #007020">str</span> <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> Config
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>path</code> (str | None): Path to the configuration file (optional)</p>
-<p><strong>Returns:</strong>
-- <code>Config</code>: Parsed and validated configuration object</p>
-<p><strong>Raises:</strong>
-- <code>FileNotFoundError</code>: If the specified configuration file does not exist</p>
-<p><strong>File Loading Priority:</strong>
-1. If <code>path</code> is provided with <code>.toml</code> extension: Read as TOML file
-2. If <code>path</code> is provided with <code>.yaml</code>/<code>.yml</code> extension: Read as YAML file
-3. If <code>path</code> is None: Search for <code>pyproject.toml</code> in current working directory
-4. If file not found or invalid: Return default Config object</p>
-<p><strong>Supported Configuration Files:</strong>
-- <code>rdeconfig.yaml</code>
-- <code>rdeconfig.yml</code>
-- <code>pyproject.toml</code></p>
-<p><strong>Example:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> parse_config_file
-
-<span style="color: #888888"># Parse specific configuration file</span>
-config <span style="color: #333333">=</span> parse_config_file(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"config/rdeconfig.yaml"</span>)
-<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-<span style="color: #888888"># Parse default pyproject.toml</span>
-default_config <span style="color: #333333">=</span> parse_config_file()
-<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Save raw: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-<span style="color: #888888"># Handle missing configuration gracefully</span>
-<span style="color: #008800; font-weight: bold">try</span>:
-    config <span style="color: #333333">=</span> parse_config_file(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"nonexistent.yaml"</span>)
-    <span style="color: #888888"># Returns default config instead of raising error</span>
-<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">FileNotFoundError</span>:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Configuration file not found"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="find_config_files">find_config_files</h3>
-<p>Find and return a list of configuration files in a specified directory.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">find_config_files</span>(target_dir_path: RdeFsPath) <span style="color: #333333">-&gt;</span> <span style="color: #007020">list</span>[<span style="color: #007020">str</span>]
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>target_dir_path</code> (RdeFsPath): Directory path to search for configuration files</p>
-<p><strong>Returns:</strong>
-- <code>list[str]</code>: Sorted list of configuration file paths</p>
-<p><strong>Sorting Priority:</strong>
-- Files are sorted by type: TOML files first, then YAML files
-- Within each type, files are sorted alphabetically</p>
-<p><strong>Example:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> find_config_files
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
-
-<span style="color: #888888"># Find configuration files in directory</span>
-config_dir <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-config_files <span style="color: #333333">=</span> find_config_files(config_dir)
-
-<span style="color: #008800; font-weight: bold">for</span> config_file <span style="color: #000000; font-weight: bold">in</span> config_files:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found config: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-<span style="color: #888888"># Check if any configuration files exist</span>
-<span style="color: #008800; font-weight: bold">if</span> config_files:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found </span><span style="background-color: #eeeeee">{</span><span style="color: #007020">len</span>(config_files)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> configuration files"</span>)
-<span style="color: #008800; font-weight: bold">else</span>:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No configuration files found"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="get_config">get_config</h3>
-<p>Retrieve configuration from a specified directory with fallback options.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_config</span>(target_dir_path: RdeFsPath) <span style="color: #333333">-&gt;</span> Config <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>target_dir_path</code> (RdeFsPath): Directory path to search for configuration</p>
-<p><strong>Returns:</strong>
-- <code>Config | None</code>: First valid configuration found, or None if no valid configuration exists</p>
-<p><strong>Raises:</strong>
-- <code>ValueError</code>: If configuration file exists but contains invalid data</p>
-<p><strong>Search Strategy:</strong>
-1. Search for configuration files in the specified directory
-2. Parse each found file until a valid configuration is found
-3. If no valid configuration in directory, check for <code>pyproject.toml</code> in current working directory
-4. Return the first valid configuration, or None if none found</p>
-<p><strong>Example:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> get_config
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
-
-<span style="color: #888888"># Get configuration from tasksupport directory</span>
-config <span style="color: #333333">=</span> get_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-
-<span style="color: #008800; font-weight: bold">if</span> config:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration loaded successfully"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Save raw files: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-<span style="color: #008800; font-weight: bold">else</span>:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No valid configuration found"</span>)
-
-<span style="color: #888888"># Handle validation errors</span>
-<span style="color: #008800; font-weight: bold">try</span>:
-    config <span style="color: #333333">=</span> get_config(<span style="background-color: #fff0f0">"data/invalid_config"</span>)
-<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="load_config">load_config</h3>
-<p>Load configuration for RDE Toolkit with optional override.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_config</span>(tasksupport_path: RdeFsPath, <span style="color: #333333">*</span>, config: Config <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>) <span style="color: #333333">-&gt;</span> Config
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>tasksupport_path</code> (RdeFsPath): Path to the tasksupport directory
-- <code>config</code> (Config | None): Optional existing configuration object to use instead</p>
-<p><strong>Returns:</strong>
-- <code>Config</code>: Loaded configuration object (never None)</p>
-<p><strong>Behavior:</strong>
-- If <code>config</code> parameter is provided, returns that configuration
-- Otherwise, attempts to load configuration from <code>tasksupport_path</code>
-- If no configuration is found, returns default Config object
-- Guarantees non-None return value</p>
-<p><strong>Example:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings
-
-<span style="color: #888888"># Load configuration from tasksupport directory</span>
-config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-
-<span style="color: #888888"># Load with custom configuration override</span>
-custom_config <span style="color: #333333">=</span> Config(
-    system<span style="color: #333333">=</span>SystemSettings(extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"rdeformat"</span>, save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
-)
-config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>, config<span style="color: #333333">=</span>custom_config)
-
-<span style="color: #888888"># Always returns a valid configuration</span>
-<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="utility-functions">Utility Functions</h3>
-<h4 id="is_toml">is_toml</h4>
-<p>Check if a filename has a TOML extension.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">is_toml</span>(filename: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>filename</code> (str): Filename to check</p>
-<p><strong>Returns:</strong>
-- <code>bool</code>: True if filename ends with <code>.toml</code>, False otherwise</p>
-<h4 id="is_yaml">is_yaml</h4>
-<p>Check if a filename has a YAML extension.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">is_yaml</span>(filename: <span style="color: #007020">str</span>) <span style="color: #333333">-&gt;</span> <span style="color: #007020">bool</span>
-</code></pre></div></td></tr></table></div>
-<p><strong>Parameters:</strong>
-- <code>filename</code> (str): Filename to check</p>
-<p><strong>Returns:</strong>
-- <code>bool</code>: True if filename ends with <code>.yaml</code> or <code>.yml</code>, False otherwise</p>
-<h4 id="get_pyproject_toml">get_pyproject_toml</h4>
-<p>Get the pyproject.toml file path from the current working directory.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_pyproject_toml</span>() <span style="color: #333333">-&gt;</span> Path <span style="color: #333333">|</span> <span style="color: #008800; font-weight: bold">None</span>
-</code></pre></div></td></tr></table></div>
-<p><strong>Returns:</strong>
-- <code>Path | None</code>: Path to pyproject.toml if it exists, None otherwise</p>
-<p><strong>Example:</strong></p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> is_toml, is_yaml, get_pyproject_toml
-
-<span style="color: #888888"># Check file types</span>
-<span style="color: #007020">print</span>(is_toml(<span style="background-color: #fff0f0">"config.toml"</span>))        <span style="color: #888888"># True</span>
-<span style="color: #007020">print</span>(is_yaml(<span style="background-color: #fff0f0">"config.yaml"</span>))       <span style="color: #888888"># True</span>
-<span style="color: #007020">print</span>(is_yaml(<span style="background-color: #fff0f0">"config.yml"</span>))        <span style="color: #888888"># True</span>
-<span style="color: #007020">print</span>(is_toml(<span style="background-color: #fff0f0">"config.json"</span>))       <span style="color: #888888"># False</span>
-
-<span style="color: #888888"># Get pyproject.toml path</span>
-pyproject_path <span style="color: #333333">=</span> get_pyproject_toml()
-<span style="color: #008800; font-weight: bold">if</span> pyproject_path:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found pyproject.toml at: </span><span style="background-color: #eeeeee">{</span>pyproject_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-<span style="color: #008800; font-weight: bold">else</span>:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No pyproject.toml found in current directory"</span>)
-</code></pre></div></td></tr></table></div>
-<h2 id="configuration-file-formats">Configuration File Formats</h2>
-<h3 id="yaml-configuration-rdeconfigyamlrdeconfigyml">YAML Configuration (rdeconfig.yaml/rdeconfig.yml)</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
-<span style="color: #bbbbbb">  </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"rdeformat"</span>
-<span style="color: #bbbbbb">  </span><span style="color: #007700">save_raw</span>:<span style="color: #bbbbbb"> </span>true
-<span style="color: #bbbbbb">  </span><span style="color: #007700">save_main_image</span>:<span style="color: #bbbbbb"> </span>false
-<span style="color: #bbbbbb">  </span><span style="color: #007700">save_thumbnail_image</span>:<span style="color: #bbbbbb"> </span>true
-<span style="color: #bbbbbb">  </span><span style="color: #007700">save_nonshared_raw</span>:<span style="color: #bbbbbb"> </span>false
-<span style="color: #bbbbbb">  </span><span style="color: #007700">magic_variable</span>:<span style="color: #bbbbbb"> </span>true
-
-<span style="color: #007700">multidata_tile</span>:
-<span style="color: #bbbbbb">  </span><span style="color: #007700">ignore_errors</span>:<span style="color: #bbbbbb"> </span>false
-</code></pre></div></td></tr></table></div>
-<h3 id="toml-configuration-pyprojecttoml">TOML Configuration (pyproject.toml)</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">[tool.rdetoolkit.system]</span>
-extended_mode<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"multidatatile"</span>
-save_raw<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">true</span>
-save_main_image<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">false</span>
-save_thumbnail_image<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">true</span>
-save_nonshared_raw<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">false</span>
-magic_variable<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">true</span>
-
-<span style="color: #008800; font-weight: bold">[tool.rdetoolkit.multidata_tile]</span>
-ignore_errors<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="color: #008800; font-weight: bold">false</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="configuration-loading-examples">Configuration Loading Examples</h2>
-<h3 id="basic-configuration-loading">Basic Configuration Loading</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config, parse_config_file
-
-<span style="color: #888888"># Load from tasksupport directory</span>
-config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-
-<span style="color: #888888"># Parse specific file</span>
-config <span style="color: #333333">=</span> parse_config_file(path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"config/custom.yaml"</span>)
-
-<span style="color: #888888"># Use configuration</span>
-<span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #333333">==</span> <span style="background-color: #fff0f0">"rdeformat"</span>:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Using RDE format mode"</span>)
-
-<span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Raw files will be saved"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="configuration-discovery-and-validation">Configuration Discovery and Validation</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> find_config_files, get_config
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">setup_configuration</span>(config_dir: <span style="color: #007020">str</span>):
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Setup configuration with discovery and validation."""</span>
-
-    <span style="color: #888888"># Find available configuration files</span>
-    config_files <span style="color: #333333">=</span> find_config_files(config_dir)
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Available configurations: </span><span style="background-color: #eeeeee">{</span>config_files<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-    <span style="color: #888888"># Load configuration with validation</span>
-    <span style="color: #008800; font-weight: bold">try</span>:
-        config <span style="color: #333333">=</span> get_config(config_dir)
-        <span style="color: #008800; font-weight: bold">if</span> config:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"✓ Configuration loaded successfully"</span>)
-            <span style="color: #008800; font-weight: bold">return</span> config
-        <span style="color: #008800; font-weight: bold">else</span>:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"⚠ No configuration found, using defaults"</span>)
-            <span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config
-            <span style="color: #008800; font-weight: bold">return</span> Config()
-
-    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✗ Configuration validation failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-
-<span style="color: #888888"># Usage</span>
-config <span style="color: #333333">=</span> setup_configuration(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-<span style="color: #008800; font-weight: bold">if</span> config:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="configuration-priority-and-fallback">Configuration Priority and Fallback</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> load_config
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.models.config</span> <span style="color: #008800; font-weight: bold">import</span> Config, SystemSettings, MultiDataTileSettings
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_configuration_with_fallback</span>(primary_path: <span style="color: #007020">str</span>, fallback_path: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="color: #008800; font-weight: bold">None</span>):
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load configuration with fallback options."""</span>
-
-    <span style="color: #888888"># Try primary configuration</span>
-    <span style="color: #008800; font-weight: bold">try</span>:
-        config <span style="color: #333333">=</span> load_config(primary_path)
-        <span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #000000; font-weight: bold">or</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Loaded configuration from: </span><span style="background-color: #eeeeee">{</span>primary_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-            <span style="color: #008800; font-weight: bold">return</span> config
-    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"⚠ Primary configuration failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-    <span style="color: #888888"># Try fallback configuration</span>
-    <span style="color: #008800; font-weight: bold">if</span> fallback_path:
-        <span style="color: #008800; font-weight: bold">try</span>:
-            config <span style="color: #333333">=</span> load_config(fallback_path)
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"✓ Loaded fallback configuration from: </span><span style="background-color: #eeeeee">{</span>fallback_path<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-            <span style="color: #008800; font-weight: bold">return</span> config
-        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"⚠ Fallback configuration failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-    <span style="color: #888888"># Use programmatic default</span>
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Using programmatic default configuration"</span>)
-    <span style="color: #008800; font-weight: bold">return</span> Config(
-        system<span style="color: #333333">=</span>SystemSettings(
-            extended_mode<span style="color: #333333">=</span><span style="background-color: #fff0f0">"invoice"</span>,
-            save_raw<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>,
-            magic_variable<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>
-        ),
-        multidata_tile<span style="color: #333333">=</span>MultiDataTileSettings(
-            ignore_errors<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>
-        )
-    )
-
-<span style="color: #888888"># Usage</span>
-config <span style="color: #333333">=</span> load_configuration_with_fallback(
-    primary_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"data/tasksupport"</span>,
-    fallback_path<span style="color: #333333">=</span><span style="background-color: #fff0f0">"config"</span>
-)
-</code></pre></div></td></tr></table></div>
-<h2 id="error-handling">Error Handling</h2>
-<h3 id="configuration-validation-errors">Configuration Validation Errors</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> get_config
-<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pydantic</span> <span style="color: #008800; font-weight: bold">import</span> ValidationError
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">safe_config_loading</span>(config_path: <span style="color: #007020">str</span>):
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Safely load configuration with comprehensive error handling."""</span>
-
-    <span style="color: #008800; font-weight: bold">try</span>:
-        config <span style="color: #333333">=</span> get_config(config_path)
-        <span style="color: #008800; font-weight: bold">if</span> config <span style="color: #000000; font-weight: bold">is</span> <span style="color: #008800; font-weight: bold">None</span>:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"No configuration found"</span>)
-            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-
-        <span style="color: #888888"># Validate specific settings</span>
-        <span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">"invoice"</span>, <span style="background-color: #fff0f0">"rdeformat"</span>, <span style="background-color: #fff0f0">"multidatatile"</span>]:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Warning: Unknown extended_mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-
-        <span style="color: #008800; font-weight: bold">return</span> config
-
-    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">ValueError</span> <span style="color: #008800; font-weight: bold">as</span> e:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration validation error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">FileNotFoundError</span> <span style="color: #008800; font-weight: bold">as</span> e:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Configuration file not found: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-    <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Unexpected configuration error: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-
-<span style="color: #888888"># Usage</span>
-config <span style="color: #333333">=</span> safe_config_loading(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-<span style="color: #008800; font-weight: bold">if</span> config:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Configuration loaded successfully"</span>)
-<span style="color: #008800; font-weight: bold">else</span>:
-    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">"Using default configuration"</span>)
-</code></pre></div></td></tr></table></div>
-<h3 id="file-format-detection-and-handling">File Format Detection and Handling</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> is_toml, is_yaml, parse_config_file
-
-<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_config_by_type</span>(config_file: <span style="color: #007020">str</span>):
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load configuration with format-specific handling."""</span>
-
-    <span style="color: #008800; font-weight: bold">if</span> is_toml(config_file):
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Loading TOML configuration: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">try</span>:
-            <span style="color: #008800; font-weight: bold">return</span> parse_config_file(path<span style="color: #333333">=</span>config_file)
-        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"TOML parsing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-
-    <span style="color: #008800; font-weight: bold">elif</span> is_yaml(config_file):
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Loading YAML configuration: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">try</span>:
-            <span style="color: #008800; font-weight: bold">return</span> parse_config_file(path<span style="color: #333333">=</span>config_file)
-        <span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">Exception</span> <span style="color: #008800; font-weight: bold">as</span> e:
-            <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"YAML parsing failed: </span><span style="background-color: #eeeeee">{</span>e<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-            <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-
-    <span style="color: #008800; font-weight: bold">else</span>:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Unsupported configuration format: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">return</span> <span style="color: #008800; font-weight: bold">None</span>
-
-<span style="color: #888888"># Usage</span>
-config_files <span style="color: #333333">=</span> [<span style="background-color: #fff0f0">"config.toml"</span>, <span style="background-color: #fff0f0">"config.yaml"</span>, <span style="background-color: #fff0f0">"config.json"</span>]
-<span style="color: #008800; font-weight: bold">for</span> config_file <span style="color: #000000; font-weight: bold">in</span> config_files:
-    config <span style="color: #333333">=</span> load_config_by_type(config_file)
-    <span style="color: #008800; font-weight: bold">if</span> config:
-        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Successfully loaded: </span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
-        <span style="color: #008800; font-weight: bold">break</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="best-practices">Best Practices</h2>
 <h3 id="configuration-management">Configuration Management</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<ul>
+<li>Generation of structured configuration objects</li>
+<li>Application of default configuration values</li>
+<li>Configuration validation and error handling</li>
+</ul>
+<hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.parse_config_file">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>parse_config_file(<span style="color: #333333">*</span>, path<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Parse the configuration file and return a Config object.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>path</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The path to the configuration file. If not provided, the function will attempt to find and parse the default configuration file.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>Config</code></td> <td>
+<code><span title="rdetoolkit.models.config.Config">Config</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The parsed configuration object.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Raises:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>FileNotFoundError</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If the specified configuration file does not exist.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="file-loading-priority" open="">
+<summary>File Loading Priority</summary>
+<ol>
+<li>If <code>path</code> is provided and the file extension is ".toml", the function will attempt to read the file as a TOML file.</li>
+<li>If <code>path</code> is provided and the file extension is ".yaml" or ".yml", the function will attempt to read the file as a YAML file.</li>
+<li>If <code>path</code> is not provided, the function will attempt to find and parse the default configuration file named "pyproject.toml" in the current working directory.</li>
+</ol>
+</details>
+<details class="accepted-config-files" open="">
+<summary>Accepted Config Files</summary>
+<ul>
+<li>"rdeconfig.yaml"</li>
+<li>"rdeconfig.yml"</li>
+<li>"pyproject.toml"</li>
+</ul>
+</details>
+<details class="note" open="">
+<summary>Note</summary>
+<ul>
+<li>If the specified configuration file does not exist or is not in the correct format, an empty Config object will be returned.</li>
+</ul>
+</details>
+<details class="example" open="">
+<summary>Example</summary>
+<p>parse_config_file(path="config.yaml")</p>
+</details>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.find_config_files">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>find_config_files(target_dir_path)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Find and return a list of configuration files in the given input directory.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>target_dir_path</code></td>
+<td>
+<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>(RdeFsPath): An object containing the paths to the input directories.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>list[str]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>list[str]: A list of configuration file paths.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.get_config">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>get_config(target_dir_path)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Retrieves the configuration from the specified directory path.</p>
+<p>This function searches for configuration files in the specified directory.
+It parses each found configuration file until it finds a valid configuration,
+which it then returns. If no valid configuration is found in the directory,
+it searches for a pyproject.toml file, parses it, and returns its configuration
+if valid. If no valid configuration is found, it returns None.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>target_dir_path</code></td>
+<td>
+<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The path of the directory to search for configuration files.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.models.config.Config">Config</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Optional[Config]: The first valid configuration found, or None if no valid configuration is found.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.load_config">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>load_config(tasksupport_path, <span style="color: #333333">*</span>, config<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">None</span>)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Loads the configuration for the RDE Toolkit.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>tasksupport_path</code></td>
+<td>
+<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The path to the tasksupport directory.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>config</code></td>
+<td>
+<code>Optional[<span title="rdetoolkit.models.config.Config">Config</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>An optional existing configuration object.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>Config</code></td> <td>
+<code><span title="rdetoolkit.models.config.Config">Config</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The loaded configuration object.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.is_toml">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>is_toml(filename)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Check if the given filename has a .toml extension.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>filename</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The name of the file to check.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bool</code></td> <td>
+<code>bool</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>True if the filename has a .toml extension, False otherwise.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.is_yaml">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>is_yaml(filename)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Check if the given filename has a YAML file extension.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>filename</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The name of the file to check.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>bool</code></td> <td>
+<code>bool</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>True if the filename has a YAML file extension, False otherwise.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.get_pyproject_toml">
+<code class="highlight language-python">src<span style="color: #333333">.</span>rdetoolkit<span style="color: #333333">.</span>config<span style="color: #333333">.</span>get_pyproject_toml()</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Get the pyproject.toml file.</p>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="pathlib.Path">Path</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Optional[Path]: The path to the pyproject.toml file.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<h2 id="practical-usage">Practical Usage</h2>
+<h3 id="basic-configuration-file-loading">Basic Configuration File Loading</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">basic_config.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -1808,21 +1489,21 @@ config_files <span style="color: #333333">=</span> [<span style="background-colo
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888888"># Always use load_config for guaranteed non-None results</span>
-config <span style="color: #333333">=</span> load_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> parse_config_file, load_config
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
 
-<span style="color: #888888"># Use get_config when you need to handle None results</span>
-config <span style="color: #333333">=</span> get_config(<span style="background-color: #fff0f0">"data/tasksupport"</span>)
-<span style="color: #008800; font-weight: bold">if</span> config <span style="color: #000000; font-weight: bold">is</span> <span style="color: #008800; font-weight: bold">None</span>:
-    <span style="color: #888888"># Handle missing configuration</span>
-    <span style="color: #008800; font-weight: bold">pass</span>
+<span style="color: #888888"># Parse configuration file</span>
+config <span style="color: #333333">=</span> parse_config_file()
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"System settings: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Extended mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Save raw data: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>save_raw<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
 
-<span style="color: #888888"># Validate configuration after loading</span>
-<span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode <span style="color: #000000; font-weight: bold">not</span> <span style="color: #000000; font-weight: bold">in</span> [<span style="background-color: #fff0f0">"invoice"</span>, <span style="background-color: #fff0f0">"rdeformat"</span>, <span style="background-color: #fff0f0">"multidatatile"</span>]:
-    <span style="color: #008800; font-weight: bold">raise</span> <span style="color: #FF0000; font-weight: bold">ValueError</span>(<span style="background-color: #fff0f0">f"Invalid extended_mode: </span><span style="background-color: #eeeeee">{</span>config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+<span style="color: #888888"># Load configuration from specific directory</span>
+project_dir <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"/path/to/project"</span>)
+config <span style="color: #333333">=</span> load_config(project_dir)
 </code></pre></div></td></tr></table></div>
-<h3 id="environment-specific-configuration">Environment-Specific Configuration</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<h3 id="configuration-file-search-and-detection">Configuration File Search and Detection</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">config_detection.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -1835,40 +1516,49 @@ config <span style="color: #333333">=</span> get_config(<span style="background-
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">load_environment_config</span>(environment: <span style="color: #007020">str</span> <span style="color: #333333">=</span> <span style="background-color: #fff0f0">"production"</span>):
-<span style="color: #bbbbbb">    </span><span style="color: #DD4422">"""Load configuration based on environment."""</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> find_config_files, is_yaml, is_toml
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
 
-    config_paths <span style="color: #333333">=</span> {
-        <span style="background-color: #fff0f0">"development"</span>: <span style="background-color: #fff0f0">"config/dev"</span>,
-        <span style="background-color: #fff0f0">"testing"</span>: <span style="background-color: #fff0f0">"config/test"</span>,
-        <span style="background-color: #fff0f0">"production"</span>: <span style="background-color: #fff0f0">"data/tasksupport"</span>
-    }
+<span style="color: #888888"># Search for configuration files</span>
+config_dir <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"./config"</span>)
+config_files <span style="color: #333333">=</span> find_config_files(config_dir)
+<span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Found configuration files: </span><span style="background-color: #eeeeee">{</span>config_files<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
 
-    config_path <span style="color: #333333">=</span> config_paths<span style="color: #333333">.</span>get(environment, <span style="background-color: #fff0f0">"data/tasksupport"</span>)
-    <span style="color: #008800; font-weight: bold">return</span> load_config(config_path)
-
-<span style="color: #888888"># Usage</span>
-<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">os</span>
-env <span style="color: #333333">=</span> os<span style="color: #333333">.</span>getenv(<span style="background-color: #fff0f0">"RDE_ENVIRONMENT"</span>, <span style="background-color: #fff0f0">"production"</span>)
-config <span style="color: #333333">=</span> load_environment_config(env)
+<span style="color: #888888"># Detect file format</span>
+<span style="color: #008800; font-weight: bold">for</span> config_file <span style="color: #000000; font-weight: bold">in</span> config_files:
+    <span style="color: #008800; font-weight: bold">if</span> is_yaml(config_file):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> is a YAML file"</span>)
+    <span style="color: #008800; font-weight: bold">elif</span> is_toml(config_file):
+        <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"</span><span style="background-color: #eeeeee">{</span>config_file<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0"> is a TOML file"</span>)
 </code></pre></div></td></tr></table></div>
-<h2 id="see-also">See Also</h2>
-<ul>
-<li><a href="../models/config/">Models - Config</a> - For Config, SystemSettings, and MultiDataTileSettings data structures</li>
-<li><a href="../models/rde2types/">Models - RDE2 Types</a> - For RdeFsPath type definitions</li>
-<li><a href="../workflows/">Workflows</a> - For configuration usage in workflow processing</li>
-<li><a href="../../usage/config/config/">Usage - Configuration</a> - For practical configuration examples and patterns</li>
-<li><a href="../../usage/config/mode/">Usage - Mode</a> - For configuration mode usage examples</li>
-</ul>
+<h3 id="configuration-retrieval-from-pyprojecttoml">Configuration Retrieval from pyproject.toml</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">pyproject_config.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">rdetoolkit.config</span> <span style="color: #008800; font-weight: bold">import</span> get_pyproject_toml
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">pathlib</span> <span style="color: #008800; font-weight: bold">import</span> Path
+
+<span style="color: #888888"># Load pyproject.toml</span>
+project_root <span style="color: #333333">=</span> Path(<span style="background-color: #fff0f0">"."</span>)
+pyproject_data <span style="color: #333333">=</span> get_pyproject_toml(project_root)
+
+<span style="color: #008800; font-weight: bold">if</span> pyproject_data:
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Project name: </span><span style="background-color: #eeeeee">{</span>pyproject_data<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'project'</span>,<span style="color: #bbbbbb"> </span>{})<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'name'</span>)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #fff0f0">f"Version: </span><span style="background-color: #eeeeee">{</span>pyproject_data<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'project'</span>,<span style="color: #bbbbbb"> </span>{})<span style="color: #333333">.</span>get(<span style="background-color: #fff0f0">'version'</span>)<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>)
+</code></pre></div></td></tr></table></div>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
 </div>
 <button class="md-top md-icon" data-md-component="top" hidden="" type="button">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
-  Back to top
+  ページトップへ戻る
 </button>
 </main>
 <footer class="md-footer">
@@ -1913,14 +1603,14 @@ config <span style="color: #333333">=</span> load_environment_config(env)
 </ul>
 </div>
 <div class="md-consent__controls">
-<button class="md-button md-button--primary">Accept</button>
-<label class="md-button" for="__settings">Manage settings</label>
+<button class="md-button md-button--primary">同意</button>
+<label class="md-button" for="__settings">サイトの設定</label>
 </div>
 </form>
 </aside>
 </div>
 <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}}</script>
 <script src="../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
 </body>
