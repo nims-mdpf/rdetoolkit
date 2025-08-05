@@ -1,64 +1,59 @@
-# RDE Toolkit API Documentation
+# API Documentation
+
+## Purpose
+
+This section provides comprehensive API documentation for RDEToolKit modules. The documentation combines auto-generated content from Python docstrings with manual explanations and practical usage examples.
 
 ## Core Modules
 
-- [config](./config): 設定ファイルの読み込みと管理を行うモジュール
-- [core](./core): コア機能を提供するモジュール
-- [errors](./errors): エラーハンドリングを行うモジュール
-- [exceptions](./exceptions): 例外処理を行うモジュール
-- [fileops](./fileops): RDE関連のファイル操作を提供するモジュール
-- [img2thumb](./img2thumb): 画像をサムネイルに変換するモジュール
-- [invoicefile](./invoicefile): 送り状ファイルの処理を行うモジュール
-- [modeproc](./modeproc): モード処理を行うモジュール
-- [rde2util](./rde2util): RDE関連のユーティリティ関数を提供するモジュール
-- [rdelogger](./rdelogger): ロギング機能を提供するモジュール
-- [validation](./validation): データの検証を行うモジュール
-- [workflows](./workflows): ワークフローの定義と管理を行うモジュール
+- [workflows](./workflows.md): Module for defining and managing workflows in structured data processing.
+- [config](./config.md): Module for loading and managing configuration files.
+- [fileops](./fileops.md): Module providing RDE-related file operations.
+- [rde2util](./rde2util.md): Module providing RDE-related utility functions.
+- [invoicefile](./invoicefile.md): Module for processing invoice files.
+- [validation](./validation.md): Module for data validation and verification.
+- [modeproc](./modeproc.md): Module for mode processing operations.
+- [img2thumb](./img2thumb.md): Module for converting images to thumbnails.
+- [rdelogger](./rdelogger.md): Module providing logging functionality.
+- [exceptions](./exceptions.md): Module for exception handling.
+- [core](./core.md): Core functionality module.
 
-## Models
+## Data Models
 
-- [config](./models/config): 設定ファイルの読み込みと管理を行うモジュール
-- [invoice](./models/invoice): 送り状やExcelinvoiceの情報を定義するモジュール
-- [invoice_schema](./models/invoice_schema): 送り状のスキーマを定義するモジュール
-- [metadata](./models/metadata): メタデータの管理を行うモジュール
-- [rde2types](./models/rde2types): RDE関連の型定義を提供するモジュール
-- [report](./models/report): レポート関連のデータモデルを定義するモジュール
-- [result](./models/result): 処理結果を管理するモジュール
+- [config](./models/config.md): Configuration file loading and management models.
+- [invoice_schema](./models/invoice_schema.md): Invoice schema definition models.
+- [invoice](./models/invoice.md): Invoice and Excel invoice information models.
+- [metadata](./models/metadata.md): Metadata management models.
+- [rde2types](./models/rde2types.md): RDE-related type definitions.
+- [result](./models/result.md): Processing result management models.
 
 ## Implementation
 
-- [compressed_controller](./impl/compressed_controller): 圧縮ファイルの管理を行うモジュール
-- [input_controller](./impl/input_controller): 入力モードの管理を行うモジュール
+- [compressed_controller](./impl/compressed_controller.md): Compressed file management implementation.
+- [input_controller](./impl/input_controller.md): Input mode management implementation.
 
-## Interface
+## Interfaces
 
-- [filechecker](./interface/filechecker): ファイルチェック機能のインターフェース
+- [filechecker](./interface/filechecker.md): File checking interface definitions.
 
 ## Commands
 
-- [archive](./cmd/archive): アーカイブ関連のコマンド
-- [command](./cmd/command): コマンド処理の基本機能
-- [gen_excelinvoice](./cmd/gen_excelinvoice): Excel送り状生成コマンド
+- [command](./cmd/command.md): Base command implementations.
 
-## Processing
+## Storage & Artifacts
 
-- [processing](./processing/): データ処理パイプライン
-  - [context](./processing/context): 処理コンテキストの管理
-  - [factories](./processing/factories): プロセッサファクトリ
-  - [pipeline](./processing/pipeline): 処理パイプライン
-  - [processors](./processing/processors/): 各種プロセッサ
-    - [datasets](./processing/processors/datasets): データセット処理
-    - [descriptions](./processing/processors/descriptions): 説明文処理
-    - [files](./processing/processors/files): ファイル処理
-    - [invoice](./processing/processors/invoice): 送り状処理
-    - [thumbnails](./processing/processors/thumbnails): サムネイル処理
-    - [validation](./processing/processors/validation): 検証処理
-    - [variables](./processing/processors/variables): 変数処理
+- [minio](./storage/minio.md): MinIO object storage integration.
+- [report](./artifact/report.md): Report generation functionality.
 
-## Storage
+---
 
-- [minio](./storage/minio): MinIO ストレージ連携機能
+## Getting Started
 
-## Artifacts
+Each module documentation includes:
 
-- [report](./artifact/report): レポート生成機能
+- **Purpose**: Overview of the module's functionality
+- **Key Features**: Main capabilities and features
+- **Auto-generated API**: Complete function and class documentation from docstrings
+- **Practical Usage**: Code examples and real-world usage patterns
+
+Navigate to any module above to explore its detailed API documentation.
