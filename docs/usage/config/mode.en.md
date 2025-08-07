@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document explains the four data registration modes in RDE structured processing. You will understand the characteristics, use cases, and configuration methods of each mode to select the appropriate mode.
+This document explains the five data registration modes in RDE structured processing. You will understand the characteristics, use cases, and configuration methods of each mode to select the appropriate mode.
 
 ## Challenges and Background
 
@@ -13,7 +13,7 @@ Research data registration had diverse needs such as:
 - **Integrated Management**: Manage related data as one dataset
 - **Data Migration**: Migrate existing RDE format data
 
-Four data registration modes were developed to address these diverse needs.
+Five data registration modes were developed to address these diverse needs.
 
 ## Key Concepts
 
@@ -23,18 +23,20 @@ Four data registration modes were developed to address these diverse needs.
 flowchart TD
     A[Start Structured Processing] --> B{Check Input Files}
     B -->|*_excel_invoice.xlsx exists| C[ExcelInvoice Mode]
-    B -->|Normal files| D{Check Configuration File}
-    D -->|extended_mode: MultiDataTile| E[MultiDataTile Mode]
-    D -->|extended_mode: rdeformat| F[RDEFormat Mode]
-    D -->|No setting| G[Invoice Mode]
+    B -->|smarttable_*.{xlsx,csv,tsv} exists| D[SmartTableInvoice Mode]
+    B -->|Normal files| E{Check Configuration File}
+    E -->|extended_mode: MultiDataTile| F[MultiDataTile Mode]
+    E -->|extended_mode: rdeformat| G[RDEFormat Mode]
+    E -->|No setting| H[Invoice Mode]
 ```
 
-### Four Mode Overview
+### Five Mode Overview
 
 | Mode | Purpose | Activation Condition | Multiple Data Support |
 |------|---------|---------------------|----------------------|
 | **Invoice** | Single dataset registration | Default | ✗ |
 | **ExcelInvoice** | Batch registration | `*_excel_invoice.xlsx` exists | ✓ |
+| **SmartTableInvoice** | Automatic metadata generation | `smarttable_*.{xlsx,csv,tsv}` exists | ✓ |
 | **MultiDataTile** | Integrated management | Configuration file specification | ✓ |
 | **RDEFormat** | Data migration | Configuration file specification | ✓ |
 
@@ -82,7 +84,73 @@ data/
 └── tasksupport/
 ```
 
-### 3. MultiDataTile Mode
+### 3. SmartTableInvoice Mode
+
+**Overview**: Mode that reads metadata from table files (Excel/CSV/TSV) and automatically generates invoice.json files.
+
+**Activation Condition**: Automatically activated when files with `smarttable_*.{xlsx,csv,tsv}` naming convention exist in input files.
+
+**Features**:
+- **Multi-format support**: Reads Excel (.xlsx), CSV, and TSV files
+- **2-row header format**: Display names in row 1, mapping keys in row 2
+- **Automatic metadata mapping**: Structured data generation with `basic/`, `custom/`, `sample/` prefixes
+- **Array data support**: Proper mapping to `generalAttributes` and `specificAttributes`
+- **ZIP file integration**: Automatic association between data files in ZIP and table files
+
+**Table File Format**:
+```csv
+# Row 1: Display names (user descriptions)
+Data Name,Input File 1,Cycle,Thickness,Temperature,Sample Name,Sample ID,General Item
+
+# Row 2: Mapping keys (used in actual processing)
+basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sample/names,sample/sampleId,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
+
+# Row 3 onwards: Data
+Experiment1,file1.txt,1,2mm,25,sample001,S001,value1
+Experiment2,file2.txt,2,3mm,30,sample002,S002,value2
+```
+
+**Mapping Key Specifications**:
+- `basic/xxxx`: Maps to `xxxx` key in `basic` object of invoice.json
+- `custom/xxxx`: Maps to `xxxx` key in `custom` object of invoice.json
+- `sample/xxxx`: Maps to `xxxx` key in `sample` object of invoice.json
+- `sample/generalAttributes.<termId>`: Maps to `value` of corresponding `termId` in `generalAttributes` array
+- `sample/specificAttributes.<classId>.<termId>`: Maps to `value` of corresponding `classId` and `termId` in `specificAttributes` array
+- `inputdataX`: Specifies file path in ZIP file (X=1,2,3...)
+
+**Configuration Options**:
+```yaml
+smarttable:
+  save_table_file: true  # Save SmartTable file if true
+```
+
+`save_table_file` option:
+- `false` (default): SmartTable file is not saved to raw/nonshared_raw directory
+- `true`: Original SmartTable file is saved to raw/nonshared_raw directory
+
+**Directory Structure**:
+```
+data/
+├── inputdata/
+│   ├── smarttable_experiment.xlsx
+│   └── data.zip
+├── divided/
+│   ├── 0001/
+│   │   ├── invoice/
+│   │   │   └── invoice.json  # Generated from row 1 of smarttable
+│   │   └── raw/
+│   │       └── file1.txt
+│   └── 0002/
+│       ├── invoice/
+│       │   └── invoice.json  # Generated from row 2 of smarttable
+│       └── raw/
+│           └── file2.txt
+└── temp/
+    ├── fsmarttable_experiment_0001.csv
+    └── fsmarttable_experiment_0002.csv
+```
+
+### 4. MultiDataTile Mode
 
 **Overview**: Mode for integrated management of multiple related data tiles as one dataset.
 
@@ -99,7 +167,7 @@ system:
 - Maintains relationships between data
 - Suitable for large-scale datasets
 
-### 4. RDEFormat Mode
+### 5. RDEFormat Mode
 
 **Overview**: Mode for migrating existing RDE format data or creating mocks.
 
@@ -122,6 +190,7 @@ system:
 |------|---------------|----------------------|----------|------------|
 | Invoice | ✗ | ✗ | Single dataset | Beginner |
 | ExcelInvoice | ✓ | ✗ | Batch registration | Intermediate |
+| SmartTableInvoice | ✓ | ✗ | Flexible metadata mapping | Intermediate |
 | MultiDataTile | ✓ | ✓ | Integrated management | Advanced |
 | RDEFormat | ✓ | ✓ | Data migration | Advanced |
 
