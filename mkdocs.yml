@@ -4,6 +4,7 @@ theme:
   logo: img/2585322.png
   name: "material"
   language: ja
+  custom_dir: docs/overrides
   font:
     text: Noto Sans JP
   palette:
@@ -215,7 +216,3 @@ extra:
 
 extra_javascript:
   - https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js
-  - js/dify.js
-
-extra_css:
-  - stylesheets/dify.css
