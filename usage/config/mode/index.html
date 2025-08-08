@@ -17,6 +17,396 @@
 <style>:root{--md-text-font:"Noto Sans JP";--md-code-font:"Roboto Mono"}</style>
 <link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
 <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+<!-- Dify Chatbot Configuration -->
+<script>
+ window.difyChatbotConfig = {
+  token: 'miUabi3XxqUrpE7E',
+  baseUrl: 'http://dify.escidoc.jp',
+  systemVariables: {
+    // user_id: 'YOU CAN DEFINE USER ID HERE',
+    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+  },
+  userVariables: {
+    // avatar_url: 'YOU CAN DEFINE USER AVATAR URL HERE',
+    // name: 'YOU CAN DEFINE USER NAME HERE',
+  },
+ }
+</script>
+<!-- チャットボットのサイズ固定とスタイル設定 -->
+<style>
+  /* ========== チャットボタンのスタイル ========== */
+  #dify-chatbot-bubble-button {
+    background-color: #1C64F2 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    /* ボタンサイズの固定 */
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    /* サイズ変更の防止 */
+    resize: none !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+  }
+
+  /* ========== チャットウィンドウのサイズ固定 ========== */
+  #dify-chatbot-bubble-window {
+    /* 固定サイズ設定 */
+    width: 384px !important;  /* 24rem = 384px (16px基準) */
+    height: 640px !important; /* 40rem = 640px (16px基準) */
+    min-width: 384px !important;
+    min-height: 640px !important;
+    max-width: 384px !important;
+    max-height: 640px !important;
+
+    /* 位置の固定 */
+    position: fixed !important;
+    bottom: 90px !important;  /* ボタンの上に配置 */
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+
+    /* その他の固定設定 */
+    z-index: 9998 !important;
+    resize: none !important;
+    overflow: hidden !important;
+
+    /* フレックスボックスの制御 */
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    flex-basis: auto !important;
+
+    /* ボックスサイジング */
+    box-sizing: border-box !important;
+
+    /* 境界線とシャドウ */
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* チャットウィンドウ内部のサイズ制御 */
+  #dify-chatbot-bubble-window > * {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* iframe がある場合のサイズ固定 */
+  #dify-chatbot-bubble-window iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border: none !important;
+  }
+
+  /* ========== 展開ボタンのみ非表示（閉じるボタンは維持） ========== */
+  /* 展開・フルスクリーンボタンの特定と非表示 */
+  #dify-chatbot-bubble-window button[aria-label*="expand" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="fullscreen" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="maximize" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="expand" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="fullscreen" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="maximize" i]:not([title*="close" i]):not([title*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* クラス名による展開ボタンの非表示（閉じるボタンクラスは除外） */
+  #dify-chatbot-bubble-window [class*="expand" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="fullscreen" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="maximize" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="enlarge" i]:not([class*="close" i]):not([class*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* ========== レスポンシブ対応（モバイルでのサイズ調整） ========== */
+  @media (max-width: 768px) {
+    #dify-chatbot-bubble-window {
+      /* タブレットサイズでも固定 */
+      width: 350px !important;
+      height: 500px !important;
+      min-width: 350px !important;
+      min-height: 500px !important;
+      max-width: 350px !important;
+      max-height: 500px !important;
+      right: 10px !important;
+      bottom: 80px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 15px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #dify-chatbot-bubble-window {
+      /* スマートフォンサイズでの固定 */
+      width: calc(100vw - 20px) !important;
+      height: calc(100vh - 100px) !important;
+      min-width: 320px !important;
+      min-height: 400px !important;
+      max-width: calc(100vw - 20px) !important;
+      max-height: calc(100vh - 100px) !important;
+      right: 10px !important;
+      bottom: 70px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 10px !important;
+    }
+  }
+
+  /* ========== フルスクリーンモードの無効化（サイズは固定） ========== */
+  #dify-chatbot-bubble-window.fullscreen,
+  #dify-chatbot-bubble-window.expanded,
+  #dify-chatbot-bubble-window[data-fullscreen="true"],
+  #dify-chatbot-bubble-window[data-expanded="true"] {
+    width: 384px !important;
+    height: 640px !important;
+    position: fixed !important;
+    bottom: 90px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+  }
+
+  /* transformアニメーションは維持（開閉用） */
+  #dify-chatbot-bubble-window {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+  }
+</style>
+<!-- サイズ固定と展開ボタン削除（開閉機能は維持） -->
+<script>
+(function() {
+  'use strict';
+
+  // 展開ボタンのみを削除する関数（閉じるボタンは維持）
+  function removeExpandButtonsOnly() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // すべてのボタンをチェック
+    const buttons = chatWindow.querySelectorAll('button, [role="button"]');
+    buttons.forEach(button => {
+      // ボタンの情報を取得
+      const ariaLabel = (button.getAttribute('aria-label') || '').toLowerCase();
+      const title = (button.getAttribute('title') || '').toLowerCase();
+      const className = (button.className || '').toLowerCase();
+      const innerHTML = button.innerHTML.toLowerCase();
+      const textContent = (button.textContent || '').toLowerCase();
+
+      // 展開関連のキーワード
+      const expandKeywords = ['expand', 'fullscreen', 'maximize', 'enlarge', 'full-screen'];
+      // 閉じる関連のキーワード（これらは維持）
+      const closeKeywords = ['close', 'minimize', 'hide', '×', 'x', '关闭', '閉じる'];
+
+      // 展開ボタンかどうか判定
+      const isExpandButton = expandKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 閉じるボタンかどうか判定
+      const isCloseButton = closeKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 展開ボタンで、かつ閉じるボタンでない場合のみ削除
+      if (isExpandButton && !isCloseButton) {
+        button.style.display = 'none';
+        button.style.visibility = 'hidden';
+        button.style.pointerEvents = 'none';
+        button.disabled = true;
+        // 完全に削除を試みる
+        try {
+          button.remove();
+        } catch(e) {
+          // removeが失敗した場合は非表示のまま
+        }
+      }
+    });
+
+    // SVGアイコンによる判定（展開アイコンのみ削除）
+    const svgs = chatWindow.querySelectorAll('svg');
+    svgs.forEach(svg => {
+      const parentButton = svg.closest('button, [role="button"]');
+      if (!parentButton) return;
+
+      // 親ボタンが既に処理されている場合はスキップ
+      if (parentButton.style.display === 'none') return;
+
+      // SVGのパスを確認（一般的な展開アイコンのパターン）
+      const svgHTML = svg.innerHTML.toLowerCase();
+      const viewBox = svg.getAttribute('viewBox');
+
+      // 展開アイコンの特徴（四隅への矢印など）
+      const isExpandIcon = (
+        svgHTML.includes('m7 14h-2v5h5v-2h-3v-3') || // 一般的な展開アイコン
+        svgHTML.includes('m14 10v-3h3v3h2v-5h-5') || // 一般的な展開アイコン
+        (viewBox === '0 0 24 24' && svgHTML.includes('path') && svgHTML.includes('m'))
+      );
+
+      // 閉じるアイコンの特徴（×マークなど）
+      const isCloseIcon = (
+        svgHTML.includes('m18 6l-12 12') || // ×アイコン
+        svgHTML.includes('m6 18l12-12') || // ×アイコン
+        svgHTML.includes('close') ||
+        svgHTML.includes('×')
+      );
+
+      // 展開アイコンで、かつ閉じるアイコンでない場合のみ削除
+      if (isExpandIcon && !isCloseIcon) {
+        parentButton.style.display = 'none';
+        parentButton.disabled = true;
+        try {
+          parentButton.remove();
+        } catch(e) {}
+      }
+    });
+  }
+
+  // サイズを固定する関数（表示状態は変更しない）
+  function enforceFixedSize() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // 現在の表示状態を保持
+    const currentDisplay = window.getComputedStyle(chatWindow).display;
+    const isVisible = currentDisplay !== 'none';
+
+    // サイズのみを固定（displayは変更しない）
+    if (isVisible) {
+      // サイズ関連のスタイルのみ設定
+      Object.assign(chatWindow.style, {
+        width: '384px',
+        height: '640px',
+        minWidth: '384px',
+        minHeight: '640px',
+        maxWidth: '384px',
+        maxHeight: '640px',
+        position: 'fixed',
+        bottom: '90px',
+        right: '20px',
+        left: 'auto',
+        top: 'auto',
+        resize: 'none'
+      });
+    }
+
+    // フルスクリーン関連の属性を削除
+    chatWindow.removeAttribute('data-fullscreen');
+    chatWindow.removeAttribute('data-expanded');
+    chatWindow.classList.remove('fullscreen', 'expanded', 'maximized');
+  }
+
+  // 初期化関数
+  function initialize() {
+    removeExpandButtonsOnly();
+    enforceFixedSize();
+  }
+
+  // 複数のタイミングで実行
+  document.addEventListener('DOMContentLoaded', initialize);
+  window.addEventListener('load', initialize);
+
+  // 遅延実行
+  setTimeout(initialize, 100);
+  setTimeout(initialize, 500);
+  setTimeout(initialize, 1000);
+  setTimeout(initialize, 2000);
+
+  // 定期的にチェック（展開ボタンの削除のみ）
+  setInterval(removeExpandButtonsOnly, 2000);
+
+  // DOM変更を監視（展開ボタンが追加されたら削除）
+  const observer = new MutationObserver(function(mutations) {
+    // 新しい要素が追加された場合のみチェック
+    const hasNewNodes = mutations.some(mutation => mutation.addedNodes.length > 0);
+    if (hasNewNodes) {
+      setTimeout(removeExpandButtonsOnly, 50);
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // ResizeObserverでサイズ変更を監視
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target.id === 'dify-chatbot-bubble-window') {
+          // サイズが変更されたら固定サイズに戻す
+          const chatWindow = entry.target;
+          const currentDisplay = window.getComputedStyle(chatWindow).display;
+          if (currentDisplay !== 'none') {
+            enforceFixedSize();
+          }
+        }
+      }
+    });
+
+    setTimeout(() => {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow) {
+        resizeObserver.observe(chatWindow);
+      }
+    }, 1000);
+  }
+
+  // フルスクリーンイベントを阻止
+  document.addEventListener('fullscreenchange', function(e) {
+    if (document.fullscreenElement) {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow && chatWindow.contains(document.fullscreenElement)) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+    enforceFixedSize();
+  });
+})();
+</script>
 </head>
 <body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
 <input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
@@ -466,12 +856,12 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#3-multidatatile-mode">
+<a class="md-nav__link" href="#3-smarttableinvoice-mode">
 <span class="md-ellipsis">
-      3. MultiDataTile Mode
+      3. SmartTableInvoice Mode
     </span>
 </a>
-<nav aria-label="3. MultiDataTile Mode" class="md-nav">
+<nav aria-label="3. SmartTableInvoice Mode" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_16">
@@ -490,12 +880,33 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_18">
 <span class="md-ellipsis">
-      設定例
+      設定方法
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_19">
+<span class="md-ellipsis">
+      テーブルファイル形式
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_20">
+<span class="md-ellipsis">
+      マッピングキーの仕様
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_21">
+<span class="md-ellipsis">
+      設定オプション
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_22">
 <span class="md-ellipsis">
       ディレクトリ構造
     </span>
@@ -505,36 +916,75 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#4-rdeformat-mode">
+<a class="md-nav__link" href="#4-multidatatile-mode">
 <span class="md-ellipsis">
-      4. RDEFormat Mode
+      4. MultiDataTile Mode
     </span>
 </a>
-<nav aria-label="4. RDEFormat Mode" class="md-nav">
+<nav aria-label="4. MultiDataTile Mode" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_20">
+<a class="md-nav__link" href="#_23">
 <span class="md-ellipsis">
       特徴
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_21">
+<a class="md-nav__link" href="#_24">
 <span class="md-ellipsis">
       使用場面
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_22">
+<a class="md-nav__link" href="#_25">
 <span class="md-ellipsis">
       設定例
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_23">
+<a class="md-nav__link" href="#_26">
+<span class="md-ellipsis">
+      ディレクトリ構造
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-rdeformat-mode">
+<span class="md-ellipsis">
+      5. RDEFormat Mode
+    </span>
+</a>
+<nav aria-label="5. RDEFormat Mode" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_27">
+<span class="md-ellipsis">
+      特徴
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_28">
+<span class="md-ellipsis">
+      使用場面
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_29">
+<span class="md-ellipsis">
+      設定例
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_30">
 <span class="md-ellipsis">
       入力形式
     </span>
@@ -547,7 +997,7 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_24">
+<a class="md-nav__link" href="#_31">
 <span class="md-ellipsis">
       モード選択の指針
     </span>
@@ -555,14 +1005,14 @@
 <nav aria-label="モード選択の指針" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_25">
+<a class="md-nav__link" href="#_32">
 <span class="md-ellipsis">
       決定フローチャート
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_26">
+<a class="md-nav__link" href="#_33">
 <span class="md-ellipsis">
       選択基準
     </span>
@@ -572,7 +1022,7 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_27">
+<a class="md-nav__link" href="#_34">
 <span class="md-ellipsis">
       実装例
     </span>
@@ -580,7 +1030,7 @@
 <nav aria-label="実装例" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_28">
+<a class="md-nav__link" href="#_35">
 <span class="md-ellipsis">
       モード判定ロジック
     </span>
@@ -590,14 +1040,14 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_29">
+<a class="md-nav__link" href="#_36">
 <span class="md-ellipsis">
       まとめ
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_30">
+<a class="md-nav__link" href="#_37">
 <span class="md-ellipsis">
       次のステップ
     </span>
@@ -1184,12 +1634,12 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#3-multidatatile-mode">
+<a class="md-nav__link" href="#3-smarttableinvoice-mode">
 <span class="md-ellipsis">
-      3. MultiDataTile Mode
+      3. SmartTableInvoice Mode
     </span>
 </a>
-<nav aria-label="3. MultiDataTile Mode" class="md-nav">
+<nav aria-label="3. SmartTableInvoice Mode" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_16">
@@ -1208,12 +1658,33 @@
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_18">
 <span class="md-ellipsis">
-      設定例
+      設定方法
     </span>
 </a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_19">
+<span class="md-ellipsis">
+      テーブルファイル形式
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_20">
+<span class="md-ellipsis">
+      マッピングキーの仕様
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_21">
+<span class="md-ellipsis">
+      設定オプション
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_22">
 <span class="md-ellipsis">
       ディレクトリ構造
     </span>
@@ -1223,36 +1694,75 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#4-rdeformat-mode">
+<a class="md-nav__link" href="#4-multidatatile-mode">
 <span class="md-ellipsis">
-      4. RDEFormat Mode
+      4. MultiDataTile Mode
     </span>
 </a>
-<nav aria-label="4. RDEFormat Mode" class="md-nav">
+<nav aria-label="4. MultiDataTile Mode" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_20">
+<a class="md-nav__link" href="#_23">
 <span class="md-ellipsis">
       特徴
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_21">
+<a class="md-nav__link" href="#_24">
 <span class="md-ellipsis">
       使用場面
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_22">
+<a class="md-nav__link" href="#_25">
 <span class="md-ellipsis">
       設定例
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_23">
+<a class="md-nav__link" href="#_26">
+<span class="md-ellipsis">
+      ディレクトリ構造
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-rdeformat-mode">
+<span class="md-ellipsis">
+      5. RDEFormat Mode
+    </span>
+</a>
+<nav aria-label="5. RDEFormat Mode" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_27">
+<span class="md-ellipsis">
+      特徴
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_28">
+<span class="md-ellipsis">
+      使用場面
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_29">
+<span class="md-ellipsis">
+      設定例
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_30">
 <span class="md-ellipsis">
       入力形式
     </span>
@@ -1265,7 +1775,7 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_24">
+<a class="md-nav__link" href="#_31">
 <span class="md-ellipsis">
       モード選択の指針
     </span>
@@ -1273,14 +1783,14 @@
 <nav aria-label="モード選択の指針" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_25">
+<a class="md-nav__link" href="#_32">
 <span class="md-ellipsis">
       決定フローチャート
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_26">
+<a class="md-nav__link" href="#_33">
 <span class="md-ellipsis">
       選択基準
     </span>
@@ -1290,7 +1800,7 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_27">
+<a class="md-nav__link" href="#_34">
 <span class="md-ellipsis">
       実装例
     </span>
@@ -1298,7 +1808,7 @@
 <nav aria-label="実装例" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_28">
+<a class="md-nav__link" href="#_35">
 <span class="md-ellipsis">
       モード判定ロジック
     </span>
@@ -1308,14 +1818,14 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_29">
+<a class="md-nav__link" href="#_36">
 <span class="md-ellipsis">
       まとめ
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_30">
+<a class="md-nav__link" href="#_37">
 <span class="md-ellipsis">
       次のステップ
     </span>
@@ -1330,7 +1840,7 @@
 <article class="md-content__inner md-typeset">
 <h1 id="_1">処理モードとは</h1>
 <h2 id="_2">目的</h2>
-<p>RDEToolKitが提供する4つの処理モード（Invoice、ExcelInvoice、MultiDataTile、RDEFormat）の特徴と使い分けについて説明します。データの種類と登録方法に応じた最適なモード選択を理解できます。</p>
+<p>RDEToolKitが提供する5つの処理モード（Invoice、ExcelInvoice、SmartTableInvoice、MultiDataTile、RDEFormat）の特徴と使い分けについて説明します。データの種類と登録方法に応じた最適なモード選択を理解できます。</p>
 <h2 id="_3">課題と背景</h2>
 <p>研究データの登録において、以下のような多様なニーズがありました：</p>
 <ul>
@@ -1339,17 +1849,19 @@
 <li><strong>統合管理</strong>: 関連する複数のデータを1つのデータセットとして統合</li>
 <li><strong>既存データ移行</strong>: 他システムからの既存データの移行</li>
 </ul>
-<p>これらの異なるニーズに対応するため、4つの処理モードが設計されました。</p>
+<p>これらの異なるニーズに対応するため、5つの処理モードが設計されました。</p>
 <h2 id="_4">主要コンセプト</h2>
 <h3 id="_5">処理モードの分類</h3>
 <pre class="mermaid"><code>flowchart TD
     A[データ登録ニーズ] --&gt; B{データ数}
     B --&gt;|単一| C[Invoice Mode]
     B --&gt;|複数| D{管理方法}
-    D --&gt;|個別管理| E[ExcelInvoice Mode]
-    D --&gt;|統合管理| F[MultiDataTile Mode]
-    A --&gt; G{データ形式}
-    G --&gt;|既存RDE形式| H[RDEFormat Mode]
+    D --&gt;|個別管理| E{登録方法}
+    E --&gt;|Excel管理| F[ExcelInvoice Mode]
+    E --&gt;|テーブル自動読込| G[SmartTableInvoice Mode]
+    D --&gt;|統合管理| H[MultiDataTile Mode]
+    A --&gt; I{データ形式}
+    I --&gt;|既存RDE形式| J[RDEFormat Mode]
 </code></pre>
 <h3 id="_6">モード比較表</h3>
 <table>
@@ -1376,6 +1888,13 @@
 <td>複数</td>
 <td>個別</td>
 <td>Excelファイル</td>
+</tr>
+<tr>
+<td><strong>SmartTableInvoice</strong></td>
+<td>テーブルからの自動メタデータ生成</td>
+<td>複数</td>
+<td>個別</td>
+<td>テーブルファイル</td>
 </tr>
 <tr>
 <td><strong>MultiDataTile</strong></td>
@@ -1475,21 +1994,118 @@
 │       └── raw/
 └── logs/
 </code></pre></div></td></tr></table></div>
-<h3 id="3-multidatatile-mode">3. MultiDataTile Mode</h3>
-<p>関連する複数のデータを1つのデータセットとして統合管理するモードです。</p>
+<h3 id="3-smarttableinvoice-mode">3. SmartTableInvoice Mode</h3>
+<p>テーブルファイル（Excel/CSV/TSV）からメタデータを読み取り、自動的にinvoice.jsonファイルを生成するモードです。</p>
 <h4 id="_16">特徴</h4>
+<ul>
+<li><strong>多形式対応</strong>: Excel (.xlsx)、CSV、TSVファイルの読み込み</li>
+<li><strong>2行ヘッダー形式</strong>: 1行目に表示名、2行目にマッピングキーを配置</li>
+<li><strong>自動メタデータマッピング</strong>: <code>basic/</code>、<code>custom/</code>、<code>sample/</code>プレフィックスによる構造化データ生成</li>
+<li><strong>配列データサポート</strong>: <code>generalAttributes</code>および<code>specificAttributes</code>への適切なマッピング</li>
+<li><strong>zipファイル統合</strong>: データファイルを含むzipとテーブルファイルの自動関連付け</li>
+</ul>
+<h4 id="_17">使用場面</h4>
+<ul>
+<li>大量のメタデータを効率的に管理したい場合</li>
+<li>既存のExcel/CSVファイルからデータを移行する場合</li>
+<li>複雑なメタデータ構造を柔軟に定義したい場合</li>
+</ul>
+<h4 id="_18">設定方法</h4>
+<p>SmartTableファイル（<code>smarttable_*.{xlsx,csv,tsv}</code>）を<code>inputdata</code>に配置するだけで自動認識されます。</p>
+<h4 id="_19">テーブルファイル形式</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># 1行目: 表示名（ユーザー向けの説明）
+データ名,入力ファイル1,サイクル,厚さ,温度,試料名,試料ID,一般項目
+
+# 2行目: マッピングキー（実際の処理で使用）
+basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sample/names,sample/sampleId,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
+
+# 3行目以降: データ
+実験1,file1.txt,1,2mm,25,sample001,S001,value1
+実験2,file2.txt,2,3mm,30,sample002,S002,value2
+</code></pre></div></td></tr></table></div>
+<h4 id="_20">マッピングキーの仕様</h4>
+<ul>
+<li><code>basic/xxxx</code>: invoice.jsonの<code>basic</code>オブジェクト内の<code>xxxx</code>キーにマッピング</li>
+<li><code>custom/xxxx</code>: invoice.jsonの<code>custom</code>オブジェクト内の<code>xxxx</code>キーにマッピング</li>
+<li><code>sample/xxxx</code>: invoice.jsonの<code>sample</code>オブジェクト内の<code>xxxx</code>キーにマッピング</li>
+<li><code>sample/generalAttributes.&lt;termId&gt;</code>: <code>generalAttributes</code>配列内の該当する<code>termId</code>の<code>value</code>にマッピング</li>
+<li><code>sample/specificAttributes.&lt;classId&gt;.&lt;termId&gt;</code>: <code>specificAttributes</code>配列内の該当する<code>classId</code>と<code>termId</code>の<code>value</code>にマッピング</li>
+<li><code>inputdataX</code>: zipファイル内のファイルパスを指定（X=1,2,3...）</li>
+</ul>
+<h4 id="_21">設定オプション</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">SmartTable設定オプション</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">smarttable</span>:
+<span style="color: #bbbbbb">  </span><span style="color: #007700">save_table_file</span>:<span style="color: #bbbbbb"> </span>true<span style="color: #bbbbbb">  </span><span style="color: #888888"># SmartTableファイルを保存する場合</span>
+</code></pre></div></td></tr></table></div>
+<p><code>save_table_file</code>オプション:
+- <code>false</code>（デフォルト）: SmartTableファイルはraw/nonshared_rawディレクトリに保存されません
+- <code>true</code>: オリジナルのSmartTableファイルがraw/nonshared_rawディレクトリに保存されます</p>
+<h4 id="_22">ディレクトリ構造</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
+├── inputdata/
+│   ├── smarttable_experiment.xlsx
+│   └── data.zip
+├── invoice/
+├── tasksupport/
+├── divided/
+│   ├── 0001/
+│   │   ├── invoice/
+│   │   │   └── invoice.json  # smarttableの1行目から生成
+│   │   ├── raw/
+│   │   │   ├── file1.txt
+│   │   │   └── file2.txt
+│   │   └── (その他の標準フォルダ)
+│   └── 0002/
+│       ├── invoice/
+│       │   └── invoice.json  # smarttableの2行目から生成
+│       └── (その他の標準フォルダ)
+└── temp/
+    ├── fsmarttable_experiment_0001.csv
+    └── fsmarttable_experiment_0002.csv
+</code></pre></div></td></tr></table></div>
+<h3 id="4-multidatatile-mode">4. MultiDataTile Mode</h3>
+<p>関連する複数のデータを1つのデータセットとして統合管理するモードです。</p>
+<h4 id="_23">特徴</h4>
 <ul>
 <li>複数のデータタイルを1つのデータセットとして統合</li>
 <li>データ間の関連性を保持</li>
 <li>複合的な実験結果の管理に最適</li>
 </ul>
-<h4 id="_17">使用場面</h4>
+<h4 id="_24">使用場面</h4>
 <ul>
 <li>時系列データの統合</li>
 <li>多段階実験の結果統合</li>
 <li>関連する複数の測定データの一括管理</li>
 </ul>
-<h4 id="_18">設定例</h4>
+<h4 id="_25">設定例</h4>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">MultiDataTile Mode設定</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
@@ -1502,7 +2118,7 @@
 <span style="color: #bbbbbb">  </span><span style="color: #007700">divided_dir_digit</span>:<span style="color: #bbbbbb"> </span>4
 <span style="color: #bbbbbb">  </span><span style="color: #007700">divided_dir_start_number</span>:<span style="color: #bbbbbb"> </span>1
 </code></pre></div></td></tr></table></div>
-<h4 id="_19">ディレクトリ構造</h4>
+<h4 id="_26">ディレクトリ構造</h4>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1525,41 +2141,42 @@
 ├── meta/        # 統合メタデータ
 └── raw/         # 統合生データ
 </code></pre></div></td></tr></table></div>
-<h3 id="4-rdeformat-mode">4. RDEFormat Mode</h3>
+<h3 id="5-rdeformat-mode">5. RDEFormat Mode</h3>
 <p>既存のRDE形式データの移行やモックデータ作成に使用するモードです。</p>
-<h4 id="_20">特徴</h4>
+<h4 id="_27">特徴</h4>
 <ul>
 <li>事前に構造化されたデータの登録</li>
 <li>他システムからのデータ移行</li>
 <li>テスト用モックデータの作成</li>
 </ul>
-<h4 id="_21">使用場面</h4>
+<h4 id="_28">使用場面</h4>
 <ul>
 <li>他のRDEシステムからのデータ移行</li>
 <li>開発・テスト用のモックデータ作成</li>
 <li>既存の構造化データの再登録</li>
 </ul>
-<h4 id="_22">設定例</h4>
+<h4 id="_29">設定例</h4>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">RDEFormat Mode設定</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
 <span style="color: #bbbbbb">  </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"rdeformat"</span>
 </code></pre></div></td></tr></table></div>
-<h4 id="_23">入力形式</h4>
+<h4 id="_30">入力形式</h4>
 <p>RDE形式のZIPファイル（<code>rdeformat_*.zip</code>）を<code>inputdata</code>に配置します。</p>
-<h2 id="_24">モード選択の指針</h2>
-<h3 id="_25">決定フローチャート</h3>
+<h2 id="_31">モード選択の指針</h2>
+<h3 id="_32">決定フローチャート</h3>
 <pre class="mermaid"><code>flowchart TD
     A[データ登録を開始] --&gt; B{データは既にRDE形式？}
     B --&gt;|Yes| C[RDEFormat Mode]
     B --&gt;|No| D{登録するデータ数は？}
     D --&gt;|1個| E[Invoice Mode]
     D --&gt;|複数| F{管理方法は？}
-    F --&gt;|個別管理| G{効率性重視？}
-    G --&gt;|Yes| H[ExcelInvoice Mode]
-    G --&gt;|No| E
-    F --&gt;|統合管理| I[MultiDataTile Mode]
+    F --&gt;|個別管理| G{メタデータ管理方法は？}
+    G --&gt;|Excel形式| H[ExcelInvoice Mode]
+    G --&gt;|テーブル自動読込| I[SmartTableInvoice Mode]
+    G --&gt;|手動入力| E
+    F --&gt;|統合管理| J[MultiDataTile Mode]
 </code></pre>
-<h3 id="_26">選択基準</h3>
+<h3 id="_33">選択基準</h3>
 <table>
 <thead>
 <tr>
@@ -1585,6 +2202,16 @@
 <td>効率的な一括処理</td>
 </tr>
 <tr>
+<td>複雑なメタデータ構造</td>
+<td>SmartTableInvoice</td>
+<td>柔軟なマッピング機能</td>
+</tr>
+<tr>
+<td>既存Excel/CSVからの移行</td>
+<td>SmartTableInvoice</td>
+<td>自動メタデータ生成</td>
+</tr>
+<tr>
 <td>関連データの統合</td>
 <td>MultiDataTile</td>
 <td>データ間関係の保持</td>
@@ -1596,8 +2223,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="_27">実装例</h2>
-<h3 id="_28">モード判定ロジック</h3>
+<h2 id="_34">実装例</h2>
+<h3 id="_35">モード判定ロジック</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">モード自動判定</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1613,7 +2240,12 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">determine_processing_mode</span>(input_dir, config):
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">determine_processing_mode</span>(input_dir, config):
     <span style="color: #888888"># 設定ファイルでの明示的指定を優先</span>
     <span style="color: #008800; font-weight: bold">if</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode:
         <span style="color: #008800; font-weight: bold">return</span> config<span style="color: #333333">.</span>system<span style="color: #333333">.</span>extended_mode
@@ -1624,28 +2256,37 @@
     <span style="color: #008800; font-weight: bold">for</span> file <span style="color: #000000; font-weight: bold">in</span> files:
         <span style="color: #008800; font-weight: bold">if</span> file<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'_excel_invoice.xlsx'</span>):
             <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">'ExcelInvoice'</span>
+        <span style="color: #008800; font-weight: bold">elif</span> file<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">'smarttable_'</span>) <span style="color: #000000; font-weight: bold">and</span> (
+            file<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'.xlsx'</span>) <span style="color: #000000; font-weight: bold">or</span> 
+            file<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'.csv'</span>) <span style="color: #000000; font-weight: bold">or</span> 
+            file<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'.tsv'</span>)):
+            <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">'SmartTableInvoice'</span>
         <span style="color: #008800; font-weight: bold">elif</span> file<span style="color: #333333">.</span>startswith(<span style="background-color: #fff0f0">'rdeformat_'</span>) <span style="color: #000000; font-weight: bold">and</span> file<span style="color: #333333">.</span>endswith(<span style="background-color: #fff0f0">'.zip'</span>):
             <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">'RDEFormat'</span>
 
     <span style="color: #888888"># デフォルトはInvoiceモード</span>
     <span style="color: #008800; font-weight: bold">return</span> <span style="background-color: #fff0f0">'Invoice'</span>
 </code></pre></div></td></tr></table></div>
-<h2 id="_29">まとめ</h2>
-<p>RDEToolKitの4つの処理モードの特徴：</p>
+<h2 id="_36">まとめ</h2>
+<p>RDEToolKitの5つの処理モードの特徴：</p>
 <ul>
 <li><strong>Invoice</strong>: 基本的な単一データセット登録</li>
-<li><strong>ExcelInvoice</strong>: 効率的な複数データセット一括登録</li>
+<li><strong>ExcelInvoice</strong>: 効率的な複数データセット一括登録  </li>
+<li><strong>SmartTableInvoice</strong>: テーブルファイルからの自動メタデータ生成と複数データセット登録</li>
 <li><strong>MultiDataTile</strong>: 関連データの統合管理</li>
 <li><strong>RDEFormat</strong>: 既存データの移行・モック作成</li>
 </ul>
 <p>適切なモード選択により、研究データの効率的な管理と登録が可能になります。</p>
-<h2 id="_30">次のステップ</h2>
+<h2 id="_37">次のステップ</h2>
 <p>各処理モードの詳細な使用方法については、以下のドキュメントを参照してください：</p>
 <ul>
 <li><a href="../config/">設定ファイル</a>でモード設定方法を学ぶ</li>
 <li><a href="../../structured_process/structured/">構造化処理の概念</a>で処理フローを理解する</li>
 <li><a href="../../structured_process/directory/">ディレクトリ構造</a>でモード別のディレクトリ構成を確認する</li>
 </ul>
+<!-- Dify Chatbot Script -->
+<script defer="" id="miUabi3XxqUrpE7E" src="http://dify.escidoc.jp/embed.min.js">
+</script>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
