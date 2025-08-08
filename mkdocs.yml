@@ -35,7 +35,7 @@ plugins:
           default: true
           nav:
             - はじめに:
-                - はじめに: index.md
+                - はじめに: index.ja.md
                 - インストール: installation.md
                 - クイックスタート: usage/quickstart.md
             - ユーザーガイド:
@@ -100,7 +100,7 @@ plugins:
           build: true
           nav:
             - Getting Started:
-                - Introduction: index.md
+                - Introduction: index.en.md
                 - Installation: installation.md
                 - Quick Start: usage/quickstart.md
             - User Guide:
@@ -215,3 +215,7 @@ extra:
 
 extra_javascript:
   - https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js
+  - js/dify.js
+
+extra_css:
+  - stylesheets/dify.css
