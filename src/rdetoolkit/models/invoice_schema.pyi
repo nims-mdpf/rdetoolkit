@@ -1,6 +1,6 @@
-from _typeshed import Incomplete as Incomplete
+from _typeshed import Incomplete
 from pydantic import BaseModel, RootModel
-from typing import Literal
+from typing import Any, Literal
 
 class LangLabels(BaseModel):
     ja: str
@@ -37,7 +37,7 @@ class MetaProperty(BaseModel):
 class CustomItems(RootModel):
     root: dict[str, MetaProperty]
     def __iter__(self): ...
-    def __getitem__(self, item) -> None: ...
+    def __getitem__(self, item): ...
 
 class CustomField(BaseModel):
     obj_type: Literal['object']
@@ -130,3 +130,4 @@ class InvoiceSchemaJson(BaseModel):
     value_type: Literal['object']
     required: list[Literal['custom', 'sample']] | None
     properties: Properties
+    def find_field(self, key: str, custom_only: bool = False) -> dict[str, Any] | None: ...
