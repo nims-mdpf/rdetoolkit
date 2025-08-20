@@ -237,7 +237,11 @@ class SmartTableInvoiceInitializer(Processor):
             schema_value = invoice_schema_obj.find_field(field)
             _fmt = schema_value.get("format", None) if schema_value else None
             _type = schema_value.get("type", None) if schema_value else None
-            invoice_data["custom"][field] = castval(value, _type, _fmt)
+            # If type is not found in schema, use the value as string
+            if _type:
+                invoice_data["custom"][field] = castval(value, _type, _fmt)
+            else:
+                invoice_data["custom"][field] = value
 
         elif key.startswith("sample/generalAttributes."):
             self._process_general_attributes(key, value, invoice_data)
