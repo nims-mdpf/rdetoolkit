@@ -171,7 +171,7 @@ def generate_folder_paths_iterator(
         yield rdeoutput_resource_path
 
 
-def _process_mode(
+def _process_mode(  # noqa: C901
     idx: int,
     srcpaths: RdeInputDirPaths,
     rdeoutput_resource: RdeOutputResourcePath,
