@@ -374,7 +374,7 @@ class InvoiceSchemaJson(BaseModel):
     def __check_custom_fields(self):
         if not self.properties.custom:
             return self
-        if "custom" not in self.required:
+        if self.required and "custom" not in self.required:
             raise ValueError("custom is required but is None")
         return self
 
