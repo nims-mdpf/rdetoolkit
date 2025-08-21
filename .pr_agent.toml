@@ -1,0 +1,49 @@
+[config]
+response_language = "en-US"
+model = "gpt-4.1"
+fallback_models = ["gpt-4.1-mini", "o4-mini"]
+patch_extra_lines_before = 5
+patch_extra_lines_after  = 3
+
+[ignore]
+glob = ['dist/**','build/**','*.min.js','package-lock.json','yarn.lock']
+
+[pr_reviewer]
+num_max_findings = 10
+require_security_review = true
+require_tests_review = true
+require_score_review = true
+require_estimate_effort_to_review = true
+require_can_be_split_review = true
+require_todo_scan = true
+# auto add a label
+enable_review_labels_security = true
+enable_review_labels_effort   = true
+
+extra_instructions = """\
+[Review Lenses | label findings as Blocker / Major / Minor]
+- Correctness & spec compliance; backward compatibility of public APIs
+- Maintainability: readability, separation of concerns, function/module sizing, docs
+- Consistency with project conventions and framework idioms
+- Tests: what’s missing (unit/integration/regression) with concrete examples
+- Security: input validation, secrets exposure, authz/authn gaps, known-CVE dependencies
+- Performance: obvious inefficiencies (unnecessary scans, repeated work, sync I/O bottlenecks)
+- Observability: logs/metrics/error handling suitable for production troubleshooting
+- Scope management: if the PR is too large, propose a sensible split
+
+[Output Format]
+1) Summary (2–4 lines)
+2) Strengths
+3) Concerns (Blocker/Major/Minor) — include filename and line numbers
+4) Concrete Suggestions — minimal-change proposals; include small patch snippets when helpful
+5) Test Gaps — list specific cases to add
+
+[Behavior When Uncertain]
+- Explicitly list assumptions, unknowns, and the additional evidence needed (files, settings, repro steps).
+- Propose concrete verification steps (e.g., which files/keywords to grep, which CI logs/configs to check).
+- Do not assert APIs/specs by guess; offer alternatives with conditions for choosing each.
+- Prioritize review of public APIs, security-sensitive code, and wide-impact areas first.
+- Defer style-only issues to the formatter/linter; flag only rule deviations or readability risks.
+- If the PR is oversized or mixes concerns, ask for a smaller follow-up and suggest a split plan.
+- Keep tone concise, specific, and respectful; avoid generic praise; always reference code lines.
+"""
