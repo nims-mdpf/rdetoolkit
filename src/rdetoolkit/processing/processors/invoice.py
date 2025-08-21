@@ -11,6 +11,8 @@ from rdetoolkit.invoicefile import ExcelInvoiceFile, InvoiceFile
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
+from rdetoolkit.rde2util import castval
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
 
@@ -180,12 +182,14 @@ class SmartTableInvoiceInitializer(Processor):
                 # If no original invoice, initialize empty structure
                 invoice_data = self._initialize_invoice_data()
 
+            schema_dict = readf_json(context.resource_paths.invoice_schema_json)
+            invoice_schema_json_data = InvoiceSchemaJson(**schema_dict)
+
             for col in csv_data.columns:
                 value = csv_data.iloc[0][col]
                 if pd.isna(value) or value == "":
                     continue
-
-                self._process_mapping_key(col, value, invoice_data)
+                self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
 
             # Ensure required fields are present
             self._ensure_required_fields(invoice_data)
@@ -210,21 +214,34 @@ class SmartTableInvoiceInitializer(Processor):
             "sample": {},
         }
 
-    def _process_mapping_key(self, key: str, value: str, invoice_data: dict[str, Any]) -> None:
-        """Process a mapping key and assign value to appropriate location in invoice data.
+    def _process_mapping_key(self, key: str, value: str, invoice_data: dict[str, Any], invoice_schema_obj: InvoiceSchemaJson) -> None:
+        """Process a mapping key and assign the provided value to the appropriate location in the invoice data dictionary.
 
         Args:
-            key: Mapping key (e.g., "basic/dataName", "sample/generalAttributes.termId")
-            value: Value to assign
-            invoice_data: Invoice data dictionary to update
+            key (str): Mapping key indicating the target field (e.g., "basic/dataName", "sample/generalAttributes.termId").
+            value (str): Value to assign to the specified field.
+            invoice_data (dict[str, Any]): Invoice data dictionary to update.
+            invoice_schema_obj (InvoiceSchemaJson): Schema object used for field validation and lookup.
+
+        Returns:
+            None
+
         """
         if key.startswith("basic/"):
             field = key.replace("basic/", "")
+            # schema_value = invoice_schema_obj.find_field(field)
             invoice_data["basic"][field] = value
 
         elif key.startswith("custom/"):
             field = key.replace("custom/", "")
-            invoice_data["custom"][field] = value
+            schema_value = invoice_schema_obj.find_field(field)
+            _fmt = schema_value.get("format", None) if schema_value else None
+            _type = schema_value.get("type", None) if schema_value else None
+            # If type is not found in schema, use the value as string
+            if _type:
+                invoice_data["custom"][field] = castval(value, _type, _fmt)
+            else:
+                invoice_data["custom"][field] = value
 
         elif key.startswith("sample/generalAttributes."):
             self._process_general_attributes(key, value, invoice_data)

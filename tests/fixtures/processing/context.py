@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import shutil
 import tempfile
 from typing import Generator
 from unittest.mock import MagicMock
@@ -200,13 +202,13 @@ def test_processing_context_mapping(rde_input_paths, rde_output_paths_rdeformat,
 @pytest.fixture
 def isolated_processing_context(rde_input_paths, mock_datasets_function) -> Generator[ProcessingContext, None, None]:
     """Create an isolated ProcessingContext with temporary directories for testing.
-    
+
     This fixture creates a completely isolated context with temporary directories
     to prevent test interference and ensure cleanup.
     """
     with tempfile.TemporaryDirectory() as temp_dir:
         base_path = Path(temp_dir)
-        
+
         # Create isolated output paths in temp directory
         rde_output_paths = RdeOutputResourcePath(
             raw=base_path / "raw",
@@ -224,19 +226,21 @@ def isolated_processing_context(rde_input_paths, mock_datasets_function) -> Gene
             ),
             invoice_org=base_path / "invoice" / "invoice.json",
         )
-        
+
         # Create necessary directories
-        for path in [rde_output_paths.raw, rde_output_paths.nonshared_raw, 
-                    rde_output_paths.main_image, rde_output_paths.other_image,
-                    rde_output_paths.thumbnail, rde_output_paths.meta, 
-                    rde_output_paths.struct, rde_output_paths.logs, 
-                    rde_output_paths.invoice, base_path / "tasksupport",
-                    base_path / "inputdata"]:
+        for path in [
+            rde_output_paths.raw, rde_output_paths.nonshared_raw,
+            rde_output_paths.main_image, rde_output_paths.other_image,
+            rde_output_paths.thumbnail, rde_output_paths.meta,
+            rde_output_paths.struct, rde_output_paths.logs,
+            rde_output_paths.invoice, base_path / "tasksupport",
+            base_path / "inputdata"
+        ]:
             path.mkdir(parents=True, exist_ok=True)
-        
+
         # Create a test file for rawfiles
         (base_path / "inputdata" / "test_single.txt").write_text("test content")
-        
+
         context = ProcessingContext(
             index="0001",
             srcpaths=rde_input_paths,
@@ -244,5 +248,132 @@ def isolated_processing_context(rde_input_paths, mock_datasets_function) -> Gene
             datasets_function=mock_datasets_function,
             mode_name="test_mode"
         )
-        
+
+        yield context
+
+
+@pytest.fixture
+def smarttable_processing_context(rde_input_paths, mock_datasets_function) -> Generator[ProcessingContext, None, None]:
+    """Create a ProcessingContext for SmartTable mode testing with temporary directories."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        base_path = Path(temp_dir)
+
+        # Create CSV file for SmartTable
+        csv_path = base_path / "inputdata" / "smarttable_test.csv"
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create isolated output paths
+        rde_output_paths = RdeOutputResourcePath(
+            raw=base_path / "raw",
+            nonshared_raw=base_path / "nonshared_raw",
+            main_image=base_path / "main_image",
+            other_image=base_path / "other_image",
+            thumbnail=base_path / "thumbnail",
+            meta=base_path / "meta",
+            struct=base_path / "structured",
+            logs=base_path / "logs",
+            invoice=base_path / "invoice",
+            invoice_schema_json=base_path / "tasksupport" / "invoice.schema.json",
+            rawfiles=(csv_path,),  # SmartTable CSV file
+            invoice_org=base_path / "invoice" / "invoice.json",
+        )
+
+        # Create necessary directories
+        for path in [
+            rde_output_paths.raw, rde_output_paths.nonshared_raw,
+            rde_output_paths.main_image, rde_output_paths.other_image,
+            rde_output_paths.thumbnail, rde_output_paths.meta,
+            rde_output_paths.struct, rde_output_paths.logs,
+            rde_output_paths.invoice, base_path / "tasksupport"
+        ]:
+            path.mkdir(parents=True, exist_ok=True)
+
+        # Copy the test schema file to the temporary directory
+        test_schema_path = Path(__file__).parent.parent.parent / "samplefile" / "invoice.schema.json"
+        if test_schema_path.exists():
+            shutil.copy(test_schema_path, rde_output_paths.invoice_schema_json)
+        else:
+            # Create a minimal valid schema file if the sample doesn't exist
+            schema_data = {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "custom": {
+                        "type": "object",
+                        "label": {"ja": "固有情報", "en": "Custom"},
+                        "required": [],
+                        "properties": {
+                            "customField1": {
+                                "type": "string",
+                                "label": {"ja": "カスタムフィールド1", "en": "Custom Field 1"}
+                            },
+                            "intField": {
+                                "type": "integer",
+                                "label": {"ja": "整数フィールド", "en": "Integer Field"}
+                            },
+                            "floatField": {
+                                "type": "number",
+                                "label": {"ja": "浮動小数点フィールド", "en": "Float Field"}
+                            },
+                            "boolField": {
+                                "type": "boolean",
+                                "label": {"ja": "ブールフィールド", "en": "Boolean Field"}
+                            },
+                            "stringField": {
+                                "type": "string",
+                                "label": {"ja": "文字列フィールド", "en": "String Field"}
+                            },
+                            "field1": {
+                                "type": "string",
+                                "label": {"ja": "フィールド1", "en": "Field 1"}
+                            }
+                        }
+                    },
+                    "sample": {
+                        "type": "object",
+                        "label": {"ja": "試料情報", "en": "Sample"},
+                        "properties": {
+                            "names": {
+                                "type": "array",
+                                "items": {"type": "string"}
+                            },
+                            "generalAttributes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "termId": {"type": "string"},
+                                        "value": {"type": "string"}
+                                    }
+                                }
+                            },
+                            "specificAttributes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "classId": {"type": "string"},
+                                        "termId": {"type": "string"},
+                                        "value": {"type": "string"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "definitions": {}
+            }
+
+            with open(rde_output_paths.invoice_schema_json, 'w') as f:
+                json.dump(schema_data, f)
+
+        context = ProcessingContext(
+            index="0001",
+            srcpaths=rde_input_paths,
+            resource_paths=rde_output_paths,
+            datasets_function=mock_datasets_function,
+            mode_name="smarttable",
+            smarttable_file=csv_path  # This enables SmartTable mode
+        )
+
         yield context
