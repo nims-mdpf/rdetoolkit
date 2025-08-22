@@ -136,8 +136,9 @@ RDEToolKitのワークフローを起動するエントリーポイントを作�
 ### 実行するコード
 
 ```python title="main.py"
-from modules import process
 import rdetoolkit
+
+from modules import process
 
 def main():
     """メイン実行関数"""
