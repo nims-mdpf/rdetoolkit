@@ -134,8 +134,9 @@ Create an entry point to launch the RDEToolKit workflow.
 ### Code to Execute
 
 ```python title="main.py"
-from modules import process
 import rdetoolkit
+
+from modules import process
 
 def main():
     """Main execution function"""

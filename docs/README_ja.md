@@ -108,7 +108,7 @@ def dataset(srcpaths, resource_paths):
 
 ```python
 import rdetoolkit
-from modules.modules import datase  #独自で定義した構造化処理関数
+from modules.modules import dataset  #独自で定義した構造化処理関数
 
 #独自で定義した構造化処理関数を引数として渡す
 rdetoolkit.workflows.run(custom_dataset_function=dataset)
