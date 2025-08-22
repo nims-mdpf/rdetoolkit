@@ -42,8 +42,8 @@
 
 ### コミュニティ
 
-- [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues) - バグ報告と機能要望
-- [GitHub Discussions](https://github.com/nims-dpfc/rdetoolkit/discussions) - 質問と情報交換
+- [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues) - バグ報告と機能要望
+- [GitHub Discussions](https://github.com/nims-mdpf/rdetoolkit/discussions) - 質問と情報交換
 
 !!! tip "学習の進め方"
     RDEToolKitを効果的に学習するには、まず[構造化処理とは](structured-processing.ja.md)で基本概念を理解し、その後に具体的な用途に応じたトピックを参照することをお勧めします。

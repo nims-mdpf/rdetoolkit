@@ -1,10 +1,10 @@
 # RDEToolKit
 
-![GitHub Release](https://img.shields.io/github/v/release/nims-dpfc/rdetoolkit)
+![GitHub Release](https://img.shields.io/github/v/release/nims-mdpf/rdetoolkit)
 [![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
-[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-dpfc/rdetoolkit/blob/main/LICENSE)
-[![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-dpfc/rdetoolkit/issues)
-![workflow](https://github.com/nims-dpfc/rdetoolkit/actions/workflows/main.yml/badge.svg)
+[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-mdpf/rdetoolkit/blob/main/LICENSE)
+[![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-mdpf/rdetoolkit/issues)
+![workflow](https://github.com/nims-mdpf/rdetoolkit/actions/workflows/main.yml/badge.svg)
 ![coverage](img/coverage.svg)
 
 RDEToolKit is a fundamental Python package for creating workflows for RDE structured programs. By using various modules of RDEToolKit, you can easily build registration processes for research and experimental data to RDE. Primarily, RDEToolKit supports pre-processing and post-processing of user-defined structured processing. Additionally, by combining with Python modules used for research and experimental data, it enables more diverse processing from data registration to processing and graphing. This allows efficient management of the entire data science workflow, including data cleansing, transformation, aggregation, and visualization.

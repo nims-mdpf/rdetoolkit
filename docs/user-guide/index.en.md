@@ -42,8 +42,8 @@ This section explains detailed usage methods and advanced features of RDEToolKit
 
 ### Community
 
-- [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues) - Bug reports and feature requests
-- [GitHub Discussions](https://github.com/nims-dpfc/rdetoolkit/discussions) - Questions and information exchange
+- [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/nims-mdpf/rdetoolkit/discussions) - Questions and information exchange
 
 !!! tip "Learning Approach"
     To effectively learn RDEToolKit, we recommend first understanding the basic concepts in [What is Structured Processing](structured-processing.en.md), then referring to topics according to your specific use cases.

@@ -205,7 +205,7 @@ pip install rdetoolkit
 [Steps](#steps)
 
 # External links
-[GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues)
+[GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues)
 ```
 
 #### Link Verification

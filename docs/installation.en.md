@@ -55,12 +55,12 @@ To use the latest development version, install directly from the GitHub reposito
 
 === "Unix/macOS"
     ```bash title="terminal"
-    pip install git+https://github.com/nims-dpfc/rdetoolkit.git
+    pip install git+https://github.com/nims-mdpf/rdetoolkit.git
     ```
 
 === "Windows"
     ```cmd title="command_prompt"
-    pip install git+https://github.com/nims-dpfc/rdetoolkit.git
+    pip install git+https://github.com/nims-mdpf/rdetoolkit.git
     ```
 
 !!! warning "Development Version Notice"
@@ -158,7 +158,7 @@ ERROR: Package 'rdetoolkit' requires a different Python
 **Solution**: Upgrade to Python 3.9 or higher
 
 !!! note "Support Information"
-    If installation issues persist, please report them on [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues).
+    If installation issues persist, please report them on [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues).
 
 ## Related Information
 

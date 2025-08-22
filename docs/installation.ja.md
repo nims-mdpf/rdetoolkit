@@ -55,12 +55,12 @@ RDEToolKitをインストールする前に、以下の要件を満たしてい�
 
 === "Unix/macOS"
     ```bash title="terminal"
-    pip install git+https://github.com/nims-dpfc/rdetoolkit.git
+    pip install git+https://github.com/nims-mdpf/rdetoolkit.git
     ```
 
 === "Windows"
     ```cmd title="command_prompt"
-    pip install git+https://github.com/nims-dpfc/rdetoolkit.git
+    pip install git+https://github.com/nims-mdpf/rdetoolkit.git
     ```
 
 !!! warning "開発版の注意事項"
@@ -158,7 +158,7 @@ ERROR: Package 'rdetoolkit' requires a different Python
 **解決方法**: Python 3.9以上にアップグレードする
 
 !!! note "サポート情報"
-    インストールに関する問題が解決しない場合は、[GitHubのIssues](https://github.com/nims-dpfc/rdetoolkit/issues)で報告してください。
+    インストールに関する問題が解決しない場合は、[GitHubのIssues](https://github.com/nims-mdpf/rdetoolkit/issues)で報告してください。
 
 ## 関連情報
 

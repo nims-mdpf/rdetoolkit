@@ -315,7 +315,7 @@ git push origin feature/issue-123-add-new-validator
 
 - [開発者ガイド](index.ja.md) - 開発環境の構築
 - [ドキュメント作成](docs.ja.md) - ドキュメント貢献の方法
-- [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues) - 作業可能なタスク
+- [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues) - 作業可能なタスク
 
 !!! note "コミュニティサポート"
-    質問や困ったことがあれば、[GitHub Discussions](https://github.com/nims-dpfc/rdetoolkit/discussions)で気軽に相談してください。
+    質問や困ったことがあれば、[GitHub Discussions](https://github.com/nims-mdpf/rdetoolkit/discussions)で気軽に相談してください。

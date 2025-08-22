@@ -315,7 +315,7 @@ Detailed information about contributions:
 
 - [Developer Guide](index.en.md) - Development environment setup
 - [Documentation Creation](docs.en.md) - How to contribute to documentation
-- [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues) - Available tasks
+- [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues) - Available tasks
 
 !!! note "Community Support"
-    If you have questions or need help, feel free to ask on [GitHub Discussions](https://github.com/nims-dpfc/rdetoolkit/discussions).
+    If you have questions or need help, feel free to ask on [GitHub Discussions](https://github.com/nims-mdpf/rdetoolkit/discussions).

@@ -1,4 +1,5 @@
 site_name: "RDEToolKit Documentation"
+site_url: https://nims-mdpf.github.io/rdetoolkit/
 theme:
   favicon: img/2585322.png
   logo: img/2585322.png
@@ -199,8 +200,8 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-repo_url: https://github.com/nims-dpfc/rdetoolkit
-repo_name: nims-dpfc/rdetoolkit
+repo_url: https://github.com/nims-mdpf/rdetoolkit
+repo_name: nims-mdpf/rdetoolkit
 
 extra:
   social:
