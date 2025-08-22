@@ -55,20 +55,20 @@ Description of each file:
 !!! tip "File Overwriting"
     Existing files will be skipped from overwriting or generation.
 
-### make_excelinvoice: Generate Excel Invoice
+### make-excelinvoice: Generate Excel Invoice
 
 Generates an Excel invoice from `invoice.schema.json`.
 
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit make_excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    python3 -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit make_excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    py -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
     ```
 
 #### Options
