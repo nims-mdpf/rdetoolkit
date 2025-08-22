@@ -102,8 +102,8 @@ class SystemFilesCleaner:
         # Check against development patterns
         for pattern in self.DEV_PATTERNS:
             if pattern.startswith("*"):
-                # Handle wildcard patterns
-                if file_path.name.endswith(pattern[1:]):
+                # Handle wildcard patterns (e.g., "*.pyc" matches files with .pyc extension only)
+                if file_path.suffix == pattern[1:]:
                     return True
             elif pattern in file_path.parts or file_path.name == pattern:
                 return True
