@@ -55,20 +55,20 @@ container
 !!! tip "ファイル上書きについて"
     すでに存在するファイルは上書きや生成がスキップされます。
 
-### make_excelinvoice: ExcelInvoiceの生成
+### make-excelinvoice: ExcelInvoiceの生成
 
 `invoice.schema.json`からExcelインボイスを生成します。
 
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit make_excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    python3 -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit make_excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    py -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
     ```
 
 #### オプション
