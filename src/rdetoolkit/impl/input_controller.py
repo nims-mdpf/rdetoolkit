@@ -8,6 +8,7 @@ from pathlib import Path
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl import compressed_controller
+from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
 from rdetoolkit.invoicefile import read_excelinvoice, SmartTableFile
 from rdetoolkit.models.rde2types import (
@@ -17,6 +18,9 @@ from rdetoolkit.models.rde2types import (
     RawFiles,
     ZipFilesPathList,
 )
+from rdetoolkit.rdelogger import get_logger
+
+logger = get_logger(__name__)
 
 
 class InvoiceChecker(IInputFileChecker):
@@ -218,6 +222,12 @@ class RDEFormatChecker(IInputFileChecker):
 
     def _unpacked(self, zipfile: Path, target_dir: Path) -> list[Path]:
         shutil.unpack_archive(zipfile, self.out_dir_temp)
+
+        cleaner = SystemFilesCleaner()
+        removed_paths = cleaner.clean_directory(self.out_dir_temp)
+        if removed_paths:
+            logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
+
         return [f for f in target_dir.glob("**/*") if f.is_file()]
 
     def _get_rawfiles(self, unpacked_files: list[Path]) -> RawFiles:
@@ -276,6 +286,13 @@ class MultiFileChecker(IInputFileChecker):
 
     def _unpacked(self, zipfile: Path, target_dir: Path) -> list[Path]:
         shutil.unpack_archive(zipfile, self.out_dir_temp)
+
+        # Clean up system files after extraction
+        cleaner = SystemFilesCleaner()
+        removed_paths = cleaner.clean_directory(self.out_dir_temp)
+        if removed_paths:
+            logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
+
         return [f for f in target_dir.glob("**/*") if f.is_file()]
 
 
@@ -369,4 +386,11 @@ class SmartTableChecker(IInputFileChecker):
             list[Path]: List of extracted file paths.
         """
         shutil.unpack_archive(zipfile, self.out_dir_temp)
+
+        # Clean up system files after extraction
+        cleaner = SystemFilesCleaner()
+        removed_paths = cleaner.clean_directory(self.out_dir_temp)
+        if removed_paths:
+            logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
+
         return [f for f in self.out_dir_temp.glob("**/*") if f.is_file()]
