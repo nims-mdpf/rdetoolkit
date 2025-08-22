@@ -16,7 +16,7 @@
 
 問題や不具合が発生した場合、以下のisuueへ起票お願いします。この時、ラベルは`Type:improvement`, `Type: new feature`のどちらかの付与をお願いします。
 
-> <https://github.com/nims-dpfc/rdetoolkit/issues>
+> <https://github.com/nims-mdpf/rdetoolkit/issues>
 
 ## ブランチの作成
 
@@ -131,4 +131,4 @@ git push origin develop-v<x.y.z>-<先ほどつけた名称>
 
 また、全ての開発がfixしたら、mainブランチにマージしてください。mainブランチにマージ後、デプロイが正しく実行できたら、tagの作成とReleaseページを作成してください。
 
-> Releaseページ: <https://github.com/nims-dpfc/rdetoolkit/releases>
+> Releaseページ: <https://github.com/nims-mdpf/rdetoolkit/releases>

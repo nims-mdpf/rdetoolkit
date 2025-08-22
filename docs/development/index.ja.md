@@ -37,7 +37,7 @@
 
 1. **リポジトリのクローン**
    ```bash title="terminal"
-   git clone https://github.com/nims-dpfc/rdetoolkit.git
+   git clone https://github.com/nims-mdpf/rdetoolkit.git
    cd rdetoolkit
    ```
 
@@ -225,7 +225,7 @@ class TestProcessData:
 
 1. [コントリビューション](contributing.ja.md) - 詳細な貢献ガイドライン
 2. [ドキュメント作成](docs.ja.md) - ドキュメント作成の方法
-3. [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues) - 作業可能なタスクの確認
+3. [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues) - 作業可能なタスクの確認
 
 !!! tip "初回貢献者へ"
     初めて貢献する場合は、「good first issue」ラベルの付いたIssueから始めることをお勧めします。

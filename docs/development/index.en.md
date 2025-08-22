@@ -37,7 +37,7 @@ This section explains how to contribute to the RDEToolKit project and set up a d
 
 1. **Clone Repository**
    ```bash title="terminal"
-   git clone https://github.com/nims-dpfc/rdetoolkit.git
+   git clone https://github.com/nims-mdpf/rdetoolkit.git
    cd rdetoolkit
    ```
 
@@ -225,7 +225,7 @@ To participate in development:
 
 1. [Contributing](contributing.en.md) - Detailed contribution guidelines
 2. [Documentation Creation](docs.en.md) - How to create documentation
-3. [GitHub Issues](https://github.com/nims-dpfc/rdetoolkit/issues) - Check available tasks
+3. [GitHub Issues](https://github.com/nims-mdpf/rdetoolkit/issues) - Check available tasks
 
 !!! tip "For First-time Contributors"
     If you're contributing for the first time, we recommend starting with Issues labeled "good first issue".
