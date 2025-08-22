@@ -52,6 +52,7 @@ class SystemFilesCleaner:
         r".*\.swn$",  # Vim swap files
         r".*\.bak$",  # Backup files
         r".*~$",  # Editor backup files
+        r".*\.pyc$",  # Python compiled files
     ]
 
     # Development and version control files
@@ -65,7 +66,6 @@ class SystemFilesCleaner:
         ".idea",  # IntelliJ IDEA
         ".vscode",  # Visual Studio Code
         "__pycache__",  # Python cache
-        "*.pyc",  # Python compiled files
         ".pytest_cache",  # Pytest cache
         ".tox",  # Tox test environments
         ".coverage",  # Coverage reports
@@ -101,11 +101,7 @@ class SystemFilesCleaner:
 
         # Check against development patterns
         for pattern in self.DEV_PATTERNS:
-            if pattern.startswith("*"):
-                # Handle wildcard patterns (e.g., "*.pyc" matches files with .pyc extension only)
-                if file_path.suffix == pattern[1:]:
-                    return True
-            elif pattern in file_path.parts or file_path.name == pattern:
+            if pattern in file_path.parts or file_path.name == pattern:
                 return True
 
         # Check against regex patterns
