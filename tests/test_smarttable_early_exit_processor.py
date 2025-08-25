@@ -29,9 +29,11 @@ class TestSmartTableEarlyExitProcessor:
         # Should not raise exception when not in SmartTable mode
         processor.process(mock_context)
 
+    @patch('builtins.open')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.json')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
-    def test_process_with_original_smarttable_file_save_enabled(self, mock_invoice_validator, mock_meta_validator):
+    def test_process_with_original_smarttable_file_save_enabled(self, mock_invoice_validator, mock_meta_validator, mock_json, mock_open):
         """Test processing when rawfiles contains original SmartTable file and save_table_file is enabled."""
         processor = SmartTableEarlyExitProcessor()
 
@@ -43,10 +45,15 @@ class TestSmartTableEarlyExitProcessor:
         )
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
+        mock_context.invoice_dst_filepath = Path("/mock/path/invoice.json")
 
         # Mock system settings to avoid copying during test
         mock_context.srcpaths.config.system.save_raw = False
         mock_context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock file operations
+        mock_invoice_data = {'basic': {'dataName': 'old_name'}}
+        mock_json.load.return_value = mock_invoice_data
 
         # Mock validators
         mock_meta_validator.return_value.process.return_value = None
@@ -55,6 +62,15 @@ class TestSmartTableEarlyExitProcessor:
         # Should raise SkipRemainingProcessorsError when original SmartTable file is found
         with pytest.raises(SkipRemainingProcessorsError) as exc_info:
             processor.process(mock_context)
+
+        # Verify file operations were called
+        mock_open.assert_called()
+        mock_json.load.assert_called()
+        mock_json.dump.assert_called()
+        
+        # Verify dataName was updated in the dumped data
+        updated_data = mock_json.dump.call_args[0][0]
+        assert updated_data['basic']['dataName'] == 'smarttable_test.xlsx'
 
         # Verify validators were called
         mock_meta_validator.return_value.process.assert_called_once_with(mock_context)
@@ -104,9 +120,11 @@ class TestSmartTableEarlyExitProcessor:
         # Should not raise exception when no original SmartTable file
         processor.process(mock_context)
 
+    @patch('builtins.open')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.json')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
-    def test_process_with_multiple_files_including_smarttable(self, mock_invoice_validator, mock_meta_validator):
+    def test_process_with_multiple_files_including_smarttable(self, mock_invoice_validator, mock_meta_validator, mock_json, mock_open):
         """Test processing with multiple files including SmartTable file."""
         processor = SmartTableEarlyExitProcessor()
 
@@ -120,10 +138,15 @@ class TestSmartTableEarlyExitProcessor:
         )
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
+        mock_context.invoice_dst_filepath = Path("/mock/path/invoice.json")
 
         # Mock system settings to avoid copying during test
         mock_context.srcpaths.config.system.save_raw = False
         mock_context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock file operations
+        mock_invoice_data = {'basic': {'dataName': 'old_name'}}
+        mock_json.load.return_value = mock_invoice_data
 
         # Mock validators
         mock_meta_validator.return_value.process.return_value = None
@@ -186,9 +209,11 @@ class TestSmartTableEarlyExitProcessor:
         for test_path, expected in edge_cases:
             assert processor._is_original_smarttable_file(test_path) is expected
 
+    @patch('builtins.open')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.json')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
-    def test_process_with_tsv_file(self, mock_invoice_validator, mock_meta_validator):
+    def test_process_with_tsv_file(self, mock_invoice_validator, mock_meta_validator, mock_json, mock_open):
         """Test processing with TSV SmartTable file."""
         processor = SmartTableEarlyExitProcessor()
 
@@ -200,10 +225,15 @@ class TestSmartTableEarlyExitProcessor:
         )
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
+        mock_context.invoice_dst_filepath = Path("/mock/path/invoice.json")
 
         # Mock system settings to avoid copying during test
         mock_context.srcpaths.config.system.save_raw = False
         mock_context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock file operations
+        mock_invoice_data = {'basic': {'dataName': 'old_name'}}
+        mock_json.load.return_value = mock_invoice_data
 
         # Mock validators
         mock_meta_validator.return_value.process.return_value = None
@@ -394,9 +424,11 @@ class TestSmartTableEarlyExitProcessor:
         mock_meta_validator.return_value.process.assert_called_once_with(mock_context)
         mock_invoice_validator.return_value.process.assert_called_once_with(mock_context)
 
+    @patch('builtins.open')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.json')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
-    def test_process_validation_error_propagation(self, mock_invoice_validator, mock_meta_validator):
+    def test_process_validation_error_propagation(self, mock_invoice_validator, mock_meta_validator, mock_json, mock_open):
         """Test that validation errors are properly propagated from process method."""
         processor = SmartTableEarlyExitProcessor()
         
@@ -407,8 +439,13 @@ class TestSmartTableEarlyExitProcessor:
         )
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
+        mock_context.invoice_dst_filepath = Path("/mock/path/invoice.json")
         mock_context.srcpaths.config.system.save_raw = False
         mock_context.srcpaths.config.system.save_nonshared_raw = False
+        
+        # Mock file operations
+        mock_invoice_data = {'basic': {'dataName': 'old_name'}}
+        mock_json.load.return_value = mock_invoice_data
         
         # Mock validators
         mock_meta_validator.return_value.process.return_value = None

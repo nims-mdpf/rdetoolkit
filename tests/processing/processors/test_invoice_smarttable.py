@@ -1,10 +1,14 @@
 import json
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from rdetoolkit.exceptions import StructuredError
+from unittest.mock import patch
+
+from rdetoolkit.exceptions import StructuredError, SkipRemainingProcessorsError
 from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
+from rdetoolkit.processing.processors.smarttable_early_exit import SmartTableEarlyExitProcessor
 
 
 class TestSmartTableInvoiceInitializerIntegration:
@@ -317,3 +321,260 @@ class TestSmartTableInvoiceInitializerIntegration:
         """Test processor name."""
         processor = SmartTableInvoiceInitializer()
         assert processor.get_name() == "SmartTableInvoiceInitializer"
+
+
+class TestSmartTableEarlyExitProcessorIntegration:
+    """Integration test cases for SmartTableEarlyExitProcessor focusing on invoice dataName updates."""
+
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
+    def test_update_invoice_dataname_with_xlsx_file(self, mock_invoice_validator, mock_meta_validator, smarttable_processing_context):
+        """Test updating invoice.json dataName with XLSX SmartTable file name."""
+        processor = SmartTableEarlyExitProcessor()
+        context = smarttable_processing_context
+
+        # Create an actual invoice.json file with initial data
+        initial_invoice_data = {
+            "datasetId": "test-dataset-id",
+            "basic": {
+                "dateSubmitted": "",
+                "dataOwnerId": "test-owner-id",
+                "dataName": "original_data_name",
+                "instrumentId": None,
+                "experimentId": None,
+                "description": "Original test description"
+            },
+            "custom": {
+                "field1": "value1",
+                "field2": 123
+            },
+            "sample": {
+                "sampleId": "",
+                "names": ["test sample"],
+                "generalAttributes": []
+            }
+        }
+
+        # Write initial invoice.json
+        invoice_path = context.invoice_dst_filepath
+        with open(invoice_path, 'w', encoding='utf-8') as f:
+            json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+
+        # Set up SmartTable file path with XLSX extension
+        smarttable_file = Path("/data/inputdata/smarttable_experiment_data.xlsx")
+        context.resource_paths.rawfiles = (smarttable_file,)
+
+        # Enable save_table_file
+        if context.srcpaths.config.smarttable is None:
+            from unittest.mock import Mock
+            context.srcpaths.config.smarttable = Mock()
+        context.srcpaths.config.smarttable.save_table_file = True
+
+        # Disable actual file copying to avoid filesystem issues
+        context.srcpaths.config.system.save_raw = False
+        context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock validators to skip validation
+        mock_meta_validator.return_value.process.return_value = None
+        mock_invoice_validator.return_value.process.return_value = None
+
+        # Process (should raise SkipRemainingProcessorsError after updating invoice)
+        with pytest.raises(SkipRemainingProcessorsError):
+            processor.process(context)
+
+        # Read updated invoice.json
+        with open(invoice_path, 'r', encoding='utf-8') as f:
+            updated_invoice = json.load(f)
+
+        # Verify dataName was updated to file name
+        assert updated_invoice['basic']['dataName'] == 'smarttable_experiment_data.xlsx'
+
+        # Verify other fields remain unchanged
+        assert updated_invoice['basic']['dateSubmitted'] == ""
+        assert updated_invoice['basic']['dataOwnerId'] == "test-owner-id"
+        assert updated_invoice['basic']['description'] == "Original test description"
+        assert updated_invoice['custom']['field1'] == "value1"
+        assert updated_invoice['custom']['field2'] == 123
+        assert updated_invoice['sample']['names'] == ["test sample"]
+
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
+    def test_update_invoice_dataname_with_csv_file(self, mock_invoice_validator, mock_meta_validator, smarttable_processing_context):
+        """Test updating invoice.json dataName with CSV SmartTable file name."""
+        processor = SmartTableEarlyExitProcessor()
+        context = smarttable_processing_context
+
+        # Create initial invoice.json
+        initial_invoice_data = {
+            "basic": {
+                "dataName": "old_name",
+                "description": "Test description"
+            },
+            "custom": {},
+            "sample": {}
+        }
+
+        invoice_path = context.invoice_dst_filepath
+        with open(invoice_path, 'w', encoding='utf-8') as f:
+            json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+
+        # Set up CSV SmartTable file
+        smarttable_file = Path("/data/inputdata/smarttable_results.csv")
+        context.resource_paths.rawfiles = (smarttable_file,)
+        if context.srcpaths.config.smarttable is None:
+            from unittest.mock import Mock
+            context.srcpaths.config.smarttable = Mock()
+        context.srcpaths.config.smarttable.save_table_file = True
+        context.srcpaths.config.system.save_raw = False
+        context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock validators to skip validation
+        mock_meta_validator.return_value.process.return_value = None
+        mock_invoice_validator.return_value.process.return_value = None
+
+        # Process
+        with pytest.raises(SkipRemainingProcessorsError):
+            processor.process(context)
+
+        # Verify dataName was updated
+        with open(invoice_path, 'r', encoding='utf-8') as f:
+            updated_invoice = json.load(f)
+
+        assert updated_invoice['basic']['dataName'] == 'smarttable_results.csv'
+        assert updated_invoice['basic']['description'] == "Test description"
+
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
+    def test_update_invoice_dataname_with_tsv_file(self, mock_invoice_validator, mock_meta_validator, smarttable_processing_context):
+        """Test updating invoice.json dataName with TSV SmartTable file name."""
+        processor = SmartTableEarlyExitProcessor()
+        context = smarttable_processing_context
+
+        # Create initial invoice.json
+        initial_invoice_data = {
+            "basic": {
+                "dataName": "initial_name",
+                "description": None
+            },
+            "custom": {"existing": "value"},
+            "sample": {"names": ["sample"]}
+        }
+
+        invoice_path = context.invoice_dst_filepath
+        with open(invoice_path, 'w', encoding='utf-8') as f:
+            json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+
+        # Set up TSV SmartTable file
+        smarttable_file = Path("/data/inputdata/smarttable_measurements.tsv")
+        context.resource_paths.rawfiles = (smarttable_file,)
+        if context.srcpaths.config.smarttable is None:
+            from unittest.mock import Mock
+            context.srcpaths.config.smarttable = Mock()
+        context.srcpaths.config.smarttable.save_table_file = True
+        context.srcpaths.config.system.save_raw = False
+        context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock validators to skip validation
+        mock_meta_validator.return_value.process.return_value = None
+        mock_invoice_validator.return_value.process.return_value = None
+
+        # Process
+        with pytest.raises(SkipRemainingProcessorsError):
+            processor.process(context)
+
+        # Verify dataName was updated
+        with open(invoice_path, 'r', encoding='utf-8') as f:
+            updated_invoice = json.load(f)
+
+        assert updated_invoice['basic']['dataName'] == 'smarttable_measurements.tsv'
+        assert updated_invoice['basic']['description'] is None
+        assert updated_invoice['custom']['existing'] == "value"
+        assert updated_invoice['sample']['names'] == ["sample"]
+
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
+    def test_no_dataname_update_when_save_table_file_disabled(self, mock_invoice_validator, mock_meta_validator, smarttable_processing_context):
+        """Test that dataName is NOT updated when save_table_file is disabled."""
+        processor = SmartTableEarlyExitProcessor()
+        context = smarttable_processing_context
+
+        # Create initial invoice.json
+        original_data_name = "should_remain_unchanged"
+        initial_invoice_data = {
+            "basic": {
+                "dataName": original_data_name,
+                "description": "Test"
+            }
+        }
+
+        invoice_path = context.invoice_dst_filepath
+        with open(invoice_path, 'w', encoding='utf-8') as f:
+            json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+
+        # Set up SmartTable file but disable save_table_file
+        smarttable_file = Path("/data/inputdata/smarttable_test.xlsx")
+        context.resource_paths.rawfiles = (smarttable_file,)
+        if context.srcpaths.config.smarttable is None:
+            from unittest.mock import Mock
+            context.srcpaths.config.smarttable = Mock()
+        context.srcpaths.config.smarttable.save_table_file = False  # Disabled
+
+        # Mock validators to skip validation
+        mock_meta_validator.return_value.process.return_value = None
+        mock_invoice_validator.return_value.process.return_value = None
+
+        # Process (should still raise SkipRemainingProcessorsError due to validation)
+        with pytest.raises(SkipRemainingProcessorsError):
+            processor.process(context)
+
+        # Verify dataName was NOT updated
+        with open(invoice_path, 'r', encoding='utf-8') as f:
+            updated_invoice = json.load(f)
+
+        assert updated_invoice['basic']['dataName'] == original_data_name  # Should remain unchanged
+
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
+    @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
+    def test_multiple_smarttable_files_uses_first_match(self, mock_invoice_validator, mock_meta_validator, smarttable_processing_context):
+        """Test that when multiple SmartTable files exist, the first one is used for dataName update."""
+        processor = SmartTableEarlyExitProcessor()
+        context = smarttable_processing_context
+
+        # Create initial invoice.json
+        initial_invoice_data = {
+            "basic": {"dataName": "original"},
+            "custom": {},
+            "sample": {}
+        }
+
+        invoice_path = context.invoice_dst_filepath
+        with open(invoice_path, 'w', encoding='utf-8') as f:
+            json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+
+        # Set up multiple SmartTable files (first should be used)
+        smarttable_files = (
+            Path("/data/inputdata/smarttable_first.xlsx"),
+            Path("/data/inputdata/smarttable_second.csv"),
+            Path("/data/temp/fsmarttable_extracted.csv")  # This is not original SmartTable
+        )
+        context.resource_paths.rawfiles = smarttable_files
+        if context.srcpaths.config.smarttable is None:
+            from unittest.mock import Mock
+            context.srcpaths.config.smarttable = Mock()
+        context.srcpaths.config.smarttable.save_table_file = True
+        context.srcpaths.config.system.save_raw = False
+        context.srcpaths.config.system.save_nonshared_raw = False
+
+        # Mock validators to skip validation
+        mock_meta_validator.return_value.process.return_value = None
+        mock_invoice_validator.return_value.process.return_value = None
+
+        # Process
+        with pytest.raises(SkipRemainingProcessorsError):
+            processor.process(context)
+
+        # Verify dataName was updated with the first SmartTable file
+        with open(invoice_path, 'r', encoding='utf-8') as f:
+            updated_invoice = json.load(f)
+
+        assert updated_invoice['basic']['dataName'] == 'smarttable_first.xlsx'
