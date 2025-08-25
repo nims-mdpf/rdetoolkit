@@ -1,5 +1,3 @@
-"""SmartTable early exit processor for terminating pipeline when processing original table files."""
-
 from pathlib import Path
 import shutil
 
@@ -8,6 +6,7 @@ from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.processing.processors.validation import MetadataValidator, InvoiceValidator
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.fileops import readf_json, writef_json
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
 
@@ -33,8 +32,7 @@ class SmartTableEarlyExitProcessor(Processor):
             context: Processing context containing rawfiles and other information
 
         Raises:
-            SkipRemainingProcessorsError: When the current entry contains an original SmartTable file
-                                         after validation is completed
+            SkipRemainingProcessorsError: When the current entry contains an original SmartTable file after validation is completed
         """
         if not context.is_smarttable_mode:
             return
@@ -43,8 +41,9 @@ class SmartTableEarlyExitProcessor(Processor):
             if self._is_original_smarttable_file(file_path):
                 logger.info(f"Original SmartTable file detected: {file_path}")
 
-                # Copy SmartTable file if save_table_file is enabled
+                # Update invoice.json's dataName with the SmartTable file name (with extension)
                 if self._should_save_table_file(context):
+                    self._update_invoice_data_name(context, file_path)
                     self._copy_smarttable_file(context, file_path)
 
                 # Always validate files for SmartTable entries
@@ -107,6 +106,22 @@ class SmartTableEarlyExitProcessor(Processor):
         shutil.copy2(source, destination)
         logger.debug(f"File copied: {source} -> {destination}")
 
+    def _update_invoice_data_name(self, context: ProcessingContext, file_path: Path) -> None:
+        """Update the dataName in invoice.json with the SmartTable file name.
+
+        Args:
+            context: Processing context
+            file_path: Path to the SmartTable file
+        """
+        invoice_path = context.invoice_dst_filepath
+        invoice_data = readf_json(str(invoice_path))
+
+        invoice_data['basic']['dataName'] = file_path.name
+        logger.info(f"Updating invoice.json dataName to: {file_path.name}")
+        writef_json(str(invoice_path), invoice_data)
+
+        logger.debug(f"invoice.json updated with dataName: {file_path.name}")
+
     def _should_save_table_file(self, context: ProcessingContext) -> bool:
         """Check if save_table_file is enabled in the configuration.
 
@@ -135,7 +150,6 @@ class SmartTableEarlyExitProcessor(Processor):
         """
         logger.debug("Starting SmartTable file validation")
 
-        # Validate metadata.json if it exists
         try:
             metadata_validator = MetadataValidator()
             metadata_validator.process(context)
@@ -144,7 +158,6 @@ class SmartTableEarlyExitProcessor(Processor):
             logger.error(f"Metadata validation failed: {str(e)}")
             raise
 
-        # Validate invoice.json against schema
         try:
             invoice_validator = InvoiceValidator()
             invoice_validator.process(context)
