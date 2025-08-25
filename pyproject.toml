@@ -2,7 +2,7 @@
 name = "rdetoolkit"
 version = "1.3.4"
 description = "A module that supports the workflow of the RDE dataset construction program"
-authors = [{ name = "Sonokawa Hayato", email = "SONOKAWA.Hayato@nims.go.jp" }]
+authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
 classifiers = [
     'Development Status :: 3 - Alpha',
