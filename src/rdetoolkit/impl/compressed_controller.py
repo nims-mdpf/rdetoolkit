@@ -123,27 +123,34 @@ class SystemFilesCleaner:
             logger.warning(f"Directory does not exist or is not a directory: {directory}")
             return removed_paths
 
-        for root, dirs, files in os.walk(directory, topdown=False):
-            root_path = Path(root)
-            for file_name in files:
-                file_path = root_path / file_name
-                if self.is_excluded(file_path):
-                    try:
-                        file_path.unlink()
-                        removed_paths.append(file_path)
-                        logger.debug(f"Removed file: {file_path}")
-                    except Exception as e:
-                        logger.warning(f"Failed to remove file {file_path}: {e}")
+        # Collect all files and directories to remove
+        to_remove_files = []
+        to_remove_dirs = []
 
-            for dir_name in dirs:
-                dir_path = root_path / dir_name
-                if self.is_excluded(dir_path):
-                    try:
-                        shutil.rmtree(dir_path)
-                        removed_paths.append(dir_path)
-                        logger.debug(f"Removed directory: {dir_path}")
-                    except Exception as e:
-                        logger.warning(f"Failed to remove directory {dir_path}: {e}")
+        for path in directory.rglob("*"):
+            if self.is_excluded(path):
+                if path.is_file() or path.is_symlink():
+                    to_remove_files.append(path)
+                elif path.is_dir():
+                    to_remove_dirs.append(path)
+
+        # Remove files first
+        for file_path in to_remove_files:
+            try:
+                file_path.unlink()
+                removed_paths.append(file_path)
+                logger.debug(f"Removed file: {file_path}")
+            except Exception as e:
+                logger.warning(f"Failed to remove file {file_path}: {e}")
+
+        # Remove directories (deepest first)
+        for dir_path in sorted(to_remove_dirs, key=lambda p: -len(p.parts)):
+            try:
+                shutil.rmtree(dir_path)
+                removed_paths.append(dir_path)
+                logger.debug(f"Removed directory: {dir_path}")
+            except Exception as e:
+                logger.warning(f"Failed to remove directory {dir_path}: {e}")
 
         return removed_paths
 
