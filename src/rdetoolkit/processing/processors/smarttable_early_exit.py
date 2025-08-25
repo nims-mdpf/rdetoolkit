@@ -1,5 +1,4 @@
 from pathlib import Path
-import json
 import shutil
 
 from rdetoolkit.exceptions import SkipRemainingProcessorsError
@@ -7,6 +6,7 @@ from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.processing.processors.validation import MetadataValidator, InvoiceValidator
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.fileops import readf_json, writef_json
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
 
@@ -114,18 +114,11 @@ class SmartTableEarlyExitProcessor(Processor):
             file_path: Path to the SmartTable file
         """
         invoice_path = context.invoice_dst_filepath
+        invoice_data = readf_json(str(invoice_path))
 
-        # Read the current invoice.json
-        with open(invoice_path, encoding='utf-8') as f:
-            invoice_data = json.load(f)
-
-        # Update the dataName with the file name (including extension)
         invoice_data['basic']['dataName'] = file_path.name
         logger.info(f"Updating invoice.json dataName to: {file_path.name}")
-
-        # Write the updated invoice.json back
-        with open(invoice_path, 'w', encoding='utf-8') as f:
-            json.dump(invoice_data, f, ensure_ascii=False, indent=2)
+        writef_json(str(invoice_path), invoice_data)
 
         logger.debug(f"invoice.json updated with dataName: {file_path.name}")
 
