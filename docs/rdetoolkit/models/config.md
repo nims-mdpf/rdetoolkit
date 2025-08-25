@@ -1,163 +1,185 @@
-# Configuration Module
+# Config Models API
 
-The `rdetoolkit.config` module provides comprehensive configuration management for RDE (Research Data Exchange) workflows using Pydantic models. This module defines system settings, processing mode configurations, and validation rules to ensure proper toolkit operation and data handling.
+## Purpose
 
-## Overview
+This module defines configuration data structures for RDEToolKit. It provides configuration models that control the behavior of the entire application, including system settings and MultiDataTile settings.
 
-The configuration module offers structured configuration management with:
+## Key Features
 
-- **System Settings**: Core RDEToolkit operational parameters and data handling options
-- **Mode-Specific Settings**: Specialized configurations for different processing modes (MultiDataTile, etc.)
-- **Validation Rules**: Built-in validation to ensure configuration consistency and correctness
-- **Extensible Design**: Support for additional configuration sections through Pydantic's extra fields
+### Configuration Data Models
+- System-wide configuration management
+- Detailed settings for MultiDataTile mode
+- Type-safe configuration value management
 
-## Classes
+### Data Validation
+- Pydantic-based type safety
+- Configuration value validity verification
+- Automatic application of default values
 
-### SystemSettings
+---
 
-Core system configuration model that defines fundamental RDEToolkit operational parameters.
+::: src.rdetoolkit.models.config.Config
 
-#### Constructor
+---
 
-```python
-SystemSettings(
-    extended_mode: str | None = None,
-    save_raw: bool = False,
-    save_nonshared_raw: bool = True,
-    save_thumbnail_image: bool = False,
-    magic_variable: bool = False
-)
-```
+::: src.rdetoolkit.models.config.SystemSettings
 
-**Parameters:**
-- `extended_mode` (str | None): Processing mode selection ('rdeformat', 'MultiDataTile', or None)
-- `save_raw` (bool): Enable automatic saving of raw data to the raw directory
-- `save_nonshared_raw` (bool): Enable saving of non-shared raw data
-- `save_thumbnail_image` (bool): Enable automatic thumbnail generation from main images
-- `magic_variable` (bool): Enable filename variable substitution with '${filename}' syntax
+---
 
-#### Attributes
+::: src.rdetoolkit.models.config.MultiDataTileSettings
 
-- `extended_mode` (str | None): The current processing mode
-- `save_raw` (bool): Raw data auto-save setting
-- `save_nonshared_raw` (bool): Non-shared raw data save setting
-- `save_thumbnail_image` (bool): Thumbnail auto-generation setting
-- `magic_variable` (bool): Magic variable substitution setting
+---
 
-#### Validators
+## Practical Usage
 
-##### check_at_least_one_save_option_enabled()
+### Basic Configuration Creation
 
-Validates that at least one save option is enabled to prevent data loss.
-
-```python
-@model_validator(mode='after')
-def check_at_least_one_save_option_enabled() -> SystemSettings
-```
-
-**Returns:**
-- `SystemSettings`: The validated model instance
-
-**Raises:**
-- `ValueError`: If both 'save_raw' and 'save_nonshared_raw' are False
-
-**Example:**
-```python
-from rdetoolkit.models.config import SystemSettings
-
-# Valid configuration
-valid_config = SystemSettings(
-    extended_mode="MultiDataTile",
-    save_raw=True,
-    save_nonshared_raw=False
-)
-
-# Invalid configuration - will raise ValueError
-try:
-    invalid_config = SystemSettings(
-        save_raw=False,
-        save_nonshared_raw=False
-    )
-except ValueError as e:
-    print(f"Configuration error: {e}")
-```
-
-### MultiDataTileSettings
-
-Configuration model for MultiDataTile processing mode settings.
-
-#### Constructor
-
-```python
-MultiDataTileSettings(ignore_errors: bool = False)
-```
-
-**Parameters:**
-- `ignore_errors` (bool): Continue processing when errors are encountered instead of stopping
-
-#### Attributes
-
-- `ignore_errors` (bool): Error handling behavior for MultiDataTile processing
-
-**Example:**
-```python
-from rdetoolkit.models.config import MultiDataTileSettings
-
-# Configure MultiDataTile to continue on errors
-mdt_settings = MultiDataTileSettings(ignore_errors=True)
-print(f"Ignore errors: {mdt_settings.ignore_errors}")
-```
-
-### Config
-
-Main configuration class that combines all settings sections with support for additional custom fields.
-
-#### Constructor
-
-```python
-Config(
-    system: SystemSettings = SystemSettings(),
-    multidata_tile: MultiDataTileSettings | None = MultiDataTileSettings(),
-    **kwargs
-)
-```
-
-**Parameters:**
-- `system` (SystemSettings): System-related settings
-- `multidata_tile` (MultiDataTileSettings | None): MultiDataTile-specific settings
-- `**kwargs`: Additional configuration fields (enabled by `extra="allow"`)
-
-#### Attributes
-
-- `system` (SystemSettings): Core system configuration
-- `multidata_tile` (MultiDataTileSettings | None): MultiDataTile processing settings
-
-**Example:**
-```python
+```python title="basic_config.py"
 from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
 
-# Create comprehensive configuration
-config = Config(
-    system=SystemSettings(
-        extended_mode="MultiDataTile",
-        save_raw=True,
-        magic_variable=True
-    ),
-    multidata_tile=MultiDataTileSettings(ignore_errors=False)
+# Create system settings
+system_settings = SystemSettings(
+    save_raw=True,
+    save_thumbnail_image=True,
+    extended_mode="MultiDataTile"
 )
+
+# Create MultiDataTile settings
+multidatatile_settings = MultiDataTileSettings(
+    tile_size=256,
+    overlap_ratio=0.1,
+    compression_level=6
+)
+
+# Create integrated configuration
+config = Config(
+    system=system_settings,
+    multidatatile=multidatatile_settings
+)
+
+print(f"Configuration created: {config}")
 ```
 
-## Performance Notes
+### Loading from Configuration File
 
-- Configuration loading is optimized for startup performance with lazy validation
-- Pydantic models provide efficient serialization/deserialization
-- Environment variablereading is cached by the OS
-- JSON file parsing is fast for typical configuration sizes
-- Model validation occurs once during creation, not on every access
+```python title="config_from_file.py"
+from rdetoolkit.models.config import Config
+from rdetoolkit.config import parse_config_file
+import json
 
-## See Also
+# Load from configuration file
+config = parse_config_file()
 
-- [Workflows Module](workflows.md) - For configuration usage in processing workflows
-- [System Overview](../overview.md) - For understanding RDEToolkit system architecture
-- [Processing Modes](../processing_modes.md) - For details on extended_mode options
-- [Pydantic Documentation](https://docs.pydantic.dev/) - For advanced model features and validation
+# Reference configuration values
+print(f"Save raw data: {config.system.save_raw}")
+print(f"Save thumbnail: {config.system.save_thumbnail_image}")
+print(f"Extended mode: {config.system.extended_mode}")
+
+# Reference MultiDataTile settings
+if hasattr(config, 'multidatatile') and config.multidatatile:
+    print(f"Tile size: {config.multidatatile.tile_size}")
+    print(f"Overlap ratio: {config.multidatatile.overlap_ratio}")
+
+# Update configuration
+config.system.save_raw = False
+if config.multidatatile:
+    config.multidatatile.tile_size = 512
+
+# Save updated configuration
+config_dict = config.dict()
+with open("config/updated_config.json", "w") as f:
+    json.dump(config_dict, f, indent=2)
+```
+
+### Creating Custom Configuration
+
+```python title="custom_config.py"
+from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
+from pathlib import Path
+
+# Custom system settings
+custom_system = SystemSettings(
+    save_raw=True,
+    save_thumbnail_image=False,
+    extended_mode="MultiDataTile",
+    output_dir=Path("custom_output"),
+    temp_dir=Path("custom_temp")
+)
+
+# Custom MultiDataTile settings
+custom_multidatatile = MultiDataTileSettings(
+    tile_size=1024,
+    overlap_ratio=0.2,
+    compression_level=9,
+    enable_caching=True,
+    max_memory_usage="2GB"
+)
+
+# Integrated configuration
+custom_config = Config(
+    system=custom_system,
+    multidatatile=custom_multidatatile
+)
+
+# Configuration validation
+try:
+    validated_config = Config.parse_obj(custom_config.dict())
+    print("Configuration validation successful")
+    
+    # Display configuration values
+    print(f"System settings: {validated_config.system}")
+    print(f"MultiDataTile settings: {validated_config.multidatatile}")
+    
+except Exception as e:
+    print(f"Configuration validation error: {e}")
+```
+
+### Dynamic Configuration Management
+
+```python title="dynamic_config.py"
+from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
+import os
+
+def create_environment_based_config():
+    """Create dynamic configuration based on environment"""
+    
+    # Get configuration values from environment variables
+    save_raw = os.getenv("RDE_SAVE_RAW", "true").lower() == "true"
+    extended_mode = os.getenv("RDE_EXTENDED_MODE", "MultiDataTile")
+    tile_size = int(os.getenv("RDE_TILE_SIZE", "256"))
+    
+    # System settings
+    system_settings = SystemSettings(
+        save_raw=save_raw,
+        save_thumbnail_image=True,
+        extended_mode=extended_mode
+    )
+    
+    # MultiDataTile settings (only if extended mode is MultiDataTile)
+    multidatatile_settings = None
+    if extended_mode == "MultiDataTile":
+        multidatatile_settings = MultiDataTileSettings(
+            tile_size=tile_size,
+            overlap_ratio=float(os.getenv("RDE_OVERLAP_RATIO", "0.1")),
+            compression_level=int(os.getenv("RDE_COMPRESSION", "6"))
+        )
+    
+    # Create configuration
+    config = Config(
+        system=system_settings,
+        multidatatile=multidatatile_settings
+    )
+    
+    return config
+
+# Usage example
+env_config = create_environment_based_config()
+print(f"Environment-based configuration: {env_config}")
+
+# Configuration validity check
+if env_config.system.extended_mode == "MultiDataTile":
+    if env_config.multidatatile:
+        print(f"MultiDataTile mode enabled: tile_size={env_config.multidatatile.tile_size}")
+    else:
+        print("Warning: MultiDataTile mode but configuration not found")
+```

@@ -30,7 +30,7 @@ rdetoolkitのドキュメントは、本リポジトリの`docs`フォルダに�
 以下のURLより、RDEToolKitのリポジトリにアクセスし、issueを発行してください。
 この時、ラベルは`Type:documentation`というラベルを付与してください。
 
-> [RDEToolKit - github.com](https://github.com/nims-dpfc/rdetoolkit/issues)
+> [RDEToolKit - github.com](https://github.com/nims-mdpf/rdetoolkit/issues)
 
 ### ローカル環境で変更する
 

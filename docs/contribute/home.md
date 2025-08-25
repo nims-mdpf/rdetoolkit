@@ -10,9 +10,9 @@ RDEToolKitへのコントリビュートをしていただくには、以下の�
 cd <任意のディレクトリ>
 
 # SSH
-git clone git@github.com:nims-dpfc/rdetoolkit.git
+git clone git@github.com:nims-mdpf/rdetoolkit.git
 # HTTPS
-git clone https://github.com/nims-dpfc/rdetoolkit.git
+git clone https://github.com/nims-mdpf/rdetoolkit.git
 
 # ローカルリポジトリに移動
 cd rdetoolkit

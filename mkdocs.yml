@@ -1,8 +1,11 @@
 site_name: "RDEToolKit Documentation"
+site_url: https://nims-mdpf.github.io/rdetoolkit/
 theme:
   favicon: img/2585322.png
   logo: img/2585322.png
   name: "material"
+  language: ja
+  custom_dir: docs/overrides
   font:
     text: Noto Sans JP
   palette:
@@ -18,72 +21,148 @@ theme:
         name: Switch to light mode
   features:
     - navigation.top
-    # - toc.integrate
     - navigation.tabs
     - navigation.tabs.sticky
 
-nav:
-  - Getting started:
-      - index.md
-  - Installation:
-      - install.md
-  - User Guide:
-      - Quick Start:
-          - usage/quickstart.md
-      - 構造化処理:
-          - usage/structured_process/structured.md
-          - usage/structured_process/directory.md
-          - usage/structured_process/rdepath.md
-          - usage/structured_process/errorhandling.md
-          - usage/structured_process/feature_description.md
-      - コマンドライン機能:
-          - usage/cli.md
-      - 設定ファイル:
-          - usage/config/config.md
-          - usage/config/mode.md
-          - usage/config/file_folder_mode.md
-          - usage/config/magic_variable.md
-      - テンプレートファイル:
-          - usage/metadata_definition_file.md
-      - バリデーション:
-          - usage/validation.md
-      - オブジェクトストレージを使用する:
-          - usage/object_storage.md
-      - Docker:
-          - usage/docker.md
-  - API Documentation:
-      - rdetoolkit/index.md
-      - impl:
-          - rdetoolkit/impl/compressed_controller.md
-          - rdetoolkit/impl/input_controller.md
-      - interface:
-          - rdetoolkit/interface/filechecker.md
-      - models:
-          - rdetoolkit/models/invoice_schema.md
-          - rdetoolkit/models/metadata.md
-          - rdetoolkit/models/rde2types.md
-      - storage:
-          - rdetoolkit/storage/minio.md
-      - core module:
-          - rdetoolkit/core.md
-      - rdetoolkit/config.md
-      - rdetoolkit/workflows.md
-      - rdetoolkit/rde2util.md
-      - rdetoolkit/invoicefile.md
-      - rdetoolkit/modeproc.md
-      - rdetoolkit/validation.md
-      - rdetoolkit/img2thumb.md
-      - rdetoolkit/rdelogger.md
-      - rdetoolkit/exceptions.md
-  - Development:
-      - Top: contribute/home.md
-      - Documents: contribute/documents_contributing.md
-      - Source Code: contribute/sourcecode_contributing.md
 
 plugins:
   - search:
       separator: '[\s\-\.]+'
       lang: 'ja'
+  - i18n:
+      languages:
+        - locale: ja
+          name: 日本語
+          build: true
+          default: true
+          nav:
+            - はじめに:
+                - はじめに: index.ja.md
+                - インストール: installation.md
+                - クイックスタート: usage/quickstart.md
+            - ユーザーガイド:
+                - 構造化処理開発:
+                    - 構造化プロセスの構築: usage/structured_process/structured.md
+                    - 構造化処理開発ガイド: usage/structured_process/development_guide.md
+                    - 対応ディレクトリ: usage/structured_process/directory.md
+                    - ディレクトリパスアクセス: usage/structured_process/rdepath.md
+                    - エラーハンドリング: usage/structured_process/errorhandling.md
+                    - 機能説明: usage/structured_process/feature_description.md
+                - 設定ファイルとCLI:
+                    - 設定ファイル: usage/config/config.md
+                    - データ登録モード: usage/config/mode.md
+                    - ファイル/フォルダモード: usage/config/file_folder_mode.md
+                    - マジック変数: usage/config/magic_variable.md
+                    - コマンドライン操作: usage/cli.md
+                - テンプレートファイルと検証:
+                    - テンプレートファイル: usage/metadata_definition_file.md
+                    - データ検証: usage/validation.md
+                - 統合:
+                    - オブジェクトストレージ (MinIO): usage/object_storage.md
+                    - Docker の使用: usage/docker.md
+            - API リファレンス:
+                - 概要: rdetoolkit/index.md
+                - コアモジュール:
+                    - 設定: rdetoolkit/config.md
+                    - コア機能: rdetoolkit/core.md
+                    - ワークフロー: rdetoolkit/workflows.md
+                    - モード処理: rdetoolkit/modeproc.md
+                    - Invoiceファイル: rdetoolkit/invoicefile.md
+                    - ユーティリティ: rdetoolkit/rde2util.md
+                    - ロギング: rdetoolkit/rdelogger.md
+                    - 代表画像操作: rdetoolkit/img2thumb.md
+                    - 検証: rdetoolkit/validation.md
+                    - 例外: rdetoolkit/exceptions.md
+                    - ファイル操作: rdetoolkit/fileops.md
+                - データモデル:
+                    - 設定モデル: rdetoolkit/models/config.md
+                    - Invoiceモデル: rdetoolkit/models/invoice.md
+                    - Invoiceスキーマ: rdetoolkit/models/invoice_schema.md
+                    - メタデータモデル: rdetoolkit/models/metadata.md
+                    - タイプ定義: rdetoolkit/models/rde2types.md
+                    - 結果出力: rdetoolkit/models/result.md
+                - 実装:
+                    - 圧縮: rdetoolkit/impl/compressed_controller.md
+                    - 入力ファイル: rdetoolkit/impl/input_controller.md
+                - インターフェース:
+                    - ファイルチェック: rdetoolkit/interface/filechecker.md
+                - コマンド:
+                    - ベースコマンド: rdetoolkit/cmd/command.md
+                    - Excel形式Invoice生成: rdetoolkit/cmd/gen_excelinvoice.md
+                - ストレージ:
+                    - MinIO 統合: rdetoolkit/storage/minio.md
+                - アーティファクト:
+                    - レポート生成: rdetoolkit/artifact/report.md
+            - コントリビューション:
+                - 概要: development/index.md
+                - ドキュメントへの貢献: development/docs.md
+                - ソースコードへの貢献: development/contributing.md
+        - locale: en
+          name: English
+          build: true
+          nav:
+            - Getting Started:
+                - Introduction: index.en.md
+                - Installation: installation.md
+                - Quick Start: usage/quickstart.md
+            - User Guide:
+                - Structured Processing:
+                    - Building Structured Process: usage/structured_process/structured.md
+                    - Development Guide: usage/structured_process/development_guide.md
+                    - Development Guide: usage/structured_process/development_guide.md
+                    - Supported Directories: usage/structured_process/directory.md
+                    - Directory Path Access: usage/structured_process/rdepath.md
+                    - Error Handling: usage/structured_process/errorhandling.md
+                    - Feature Description: usage/structured_process/feature_description.md
+                - Configuration & CLI:
+                    - Configuration Files: usage/config/config.md
+                    - Data Registration Modes: usage/config/mode.md
+                    - File/Folder Modes: usage/config/file_folder_mode.md
+                    - Magic Variables: usage/config/magic_variable.md
+                    - Command Line Interface: usage/cli.md
+                - Templates & Validation:
+                    - Template Files: usage/metadata_definition_file.md
+                    - Data Validation: usage/validation.md
+                - Integrations:
+                    - Object Storage (MinIO): usage/object_storage.md
+                    - Docker Usage: usage/docker.md
+            - API Reference:
+                - Overview: rdetoolkit/index.md
+                - Core Modules:
+                    - Configuration: rdetoolkit/config.md
+                    - Core Functions: rdetoolkit/core.md
+                    - Workflows: rdetoolkit/workflows.md
+                    - Mode Processing: rdetoolkit/modeproc.md
+                    - Invoice Files: rdetoolkit/invoicefile.md
+                    - Utilities: rdetoolkit/rde2util.md
+                    - Logging: rdetoolkit/rdelogger.md
+                    - Image Processing: rdetoolkit/img2thumb.md
+                    - Validation: rdetoolkit/validation.md
+                    - Exceptions: rdetoolkit/exceptions.md
+                    - File Operations: rdetoolkit/fileops.md
+                - Data Models:
+                    - Configuration Models: rdetoolkit/models/config.md
+                    - Invoice Models: rdetoolkit/models/invoice.md
+                    - Invoice Schema: rdetoolkit/models/invoice_schema.md
+                    - Metadata Models: rdetoolkit/models/metadata.md
+                    - Type Definitions: rdetoolkit/models/rde2types.md
+                    - Result Models: rdetoolkit/models/result.md
+                - Implementation:
+                    - Compressed Controller: rdetoolkit/impl/compressed_controller.md
+                    - Input Controller: rdetoolkit/impl/input_controller.md
+                - Interfaces:
+                    - File Checker: rdetoolkit/interface/filechecker.md
+                - Commands:
+                    - Base Commands: rdetoolkit/cmd/command.md
+                    - Excel Invoice Generation: rdetoolkit/cmd/gen_excelinvoice.md
+                - Storage:
+                    - MinIO Integration: rdetoolkit/storage/minio.md
+                - Artifacts:
+                    - Report Generation: rdetoolkit/artifact/report.md
+            - Contributing:
+                - Overview: development/index.md
+                - Documentation: development/docs.md
+                - Source Code: development/contributing.md
   - mermaid2
   - mkdocstrings:
       handlers:
@@ -96,15 +175,6 @@ plugins:
             docstring_style: google
             show_if_no_docstring: true
             signature_crossrefs: true
-  - mike:
-      # These fields are all optional; the defaults are as below...
-      alias_type: symlink
-      redirect_template: null
-      deploy_prefix: ''
-      canonical_version: latest
-      version_selector: true
-      css_dir: css
-      javascript_dir: js
 
 watch:
   - src
@@ -127,11 +197,11 @@ markdown_extensions:
       alternate_style: true
   - attr_list
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-repo_url: https://github.com/nims-dpfc/rdetoolkit
-repo_name: nims-dpfc/rdetoolkit
+repo_url: https://github.com/nims-mdpf/rdetoolkit
+repo_name: nims-mdpf/rdetoolkit
 
 extra:
   social:

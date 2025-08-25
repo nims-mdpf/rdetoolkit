@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+{{ super() }}
+
+<!-- Dify Chatbot Configuration -->
+<script>
+ window.difyChatbotConfig = {
+  token: 'miUabi3XxqUrpE7E',
+  baseUrl: 'https://dify.escidoc.jp',
+  systemVariables: {
+    // user_id: 'YOU CAN DEFINE USER ID HERE',
+    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+  },
+  userVariables: {
+    // avatar_url: 'YOU CAN DEFINE USER AVATAR URL HERE',
+    // name: 'YOU CAN DEFINE USER NAME HERE',
+  },
+ }
+</script>
+
+<!-- チャットボットのサイズ固定とスタイル設定 -->
+<style>
+  /* ========== チャットボタンのスタイル ========== */
+  #dify-chatbot-bubble-button {
+    background-color: #1C64F2 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    /* ボタンサイズの固定 */
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    /* サイズ変更の防止 */
+    resize: none !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+  }
+
+  /* ========== チャットウィンドウのサイズ固定 ========== */
+  #dify-chatbot-bubble-window {
+    /* 固定サイズ設定 */
+    width: 384px !important;  /* 24rem = 384px (16px基準) */
+    height: 640px !important; /* 40rem = 640px (16px基準) */
+    min-width: 384px !important;
+    min-height: 640px !important;
+    max-width: 384px !important;
+    max-height: 640px !important;
+
+    /* 位置の固定 */
+    position: fixed !important;
+    bottom: 90px !important;  /* ボタンの上に配置 */
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+
+    /* その他の固定設定 */
+    z-index: 9998 !important;
+    resize: none !important;
+    overflow: hidden !important;
+
+    /* フレックスボックスの制御 */
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    flex-basis: auto !important;
+
+    /* ボックスサイジング */
+    box-sizing: border-box !important;
+
+    /* 境界線とシャドウ */
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* チャットウィンドウ内部のサイズ制御 */
+  #dify-chatbot-bubble-window > * {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* iframe がある場合のサイズ固定 */
+  #dify-chatbot-bubble-window iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border: none !important;
+  }
+
+  /* ========== 展開ボタンのみ非表示（閉じるボタンは維持） ========== */
+  /* 展開・フルスクリーンボタンの特定と非表示 */
+  #dify-chatbot-bubble-window button[aria-label*="expand" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="fullscreen" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="maximize" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="expand" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="fullscreen" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="maximize" i]:not([title*="close" i]):not([title*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* クラス名による展開ボタンの非表示（閉じるボタンクラスは除外） */
+  #dify-chatbot-bubble-window [class*="expand" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="fullscreen" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="maximize" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="enlarge" i]:not([class*="close" i]):not([class*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* ========== レスポンシブ対応（モバイルでのサイズ調整） ========== */
+  @media (max-width: 768px) {
+    #dify-chatbot-bubble-window {
+      /* タブレットサイズでも固定 */
+      width: 350px !important;
+      height: 500px !important;
+      min-width: 350px !important;
+      min-height: 500px !important;
+      max-width: 350px !important;
+      max-height: 500px !important;
+      right: 10px !important;
+      bottom: 80px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 15px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #dify-chatbot-bubble-window {
+      /* スマートフォンサイズでの固定 */
+      width: calc(100vw - 20px) !important;
+      height: calc(100vh - 100px) !important;
+      min-width: 320px !important;
+      min-height: 400px !important;
+      max-width: calc(100vw - 20px) !important;
+      max-height: calc(100vh - 100px) !important;
+      right: 10px !important;
+      bottom: 70px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 10px !important;
+    }
+  }
+
+  /* ========== フルスクリーンモードの無効化（サイズは固定） ========== */
+  #dify-chatbot-bubble-window.fullscreen,
+  #dify-chatbot-bubble-window.expanded,
+  #dify-chatbot-bubble-window[data-fullscreen="true"],
+  #dify-chatbot-bubble-window[data-expanded="true"] {
+    width: 384px !important;
+    height: 640px !important;
+    position: fixed !important;
+    bottom: 90px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+  }
+
+  /* transformアニメーションは維持（開閉用） */
+  #dify-chatbot-bubble-window {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+  }
+</style>
+
+<!-- サイズ固定と展開ボタン削除（開閉機能は維持） -->
+<script>
+(function() {
+  'use strict';
+
+  // 展開ボタンのみを削除する関数（閉じるボタンは維持）
+  function removeExpandButtonsOnly() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // すべてのボタンをチェック
+    const buttons = chatWindow.querySelectorAll('button, [role="button"]');
+    buttons.forEach(button => {
+      // ボタンの情報を取得
+      const ariaLabel = (button.getAttribute('aria-label') || '').toLowerCase();
+      const title = (button.getAttribute('title') || '').toLowerCase();
+      const className = (button.className || '').toLowerCase();
+      const innerHTML = button.innerHTML.toLowerCase();
+      const textContent = (button.textContent || '').toLowerCase();
+
+      // 展開関連のキーワード
+      const expandKeywords = ['expand', 'fullscreen', 'maximize', 'enlarge', 'full-screen'];
+      // 閉じる関連のキーワード（これらは維持）
+      const closeKeywords = ['close', 'minimize', 'hide', '×', 'x', '关闭', '閉じる'];
+
+      // 展開ボタンかどうか判定
+      const isExpandButton = expandKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 閉じるボタンかどうか判定
+      const isCloseButton = closeKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 展開ボタンで、かつ閉じるボタンでない場合のみ削除
+      if (isExpandButton && !isCloseButton) {
+        button.style.display = 'none';
+        button.style.visibility = 'hidden';
+        button.style.pointerEvents = 'none';
+        button.disabled = true;
+        // 完全に削除を試みる
+        try {
+          button.remove();
+        } catch(e) {
+          // removeが失敗した場合は非表示のまま
+        }
+      }
+    });
+
+    // SVGアイコンによる判定（展開アイコンのみ削除）
+    const svgs = chatWindow.querySelectorAll('svg');
+    svgs.forEach(svg => {
+      const parentButton = svg.closest('button, [role="button"]');
+      if (!parentButton) return;
+
+      // 親ボタンが既に処理されている場合はスキップ
+      if (parentButton.style.display === 'none') return;
+
+      // SVGのパスを確認（一般的な展開アイコンのパターン）
+      const svgHTML = svg.innerHTML.toLowerCase();
+      const viewBox = svg.getAttribute('viewBox');
+
+      // 展開アイコンの特徴（四隅への矢印など）
+      const isExpandIcon = (
+        svgHTML.includes('m7 14h-2v5h5v-2h-3v-3') || // 一般的な展開アイコン
+        svgHTML.includes('m14 10v-3h3v3h2v-5h-5') || // 一般的な展開アイコン
+        (viewBox === '0 0 24 24' && svgHTML.includes('path') && svgHTML.includes('m'))
+      );
+
+      // 閉じるアイコンの特徴（×マークなど）
+      const isCloseIcon = (
+        svgHTML.includes('m18 6l-12 12') || // ×アイコン
+        svgHTML.includes('m6 18l12-12') || // ×アイコン
+        svgHTML.includes('close') ||
+        svgHTML.includes('×')
+      );
+
+      // 展開アイコンで、かつ閉じるアイコンでない場合のみ削除
+      if (isExpandIcon && !isCloseIcon) {
+        parentButton.style.display = 'none';
+        parentButton.disabled = true;
+        try {
+          parentButton.remove();
+        } catch(e) {}
+      }
+    });
+  }
+
+  // サイズを固定する関数（表示状態は変更しない）
+  function enforceFixedSize() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // 現在の表示状態を保持
+    const currentDisplay = window.getComputedStyle(chatWindow).display;
+    const isVisible = currentDisplay !== 'none';
+
+    // サイズのみを固定（displayは変更しない）
+    if (isVisible) {
+      // サイズ関連のスタイルのみ設定
+      Object.assign(chatWindow.style, {
+        width: '384px',
+        height: '640px',
+        minWidth: '384px',
+        minHeight: '640px',
+        maxWidth: '384px',
+        maxHeight: '640px',
+        position: 'fixed',
+        bottom: '90px',
+        right: '20px',
+        left: 'auto',
+        top: 'auto',
+        resize: 'none'
+      });
+    }
+
+    // フルスクリーン関連の属性を削除
+    chatWindow.removeAttribute('data-fullscreen');
+    chatWindow.removeAttribute('data-expanded');
+    chatWindow.classList.remove('fullscreen', 'expanded', 'maximized');
+  }
+
+  // 初期化関数
+  function initialize() {
+    removeExpandButtonsOnly();
+    enforceFixedSize();
+  }
+
+  // 複数のタイミングで実行
+  document.addEventListener('DOMContentLoaded', initialize);
+  window.addEventListener('load', initialize);
+
+  // 遅延実行
+  setTimeout(initialize, 100);
+  setTimeout(initialize, 500);
+  setTimeout(initialize, 1000);
+  setTimeout(initialize, 2000);
+
+  // 定期的にチェック（展開ボタンの削除のみ）
+  setInterval(removeExpandButtonsOnly, 2000);
+
+  // DOM変更を監視（展開ボタンが追加されたら削除）
+  const observer = new MutationObserver(function(mutations) {
+    // 新しい要素が追加された場合のみチェック
+    const hasNewNodes = mutations.some(mutation => mutation.addedNodes.length > 0);
+    if (hasNewNodes) {
+      setTimeout(removeExpandButtonsOnly, 50);
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // ResizeObserverでサイズ変更を監視
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target.id === 'dify-chatbot-bubble-window') {
+          // サイズが変更されたら固定サイズに戻す
+          const chatWindow = entry.target;
+          const currentDisplay = window.getComputedStyle(chatWindow).display;
+          if (currentDisplay !== 'none') {
+            enforceFixedSize();
+          }
+        }
+      }
+    });
+
+    setTimeout(() => {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow) {
+        resizeObserver.observe(chatWindow);
+      }
+    }, 1000);
+  }
+
+  // フルスクリーンイベントを阻止
+  document.addEventListener('fullscreenchange', function(e) {
+    if (document.fullscreenElement) {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow && chatWindow.contains(document.fullscreenElement)) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+    enforceFixedSize();
+  });
+})();
+</script>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<!-- Dify Chatbot Script -->
+<script
+ src="https://dify.escidoc.jp/embed.min.js"
+ id="miUabi3XxqUrpE7E"
+ defer>
+</script>
+{% endblock %}
