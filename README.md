@@ -21,7 +21,7 @@ See the [documentation](https://nims-mdpf.github.io/rdetoolkit/) for more detail
 
 If you wish to make changes, please read the following document first:
 
-- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CONTRIBUTING.md](https://github.com/nims-mdpf/rdetoolkit/blob/main/CONTRIBUTING.md)
 
 ## Install
 
