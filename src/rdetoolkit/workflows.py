@@ -171,7 +171,7 @@ def generate_folder_paths_iterator(
         yield rdeoutput_resource_path
 
 
-def _process_mode(
+def _process_mode(  # noqa: C901
     idx: int,
     srcpaths: RdeInputDirPaths,
     rdeoutput_resource: RdeOutputResourcePath,
@@ -188,29 +188,45 @@ def _process_mode(
     """
     error_info = None
 
-    if smarttable_file is not None:
-        mode = "SmartTableInvoice"
-        status = smarttable_invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, smarttable_file, custom_dataset_function)
-    elif excel_invoice_files is not None:
-        mode = "Excelinvoice"
-        status = excel_invoice_mode_process(srcpaths, rdeoutput_resource, excel_invoice_files, idx, custom_dataset_function)
-    elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "rdeformat":
-        mode = "rdeformat"
-        status = rdeformat_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-    elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "multidatatile":
-        mode = "MultiDataTile"
-        ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
-        with skip_exception_context(Exception, logger=logger, enabled=ignore_error) as error_info:
+    # 処理実行
+    try:
+        if smarttable_file is not None:
+            mode = "SmartTableInvoice"
+            status = smarttable_invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, smarttable_file, custom_dataset_function)
+        elif excel_invoice_files is not None:
+            mode = "Excelinvoice"
+            status = excel_invoice_mode_process(srcpaths, rdeoutput_resource, excel_invoice_files, idx, custom_dataset_function)
+        elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "rdeformat":
+            mode = "rdeformat"
+            status = rdeformat_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+        elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "multidatatile":
+            mode = "MultiDataTile"
+            ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
+            if ignore_error:
+                # ignore_errorが有効な場合のみ例外をキャッチ
+                with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
+                    status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+                return status, error_info, mode
             status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-    else:
-        mode = "Invoice"
-        status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+        else:
+            mode = "Invoice"
+            status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
 
-    if (status.status == "failed" and not (mode == "MultiDataTile" and config.multidata_tile and config.multidata_tile.ignore_errors)):
-        emsg = f"Processing failed in {mode} mode: {status.error_message}"
-        raise Exception(emsg)
+        if status.status == "failed":
+            if hasattr(status, 'exception_object'):
+                if isinstance(status.exception_object, StructuredError):
+                    raise status.exception_object
+                logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
+            emsg = f"Processing failed in {mode} mode: {status.error_message}"
+            raise StructuredError(emsg, status.error_code or 999)
 
-    return status, error_info, mode
+        return status, error_info, mode
+
+    except StructuredError:
+        raise
+    except Exception as e:
+        emsg = f"Unexpected error in {mode} mode: {str(e)}"
+        raise StructuredError(emsg, 999) from e
 
 
 def run(*, custom_dataset_function: _CallbackType | None = None, config: Config | None = None) -> str:  # pragma: no cover

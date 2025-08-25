@@ -1,9 +1,22 @@
 import pandas as pd
-from _typeshed import Incomplete as Incomplete
+from _typeshed import Incomplete
 from pathlib import Path
+from rdetoolkit.exceptions import StructuredError as StructuredError
 from rdetoolkit.interfaces.filechecker import IArtifactPackageCompressor as IArtifactPackageCompressor, ICompressedFileStructParser as ICompressedFileStructParser
+from rdetoolkit.invoicefile import check_exist_rawfiles as check_exist_rawfiles
+from rdetoolkit.rdelogger import get_logger as get_logger
 
 logger: Incomplete
+
+class SystemFilesCleaner:
+    OS_PATTERNS: Incomplete
+    APP_PATTERNS: Incomplete
+    DEV_PATTERNS: Incomplete
+    regex_patterns: Incomplete
+    def __init__(self) -> None: ...
+    def is_excluded(self, file_path: Path) -> bool: ...
+    def clean_directory(self, directory: Path) -> list[Path]: ...
+    def get_excluded_patterns(self) -> dict[str, list[str]]: ...
 
 class CompressedFlatFileParser(ICompressedFileStructParser):
     xlsx_invoice: Incomplete
@@ -20,14 +33,20 @@ def parse_compressedfile_mode(xlsx_invoice: pd.DataFrame) -> ICompressedFileStru
 
 class ZipArtifactPackageCompressor(IArtifactPackageCompressor):
     source_dir: Incomplete
-    exclude_patterns: Incomplete
     def __init__(self, source_dir: str | Path, exclude_patterns: list[str]) -> None: ...
+    @property
+    def exclude_patterns(self) -> list[str]: ...
+    @exclude_patterns.setter
+    def exclude_patterns(self, patterns: list[str]) -> None: ...
     def archive(self, output_zip: str | Path) -> list[Path]: ...
 
 class TarGzArtifactPackageCompressor(IArtifactPackageCompressor):
     source_dir: Incomplete
-    exclude_patterns: Incomplete
     def __init__(self, source_dir: str | Path, exclude_patterns: list[str]) -> None: ...
+    @property
+    def exclude_patterns(self) -> list[str]: ...
+    @exclude_patterns.setter
+    def exclude_patterns(self, patterns: list[str]) -> None: ...
     def archive(self, output_tar: str | Path) -> list[Path]: ...
 
 def get_artifact_archiver(fmt: str, source_dir: str | Path, exclude_patterns: list[str]) -> IArtifactPackageCompressor: ...

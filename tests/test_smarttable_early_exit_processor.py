@@ -44,23 +44,48 @@ class TestSmartTableEarlyExitProcessor:
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
 
-        # Mock system settings to avoid copying during test
-        mock_context.srcpaths.config.system.save_raw = False
-        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        # Create actual temporary invoice file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invoice_path = Path(temp_dir) / "invoice.json"
+            initial_invoice_data = {
+                "basic": {
+                    "dataName": "original_data_name",
+                    "description": "Test description"
+                },
+                "custom": {}
+            }
+            
+            # Write initial invoice file
+            import json
+            with open(invoice_path, 'w', encoding='utf-8') as f:
+                json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+            
+            mock_context.invoice_dst_filepath = invoice_path
 
-        # Mock validators
-        mock_meta_validator.return_value.process.return_value = None
-        mock_invoice_validator.return_value.process.return_value = None
+            # Mock system settings to avoid copying during test
+            mock_context.srcpaths.config.system.save_raw = False
+            mock_context.srcpaths.config.system.save_nonshared_raw = False
 
-        # Should raise SkipRemainingProcessorsError when original SmartTable file is found
-        with pytest.raises(SkipRemainingProcessorsError) as exc_info:
-            processor.process(mock_context)
+            # Mock validators
+            mock_meta_validator.return_value.process.return_value = None
+            mock_invoice_validator.return_value.process.return_value = None
 
-        # Verify validators were called
-        mock_meta_validator.return_value.process.assert_called_once_with(mock_context)
-        mock_invoice_validator.return_value.process.assert_called_once_with(mock_context)
+            # Should raise SkipRemainingProcessorsError when original SmartTable file is found
+            with pytest.raises(SkipRemainingProcessorsError) as exc_info:
+                processor.process(mock_context)
 
-        assert "SmartTable file processing and validation completed" in str(exc_info.value)
+            # Verify dataName was updated in the actual file
+            with open(invoice_path, 'r', encoding='utf-8') as f:
+                updated_invoice = json.load(f)
+            
+            assert updated_invoice['basic']['dataName'] == 'smarttable_test.xlsx'
+            assert updated_invoice['basic']['description'] == "Test description"  # Other fields preserved
+
+            # Verify validators were called
+            mock_meta_validator.return_value.process.assert_called_once_with(mock_context)
+            mock_invoice_validator.return_value.process.assert_called_once_with(mock_context)
+
+            assert "SmartTable file processing and validation completed" in str(exc_info.value)
 
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.MetadataValidator')
     @patch('rdetoolkit.processing.processors.smarttable_early_exit.InvoiceValidator')
@@ -121,17 +146,41 @@ class TestSmartTableEarlyExitProcessor:
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
 
-        # Mock system settings to avoid copying during test
-        mock_context.srcpaths.config.system.save_raw = False
-        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        # Create actual temporary invoice file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invoice_path = Path(temp_dir) / "invoice.json"
+            initial_invoice_data = {
+                "basic": {
+                    "dataName": "original_data_name",
+                    "description": "Test description"
+                },
+                "custom": {}
+            }
+            
+            # Write initial invoice file
+            import json
+            with open(invoice_path, 'w', encoding='utf-8') as f:
+                json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+            
+            mock_context.invoice_dst_filepath = invoice_path
 
-        # Mock validators
-        mock_meta_validator.return_value.process.return_value = None
-        mock_invoice_validator.return_value.process.return_value = None
+            # Mock system settings to avoid copying during test
+            mock_context.srcpaths.config.system.save_raw = False
+            mock_context.srcpaths.config.system.save_nonshared_raw = False
 
-        # Should raise SkipRemainingProcessorsError when original SmartTable file is found
-        with pytest.raises(SkipRemainingProcessorsError) as exc_info:
-            processor.process(mock_context)
+            # Mock validators
+            mock_meta_validator.return_value.process.return_value = None
+            mock_invoice_validator.return_value.process.return_value = None
+
+            # Should raise SkipRemainingProcessorsError when original SmartTable file is found
+            with pytest.raises(SkipRemainingProcessorsError) as exc_info:
+                processor.process(mock_context)
+
+            # Verify dataName was updated with first SmartTable file
+            with open(invoice_path, 'r', encoding='utf-8') as f:
+                updated_invoice = json.load(f)
+            
+            assert updated_invoice['basic']['dataName'] == 'smarttable_experiment.csv'
 
         # Verify validators were called
         mock_meta_validator.return_value.process.assert_called_once_with(mock_context)
@@ -201,17 +250,41 @@ class TestSmartTableEarlyExitProcessor:
         mock_context.srcpaths.config.smarttable = Mock()
         mock_context.srcpaths.config.smarttable.save_table_file = True
 
-        # Mock system settings to avoid copying during test
-        mock_context.srcpaths.config.system.save_raw = False
-        mock_context.srcpaths.config.system.save_nonshared_raw = False
+        # Create actual temporary invoice file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invoice_path = Path(temp_dir) / "invoice.json"
+            initial_invoice_data = {
+                "basic": {
+                    "dataName": "original_data_name",
+                    "description": "Test description"
+                },
+                "custom": {}
+            }
+            
+            # Write initial invoice file
+            import json
+            with open(invoice_path, 'w', encoding='utf-8') as f:
+                json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+            
+            mock_context.invoice_dst_filepath = invoice_path
 
-        # Mock validators
-        mock_meta_validator.return_value.process.return_value = None
-        mock_invoice_validator.return_value.process.return_value = None
+            # Mock system settings to avoid copying during test
+            mock_context.srcpaths.config.system.save_raw = False
+            mock_context.srcpaths.config.system.save_nonshared_raw = False
 
-        # Should raise SkipRemainingProcessorsError for TSV files too
-        with pytest.raises(SkipRemainingProcessorsError):
-            processor.process(mock_context)
+            # Mock validators
+            mock_meta_validator.return_value.process.return_value = None
+            mock_invoice_validator.return_value.process.return_value = None
+
+            # Should raise SkipRemainingProcessorsError for TSV files too
+            with pytest.raises(SkipRemainingProcessorsError):
+                processor.process(mock_context)
+
+            # Verify dataName was updated
+            with open(invoice_path, 'r', encoding='utf-8') as f:
+                updated_invoice = json.load(f)
+            
+            assert updated_invoice['basic']['dataName'] == 'smarttable_data.tsv'
 
         # Verify validators were called
         mock_meta_validator.return_value.process.assert_called_once_with(mock_context)
@@ -410,10 +483,28 @@ class TestSmartTableEarlyExitProcessor:
         mock_context.srcpaths.config.system.save_raw = False
         mock_context.srcpaths.config.system.save_nonshared_raw = False
         
-        # Mock validators
-        mock_meta_validator.return_value.process.return_value = None
-        mock_invoice_validator.return_value.process.side_effect = Exception("Invoice validation failed")
-        
-        # Should propagate the validation exception (not raise SkipRemainingProcessorsError)
-        with pytest.raises(Exception, match="Invoice validation failed"):
-            processor.process(mock_context)
+        # Create actual temporary invoice file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invoice_path = Path(temp_dir) / "invoice.json"
+            initial_invoice_data = {
+                "basic": {
+                    "dataName": "original_data_name",
+                    "description": "Test description"
+                },
+                "custom": {}
+            }
+            
+            # Write initial invoice file
+            import json
+            with open(invoice_path, 'w', encoding='utf-8') as f:
+                json.dump(initial_invoice_data, f, ensure_ascii=False, indent=2)
+            
+            mock_context.invoice_dst_filepath = invoice_path
+            
+            # Mock validators
+            mock_meta_validator.return_value.process.return_value = None
+            mock_invoice_validator.return_value.process.side_effect = Exception("Invoice validation failed")
+            
+            # Should propagate the validation exception (not raise SkipRemainingProcessorsError)
+            with pytest.raises(Exception, match="Invoice validation failed"):
+                processor.process(mock_context)

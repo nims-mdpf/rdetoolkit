@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import tarfile
 import zipfile
 from pathlib import Path
@@ -16,6 +17,154 @@ from rdetoolkit.invoicefile import check_exist_rawfiles
 from rdetoolkit.rdelogger import get_logger
 
 logger = get_logger(__name__)
+
+
+class SystemFilesCleaner:
+    """Utility class to clean up OS and application-specific files after extraction.
+
+    This class identifies and removes system-generated files that should not be
+    included in the processed data, such as .DS_Store (macOS), Thumbs.db (Windows),
+    and temporary files from various applications.
+    """
+
+    # OS-specific files
+    OS_PATTERNS = [
+        "__MACOSX",  # macOS resource fork directory
+        ".DS_Store",  # macOS directory metadata
+        "Thumbs.db",  # Windows thumbnail cache
+        "desktop.ini",  # Windows folder settings
+        "$RECYCLE.BIN",  # Windows recycle bin
+        ".Spotlight-V100",  # macOS Spotlight index
+        ".Trashes",  # macOS trash folder
+        ".fseventsd",  # macOS file system events
+        ".TemporaryItems",  # macOS temporary items
+        "System Volume Information",  # Windows system folder
+    ]
+
+    # Application temporary files
+    APP_PATTERNS = [
+        r"~\$.*\.(docx|xlsx|pptx|doc|xls|ppt)",  # MS Office temp files
+        r"\.~lock\.",  # LibreOffice lock files
+        r".*\.tmp$",  # General temp files
+        r".*\.temp$",  # General temp files
+        r".*\.swp$",  # Vim swap files
+        r".*\.swo$",  # Vim swap files
+        r".*\.swn$",  # Vim swap files
+        r".*\.bak$",  # Backup files
+        r".*~$",  # Editor backup files
+        r".*\.pyc$",  # Python compiled files
+    ]
+
+    # Development and version control files
+    DEV_PATTERNS = [
+        ".git",
+        ".svn",
+        ".hg",
+        ".bzr",
+        ".gitignore",
+        ".gitattributes",
+        ".idea",  # IntelliJ IDEA
+        ".vscode",  # Visual Studio Code
+        "__pycache__",  # Python cache
+        ".pytest_cache",  # Pytest cache
+        ".tox",  # Tox test environments
+        ".coverage",  # Coverage reports
+        ".ipynb_checkpoints",  # Jupyter checkpoints
+        "node_modules",  # Node.js modules
+        ".sass-cache",  # Sass cache
+    ]
+
+    def __init__(self) -> None:
+        """Initialize the SystemFilesCleaner with compiled regex patterns."""
+        self.regex_patterns = []
+        for pattern in self.APP_PATTERNS:
+            try:
+                self.regex_patterns.append(re.compile(pattern))
+            except re.error as e:
+                logger.warning(f"Invalid regex pattern '{pattern}': {e}")
+
+    def is_excluded(self, file_path: Path) -> bool:
+        """Check if a file or directory should be excluded.
+
+        Args:
+            file_path: Path to check
+
+        Returns:
+            True if the file/directory should be excluded, False otherwise
+        """
+        # Check against OS patterns (exact match in path parts)
+        for pattern in self.OS_PATTERNS:
+            if pattern in file_path.parts:
+                return True
+            if file_path.name == pattern:
+                return True
+
+        # Check against development patterns
+        for pattern in self.DEV_PATTERNS:
+            if pattern in file_path.parts or file_path.name == pattern:
+                return True
+
+        # Check against regex patterns
+        str_path = str(file_path)
+        return any(regex.search(str_path) for regex in self.regex_patterns)
+
+    def clean_directory(self, directory: Path) -> list[Path]:
+        """Remove all excluded files and directories from the given directory.
+
+        Args:
+            directory: Path to the directory to clean
+
+        Returns:
+            List of paths that were removed
+        """
+        removed_paths: list[Path] = []
+
+        if not directory.exists() or not directory.is_dir():
+            logger.warning(f"Directory does not exist or is not a directory: {directory}")
+            return removed_paths
+
+        # Collect all files and directories to remove
+        to_remove_files = []
+        to_remove_dirs = []
+
+        for path in directory.rglob("*"):
+            if self.is_excluded(path):
+                if path.is_file() or path.is_symlink():
+                    to_remove_files.append(path)
+                elif path.is_dir():
+                    to_remove_dirs.append(path)
+
+        # Remove files first
+        for file_path in to_remove_files:
+            try:
+                file_path.unlink()
+                removed_paths.append(file_path)
+                logger.debug(f"Removed file: {file_path}")
+            except Exception as e:
+                logger.warning(f"Failed to remove file {file_path}: {e}")
+
+        # Remove directories (deepest first)
+        for dir_path in sorted(to_remove_dirs, key=lambda p: -len(p.parts)):
+            try:
+                shutil.rmtree(dir_path)
+                removed_paths.append(dir_path)
+                logger.debug(f"Removed directory: {dir_path}")
+            except Exception as e:
+                logger.warning(f"Failed to remove directory {dir_path}: {e}")
+
+        return removed_paths
+
+    def get_excluded_patterns(self) -> dict[str, list[str]]:
+        """Get all excluded patterns organized by category.
+
+        Returns:
+            Dictionary with categories as keys and pattern lists as values
+        """
+        return {
+            "os_patterns": self.OS_PATTERNS,
+            "app_patterns": self.APP_PATTERNS,
+            "dev_patterns": self.DEV_PATTERNS,
+        }
 
 
 class CompressedFlatFileParser(ICompressedFileStructParser):
@@ -50,6 +199,13 @@ class CompressedFlatFileParser(ICompressedFileStructParser):
         if isinstance(target_dir, str):
             target_dir = Path(target_dir)
         self._extract_zip_with_encoding(zipfile, target_dir)
+
+        # Clean up system files after extraction
+        cleaner = SystemFilesCleaner()
+        removed_paths = cleaner.clean_directory(target_dir)
+        if removed_paths:
+            logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
+
         return [f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f)]
 
     def _extract_zip_with_encoding(self, zip_path: Path | str, extract_path: Path | str) -> None:
@@ -143,6 +299,12 @@ class CompressedFolderParser(ICompressedFileStructParser):
         if isinstance(target_dir, str):
             target_dir = Path(target_dir)
         self._extract_zip_with_encoding(zipfile, target_dir)
+
+        cleaner = SystemFilesCleaner()
+        removed_paths = cleaner.clean_directory(target_dir)
+        if removed_paths:
+            logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
+
         return [f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f)]
 
     def _extract_zip_with_encoding(self, zip_path: Path | str, extract_path: Path | str) -> None:

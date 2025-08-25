@@ -1,4 +1,6 @@
-from typing import Literal, Optional, Union
+from __future__ import annotations
+
+from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
@@ -372,7 +374,7 @@ class InvoiceSchemaJson(BaseModel):
     def __check_custom_fields(self):
         if not self.properties.custom:
             return self
-        if "custom" not in self.required:
+        if self.required and "custom" not in self.required:
             raise ValueError("custom is required but is None")
         return self
 
@@ -383,3 +385,49 @@ class InvoiceSchemaJson(BaseModel):
         if "sample" not in self.required:
             raise ValueError("sample is required but is None")
         return self
+
+    def find_field(self, key: str, custom_only: bool = False) -> dict[str, Any] | None:
+        """Find and return field definition for the specified key.
+
+        Searches for a field definition by key, either in custom properties only
+        or throughout the entire schema structure using recursive traversal.
+
+        Args:
+            key (str): The field key to search for.
+            custom_only (bool, optional): If True, search only in custom properties.
+                If False, search the entire schema structure. Defaults to False.
+
+        Returns:
+            dict[str, Any] | None: The field definition as a dictionary if found,
+                None otherwise. The dictionary contains the field's metadata
+                serialized in JSON mode with aliases.
+
+        Note:
+            When custom_only is True, the method only searches within
+            self.properties.custom.properties.root. When False, it performs
+            a recursive search through the entire model structure.
+
+        """
+        if custom_only and self.properties and self.properties.custom and self.properties.custom.properties:
+            meta_property = self.properties.custom.properties.root.get(key)
+            if meta_property is not None:
+                return meta_property.model_dump(mode='json', by_alias=True)
+            return None
+
+        data = self.model_dump(mode='json', by_alias=True)
+
+        def _walk(node: Any) -> dict[str, Any] | None:
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    if k == key and isinstance(v, dict):
+                        return v
+                    found = _walk(v)
+                    if found is not None:
+                        return found
+            elif isinstance(node, list):
+                for item in node:
+                    found = _walk(item)
+                    if found is not None:
+                        return found
+            return None
+        return _walk(data)

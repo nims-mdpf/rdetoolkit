@@ -154,3 +154,40 @@ def test_invoice_schema_json_serialization_aliases():
     assert "version" not in dumped_with_alias
     assert "schema_id" not in dumped_with_alias
     assert "value_type" not in dumped_with_alias
+
+
+def test_find_field_custom_only_hit_returns_alias_dump(invoice_schema_json_full):
+    schema = InvoiceSchemaJson(**invoice_schema_json_full)
+
+    result = schema.find_field("sample1", custom_only=True)
+
+    assert isinstance(result, dict)
+    assert result.get("type") == "string"
+    assert result.get("format") == "date"
+    assert result.get("label") == {"ja": "サンプル１", "en": "sample1"}
+
+
+def test_find_recursive_hit_in_custom(invoice_schema_json_full):
+    schema = InvoiceSchemaJson(**invoice_schema_json_full)
+
+    result = schema.find_field("sample3", custom_only=False)
+
+    assert isinstance(result, dict)
+    assert result.get("type") == "integer"
+    assert result.get("format") is None
+    assert result.get("label") == {"ja": "サンプル３", "en": "sample3"}
+
+
+def test_find_field_not_found_returns_none(invoice_schema_json_full):
+    schema = InvoiceSchemaJson(**invoice_schema_json_full)
+
+    result = schema.find_field("dummy1", custom_only=False)
+
+    assert result is None
+
+
+def test_find_field_custom_only_when_custom_absent_returns_none():
+    schema = InvoiceSchemaJson(type="object", properties=Properties())
+    result = schema.find_field("sample1", custom_only=True)
+
+    assert result is None

@@ -174,3 +174,91 @@ def test_run_empty_config(
 #     mock_multifile_mode_process.assert_called_once_with(srcpaths, resource_paths, custom_function)
 
 #     logger.warning.assert_called_once_with("Skipped exception: Exception raised")
+
+
+def test_structured_error_propagation_in_workflow(tmp_path, monkeypatch):
+    """Test that StructuredError from custom dataset function propagates correctly to job.failed.
+    
+    This test reproduces the issue reported in issue_203 where custom error messages
+    and codes were not being written to job.failed correctly.
+    """
+    from rdetoolkit.errors import catch_exception_with_message
+    from rdetoolkit.exceptions import StructuredError
+    from unittest.mock import patch
+    import tempfile
+    import os
+    
+    # Setup test directories
+    test_data_dir = tmp_path / "data"
+    test_data_dir.mkdir()
+    (test_data_dir / "inputdata").mkdir()
+    (test_data_dir / "invoice").mkdir()
+    (test_data_dir / "tasksupport").mkdir()
+    (test_data_dir / "logs").mkdir()
+    
+    # Create required files
+    invoice_content = {
+        "basic": {
+            "dataName": "Test Data",
+            "experimentTitle": "Test Experiment"
+        },
+        "custom": {}
+    }
+    
+    with open(test_data_dir / "invoice" / "invoice.json", "w") as f:
+        json.dump(invoice_content, f)
+    
+    schema_content = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+            "basic": {"type": "object"},
+            "custom": {"type": "object"}
+        }
+    }
+    
+    with open(test_data_dir / "tasksupport" / "invoice.schema.json", "w") as f:
+        json.dump(schema_content, f)
+    
+    metadata_content = {
+        "constant": {},
+        "variable": []
+    }
+    
+    with open(test_data_dir / "tasksupport" / "metadata-def.json", "w") as f:
+        json.dump(metadata_content, f)
+    
+    # Create a test input file
+    test_input_file = test_data_dir / "inputdata" / "test.txt"
+    test_input_file.write_text("test data")
+    
+    # Change to test directory
+    original_cwd = os.getcwd()
+    os.chdir(tmp_path)
+    
+    try:
+        # Define custom dataset function that raises StructuredError
+        @catch_exception_with_message(error_message="Dataset processing failed", error_code=50)
+        def custom_dataset_function(srcpaths, resource_paths):
+            raise StructuredError("error message in dataset()", 21)
+        
+        # Run the workflow and expect it to exit with error
+        with pytest.raises(SystemExit):
+            run(custom_dataset_function=custom_dataset_function)
+        
+        # Check that job.failed was created with correct content
+        job_failed_path = test_data_dir / "job.failed"
+        assert job_failed_path.exists(), "job.failed file was not created"
+        
+        content = job_failed_path.read_text()
+        
+        # The StructuredError values should be used, not the decorator values
+        assert "ErrorCode=21" in content, f"Expected ErrorCode=21 in job.failed, got: {content}"
+        assert "ErrorMessage=Error: error message in dataset()" in content, f"Expected correct error message in job.failed, got: {content}"
+        
+        # Should NOT contain the decorator values
+        assert "ErrorCode=50" not in content, "Should not contain decorator error code"
+        assert "Dataset processing failed" not in content, "Should not contain decorator error message"
+        
+    finally:
+        os.chdir(original_cwd)
