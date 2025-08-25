@@ -1080,6 +1080,13 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice_schema.InvoiceSchemaJson.find_field">
+<span class="md-ellipsis">
+      find_field
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2240,6 +2247,13 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.invoice_schema.InvoiceSchemaJson.find_field">
+<span class="md-ellipsis">
+      find_field
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -3223,6 +3237,87 @@
 <code class="highlight language-python">__check_smaple_field()</code>
 </h3>
 <div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.invoice_schema.InvoiceSchemaJson.find_field">
+<code class="highlight language-python">find_field(key, custom_only<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)</code>
+</h3>
+<div class="doc doc-contents">
+<p>Find and return field definition for the specified key.</p>
+<p>Searches for a field definition by key, either in custom properties only
+or throughout the entire schema structure using recursive traversal.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>key</code></td>
+<td>
+<code>str</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The field key to search for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>custom_only</code></td>
+<td>
+<code>bool</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If True, search only in custom properties.
+If False, search the entire schema structure. Defaults to False.</p>
+</div>
+</td>
+<td>
+<code>False</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>dict[str, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>dict[str, Any] | None: The field definition as a dictionary if found,
+None otherwise. The dictionary contains the field's metadata
+serialized in JSON mode with aliases.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="note" open="">
+<summary>Note</summary>
+<p>When custom_only is True, the method only searches within
+self.properties.custom.properties.root. When False, it performs
+a recursive search through the entire model structure.</p>
+</details>
 </div>
 </div>
 </div>
@@ -4503,7 +4598,7 @@
 <tbody>
 <tr class="doc-section-item">
 <td><code>Options</code></td> <td>
-<code><a class="autorefs autorefs-internal" title="src.rdetoolkit.models.invoice_schema.Options" href="#src.rdetoolkit.models.invoice_schema.Options">Options</a></code>
+<code>'Options'</code>
 </td>
 <td>
 <div class="doc-md-description">
