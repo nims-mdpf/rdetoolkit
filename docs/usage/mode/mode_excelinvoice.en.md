@@ -1,5 +1,3 @@
-こちらが英訳です。
-
 # What Is ExcelInvoice Mode?
 
 ## Purpose
