@@ -19,7 +19,7 @@ Simply place the ExcelInvoice file (`-_excel_invoice.xlsx`) in `inputdata`, and 
 
 ## About the Excel File Format
 
-ExcelInvoice mode is designed on the premise that `ivnoice.shcema.json` (sic) has been created.
+ExcelInvoice mode is designed on the premise that `invoice.schema.json` has been created.
 
 Run the following commands to create a template ExcelInvoice file.
 
