@@ -15,7 +15,7 @@ A mode for efficiently registering multiple datasets in bulk using an Excel file
 
 ## How to Configure
 
-Simply place the ExcelInvoice file (`-_excel_invoice.xlsx`) in `inputdata`, and it will be automatically detected. No changes to configuration files are required.
+Simply place the ExcelInvoice file (`*_excel_invoice.xlsx`) in `inputdata`, and it will be automatically detected. No changes to configuration files are required.
 
 ## About the Excel File Format
 
