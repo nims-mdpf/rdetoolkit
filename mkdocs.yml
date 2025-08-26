@@ -51,7 +51,7 @@ plugins:
                 - データ登録モード:
                     - 利用可能なデータ登録モード: usage/mode/mode.md
                     - invoiceモード: usage/mode/mode_invoice.md
-                    - ExecelInvoiceモード: usage/mode/mode_excelinvoice.md
+                    - ExcelInvoiceモード: usage/mode/mode_excelinvoice.md
                     - SmartTableInvoiceモード: usage/mode/mode_smarttableinvoice.md
                     - MultiDataTileモード: usage/mode/mode_multidatatile.md
                     - RDEFormatモード: usage/mode/mode_rdeformat.md
