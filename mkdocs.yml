@@ -47,10 +47,16 @@ plugins:
                     - 対応ディレクトリ: usage/structured_process/directory.md
                     - ディレクトリパスアクセス: usage/structured_process/rdepath.md
                     - エラーハンドリング: usage/structured_process/errorhandling.md
-                    - 機能説明: usage/structured_process/feature_description.md
+                    - データタイル説明欄の自動転記: usage/structured_process/feature_description.md
+                - データ登録モード:
+                    - 利用可能なデータ登録モード: usage/mode/mode.md
+                    - invoiceモード: usage/mode/mode_invoice.md
+                    - ExecelInvoiceモード: usage/mode/mode_excelinvoice.md
+                    - SmartTableInvoiceモード: usage/mode/mode_smarttableinvoice.md
+                    - MultiDataTileモード: usage/mode/mode_multidatatile.md
+                    - RDEFormatモード: usage/mode/mode_rdeformat.md
                 - 設定ファイルとCLI:
                     - 設定ファイル: usage/config/config.md
-                    - データ登録モード: usage/config/mode.md
                     - ファイル/フォルダモード: usage/config/file_folder_mode.md
                     - マジック変数: usage/config/magic_variable.md
                     - コマンドライン操作: usage/cli.md
@@ -114,9 +120,15 @@ plugins:
                     - Directory Path Access: usage/structured_process/rdepath.md
                     - Error Handling: usage/structured_process/errorhandling.md
                     - Feature Description: usage/structured_process/feature_description.md
+                - Data Registration Modes:
+                    - Available Data Registration Modes: usage/mode/mode.md
+                    - Invoice Mode: usage/mode/mode_invoice.md
+                    - ExcelInvoice Mode: usage/mode/mode_excelinvoice.md
+                    - SmartTableInvoice Mode: usage/mode/mode_smarttableinvoice.md
+                    - MultiDataTile Mode: usage/mode/mode_multidatatile.md
+                    - RDEFormat Mode: usage/mode/mode_rdeformat.md
                 - Configuration & CLI:
                     - Configuration Files: usage/config/config.md
-                    - Data Registration Modes: usage/config/mode.md
                     - File/Folder Modes: usage/config/file_folder_mode.md
                     - Magic Variables: usage/config/magic_variable.md
                     - Command Line Interface: usage/cli.md
