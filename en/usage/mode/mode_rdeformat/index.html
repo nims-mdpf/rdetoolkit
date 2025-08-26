@@ -5,12 +5,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="https://nims-mdpf.github.io/rdetoolkit/en/usage/config/mode/" rel="canonical"/>
-<link href="../config/" rel="prev"/>
-<link href="../file_folder_mode/" rel="next"/>
+<link href="https://nims-mdpf.github.io/rdetoolkit/en/usage/mode/mode_rdeformat/" rel="canonical"/>
+<link href="../mode_multidatatile/" rel="prev"/>
+<link href="../../config/config/" rel="next"/>
 <link href="../../../../img/2585322.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.38" name="generator"/>
-<title>Data Registration Modes - RDEToolKit Documentation</title>
+<title>RDEFormat Mode - RDEToolKit Documentation</title>
 <link href="../../../../assets/stylesheets/main.8c3ca2c6.min.css" rel="stylesheet"/>
 <link href="../../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -415,7 +415,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#what-are-data-registration-modes">
+<a class="md-skip" href="#what-is-rdeformat-mode">
           Skip to content
         </a>
 </div>
@@ -439,7 +439,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              Data Registration Modes
+              RDEFormat Mode
             
           </span>
 </div>
@@ -464,7 +464,7 @@
 <div class="md-select__inner">
 <ul class="md-select__list">
 <li class="md-select__item">
-<a class="md-select__link" href="../../../../usage/config/mode/" hreflang="ja">
+<a class="md-select__link" href="../../../../usage/mode/mode_rdeformat/" hreflang="ja">
               日本語
             </a>
 </li>
@@ -703,20 +703,48 @@
 <input checked="" class="md-nav__toggle md-toggle" id="__nav_2_2" type="checkbox"/>
 <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
 <span class="md-ellipsis">
-    Configuration &amp; CLI
+    Data Registration Modes
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <nav aria-expanded="true" aria-labelledby="__nav_2_2_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_2_2">
 <span class="md-nav__icon md-icon"></span>
-            Configuration &amp; CLI
+            Data Registration Modes
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../config/">
+<a class="md-nav__link" href="../mode/">
 <span class="md-ellipsis">
-    Configuration Files
+    Available Data Registration Modes
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mode_invoice/">
+<span class="md-ellipsis">
+    Invoice Mode
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mode_excelinvoice/">
+<span class="md-ellipsis">
+    ExcelInvoice Mode
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mode_smarttableinvoice/">
+<span class="md-ellipsis">
+    SmartTableInvoice Mode
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mode_multidatatile/">
+<span class="md-ellipsis">
+    MultiDataTile Mode
   </span>
 </a>
 </li>
@@ -724,13 +752,13 @@
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
 <span class="md-ellipsis">
-    Data Registration Modes
+    RDEFormat Mode
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
-    Data Registration Modes
+    RDEFormat Mode
   </span>
 </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
@@ -747,177 +775,108 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#challenges-and-background">
+<a class="md-nav__link" href="#features">
 <span class="md-ellipsis">
-      Challenges and Background
+      Features
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#key-concepts">
+<a class="md-nav__link" href="#when-to-use">
 <span class="md-ellipsis">
-      Key Concepts
+      When to Use
     </span>
 </a>
-<nav aria-label="Key Concepts" class="md-nav">
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration">
+<span class="md-ellipsis">
+      Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#folders-that-are-extracted">
+<span class="md-ellipsis">
+      Folders That Are Extracted
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#input-file">
+<span class="md-ellipsis">
+      Input File
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-layout">
+<span class="md-ellipsis">
+      Directory Layout
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-errors-and-questions">
+<span class="md-ellipsis">
+      Common Errors and Questions
+    </span>
+</a>
+<nav aria-label="Common Errors and Questions" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#mode-selection-mechanism">
+<a class="md-nav__link" href="#can-i-implement-a-structuring-process-using-rdeformat-mode">
 <span class="md-ellipsis">
-      Mode Selection Mechanism
+      Can I implement a structuring process using RDEFormat Mode?
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#five-mode-overview">
+<a class="md-nav__link" href="#can-rdeformat-mode-overwrite-invoicejson">
 <span class="md-ellipsis">
-      Five Mode Overview
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#mode-details">
-<span class="md-ellipsis">
-      Mode Details
-    </span>
-</a>
-<nav aria-label="Mode Details" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#1-invoice-mode-standard-mode">
-<span class="md-ellipsis">
-      1. Invoice Mode (Standard Mode)
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#2-excelinvoice-mode">
-<span class="md-ellipsis">
-      2. ExcelInvoice Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#3-smarttableinvoice-mode">
-<span class="md-ellipsis">
-      3. SmartTableInvoice Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#4-multidatatile-mode">
-<span class="md-ellipsis">
-      4. MultiDataTile Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#5-rdeformat-mode">
-<span class="md-ellipsis">
-      5. RDEFormat Mode
+      Can RDEFormat Mode overwrite invoice.json?
     </span>
 </a>
 </li>
 </ul>
 </nav>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#mode-comparison">
-<span class="md-ellipsis">
-      Mode Comparison
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#implementation-examples">
-<span class="md-ellipsis">
-      Implementation Examples
-    </span>
-</a>
-<nav aria-label="Implementation Examples" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#invoice-mode">
-<span class="md-ellipsis">
-      Invoice Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#multidatatile-mode">
-<span class="md-ellipsis">
-      MultiDataTile Mode
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-file-mode-specification">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
 <span class="md-ellipsis">
-      Configuration File Mode Specification
-    </span>
-</a>
-<nav aria-label="Configuration File Mode Specification" class="md-nav">
-<ul class="md-nav__list">
+    Configuration &amp; CLI
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_3">
+<span class="md-nav__icon md-icon"></span>
+            Configuration &amp; CLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#rdeconfigyaml">
+<a class="md-nav__link" href="../../config/config/">
 <span class="md-ellipsis">
-      rdeconfig.yaml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#pyprojecttoml">
-<span class="md-ellipsis">
-      pyproject.toml
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#troubleshooting">
-<span class="md-ellipsis">
-      Troubleshooting
-    </span>
-</a>
-<nav aria-label="Troubleshooting" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#common-problems">
-<span class="md-ellipsis">
-      Common Problems
-    </span>
+    Configuration Files
+  </span>
 </a>
 </li>
-</ul>
-</nav>
-</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#related-information">
-<span class="md-ellipsis">
-      Related Information
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../file_folder_mode/">
+<a class="md-nav__link" href="../../config/file_folder_mode/">
 <span class="md-ellipsis">
     File/Folder Modes
   </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../magic_variable/">
+<a class="md-nav__link" href="../../config/magic_variable/">
 <span class="md-ellipsis">
     Magic Variables
   </span>
@@ -934,15 +893,15 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
 <span class="md-ellipsis">
     Templates &amp; Validation
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_3_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_2_3">
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
 <span class="md-nav__icon md-icon"></span>
             Templates &amp; Validation
           </label>
@@ -965,15 +924,15 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_2_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
 <span class="md-ellipsis">
     Integrations
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_2_4">
+<nav aria-expanded="false" aria-labelledby="__nav_2_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_5">
 <span class="md-nav__icon md-icon"></span>
             Integrations
           </label>
@@ -1369,164 +1328,71 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#challenges-and-background">
+<a class="md-nav__link" href="#features">
 <span class="md-ellipsis">
-      Challenges and Background
+      Features
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#key-concepts">
+<a class="md-nav__link" href="#when-to-use">
 <span class="md-ellipsis">
-      Key Concepts
+      When to Use
     </span>
 </a>
-<nav aria-label="Key Concepts" class="md-nav">
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration">
+<span class="md-ellipsis">
+      Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#folders-that-are-extracted">
+<span class="md-ellipsis">
+      Folders That Are Extracted
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#input-file">
+<span class="md-ellipsis">
+      Input File
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-layout">
+<span class="md-ellipsis">
+      Directory Layout
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-errors-and-questions">
+<span class="md-ellipsis">
+      Common Errors and Questions
+    </span>
+</a>
+<nav aria-label="Common Errors and Questions" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#mode-selection-mechanism">
+<a class="md-nav__link" href="#can-i-implement-a-structuring-process-using-rdeformat-mode">
 <span class="md-ellipsis">
-      Mode Selection Mechanism
+      Can I implement a structuring process using RDEFormat Mode?
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#five-mode-overview">
+<a class="md-nav__link" href="#can-rdeformat-mode-overwrite-invoicejson">
 <span class="md-ellipsis">
-      Five Mode Overview
+      Can RDEFormat Mode overwrite invoice.json?
     </span>
 </a>
 </li>
 </ul>
 </nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#mode-details">
-<span class="md-ellipsis">
-      Mode Details
-    </span>
-</a>
-<nav aria-label="Mode Details" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#1-invoice-mode-standard-mode">
-<span class="md-ellipsis">
-      1. Invoice Mode (Standard Mode)
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#2-excelinvoice-mode">
-<span class="md-ellipsis">
-      2. ExcelInvoice Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#3-smarttableinvoice-mode">
-<span class="md-ellipsis">
-      3. SmartTableInvoice Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#4-multidatatile-mode">
-<span class="md-ellipsis">
-      4. MultiDataTile Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#5-rdeformat-mode">
-<span class="md-ellipsis">
-      5. RDEFormat Mode
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#mode-comparison">
-<span class="md-ellipsis">
-      Mode Comparison
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#implementation-examples">
-<span class="md-ellipsis">
-      Implementation Examples
-    </span>
-</a>
-<nav aria-label="Implementation Examples" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#invoice-mode">
-<span class="md-ellipsis">
-      Invoice Mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#multidatatile-mode">
-<span class="md-ellipsis">
-      MultiDataTile Mode
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#configuration-file-mode-specification">
-<span class="md-ellipsis">
-      Configuration File Mode Specification
-    </span>
-</a>
-<nav aria-label="Configuration File Mode Specification" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#rdeconfigyaml">
-<span class="md-ellipsis">
-      rdeconfig.yaml
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#pyprojecttoml">
-<span class="md-ellipsis">
-      pyproject.toml
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#troubleshooting">
-<span class="md-ellipsis">
-      Troubleshooting
-    </span>
-</a>
-<nav aria-label="Troubleshooting" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#common-problems">
-<span class="md-ellipsis">
-      Common Problems
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#related-information">
-<span class="md-ellipsis">
-      Related Information
-    </span>
-</a>
 </li>
 </ul>
 </nav>
@@ -1535,157 +1401,76 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="what-are-data-registration-modes">What are Data Registration Modes</h1>
+<h1 id="what-is-rdeformat-mode">What is RDEFormat Mode?</h1>
 <h2 id="purpose">Purpose</h2>
-<p>This document explains the five data registration modes in RDE structured processing. You will understand the characteristics, use cases, and configuration methods of each mode to select the appropriate mode.</p>
-<h2 id="challenges-and-background">Challenges and Background</h2>
-<p>Research data registration had diverse needs such as:</p>
+<p>RDEFormat Mode is a mode for registering RDE-format data into RDE to integrate RDE with external systems. When another system outputs data in the RDE format, you can use RDEFormat Mode to register that output directly into RDE as is.</p>
+<p><img alt="rdeformat" src="../../../../img/rdeformat.svg"/></p>
+<h2 id="features">Features</h2>
 <ul>
-<li><strong>Single Dataset</strong>: Register one experimental result</li>
-<li><strong>Batch Registration</strong>: Efficiently register multiple related experiments</li>
-<li><strong>Integrated Management</strong>: Manage related data as one dataset</li>
-<li><strong>Data Migration</strong>: Migrate existing RDE format data</li>
+<li>You can register the specified RDE registration data format (.zip) as is.</li>
 </ul>
-<p>Five data registration modes were developed to address these diverse needs.</p>
-<h2 id="key-concepts">Key Concepts</h2>
-<h3 id="mode-selection-mechanism">Mode Selection Mechanism</h3>
-<pre class="mermaid"><code>flowchart TD
-    A[Start Structured Processing] --&gt; B{Check Input Files}
-    B --&gt;|*_excel_invoice.xlsx exists| C[ExcelInvoice Mode]
-    B --&gt;|smarttable_*.{xlsx,csv,tsv} exists| D[SmartTableInvoice Mode]
-    B --&gt;|Normal files| E{Check Configuration File}
-    E --&gt;|extended_mode: MultiDataTile| F[MultiDataTile Mode]
-    E --&gt;|extended_mode: rdeformat| G[RDEFormat Mode]
-    E --&gt;|No setting| H[Invoice Mode]
-</code></pre>
-<h3 id="five-mode-overview">Five Mode Overview</h3>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>Purpose</th>
-<th>Activation Condition</th>
-<th>Multiple Data Support</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Invoice</strong></td>
-<td>Single dataset registration</td>
-<td>Default</td>
-<td>✗</td>
-</tr>
-<tr>
-<td><strong>ExcelInvoice</strong></td>
-<td>Batch registration</td>
-<td><code>*_excel_invoice.xlsx</code> exists</td>
-<td>✓</td>
-</tr>
-<tr>
-<td><strong>SmartTableInvoice</strong></td>
-<td>Automatic metadata generation</td>
-<td><code>smarttable_*.{xlsx,csv,tsv}</code> exists</td>
-<td>✓</td>
-</tr>
-<tr>
-<td><strong>MultiDataTile</strong></td>
-<td>Integrated management</td>
-<td>Configuration file specification</td>
-<td>✓</td>
-</tr>
-<tr>
-<td><strong>RDEFormat</strong></td>
-<td>Data migration</td>
-<td>Configuration file specification</td>
-<td>✓</td>
-</tr>
-</tbody>
-</table>
-<h2 id="mode-details">Mode Details</h2>
-<h3 id="1-invoice-mode-standard-mode">1. Invoice Mode (Standard Mode)</h3>
-<p><strong>Overview</strong>: The most basic data registration mode for registering single datasets.</p>
-<p><strong>Activation Condition</strong>: Activated by default.</p>
-<p><strong>Features</strong>:
-- Single dataset registration
-- Simple configuration
-- Recommended for beginners</p>
-<p><strong>Directory Structure</strong>:
+<h2 id="when-to-use">When to Use</h2>
+<ul>
+<li>When you want to register RDE-format data from another system into RDE</li>
+<li>When you want to set up a dataset for mock/testing purposes and register data</li>
+</ul>
+<h2 id="configuration">Configuration</h2>
+<p>Configure the <code>rdeconfig.yml</code> settings file as follows:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
+<span style="color: #bbbbbb">  </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"rdeformat"</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="folders-that-are-extracted">Folders That Are Extracted</h2>
+<p>The folders included in the zip that will be extracted are as follows:</p>
+<ul>
+<li>raw</li>
+<li>main_image</li>
+<li>other_image</li>
+<li>meta</li>
+<li>structured</li>
+<li>nonshared_raw</li>
+</ul>
+<h2 id="input-file">Input File</h2>
+<p>Compress the directory structure supported by the RDE structuring process into a zip file.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>input.zip
+├──<span style="color: #bbbbbb"> </span>main_image
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>sample1.png
+├──<span style="color: #bbbbbb"> </span>meta
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>metadata.json
+├──<span style="color: #bbbbbb"> </span>nonshared_raw
+├──<span style="color: #bbbbbb"> </span>other_image
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>other_sampling.png
+├──<span style="color: #bbbbbb"> </span>raw
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>sample1.raw
+└──<span style="color: #bbbbbb"> </span>structured
+<span style="color: #bbbbbb">    </span>└──<span style="color: #bbbbbb"> </span>sample1.csv
+</code></pre></div></td></tr></table></div>
+<h2 id="directory-layout">Directory Layout</h2>
+<p>Place the Excel file and the zip file in the <code>inputdata</code> directory.</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
-├── inputdata/          # Input data
-├── invoice/            # Invoice data
-│   └── invoice.json
-└── tasksupport/        # Support files
-    ├── invoice.schema.json
-    └── metadata-def.json
-</code></pre></div></td></tr></table></div></p>
-<h3 id="2-excelinvoice-mode">2. ExcelInvoice Mode</h3>
-<p><strong>Overview</strong>: Mode for batch registration of multiple datasets using Excel files.</p>
-<p><strong>Activation Condition</strong>: Automatically activated when files with <code>*_excel_invoice.xlsx</code> naming convention exist in input files.</p>
-<p><strong>Features</strong>:
-- Batch registration of multiple datasets
-- Efficient management via Excel files
-- Suitable for batch processing</p>
-<p><strong>Directory Structure</strong>:
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
-├── inputdata/
-│   └── experiment_excel_invoice.xlsx  # Excel invoice file
-├── invoice/
-└── tasksupport/
-</code></pre></div></td></tr></table></div></p>
-<h3 id="3-smarttableinvoice-mode">3. SmartTableInvoice Mode</h3>
-<p><strong>Overview</strong>: Mode that reads metadata from table files (Excel/CSV/TSV) and automatically generates invoice.json files.</p>
-<p><strong>Activation Condition</strong>: Automatically activated when files with <code>smarttable_*.{xlsx,csv,tsv}</code> naming convention exist in input files.</p>
-<p><strong>Features</strong>:
-- <strong>Multi-format support</strong>: Reads Excel (.xlsx), CSV, and TSV files
-- <strong>2-row header format</strong>: Display names in row 1, mapping keys in row 2
-- <strong>Automatic metadata mapping</strong>: Structured data generation with <code>basic/</code>, <code>custom/</code>, <code>sample/</code> prefixes
-- <strong>Array data support</strong>: Proper mapping to <code>generalAttributes</code> and <code>specificAttributes</code>
-- <strong>ZIP file integration</strong>: Automatic association between data files in ZIP and table files</p>
-<p><strong>Table File Format</strong>:
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># Row 1: Display names (user descriptions)
-Data Name,Input File 1,Cycle,Thickness,Temperature,Sample Name,Sample ID,General Item
-
-# Row 2: Mapping keys (used in actual processing)
-basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sample/names,sample/sampleId,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
-
-# Row 3 onwards: Data
-Experiment1,file1.txt,1,2mm,25,sample001,S001,value1
-Experiment2,file2.txt,2,3mm,30,sample002,S002,value2
-</code></pre></div></td></tr></table></div></p>
-<p><strong>Mapping Key Specifications</strong>:
-- <code>basic/xxxx</code>: Maps to <code>xxxx</code> key in <code>basic</code> object of invoice.json
-- <code>custom/xxxx</code>: Maps to <code>xxxx</code> key in <code>custom</code> object of invoice.json
-- <code>sample/xxxx</code>: Maps to <code>xxxx</code> key in <code>sample</code> object of invoice.json
-- <code>sample/generalAttributes.&lt;termId&gt;</code>: Maps to <code>value</code> of corresponding <code>termId</code> in <code>generalAttributes</code> array
-- <code>sample/specificAttributes.&lt;classId&gt;.&lt;termId&gt;</code>: Maps to <code>value</code> of corresponding <code>classId</code> and <code>termId</code> in <code>specificAttributes</code> array
-- <code>inputdataX</code>: Specifies file path in ZIP file (X=1,2,3...)</p>
-<p><strong>Configuration Options</strong>:
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">smarttable</span>:
-<span style="color: #bbbbbb">  </span><span style="color: #007700">save_table_file</span>:<span style="color: #bbbbbb"> </span>true<span style="color: #bbbbbb">  </span><span style="color: #888888"># Save SmartTable file if true</span>
-</code></pre></div></td></tr></table></div></p>
-<p><code>save_table_file</code> option:
-- <code>false</code> (default): SmartTable file is not saved to raw/nonshared_raw directory
-- <code>true</code>: Original SmartTable file is saved to raw/nonshared_raw directory</p>
-<p><strong>Directory Structure</strong>:
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
+├──<span style="color: #bbbbbb"> </span>inputdata/
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>input.zip
+├──<span style="color: #bbbbbb"> </span>invoice/
+└──<span style="color: #bbbbbb"> </span>tasksupport/
+<span style="color: #bbbbbb">    </span>└──<span style="color: #bbbbbb"> </span>rdeconfig.yml
+</code></pre></div></td></tr></table></div>
+<p>After execution, the contents of <code>input.zip</code> are registered as is, as shown below. Data split under the <code>divided</code> directory is also supported.</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1702,196 +1487,37 @@ Experiment2,file2.txt,2,3mm,30,sample002,S002,value2
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
-├── inputdata/
-│   ├── smarttable_experiment.xlsx
-│   └── data.zip
-├── divided/
-│   ├── 0001/
-│   │   ├── invoice/
-│   │   │   └── invoice.json  # Generated from row 1 of smarttable
-│   │   └── raw/
-│   │       └── file1.txt
-│   └── 0002/
-│       ├── invoice/
-│       │   └── invoice.json  # Generated from row 2 of smarttable
-│       └── raw/
-│           └── file2.txt
-└── temp/
-    ├── fsmarttable_experiment_0001.csv
-    └── fsmarttable_experiment_0002.csv
-</code></pre></div></td></tr></table></div></p>
-<h3 id="4-multidatatile-mode">4. MultiDataTile Mode</h3>
-<p><strong>Overview</strong>: Mode for integrated management of multiple related data tiles as one dataset.</p>
-<p><strong>Activation Condition</strong>: Must specify <code>extended_mode: 'MultiDataTile'</code> in configuration file.</p>
-<p><strong>Configuration Example</strong>:
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
-<span style="color: #bbbbbb">    </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'MultiDataTile'</span>
-</code></pre></div></td></tr></table></div></p>
-<p><strong>Features</strong>:
-- Integrated management of multiple data tiles
-- Maintains relationships between data
-- Suitable for large-scale datasets</p>
-<h3 id="5-rdeformat-mode">5. RDEFormat Mode</h3>
-<p><strong>Overview</strong>: Mode for migrating existing RDE format data or creating mocks.</p>
-<p><strong>Activation Condition</strong>: Must specify <code>extended_mode: 'rdeformat'</code> in configuration file.</p>
-<p><strong>Configuration Example</strong>:
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
-<span style="color: #bbbbbb">    </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'rdeformat'</span>
-</code></pre></div></td></tr></table></div></p>
-<p><strong>Features</strong>:
-- Migration of existing data
-- Mock creation of RDE format data
-- Data conversion processing</p>
-<h2 id="mode-comparison">Mode Comparison</h2>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>Multiple Data</th>
-<th>Configuration Required</th>
-<th>Use Case</th>
-<th>Difficulty</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Invoice</td>
-<td>✗</td>
-<td>✗</td>
-<td>Single dataset</td>
-<td>Beginner</td>
-</tr>
-<tr>
-<td>ExcelInvoice</td>
-<td>✓</td>
-<td>✗</td>
-<td>Batch registration</td>
-<td>Intermediate</td>
-</tr>
-<tr>
-<td>SmartTableInvoice</td>
-<td>✓</td>
-<td>✗</td>
-<td>Flexible metadata mapping</td>
-<td>Intermediate</td>
-</tr>
-<tr>
-<td>MultiDataTile</td>
-<td>✓</td>
-<td>✓</td>
-<td>Integrated management</td>
-<td>Advanced</td>
-</tr>
-<tr>
-<td>RDEFormat</td>
-<td>✓</td>
-<td>✓</td>
-<td>Data migration</td>
-<td>Advanced</td>
-</tr>
-</tbody>
-</table>
-<h2 id="implementation-examples">Implementation Examples</h2>
-<h3 id="invoice-mode">Invoice Mode</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    <span style="color: #888888"># Process single dataset</span>
-    input_file <span style="color: #333333">=</span> <span style="color: #007020">list</span>(srcpaths<span style="color: #333333">.</span>inputdata<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.csv"</span>))[<span style="color: #0000DD; font-weight: bold">0</span>]
-    df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>read_csv(input_file)
-
-    <span style="color: #888888"># Save processing results</span>
-    output_path <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>structured <span style="color: #333333">/</span> <span style="background-color: #fff0f0">"processed_data.csv"</span>
-    df<span style="color: #333333">.</span>to_csv(output_path, index<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>data/
+├──<span style="color: #bbbbbb"> </span>inputdata/
+│<span style="color: #bbbbbb">   </span>├──<span style="color: #bbbbbb"> </span>file1.rasx
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>file2.rasx
+├──<span style="color: #bbbbbb"> </span>invoice/
+├──<span style="color: #bbbbbb"> </span>tasksupport/
+├──<span style="color: #bbbbbb"> </span>main_image
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>sample1.png
+├──<span style="color: #bbbbbb"> </span>meta
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>metadata.json
+├──<span style="color: #bbbbbb"> </span>nonshared_raw
+├──<span style="color: #bbbbbb"> </span>other_image
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>other_sampling.png
+├──<span style="color: #bbbbbb"> </span>raw
+│<span style="color: #bbbbbb">   </span>└──<span style="color: #bbbbbb"> </span>sample1.raw
+└──<span style="color: #bbbbbb"> </span>structured
+<span style="color: #bbbbbb">    </span>└──<span style="color: #bbbbbb"> </span>sample1.csv
 </code></pre></div></td></tr></table></div>
-<h3 id="multidatatile-mode">MultiDataTile Mode</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    <span style="color: #888888"># Process multiple files</span>
-    input_files <span style="color: #333333">=</span> <span style="color: #007020">list</span>(srcpaths<span style="color: #333333">.</span>inputdata<span style="color: #333333">.</span>glob(<span style="background-color: #fff0f0">"*.csv"</span>))
-
-    <span style="color: #008800; font-weight: bold">for</span> i, file <span style="color: #000000; font-weight: bold">in</span> <span style="color: #007020">enumerate</span>(input_files):
-        df <span style="color: #333333">=</span> pd<span style="color: #333333">.</span>read_csv(file)
-
-        <span style="color: #888888"># Save to directory for each tile</span>
-        tile_dir <span style="color: #333333">=</span> resource_paths<span style="color: #333333">.</span>structured <span style="color: #333333">/</span> <span style="background-color: #fff0f0">f"tile_</span><span style="background-color: #eeeeee">{</span>i<span style="color: #333333">+</span><span style="color: #0000DD; font-weight: bold">1</span><span style="background-color: #eeeeee">:</span><span style="background-color: #fff0f0">04d</span><span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
-        tile_dir<span style="color: #333333">.</span>mkdir(exist_ok<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">True</span>)
-
-        output_path <span style="color: #333333">=</span> tile_dir <span style="color: #333333">/</span> <span style="background-color: #fff0f0">f"processed_</span><span style="background-color: #eeeeee">{</span>file<span style="color: #333333">.</span>name<span style="background-color: #eeeeee">}</span><span style="background-color: #fff0f0">"</span>
-        df<span style="color: #333333">.</span>to_csv(output_path, index<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">False</span>)
-</code></pre></div></td></tr></table></div>
-<h2 id="configuration-file-mode-specification">Configuration File Mode Specification</h2>
-<h3 id="rdeconfigyaml">rdeconfig.yaml</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007700">system</span>:
-<span style="color: #bbbbbb">    </span><span style="color: #888888"># Standard mode (default)</span>
-<span style="color: #bbbbbb">    </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span>null
-
-<span style="color: #bbbbbb">    </span><span style="color: #888888"># MultiDataTile mode</span>
-<span style="color: #bbbbbb">    </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'MultiDataTile'</span>
-
-<span style="color: #bbbbbb">    </span><span style="color: #888888"># RDEFormat mode</span>
-<span style="color: #bbbbbb">    </span><span style="color: #007700">extended_mode</span>:<span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">'rdeformat'</span>
-</code></pre></div></td></tr></table></div>
-<h3 id="pyprojecttoml">pyproject.toml</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #008800; font-weight: bold">[tool.rdetoolkit.system]</span>
-extended_mode<span style="color: #bbbbbb"> </span><span style="color: #333333">=</span><span style="color: #bbbbbb"> </span><span style="background-color: #fff0f0">"MultiDataTile"</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="common-problems">Common Problems</h3>
-<ol>
-<li><strong>Unintended mode activation</strong></li>
-<li>Check input file names (existence of <code>*_excel_invoice.xlsx</code>)</li>
-<li>
-<p>Check <code>extended_mode</code> in configuration file</p>
-</li>
-<li>
-<p><strong>MultiDataTile mode not activating</strong></p>
-</li>
-<li>Verify <code>extended_mode: 'MultiDataTile'</code> is written in configuration file</li>
-<li>
-<p>Check if configuration file YAML format is correct</p>
-</li>
-<li>
-<p><strong>Divided directory not created</strong></p>
-</li>
-<li>Verify MultiDataTile mode or ExcelInvoice mode is correctly activated</li>
-<li>Check if multiple input data exist</li>
-</ol>
-<h2 id="related-information">Related Information</h2>
-<p>To learn more about data registration modes, refer to the following documents:</p>
+<h2 id="common-errors-and-questions">Common Errors and Questions</h2>
+<h3 id="can-i-implement-a-structuring-process-using-rdeformat-mode">Can I implement a structuring process using RDEFormat Mode?</h3>
+<p>Although RDEFormat Mode is intended to register RDE-format data as is, it is also possible to implement a structuring process. As with Invoice Mode, if you define the structuring process, the predefined processing can be executed at the time of registration.</p>
+<h3 id="can-rdeformat-mode-overwrite-invoicejson">Can RDEFormat Mode overwrite <code>invoice.json</code>?</h3>
+<p>No. RDEFormat Mode cannot perform overwrites including <code>invoice.json</code>. Because RDEFormat Mode registers RDE-format data as is, <code>invoice.json</code> is automatically generated at registration time.</p>
+<p>The folders that are extracted are as follows:</p>
 <ul>
-<li>Learn configuration methods in <a href="../config/">Configuration Files</a></li>
-<li>Check directory roles in <a href="../../structured_process/directory/">Directory Structure</a></li>
-<li>Understand processing flows in <a href="../../structured_process/structured/">Structured Processing Concepts</a></li>
+<li>raw</li>
+<li>main_image</li>
+<li>other_image</li>
+<li>meta</li>
+<li>structured</li>
+<li>nonshared_raw</li>
 </ul>
 <!-- Dify Chatbot Script -->
 <script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
@@ -1957,7 +1583,5 @@ extended_mode<span style="color: #bbbbbb"> </span><span style="color: #333333">=
 <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
 <script src="../../../../assets/javascripts/bundle.d6f25eb3.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
-<script>window.mermaidConfig = {default: {
-    startOnLoad: false
-}};</script></body>
+</body>
 </html>
