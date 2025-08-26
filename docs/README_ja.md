@@ -19,7 +19,7 @@ See [documentation](https://nims-mdpf.github.io/rdetoolkit/) for more details.
 
 変更を加える場合、以下のドキュメントを一読お願いします。
 
-- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CONTRIBUTING.md](https://github.com/nims-mdpf/rdetoolkit/blob/main/CONTRIBUTING.md)
 
 ## Install
 
