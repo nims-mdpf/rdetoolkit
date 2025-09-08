@@ -140,11 +140,22 @@ class TestCompactTraceFormatter:
     def test_rc_line_format(self, formatter):
         """Test RC line formatting"""
         exc = ValueError("Multi-line\nerror message")
-        rc_line = formatter._format_rc_line(exc)
+        # Test with empty traceback list (defaults to F0)
+        rc_line = formatter._format_rc_line(exc, [])
 
         hint_json = json.dumps("Multi-line", ensure_ascii=False)
         expected = f'RC frame="F0" hint={hint_json}'
         assert rc_line == expected
+        
+        # Test with traceback list
+        import traceback
+        try:
+            raise ValueError("Test error")
+        except Exception as e:
+            tb_list = traceback.extract_tb(e.__traceback__)
+            rc_line = formatter._format_rc_line(e, tb_list)
+            # Should still be F0 for simple exception
+            assert 'RC frame="F0"' in rc_line
 
     def test_extract_module_name_relative_to_cwd(self, formatter):
         """Test extracting module name relative to cwd"""

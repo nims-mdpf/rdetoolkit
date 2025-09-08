@@ -48,17 +48,21 @@ class CompactTraceFormatter:
         if self.config.include_env:
             lines.append(self._format_t_line())
 
+        # Keep track of traceback for root cause analysis
+        traceback_list = []
         if exc_traceback:
             if self.config.include_locals:
                 frames_with_locals = self._extract_frames_with_locals(exc_traceback)
                 for idx, (frame_summary, frame_locals) in enumerate(frames_with_locals):
                     lines.append(self._format_f_line(idx, frame_summary, frame_locals))
+                    traceback_list.append(frame_summary)
             else:
                 tb_list = traceback.extract_tb(exc_traceback)
                 for idx, frame in enumerate(tb_list):
                     lines.append(self._format_f_line(idx, frame, None))
+                    traceback_list.append(frame)
 
-        lines.append(self._format_rc_line(exc))
+        lines.append(self._format_rc_line(exc, traceback_list))
         content = "\n".join(lines)
         return f"<STACKTRACE>\n{content}\n</STACKTRACE>"
 
@@ -141,19 +145,43 @@ class CompactTraceFormatter:
 
         return line
 
-    def _format_rc_line(self, exc: Exception) -> str:
+    def _format_rc_line(self, exc: Exception, traceback_list: list) -> str:
         """Format the RC (root cause) line.
 
         Args:
             exc: The exception to format.
+            traceback_list: List of traceback frames.
 
         Returns:
             str: Formatted root cause line.
         """
         hint = str(exc).split('\n')[0] if str(exc) else "Error occurred"
         hint_json = json.dumps(hint, ensure_ascii=False)
+        # Determine the root cause frame
+        # If there's an exception chain, the deepest frame is typically the root cause
+        # Otherwise, use the first frame (F0) where the error was raised
+        frame_idx = 0
 
-        return f'RC frame="F0" hint={hint_json}'
+        # Check for exception chain to find the actual root cause
+        if hasattr(exc, '__cause__') and exc.__cause__ is not None:
+            # For explicit exception chaining (raise ... from ...)
+            # The root cause is typically in the earlier frames
+            # We could analyze __cause__.__traceback__ but for now keep it simple
+            frame_idx = len(traceback_list) - 1 if traceback_list else 0
+        elif hasattr(exc, '__context__') and exc.__context__ is not None:
+            # For implicit exception chaining
+            # Similar logic - the context is often the root cause
+            frame_idx = len(traceback_list) - 1 if traceback_list else 0
+        else:
+            # No exception chain - the immediate frame is the root cause
+            frame_idx = 0
+
+        # Ensure frame_idx is within bounds
+        if traceback_list:
+            frame_idx = min(frame_idx, len(traceback_list) - 1)
+            frame_idx = max(frame_idx, 0)
+
+        return f'RC frame="F{frame_idx}" hint={hint_json}'
 
     def _extract_module_name(self, filepath: str) -> str:
         """Extract module name from filepath.
