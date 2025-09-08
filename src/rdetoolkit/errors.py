@@ -11,6 +11,9 @@ from typing import Any, Callable
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.rde2util import StorageDir
+from rdetoolkit.config import get_traceback_settings_from_env
+from rdetoolkit.models.config import Config
+from rdetoolkit.traceback.formatter import CompactTraceFormatter
 
 
 def catch_exception_with_message(
@@ -121,34 +124,17 @@ def format_simplified_traceback(tb_list: list[traceback.FrameSummary]) -> str:
     return formatted_traceback
 
 
-def handle_exception(
-    e: Exception,
-    error_message: str | None = None,
-    error_code: int | None = None,
-    eobj: Any | None = None,
-    verbose: bool = False,
-) -> StructuredError:
-    """Handles exceptions and formats them into a StructuredError with optional custom message, error code, and additional object.
-
-    This function captures the exception type and traceback, then formats a simplified version of the traceback.
-    It constructs a custom error message, optionally including the full original traceback if verbose mode is enabled.
-    The function returns a StructuredError containing the error message, error code, optional additional object,
-    and simplified traceback information.
+def _generate_python_traceback(e: Exception, verbose: bool = False, custom_error_message: str | None = None) -> str:
+    """Generate Python-style traceback.
 
     Args:
-        e (Exception): The exception to handle.
-        error_message (Optional[str]): Customized message to be used in case of an error. Defaults to the exception message.
-        error_code (Optional[int]): Error code to be used in case of an error. Defaults to 1.
-        eobj (Optional[Any]): Additional object to include in the error. Defaults to None.
-        verbose (bool): If set to True, includes the original traceback in the error message. Defaults to False.
+        e: The exception.
+        verbose: Whether to include full traceback.
+        custom_error_message: Custom error message to use instead of exception message.
 
     Returns:
-        StructuredError: A structured error object containing the error message, error code, additional object,
-        and simplified traceback information.
+        Formatted traceback string.
     """
-    _message = f"Error: {error_message}" if error_message else f"Error: {str(e)}"
-    _code = error_code if error_code else 1
-
     exc_type, _, exc_traceback = sys.exc_info()
     exc_type_name = exc_type.__name__ if exc_type else "UnknownException"
     tb_list = traceback.extract_tb(exc_traceback)
@@ -169,32 +155,87 @@ def handle_exception(
         combined_tb = traceback.StackSummary.from_list(_tb_list)
 
     simplifed_traceback: str = format_simplified_traceback(combined_tb)
-    error_messages = (
+    error_messages = [
         "\nTraceback (simplified message):\n",
         f"Call Path:\n{simplifed_traceback}\n",
         f"\nException Type: {exc_type_name}\n",
-        _message,
-    )
+        f"Error: {custom_error_message or str(e)}",
+    ]
 
     if verbose:
         original_traceback = traceback.format_exc()
         error_msg = f"{original_traceback}\n\n{'=' * 60}\nCustom Traceback (simplified and more readable):\n{'=' * 60}\n"
         sys.stderr.write(error_msg)
 
-    return StructuredError(emsg=_message, ecode=_code, eobj=eobj, traceback_info="".join(error_messages))
+    return "".join(error_messages)
 
 
-def handle_and_exit_on_structured_error(e: StructuredError, logger: logging.Logger) -> None:
+def handle_exception(
+    e: Exception,
+    error_message: str | None = None,
+    error_code: int | None = None,
+    eobj: Any | None = None,
+    verbose: bool = False,
+    config: Config | None = None,
+) -> StructuredError:
+    """Handles exceptions and formats them into a StructuredError with optional custom message, error code, and additional object.
+
+    This function captures the exception type and traceback, then formats a simplified version of the traceback.
+    It constructs a custom error message, optionally including the full original traceback if verbose mode is enabled.
+    The function returns a StructuredError containing the error message, error code, optional additional object,
+    and simplified traceback information.
+
+    Args:
+        e (Exception): The exception to handle.
+        error_message (Optional[str]): Customized message to be used in case of an error. Defaults to the exception message.
+        error_code (Optional[int]): Error code to be used in case of an error. Defaults to 1.
+        eobj (Optional[Any]): Additional object to include in the error. Defaults to None.
+        verbose (bool): If set to True, includes the original traceback in the error message. Defaults to False.
+        config (Config | None): Optional configuration object whose ``traceback`` attribute (``TracebackSettings``)
+                    determines how traceback text is produced when ``e.traceback_info`` is missing.
+                    If None, traceback settings are resolved from environment variables (fallback behavior).
+
+    Returns:
+        StructuredError: A structured error object containing the error message, error code, additional object,
+        and simplified traceback information.
+    """
+    _message = f"Error: {error_message}" if error_message else f"Error: {str(e)}"
+    _code = error_code if error_code else 1
+
+    traceback_settings = config.traceback if (config and config.traceback) else get_traceback_settings_from_env()
+
+    if traceback_settings and traceback_settings.enabled:
+        formatter = CompactTraceFormatter(traceback_settings)
+        compact_trace = formatter.format(e)
+
+        if traceback_settings.format == "compact":
+            traceback_info = compact_trace
+        elif traceback_settings.format == "python":
+            traceback_info = _generate_python_traceback(e, verbose, error_message)
+        else:
+            traceback_info = f"{compact_trace}\n{_generate_python_traceback(e, verbose, error_message)}"
+
+        return StructuredError(emsg=_message, ecode=_code, eobj=eobj,
+      traceback_info=traceback_info)
+    # Always generate traceback for backward compatibility
+    traceback_info = _generate_python_traceback(e, verbose, error_message)
+    return StructuredError(emsg=_message, ecode=_code, eobj=eobj, traceback_info=traceback_info)
+
+
+def handle_and_exit_on_structured_error(e: StructuredError, logger: logging.Logger, config: Config | None = None) -> None:
     """Catch StructuredError and write to log file.
 
     Args:
         e (StructuredError): StructuredError instance
         logger (logging.Logger): Logger instance
+        config (Config | None): Optional configuration object whose ``traceback`` attribute (``TracebackSettings``)
+                   determines how traceback text is produced when ``e.traceback_info`` is missing.
+                   If None, traceback settings are resolved from environment variables (fallback behavior)
     """
     if e.traceback_info is not None:
         sys.stderr.write(e.traceback_info + "\n")
     else:
-        structured_error = handle_exception(e, verbose=True)
+        structured_error = handle_exception(e, verbose=True, config=config)
         sys.stderr.write((structured_error.traceback_info or "") + "\n")
 
     write_job_errorlog_file(e.ecode, e.emsg)
@@ -202,14 +243,34 @@ def handle_and_exit_on_structured_error(e: StructuredError, logger: logging.Logg
     sys.exit(1)
 
 
-def handle_generic_error(e: Exception, logger: logging.Logger) -> None:
-    """Catch generic error and write to log file.
+def handle_generic_error(e: Exception, logger: logging.Logger, config: Config | None = None) -> None:
+    """Catch a generic (non-StructuredError) exception, emit a formatted traceback, log it, and exit.
+
+    This helper:
+        1. Formats the exception into a structured traceback (compact or python style depending on settings).
+        2. Writes the formatted traceback to stderr.
+        3. Writes a generic job error file with a fixed error code (999) to assist external supervisors.
+        4. Logs the exception (including stack trace) via the provided logger.
+        5. Exits the process with status code 1.
 
     Args:
-        e (Exception): Exception instance
-        logger (logging.Logger): Logger instance
+        e (Exception): The caught exception instance.
+        logger (logging.Logger): Logger used to record the exception (`logger.exception` is invoked so a stack trace is included).
+        config (Config | None): Optional configuration object. If provided and it contains traceback settings,
+            those settings control whether a compact traceback, a standard Python traceback, or both are generated.
+            If omitted, traceback settings are resolved from the environment (see `get_traceback_settings_from_env`).
+
+    Side Effects:
+        - Writes structured traceback text to stderr.
+        - Creates/overwrites an error marker file via `write_job_errorlog_file` (default filename: job.failed) with code=999.
+        - Emits an ERROR-level log entry with stack trace.
+        - Terminates the interpreter with `sys.exit(1)`.
+
+    Returns:
+        None. (The function does not return; it terminates the process.)
+
     """
-    structured_error = handle_exception(e, verbose=True)
+    structured_error = handle_exception(e, verbose=True, config=config)
     sys.stderr.write((structured_error.traceback_info or "") + "\n")
     write_job_errorlog_file(999, "Error: Please check the logs and code, then try again.")
     logger.exception(str(e))

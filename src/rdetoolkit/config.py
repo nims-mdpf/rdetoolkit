@@ -8,7 +8,7 @@ import yaml
 from pydantic import ValidationError
 from tomlkit.toml_file import TOMLFile
 
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings, SmartTableSettings
+from rdetoolkit.models.config import Config, TracebackSettings, MultiDataTileSettings, SystemSettings, SmartTableSettings
 from rdetoolkit.models.rde2types import RdeFsPath
 
 CONFIG_FILE: Final = ["rdeconfig.yaml", "rdeconfig.yml"]
@@ -197,3 +197,27 @@ def load_config(tasksupport_path: RdeFsPath, *, config: Config | None = None) ->
         __rtn_config = get_config(tasksupport_path)
         __config = Config() if __rtn_config is None else __rtn_config
     return __config
+
+
+def get_traceback_settings_from_env() -> TracebackSettings | None:
+    """Get TracebackSettings from environment variables.
+
+    Reads TRACE_VERBOSE environment variable and creates TracebackSettings.
+    TRACE_VERBOSE can contain comma-separated values: context, locals, env
+    TRACE_FORMAT can specify output format: compact, python, duplex
+
+    Returns:
+        TracebackSettings configured from environment, or None if not set.
+    """
+    trace_verbose = os.environ.get('TRACE_VERBOSE', '')
+    if not trace_verbose:
+        return None
+
+    verbose_options = [opt.strip().lower() for opt in trace_verbose.split(',')]
+    return TracebackSettings(
+        enabled=True,
+        include_context='context' in verbose_options,
+        include_locals='locals' in verbose_options,
+        include_env='env' in verbose_options,
+        format=os.environ.get('TRACE_FORMAT', 'duplex'),
+    )
