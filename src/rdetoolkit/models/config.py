@@ -107,6 +107,7 @@ class TracebackSettings(BaseModel):
             raise ValueError(emsg)
         return v
 
+
 class Config(BaseModel, extra="allow"):
     """The configuration class used in RDEToolKit.
 
