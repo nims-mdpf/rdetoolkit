@@ -16,6 +16,8 @@ This section provides comprehensive API documentation for RDEToolKit modules. Th
 - [img2thumb](./img2thumb.md): Module for converting images to thumbnails.
 - [rdelogger](./rdelogger.md): Module providing logging functionality.
 - [exceptions](./exceptions.md): Module for exception handling.
+- [errors](./errors.md): Module for error handling and exception management.
+- [traceback](./traceback/index.md): Module for LLM/AI-friendly stacktrace formatting.
 - [core](./core.md): Core functionality module.
 
 ## Data Models

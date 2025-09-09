@@ -257,3 +257,4 @@ grep -i "warning" data/logs/rdesys.log
 - [構造化処理の概念](structured.ja.md)でエラーが発生する処理フェーズを理解する
 - [設定ファイル](../config/config.ja.md)で設定関連エラーの対処法を学ぶ
 - [バリデーション](../validation.ja.md)でデータ検証エラーの対処法を確認する
+- [LLM/AI向けトレースバック機能](traceback.ja.md)でスタックトレース機能を学ぶ
