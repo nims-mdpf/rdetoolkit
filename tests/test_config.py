@@ -5,7 +5,7 @@ import shutil
 import pytest
 import yaml
 from rdetoolkit.config import is_toml, is_yaml, parse_config_file, get_config, load_config
-from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings, SmartTableSettings
+from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings, SmartTableSettings, TracebackSettings
 from tomlkit import document, table
 from tomlkit.toml_file import TOMLFile
 
@@ -418,3 +418,145 @@ def test_parse_config_file_toml_with_smarttable(pyproject_toml_with_smarttable):
     assert hasattr(config, 'smarttable')
     assert isinstance(config.smarttable, SmartTableSettings)
     assert config.smarttable.save_table_file is True
+
+
+def test_traceback_settings():
+    settings = TracebackSettings()
+    assert settings.enabled == False
+    assert settings.format == "duplex"
+    assert settings.include_context is False
+    assert settings.include_locals is False
+    assert settings.include_env is False
+    assert settings.max_locals_size == 512
+    assert settings.sensitive_patterns == []
+
+def test_traceback_settings_format_validation():
+    """Test TracebackSettings format field validation"""
+    for fmt_value in ["compact", "python", "duplex"]:
+        settings = TracebackSettings(format=fmt_value)
+        assert settings.format == fmt_value
+
+    with pytest.raises(ValueError) as exc_info:
+        TracebackSettings(format="invalid")
+    assert "Invalid format" in str(exc_info.value)
+
+
+def test_traceback_settings_max_local_size_validation():
+    """Test TracebackSettings max_locals_size validation"""
+    settings = TracebackSettings(max_locals_size=1024)
+    assert settings.max_locals_size == 1024
+
+    with pytest.raises(ValueError) as exc_info:
+        TracebackSettings(max_locals_size=-1)
+    assert "Invalid max_locals_size" in str(exc_info.value)
+
+    with pytest.raises(ValueError) as exc_info:
+        TracebackSettings(max_locals_size=0)
+    assert "max_locals_size must be a positive integer" in str(exc_info.value)
+
+
+@pytest.fixture()
+def config_yaml_with_tb():
+    """Fixture for YAML config with traceback settings"""
+    system_data = {"extended_mode": "rdeformat", "save_raw": True}
+    traceback_data = {
+        "enabled": True,
+        "format": "compact",
+        "include_context": True,
+        "include_locals": False,
+        "max_locals_size": 1024,
+        "sensitive_patterns": ["custom_secret", "api_token"]
+    }
+    data = {"system": system_data, "traceback": traceback_data}
+    test_yaml_path = "rdeconfig.yaml"
+
+    with open(test_yaml_path, mode="w", encoding="utf-8") as f:
+        yaml.dump(data, f)
+
+    yield test_yaml_path
+
+    if os.path.exists(test_yaml_path):
+        os.remove(test_yaml_path)
+
+def test_parse_config_with_traceback(config_yaml_with_tb):
+    config = parse_config_file(path=config_yaml_with_tb)
+
+    assert config.traceback is not None
+    assert config.traceback.enabled is True
+    assert config.traceback.format == "compact"
+    assert config.traceback.include_context is True
+    assert config.traceback.include_locals is False
+    assert config.traceback.max_locals_size == 1024
+    assert "custom_secret" in config.traceback.sensitive_patterns
+    assert "api_token" in config.traceback.sensitive_patterns
+
+
+def test_config_without_traceback_settings():
+    """Test Config works without TracebackSettings"""
+    config = Config()
+    assert config.traceback is None
+
+    config = Config(
+        system=SystemSettings(extended_mode="rdeformat"),
+        multidata_tile=MultiDataTileSettings(ignore_errors=True)
+    )
+    assert config.traceback is None
+
+def test_config_with_traceback_settings():
+    """Test Config with TracebackSettings."""
+    traceback_settings = TracebackSettings(
+        enabled=True,
+        format="python",
+        include_locals=True,
+    )
+    config = Config(traceback=traceback_settings)
+
+    assert config.traceback is not None
+    assert config.traceback.enabled is True
+    assert config.traceback.format == "python"
+    assert config.traceback.include_locals is True
+
+@pytest.fixture
+def pyproject_toml_with_traceback():
+    """Create test TOML config with SmartTable settings."""
+    if Path(os.path.dirname(__file__), "pyproject.toml").exists():
+        # Backup existing file
+        backup_path = Path(os.path.dirname(__file__), "pyproject.toml.bak")
+        shutil.copy(Path(os.path.dirname(__file__), "pyproject.toml"), backup_path)
+    test_file = os.path.join(os.path.dirname(__file__), "samplefile/pyproject.toml")
+    toml = TOMLFile(test_file)
+    doc = document()
+    doc["tool"] = table()
+    doc["tool"]["rdetoolkit"] = table()
+    doc["tool"]["rdetoolkit"]["system"] = table()
+    doc["tool"]["rdetoolkit"]["multidata_tile"] = table()
+    doc["tool"]["rdetoolkit"]["system"]["extended_mode"] = "rdeformat"
+    doc["tool"]["rdetoolkit"]["system"]["save_raw"] = True
+    doc["tool"]["rdetoolkit"]["system"]["save_nonshared_raw"] = False
+    doc["tool"]["rdetoolkit"]["system"]["magic_variable"] = False
+    doc["tool"]["rdetoolkit"]["system"]["save_thumbnail_image"] = True
+    doc["tool"]["rdetoolkit"]["traceback"] = table()
+    doc["tool"]["rdetoolkit"]["traceback"]["enabled"] = True
+    doc["tool"]["rdetoolkit"]["traceback"]["format"] = "duplex"
+    doc["tool"]["rdetoolkit"]["traceback"]["include_context"] = True
+    doc["tool"]["rdetoolkit"]["traceback"]["max_locals_size"] = 2048
+    toml.write(doc)
+    yield test_file
+
+    # Recover the original file if it was backed up
+    if Path(os.path.dirname(__file__), "pyproject.toml.bak").exists():
+        shutil.copy(Path(os.path.dirname(__file__), "pyproject.toml.bak"), Path(os.path.dirname(__file__), "pyproject.toml"))
+        Path(os.path.dirname(__file__), "pyproject.toml.bak").unlink()
+
+    if Path(test_file).exists():
+        Path(test_file).unlink()
+
+def test_parse_pyproject_toml_with_traceback(pyproject_toml_with_traceback):
+     """Test parsing pyproject.toml with traceback settings."""
+     config = parse_config_file(path=pyproject_toml_with_traceback)
+
+     assert config.traceback is not None
+     assert config.traceback.enabled is True
+     assert config.traceback.format == "duplex"
+     assert config.traceback.include_context is True
+     assert config.traceback.max_locals_size == 2048

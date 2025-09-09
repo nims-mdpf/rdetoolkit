@@ -21,7 +21,7 @@ Create a project directory for RDE structured processing and prepare the necessa
     # Create project directory
     mkdir my-rde-project
     cd my-rde-project
-    
+
     # Create necessary directories
     mkdir -p data/inputdata
     mkdir -p tasksupport
@@ -33,7 +33,7 @@ Create a project directory for RDE structured processing and prepare the necessa
     # Create project directory
     mkdir my-rde-project
     cd my-rde-project
-    
+
     # Create necessary directories
     mkdir data\inputdata
     mkdir tasksupport
@@ -88,38 +88,38 @@ def create_sample_metadata(resource_paths):
         "created_at": "2024-01-01",
         "status": "processed"
     }
-    
+
     # Save metadata file
     metadata_path = os.path.join(resource_paths.tasksupport, "sample_metadata.json")
     with open(metadata_path, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
-    
+
     display_message(f"Metadata saved: {metadata_path}")
 
 def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     """
     Main structured processing function
-    
+
     Args:
         srcpaths: Input file path information
         resource_paths: Output resource path information
     """
     display_message("Starting structured processing")
-    
+
     # Display input path information
     display_message(f"Input data directory: {srcpaths.inputdata}")
     display_message(f"Output resource directory: {resource_paths.root}")
-    
+
     # Create sample metadata
     create_sample_metadata(resource_paths)
-    
+
     # Display list of input files
     if os.path.exists(srcpaths.inputdata):
         files = os.listdir(srcpaths.inputdata)
         display_message(f"Number of input files: {len(files)}")
         for file in files:
             display_message(f"  - {file}")
-    
+
     display_message("Structured processing completed")
 ```
 
@@ -141,14 +141,14 @@ from modules import process
 def main():
     """Main execution function"""
     print("=== RDEToolKit Tutorial ===")
-    
+
     # Execute RDE structured processing
     result = rdetoolkit.workflows.run(custom_dataset_function=process.dataset)
-    
+
     # Display results
     print("\n=== Processing Results ===")
     print(f"Execution status: {result}")
-    
+
     return result
 
 if __name__ == "__main__":
@@ -235,10 +235,10 @@ You have completed your first structured processing using RDEToolKit.
 
 ### What You Accomplished
 
-✅ Created basic RDE project structure  
-✅ Implemented custom structured processing function  
-✅ Executed structured processing workflow  
-✅ Learned how to verify processing results  
+✅ Created basic RDE project structure
+✅ Implemented custom structured processing function
+✅ Executed structured processing workflow
+✅ Learned how to verify processing results
 
 ### Important Concepts Learned
 

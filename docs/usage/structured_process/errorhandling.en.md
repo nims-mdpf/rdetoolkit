@@ -257,3 +257,4 @@ To learn more about error handling, refer to the following documents:
 - Understand processing phases where errors occur in [Structured Processing Concepts](structured.en.md)
 - Learn how to handle configuration-related errors in [Configuration Files](../config/config.en.md)
 - Check data validation error handling in [Validation](../validation.en.md)
+- Learn about LLM/AI-friendly stacktrace formatting in [Traceback System](traceback.en.md)

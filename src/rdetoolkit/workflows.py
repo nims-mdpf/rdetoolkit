@@ -318,8 +318,8 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
             wf_manager.add_status(status)
 
     except StructuredError as e:
-        handle_and_exit_on_structured_error(e, logger)
+        handle_and_exit_on_structured_error(e, logger, config=__config)
     except Exception as e:
-        handle_generic_error(e, logger)
+        handle_generic_error(e, logger, config=__config)
 
     return wf_manager.to_json()

@@ -1,32 +1,45 @@
-# How to Create Configuration Files
 
-## Purpose
+**# How to Create a Configuration File**
 
-This document explains how to create and configure configuration files (`rdeconfig.yaml`) for customizing RDEToolKit structured processing behavior. You will learn from basic settings to advanced configurations step by step.
+**## Purpose**
 
-## Prerequisites
+This document explains how to create and configure the `rdeconfig.yaml` configuration file that custom‑defines the structured‑processing behavior of **RDEToolKit**. You can learn everything from basic settings to advanced options step‑by‑step.
 
-- Understanding of basic RDEToolKit usage
-- Basic knowledge of YAML file format
-- Understanding of structured processing directory structure
+**## Prerequisites**
 
-## Steps
+- Familiarity with the basic usage of RDEToolKit
+- Basic knowledge of the YAML file format
+- Understanding of the directory structure used for structured processing
 
-### 1. Place Configuration File
+**## Configuration‑File Requirements**
 
-Place the configuration file in the correct location:
+| Item          | Requirement                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| **File name** | `rdeconfig.yml`, `rdeconfig.yaml` or `pyproject.toml` can be used                                     |
+| **Location**  | *YAML format*: inside the `data/tasksupport/` directory  <br> *`pyproject.toml`*: at the project root |
+| **Format**    | YAML (or TOML)                                                                                        |
 
-```shell title="Configuration File Location"
+**## Procedure**
+
+---
+
+### **1. Place the configuration file**
+
+Put the file in the correct location:
+
+```text
 data/
 └── tasksupport/
-    └── rdeconfig.yaml  # Place here
+    └── rdeconfig.yaml   # ← place it here
 ```
 
-### 2. Create Basic Configuration
+---
 
-Create a minimal configuration file:
+### **2. Create a basic configuration**
 
-```yaml title="Basic rdeconfig.yaml"
+A minimal configuration file looks like this:
+
+```yaml
 system:
   save_raw: true
   magic_variable: false
@@ -34,205 +47,279 @@ system:
   extended_mode: null
 ```
 
-### 3. Configure Each Setting Item
+---
 
-#### save_raw Setting
+### **3. Set each configuration item**
 
-Controls whether to copy input data to the `raw` directory:
+#### **save_raw**
 
-```yaml title="save_raw Setting"
+Controls whether input data are copied to the `raw` directory.
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
 system:
-  save_raw: true   # Copy input data to raw directory (recommended)
-  save_raw: false  # Do not copy input data
+  save_raw: true   # copy input data to the raw directory
+  save_raw: false  # do not copy input data
 ```
 
-!!! tip "Recommended Setting"
-    We recommend `save_raw: true` to ensure data traceability.
+> **💡 Tip – Save Raw Data**
+> If you set `save_raw` to **true**, make sure `save_nonshared_raw` is **false**. Enabling both will copy the data to both `raw` **and** `nonshared_raw` directories.
 
-#### magic_variable Setting
+---
 
-Controls the dynamic filename replacement feature:
+#### **save_nonshared_raw**
 
-```yaml title="magic_variable Setting"
+Controls whether input data are copied to the `save_nonshared_raw` directory (a non‑shared location).
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
 system:
-  magic_variable: true   # Enable ${filename} replacement
-  magic_variable: false  # Disable replacement feature (default)
+  save_nonshared_raw: true   # copy input data to save_nonshared_raw (recommended)
+  save_nonshared_raw: false  # do not copy input data
 ```
 
-Usage example:
-```json title="magic_variable Usage Example"
+> **💡 Tip – Save Raw Data**
+> If you set `save_nonshared_raw` to **true**, make sure `save_raw` is **false**. Enabling both will copy the data to both `raw` **and** `nonshared_raw` directories.
+
+---
+
+#### **magic_variable**
+
+Enables dynamic filename substitution. When active, magic variables such as `${filename}` can be used in an invoice, and the data tile name is automatically replaced with the actual file name.
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
+system:
+  magic_variable: true   # enable ${filename} etc.
+  magic_variable: false  # disable substitution (default)
+```
+
+**Example** – Using a magic variable in an invoice:
+
+*Invoice before processing* (`20250101_sample_data.dat` is the file being registered)
+
+```json
 {
-  "data_name": "${filename}",
-  "output_file": "${filename}_processed.csv"
+  "datasetId": "e66233bf-821a-404c-a584-083ff36bb825",
+  "basic": {
+    "dateSubmitted": "2025-01-01",
+    "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
+    "dataName": "${filename}",
+    "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
+    "experimentId": null,
+    "description": "",
+    "dataset_title": "xrd",
+    "dataOwner": "Sample,Username"
+  }
+  /* … */
 }
 ```
 
-#### save_thumbnail_image Setting
+*After structured processing*
 
-Controls automatic thumbnail generation from main images:
+```json
+{
+  "datasetId": "e66233bf-821a-404c-a584-083ff36bb825",
+  "basic": {
+    "dateSubmitted": "2025-01-01",
+    "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
+    "dataName": "20250101_sample_data.dat",
+    "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
+    "experimentId": null,
+    "description": "",
+    "dataset_title": "xrd",
+    "dataOwner": "Sample,Username"
+  }
+  /* … */
+}
+```
 
-```yaml title="save_thumbnail_image Setting"
+---
+
+#### **save_thumbnail_image**
+
+Controls automatic generation of thumbnail images from the main image (`main_image` directory).
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
 system:
-  save_thumbnail_image: true   # Auto-generate thumbnail images (recommended)
-  save_thumbnail_image: false  # Do not generate thumbnail images
+  save_thumbnail_image: true   # generate thumbnails automatically (recommended)
+  save_thumbnail_image: false  # disable thumbnail generation
 ```
 
-#### extended_mode Setting
+---
 
-Specifies extended processing modes:
+#### **extended_mode**
 
-```yaml title="extended_mode Setting"
+Specifies an extended data‑registration mode.
+
+- **type:** `str` | `null`
+- **default:** `null`
+- **Available options:**
+  - `null` → Standard mode
+  - `"rdeformat"` → RDE format mode
+  - `"MultiDataTile"` → Multi‑data‑tile mode
+
+```yaml
 system:
-  extended_mode: null              # Standard invoice mode
-  extended_mode: "MultiDataTile"   # Multi-data tile mode
-  extended_mode: "rdeformat"       # RDE format mode
+  extended_mode: null               # standard mode
+  extended_mode: "rdeformat"        # RDE format mode
+  extended_mode: "MultiDataTile"    # Multi‑data‑tile mode
 ```
 
-### 4. Add Extended Settings
+For details on each mode, see the **[Data Registration Modes](../mode/mode.md)** documentation.
 
-#### Non-shared Data Save Setting
+---
 
-```yaml title="Non-shared Data Setting"
-system:
-  save_nonshared_raw: true   # Save to non-shared raw directory
-  save_nonshared_raw: false  # Do not save to non-shared raw directory
+### **4. Add mode‑specific settings**
+
+#### **Ignore errors in MultiDataTile**
+
+> *Only effective when `extended_mode: "MultiDataTile"` is set.*
+
+Continues processing even if an error occurs for a particular data tile (the faulty tile is simply not registered).
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
+multidatatile:
+  ignore_errors: true   # or false
 ```
 
-#### MultiDataTile Error Handling Setting
+#### **SmartTable**
 
-```yaml title="MultiDataTile Error Handling"
-multidata_tile:
-  ignore_errors: true   # Continue processing even if errors occur
-  ignore_errors: false  # Stop processing if errors occur (default)
+> *Only effective when the SmartTable feature is enabled.*
+
+When enabled, table data files that are uploaded are saved as data tiles.
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
+smarttable:
+  save_table_file: true
 ```
 
-#### Adding Custom Settings
+---
 
-```yaml title="Custom Settings"
-custom:
-  thumbnail_image_name: "inputdata/sample_image.png"
-  processing_timeout: 300
-  debug_mode: false
+### **5. Add logging / stack‑trace settings**
+
+#### **Traceback**
+
+Controls an LLM/AI‑friendly stack‑trace feature.
+
+- **type:** `bool`
+- **default:** `false`
+
+```yaml
+traceback:
+  enabled: true   # turn the traceback feature on or off
 ```
 
-### 5. Create Complete Configuration Examples
+When `enabled: true`, the following additional options become available:
 
-#### Basic Configuration Example
+| Option                 | Description                                         | Type        | Default    |
+| ---------------------- | --------------------------------------------------- | ----------- | ---------- |
+| **format**             | Output format (`"compact"`, `"python"`, `"duplex"`) | `str`       | `"duplex"` |
+| **include_context**    | Show source‑code lines                              | `bool`      | `true`     |
+| **include_locals**     | Show local variables (may expose sensitive data)    | `bool`      | `false`    |
+| **include_env**        | Show environment information                        | `bool`      | `true`     |
+| **max_locals_size**    | Maximum size (bytes) for variable output            | `int`       | `512`      |
+| **sensitive_patterns** | Custom patterns that should be redacted             | `list[str]` | `[]`       |
 
-```yaml title="Basic Configuration rdeconfig.yaml"
+```yaml
+traceback:
+  enabled: true
+  format: "duplex"                 # output: compact, python, or duplex
+  include_context: true            # show source lines
+  include_locals: false            # hide locals for security
+  include_env: true                # show environment info
+  max_locals_size: 512             # limit size of variable dump
+  sensitive_patterns:              # custom redaction patterns
+    - "database_url"
+    - "private_key"
+    - "connection_string"
+```
+
+---
+
+## **Configuration Example Collection**
+
+Use the following examples as a starting point and adapt them to your needs.
+
+### **Standard (Invoice‑Registration) Settings**
+
+```yaml
 system:
   save_raw: true
-  save_nonshared_raw: false
   magic_variable: false
   save_thumbnail_image: true
-  extended_mode: null
 ```
 
-#### Advanced Configuration Example
+### **Register Raw Data to a Non‑Shared Directory**
 
-```yaml title="Advanced Configuration rdeconfig.yaml"
+```yaml
+system:
+  save_nonshared_raw: true
+  magic_variable: false
+  save_thumbnail_image: true
+```
+
+### **Multi‑Data‑Tile Registration Mode**
+
+```yaml
 system:
   save_raw: true
-  save_nonshared_raw: true
   magic_variable: true
   save_thumbnail_image: true
   extended_mode: "MultiDataTile"
-
-multidata_tile:
-  ignore_errors: false
-
-custom:
-  thumbnail_image_name: "inputdata/main_chart.png"
-  processing_timeout: 600
-  debug_mode: true
-  output_format: "csv"
 ```
 
-### 6. Reference Configuration Values in Structured Processing
+### **System‑wide Integration (RDEFormat Mode)**
 
-Use the created configuration values within structured processing:
-
-```python title="Configuration Value Reference"
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # Reference system settings
-    extended_mode = srcpaths.config.system.extended_mode
-    save_raw = srcpaths.config.system.save_raw
-    magic_variable = srcpaths.config.system.magic_variable
-    
-    print(f"Extended mode: {extended_mode}")
-    print(f"Save raw: {save_raw}")
-    print(f"Magic variable: {magic_variable}")
-    
-    # Reference custom settings
-    if "custom" in srcpaths.config:
-        thumbnail_name = srcpaths.config["custom"].get("thumbnail_image_name")
-        timeout = srcpaths.config["custom"].get("processing_timeout", 300)
-        
-        print(f"Thumbnail image: {thumbnail_name}")
-        print(f"Timeout: {timeout} seconds")
+```yaml
+system:
+  extended_mode: "rdeformat"
 ```
 
-## Verification
+### **AI‑Agent Integration**
 
-Verify that the configuration file was created correctly:
+```yaml
+system:
+  save_raw: true
+  magic_variable: false
+  save_thumbnail_image: true
 
-### Configuration File Validation
-
-```python title="Configuration File Validation"
-import yaml
-from pathlib import Path
-
-def validate_config(config_path):
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        print("✅ Configuration file loaded successfully")
-        
-        # Check system settings
-        if 'system' in config:
-            system = config['system']
-            print(f"save_raw: {system.get('save_raw', 'default value')}")
-            print(f"extended_mode: {system.get('extended_mode', 'default value')}")
-            print(f"magic_variable: {system.get('magic_variable', 'default value')}")
-        
-        return config
-    except Exception as e:
-        print(f"❌ Configuration file error: {e}")
-        return None
-
-# Usage example
-config = validate_config("data/tasksupport/rdeconfig.yaml")
+traceback:
+  enabled: true
+  format: "compact"            # machine‑readable only
+  include_context: true        # source code for AI analysis
+  include_locals: false        # security‑first
+  include_env: false           # minimal info
+  max_locals_size: 0           # no variables in production
+  sensitive_patterns:
+    - "database_url"
+    - "private_key"
+    - "connection_string"
+    - "encryption_key"
 ```
 
-### Configuration Operation Verification
+---
 
-```shell title="Configuration Operation Verification"
-# Run structured processing to test if settings are applied
-cd container
-python3 main.py
-```
+## **Related Information**
 
-## Troubleshooting
+To learn more about configuration files, consult the following documents:
 
-### Common Problems and Solutions
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| YAML format error | Indentation or colon issues | Check indentation and spaces after colons |
-| Settings not applied | Wrong file path or item names | Verify file path and setting item names |
-| Character encoding error | File character code issues | Save file as UTF-8 |
-
-### Configuration Priority
-
-1. Environment variables
-2. `rdeconfig.yaml` file
-3. Default values
-
-## Related Information
-
-To learn more about configuration files, refer to the following documents:
-
-- Check detailed settings for each mode in [Processing Modes](mode.en.md)
-- Learn about dynamic replacement features in [Magic Variable](magic_variable.en.md)
-- Understand processes affected by settings in [Structured Processing Concepts](../structured_process/structured.en.md)
+- **[Processing Modes](../mode/mode.ja.md)** – details on each `extended_mode`
+- **[Magic Variable Feature](magic_variable.ja.md)** – how dynamic substitution works
+- **[Concept of Structured Processing](../structured_process/structured.ja.md)** – how configuration influences the processing flow
+- **[LLM/AI‑Friendly Traceback Settings](../structured_process/traceback.ja.md)** – deep dive into stack‑trace customization

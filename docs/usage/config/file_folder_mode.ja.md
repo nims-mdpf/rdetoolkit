@@ -30,13 +30,13 @@ flowchart TD
 
 ### 2つのモードの比較
 
-| 項目 | ファイルモード | フォルダモード |
-|------|----------------|----------------|
-| **入力形式** | 1データセット = 1ファイル | 1データセット = 1フォルダ |
-| **ZIP構造** | フラット（ファイルが直接配置） | 階層（フォルダで分類） |
-| **適用場面** | 単純なデータファイル | 複合的なデータセット |
-| **処理単位** | ファイル | フォルダ |
-| **自動判定** | ○ | ○ |
+| 項目         | ファイルモード                 | フォルダモード            |
+| ------------ | ------------------------------ | ------------------------- |
+| **入力形式** | 1データセット = 1ファイル      | 1データセット = 1フォルダ |
+| **ZIP構造**  | フラット（ファイルが直接配置） | 階層（フォルダで分類）    |
+| **適用場面** | 単純なデータファイル           | 複合的なデータセット      |
+| **処理単位** | ファイル                       | フォルダ                  |
+| **自動判定** | ○                              | ○                         |
 
 ## ファイルモード
 
@@ -85,11 +85,11 @@ data/
 def process_file_mode_data(srcpaths, resource_paths):
     # divided/0001, divided/0002, ... の各ディレクトリを処理
     divided_dirs = [d for d in os.listdir("data/divided") if d.startswith("00")]
-    
+
     for dir_name in divided_dirs:
         divided_path = Path("data/divided") / dir_name
         raw_files = list((divided_path / "raw").glob("*"))
-        
+
         # 各ディレクトリには1つのファイルが存在
         if len(raw_files) == 1:
             input_file = raw_files[0]
@@ -154,11 +154,11 @@ data/
 ```python title="フォルダモード処理例"
 def process_folder_mode_data(srcpaths, resource_paths):
     divided_dirs = [d for d in os.listdir("data/divided") if d.startswith("00")]
-    
+
     for dir_name in divided_dirs:
         divided_path = Path("data/divided") / dir_name
         raw_files = list((divided_path / "raw").glob("*"))
-        
+
         # 各ディレクトリには複数のファイルが存在
         if len(raw_files) > 1:
             process_file_group(raw_files, divided_path)
@@ -174,10 +174,10 @@ RDEToolKitは、ZIPファイルの構造を自動的に分析してモードを�
 def determine_excel_invoice_mode(zip_path):
     with zipfile.ZipFile(zip_path, 'r') as zip_file:
         file_list = zip_file.namelist()
-        
+
         # ディレクトリが含まれているかチェック
         has_directories = any('/' in name for name in file_list)
-        
+
         if has_directories:
             return "フォルダモード"
         else:
@@ -186,11 +186,11 @@ def determine_excel_invoice_mode(zip_path):
 
 ### 判定基準
 
-| 条件 | 判定結果 |
-|------|----------|
-| ZIPファイル直下にファイルのみ | ファイルモード |
-| ZIPファイル直下にフォルダが存在 | フォルダモード |
-| 混在（ファイルとフォルダ両方） | フォルダモード（優先） |
+| 条件                            | 判定結果               |
+| ------------------------------- | ---------------------- |
+| ZIPファイル直下にファイルのみ   | ファイルモード         |
+| ZIPファイル直下にフォルダが存在 | フォルダモード         |
+| 混在（ファイルとフォルダ両方）  | フォルダモード（優先） |
 
 ## 実践的な使用例
 
@@ -201,13 +201,13 @@ def process_measurement_files(srcpaths, resource_paths):
     # ファイルモード: 各CSVファイルを個別処理
     for divided_dir in get_divided_directories():
         csv_file = find_csv_file(divided_dir)
-        
+
         # データ読み込み
         df = pd.read_csv(csv_file)
-        
+
         # 統計処理
         stats = calculate_statistics(df)
-        
+
         # 結果保存
         save_structured_data(stats, divided_dir)
 ```
@@ -219,15 +219,15 @@ def process_experiment_folders(srcpaths, resource_paths):
     # フォルダモード: 関連ファイル群を統合処理
     for divided_dir in get_divided_directories():
         files = get_all_files(divided_dir)
-        
+
         # ファイル種別の識別
         data_file = find_file_by_extension(files, '.csv')
         config_file = find_file_by_extension(files, '.json')
         image_file = find_file_by_extension(files, '.png')
-        
+
         # 統合処理
         result = process_experiment_set(data_file, config_file, image_file)
-        
+
         # 結果保存
         save_integrated_result(result, divided_dir)
 ```
@@ -242,11 +242,11 @@ def process_experiment_folders(srcpaths, resource_paths):
 def check_processing_mode(zip_path):
     with zipfile.ZipFile(zip_path, 'r') as zip_file:
         file_list = zip_file.namelist()
-        
+
         print("ZIPファイル内容:")
         for name in file_list:
             print(f"  {name}")
-        
+
         # モード判定結果
         mode = determine_excel_invoice_mode(zip_path)
         print(f"判定されたモード: {mode}")
@@ -257,27 +257,27 @@ def check_processing_mode(zip_path):
 ```python title="ファイル存在確認"
 def verify_file_structure(divided_dir):
     raw_dir = Path(divided_dir) / "raw"
-    
+
     if not raw_dir.exists():
         print(f"❌ rawディレクトリが存在しません: {raw_dir}")
         return False
-    
+
     files = list(raw_dir.glob("*"))
     print(f"rawディレクトリ内のファイル数: {len(files)}")
-    
+
     for file in files:
         print(f"  - {file.name}")
-    
+
     return len(files) > 0
 ```
 
 ### デバッグのヒント
 
-| 問題 | 確認項目 | 解決方法 |
-|------|----------|----------|
-| モード判定エラー | ZIP構造 | ZIPファイル内容を確認 |
-| ファイル不足 | divided/00xx/raw/ | ファイル展開を確認 |
-| 処理エラー | ログファイル | data/logs/rdesys.log を確認 |
+| 問題             | 確認項目          | 解決方法                    |
+| ---------------- | ----------------- | --------------------------- |
+| モード判定エラー | ZIP構造           | ZIPファイル内容を確認       |
+| ファイル不足     | divided/00xx/raw/ | ファイル展開を確認          |
+| 処理エラー       | ログファイル      | data/logs/rdesys.log を確認 |
 
 ## まとめ
 
