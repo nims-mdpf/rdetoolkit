@@ -216,7 +216,7 @@ def handle_exception(
             traceback_info = f"{compact_trace}\n{_generate_python_traceback(e, verbose, error_message)}"
 
         return StructuredError(emsg=_message, ecode=_code, eobj=eobj,
-      traceback_info=traceback_info)
+                                traceback_info=traceback_info)
     # Always generate traceback for backward compatibility
     traceback_info = _generate_python_traceback(e, verbose, error_message)
     return StructuredError(emsg=_message, ecode=_code, eobj=eobj, traceback_info=traceback_info)

@@ -207,7 +207,7 @@ class CompactTraceFormatter:
             relative = path.relative_to(self._cwd)
             module_parts = relative.parts
             if module_parts and module_parts[-1].endswith('.py'):
-                module_parts =  module_parts[:-1] + (module_parts[-1][:-3],)
+                module_parts = module_parts[:-1] + (module_parts[-1][:-3],)
             return ".".join(module_parts)
         except ValueError:
             pass
