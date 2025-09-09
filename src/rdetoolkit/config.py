@@ -206,12 +206,20 @@ def get_traceback_settings_from_env() -> TracebackSettings | None:
     TRACE_VERBOSE can contain comma-separated values: context, locals, env
     TRACE_FORMAT can specify output format: compact, python, duplex
 
+    Special values:
+    - TRACE_VERBOSE="" (empty): Disabled (returns None)
+    - TRACE_VERBOSE="off" or "false": Explicitly disabled (returns disabled settings)
+    - TRACE_VERBOSE="context,locals": Enabled with specified options
+
     Returns:
         TracebackSettings configured from environment, or None if not set.
     """
     trace_verbose = os.environ.get('TRACE_VERBOSE', '')
     if not trace_verbose:
         return None
+
+    if trace_verbose.lower() in ('off', 'false', 'disable', 'disabled'):
+        return TracebackSettings(enabled=False)
 
     verbose_options = [opt.strip().lower() for opt in trace_verbose.split(',')]
     return TracebackSettings(
