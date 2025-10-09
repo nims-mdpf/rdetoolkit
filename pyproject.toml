@@ -40,12 +40,14 @@ dependencies = [
     "pip>=24.3.1",
     "markdown>=3.7",
     "types-pytz>=2025.2.0.20250326",
+    "matplotlib>=3.9.4",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
 
 [project.optional-dependencies]
 minio = ["minio>=7.2.15"]
+plotly = ["plotly>=6.3.1"]
 
 [tool.setuptools]
 package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
@@ -58,6 +60,13 @@ package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
 [build-system]
 requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
+
+[dependency-groups]
+dev = [
+    "plotly>=6.3.1",
+    "pytest-mpl>=0.17.0",
+    "superclaude>=4.1.5",
+]
 # requires = ["hatchling"]
 # build-backend = "hatchling.build"
 
@@ -191,6 +200,10 @@ exclude_also = [
 
 [tool.rye]
 managed = true
+
+[tool.pytest.ini_options]
+addopts = "--mpl"
+testpaths = ["tests"]
 dev-dependencies = [
     "black>=23.7.0",
     "flake8>=6.0.0",
