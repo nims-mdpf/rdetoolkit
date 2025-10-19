@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -38,7 +39,7 @@ class PlotConfigBuilder:
     Example:
         >>> builder = PlotConfigBuilder()
         >>> config = (builder
-        ...     .set_mode(PlotMode.COMBINED)
+        ...     .set_mode(PlotMode.OVERLAY)
         ...     .set_title("Test Plot")
         ...     .set_figure_size(10, 6)
         ...     .set_matplotlib_params(font_size=18)
@@ -50,7 +51,7 @@ class PlotConfigBuilder:
     """
 
     def __init__(self) -> None:
-        self._mode = PlotMode.COMBINED
+        self._mode = PlotMode.OVERLAY
         self._title: str | None = None
         self._x_axis = AxisConfig(label="X")
         self._y_axis = AxisConfig(label="Y")
@@ -320,9 +321,9 @@ class PlotConfigBuilder:
 
     def set_columns(
         self,
-        x_col: int | str | list[int | str] | None = None,
-        y_cols: list[int | str] | None = None,
-        direction_cols: list[int | str | None] | None = None,
+        x_col: int | str | Sequence[int | str] | None = None,
+        y_cols: Sequence[int | str] | None = None,
+        direction_cols: Sequence[int | str | None] | None = None,
     ) -> PlotConfigBuilder:
         """Set column specifications for plotting.
 
@@ -339,9 +340,16 @@ class PlotConfigBuilder:
             >>> builder.set_columns(x_col=0, y_cols=[1, 2, 3])
             >>> builder.set_columns(x_col='time', y_cols=['voltage', 'current'])
         """
-        self._x_col = x_col
-        self._y_cols = y_cols
-        self._direction_cols = direction_cols
+        if x_col is None or isinstance(x_col, (int, str)):
+            self._x_col = x_col
+        elif isinstance(x_col, Sequence):
+            self._x_col = list(x_col)
+        else:  # pragma: no cover - defensive guard for unexpected types
+            msg = f"Unsupported x_col specification type: {type(x_col)!r}"
+            raise TypeError(msg)
+
+        self._y_cols = list(y_cols) if y_cols is not None else None
+        self._direction_cols = list(direction_cols) if direction_cols is not None else None
         return self
 
     def build(self) -> PlotConfig:

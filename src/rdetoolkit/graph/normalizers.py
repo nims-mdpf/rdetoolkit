@@ -138,7 +138,7 @@ class ColumnNormalizer:
                 if i not in exclude_indices
             ]
 
-        if isinstance(col_spec, (int, str)):  # Handle single column case
+        if isinstance(col_spec, (int, str)):
             return [self.to_name(col_spec)]
         if isinstance(col_spec, Sequence) and not isinstance(col_spec, (str, bytes)):
             return [self.to_name(col) for col in col_spec]
@@ -176,29 +176,24 @@ class ColumnNormalizer:
             >>> normalizer.normalize_x_y_pairs([0, 1], [2, 3])
             [('A', 'C'), ('B', 'D')]
         """
-        # Normalize x_col to list of names
         x_names = self.normalize_columns(x_col)
 
-        # Normalize y_cols to list of names
         if y_cols is None:
             exclude_specs: list[int | str] = list(x_names)
             y_names = self.normalize_columns(None, exclude=exclude_specs)
         else:
             y_names = self.normalize_columns(y_cols)
 
-        # Handle pairing logic
         if len(x_names) == 1:
-            # Single x column: pair with all y columns
             return [(x_names[0], y_name) for y_name in y_names]
-        elif len(x_names) == len(y_names):
-            # Equal length: pair corresponding elements
-            return list(zip(x_names, y_names, strict=True))
-        else:
-            emsg = (
-                f"x_col length ({len(x_names)}) and y_cols length ({len(y_names)}) "
-                f"must be equal or x_col must be a single column"
-            )
-            raise ValueError(emsg)
+        if len(x_names) == len(y_names):
+            return list(zip(x_names, y_names))
+
+        emsg = (
+            f"x_col length ({len(x_names)}) and y_cols length ({len(y_names)}) "
+            f"must be equal or x_col must be a single column"
+        )
+        raise ValueError(emsg)
 
     def normalize_direction_cols(
         self,
@@ -256,9 +251,9 @@ class ColumnNormalizer:
 
 def validate_column_specs(
     df: pd.DataFrame,
-    x_col: int | str | list[int] | list[str] | None = None,
-    y_cols: list[int] | list[str] | None = None,
-    direction_cols: list[int | str | None] | None = None,
+    x_col: int | str | Sequence[int | str] | None = None,
+    y_cols: Sequence[int | str] | None = None,
+    direction_cols: int | str | Sequence[int | str | None] | None = None,
 ) -> dict[str, Any]:
     """Validate and normalize all column specifications.
 
@@ -294,9 +289,15 @@ def validate_column_specs(
     x_cols = list(dict.fromkeys(x for x, _ in pairs))
     y_cols_names = [y for _, y in pairs]
 
-    # Normalize direction columns
+    if direction_cols is None:
+        normalized_direction_specs: list[int | str | None] | None = None
+    elif isinstance(direction_cols, (int, str)) or direction_cols is None:
+        normalized_direction_specs = [direction_cols]
+    else:
+        normalized_direction_specs = list(direction_cols)
+
     direction_indices = normalizer.normalize_direction_cols(
-        direction_cols,
+        normalized_direction_specs,
         len(y_cols_names),
     )
 

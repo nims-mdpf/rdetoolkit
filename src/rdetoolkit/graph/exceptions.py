@@ -4,8 +4,6 @@ from __future__ import annotations
 class GraphPlottingError(Exception):
     """Base exception for graph plotting errors."""
 
-    pass
-
 
 class ColumnNotFoundError(GraphPlottingError):
     """Raised when a specified column is not found in the DataFrame.
@@ -37,13 +35,9 @@ class InvalidMetadataError(GraphPlottingError):
     This addresses the metadata validation issues identified in review_cc.md.
     """
 
-    pass
-
 
 class InvalidCSVFormatError(GraphPlottingError):
     """Raised when CSV format cannot be determined."""
-
-    pass
 
 
 class DirectionError(GraphPlottingError):
@@ -51,8 +45,6 @@ class DirectionError(GraphPlottingError):
 
     This addresses the direction_col issues identified in review_cc.md.
     """
-
-    pass
 
 
 class DualAxisError(GraphPlottingError):
@@ -62,16 +54,10 @@ class DualAxisError(GraphPlottingError):
     identified in review_cc.md (致命的).
     """
 
-    pass
-
 
 class PlotConfigError(GraphPlottingError):
     """Raised when plot configuration is invalid."""
 
-    pass
-
 
 class RendererError(GraphPlottingError):
     """Raised when rendering fails."""
-
-    pass

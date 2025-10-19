@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import traceback
 
 from rdetoolkit.invoicefile import InvoiceFile
 from rdetoolkit.models.result import WorkflowExecutionStatus
@@ -127,8 +128,6 @@ class Pipeline:
 
     def _create_error_status(self, context: ProcessingContext, error: Exception) -> WorkflowExecutionStatus:
         """Create an error status result."""
-        import traceback
-
         return WorkflowExecutionStatus(
             run_id=context.index,
             title=f"{context.mode_name} Mode Process (Failed)",

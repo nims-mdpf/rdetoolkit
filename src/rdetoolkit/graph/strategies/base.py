@@ -59,9 +59,5 @@ class PlotStrategy(Protocol):
             3. Delegate actual rendering to Renderer (Phase 6)
             4. Handle output based on config.output settings
 
-        Note:
-            Phase 5 implementations will be **skeleton only** (raise NotImplementedError
-            for rendering logic). Full implementation happens in Phase 6 when Renderer
-            classes are available.
         """
         ...

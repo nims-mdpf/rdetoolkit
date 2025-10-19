@@ -1,14 +1,71 @@
 from __future__ import annotations
 
 import csv
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
 from rdetoolkit.core import detect_encoding
-from rdetoolkit.graph.models import CSVMetadata, ParsedData, CSVFormat
+from rdetoolkit.graph.models import CSVFormat
 from rdetoolkit.graph.exceptions import InvalidMetadataError, InvalidCSVFormatError
+
+
+OPTIONAL_UNIT_INDEX = 2
+
+
+@dataclass
+class _MetadataContext:
+    """Accumulator for parsing metadata comment blocks."""
+
+    title: str = "Graph"
+    axis_names: list[str] = field(default_factory=list)
+    legends: list[str] = field(default_factory=list)
+    xaxis_label: str = "x"
+    yaxis_label: str = "y"
+
+    def process_row(self, row: list[str]) -> None:
+        """Process a single metadata row."""
+        if not row:
+            return
+
+        tag = row[0]
+        if tag == "#title":
+            self.title = self._require_fields(row, 2, "#title")[1]
+            return
+        if tag == "#dimension":
+            fields = self._require_fields(row, 3, "#dimension")
+            self.axis_names = fields[1:3]
+            return
+        if self._matches_axis_tag(tag, 0):
+            self.xaxis_label = self._extract_axis_label(row, 0)
+            return
+        if self._matches_axis_tag(tag, 1):
+            self.yaxis_label = self._extract_axis_label(row, 1)
+            return
+        if tag == "#legend":
+            self.legends = self._require_fields(row, 2, "#legend")[1:]
+
+    def _matches_axis_tag(self, tag: str, index: int) -> bool:
+        return len(self.axis_names) > index and tag == f"#{self.axis_names[index]}"
+
+    def _extract_axis_label(self, row: list[str], index: int) -> str:
+        axis_tag = f"#{self.axis_names[index]}"
+        fields = self._require_fields(row, 2, axis_tag)
+        label = fields[1]
+        if len(fields) > OPTIONAL_UNIT_INDEX and fields[OPTIONAL_UNIT_INDEX]:
+            label = f"{label} ({fields[OPTIONAL_UNIT_INDEX]})"
+        return label
+
+    def _require_fields(self, row: list[str], count: int, tag: str) -> list[str]:
+        if len(row) < count:
+            emsg = f"{tag} metadata requires at least {count - 1} arguments."
+            raise InvalidMetadataError(emsg)
+        return row
+
+    def to_tuple(self) -> tuple[str, list[str], list[str], str, str]:
+        return self.title, self.axis_names, self.legends, self.xaxis_label, self.yaxis_label
 
 
 class CSVParser:
@@ -110,13 +167,13 @@ class CSVParser:
         default_start_line = 2
         if not has_meta and data_start_line == default_start_line:
             return CSVFormat.SINGLE_HEADER
-        elif not has_meta and data_start_line == 1:
+        if not has_meta and data_start_line == 1:
             return CSVFormat.NO_HEADER
-        elif has_meta:
+        if has_meta:
             return CSVFormat.META_BLOCK
-        else:
-            emsg = f"Unknown CSV format: has_meta={has_meta}, data_start_line={data_start_line}"
-            raise InvalidCSVFormatError(emsg)
+
+        emsg = f"Unknown CSV format: has_meta={has_meta}, data_start_line={data_start_line}"
+        raise InvalidCSVFormatError(emsg)
 
     @staticmethod
     def _parse_single_header(csv_path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
@@ -170,7 +227,7 @@ class CSVParser:
         csv_path: Path,
         meta_lines: list[list[str]],
         data_start_line: int,
-    ):
+    ) -> tuple[pd.DataFrame, dict[str, Any]]:
         """Parse CSV with metadata block.
 
         Args:
@@ -214,45 +271,7 @@ class CSVParser:
             InvalidMetadataError: If required metadata is missing
 
         """
-        title = "Graph"
-        axis: list[str] = []
-        legends: list[str] = []
-        xaxis_label = "x"
-        yaxis_label = "y"
-        axis_check = 2
-
-        def _require_fields(row: list[str], count: int, tag: str) -> list[str]:
-            if len(row) < count:
-                emsg = f"{tag} metadata requires at least {count - 1} arguments."
-                raise InvalidMetadataError(emsg)
-            return row
-
+        context = _MetadataContext()
         for row in meta_lines:
-            tag = row[0]
-
-            if tag == "#title":
-                title = _require_fields(row, 2, "#title")[1]
-            if tag == "#dimension":
-                fields = _require_fields(row, 3, "#dimension")
-                axis = fields[1:]
-            elif axis and tag == f"#{axis[0]}":
-                fields = _require_fields(row, 2, f"#{axis[0]}")
-                xaxis_label = fields[1]
-                if len(fields) > axis_check:
-                    xaxis_label += f" ({fields[2]})"
-            elif len(axis) > 1 and tag == f"#{axis[1]}":
-                fields = _require_fields(row, 2, f"#{axis[1]}")
-                yaxis_label = fields[1]
-                if len(fields) > axis_check:
-                    yaxis_label += f" ({fields[2]})"
-            elif tag == "#legend":
-                legends = _require_fields(row, 2, "#legend")[1:]
-
-        # if not axis or len(axis) < axis_check:
-        #     emsg = (
-        #         "#dimension metadata is missing or incomplete. "
-        #         "Expected at least 2 axis names (e.g., #dimension,x,y)"
-        #     )
-        #     raise InvalidMetadataError(emsg)
-
-        return title, axis, legends, xaxis_label, yaxis_label
+            context.process_row(row)
+        return context.to_tuple()

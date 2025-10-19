@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 
 class PlotMode(str, Enum):
     """Plot rendering modes."""
 
-    COMBINED = "combined"
+    OVERLAY = "overlay"
     INDIVIDUAL = "individual"
     DUAL_AXIS = "dual_axis"
 
@@ -37,6 +37,7 @@ class AxisConfig:
     Attributes:
         label: Axis label text
         unit: Unit text (optional)
+        scale: Axis scale ('linear' or 'log')
         grid: Whether to show grid lines
         invert: Whether to invert axis direction
         lim: Axis limits as (min, max) tuple (optional)
@@ -44,6 +45,7 @@ class AxisConfig:
 
     label: str
     unit: str | None = None
+    scale: Literal["linear", "log"] = "linear"
     grid: bool = True
     invert: bool = False
     lim: tuple[float, float] | None = None
@@ -59,9 +61,9 @@ class LegendConfig:
         loc: Legend location (auto-placement if None)
     """
 
-    max_items: int = 20
+    max_items: int | None = 20
     info: str | None = None
-    loc: str | Literal["best"] | None = None
+    loc: str | int | None = None
 
 
 @dataclass
@@ -72,17 +74,33 @@ class DirectionConfig:
         column: Direction column name
         filters: Direction filters to apply (empty = all)
         colors: Color mapping for each direction
+        use_custom_colors: Whether to apply explicit color overrides
     """
 
     column: str | None = None
-    filters: list[Direction] = field(default_factory=list)
-    colors: dict[Direction, str] = field(
+    filters: list[Direction | str] = field(default_factory=list)
+    colors: dict[Direction | str, str] = field(
         default_factory=lambda: {
             Direction.CHARGE: "red",
             Direction.DISCHARGE: "blue",
             Direction.REST: "green",
-        }
+        },
     )
+    use_custom_colors: bool = False
+
+
+@dataclass
+class RenderResult:
+    """Result of rendering operation.
+
+    Attributes:
+        figure: matplotlib Figure or plotly Figure
+        filename: Suggested filename (without directory)
+        format: Output format ('png', 'svg', 'html')
+    """
+    figure: Any
+    filename: str
+    format: str
 
 
 @dataclass
@@ -94,12 +112,14 @@ class OutputConfig:
         no_individual: Skip individual plot generation
         return_fig: Return matplotlib figure object
         formats: Output image formats (e.g., ['png', 'svg'])
+        base_name: Preferred base filename (without extension)
     """
 
     main_image_dir: Path | None = None
     no_individual: bool = False
     return_fig: bool = False
     formats: list[str] = field(default_factory=lambda: ["png"])
+    base_name: str | None = None
 
 
 @dataclass
@@ -124,7 +144,7 @@ class PlotConfig:
         direction_cols: Direction column specifications (added in Phase 5)
     """
 
-    mode: PlotMode = PlotMode.COMBINED
+    mode: PlotMode = PlotMode.OVERLAY
     title: str | None = None
     x_axis: AxisConfig = field(default_factory=lambda: AxisConfig(label="X"))
     y_axis: AxisConfig = field(default_factory=lambda: AxisConfig(label="Y"))
@@ -134,7 +154,6 @@ class PlotConfig:
     output: OutputConfig = field(default_factory=OutputConfig)
     humanize: bool = False
     csv_format: CSVFormat = CSVFormat.META_BLOCK
-    # Column specifications (Phase 5)
     x_col: int | str | list[int | str] | None = None
     y_cols: list[int | str] | None = None
     direction_cols: list[int | str | None] | None = None

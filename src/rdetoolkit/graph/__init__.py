@@ -43,9 +43,6 @@ from rdetoolkit.graph.config import (
 )
 
 __all__ = [
-    # Main API (to be added when api.py is implemented)
-    # "csv2graph",
-    # Exceptions
     "GraphPlottingError",
     "ColumnNotFoundError",
     "InvalidMetadataError",
@@ -54,7 +51,6 @@ __all__ = [
     "DualAxisError",
     "PlotConfigError",
     "RendererError",
-    # Models
     "PlotMode",
     "CSVFormat",
     "Direction",
@@ -65,15 +61,12 @@ __all__ = [
     "PlotConfig",
     "CSVMetadata",
     "ParsedData",
-    # Text utilities
     "titleize",
     "sanitize_filename",
     "to_snake_case",
     "parse_header",
-    # Normalizers
     "ColumnNormalizer",
     "validate_column_specs",
-    # Config
     "PlotConfigBuilder",
     "apply_matplotlib_config",
     "DEFAULT_FIG_SIZE",
