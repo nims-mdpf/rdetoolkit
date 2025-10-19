@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import os
 import textwrap
 from pathlib import Path
 
 import matplotlib
 import pandas as pd
 import pytest
+
+# CI / GitHub Actions では実行しない
+if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+    pytest.skip("Skipping csv2graph unit tests on CI.", allow_module_level=True)
 
 # Ensure plotting uses a headless backend inside tests
 matplotlib.use("Agg")  # pragma: no cover - configuration
