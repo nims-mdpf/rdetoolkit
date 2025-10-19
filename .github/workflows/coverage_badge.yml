@@ -15,15 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Setup python
-        uses: actions/setup-python@v4
+      - name: Setup uv (Python 3.11)
+        uses: astral-sh/setup-uv@v2
         with:
           python-version: "3.11"
-          cache: "pip"
-      - name: Install dependencies
+      - name: Cache uv
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}
+          restore-keys: uv-${{ runner.os }}-
+      - name: Install dependencies (uv)
         run: |
-          pip install -r requirements-dev.lock
-          pip install coverage-badge
+          uv pip install --system -r requirements-dev.lock
+          uv pip install --system -e .
+          uv pip install --system coverage-badge
       - name: Run pytest
         run: python -m pytest --junitxml=pytest.xml --cov-report=term-missing --cov=src tests/
       - name: Generate coverage badge
