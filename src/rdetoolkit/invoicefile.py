@@ -863,10 +863,16 @@ def update_description_with_features(
         if dscheader.get(key) is None:
             continue
 
-        if value.get("unit"):
-            description += f"\n{metadata_def_obj[key]['name']['ja']}({metadata_def_obj[key]['unit']}):{dscheader[key]['value']}"
+        metadata_details = value
+        header_entry = dscheader[key]
+        name_ja = metadata_details["name"]["ja"]
+        header_value = header_entry["value"]
+
+        if metadata_details.get("unit"):
+            unit = metadata_details["unit"]
+            description += f"\n{name_ja}({unit}):{header_value}"
         else:
-            description += f"\n{metadata_def_obj[key]['name']['ja']}:{dscheader[key]['value']}"
+            description += f"\n{name_ja}:{header_value}"
 
         if description.startswith("\n"):
             description = description[1:]
@@ -1153,6 +1159,13 @@ class SmartTableFile:
             elif self.smarttable_path.suffix.lower() == ".tsv":
                 # Read TSV file, skip first row (display names), use second row as header
                 self._data = pd.read_csv(self.smarttable_path, sep="\t", dtype=str, skiprows=[0], header=0)
+
+            if self._data is None:
+                error_msg = (
+                    "Unsupported SmartTable file extension: "
+                    f"{self.smarttable_path.suffix}"
+                )
+                raise StructuredError(error_msg)
 
             mapping_prefixes = ["basic/", "custom/", "sample/", "meta/", "inputdata"]
             has_mapping_keys = any(

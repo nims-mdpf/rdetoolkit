@@ -49,6 +49,7 @@ plugins:
                     - エラーハンドリング: usage/structured_process/errorhandling.md
                     - LLM/AI向けトレースバック: usage/structured_process/traceback.md
                     - データタイル説明欄の自動転記: usage/structured_process/feature_description.md
+                    - csvをグラフ化する: usage/structured_process/csv2graph.md
                 - データ登録モード:
                     - 利用可能なデータ登録モード: usage/mode/mode.md
                     - invoiceモード: usage/mode/mode_invoice.md
@@ -78,6 +79,7 @@ plugins:
                     - ユーティリティ: rdetoolkit/rde2util.md
                     - ロギング: rdetoolkit/rdelogger.md
                     - 代表画像操作: rdetoolkit/img2thumb.md
+                    - CSVグラフ化: rdetoolkit/csv2graph.md
                     - 検証: rdetoolkit/validation.md
                     - 例外: rdetoolkit/exceptions.md
                     - エラーハンドリング: rdetoolkit/errors.md
@@ -126,6 +128,7 @@ plugins:
                     - Error Handling: usage/structured_process/errorhandling.md
                     - LLM/AI-Friendly Traceback: usage/structured_process/traceback.md
                     - Feature Description: usage/structured_process/feature_description.md
+                    - Visualizing CSV as Graphs: usage/structured_process/csv2graph.md
                 - Data Registration Modes:
                     - Available Data Registration Modes: usage/mode/mode.md
                     - Invoice Mode: usage/mode/mode_invoice.md
@@ -155,6 +158,7 @@ plugins:
                     - Utilities: rdetoolkit/rde2util.md
                     - Logging: rdetoolkit/rdelogger.md
                     - Image Processing: rdetoolkit/img2thumb.md
+                    - CSV to Graph: rdetoolkit/csv2graph.md
                     - Validation: rdetoolkit/validation.md
                     - Exceptions: rdetoolkit/exceptions.md
                     - Error Handling: rdetoolkit/errors.md
