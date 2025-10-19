@@ -30,52 +30,39 @@ def get_module_members(module_name: ModuleType):
 
 
 def check_stubfile(module_name: str):
-    """Checks if the given module has a corresponding stub file (.pyi) and verifies that all functions and classes are defined in the stub file.
-
-    Args:
-        module_name (str): The name of the module to check.
-
-    Raises:
-        ImportError: If the module cannot be found.
-        FileNotFoundError: If the corresponding stub file cannot be found.
-        AssertionError: If any functions or classes are not found in the stub file.
-    """
     spec = importlib.util.find_spec(module_name)
     if spec is None:
         raise ImportError(f"Modules: {module_name} not found")
 
-    # Load the module
-    module = importlib.util.module_from_spec(spec)
+    # 余計な手動ロードをやめ標準インポート
+    module = importlib.import_module(module_name)
     if module.__name__ == "src.rdetoolkit.models.rde2types":
         return
-    if spec.loader is None:
-        return
-    spec.loader.exec_module(module)
 
-    # Get the path to the corresponding stub file
-    module_file_path = spec.origin
+    module_file_path = getattr(module, "__file__", None)
     if module_file_path is None:
         return
-    path_parts = module_file_path.split(os.sep)
-    src_index = path_parts.index("src")
-    path_after = os.sep.join(path_parts[src_index + 2 :])
-    path_before = os.sep.join(path_parts[: src_index + 2])
-    stub_file_path = os.sep.join([path_before, path_after[:-3] + ".pyi"])  # Remove .py and add .pyi
-    # stub_file_path = module_file_path[:-3] + '.pyi'
+
+    # 単純化
+    stub_file_path = module_file_path[:-3] + ".pyi"
 
     if not os.path.exists(stub_file_path):
-        msg = f"Stub file: {stub_file_path} not found: Generate stub file command: stubgen <module_path> -o src/rdetoolkit/stubs"
+        msg = (
+            f"Stub file: {stub_file_path} not found. "
+            "Generate: stubgen -m {module_name} -o src/rdetoolkit (生成後整形)"
+        )
         raise FileNotFoundError(msg)
 
-    with open(stub_file_path) as f:
+    with open(stub_file_path, "r", encoding="utf-8") as f:
         stub_content = f.read()
 
     members = get_module_members(module)
     for name in members:
         if name not in stub_content:
-            msg = f"{name} not found in {stub_file_path}: Generate stub file command: stubgen <module_path> -o src/rdetoolkit/stubs"
-            raise AssertionError(msg)
-
+            raise AssertionError(
+                f"{name} not found in {stub_file_path}. "
+                f"Regenerate: stubgen -m {module_name} -o src/rdetoolkit"
+            )
     print(f"All functions and classes in {module_name} are defined in {stub_file_path}")
 
 

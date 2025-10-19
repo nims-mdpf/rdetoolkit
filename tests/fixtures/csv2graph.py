@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 import yaml
 
-from local.develop.issue_188.csv2graph import sanitize_filename
+from rdetoolkit.graph.textutils import sanitize_filename
 
 matplotlib.use("Agg")  # Ensure headless backend for image comparison tests
 

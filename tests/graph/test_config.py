@@ -30,7 +30,7 @@ class TestPlotConfigBuilderInitialization:
         """Builder initializes with COMBINED mode."""
         builder = PlotConfigBuilder()
         config = builder.build()
-        assert config.mode == PlotMode.COMBINED
+        assert config.mode == PlotMode.OVERLAY
 
     def test_default_title_is_none(self):
         """Builder initializes with no title."""
@@ -634,7 +634,7 @@ class TestPlotConfigBuilderEdgeCases:
         config = builder.build()
 
         assert isinstance(config, PlotConfig)
-        assert config.mode == PlotMode.COMBINED
+        assert config.mode == PlotMode.OVERLAY
         assert config.x_axis.label == "X"
 
     def test_setting_same_value_multiple_times(self):
@@ -747,14 +747,14 @@ class TestPlotConfigBuilderDocstringExamples:
         """Example from PlotConfigBuilder class docstring works."""
         builder = PlotConfigBuilder()
         config = (
-            builder.set_mode(PlotMode.COMBINED)
+            builder.set_mode(PlotMode.OVERLAY)
             .set_title("Test Plot")
             .set_figure_size(10, 6)
             .set_matplotlib_params(font_size=18)
             .build()
         )
 
-        assert config.mode == PlotMode.COMBINED
+        assert config.mode == PlotMode.OVERLAY
         assert config.title == "Test Plot"
         assert builder.fig_size == (10, 6)
         assert builder.matplotlib_params["font.size"] == 18
