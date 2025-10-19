@@ -1,5 +1,10 @@
+import os
 import pandas as pd
 import pytest
+
+# CI / Actions 上では実行しない
+if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+    pytest.skip("Skipping legacy compatibility tests on CI.", allow_module_level=True)
 
 from local.develop.issue_188.csv2graph import process_csv as legacy_process_csv
 from rdetoolkit.graph.parsers import CSVParser
