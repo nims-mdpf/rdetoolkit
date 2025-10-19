@@ -28,13 +28,18 @@ jobs:
           path: ~/.cache/uv
           key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}
           restore-keys: uv-${{ runner.os }}-
-      - name: Install dependencies (uv)
+      - name: Create venv
+        run: uv venv .venv --python 3.12
+      - name: Install dependencies (uv in venv)
         run: |
-          uv pip install --system -r requirements-dev.lock
-          uv pip install --system -e .
+          source .venv/bin/activate
+            # lock ファイル経由
+          uv pip install -r requirements-dev.lock
+          uv pip install -e .
       - name: run pytest
         run: |
           set -o pipefail
+          source .venv/bin/activate
           python -m pytest --junitxml=pytest.xml --cov-report=term-missing --cov=src tests/ | tee pytest-coverage.txt
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@v1.1.47
