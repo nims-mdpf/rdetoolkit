@@ -9,7 +9,7 @@ from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generi
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.invoicefile import backup_invoice_json_files
 from rdetoolkit.models.config import Config
-from rdetoolkit.models.rde2types import RawFiles, RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import DatasetCallback, RawFiles, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.models.result import WorkflowExecutionStatus, WorkflowResultManager
 from rdetoolkit.modeproc import (
     excel_invoice_mode_process,
@@ -22,9 +22,7 @@ from rdetoolkit.modeproc import (
 from rdetoolkit.rde2util import StorageDir
 from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.core import DirectoryOps
-from typing import Callable, Any
-
-_CallbackType = Callable[[RdeInputDirPaths, RdeOutputResourcePath], None]
+from typing import Any
 
 
 def _create_error_status(
@@ -178,7 +176,7 @@ def _process_mode(  # noqa: C901
     config: Config,
     excel_invoice_files: Path | None,
     smarttable_file: Path | None,
-    custom_dataset_function: _CallbackType | None,
+    custom_dataset_function: DatasetCallback | None,
     logger: Any,
 ) -> tuple[WorkflowExecutionStatus, dict[str, Any] | None, str]:
     """Process a single data tile based on the appropriate mode.
@@ -229,15 +227,16 @@ def _process_mode(  # noqa: C901
         raise StructuredError(emsg, 999) from e
 
 
-def run(*, custom_dataset_function: _CallbackType | None = None, config: Config | None = None) -> str:  # pragma: no cover
+def run(*, custom_dataset_function: DatasetCallback | None = None, config: Config | None = None) -> str:  # pragma: no cover
     """RDE Structuring Processing Function.
 
     This function executes the structuring process for RDE data. If you want to implement custom processing for the input data,
-    you can pass a user-defined function as an argument. The function should accept the data class `RdeInputDirPaths`, which is
-    internally parsed by RDE, and the data class `RdeOutputResourcePath`, which stores the output directory paths used by RDE.
+    you can pass a user-defined function as an argument. The recommended callback signature receives the unified data class
+    `RdeDatasetPaths`, which bundles the input (`RdeInputDirPaths`) and output (`RdeOutputResourcePath`) directory information.
+    For backward compatibility, callbacks accepting the two legacy arguments are still supported.
 
     Args:
-        custom_dataset_function (Optional[_CallbackType], optional): User-defined structuring function. Defaults to None.
+        custom_dataset_function (Optional[DatasetCallback], optional): User-defined structuring function. Defaults to None.
         config (Optional[Config], optional): Configuration class for the structuring process. If not specified, default values are loaded automatically. Defaults to None.
 
     Returns:
@@ -254,16 +253,21 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
     Example:
         ```python
         ### custom.py
-        def custom_dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
-            ...(original process)...
+        from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+        def custom_dataset(paths: RdeDatasetPaths) -> None:
+            ...(original process using paths.inputdata, paths.struct, ...)...
 
         ### main.py
         from rdetoolkit import workflow
-        from custom import custom_dataset # User-defined structuring processing function
+        from custom import custom_dataset  # User-defined structuring processing function
 
         cfg = Config(save_raw=True, save_main_image=False, save_thumbnail_image=False, magic_variable=False)
-        workflow.run(custom_dataset_function=custom_dataset, config=cfg) # Execute structuring process
+        workflow.run(custom_dataset_function=custom_dataset, config=cfg)  # Execute structuring process
         ```
+
+        Legacy callbacks that accept two arguments (`RdeInputDirPaths`, `RdeOutputResourcePath`) continue to work without
+        modification during the compatibility period.
 
         If options are specified (setting the mode to "RDEformat"):
 
@@ -296,15 +300,25 @@ def run(*, custom_dataset_function: _CallbackType | None = None, config: Config 
         __config = load_config(str(srcpaths.tasksupport), config=config)
         srcpaths.config = __config
 
-        raw_files_group, excel_invoice_files, smarttable_file = check_files(srcpaths, mode=__config.system.extended_mode, config=__config)
+        raw_files_group, excel_invoice_files, smarttable_file = check_files(
+            srcpaths,
+            mode=__config.system.extended_mode,
+            config=__config,
+        )
 
         # Backup of invoice.json
-        invoice_org_filepath = backup_invoice_json_files(excel_invoice_files, __config.system.extended_mode)
+        invoice_org_filepath = backup_invoice_json_files(
+            excel_invoice_files, __config.system.extended_mode,
+        )
         invoice_schema_filepath = srcpaths.tasksupport.joinpath("invoice.schema.json")
 
         # Execution of data set structuring process based on various modes
         # Use iterator directly to avoid loading all items into memory at once
-        rde_data_tiles_iterator = generate_folder_paths_iterator(raw_files_group, invoice_org_filepath, invoice_schema_filepath)
+        rde_data_tiles_iterator = generate_folder_paths_iterator(
+            raw_files_group,
+            invoice_org_filepath,
+            invoice_schema_filepath,
+        )
 
         for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
             status, error_info, mode = _process_mode(

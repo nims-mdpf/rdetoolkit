@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from pathlib import Path
-from rdetoolkit.models.rde2types import RdeInputDirPaths as RdeInputDirPaths, RdeOutputResourcePath as RdeOutputResourcePath
+from rdetoolkit.models.rde2types import DatasetCallback as DatasetCallback, RdeDatasetPaths as RdeDatasetPaths, RdeInputDirPaths as RdeInputDirPaths, RdeOutputResourcePath as RdeOutputResourcePath
 
 @dataclass
 class ProcessingContext:
     index: str
     srcpaths: RdeInputDirPaths
     resource_paths: RdeOutputResourcePath
-    datasets_function: _CallbackType | None
+    datasets_function: DatasetCallback | None
     mode_name: str
     excel_file: Path | None = ...
     excel_index: int | None = ...
@@ -30,4 +30,6 @@ class ProcessingContext:
     def is_smarttable_mode(self) -> bool: ...
     @property
     def smarttable_invoice_file(self) -> Path: ...
+    @property
+    def dataset_paths(self) -> RdeDatasetPaths: ...
     def __init__(self, index, srcpaths, resource_paths, datasets_function, mode_name, excel_file=..., excel_index=..., smarttable_file=...) -> None: ...

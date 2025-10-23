@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
-
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
-
-_CallbackType = Callable[[RdeInputDirPaths, RdeOutputResourcePath], None]
+from rdetoolkit.models.rde2types import DatasetCallback, RdeDatasetPaths, RdeInputDirPaths, RdeOutputResourcePath
 
 
 @dataclass
@@ -16,17 +12,25 @@ class ProcessingContext:
     """Context for mode processing operations.
 
     This class encapsulates all the information needed for processing
-    operations in different modes (RDEFormat, MultiFile, etc.).
+    operations in different modes (RDEFormat, MultiFile, etc.). For the
+    dataset callback it exposes both the legacy attributes (`srcpaths`,
+    `resource_paths`) and the unified :class:`RdeDatasetPaths` view via the
+    :pyattr:`dataset_paths` property.
     """
 
     index: str
     srcpaths: RdeInputDirPaths
     resource_paths: RdeOutputResourcePath
-    datasets_function: _CallbackType | None
+    datasets_function: DatasetCallback | None
     mode_name: str
     excel_file: Path | None = None
     excel_index: int | None = None
     smarttable_file: Path | None = None
+
+    @property
+    def dataset_paths(self) -> RdeDatasetPaths:
+        """Unified dataset paths view for single-argument callbacks."""
+        return RdeDatasetPaths(self.srcpaths, self.resource_paths)
 
     @property
     def basedir(self) -> str:
