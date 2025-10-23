@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.modeproc import (
     copy_input_to_rawfile,
     copy_input_to_rawfile_for_rdeformat,
@@ -191,7 +191,7 @@ def test_invoice_mode_process_calls_functions(
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     assert os.path.exists(os.path.join("data", "invoice", "invoice.json"))
     # descriptionのチェック
@@ -259,7 +259,7 @@ def test_invoice_mode_save_raw(
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # rawへのコピーが実行されないことを確認
     assert len(list(Path("data", "raw").glob("*"))) == 1
     # nonshared_rawへのコピーが実行されたかどうかをチェック
@@ -323,7 +323,7 @@ def test_invoice_mode_process_calls_functions_none_metadata_json(
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     assert os.path.exists(os.path.join("data", "invoice", "invoice.json"))
     # descriptionのチェック
@@ -390,7 +390,7 @@ def test_invoice_mode_process_calls_functions_with_magic_variable(
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     assert os.path.exists(os.path.join("data", "invoice", "invoice.json"))
     # descriptionのチェック
@@ -469,7 +469,7 @@ def test_excel_invoice_mode_process_calls_functions(
     excel_invoice_mode_process(srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice, 0, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
@@ -557,7 +557,7 @@ def test_excel_invoice_save_raw(
     excel_invoice_mode_process(srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice, 0, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
@@ -643,7 +643,7 @@ def test_excel_invoice_mode_process_calls_functions_none_metadatajson(
     excel_invoice_mode_process(srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice, 0, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
@@ -725,7 +725,7 @@ def test_excel_invoice_mode_process_calls_functions_replace_magic_variable(
     )
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
@@ -799,7 +799,7 @@ def test_multifile_mode_process_calls_functions(
     multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
@@ -883,7 +883,7 @@ def test_multifile_save_raw(
     multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
@@ -965,7 +965,7 @@ def test_multifile_mode_process_calls_functions_none_metadata_json(
     multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
     # invoiceのバックアップが実行されたかチェック
     # descriptionがバックアップ後に実行されるため内容が一致しない。
@@ -1173,7 +1173,7 @@ def test_multifile_mode_process_calls_functions_replace_magic_filename(
         multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
         # 関数が呼び出されたかどうかをチェック
-        mock_datasets_process_function.assert_called_with(srcpaths, resource_paths)
+        _assert_dataset_callback_called_with(mock_datasets_process_function, srcpaths, resource_paths, idx)
 
         # invoiceのバックアップが実行されたかチェック
         # descriptionがバックアップ後に実行されるため内容が一致しない。
@@ -1262,7 +1262,7 @@ def test_rdeformat_mode_process_alls_functions(
     rdeformat_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
     # descriptionのチェック
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
@@ -1338,7 +1338,7 @@ def test_rdeformat_mode_process_alls_functions_none_metadata_json(
     rdeformat_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
     # 関数が呼び出されたかどうかをチェック
-    mock_datasets_process_function.assert_called_once_with(srcpaths, resource_paths)
+    _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
     # descriptionのチェック
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
@@ -1350,3 +1350,32 @@ def test_rdeformat_mode_process_alls_functions_none_metadata_json(
 
     # thumbnailフォルダにコピーされたかチェック
     assert len(list(Path("data", "thumbnail").glob("*"))) == 1
+
+
+def _verify_dataset_callback_args(call_args, srcpaths, resource_paths):
+    args, kwargs = call_args
+    assert kwargs == {}
+    if len(args) == 1:
+        dataset_paths = args[0]
+        assert isinstance(dataset_paths, RdeDatasetPaths)
+        assert dataset_paths.input_paths is srcpaths
+        assert dataset_paths.output_paths is resource_paths
+    else:
+        assert args == (srcpaths, resource_paths)
+
+
+def _assert_dataset_callback_called_once(mock, srcpaths, resource_paths):
+    call_args_list = list(mock.call_args_list)
+    assert len(call_args_list) == 1
+    _verify_dataset_callback_args(call_args_list[0], srcpaths, resource_paths)
+
+
+def _assert_dataset_callback_called_with(mock, srcpaths, resource_paths, index: int = -1):
+    call_args_list = list(mock.call_args_list)
+    assert call_args_list, "Callback was not invoked"
+    if index < 0:
+        call_args = call_args_list[index]
+    else:
+        assert len(call_args_list) > index
+        call_args = call_args_list[index]
+    _verify_dataset_callback_args(call_args, srcpaths, resource_paths)
