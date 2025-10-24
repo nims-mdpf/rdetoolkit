@@ -129,6 +129,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
+          env: PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
           args: --release --out dist --find-interpreter
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -154,6 +155,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
+          env: PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
           args: --release --out dist --find-interpreter
       - name: Upload wheel
         uses: actions/upload-artifact@v4

@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Callable
 
 from rdetoolkit.impl.input_controller import (
     ExcelInvoiceChecker,
@@ -13,14 +12,12 @@ from rdetoolkit.impl.input_controller import (
     SmartTableChecker,
 )
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import DatasetCallback, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.models.result import WorkflowExecutionStatus
 from rdetoolkit.models.config import Config
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.factories import PipelineFactory
 from rdetoolkit.rdelogger import get_logger
-
-_CallbackType = Callable[[RdeInputDirPaths, RdeOutputResourcePath], None]
 
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
@@ -30,7 +27,7 @@ def rdeformat_mode_process(
     index: str,
     srcpaths: RdeInputDirPaths,
     resource_paths: RdeOutputResourcePath,
-    datasets_process_function: _CallbackType | None = None,
+    datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
     """Process the source data and apply specific transformations using the provided callback function.
 
@@ -48,7 +45,7 @@ def rdeformat_mode_process(
         index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
         srcpaths (RdeInputDirPaths): Input paths for the source data.
         resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
         config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
 
     Raises:
@@ -80,7 +77,7 @@ def multifile_mode_process(
     index: str,
     srcpaths: RdeInputDirPaths,
     resource_paths: RdeOutputResourcePath,
-    datasets_process_function: _CallbackType | None = None,
+    datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
     """Processes multiple source files and applies transformations using the provided callback function.
 
@@ -99,7 +96,7 @@ def multifile_mode_process(
         index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
         srcpaths (RdeInputDirPaths): Input paths for the source data.
         resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
         config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
 
     Raises:
@@ -132,7 +129,7 @@ def excel_invoice_mode_process(
     resource_paths: RdeOutputResourcePath,
     excel_invoice_file: Path,
     idx: int,
-    datasets_process_function: _CallbackType | None = None,
+    datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
     """Processes invoice data from an Excel file and applies dataset transformations using the provided callback function.
 
@@ -152,7 +149,7 @@ def excel_invoice_mode_process(
         resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
         excel_invoice_file (Path): Path to the source Excel invoice file.
         idx (int): Index or identifier for the data being processed.
-        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
         config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
 
     Raises:
@@ -187,7 +184,7 @@ def invoice_mode_process(
     index: str,
     srcpaths: RdeInputDirPaths,
     resource_paths: RdeOutputResourcePath,
-    datasets_process_function: _CallbackType | None = None,
+    datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
     """Processes invoice-related data, applies dataset transformations using the provided callback function, and updates descriptions.
 
@@ -205,7 +202,7 @@ def invoice_mode_process(
         index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
         srcpaths (RdeInputDirPaths): Input paths for the source data.
         resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
         config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
 
     Raises:
@@ -238,7 +235,7 @@ def smarttable_invoice_mode_process(
     srcpaths: RdeInputDirPaths,
     resource_paths: RdeOutputResourcePath,
     smarttable_file: Path,
-    datasets_process_function: _CallbackType | None = None,
+    datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
     """Processes SmartTable files and generates invoice data for structured processing.
 
@@ -258,7 +255,7 @@ def smarttable_invoice_mode_process(
         srcpaths (RdeInputDirPaths): Input paths for the source data.
         resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
         smarttable_file (Path): Path to the SmartTable file (.xlsx, .csv, .tsv).
-        datasets_process_function (_CallbackType, optional): A callback function that processes datasets. Defaults to None.
+        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
 
     Raises:
         StructuredError: When encountering issues related to SmartTable processing or during the validation steps.

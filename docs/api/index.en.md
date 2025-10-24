@@ -76,15 +76,22 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 
 ```python title="basic_usage.py"
 import rdetoolkit
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def my_dataset_function(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+
+def my_dataset_function(paths: RdeDatasetPaths) -> None:
     # Implement custom processing here
     pass
+
 
 # Execute structured processing
 result = rdetoolkit.workflows.run(custom_dataset_function=my_dataset_function)
 ```
+
+> Legacy callbacks that accept `RdeInputDirPaths` and `RdeOutputResourcePath`
+> as two separate arguments continue to work during the compatibility period.
+> Accessors such as `paths.invoice`, `paths.invoice_org`, and
+> `paths.metadata_def_json` mirror the most commonly used paths.
 
 ### Configuration File Usage
 
@@ -131,13 +138,10 @@ RDEToolKit supports complete type hints:
 
 ```python title="type_hints.py"
 from typing import Optional
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def process_data(
-    srcpaths: RdeInputDirPaths,
-    resource_paths: RdeOutputResourcePath,
-    options: Optional[dict] = None
-) -> bool:
+
+def process_data(paths: RdeDatasetPaths, options: Optional[dict] = None) -> bool:
     # Type-safe implementation
     return True
 ```

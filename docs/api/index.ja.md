@@ -76,15 +76,21 @@ RDEToolKitのAPIドキュメントは、ハイブリッド方式で構成され�
 
 ```python title="basic_usage.py"
 import rdetoolkit
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def my_dataset_function(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+
+def my_dataset_function(paths: RdeDatasetPaths) -> None:
     # カスタム処理をここに実装
     pass
+
 
 # 構造化処理の実行
 result = rdetoolkit.workflows.run(custom_dataset_function=my_dataset_function)
 ```
+
+> 互換性のため、`RdeInputDirPaths` と `RdeOutputResourcePath` の 2 引数スタイルも引き続き利用できます。
+> `paths.invoice` / `paths.invoice_org` / `paths.metadata_def_json` といった
+> プロパティで主要なパスを直接取得できます。
 
 ### 設定ファイルの使用
 
@@ -131,13 +137,10 @@ RDEToolKitは完全な型ヒントをサポートしています：
 
 ```python title="type_hints.py"
 from typing import Optional
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def process_data(
-    srcpaths: RdeInputDirPaths,
-    resource_paths: RdeOutputResourcePath,
-    options: Optional[dict] = None
-) -> bool:
+
+def process_data(paths: RdeDatasetPaths, options: Optional[dict] = None) -> bool:
     # 型安全な実装
     return True
 ```

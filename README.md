@@ -78,13 +78,15 @@ container
 
 You can process input data (e.g., data transformation, visualization, creation of CSV files for machine learning) and register the results into RDE. By following the format below, you can incorporate your own processing into the RDE structured workflow.
 
-The `dataset()` function should accept the following two arguments:
-
-- srcpaths (RdeInputDirPaths): Paths to input resources for processing
-- resource_paths (RdeOutputResourcePath): Paths to output resources for saving results
+The recommended signature for the `dataset()` function accepts a single
+`RdeDatasetPaths` argument that bundles both input and output locations. The
+legacy two-argument style (`RdeInputDirPaths`, `RdeOutputResourcePath`) remains
+available for backward compatibility.
 
 ```python
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
@@ -92,12 +94,16 @@ In this example, we define a dummy function `display_messsage()` under `modules`
 
 ```python
 # modules/modules.py
-def display_messsage(path_list):
-    print(f"Test Message!: {path_list}")
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def dataset(srcpaths, resource_paths):
-    display_messsage(srcpaths)
-    display_messsage(resource_paths)
+
+def display_messsage(path):
+    print(f"Test Message!: {path}")
+
+
+def dataset(paths: RdeDatasetPaths) -> None:
+    display_messsage(paths.inputdata)
+    display_messsage(paths.struct)
 ```
 
 ### About the Entry Point

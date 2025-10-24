@@ -27,35 +27,44 @@ class TestDatasetRunner:
         processor.process(context)
 
     def test_process_dataset_function_success(self, basic_processing_context):
-        """Test successful dataset function execution."""
+        """Test successful dataset function execution with unified signature."""
         processor = DatasetRunner()
         context = basic_processing_context
 
-        # Create a mock dataset function
-        mock_function = MagicMock()
+        calls: list = []
+
+        def mock_function(paths):
+            calls.append(paths)
+
         context.datasets_function = mock_function
 
         processor.process(context)
 
-        # Verify that dataset function was called with correct arguments
-        mock_function.assert_called_once_with(context.srcpaths, context.resource_paths)
+        assert len(calls) == 1
+        called_paths = calls[0]
+        assert called_paths.input_paths is context.srcpaths
+        assert called_paths.output_paths is context.resource_paths
 
     def test_process_dataset_function_failure(self, basic_processing_context):
         """Test dataset function execution handles exceptions."""
         processor = DatasetRunner()
         context = basic_processing_context
 
-        # Create a mock dataset function that raises an exception
-        mock_function = MagicMock()
-        mock_function.side_effect = ValueError("Test dataset processing error")
+        # Create a dataset function that raises an exception
+        called = False
+
+        def mock_function(_paths):
+            nonlocal called
+            called = True
+            raise ValueError("Test dataset processing error")
+
         context.datasets_function = mock_function
 
         # Should re-raise the exception
         with pytest.raises(ValueError):
             processor.process(context)
 
-        # Verify that dataset function was called
-        mock_function.assert_called_once_with(context.srcpaths, context.resource_paths)
+        assert called is True
 
     @patch('rdetoolkit.processing.processors.datasets.logger')
     def test_process_logs_debug_messages_no_function(self, mock_logger, basic_processing_context):
@@ -112,7 +121,9 @@ class TestDatasetRunner:
         # Track if the function was called and had side effects
         side_effect_tracker = {"called": False, "data_modified": False}
 
-        def mock_dataset_function(_srcpaths, _resource_paths):
+        def mock_dataset_function(srcpaths, resource_paths):
+            assert srcpaths is context.srcpaths
+            assert resource_paths is context.resource_paths
             # Mark that function was called and simulate data modification
             side_effect_tracker["called"] = True
             side_effect_tracker["data_modified"] = True
@@ -131,16 +142,19 @@ class TestDatasetRunner:
         context = basic_processing_context
 
         # Test with FileNotFoundError
-        mock_function = MagicMock()
-        mock_function.side_effect = FileNotFoundError("File not found")
+        def mock_function(_paths):
+            raise FileNotFoundError("File not found")
+
         context.datasets_function = mock_function
 
         with pytest.raises(FileNotFoundError):
             processor.process(context)
 
         # Test with RuntimeError
-        mock_function.side_effect = RuntimeError("Runtime error")
-        context.datasets_function = mock_function
+        def mock_function_runtime(_paths):
+            raise RuntimeError("Runtime error")
+
+        context.datasets_function = mock_function_runtime
 
         with pytest.raises(RuntimeError):
             processor.process(context)
@@ -151,23 +165,16 @@ class TestDatasetRunner:
         context = basic_processing_context
 
         # Create a dataset function that validates its arguments
-        def mock_dataset_function(srcpaths, resource_paths):
-            # Verify that the arguments are the expected objects
-            assert srcpaths is context.srcpaths
-            assert resource_paths is context.resource_paths
-            # Verify that srcpaths has expected attributes
-            assert hasattr(srcpaths, 'inputdata')
-            assert hasattr(srcpaths, 'invoice')
-            assert hasattr(srcpaths, 'tasksupport')
-            assert hasattr(srcpaths, 'config')
-            # Verify that resource_paths has expected attributes
-            assert hasattr(resource_paths, 'rawfiles')
-            assert hasattr(resource_paths, 'raw')
-            assert hasattr(resource_paths, 'main_image')
+        def mock_dataset_function(paths):
+            assert paths.input_paths is context.srcpaths
+            assert paths.output_paths is context.resource_paths
+            assert hasattr(paths, 'inputdata')
+            assert hasattr(paths, 'raw')
+            assert hasattr(paths, 'invoice')
+            assert hasattr(paths, 'invoice_org')
 
         context.datasets_function = mock_dataset_function
 
-        # Should complete without assertion errors
         processor.process(context)
 
     def test_process_dataset_function_can_be_lambda(self, basic_processing_context):
@@ -177,13 +184,32 @@ class TestDatasetRunner:
 
         # Create a lambda function as dataset function
         executed = []
-        context.datasets_function = lambda _srcpaths, _resource_paths: executed.append(True)
+        context.datasets_function = lambda paths: executed.append(paths.struct)
 
         processor.process(context)
 
         # Verify that lambda function was executed
         assert len(executed) == 1
-        assert executed[0] is True
+        assert executed[0] == context.resource_paths.struct
+
+    def test_process_dataset_function_with_ambiguous_callable(self, basic_processing_context):
+        """Callbacks with ambiguous signatures should fall back to legacy arity."""
+        processor = DatasetRunner()
+        context = basic_processing_context
+
+        recorded_args = []
+
+        class LegacyOnly:
+            def __call__(self, *args):
+                if len(args) != 2:
+                    raise TypeError("missing required positional argument")
+                recorded_args.append(args)
+
+        context.datasets_function = LegacyOnly()
+
+        processor.process(context)
+
+        assert recorded_args == [(context.srcpaths, context.resource_paths)]
 
     @patch('rdetoolkit.processing.processors.datasets.logger')
     def test_process_logs_execution_order(self, mock_logger, basic_processing_context):
@@ -194,7 +220,9 @@ class TestDatasetRunner:
         # Create a dataset function that we can track execution of
         execution_order = []
 
-        def mock_dataset_function(_srcpaths, _resource_paths):
+        def mock_dataset_function(srcpaths, resource_paths):
+            assert srcpaths is context.srcpaths
+            assert resource_paths is context.resource_paths
             execution_order.append("function_executed")
 
         context.datasets_function = mock_dataset_function

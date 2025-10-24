@@ -20,7 +20,7 @@ class ProcessingContext:
     index: str
     srcpaths: RdeInputDirPaths
     resource_paths: RdeOutputResourcePath
-    datasets_function: _CallbackType | None
+    datasets_function: DatasetCallback | None
     mode_name: str
     excel_file: Path | None = None
     excel_index: int | None = None
@@ -31,7 +31,7 @@ class ProcessingContext:
 - `index` (str): Processing index identifier
 - `srcpaths` (RdeInputDirPaths): Input directory paths configuration
 - `resource_paths` (RdeOutputResourcePath): Output resource paths
-- `datasets_function` (Optional[_CallbackType]): Custom dataset processing function
+- `datasets_function` (Optional[DatasetCallback]): Custom dataset processing function
 - `mode_name` (str): Processing mode name
 - `excel_file` (Optional[Path]): Excel invoice file path (for Excel mode)
 - `excel_index` (Optional[int]): Excel processing index (for Excel mode)
@@ -127,6 +127,26 @@ def metadata_path(self) -> Path
 ```python
 metadata_path = context.metadata_path
 # Returns: Path("data/divided/0001/meta/metadata.json")
+```
+
+##### dataset_paths
+
+Unified view that exposes both input and output paths as a single object for
+callbacks using the new signature.
+
+```python
+@property
+def dataset_paths(self) -> RdeDatasetPaths
+```
+
+**Returns:**
+- `RdeDatasetPaths`: Wrapper combining `RdeInputDirPaths` and `RdeOutputResourcePath`
+
+**Example:**
+```python
+paths = context.dataset_paths
+print(paths.inputdata)        # Same as context.srcpaths.inputdata
+print(paths.struct)           # Same as context.resource_paths.struct
 ```
 
 ##### is_excel_mode

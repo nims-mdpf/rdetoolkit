@@ -76,26 +76,31 @@ container
 
 入力データに対してデータ加工・グラフ化・機械学習用のcsvファイルの作成など処理を実行し、RDEへデータを登録できます。下記の書式に従っていただければ、独自の処理をRDEの構造化処理のフローに組み込み込むことが可能です。
 
-`dataset()`は、以下の2つの引数を渡してください。
-
-- srcpaths (RdeInputDirPaths): 処理のための入力リソースへのパス
-- resource_paths (RdeOutputResourcePath): 処理結果を保存するための出力リソースへのパス
+`dataset()` の推奨シグネチャは、入力と出力のパスをまとめた
+`RdeDatasetPaths` を 1 つ受け取ります。既存の 2 引数スタイル
+（`RdeInputDirPaths`, `RdeOutputResourcePath`）も後方互換のため引き続き利用できます。
 
 ```python
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
-今回の例では、`modules`以下に、`def display_messsage()`というダミー処理を定義し、独自の構造化処理を定義したいと思います。`modules/modules.py`というファイルを作成します。
+今回の例では、`modules` 以下に `display_messsage()` というダミー処理を定義し、独自の構造化処理を実装します。`modules/modules.py` というファイルを作成します。
 
 ```python
 # modules/modules.py
-def display_messsage(path_list):
-    print(f"Test Message!: {path_list}")
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def dataset(srcpaths, resource_paths):
-    display_messsage(srcpaths)
-    display_messsage(resource_paths)
+
+def display_messsage(path):
+    print(f"Test Message!: {path}")
+
+
+def dataset(paths: RdeDatasetPaths) -> None:
+    display_messsage(paths.inputdata)
+    display_messsage(paths.struct)
 ```
 
 ### 起動処理について
