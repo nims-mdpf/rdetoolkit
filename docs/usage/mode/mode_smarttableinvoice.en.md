@@ -60,9 +60,10 @@ This row is read and automatically mapped to `invoice.json` and metadata. The ma
 - `sample/<key in invoice.json>`: mapped to the `sample` section of `invoice.json`.
 - `sample/generalAttributes.<termId>`: mapped to the `value` of the matching `termId` in the `generalAttributes` array.
 - `sample/specificAttributes.<classId>.<termId>`: mapped to the `value` of the matching `classId` and `termId` in the `specificAttributes` array.
+- `meta/<metadata-def key>`: written to the `constant` section of `metadata.json` according to `metadata-def.json` (values are cast using `schema.type`, and `unit` is copied when provided). Entries marked with `variable` are not supported at this time. If `metadata-def.json` is absent, the meta columns are skipped as before.
 - `inputdataX`: specifies a file path inside the ZIP file (X = 1, 2, 3, …).
 
-> Currently, table data is automatically expanded only into `invoice.json`. Other data is exposed so it can be used by the structured processing.
+> Currently, table data is automatically expanded into `invoice.json` and `metadata.json` (for `meta/` columns). Other data is exposed so it can be used by the structured processing.
 
 #### About Input File Handling
 

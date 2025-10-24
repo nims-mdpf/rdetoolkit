@@ -60,9 +60,10 @@ basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sampl
 - `sample/<invoice.jsonのキー名>`: invoice.jsonのsampleセクションにマッピングされます。
 - `sample/generalAttributes.<termId>`: `generalAttributes`配列内の該当する`termId`の`value`にマッピング
 - `sample/specificAttributes.<classId>.<termId>`: `specificAttributes`配列内の該当する`classId`と`termId`の`value`にマッピング
+- `meta/<metadata-defのキー>`: `metadata-def.json`の定義に従って`metadata.json`の`constant`セクションへ書き込み（`schema.type`で型変換し、`unit`があれば付与）。`variable`定義は現時点では対応しません。`metadata-def.json`が存在しない場合は従来どおり書き込みをスキップします。
 - `inputdataX`: zipファイル内のファイルパスを指定（X=1,2,3...）
 
-> 現在自動でテーブルデータの情報が展開される先は、invoice.jsonへの展開のみです。それ以外のデータは、構造化処理で使用できるように展開されます。
+> 現在自動でテーブルデータの情報が展開される先は、invoice.json と metadata.json（`meta/`列）です。それ以外のデータは、構造化処理で使用できるように展開されます。
 
 #### 入力ファイルの取り扱いについて
 
