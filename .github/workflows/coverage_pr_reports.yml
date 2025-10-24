@@ -18,15 +18,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-python@v4
+      - name: Setup uv (Python 3.12)
+        uses: astral-sh/setup-uv@v2
         with:
           python-version: "3.12"
-          cache: "pip"
-      - name: Install dependencies
-        run: pip install -r requirements-dev.lock
+      - name: Cache uv
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}
+          restore-keys: uv-${{ runner.os }}-
+      - name: Create venv
+        run: uv venv .venv --python 3.12
+      - name: Install dependencies (uv in venv)
+        run: |
+          source .venv/bin/activate
+            # lock ファイル経由
+          uv pip install -r requirements-dev.lock
+          uv pip install -e .
       - name: run pytest
         run: |
           set -o pipefail
+          source .venv/bin/activate
           python -m pytest --junitxml=pytest.xml --cov-report=term-missing --cov=src tests/ | tee pytest-coverage.txt
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@v1.1.47

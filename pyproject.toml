@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.3.4"
+version = "1.4.0"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -40,16 +40,21 @@ dependencies = [
     "pip>=24.3.1",
     "markdown>=3.7",
     "types-pytz>=2025.2.0.20250326",
+    "matplotlib>=3.9.4",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
 
 [project.optional-dependencies]
 minio = ["minio>=7.2.15"]
+plotly = ["plotly>=6.3.1"]
 
 [tool.setuptools]
 package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
 
+
+[project.scripts]
+rdetoolkit = "rdetoolkit.cli:cli"
 
 [project.urls]
 "Homepage" = "https://github.com/nims-dpfc/rdetoolkit"
@@ -58,6 +63,37 @@ package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
 [build-system]
 requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
+
+[dependency-groups]
+dev = [
+    "black>=23.7.0",
+    "flake8>=6.0.0",
+    "pyproject-flake8>=6.0.0.post1",
+    "isort>=5.12.0",
+    "lizard>=1.17.10",
+    "mypy>=1.18.2",
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "pytest-mpl>=0.17.0",
+    "tox>=4.6.4",
+    "types-python-dateutil>=2.8.19.14",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.5.1",
+    "mkdocstrings[crystal,python]>=0.27.0",
+    "pre-commit>=3.6.0",
+    "types-PyYAML>=6.0.12.20240311",
+    "mkdocs-mermaid2-plugin>=1.1.1",
+    "ruff>=0.5.5",
+    "jsonschema-markdown>=0.3.8",
+    "mike>=2.1.3",
+    "mkdocs-static-i18n>=1.3.0",
+    "mkdocs-redirects>=1.2.2",
+    "plotly>=6.3.1",
+    "minio>=7.2.15",
+    "superclaude>=4.1.5",
+    "tox-uv>=1.28.0",
+]
 # requires = ["hatchling"]
 # build-backend = "hatchling.build"
 
@@ -66,7 +102,12 @@ python-source = "src"
 module-name = "rdetoolkit.core"
 features = ["pyo3/extension-module"]
 
+# The team has agreed not to enforce a maximum character limit per line.
 [tool.ruff]
+line-length = 250
+indent-width = 4
+
+[tool.ruff.lint]
 select = [
     "F",    # pyflakes
     "E",    # pycodestyle
@@ -111,8 +152,6 @@ ignore = [
     "S307",
     "ANN002",
     "ANN003",
-    "ANN101",
-    "ANN102",
     "ANN401",
     "BLE001",
 ]
@@ -148,9 +187,6 @@ exclude = [
     "src/rdetoolkit/**/*.pyi",
     "src/rdetoolkit/models/invoice_schema.py", # Ignore pydocstyle warnings for this file as it is for defining pydantic models.
 ]
-# The team has agreed not to enforce a maximum character limit per line.
-line-length = 250
-indent-width = 4
 
 [tool.ruff.format]
 indent-style = "space"
@@ -161,7 +197,7 @@ mypy-init-return = true
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # Unused imports are allowed in __init__.py.
 "__init__.py" = ["F401", "F403"]
 "**/*.pyi" = ["ALL"]
@@ -189,8 +225,18 @@ exclude_also = [
     "@(abc\\.)?abstractmethod",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--mpl -m 'not legacy'"
+testpaths = ["tests"]
+markers = [
+    "graph_outputs: marks tests that generate graph outputs (deselect with '-m \"not graph_outputs\"')",
+    "legacy: marks legacy compatibility tests (deselected by default)",
+]
+
+
 [tool.rye]
 managed = true
+
 dev-dependencies = [
     "black>=23.7.0",
     "flake8>=6.0.0",
@@ -218,5 +264,5 @@ dev-dependencies = [
 ]
 
 [tool.rye.scripts]
-# rye run <script name>
 generate-stubs = "stubgen -o src/ src/rdetoolkit/"
+export-locks = "bash -c 'uv lock && uv export --no-dev --extra minio --format requirements-txt --no-editable > requirements.lock && uv export --group dev --extra minio --format requirements-txt --no-editable > requirements-dev.lock && sed -i '' \"/^\\.$/d\" requirements-dev.lock'"

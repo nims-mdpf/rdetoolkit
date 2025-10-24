@@ -69,6 +69,19 @@ class TestProcessingContext:
         expected_path = Path("data/meta/metadata.json")
         assert context.metadata_path == expected_path
 
+    def test_dataset_paths_property(self, basic_processing_context):
+        """The dataset_paths property should expose unified paths."""
+        context = basic_processing_context
+
+        dataset_paths = context.dataset_paths
+        assert dataset_paths.input_paths is context.srcpaths
+        assert dataset_paths.output_paths is context.resource_paths
+        assert dataset_paths.inputdata == context.srcpaths.inputdata
+        assert dataset_paths.raw == context.resource_paths.raw
+        assert dataset_paths.invoice_org == context.resource_paths.invoice_org
+        assert dataset_paths.invoice == context.resource_paths.invoice
+        assert dataset_paths.metadata_def_json == context.srcpaths.tasksupport.joinpath("metadata-def.json")
+
     def test_context_immutability(self, basic_processing_context):
         """Test that context properties are properly accessible."""
         context = basic_processing_context

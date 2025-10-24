@@ -15,6 +15,7 @@ from rdetoolkit.cli import (
     init,
     version,
     make_excelinvoice,
+    csv2graph,
 )
 from rdetoolkit.cmd.command import (
     DockerfileGenerator,
@@ -94,7 +95,7 @@ def test_make_requirements_txt():
 # ex.
 # pandas==2.0.3
 # numpy
-rdetoolkit==1.3.4
+rdetoolkit==1.4.0
 """
     assert content == expected_content
     test_path.unlink()
@@ -392,7 +393,7 @@ def test_make_excelinvoice_help():
     result = runner.invoke(make_excelinvoice, ['--help'])
 
     assert result.exit_code == 0
-    assert "Usage: make-excelinvoice [OPTIONS] <invoice.shcema.json file path>" in result.output
+    assert "Usage: make-excelinvoice [OPTIONS] <invoice.schema.json file path>" in result.output
     assert "Generate an Excel invoice based on the provided schema and save it to the\n  specified output path." in result.output
     assert "-o, --output" in result.output
     assert "-m, --mode" in result.output
@@ -551,3 +552,143 @@ def test_report_generation_failure(temp_source_dir, temp_output_archive, capsys)
         command.invoke()
     captured = capsys.readouterr().out
     assert "Error:" in captured
+
+
+@pytest.fixture
+def sample_csv_file(tmp_path: Path) -> Path:
+    """Create a simple CSV file for testing csv2graph command."""
+    csv_file = tmp_path / "test_data.csv"
+    csv_content = """X,Y1,Y2
+1.0,10.5,20.3
+2.0,15.2,25.8
+3.0,12.8,22.1
+4.0,18.5,28.9
+5.0,16.3,24.5
+"""
+    csv_file.write_text(csv_content)
+    return csv_file
+
+
+@pytest.fixture
+def csv_output_dir(tmp_path: Path) -> Path:
+    """Create a temporary output directory for graph files."""
+    output_dir = tmp_path / "graphs"
+    output_dir.mkdir()
+    return output_dir
+
+
+def test_csv2graph_basic_success(sample_csv_file, csv_output_dir):
+    """Test basic csv2graph command execution with minimal options."""
+    runner = CliRunner()
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "📊 Generating graphs from CSV..." in result.output
+    assert f"- CSV file: {sample_csv_file}" in result.output
+    assert f"- Output: {csv_output_dir}" in result.output
+    assert "- Mode: overlay" in result.output
+    assert "✨ Graphs generated successfully" in result.output
+
+    # Check that output file was created
+    output_files = list(csv_output_dir.glob("*.png"))
+    assert len(output_files) > 0, "No PNG files were generated"
+
+
+def test_csv2graph_with_options(sample_csv_file, csv_output_dir):
+    """Test csv2graph command with various options."""
+    runner = CliRunner()
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--title", "Test Plot",
+            "--grid",
+            "--invert-x",
+            "--logy",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "📊 Generating graphs from CSV..." in result.output
+    assert "✨ Graphs generated successfully" in result.output
+
+
+def test_csv2graph_individual_mode(sample_csv_file, csv_output_dir):
+    """Test csv2graph command in individual plotting mode."""
+    runner = CliRunner()
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--mode", "individual",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "- Mode: individual" in result.output
+
+    # Individual mode should create multiple PNG files
+    output_files = list(csv_output_dir.glob("*.png"))
+    assert len(output_files) > 0, "No PNG files were generated in individual mode"
+
+
+def test_csv2graph_main_image_dir(sample_csv_file, csv_output_dir, tmp_path: Path):
+    """Ensure combined plots are routed to the main image directory."""
+    main_image_dir = tmp_path / "main_images"
+    main_image_dir.mkdir()
+
+    runner = CliRunner()
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--main-image-dir", str(main_image_dir),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "- Main images:" in result.output
+
+    combined_name = sample_csv_file.stem + ".png"
+    assert (main_image_dir / combined_name).exists()
+    assert not (csv_output_dir / combined_name).exists()
+
+    individual_files = list(csv_output_dir.glob(f"{sample_csv_file.stem}_*.png"))
+    assert individual_files, "Individual plots were not written to output directory"
+
+
+def test_csv2graph_file_not_found():
+    """Test csv2graph command with non-existent CSV file."""
+    runner = CliRunner()
+    non_existent = Path("/tmp/non_existent_file.csv")
+
+    result = runner.invoke(
+        csv2graph,
+        [str(non_existent)],
+    )
+
+    assert result.exit_code != 0
+    assert "🔥 File Error" in result.output
+
+
+def test_csv2graph_help():
+    """Test csv2graph command help message."""
+    runner = CliRunner()
+    result = runner.invoke(csv2graph, ["--help"])
+
+    assert result.exit_code == 0
+    assert "Usage: csv2graph [OPTIONS] CSV_PATH" in result.output
+    assert "Generate graphs from CSV files." in result.output
+    assert "--output-dir" in result.output
+    assert "--main-image-dir" in result.output
+    assert "--mode" in result.output
+    assert "--title" in result.output

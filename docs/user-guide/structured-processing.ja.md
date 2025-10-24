@@ -30,7 +30,7 @@ graph TD
     A[生データ] --> B[構造化処理]
     B --> C[RDE標準形式データ]
     C --> D[データ共有・公開]
-    
+
     B --> B1[データ変換]
     B --> B2[メタデータ付与]
     B --> B3[品質検証]
@@ -75,13 +75,13 @@ graph TD
 def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     # データ読み込み
     data = load_research_data(srcpaths.inputdata)
-    
+
     # データ変換・解析
     processed_data = analyze_data(data)
-    
+
     # 結果保存
     save_results(processed_data, resource_paths.data)
-    
+
     # メタデータ生成
     generate_metadata(processed_data, resource_paths.tasksupport)
 ```
@@ -126,20 +126,20 @@ from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     """
     標準的な構造化処理関数
-    
+
     Args:
         srcpaths: 入力ファイルのパス情報
         resource_paths: 出力リソースのパス情報
     """
     # 1. 入力データの確認
     validate_input_data(srcpaths)
-    
+
     # 2. データ処理の実行
     process_research_data(srcpaths, resource_paths)
-    
+
     # 3. 結果の保存
     save_processing_results(resource_paths)
-    
+
     # 4. メタデータの生成
     generate_metadata(resource_paths)
 ```

@@ -47,7 +47,9 @@ plugins:
                     - 対応ディレクトリ: usage/structured_process/directory.md
                     - ディレクトリパスアクセス: usage/structured_process/rdepath.md
                     - エラーハンドリング: usage/structured_process/errorhandling.md
+                    - LLM/AI向けトレースバック: usage/structured_process/traceback.md
                     - データタイル説明欄の自動転記: usage/structured_process/feature_description.md
+                    - csvをグラフ化する: usage/structured_process/csv2graph.md
                 - データ登録モード:
                     - 利用可能なデータ登録モード: usage/mode/mode.md
                     - invoiceモード: usage/mode/mode_invoice.md
@@ -77,9 +79,15 @@ plugins:
                     - ユーティリティ: rdetoolkit/rde2util.md
                     - ロギング: rdetoolkit/rdelogger.md
                     - 代表画像操作: rdetoolkit/img2thumb.md
+                    - CSVグラフ化: rdetoolkit/csv2graph.md
                     - 検証: rdetoolkit/validation.md
                     - 例外: rdetoolkit/exceptions.md
+                    - エラーハンドリング: rdetoolkit/errors.md
                     - ファイル操作: rdetoolkit/fileops.md
+                - トレースバック:
+                    - 概要: rdetoolkit/traceback/index.md
+                    - フォーマッター: rdetoolkit/traceback/formatter.md
+                    - マスキング: rdetoolkit/traceback/masking.md
                 - データモデル:
                     - 設定モデル: rdetoolkit/models/config.md
                     - Invoiceモデル: rdetoolkit/models/invoice.md
@@ -115,11 +123,12 @@ plugins:
                 - Structured Processing:
                     - Building Structured Process: usage/structured_process/structured.md
                     - Development Guide: usage/structured_process/development_guide.md
-                    - Development Guide: usage/structured_process/development_guide.md
                     - Supported Directories: usage/structured_process/directory.md
                     - Directory Path Access: usage/structured_process/rdepath.md
                     - Error Handling: usage/structured_process/errorhandling.md
+                    - LLM/AI-Friendly Traceback: usage/structured_process/traceback.md
                     - Feature Description: usage/structured_process/feature_description.md
+                    - Visualizing CSV as Graphs: usage/structured_process/csv2graph.md
                 - Data Registration Modes:
                     - Available Data Registration Modes: usage/mode/mode.md
                     - Invoice Mode: usage/mode/mode_invoice.md
@@ -149,9 +158,15 @@ plugins:
                     - Utilities: rdetoolkit/rde2util.md
                     - Logging: rdetoolkit/rdelogger.md
                     - Image Processing: rdetoolkit/img2thumb.md
+                    - CSV to Graph: rdetoolkit/csv2graph.md
                     - Validation: rdetoolkit/validation.md
                     - Exceptions: rdetoolkit/exceptions.md
+                    - Error Handling: rdetoolkit/errors.md
                     - File Operations: rdetoolkit/fileops.md
+                - Traceback:
+                    - Overview: rdetoolkit/traceback/index.md
+                    - Formatter: rdetoolkit/traceback/formatter.md
+                    - Masking: rdetoolkit/traceback/masking.md
                 - Data Models:
                     - Configuration Models: rdetoolkit/models/config.md
                     - Invoice Models: rdetoolkit/models/invoice.md

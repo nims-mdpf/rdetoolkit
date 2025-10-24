@@ -81,6 +81,44 @@ Generates an Excel invoice from `invoice.schema.json`.
 !!! tip "Default Output"
     If `-o` is not specified, it will be created as `template_excel_invoice.xlsx` in the execution directory.
 
+### gen-config: Generate rdeconfig.yaml Templates
+
+Creates an `rdeconfig.yaml` file based on predefined templates or an interactive questionnaire.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit gen-config [OUTPUT_DIR] --template <template> [--overwrite] [--lang <ja|en>]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit gen-config [OUTPUT_DIR] --template <template> [--overwrite] [--lang <ja|en>]
+    ```
+
+Available templates:
+
+- `minimal` (default): System and traceback keys only.
+- `full`: Includes `multidata_tile` defaults.
+- `multitile`: Enables `extended_mode: "MultiDataTile"`.
+- `rdeformat`: Enables `extended_mode: "rdeformat"`.
+- `smarttable`: Adds SmartTable settings with `save_table_file: true`.
+- `interactive`: Guides you through each option. Use `--lang ja` for Japanese prompts.
+
+#### Options
+
+| Option          | Description                                                                                   | Required |
+| --------------- | --------------------------------------------------------------------------------------------- | -------- |
+| OUTPUT_DIR      | Directory to place `rdeconfig.yaml`. Defaults to the current directory.                       | -        |
+| --template      | Template name (`minimal`, `full`, `multitile`, `rdeformat`, `smarttable`, `interactive`).     | -        |
+| --overwrite     | Force overwrite of an existing `rdeconfig.yaml` without confirmation. Omit to be prompted.    | -        |
+| --lang          | Prompt language (`en` or `ja`). Applicable only when `--template interactive` is selected.    | -        |
+
+!!! tip "Interactive Mode"
+    When `--template interactive` is used, the command asks about system, MultiDataTile, SmartTable, and traceback
+    settings. Responses are written back into the generated `rdeconfig.yaml` so teams start with validated defaults.
+
 ### version: Version Check
 
 Check the version of rdetoolkit.

@@ -10,6 +10,14 @@ RDEToolKitの構造化処理動作をカスタマイズするための設定フ�
 - YAMLファイル形式の基本知識
 - 構造化処理のディレクトリ構造の理解
 
+## 設定ファイル要件
+
+- ファイル名: `rdeconfig.yml`, `rdeconfig.yaml`, `pyproject.toml`が使用可能
+- 配置場所:
+  - YAML形式: `data/tasksupport/`ディレクトリ内
+  - `pyproject.toml`はプロジェクトルート
+- フォーマット: YAML形式(もしくはTOML形式)
+
 ## 手順
 
 ### 1. 設定ファイルを配置する
@@ -38,20 +46,40 @@ system:
 
 #### save_raw設定
 
-入力データを`raw`ディレクトリにコピーするかを制御します：
+- 入力データを`raw`ディレクトリにコピーするかを制御します：
+- type: `bool`
+- デフォルト: `false`
 
 ```yaml title="save_raw設定"
 system:
-  save_raw: true   # 入力データをrawディレクトリにコピー（推奨）
+  save_raw: true   # 入力データをrawディレクトリにコピー
   save_raw: false  # 入力データをコピーしない
 ```
 
-!!! tip "推奨設定"
-    データの追跡性を確保するため、`save_raw: true`を推奨します。
+!!! tip "Save Raw Data"
+    save_rawの設定をtrueにした場合、下記のsave_nonshared_rawの設定はfalseにしてください。両方trueにすると、save_rawディレクトリと, nonshared_rawディレクトリにコピーされます。
+
+#### save_nonshared_raw設定
+
+- 入力データを`save_nonshared_raw`ディレクトリにコピーするかを制御します：
+- type: `bool`
+- デフォルト: `false`
+
+```yaml title="save_raw設定"
+system:
+  save_nonshared_raw: true   # 入力データをsave_nonshared_rawディレクトリにコピー（推奨）
+  save_nonshared_raw: false  # 入力データをコピーしない
+```
+
+!!! tip "Save Raw Data"
+    save_nonshared_rawの設定をtrueにした場合、下記のsave_rawの設定はfalseにしてください。両方trueにすると、save_rawディレクトリと, nonshared_rawディレクトリにコピーされます。
 
 #### magic_variable設定
 
-ファイル名の動的置換機能を制御します：
+ファイル名の動的置換機能を制御します。この機能を有効化すると、`${filename}`などのマジック変数が送り状から使用可能となり、データタイル名が登録したデータファイル名に自動で置換されます。
+
+- type: `bool`
+- デフォルト: `false`
 
 ```yaml title="magic_variable設定"
 system:
@@ -59,17 +87,51 @@ system:
   magic_variable: false  # 置換機能を無効化（デフォルト）
 ```
 
-使用例：
-```json title="magic_variable使用例"
+設定を有効化し、送り状から``${filename}``などのマジック変数を使用することで、データタイル名が自動で置換されます。例えば、以下のような送り状と`20250101_sample_data.dat`というデータを登録したとします。
+
+登録時の送り状:
+
+```json
 {
-  "data_name": "${filename}",
-  "output_file": "${filename}_processed.csv"
+  "datasetId": "e66233bf-821a-404c-a584-083ff36bb825",
+  "basic": {
+      "dateSubmitted": "2025-01-01",
+      "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
+      "dataName": "${filename}",
+      "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
+      "experimentId": null,
+      "description": "",
+      "dataset_title": "xrd",
+      "dataOwner": "Sample,Username"
+  },
+  ...
+}
+```
+
+構造化処理後
+
+```json
+{
+  "datasetId": "e66233bf-821a-404c-a584-083ff36bb825",
+  "basic": {
+      "dateSubmitted": "2025-01-01",
+      "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
+      "dataName": "20250101_sample_data.dat",
+      "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
+      "experimentId": null,
+      "description": "",
+      "dataset_title": "xrd",
+      "dataOwner": "Sample,Username"
+  },
+  ...
 }
 ```
 
 #### save_thumbnail_image設定
 
-メイン画像からサムネイル画像の自動生成を制御します：
+- メイン画像(main_imageディレクトリ)からサムネイル画像の自動生成を制御します
+- type: `bool`
+- デフォルト: `false`
 
 ```yaml title="save_thumbnail_image設定"
 system:
@@ -79,7 +141,13 @@ system:
 
 #### extended_mode設定
 
-高度な処理モードを指定します：
+- データ登録モードの拡張を指定します。
+- type: `str` | `null`
+- デフォルト: `null`
+- 選択可能なモード:
+  - `null`: 標準モード
+  - `rdeformat`: RDEフォーマットモード
+  - `MultiDataTile`: マルチデータタイルモード
 
 ```yaml title="extended_mode設定"
 system:
@@ -88,137 +156,156 @@ system:
   extended_mode: "MultiDataTile" # マルチデータタイルモード
 ```
 
-### 4. 高度な設定を追加する
+モードの詳細については、[データ登録モード](../mode/mode.md)を参照してください。
 
-#### MultiDataTile設定
+### 4. 登録モード固有の設定を追加する
 
-複数データタイルを統合管理する場合の設定：
+#### MultiDataTileでエラーを無視する
 
-```yaml title="MultiDataTile設定"
-system:
-  extended_mode: "MultiDataTile"
+> MultiDataTileが有効の場合、この設定は機能します。
 
+- マルチデータタイルモードで、エラーが発生しても処理を継続します。エラーが発生したデータタイルは登録されません。
+- type: `bool`
+- デフォルト: `false`
+
+```yaml
 multidatatile:
-  divided_dir_digit: 4
-  divided_dir_start_number: 1
+  ignore_errors: true # もしくはfalse
 ```
 
 #### SmartTable設定
 
-SmartTable機能を使用する場合の設定：
+> SmartTableが有効の場合、この設定は機能します。
+
+- この設定を有効化すると、データ投入したテーブルデータファイルをデータタイルとして保存します。
+- type: `bool`
+- デフォルト: `false`
 
 ```yaml title="SmartTable設定"
 smarttable:
-  generate_template: true
-  template_name: "smarttable_template.xlsx"
-  auto_fill_metadata: true
+  save_table_file: true
 ```
 
-### 5. 設定ファイルの検証
+### 5. ログやスタックトレースに関する設定を追加する
 
-作成した設定ファイルが正しいかを確認します：
+#### Traceback設定
 
-```python title="設定ファイル検証"
-import yaml
+- LLM/AIフレンドリーなスタックトレース機能の設定
+- type: `bool`
+- デフォルト: `false`
 
-def validate_config_file(config_path):
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        # 必須項目の確認
-        if 'system' not in config:
-            print("❌ systemセクションが見つかりません")
-            return False
-        
-        system = config['system']
-        required_fields = ['save_raw', 'magic_variable', 'save_thumbnail_image']
-        
-        for field in required_fields:
-            if field not in system:
-                print(f"❌ 必須フィールドが不足: {field}")
-                return False
-        
-        print("✅ 設定ファイルは有効です")
-        return True
-        
-    except yaml.YAMLError as e:
-        print(f"❌ YAML形式エラー: {e}")
-        return False
-    except FileNotFoundError:
-        print(f"❌ 設定ファイルが見つかりません: {config_path}")
-        return False
+```yaml title="Traceback設定"
+traceback:
+  enabled: true                # トレースバック機能の有効/無効
 ```
 
-## 結果の確認
+**各設定項目の詳細:**
 
-設定が正しく適用されているかを確認します：
+上記の設定で、`enabled`を`true`にすると、以下の詳細設定が可能になります：
 
-### 設定値の確認
+- `format`: 出力形式を指定します
+  - type: `str`
+  - デフォルト: `"duplex"`
+  - 選択可能な値: `"compact"`, `"python"`, `"duplex"`
+  - `compact`: LLM向けの機械可読形式
+  - `python`: 従来のPython標準のスタックトレース形式
+  - `duplex`: 両方の形式を同時出力
+- `include_context`: ソースコード行の表示を制御します
+  - type: `bool`
+  - デフォルト: `true`
+- `include_locals`: ローカル変数の表示を制御します（セキュリティリスク）
+  - type: `bool`
+  - デフォルト: `false`
+- `include_env`: 環境情報の表示を制御します
+  - type: `bool`
+  - デフォルト: `true`
+- `max_locals_size`: 変数出力のサイズ制限を指定します
+  - type: `int`
+  - デフォルト: `512`
+- `sensitive_patterns`: カスタム機密パターンを指定します
+  - type: `list[str]`
+  - デフォルト: `[]` (空のリスト)
 
-```python title="設定値確認"
-def check_applied_settings():
-    from rdetoolkit.models.config import Config
-    
-    # 設定の読み込み
-    config = Config.from_file("data/tasksupport/rdeconfig.yaml")
-    
-    print(f"save_raw: {config.system.save_raw}")
-    print(f"magic_variable: {config.system.magic_variable}")
-    print(f"save_thumbnail_image: {config.system.save_thumbnail_image}")
-    print(f"extended_mode: {config.system.extended_mode}")
-```
-
-### 動作確認
-
-```shell title="動作確認コマンド"
-# 構造化処理を実行して設定が反映されるかテスト
-python main.py
-
-# ログファイルで設定値を確認
-grep -i "config" data/logs/rdesys.log
+```yaml title="Traceback設定"
+traceback:
+  enabled: true
+  format: "duplex"             # 出力形式：compact, python, duplex
+  include_context: true        # ソースコード行の表示
+  include_locals: false        # ローカル変数の表示（セキュリティリスク）
+  include_env: true            # 環境情報の表示
+  max_locals_size: 512         # 変数出力のサイズ制限
+  sensitive_patterns:          # カスタム機密パターン
+    - "database_url"
+    - "private_key"
+    - "connection_string"
 ```
 
 ## 設定例集
 
-### 標準的な研究データ処理
+以下の`rdeconfig.yml`の設定例を参考に、適宜カスタマイズしてください。
 
-```yaml title="標準設定例"
+### 標準的な設定(送り状登録モード)
+
+```yaml
 system:
   save_raw: true
   magic_variable: false
   save_thumbnail_image: true
-  extended_mode: null
 ```
 
-### 大量データ一括処理
+### 登録データ(生データ)を非公開ディレクトリに登録する
 
-```yaml title="一括処理設定例"
+```yaml
+system:
+  save_nonshared_raw: true
+  magic_variable: false
+  save_thumbnail_image: true
+```
+
+### 複数データ登録モードの設定(MultiDataTile)
+
+```yaml
 system:
   save_raw: true
   magic_variable: true
-  save_thumbnail_image: false
+  save_thumbnail_image: true
   extended_mode: "MultiDataTile"
-
-multidatatile:
-  divided_dir_digit: 4
-  divided_dir_start_number: 1
 ```
 
-### 既存データ移行
+### システム間の連系(RDEFormatモード)
 
-```yaml title="移行設定例"
+```yaml
 system:
-  save_raw: false
+  extended_mode: "rdeformat"
+```
+
+### AIエージェント連携
+
+```yaml title="AIエージェント設定例"
+system:
+  save_raw: true
   magic_variable: false
   save_thumbnail_image: true
-  extended_mode: "rdeformat"
+
+traceback:
+  enabled: true
+  format: "compact"            # 機械可読のみ
+  include_context: true        # AI解析用ソースコード
+  include_locals: false        # セキュリティ重視
+  include_env: false           # 最小限の情報
+  max_locals_size: 0           # 本番環境では変数なし
+  sensitive_patterns:
+    - "database_url"
+    - "private_key"
+    - "connection_string"
+    - "encryption_key"
 ```
 
 ## 関連情報
 
 設定ファイルについてさらに学ぶには、以下のドキュメントを参照してください：
 
-- [処理モード](mode.ja.md)で各extended_modeの詳細を確認する
+- [処理モード](../mode/mode.ja.md)で各extended_modeの詳細を確認する
 - [Magic Variable機能](magic_variable.ja.md)で動的置換機能を学ぶ
 - [構造化処理の概念](../structured_process/structured.ja.md)で設定が影響する処理フローを理解する
+- [LLM/AI向けトレースバック設定](../structured_process/traceback.ja.md)でスタックトレース機能を学ぶ

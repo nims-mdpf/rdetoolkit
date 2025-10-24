@@ -49,7 +49,21 @@ RDEToolKitをインストールする前に、以下の要件を満たしてい�
     pip install rdetoolkit[minio]
     ```
 
-### 3. 開発版インストール
+### 3. Plotlyサポート付きインストール
+
+Plotlyは、Pythonなどでインタラクティブなグラフやダッシュボード（Webブラウザ上で動的操作可能）を生成する可視化ライブラリ。RDEToolKitでPlotly機能を使用する場合は、追加の依存関係をインストールします。
+
+=== "Unix/macOS"
+    ```bash title="terminal"
+    pip install rdetoolkit[plotly]
+    ```
+
+=== "Windows"
+    ```cmd title="command_prompt"
+    pip install rdetoolkit[plotly]
+    ```
+
+### 4. 開発版インストール
 
 最新の開発版を使用する場合は、GitHubリポジトリから直接インストールします。
 
@@ -66,7 +80,7 @@ RDEToolKitをインストールする前に、以下の要件を満たしてい�
 !!! warning "開発版の注意事項"
     開発版は不安定な場合があります。プロダクション環境では安定版の使用を推奨します。
 
-### 4. 仮想環境でのインストール
+### 5. 仮想環境でのインストール
 
 プロジェクトごとに独立した環境を作成する場合の手順です。
 
@@ -123,19 +137,6 @@ print("RDEToolKit installation successful!")
 
 ## トラブルシューティング
 
-### よくある問題と解決方法
-
-#### 権限エラー
-
-```bash
-ERROR: Could not install packages due to an EnvironmentError
-```
-
-**解決方法**: ユーザーレベルでインストールする
-```bash title="terminal"
-pip install --user rdetoolkit
-```
-
 #### 依存関係の競合
 
 ```bash
@@ -148,17 +149,6 @@ python -m venv clean_env
 source clean_env/bin/activate
 pip install rdetoolkit
 ```
-
-#### Python バージョン非対応
-
-```bash
-ERROR: Package 'rdetoolkit' requires a different Python
-```
-
-**解決方法**: Python 3.9以上にアップグレードする
-
-!!! note "サポート情報"
-    インストールに関する問題が解決しない場合は、[GitHubのIssues](https://github.com/nims-mdpf/rdetoolkit/issues)で報告してください。
 
 ## 関連情報
 

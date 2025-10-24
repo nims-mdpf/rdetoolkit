@@ -190,3 +190,7 @@ pip-selfcheck.json
 .DS_Store
 local/
 launch.json
+.serena
+.claude
+CLAUDE.md
+.mcp.json
