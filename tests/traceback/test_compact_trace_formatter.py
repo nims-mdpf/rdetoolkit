@@ -198,6 +198,11 @@ class TestCompactTraceFormatter:
             result = formatter._is_in_app(filepath)
             assert result is False
 
+    def test_is_in_app_external_directory(self, formatter):
+        filepath = "/tmp/custom/location/module.py"
+        result = formatter._is_in_app(filepath)
+        assert result is False
+
     def test_full_format_integration(self, formatter, sample_exception):
         """Test full format integration with real exception."""
         result = formatter.format(sample_exception)
@@ -251,3 +256,80 @@ class TestCompactTraceFormatter:
 
             assert "local.password" not in result
             assert "local.data" not in result
+
+    def test_format_includes_env_context_and_locals(self):
+        """Ensure format emits env/context information and sanitized locals."""
+        config = TracebackSettings(
+            include_context=True,
+            include_locals=True,
+            include_env=True,
+            max_locals_size=64,
+        )
+        formatter = CompactTraceFormatter(config)
+
+        def inner_function():
+            secret_token = "abc123"
+            regular_value = {"key": "value"}
+            raise RuntimeError("boom")
+
+        def outer_function():
+            helper = "outer"
+            inner_function()
+
+        formatted = ""
+        try:
+            outer_function()
+        except RuntimeError as exc:
+            formatted = formatter.format(exc)
+
+        lines = formatted.split('\n')
+        t_line = next(line for line in lines if line.startswith('T '))
+        assert 'python="' in t_line
+
+        frame_lines = [line for line in lines if line.startswith('F')]
+        assert any(' context=' in line for line in frame_lines)
+        assert any('locals.secret_token="***"' in line for line in frame_lines)
+        assert any('locals.regular_value=' in line for line in frame_lines)
+
+    def test_extract_module_name_site_packages(self, formatter):
+        path = "/usr/local/lib/python3.10/site-packages/example/pkg/module.py"
+        result = formatter._extract_module_name(path)
+        assert result == "example.pkg.module"
+
+    def test_get_source_line_error_handling(self, formatter):
+        fake_frame = SimpleNamespace(
+            f_code=SimpleNamespace(co_filename="nonexistent.py"),
+            f_lineno=10,
+        )
+        with patch('rdetoolkit.traceback.formatter.linecache.getline', side_effect=OSError):
+            assert formatter._get_source_line(fake_frame) is None
+
+    def test_rc_line_with_explicit_cause_uses_last_frame(self, formatter):
+        import traceback
+
+        rc_line = ""
+        tb_list: list = []
+        try:
+            try:
+                raise ValueError("primary error")
+            except ValueError as inner:
+                raise RuntimeError("wrapped error") from inner
+        except RuntimeError as exc:
+            tb_list = traceback.extract_tb(exc.__traceback__)
+            rc_line = formatter._format_rc_line(exc, tb_list)
+        assert f'frame="F{len(tb_list) - 1}"' in rc_line
+
+    def test_rc_line_with_implicit_context_uses_last_frame(self, formatter):
+        import traceback
+
+        rc_line = ""
+        tb_list: list = []
+        try:
+            try:
+                raise KeyError("first error")
+            except KeyError:
+                raise RuntimeError("second error")
+        except RuntimeError as exc:
+            tb_list = traceback.extract_tb(exc.__traceback__)
+            rc_line = formatter._format_rc_line(exc, tb_list)
+        assert f'frame="F{len(tb_list) - 1}"' in rc_line

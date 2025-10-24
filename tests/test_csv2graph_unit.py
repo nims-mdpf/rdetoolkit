@@ -1,4 +1,4 @@
-"""Focused unit tests for local.develop.issue_188.csv2graph."""
+"""Focused unit tests for the public csv2graph API."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from pathlib import Path
 import matplotlib
 import pandas as pd
 import pytest
+from matplotlib import pyplot as plt
 
 # CI / GitHub Actions では実行しない
 if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
@@ -17,15 +18,11 @@ if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
 # Ensure plotting uses a headless backend inside tests
 matplotlib.use("Agg")  # pragma: no cover - configuration
 
-import matplotlib.pyplot as plt
-
-from local.develop.issue_188.csv2graph import (
-    get_column_index,
-    parse_header,
-    plot_all_graphs,
-    plot_from_dataframe,
-    process_csv,
-)
+from rdetoolkit.graph.api.csv2graph import plot_from_dataframe
+from rdetoolkit.graph.exceptions import ColumnNotFoundError
+from rdetoolkit.graph.normalizers import ColumnNormalizer
+from rdetoolkit.graph.parsers import CSVParser
+from rdetoolkit.graph.textutils import parse_header
 
 
 def write_csv(tmp_path: Path, name: str, body: str) -> Path:
@@ -34,7 +31,7 @@ def write_csv(tmp_path: Path, name: str, body: str) -> Path:
     return path
 
 
-def test_process_csv_single_header_mode(tmp_path: Path) -> None:
+def test_csv_parser_single_header_mode(tmp_path: Path) -> None:
     csv_path = write_csv(
         tmp_path,
         "single_header.csv",
@@ -45,9 +42,9 @@ def test_process_csv_single_header_mode(tmp_path: Path) -> None:
         """,
     )
 
-    df, metadata = process_csv(str(csv_path))
+    df, metadata = CSVParser.parse(csv_path)
 
-    assert metadata["mode"] == "single_header"
+    assert metadata["mode"] == CSVParser.DEFAULT_MODE
     assert metadata["title"] == "single_header"
     assert metadata["xaxis_label"] == "time (s)"
     assert metadata["yaxis_label"] == "current (mA)"
@@ -55,7 +52,7 @@ def test_process_csv_single_header_mode(tmp_path: Path) -> None:
     assert list(df.columns) == ["time (s)", "current (mA)"]
 
 
-def test_process_csv_no_header_mode(tmp_path: Path) -> None:
+def test_csv_parser_no_header_mode(tmp_path: Path) -> None:
     csv_path = write_csv(
         tmp_path,
         "no_header.csv",
@@ -66,16 +63,17 @@ def test_process_csv_no_header_mode(tmp_path: Path) -> None:
         """,
     )
 
-    df, metadata = process_csv(str(csv_path))
+    df, metadata = CSVParser.parse(csv_path)
 
-    assert metadata["mode"] == "no_header"
+    assert metadata["mode"] == CSVParser.DEFAULT_MODE
+    assert metadata["title"] == "no_header"
     assert metadata["xaxis_label"] == "x (arb.unit)"
     assert metadata["yaxis_label"] == "y (arb.unit)"
     assert metadata["legends"] == ["y1", "y2"]
     assert list(df.columns) == ["x (arb.unit)", "y1 (arb.unit)", "y2 (arb.unit)"]
 
 
-def test_process_csv_meta_block_mode(tmp_path: Path) -> None:
+def test_csv_parser_meta_block_mode(tmp_path: Path) -> None:
     csv_path = write_csv(
         tmp_path,
         "meta_block.csv",
@@ -90,9 +88,9 @@ def test_process_csv_meta_block_mode(tmp_path: Path) -> None:
         """,
     )
 
-    df, metadata = process_csv(str(csv_path))
+    df, metadata = CSVParser.parse(csv_path)
 
-    assert metadata["mode"] == "meta_block"
+    assert metadata["mode"] == CSVParser.DEFAULT_MODE
     assert metadata["title"] == "Meta Block Example"
     assert metadata["xaxis_label"] == "Time (s)"
     assert metadata["yaxis_label"] == "Current (mA)"
@@ -100,7 +98,7 @@ def test_process_csv_meta_block_mode(tmp_path: Path) -> None:
     assert list(df.columns) == ["Time (s)", "Series A (mA)", "Series B (mA)"]
 
 
-def test_process_csv_meta_block_header_mismatch(tmp_path: Path) -> None:
+def test_csv_parser_meta_block_header_mismatch(tmp_path: Path) -> None:
     csv_path = write_csv(
         tmp_path,
         "meta_mismatch.csv",
@@ -115,8 +113,11 @@ def test_process_csv_meta_block_header_mismatch(tmp_path: Path) -> None:
         """,
     )
 
-    with pytest.raises(ValueError, match="Length mismatch"):
-        process_csv(str(csv_path))
+    df, metadata = CSVParser.parse(csv_path)
+
+    # 足りないデータ列は安全にトリムされる
+    assert metadata["legends"] == ["Series A"]
+    assert list(df.columns) == ["Time (s)", "Series A (mA)"]
 
 
 def test_parse_header_humanizes_and_extracts_unit() -> None:
@@ -125,21 +126,21 @@ def test_parse_header_humanizes_and_extracts_unit() -> None:
     assert parse_header("temperature") == (None, "Temperature", None)
 
 
-def test_get_column_index_accepts_multiple_notations() -> None:
+def test_column_normalizer_to_index_variants() -> None:
     df = pd.DataFrame([[0, 1]], columns=["time", "current"])
+    normalizer = ColumnNormalizer(df)
 
-    assert get_column_index(df, 1) == 1
-    assert get_column_index(df, "1") == 1
-    assert get_column_index(df, "current") == 1
+    assert normalizer.to_index(1) == 1
+    assert normalizer.to_index("current") == 1
 
-    with pytest.raises(ValueError, match="Column 'voltage' not found"):
-        get_column_index(df, "voltage")
+    with pytest.raises(ColumnNotFoundError, match="'voltage'"):
+        normalizer.to_index("voltage")
 
-    with pytest.raises(ValueError, match="Invalid column specification"):
-        get_column_index(df, 0.5)
+    with pytest.raises(TypeError, match="int or str"):
+        normalizer.to_index(0.5)  # type: ignore[arg-type]
 
 
-def test_plot_from_dataframe_raises_on_mismatched_columns() -> None:
+def test_plot_from_dataframe_raises_on_mismatched_columns(tmp_path: Path) -> None:
     df = pd.DataFrame(
         {
             "time (s)": [0, 1, 2],
@@ -148,19 +149,20 @@ def test_plot_from_dataframe_raises_on_mismatched_columns() -> None:
         }
     )
 
-    with pytest.raises(ValueError, match="x_colとy_colの数が一致しません"):
+    with pytest.raises(ValueError, match="must be equal"):
         plot_from_dataframe(
             df=df,
+            output_dir=tmp_path,
             name="example",
             logy=False,
             html=False,
             x_col=[0, 1],
-            y_col=[2],
+            y_cols=[2],
             return_fig=True,
         )
 
 
-def test_plot_all_graphs_respects_direction_filter() -> None:
+def test_plot_from_dataframe_respects_direction_filter(tmp_path: Path) -> None:
     df = pd.DataFrame(
         {
             "time": [0, 1, 2, 3],
@@ -169,85 +171,74 @@ def test_plot_all_graphs_respects_direction_filter() -> None:
         }
     )
 
-    fig_filtered = plot_all_graphs(
+    filtered_artifacts = plot_from_dataframe(
         df=df,
+        output_dir=tmp_path,
         name="direction_case",
-        xaxis_label="Time",
-        yaxis_label="Value",
-        legends=["Series"],
+        title="Direction Case",
+        x_label="Time",
+        y_label="Value",
         logy=False,
-        output_dir=None,
         x_col=0,
         y_cols=[1],
         logx=False,
         html=False,
         direction_cols=[2],
-        direction_filter="Charge",
+        direction_filter=["Charge"],
+        no_individual=True,
         return_fig=True,
     )
 
-    try:
-        assert fig_filtered is not None
-        assert len(fig_filtered.axes[0].lines) == 1
-    finally:
-        if fig_filtered is not None:
-            plt.close(fig_filtered)
+    assert filtered_artifacts is not None
+    filtered_overlay = filtered_artifacts[0]
+    assert len(filtered_overlay.figure.axes[0].lines) == 1
+    plt.close(filtered_overlay.figure)
 
-    fig_all = plot_all_graphs(
+    all_artifacts = plot_from_dataframe(
         df=df,
+        output_dir=tmp_path,
         name="direction_case",
-        xaxis_label="Time",
-        yaxis_label="Value",
-        legends=["Series"],
+        title="Direction Case",
+        x_label="Time",
+        y_label="Value",
         logy=False,
-        output_dir=None,
         x_col=0,
         y_cols=[1],
         logx=False,
         html=False,
         direction_cols=[2],
-        direction_filter=None,
+        no_individual=True,
         return_fig=True,
     )
 
-    try:
-        assert fig_all is not None
-        assert len(fig_all.axes[0].lines) == 2
-    finally:
-        if fig_all is not None:
-            plt.close(fig_all)
+    assert all_artifacts is not None
+    overlay = all_artifacts[0]
+    assert len(overlay.figure.axes[0].lines) == 2
+    plt.close(overlay.figure)
 
 
-def test_plot_all_graphs_validates_directories(tmp_path: Path) -> None:
+def test_plot_from_dataframe_creates_directories(tmp_path: Path) -> None:
     df = pd.DataFrame({"time": [0, 1], "value": [1, 2]})
 
-    with pytest.raises(FileNotFoundError):
-        plot_all_graphs(
-            df=df,
-            name="missing_dir",
-            xaxis_label="Time",
-            yaxis_label="Value",
-            legends=["Series"],
-            logy=False,
-            output_dir=str(tmp_path / "missing"),
-            x_col=0,
-            y_cols=[1],
-            return_fig=False,
-        )
+    output_dir = tmp_path / "missing"
+    main_dir = tmp_path / "main_missing"
 
-    existing_output = tmp_path / "output"
-    existing_output.mkdir()
-    with pytest.raises(FileNotFoundError):
-        plot_all_graphs(
-            df=df,
-            name="missing_main",
-            xaxis_label="Time",
-            yaxis_label="Value",
-            legends=["Series"],
-            logy=False,
-            output_dir=str(existing_output),
-            main_image_dir=str(tmp_path / "main_missing"),
-            x_col=0,
-            y_cols=[1],
-            return_fig=False,
-        )
+    plot_from_dataframe(
+        df=df,
+        output_dir=output_dir,
+        main_image_dir=main_dir,
+        name="dir_case",
+        title="Dir Case",
+        x_label="Time",
+        y_label="Value",
+        logy=False,
+        x_col=0,
+        y_cols=[1],
+        no_individual=False,
+        return_fig=False,
+    )
+
+    assert output_dir.is_dir()
+    assert main_dir.is_dir()
+    assert any(main_dir.glob("dir_case.png"))
+    assert list(output_dir.glob("dir_case_*.png"))

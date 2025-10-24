@@ -226,10 +226,11 @@ exclude_also = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--mpl"
+addopts = "--mpl -m 'not legacy'"
 testpaths = ["tests"]
 markers = [
     "graph_outputs: marks tests that generate graph outputs (deselect with '-m \"not graph_outputs\"')",
+    "legacy: marks legacy compatibility tests (deselected by default)",
 ]
 
 
