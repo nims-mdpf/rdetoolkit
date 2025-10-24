@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import json
 import pathlib
-from typing import Literal
+from typing import Literal, cast
 
 import click
 
 from rdetoolkit.cmd.archive import CreateArtifactCommand
 from rdetoolkit.cmd.command import InitCommand, VersionCommand
 from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
+from rdetoolkit.cmd.gen_config import (
+    GenerateConfigCommand,
+    TEMPLATE_CHOICES,
+    LANG_CHOICES,
+)
 from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
 
 
@@ -31,7 +36,11 @@ def version() -> None:
     cmd.invoke()
 
 
-def _validation_json_file(ctx: click.Context, param: click.Parameter, value: pathlib.Path) -> pathlib.Path:
+def _validation_json_file(
+    ctx: click.Context,
+    param: click.Parameter,
+    value: pathlib.Path,
+) -> pathlib.Path:
     """Validates that the provided file is a properly formatted JSON file.
 
     This function performs two validations:
@@ -63,18 +72,30 @@ def _validation_json_file(ctx: click.Context, param: click.Parameter, value: pat
     return value
 
 
-@click.command(help="Generate an Excel invoice based on the provided schema and save it to the specified output path.")
+@click.command(
+    help="Generate an Excel invoice based on the provided schema and save it to the specified output path.",
+)
 @click.argument(
     "invoice_schema_json_path",
-    type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=pathlib.Path),
+    type=click.Path(
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
     callback=_validation_json_file,
-    metavar="<invoice.shcema.json file path>",
+    metavar="<invoice.schema.json file path>",
 )
 @click.option(
     "-o",
     "--output",
     "output_path",
-    type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=pathlib.Path),
+    type=click.Path(
+        exists=False,
+        dir_okay=False,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
     default=pathlib.Path.cwd() / "template_excel_invoice.xlsx",
     metavar="<path to ExcelInvoice file output>",
     help="Path to ExcelInvoice file output (default: ./excel_invoice.xlsx)",
@@ -87,7 +108,10 @@ def _validation_json_file(ctx: click.Context, param: click.Parameter, value: pat
     help="=select the registration mode: 'file' or 'folder' (default: file)",
     metavar="<filemode or foldermode>",
 )
-def make_excelinvoice(invoice_schema_json_path: pathlib.Path, output_path: pathlib.Path, mode: Literal["file", "folder"]) -> None:
+def make_excelinvoice(
+    invoice_schema_json_path: pathlib.Path,
+    output_path: pathlib.Path, mode: Literal["file", "folder"],
+) -> None:
     """Generate an Excel invoice based on the provided schema and save it to the specified output path.
 
     Args:
@@ -210,7 +234,10 @@ def csv2graph(
 
     parsed_x_col = [parse_col(c) for c in x_col] if x_col else None
     parsed_y_cols = [parse_col(c) for c in y_cols] if y_cols else None
-    parsed_direction_cols = [parse_col(c) for c in direction_cols] if direction_cols else None
+    parsed_direction_cols = (
+        [parse_col(c) for c in direction_cols]
+        if direction_cols else None
+    )
     parsed_direction_filter = list(direction_filter) if direction_filter else None
 
     # Parse direction colors
@@ -250,8 +277,76 @@ def csv2graph(
     cmd.invoke()
 
 
+@click.command(help="Generate an rdeconfig.yaml template in the target directory.")
+@click.argument(
+    "output_dir",
+    type=click.Path(file_okay=False, resolve_path=True, path_type=pathlib.Path),
+    required=False,
+)
+@click.option(
+    "--template",
+    "template_name",
+    type=click.Choice(list(TEMPLATE_CHOICES), case_sensitive=False),
+    default="minimal",
+    show_default=True,
+    help="Template style for rdeconfig.yaml.",
+)
+@click.option(
+    "--overwrite",
+    is_flag=True,
+    help="Allow replacing an existing rdeconfig.yaml.",
+)
+@click.option(
+    "--lang",
+    type=click.Choice(list(LANG_CHOICES), case_sensitive=False),
+    default="en",
+    show_default=True,
+    help="Prompt language (interactive template only).",
+)
+def gen_config(
+    output_dir: pathlib.Path | None,
+    template_name: str,
+    overwrite: bool,
+    lang: str,
+) -> None:
+    """Generate rdeconfig.yaml from templates."""
+    template_key = template_name.lower()
+    lang_key = lang.lower()
+
+    if template_key != "interactive" and lang_key != "en":
+        error_message = "--lang is only available when --template=interactive"
+        raise click.BadParameter(
+            error_message,
+            param_hint="--lang",
+        )
+
+    target_dir = output_dir if output_dir is not None else pathlib.Path.cwd()
+
+    command = GenerateConfigCommand(
+        output_dir=target_dir,
+        template=cast(
+            Literal[
+                "minimal",
+                "full",
+                "multitile",
+                "rdeformat",
+                "smarttable",
+                "interactive",
+            ],
+            template_key,
+        ),
+        overwrite=overwrite,
+        lang=cast(
+            Literal["en", "ja"],
+            lang_key if template_key == "interactive" else "en",
+        ),
+    )
+    command.invoke()
+
+
 cli.add_command(init)
 cli.add_command(version)
 cli.add_command(make_excelinvoice)
 cli.add_command(artifact)
 cli.add_command(csv2graph)
+cli.add_command(gen_config)
