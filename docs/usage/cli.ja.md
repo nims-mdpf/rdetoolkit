@@ -81,6 +81,44 @@ container
 !!! tip "デフォルト出力"
     `-o`を指定しない場合は、`template_excel_invoice.xlsx`というファイル名で、実行ディレクトリ配下に作成されます。
 
+### gen-config: rdeconfig.yamlテンプレートの生成
+
+用意されているテンプレート、または対話形式の質問に基づいて`rdeconfig.yaml`を生成します。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit gen-config [OUTPUT_DIR] --template <template> [--overwrite] [--lang <ja|en>]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit gen-config [OUTPUT_DIR] --template <template> [--overwrite] [--lang <ja|en>]
+    ```
+
+利用できるテンプレートは以下の通りです。
+
+- `minimal`（デフォルト）: システム設定とトレースバック設定のみを含む最小構成。
+- `full`: `multidata_tile`設定を含む完全なテンプレート。
+- `multitile`: `extended_mode: "MultiDataTile"`を有効化したテンプレート。
+- `rdeformat`: `extended_mode: "rdeformat"`を有効化したテンプレート。
+- `smarttable`: SmartTable設定を追加し、`save_table_file: true`を設定。
+- `interactive`: 対話形式で各設定項目を確認。`--lang ja`で日本語プロンプトに切り替え可能。
+
+#### オプション
+
+| オプション       | 説明                                                                                                  | 必須 |
+| ---------------- | ----------------------------------------------------------------------------------------------------- | ---- |
+| OUTPUT_DIR       | `rdeconfig.yaml`を出力するディレクトリ。省略時はカレントディレクトリに作成されます。                  | -    |
+| --template       | テンプレート名（`minimal`, `full`, `multitile`, `rdeformat`, `smarttable`, `interactive`）。           | -    |
+| --overwrite      | 既存の`rdeconfig.yaml`がある場合に確認なしで強制上書きします。未指定なら既存時のみ確認を表示します。   | -    |
+| --lang           | プロンプトの言語（`en` または `ja`）。`--template interactive`選択時のみ利用できます。               | -    |
+
+!!! tip "インタラクティブモード"
+    `--template interactive`を指定すると、システム設定、MultiDataTile設定、SmartTable設定、トレースバック設定について
+    対話形式で質問されます。回答は`rdeconfig.yaml`に反映され、プロジェクト開始時から整合した初期値を共有できます。
+
 ### version: バージョン確認
 
 rdetoolkitのバージョンを確認します。

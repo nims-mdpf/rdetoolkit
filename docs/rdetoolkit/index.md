@@ -41,6 +41,7 @@ This section provides comprehensive API documentation for RDEToolKit modules. Th
 ## Commands
 
 - [command](./cmd/command.md): Base command implementations.
+- [gen_config](./cmd/gen_config.md): CLI for generating validated configuration templates.
 
 ## Storage & Artifacts
 
