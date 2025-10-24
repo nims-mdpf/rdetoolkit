@@ -253,7 +253,7 @@ def isolated_processing_context(rde_input_paths, mock_datasets_function) -> Gene
 
 
 @pytest.fixture
-def smarttable_processing_context(rde_input_paths, mock_datasets_function) -> Generator[ProcessingContext, None, None]:
+def smarttable_processing_context(mock_datasets_function) -> Generator[ProcessingContext, None, None]:
     """Create a ProcessingContext for SmartTable mode testing with temporary directories."""
     with tempfile.TemporaryDirectory() as temp_dir:
         base_path = Path(temp_dir)
@@ -367,9 +367,16 @@ def smarttable_processing_context(rde_input_paths, mock_datasets_function) -> Ge
             with open(rde_output_paths.invoice_schema_json, 'w') as f:
                 json.dump(schema_data, f)
 
+        input_paths = RdeInputDirPaths(
+            inputdata=base_path / "inputdata",
+            invoice=base_path / "invoice",
+            tasksupport=base_path / "tasksupport",
+            config=create_default_config(),
+        )
+
         context = ProcessingContext(
             index="0001",
-            srcpaths=rde_input_paths,
+            srcpaths=input_paths,
             resource_paths=rde_output_paths,
             datasets_function=mock_datasets_function,
             mode_name="smarttable",

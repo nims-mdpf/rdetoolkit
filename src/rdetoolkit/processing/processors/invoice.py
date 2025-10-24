@@ -1,6 +1,5 @@
-"""Invoice initialization processors."""
-
 from __future__ import annotations
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -185,9 +184,24 @@ class SmartTableInvoiceInitializer(Processor):
             schema_dict = readf_json(context.resource_paths.invoice_schema_json)
             invoice_schema_json_data = InvoiceSchemaJson(**schema_dict)
 
+            metadata_updates: dict[str, dict[str, Any]] = {}
+            metadata_def: dict[str, Any] | None = None
+
             for col in csv_data.columns:
                 value = csv_data.iloc[0][col]
                 if pd.isna(value) or value == "":
+                    continue
+                if col.startswith("meta/"):
+                    if not context.metadata_def_path.exists():
+                        logger.debug(
+                            "Skipping meta column %s because metadata-def.json is missing",
+                            col,
+                        )
+                        continue
+                    if metadata_def is None:
+                        metadata_def = self._load_metadata_definition(context.metadata_def_path)
+                    meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
+                    metadata_updates[meta_key] = meta_entry
                     continue
                 self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
 
@@ -198,6 +212,13 @@ class SmartTableInvoiceInitializer(Processor):
             invoice_path.parent.mkdir(parents=True, exist_ok=True)
             writef_json(invoice_path, invoice_data)
             logger.debug(f"Successfully generated invoice at {invoice_path}")
+
+            if metadata_updates:
+                self._write_metadata(context, metadata_updates)
+                logger.debug(
+                    "Updated metadata.json with keys: %s",
+                    ", ".join(metadata_updates.keys()),
+                )
 
         except Exception as e:
             logger.error(f"SmartTable invoice initialization failed: {str(e)}")
@@ -258,7 +279,7 @@ class SmartTableInvoiceInitializer(Processor):
                 invoice_data["sample"][field] = value
 
         elif key.startswith("meta/"):
-            # meta/ prefix is ignored as per specification
+            # meta/ prefix is handled separately for metadata.json generation
             pass
 
         elif key.startswith("inputdata"):
@@ -305,13 +326,115 @@ class SmartTableInvoiceInitializer(Processor):
                 invoice_data["sample"]["specificAttributes"].append({
                     "classId": class_id,
                     "termId": term_id,
-                    "value": value,
-                })
+                "value": value,
+            })
 
     def _ensure_required_fields(self, invoice_data: dict) -> None:
         """Ensure required fields are present in invoice data."""
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
+
+    def _load_metadata_definition(self, metadata_def_path: Path) -> dict[str, Any]:
+        """Load metadata definitions for SmartTable meta column processing.
+
+        Args:
+            metadata_def_path: Path to ``metadata-def.json`` obtained from the processing context.
+
+        Returns:
+            Dictionary containing metadata definitions keyed by metadata name.
+
+        Raises:
+            StructuredError: If the file is missing or not a JSON object.
+        """
+        if not metadata_def_path.exists():
+            emsg = f"metadata-def.json not found: {metadata_def_path}"
+            raise StructuredError(emsg)
+
+        metadata_def = readf_json(metadata_def_path)
+        if not isinstance(metadata_def, dict):
+            emsg = "metadata-def.json must contain an object at the top level"
+            raise StructuredError(emsg)
+
+        return metadata_def
+
+    def _process_meta_mapping(
+        self,
+        key: str,
+        value: str,
+        metadata_def: dict[str, Any],
+    ) -> tuple[str, dict[str, Any]]:
+        """Convert a SmartTable meta column into a metadata.json entry.
+
+        Args:
+            key: Column name from SmartTable (e.g., ``meta/comment``).
+            value: String representation of the value extracted from the CSV row.
+            metadata_def: Loaded metadata definition dictionary.
+
+        Returns:
+            Tuple of metadata key and the corresponding metadata entry.
+
+        Raises:
+            StructuredError: If definitions are missing, unsupported, or type conversion fails.
+        """
+        meta_key = key.replace("meta/", "", 1)
+        definition = metadata_def.get(meta_key)
+        if definition is None:
+            emsg = f"Metadata definition not found for key: {meta_key}"
+            raise StructuredError(emsg)
+
+        if definition.get("variable"):
+            emsg = f"Variable metadata is not supported for SmartTable meta mapping: {meta_key}"
+            raise StructuredError(emsg)
+
+        schema = definition.get("schema", {})
+        meta_type = schema.get("type")
+        meta_format = schema.get("format")
+
+        if meta_type and meta_type not in {"string", "number", "integer", "boolean"}:
+            emsg = f"Unsupported metadata type for key {meta_key}: {meta_type}"
+            raise StructuredError(emsg)
+
+        try:
+            converted_value = (
+                castval(value, meta_type, meta_format)
+                if meta_type
+                else value
+            )
+        except StructuredError as cast_error:
+            emsg = f"Failed to cast metadata value for key: {meta_key}"
+            raise StructuredError(emsg) from cast_error
+
+        meta_entry: dict[str, Any] = {"value": converted_value}
+        unit = definition.get("unit")
+        if unit:
+            meta_entry["unit"] = unit
+
+        return meta_key, meta_entry
+
+    def _write_metadata(
+        self,
+        context: ProcessingContext,
+        metadata_updates: dict[str, dict[str, Any]],
+    ) -> None:
+        """Persist metadata.json with collected SmartTable meta values.
+
+        Args:
+            context: Current processing context containing destination paths.
+            metadata_updates: Mapping of metadata keys to entry dictionaries.
+        """
+        metadata_path = context.metadata_path
+        metadata_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if metadata_path.exists():
+            metadata_obj = readf_json(metadata_path)
+        else:
+            metadata_obj = {"constant": {}, "variable": []}
+
+        constant_section = metadata_obj.setdefault("constant", {})
+        metadata_obj.setdefault("variable", [])
+
+        constant_section.update(metadata_updates)
+        writef_json(metadata_path, metadata_obj)
 
     def get_name(self) -> str:
         """Get the name of this processor."""
