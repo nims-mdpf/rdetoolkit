@@ -393,7 +393,7 @@ def test_make_excelinvoice_help():
     result = runner.invoke(make_excelinvoice, ['--help'])
 
     assert result.exit_code == 0
-    assert "Usage: make-excelinvoice [OPTIONS] <invoice.shcema.json file path>" in result.output
+    assert "Usage: make-excelinvoice [OPTIONS] <invoice.schema.json file path>" in result.output
     assert "Generate an Excel invoice based on the provided schema and save it to the\n  specified output path." in result.output
     assert "-o, --output" in result.output
     assert "-m, --mode" in result.output
