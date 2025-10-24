@@ -194,7 +194,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [.]
+          paths: [src, .]
           options:
             show_source: false
             merge_init_into_class: true
