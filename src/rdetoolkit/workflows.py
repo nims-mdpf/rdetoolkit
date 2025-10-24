@@ -200,6 +200,7 @@ def _process_mode(  # noqa: C901
         elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "multidatatile":
             mode = "MultiDataTile"
             ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
+            status = None
             if ignore_error:
                 # ignore_errorが有効な場合のみ例外をキャッチ
                 with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
