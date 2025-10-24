@@ -169,7 +169,7 @@ def generate_folder_paths_iterator(
         yield rdeoutput_resource_path
 
 
-def _process_mode(  # noqa: C901
+def _process_mode(  # noqa: C901 PLR0912
     idx: int,
     srcpaths: RdeInputDirPaths,
     rdeoutput_resource: RdeOutputResourcePath,
@@ -185,6 +185,7 @@ def _process_mode(  # noqa: C901
         tuple[WorkflowExecutionStatus, dict | None, str]: Status, error info if any, and mode
     """
     error_info = None
+    status: WorkflowExecutionStatus | None = None
 
     # 処理実行
     try:
@@ -200,16 +201,22 @@ def _process_mode(  # noqa: C901
         elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "multidatatile":
             mode = "MultiDataTile"
             ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
-            status = None
             if ignore_error:
                 # ignore_errorが有効な場合のみ例外をキャッチ
                 with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
                     status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+                if status is None:
+                    emsg = "MultiDataTile mode did not return a workflow status"
+                    raise StructuredError(emsg)
                 return status, error_info, mode
             status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
         else:
             mode = "Invoice"
             status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
+
+        if status is None:
+            emsg = f"Processing mode {mode} did not return a workflow status"
+            raise StructuredError(emsg)
 
         if status.status == "failed":
             if hasattr(status, 'exception_object'):
