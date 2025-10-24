@@ -184,26 +184,12 @@ class SmartTableInvoiceInitializer(Processor):
             schema_dict = readf_json(context.resource_paths.invoice_schema_json)
             invoice_schema_json_data = InvoiceSchemaJson(**schema_dict)
 
-            metadata_updates: dict[str, dict[str, Any]] = {}
-            metadata_def: dict[str, Any] | None = None
-
-            for col in csv_data.columns:
-                value = csv_data.iloc[0][col]
-                if pd.isna(value) or value == "":
-                    continue
-                if col.startswith("meta/"):
-                    if not context.metadata_def_path.exists():
-                        logger.debug(
-                            "Skipping meta column %s because metadata-def.json is missing",
-                            col,
-                        )
-                        continue
-                    if metadata_def is None:
-                        metadata_def = self._load_metadata_definition(context.metadata_def_path)
-                    meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
-                    metadata_updates[meta_key] = meta_entry
-                    continue
-                self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
+            metadata_updates = self._apply_smarttable_row(
+                csv_data,
+                context,
+                invoice_data,
+                invoice_schema_json_data,
+            )
 
             # Ensure required fields are present
             self._ensure_required_fields(invoice_data)
@@ -334,6 +320,37 @@ class SmartTableInvoiceInitializer(Processor):
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
 
+    def _apply_smarttable_row(
+        self,
+        csv_data: pd.DataFrame,
+        context: ProcessingContext,
+        invoice_data: dict[str, Any],
+        invoice_schema_json_data: InvoiceSchemaJson,
+    ) -> dict[str, dict[str, Any]]:
+        """Apply SmartTable row data to invoice and collect metadata updates."""
+        metadata_updates: dict[str, dict[str, Any]] = {}
+        metadata_def: dict[str, Any] | None = None
+
+        for col in csv_data.columns:
+            value = csv_data.iloc[0][col]
+            if pd.isna(value) or value == "":
+                continue
+            if col.startswith("meta/"):
+                if not context.metadata_def_path.exists():
+                    logger.debug(
+                        "Skipping meta column %s because metadata-def.json is missing",
+                        col,
+                    )
+                    continue
+                if metadata_def is None:
+                    metadata_def = self._load_metadata_definition(context.metadata_def_path)
+                meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
+                metadata_updates[meta_key] = meta_entry
+                continue
+            self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
+
+        return metadata_updates
+
     def _load_metadata_definition(self, metadata_def_path: Path) -> dict[str, Any]:
         """Load metadata definitions for SmartTable meta column processing.
 
@@ -425,10 +442,10 @@ class SmartTableInvoiceInitializer(Processor):
         metadata_path = context.metadata_path
         metadata_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if metadata_path.exists():
-            metadata_obj = readf_json(metadata_path)
-        else:
-            metadata_obj = {"constant": {}, "variable": []}
+        metadata_obj = (
+            readf_json(metadata_path)
+            if metadata_path.exists() else {"constant": {}, "variable": []}
+        )
 
         constant_section = metadata_obj.setdefault("constant", {})
         metadata_obj.setdefault("variable", [])
