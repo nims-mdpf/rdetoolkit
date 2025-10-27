@@ -4,6 +4,8 @@
 
 `csv2graph` is a Python module that automatically generates static graph images (PNG) and interactive HTML graphs (Plotly) from CSV files or Pandas DataFrames. It supports visualization of experimental data such as battery cycle data, X-ray Diffraction (XRD), and X-ray Photoelectron Spectroscopy (XPS).
 
+See the [csv2graph sample gallery](./csv2graph_samples.en.md) for end-to-end examples.
+
 ## Key Features
 
 - **Multiple CSV Format Support**: Standard CSV, transposed CSV, and headerless CSV
@@ -13,6 +15,19 @@
 - **Automatic Header Humanization**: Automatically converts snake_case headers to Title Case
 - **Legend Control**: Legend item limit, legend position, additional information display
 - **Output Formats**: PNG images (default), interactive HTML (optional)
+
+## Integrating with Structured Processes
+
+```python
+from rdetoolkit.graph.api import csv2graph
+
+# Generate graphs from the prepared CSV
+csv2graph(
+    "data.csv",
+    main_image_dir="main_image",
+    output_dir="other_image",
+)
+```
 
 ## CSV Format Support
 
@@ -53,8 +68,8 @@ CSV file without a header row. Columns are automatically named as `Column_0`, `C
 
 Overlays all series on a single graph. This is the default mode.
 
-- **Representative Image**: Generates an image with all series combined
-- **Individual Images**: Also generates individual images for each series (when `no_individual=False`)
+- **Representative Image**: Always generates an image with all series combined
+- **Individual Images**: Automatically generated only when multiple Y series are present. They are suppressed for single-series CSVs unless you explicitly pass `no_individual=False`.
 
 ### individual (Individual Plot)
 
@@ -198,7 +213,8 @@ csv2graph(
 
 ### Skipping Individual Plots
 
-To generate only the overlay plot:
+Single-series CSVs automatically emit only the overlay plot.
+To suppress individual plots even when multiple series are present:
 
 ```python
 csv2graph("data.csv", no_individual=True)

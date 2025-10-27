@@ -4,6 +4,8 @@
 
 `csv2graph`は、CSVファイルやPandas DataFrameから静的なグラフ画像（PNG）やインタラクティブなHTMLグラフ（Plotly）を自動生成するPythonモジュールです。バッテリーサイクルデータ、X線回折（XRD）、X線光電子分光（XPS）などの実験データの可視化に対応しています。
 
+詳細な実行例は[csv2graphサンプル集](./csv2graph_samples.ja.md)を参照してください。
+
 ## 主な機能
 
 - **多様なCSVフォーマット対応**: 標準CSV、転置CSV、ヘッダー無しCSVに対応
@@ -13,6 +15,19 @@
 - **ヘッダ名の自動humanize**: snake_caseのヘッダを自動的にTitle Caseに変換
 - **凡例制御**: 凡例項目数制限、凡例位置指定、追加情報表示
 - **出力形式**: PNG画像（デフォルト）、インタラクティブHTML（オプション）
+
+## 構造化処理への組み込み
+
+```python
+from rdetoolkit.graph.api import csv2graph
+
+# 作成したcsvをグラフ化
+csv2graph(
+    "data.csv",
+    main_image_dir="main_image",
+    output_dir="other_image",
+)
+```
 
 ## CSVフォーマット対応
 
@@ -53,8 +68,8 @@ Y2,20,25,30
 
 すべての系列を1つのグラフに重ね合わせて表示します。デフォルトモードです。
 
-- **代表画像**: 全系列を統合した画像を生成
-- **個別画像**: 各系列の個別画像も生成（`no_individual=False`の場合）
+- **代表画像**: 全系列を統合した画像を常に生成
+- **個別画像**: 複数のY系列が指定されている場合のみ自動生成。単一系列ではデフォルトで出力されません（`no_individual=False` を明示すると常に生成）。
 
 ### individual（個別プロット）
 
@@ -198,7 +213,8 @@ csv2graph(
 
 ### 個別プロットのスキップ
 
-統合プロットのみを生成したい場合：
+単一系列のCSVでは、デフォルトで統合プロットのみが生成されます。
+複数系列でも個別プロットを抑止したい場合：
 
 ```python
 csv2graph("data.csv", no_individual=True)
