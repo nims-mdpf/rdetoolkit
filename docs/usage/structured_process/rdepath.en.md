@@ -2,157 +2,127 @@
 
 ## Purpose
 
-This document explains how to retrieve directory paths necessary for file read/write operations in RDE structured processing. You will learn efficient path management using `RdeInputDirPaths` and `RdeOutputResourcePath`.
+This guide explains how to manage directory paths used for file I/O in RDE structured processing. The new `RdeDatasetPaths` class unifies `RdeInputDirPaths` and `RdeOutputResourcePath`; new implementations should prefer this single-object interface while legacy code can continue to rely on the separate classes.
 
-## Prerequisites
+## Recommended: Use `RdeDatasetPaths`
 
-- Understanding of basic RDEToolKit usage
-- Basic knowledge of Python file operations
-- Understanding of structured processing directory structure
+`RdeDatasetPaths` bundles input- and output-side paths into one object so dataset callbacks can accept a single argument. Configuration accessors and helper shortcuts are exposed on the same instance, keeping callback code concise.
 
-## Steps
+### Preferred Dataset Signature
 
-### 1. Retrieve Input Paths
+```python title="Preferred signature"
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-Use `RdeInputDirPaths` to retrieve input data path information:
 
-```python title="Input Path Retrieval"
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # Input data directory
-    input_dir = srcpaths.inputdata
-    print(f"Input data directory: {input_dir}")
-    
-    # Invoice directory
-    invoice_dir = srcpaths.invoice
-    print(f"Invoice directory: {invoice_dir}")
-    
-    # Task support directory
-    tasksupport_dir = srcpaths.tasksupport
-    print(f"Task support directory: {tasksupport_dir}")
+def dataset(paths: RdeDatasetPaths) -> None:
+    # List incoming CSV files
+    for csv_file in paths.inputdata.glob("*.csv"):
+        print(f"Input CSV: {csv_file}")
+
+    # Structured data output directory
+    struct_dir = paths.struct
+    print(f"Structured output: {struct_dir}")
 ```
 
-### 2. Retrieve Output Paths
+### Frequently Used Properties
 
-Use `RdeOutputResourcePath` to retrieve output destination path information:
+- `paths.inputdata`: Input data directory; works with `Path.glob()` and similar utilities.
+- `paths.invoice`: Input-side invoice directory.
+- `paths.tasksupport`: Directory containing auxiliary data such as `metadata-def.json`.
+- `paths.struct`: Structured data output directory.
+- `paths.meta`: Metadata output directory.
+- `paths.rawfiles`: Collected input files (per tile) after extraction or copying. Use this to determine the exact processing targets.
+- `paths.raw` / `paths.nonshared_raw`: Output locations for raw data.
+- `paths.main_image`, `paths.other_image`, `paths.thumbnail`: Image output locations.
+- `paths.logs`: Directory for workflow log files.
+- `paths.metadata_def_json`: Shortcut to `tasksupport/metadata-def.json`.
 
-```python title="Output Path Retrieval"
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # Structured data directory
-    structured_dir = resource_paths.struct
-    print(f"Structured data directory: {structured_dir}")
-    
-    # Metadata directory
-    meta_dir = resource_paths.meta
-    print(f"Metadata directory: {meta_dir}")
-    
-    # Raw data directory
-    raw_dir = resource_paths.raw
-    print(f"Raw data directory: {raw_dir}")
-    
-    # Image directories
-    main_image_dir = resource_paths.main_image
-    other_image_dir = resource_paths.other_image
-    thumbnail_dir = resource_paths.thumbnail
-    
-    print(f"Main image directory: {main_image_dir}")
-    print(f"Other image directory: {other_image_dir}")
-    print(f"Thumbnail directory: {thumbnail_dir}")
-```
+### Example: Reading Input Files
 
-### 3. Read Files
-
-Use the retrieved paths to read files:
-
-```python title="File Reading"
-import os
+```python title="Reading with RdeDatasetPaths"
 import pandas as pd
-from pathlib import Path
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def read_input_files(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # Get file list from input directory
-    input_files = os.listdir(srcpaths.inputdata)
-    print(f"Input files: {input_files}")
-    
-    # Read CSV files
-    for file in input_files:
-        if file.endswith('.csv'):
-            file_path = Path(srcpaths.inputdata) / file
-            df = pd.read_csv(file_path)
-            print(f"Loaded {file}: {df.shape}")
-            
-            # Process data
-            processed_df = process_dataframe(df)
-            
-            # Save as structured data
-            output_path = Path(resource_paths.struct) / f"processed_{file}"
-            processed_df.to_csv(output_path, index=False)
+
+def read_inputs(paths: RdeDatasetPaths) -> None:
+    # rawfiles contains the finalized list of input artifacts for this tile
+    for source in paths.rawfiles:
+        df = pd.read_csv(source)
+        print(f"{source.name} loaded: {df.shape}")
 ```
 
-### 4. Save Files
+### Example: Writing Outputs
 
-Save processing results to appropriate directories:
-
-```python title="File Saving"
+```python title="Saving with RdeDatasetPaths"
 import json
-from pathlib import Path
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def save_processing_results(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # Processing result data
-    results = {
-        "status": "completed",
-        "processed_files": 5,
-        "timestamp": "2023-01-01T12:00:00Z"
-    }
-    
-    # Save as structured data
-    structured_file = Path(resource_paths.struct) / "results.json"
-    with open(structured_file, 'w', encoding='utf-8') as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
-    
-    # Save as metadata
-    metadata = {
-        "processing_version": "1.0",
-        "input_file_count": len(os.listdir(srcpaths.inputdata)),
-        "processing_date": "2023-01-01"
-    }
-    
-    meta_file = Path(resource_paths.meta) / "metadata.json"
-    with open(meta_file, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+def save_results(paths: RdeDatasetPaths, payload: dict) -> None:
+    output_path = paths.struct / "results.json"
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    meta_path = paths.meta / "metadata.json"
+    meta_path.write_text(
+        json.dumps({"count": len(payload)}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 ```
 
-## Verification
+## Compatibility and Legacy Style
 
-Verify that path retrieval and operations were performed correctly:
+Existing callbacks may still accept two arguments (`RdeInputDirPaths`, `RdeOutputResourcePath`). The toolkit keeps this signature for backward compatibility, but new structured processing code should adopt the unified single-argument form.
 
-### File Operation Verification
+### Legacy Signature Example
 
-```python title="Operation Result Verification"
-def verify_file_operations(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # Check input file count
-    input_count = len(os.listdir(srcpaths.inputdata))
-    print(f"Input file count: {input_count}")
-    
-    # Check output file count
-    output_dirs = {
-        "structured": resource_paths.struct,
-        "meta": resource_paths.meta,
-        "raw": resource_paths.raw,
-        "main_image": resource_paths.main_image
-    }
-    
-    for name, path in output_dirs.items():
-        if Path(path).exists():
-            file_count = len(os.listdir(path))
-            print(f"{name} directory file count: {file_count}")
+```python title="Legacy usage (maintenance only)"
+from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+
+
+def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
+    print(srcpaths.inputdata)
+    print(resource_paths.struct)
+```
+
+### Splitting Back into Legacy Arguments
+
+When you must call older helpers, use `as_legacy_args()` to recover the original pair.
+
+```python title="Bridging to legacy helpers"
+from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+
+def dataset(paths: RdeDatasetPaths) -> None:
+    srcpaths, resource_paths = paths.as_legacy_args()
+    legacy_dataset(srcpaths, resource_paths)
+```
+
+## Verifying Outputs
+
+`RdeDatasetPaths` also works for existence checks and file counts.
+
+```python title="Output directory verification"
+from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+
+def verify_outputs(paths: RdeDatasetPaths) -> None:
+    for name, directory in {
+        "structured": paths.struct,
+        "meta": paths.meta,
+        "raw": paths.raw,
+        "main_image": paths.main_image,
+    }.items():
+        if directory.exists():
+            print(f"{name} directory: {len(list(directory.iterdir()))} items")
         else:
-            print(f"⚠️ {name} directory does not exist")
+            print(f"⚠️ {name} directory is missing")
 ```
 
 ## Related Information
 
-To learn more about directory path retrieval, refer to the following documents:
-
-- Understand processing flows where paths are used in [Structured Processing Concepts](structured.en.md)
-- Check the role of each directory in [Directory Structure Specification](directory.en.md)
-- Learn how to handle path-related errors in [Error Handling](errorhandling.en.md)
+- [Structured Processing Concepts](structured.en.md)
+- [Directory Structure Specification](directory.en.md)
+- [Error Handling](errorhandling.en.md)

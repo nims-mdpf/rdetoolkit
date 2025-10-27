@@ -2,157 +2,127 @@
 
 ## 目的
 
-RDE構造化処理でファイルの読み書きを行うために必要なディレクトリパスの取得方法について説明します。`RdeInputDirPaths`と`RdeOutputResourcePath`を使用した効率的なパス管理を学べます。
+RDE構造化処理でファイルの読み書きを行うためのディレクトリパス管理について説明します。`RdeInputDirPaths`と`RdeOutputResourcePath`を統合した`RdeDatasetPaths`が追加されており、新規実装ではこのクラスを利用することを推奨します。既存コードとの後方互換性のため、従来のクラスも引き続き利用できます。
 
-## 前提条件
+## 推奨: `RdeDatasetPaths` を使う
 
-- RDEToolKitの基本的な使用方法の理解
-- Pythonのファイル操作の基本知識
-- 構造化処理のディレクトリ構造の理解
+`RdeDatasetPaths`は入力系と出力系のパスを1つのオブジェクトにまとめ、データセット関数を単一引数で扱えるようにします。設定や補助ファイルへのアクセスも同じインターフェースで利用できるため、コールバックの実装をシンプルに保てます。
 
-## 手順
+### データセット関数の基本形
 
-### 1. 入力パスを取得する
+```python title="推奨シグネチャ"
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-`RdeInputDirPaths`を使用して入力データのパス情報を取得します：
 
-```python title="入力パスの取得"
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # 入力データディレクトリ
-    input_dir = srcpaths.inputdata
-    print(f"入力データディレクトリ: {input_dir}")
-    
-    # 送り状ディレクトリ
-    invoice_dir = srcpaths.invoice
-    print(f"送り状ディレクトリ: {invoice_dir}")
-    
-    # タスクサポートディレクトリ
-    tasksupport_dir = srcpaths.tasksupport
-    print(f"タスクサポートディレクトリ: {tasksupport_dir}")
+def dataset(paths: RdeDatasetPaths) -> None:
+    # 入力ファイル一覧の取得
+    for csv_file in paths.inputdata.glob("*.csv"):
+        print(f"入力CSV: {csv_file}")
+
+    # 生成した構造化データの保存先
+    struct_dir = paths.struct
+    print(f"構造化データ出力: {struct_dir}")
 ```
 
-### 2. 出力パスを取得する
+### 利用できる主なプロパティ
 
-`RdeOutputResourcePath`を使用して出力先のパス情報を取得します：
+- `paths.inputdata`: 入力データディレクトリ。`Path.glob()`などの操作が可能です。
+- `paths.invoice`: 入力側の`invoice`ディレクトリ。
+- `paths.tasksupport`: `metadata-def.json`等の補助データが格納されているディレクトリ。
+- `paths.struct`: 構造化データの出力先。
+- `paths.meta`: メタデータの出力先。
+- `paths.rawfiles`: 1データタイル単位で入力ファイル群が格納される。また各種モードを解釈した状態でパスが格納される。`divided`ディレクトリを考慮したパスなどが格納されます。
+- `paths.raw` / `paths.nonshared_raw`: 生データの保存先。
+- `paths.main_image`・`paths.other_image`・`paths.thumbnail`: 画像系出力先。
+- `paths.logs`: ログファイルの保存先。
+- `paths.metadata_def_json`: `tasksupport/metadata-def.json`へのショートカット。
 
-```python title="出力パスの取得"
-def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # 構造化データディレクトリ
-    structured_dir = resource_paths.struct
-    print(f"構造化データディレクトリ: {structured_dir}")
-    
-    # メタデータディレクトリ
-    meta_dir = resource_paths.meta
-    print(f"メタデータディレクトリ: {meta_dir}")
-    
-    # 生データディレクトリ
-    raw_dir = resource_paths.raw
-    print(f"生データディレクトリ: {raw_dir}")
-    
-    # 画像ディレクトリ
-    main_image_dir = resource_paths.main_image
-    other_image_dir = resource_paths.other_image
-    thumbnail_dir = resource_paths.thumbnail
-    
-    print(f"メイン画像ディレクトリ: {main_image_dir}")
-    print(f"その他画像ディレクトリ: {other_image_dir}")
-    print(f"サムネイル画像ディレクトリ: {thumbnail_dir}")
-```
+### 例: 入力ファイルを読み込む
 
-### 3. ファイルを読み込む
-
-取得したパスを使用してファイルを読み込みます：
-
-```python title="ファイル読み込み"
-import os
+```python title="RdeDatasetPathsでの読み込み"
 import pandas as pd
-from pathlib import Path
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def read_input_files(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # 入力ディレクトリのファイル一覧を取得
-    input_files = os.listdir(srcpaths.inputdata)
-    print(f"入力ファイル: {input_files}")
-    
-    # CSVファイルを読み込み
-    for file in input_files:
-        if file.endswith('.csv'):
-            file_path = Path(srcpaths.inputdata) / file
-            df = pd.read_csv(file_path)
-            print(f"読み込み完了 {file}: {df.shape}")
-            
-            # データ処理
-            processed_df = process_dataframe(df)
-            
-            # 構造化データとして保存
-            output_path = Path(resource_paths.struct) / f"processed_{file}"
-            processed_df.to_csv(output_path, index=False)
+
+def read_inputs(paths: RdeDatasetPaths) -> None:
+    # rawfilesには構造化対象の入力ファイルがまとまっている
+    for source in paths.rawfiles:
+        df = pd.read_csv(source)
+        print(f"{source.name} 読み込み完了: {df.shape}")
 ```
 
-### 4. ファイルを保存する
+### 例: 出力先に保存する
 
-処理結果を適切なディレクトリに保存します：
-
-```python title="ファイル保存"
+```python title="RdeDatasetPathsでの保存"
 import json
-from pathlib import Path
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 
-def save_processing_results(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # 処理結果データ
-    results = {
-        "status": "completed",
-        "processed_files": 5,
-        "timestamp": "2023-01-01T12:00:00Z"
-    }
-    
-    # 構造化データとして保存
-    structured_file = Path(resource_paths.struct) / "results.json"
-    with open(structured_file, 'w', encoding='utf-8') as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
-    
-    # メタデータとして保存
-    metadata = {
-        "processing_version": "1.0",
-        "input_file_count": len(os.listdir(srcpaths.inputdata)),
-        "processing_date": "2023-01-01"
-    }
-    
-    meta_file = Path(resource_paths.meta) / "metadata.json"
-    with open(meta_file, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+def save_results(paths: RdeDatasetPaths, payload: dict) -> None:
+    output_path = paths.struct / "results.json"
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    meta_path = paths.meta / "metadata.json"
+    meta_path.write_text(
+        json.dumps({"count": len(payload)}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 ```
 
-## 結果の確認
+## 互換性とレガシースタイル
 
-パス取得と操作が正しく行われたかを確認します：
+既存のコードでは`RdeInputDirPaths`と`RdeOutputResourcePath`を別々に受け取るケースがあります。後方互換性のため旧シグネチャはサポートされていますが、新規の構造化処理では`RdeDatasetPaths`の単一引数スタイルを採用してください。
 
-### ファイル操作の確認
+### 旧シグネチャの使用例
 
-```python title="操作結果確認"
-def verify_file_operations(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    # 入力ファイル数の確認
-    input_count = len(os.listdir(srcpaths.inputdata))
-    print(f"入力ファイル数: {input_count}")
-    
-    # 出力ファイル数の確認
-    output_dirs = {
-        "structured": resource_paths.struct,
-        "meta": resource_paths.meta,
-        "raw": resource_paths.raw,
-        "main_image": resource_paths.main_image
-    }
-    
-    for name, path in output_dirs.items():
-        if Path(path).exists():
-            file_count = len(os.listdir(path))
-            print(f"{name}ディレクトリのファイル数: {file_count}")
+```python title="旧実装の例（メンテナンス用途のみ推奨）"
+from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+
+
+def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
+    print(srcpaths.inputdata)
+    print(resource_paths.struct)
+```
+
+### `RdeDatasetPaths`から旧引数を取り出す
+
+既存のヘルパー関数やモジュールに引数を渡す場合は、`as_legacy_args()`で2つのオブジェクトに分割できます。
+
+```python title="レガシーAPIとの橋渡し"
+from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+
+def dataset(paths: RdeDatasetPaths) -> None:
+    srcpaths, resource_paths = paths.as_legacy_args()
+    legacy_dataset(srcpaths, resource_paths)
+```
+
+## 操作結果の確認
+
+`RdeDatasetPaths`は従来通りファイル数や存在確認にも利用できます。
+
+```python title="出力ディレクトリの確認"
+from rdetoolkit.models.rde2types import RdeDatasetPaths
+
+
+def verify_outputs(paths: RdeDatasetPaths) -> None:
+    for name, directory in {
+        "structured": paths.struct,
+        "meta": paths.meta,
+        "raw": paths.raw,
+        "main_image": paths.main_image,
+    }.items():
+        if directory.exists():
+            print(f"{name} ディレクトリ: {len(list(directory.iterdir()))} 件")
         else:
-            print(f"⚠️ {name}ディレクトリが存在しません")
+            print(f"⚠️ {name} ディレクトリが存在しません")
 ```
 
 ## 関連情報
 
-ディレクトリパスの取得についてさらに学ぶには、以下のドキュメントを参照してください：
-
-- [構造化処理の概念](structured.ja.md)でパスが使用される処理フローを理解する
-- [ディレクトリ構造仕様](directory.ja.md)で各ディレクトリの役割を確認する
-- [エラーハンドリング](errorhandling.ja.md)でパス関連エラーの対処法を学ぶ
+- [構造化処理の概念](structured.ja.md)
+- [ディレクトリ構造仕様](directory.ja.md)
+- [エラーハンドリング](errorhandling.ja.md)
