@@ -23,12 +23,12 @@ theme:
     - navigation.top
     - navigation.tabs
     - navigation.tabs.sticky
-
+    - navigation.expand
 
 plugins:
   - search:
       separator: '[\s\-\.]+'
-      lang: 'ja'
+      lang: "ja"
   - i18n:
       languages:
         - locale: ja
@@ -47,9 +47,11 @@ plugins:
                     - 対応ディレクトリ: usage/structured_process/directory.md
                     - ディレクトリパスアクセス: usage/structured_process/rdepath.md
                     - エラーハンドリング: usage/structured_process/errorhandling.md
+                    - ログ出力: usage/logging.md
                     - LLM/AI向けトレースバック: usage/structured_process/traceback.md
                     - データタイル説明欄の自動転記: usage/structured_process/feature_description.md
                     - csvをグラフ化する: usage/structured_process/csv2graph.md
+                    - csv2graphサンプル集: usage/structured_process/csv2graph_samples.md
                 - データ登録モード:
                     - 利用可能なデータ登録モード: usage/mode/mode.md
                     - invoiceモード: usage/mode/mode_invoice.md
@@ -126,9 +128,11 @@ plugins:
                     - Supported Directories: usage/structured_process/directory.md
                     - Directory Path Access: usage/structured_process/rdepath.md
                     - Error Handling: usage/structured_process/errorhandling.md
+                    - Logging: usage/logging.md
                     - LLM/AI-Friendly Traceback: usage/structured_process/traceback.md
                     - Feature Description: usage/structured_process/feature_description.md
                     - Visualizing CSV as Graphs: usage/structured_process/csv2graph.md
+                    - csv2graph Sample Gallery: usage/structured_process/csv2graph_samples.md
                 - Data Registration Modes:
                     - Available Data Registration Modes: usage/mode/mode.md
                     - Invoice Mode: usage/mode/mode_invoice.md
@@ -210,7 +214,7 @@ markdown_extensions:
   - admonition
   - md_in_html
   - pymdownx.superfences:
-        # make exceptions to highlighting of code:
+      # make exceptions to highlighting of code:
       custom_fences:
         - name: mermaid
           class: mermaid
