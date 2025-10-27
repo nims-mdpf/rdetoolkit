@@ -28,6 +28,7 @@ RDEToolKitのAPIドキュメントは、ハイブリッド方式で構成され�
 - [invoicefile](../rdetoolkit/invoicefile.md) - 送り状ファイルの処理
 - [validation](../rdetoolkit/validation.md) - データの検証
 - [rde2util](../rdetoolkit/rde2util.md) - RDE関連のユーティリティ関数
+- [csv2graph](../rdetoolkit/csv2graph.md) - CSV可視化・プロットパイプライン
 
 ### 代表画像操作
 
@@ -125,6 +126,8 @@ except RdeToolkitError as e:
 | 1.0.x | 安定版 | 初期リリース |
 | 1.1.x | 後方互換 | 新機能追加 |
 | 1.2.x | 後方互換 | パフォーマンス改善 |
+| 1.3.x | 後方互換 | SmartTable保存制御、SkipRemainingProcessorsError、コピー再構造化バリデーション修正 |
+| 1.4.x | 後方互換 | CSV可視化API、設定生成CLI、SmartTableメタデータ自動化 |
 
 !!! note "API の安定性"
     メジャーバージョン内では後方互換性を維持します。破壊的変更はメジャーバージョンアップ時にのみ行われます。
