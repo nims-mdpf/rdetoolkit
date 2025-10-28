@@ -1,0 +1,3061 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="https://nims-mdpf.github.io/rdetoolkit/en/rdetoolkit/traceback/" rel="canonical"/>
+<link href="../processing/processors/variables/" rel="prev"/>
+<link href="formatter/" rel="next"/>
+<link href="../../../img/2585322.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.6.22" name="generator"/>
+<title>Overview - RDEToolKit Documentation</title>
+<link href="../../../assets/stylesheets/main.84d31ad4.min.css" rel="stylesheet"/>
+<link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Noto Sans JP";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+<!-- Dify Chatbot Configuration -->
+<script>
+ window.difyChatbotConfig = {
+  token: 'miUabi3XxqUrpE7E',
+  baseUrl: 'https://dify.escidoc.jp',
+  systemVariables: {
+    // user_id: 'YOU CAN DEFINE USER ID HERE',
+    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+  },
+  userVariables: {
+    // avatar_url: 'YOU CAN DEFINE USER AVATAR URL HERE',
+    // name: 'YOU CAN DEFINE USER NAME HERE',
+  },
+ }
+</script>
+<!-- チャットボットのサイズ固定とスタイル設定 -->
+<style>
+  /* ========== チャットボタンのスタイル ========== */
+  #dify-chatbot-bubble-button {
+    background-color: #1C64F2 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    /* ボタンサイズの固定 */
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    /* サイズ変更の防止 */
+    resize: none !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+  }
+
+  /* ========== チャットウィンドウのサイズ固定 ========== */
+  #dify-chatbot-bubble-window {
+    /* 固定サイズ設定 */
+    width: 384px !important;  /* 24rem = 384px (16px基準) */
+    height: 640px !important; /* 40rem = 640px (16px基準) */
+    min-width: 384px !important;
+    min-height: 640px !important;
+    max-width: 384px !important;
+    max-height: 640px !important;
+
+    /* 位置の固定 */
+    position: fixed !important;
+    bottom: 90px !important;  /* ボタンの上に配置 */
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+
+    /* その他の固定設定 */
+    z-index: 9998 !important;
+    resize: none !important;
+    overflow: hidden !important;
+
+    /* フレックスボックスの制御 */
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    flex-basis: auto !important;
+
+    /* ボックスサイジング */
+    box-sizing: border-box !important;
+
+    /* 境界線とシャドウ */
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* チャットウィンドウ内部のサイズ制御 */
+  #dify-chatbot-bubble-window > * {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* iframe がある場合のサイズ固定 */
+  #dify-chatbot-bubble-window iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border: none !important;
+  }
+
+  /* ========== 展開ボタンのみ非表示（閉じるボタンは維持） ========== */
+  /* 展開・フルスクリーンボタンの特定と非表示 */
+  #dify-chatbot-bubble-window button[aria-label*="expand" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="fullscreen" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="maximize" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="expand" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="fullscreen" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="maximize" i]:not([title*="close" i]):not([title*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* クラス名による展開ボタンの非表示（閉じるボタンクラスは除外） */
+  #dify-chatbot-bubble-window [class*="expand" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="fullscreen" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="maximize" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="enlarge" i]:not([class*="close" i]):not([class*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* ========== レスポンシブ対応（モバイルでのサイズ調整） ========== */
+  @media (max-width: 768px) {
+    #dify-chatbot-bubble-window {
+      /* タブレットサイズでも固定 */
+      width: 350px !important;
+      height: 500px !important;
+      min-width: 350px !important;
+      min-height: 500px !important;
+      max-width: 350px !important;
+      max-height: 500px !important;
+      right: 10px !important;
+      bottom: 80px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 15px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #dify-chatbot-bubble-window {
+      /* スマートフォンサイズでの固定 */
+      width: calc(100vw - 20px) !important;
+      height: calc(100vh - 100px) !important;
+      min-width: 320px !important;
+      min-height: 400px !important;
+      max-width: calc(100vw - 20px) !important;
+      max-height: calc(100vh - 100px) !important;
+      right: 10px !important;
+      bottom: 70px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 10px !important;
+    }
+  }
+
+  /* ========== フルスクリーンモードの無効化（サイズは固定） ========== */
+  #dify-chatbot-bubble-window.fullscreen,
+  #dify-chatbot-bubble-window.expanded,
+  #dify-chatbot-bubble-window[data-fullscreen="true"],
+  #dify-chatbot-bubble-window[data-expanded="true"] {
+    width: 384px !important;
+    height: 640px !important;
+    position: fixed !important;
+    bottom: 90px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+  }
+
+  /* transformアニメーションは維持（開閉用） */
+  #dify-chatbot-bubble-window {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+  }
+</style>
+<!-- サイズ固定と展開ボタン削除（開閉機能は維持） -->
+<script>
+(function() {
+  'use strict';
+
+  // 展開ボタンのみを削除する関数（閉じるボタンは維持）
+  function removeExpandButtonsOnly() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // すべてのボタンをチェック
+    const buttons = chatWindow.querySelectorAll('button, [role="button"]');
+    buttons.forEach(button => {
+      // ボタンの情報を取得
+      const ariaLabel = (button.getAttribute('aria-label') || '').toLowerCase();
+      const title = (button.getAttribute('title') || '').toLowerCase();
+      const className = (button.className || '').toLowerCase();
+      const innerHTML = button.innerHTML.toLowerCase();
+      const textContent = (button.textContent || '').toLowerCase();
+
+      // 展開関連のキーワード
+      const expandKeywords = ['expand', 'fullscreen', 'maximize', 'enlarge', 'full-screen'];
+      // 閉じる関連のキーワード（これらは維持）
+      const closeKeywords = ['close', 'minimize', 'hide', '×', 'x', '关闭', '閉じる'];
+
+      // 展開ボタンかどうか判定
+      const isExpandButton = expandKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 閉じるボタンかどうか判定
+      const isCloseButton = closeKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 展開ボタンで、かつ閉じるボタンでない場合のみ削除
+      if (isExpandButton && !isCloseButton) {
+        button.style.display = 'none';
+        button.style.visibility = 'hidden';
+        button.style.pointerEvents = 'none';
+        button.disabled = true;
+        // 完全に削除を試みる
+        try {
+          button.remove();
+        } catch(e) {
+          // removeが失敗した場合は非表示のまま
+        }
+      }
+    });
+
+    // SVGアイコンによる判定（展開アイコンのみ削除）
+    const svgs = chatWindow.querySelectorAll('svg');
+    svgs.forEach(svg => {
+      const parentButton = svg.closest('button, [role="button"]');
+      if (!parentButton) return;
+
+      // 親ボタンが既に処理されている場合はスキップ
+      if (parentButton.style.display === 'none') return;
+
+      // SVGのパスを確認（一般的な展開アイコンのパターン）
+      const svgHTML = svg.innerHTML.toLowerCase();
+      const viewBox = svg.getAttribute('viewBox');
+
+      // 展開アイコンの特徴（四隅への矢印など）
+      const isExpandIcon = (
+        svgHTML.includes('m7 14h-2v5h5v-2h-3v-3') || // 一般的な展開アイコン
+        svgHTML.includes('m14 10v-3h3v3h2v-5h-5') || // 一般的な展開アイコン
+        (viewBox === '0 0 24 24' && svgHTML.includes('path') && svgHTML.includes('m'))
+      );
+
+      // 閉じるアイコンの特徴（×マークなど）
+      const isCloseIcon = (
+        svgHTML.includes('m18 6l-12 12') || // ×アイコン
+        svgHTML.includes('m6 18l12-12') || // ×アイコン
+        svgHTML.includes('close') ||
+        svgHTML.includes('×')
+      );
+
+      // 展開アイコンで、かつ閉じるアイコンでない場合のみ削除
+      if (isExpandIcon && !isCloseIcon) {
+        parentButton.style.display = 'none';
+        parentButton.disabled = true;
+        try {
+          parentButton.remove();
+        } catch(e) {}
+      }
+    });
+  }
+
+  // サイズを固定する関数（表示状態は変更しない）
+  function enforceFixedSize() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // 現在の表示状態を保持
+    const currentDisplay = window.getComputedStyle(chatWindow).display;
+    const isVisible = currentDisplay !== 'none';
+
+    // サイズのみを固定（displayは変更しない）
+    if (isVisible) {
+      // サイズ関連のスタイルのみ設定
+      Object.assign(chatWindow.style, {
+        width: '384px',
+        height: '640px',
+        minWidth: '384px',
+        minHeight: '640px',
+        maxWidth: '384px',
+        maxHeight: '640px',
+        position: 'fixed',
+        bottom: '90px',
+        right: '20px',
+        left: 'auto',
+        top: 'auto',
+        resize: 'none'
+      });
+    }
+
+    // フルスクリーン関連の属性を削除
+    chatWindow.removeAttribute('data-fullscreen');
+    chatWindow.removeAttribute('data-expanded');
+    chatWindow.classList.remove('fullscreen', 'expanded', 'maximized');
+  }
+
+  // 初期化関数
+  function initialize() {
+    removeExpandButtonsOnly();
+    enforceFixedSize();
+  }
+
+  // 複数のタイミングで実行
+  document.addEventListener('DOMContentLoaded', initialize);
+  window.addEventListener('load', initialize);
+
+  // 遅延実行
+  setTimeout(initialize, 100);
+  setTimeout(initialize, 500);
+  setTimeout(initialize, 1000);
+  setTimeout(initialize, 2000);
+
+  // 定期的にチェック（展開ボタンの削除のみ）
+  setInterval(removeExpandButtonsOnly, 2000);
+
+  // DOM変更を監視（展開ボタンが追加されたら削除）
+  const observer = new MutationObserver(function(mutations) {
+    // 新しい要素が追加された場合のみチェック
+    const hasNewNodes = mutations.some(mutation => mutation.addedNodes.length > 0);
+    if (hasNewNodes) {
+      setTimeout(removeExpandButtonsOnly, 50);
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // ResizeObserverでサイズ変更を監視
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target.id === 'dify-chatbot-bubble-window') {
+          // サイズが変更されたら固定サイズに戻す
+          const chatWindow = entry.target;
+          const currentDisplay = window.getComputedStyle(chatWindow).display;
+          if (currentDisplay !== 'none') {
+            enforceFixedSize();
+          }
+        }
+      }
+    });
+
+    setTimeout(() => {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow) {
+        resizeObserver.observe(chatWindow);
+      }
+    }, 1000);
+  }
+
+  // フルスクリーンイベントを阻止
+  document.addEventListener('fullscreenchange', function(e) {
+    if (document.fullscreenElement) {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow && chatWindow.contains(document.fullscreenElement)) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+    enforceFixedSize();
+  });
+})();
+</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#traceback-api">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../" title="RDEToolKit Documentation">
+<img alt="logo" src="../../../img/2585322.png"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            RDEToolKit Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="Select language" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="../../../rdetoolkit/traceback/" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-mdpf/rdetoolkit" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-mdpf/rdetoolkit
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../README_ja/">
+          
+  
+  
+  Getting Started
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../user-guide/">
+          
+  
+  
+  User Guide
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../../api/">
+          
+  
+  
+  API Reference
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../development/">
+          
+  
+  
+  Contributing
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../" title="RDEToolKit Documentation">
+<img alt="logo" src="../../../img/2585322.png"/>
+</a>
+    RDEToolKit Documentation
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-mdpf/rdetoolkit" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-mdpf/rdetoolkit
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_1">
+<span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../README_ja/">
+<span class="md-ellipsis">
+    Project Overview (JA)
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../">
+<span class="md-ellipsis">
+    Introduction
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../installation/">
+<span class="md-ellipsis">
+    Installation
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/quickstart/">
+<span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quick-start/">
+<span class="md-ellipsis">
+    Detailed Quick Start
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-ellipsis">
+    User Guide
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../user-guide/">
+<span class="md-ellipsis">
+    Guide Overview
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../user-guide/config/">
+<span class="md-ellipsis">
+    Configuration Guide
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../user-guide/structured-processing/">
+<span class="md-ellipsis">
+    Structuring Processing Guide
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Structuring Processing
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            Structuring Processing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/structured/">
+<span class="md-ellipsis">
+    Building Structured Process
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    Development Guide
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/directory/">
+<span class="md-ellipsis">
+    Supported Directories
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/rdepath/">
+<span class="md-ellipsis">
+    Directory Path Access
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/errorhandling/">
+<span class="md-ellipsis">
+    Error Handling
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/logging/">
+<span class="md-ellipsis">
+    Logging
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/traceback/">
+<span class="md-ellipsis">
+    LLM/AI-Friendly Traceback
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/feature_description/">
+<span class="md-ellipsis">
+    Feature Description
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/csv2graph/">
+<span class="md-ellipsis">
+    Visualizing CSV as Graphs
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/structured_process/csv2graph_samples/">
+<span class="md-ellipsis">
+    csv2graph Sample Gallery
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Data Registration Modes
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_5">
+<span class="md-nav__icon md-icon"></span>
+            Data Registration Modes
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/mode/mode/">
+<span class="md-ellipsis">
+    Available Data Registration Modes
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/mode/mode_invoice/">
+<span class="md-ellipsis">
+    Invoice Mode
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/mode/mode_excelinvoice/">
+<span class="md-ellipsis">
+    ExcelInvoice Mode
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/mode/mode_smarttableinvoice/">
+<span class="md-ellipsis">
+    SmartTableInvoice Mode
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/mode/mode_multidatatile/">
+<span class="md-ellipsis">
+    MultiDataTile Mode
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/mode/mode_rdeformat/">
+<span class="md-ellipsis">
+    RDEFormat Mode
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Configuration &amp; CLI
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_6">
+<span class="md-nav__icon md-icon"></span>
+            Configuration &amp; CLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/config/config/">
+<span class="md-ellipsis">
+    Configuration Files
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/config/file_folder_mode/">
+<span class="md-ellipsis">
+    File/Folder Modes
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/config/magic_variable/">
+<span class="md-ellipsis">
+    Magic Variables
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/cli/">
+<span class="md-ellipsis">
+    Command Line Interface
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Templates &amp; Validation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_7">
+<span class="md-nav__icon md-icon"></span>
+            Templates &amp; Validation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/metadata_definition_file/">
+<span class="md-ellipsis">
+    Template Files
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/validation/">
+<span class="md-ellipsis">
+    Data Validation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Integrations
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_8">
+<span class="md-nav__icon md-icon"></span>
+            Integrations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/object_storage/">
+<span class="md-ellipsis">
+    Object Storage (MinIO)
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/docker/">
+<span class="md-ellipsis">
+    Docker Usage
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-ellipsis">
+    API Reference
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api/">
+<span class="md-ellipsis">
+    API Guide
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Core Modules
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
+<span class="md-nav__icon md-icon"></span>
+            Core Modules
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../config/">
+<span class="md-ellipsis">
+    Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../core/">
+<span class="md-ellipsis">
+    Core Functions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../workflows/">
+<span class="md-ellipsis">
+    Workflows
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../modeproc/">
+<span class="md-ellipsis">
+    Mode Processing
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../invoicefile/">
+<span class="md-ellipsis">
+    Invoice Files
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rde2util/">
+<span class="md-ellipsis">
+    Utilities
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdelogger/">
+<span class="md-ellipsis">
+    Logging
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../img2thumb/">
+<span class="md-ellipsis">
+    Image Processing
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../csv2graph/">
+<span class="md-ellipsis">
+    CSV to Graph
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../validation/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../exceptions/">
+<span class="md-ellipsis">
+    Exceptions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../errors/">
+<span class="md-ellipsis">
+    Error Handling
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fileops/">
+<span class="md-ellipsis">
+    File Operations
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Processing Pipeline
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            Processing Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/context/">
+<span class="md-ellipsis">
+    Context
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/factories/">
+<span class="md-ellipsis">
+    Factories
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/pipeline/">
+<span class="md-ellipsis">
+    Pipeline
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4_5" id="__nav_3_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Processors
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_5_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Processors
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/datasets/">
+<span class="md-ellipsis">
+    Datasets
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/descriptions/">
+<span class="md-ellipsis">
+    Descriptions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/files/">
+<span class="md-ellipsis">
+    Files
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/invoice/">
+<span class="md-ellipsis">
+    Invoice
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/thumbnails/">
+<span class="md-ellipsis">
+    Thumbnails
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/validation/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../processing/processors/variables/">
+<span class="md-ellipsis">
+    Variables
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Traceback
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            Traceback
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dual-output-format-system">
+<span class="md-ellipsis">
+      Dual Output Format System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-and-privacy">
+<span class="md-ellipsis">
+      Security and Privacy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flexible-configuration">
+<span class="md-ellipsis">
+      Flexible Configuration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#modules">
+<span class="md-ellipsis">
+      Modules
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-classes">
+<span class="md-ellipsis">
+      Core Classes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings">
+<span class="md-ellipsis">
+      TracebackSettings
+    </span>
+</a>
+<nav aria-label="TracebackSettings" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.enabled">
+<span class="md-ellipsis">
+      enabled
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.format">
+<span class="md-ellipsis">
+      format
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.include_context">
+<span class="md-ellipsis">
+      include_context
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.include_env">
+<span class="md-ellipsis">
+      include_env
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.include_locals">
+<span class="md-ellipsis">
+      include_locals
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.max_locals_size">
+<span class="md-ellipsis">
+      max_locals_size
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.sensitive_patterns">
+<span class="md-ellipsis">
+      sensitive_patterns
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.validate_format">
+<span class="md-ellipsis">
+      validate_format
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.validate_max_locals_size">
+<span class="md-ellipsis">
+      validate_max_locals_size
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-integration">
+<span class="md-ellipsis">
+      Environment Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.get_traceback_settings_from_env">
+<span class="md-ellipsis">
+      get_traceback_settings_from_env
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling-integration">
+<span class="md-ellipsis">
+      Error Handling Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.errors.handle_exception">
+<span class="md-ellipsis">
+      handle_exception
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-activation">
+<span class="md-ellipsis">
+      Basic Activation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#programmatic-configuration">
+<span class="md-ellipsis">
+      Programmatic Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ai-agent-integration">
+<span class="md-ellipsis">
+      AI Agent Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-monitoring">
+<span class="md-ellipsis">
+      Production Monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-masking-configuration">
+<span class="md-ellipsis">
+      Custom Masking Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-error-processing">
+<span class="md-ellipsis">
+      Batch Error Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="formatter/">
+<span class="md-ellipsis">
+    Formatter
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="masking/">
+<span class="md-ellipsis">
+    Masking
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Data Models
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            Data Models
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/config/">
+<span class="md-ellipsis">
+    Configuration Models
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/invoice/">
+<span class="md-ellipsis">
+    Invoice Models
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/invoice_schema/">
+<span class="md-ellipsis">
+    Invoice Schema
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/metadata/">
+<span class="md-ellipsis">
+    Metadata Models
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/rde2types/">
+<span class="md-ellipsis">
+    Type Definitions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/result/">
+<span class="md-ellipsis">
+    Result Models
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../models/report/">
+<span class="md-ellipsis">
+    Report Model
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Implementation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            Implementation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../impl/compressed_controller/">
+<span class="md-ellipsis">
+    Compressed Controller
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../impl/input_controller/">
+<span class="md-ellipsis">
+    Input Controller
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Interfaces
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Interfaces
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../interface/filechecker/">
+<span class="md-ellipsis">
+    File Checker
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Commands
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_9">
+<span class="md-nav__icon md-icon"></span>
+            Commands
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/command/">
+<span class="md-ellipsis">
+    Base Commands
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/archive/">
+<span class="md-ellipsis">
+    Archive Generation
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_config/">
+<span class="md-ellipsis">
+    Config Generation
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel Invoice Generation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Storage
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Storage
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../storage/minio/">
+<span class="md-ellipsis">
+    MinIO Integration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Artifacts
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Artifacts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../artifact/report/">
+<span class="md-ellipsis">
+    Report Generation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Contributing
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/docs/">
+<span class="md-ellipsis">
+    Documentation
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../development/contributing/">
+<span class="md-ellipsis">
+    Source Code
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contribute/documents_contributing/">
+<span class="md-ellipsis">
+    Documentation Workflow
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contribute/home/">
+<span class="md-ellipsis">
+    Contribution Home
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contribute/sourcecode_contributing/">
+<span class="md-ellipsis">
+    Source Contribution Workflow
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dual-output-format-system">
+<span class="md-ellipsis">
+      Dual Output Format System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-and-privacy">
+<span class="md-ellipsis">
+      Security and Privacy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flexible-configuration">
+<span class="md-ellipsis">
+      Flexible Configuration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#modules">
+<span class="md-ellipsis">
+      Modules
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-classes">
+<span class="md-ellipsis">
+      Core Classes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings">
+<span class="md-ellipsis">
+      TracebackSettings
+    </span>
+</a>
+<nav aria-label="TracebackSettings" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.enabled">
+<span class="md-ellipsis">
+      enabled
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.format">
+<span class="md-ellipsis">
+      format
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.include_context">
+<span class="md-ellipsis">
+      include_context
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.include_env">
+<span class="md-ellipsis">
+      include_env
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.include_locals">
+<span class="md-ellipsis">
+      include_locals
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.max_locals_size">
+<span class="md-ellipsis">
+      max_locals_size
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.sensitive_patterns">
+<span class="md-ellipsis">
+      sensitive_patterns
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.validate_format">
+<span class="md-ellipsis">
+      validate_format
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.config.TracebackSettings.validate_max_locals_size">
+<span class="md-ellipsis">
+      validate_max_locals_size
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-integration">
+<span class="md-ellipsis">
+      Environment Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.config.get_traceback_settings_from_env">
+<span class="md-ellipsis">
+      get_traceback_settings_from_env
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling-integration">
+<span class="md-ellipsis">
+      Error Handling Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.errors.handle_exception">
+<span class="md-ellipsis">
+      handle_exception
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#practical-usage">
+<span class="md-ellipsis">
+      Practical Usage
+    </span>
+</a>
+<nav aria-label="Practical Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-activation">
+<span class="md-ellipsis">
+      Basic Activation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#programmatic-configuration">
+<span class="md-ellipsis">
+      Programmatic Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ai-agent-integration">
+<span class="md-ellipsis">
+      AI Agent Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-monitoring">
+<span class="md-ellipsis">
+      Production Monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-masking-configuration">
+<span class="md-ellipsis">
+      Custom Masking Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-error-processing">
+<span class="md-ellipsis">
+      Batch Error Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="traceback-api">Traceback API</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This module provides LLM/AI-friendly stacktrace formatting functionality for RDEToolkit. It enables automated error analysis, fix suggestions, bug report generation, and other automation scenarios by generating structured, machine-readable traceback information optimized for consumption by Large Language Models and AI agents.</p>
+<h2 id="key-features">Key Features</h2>
+<h3 id="dual-output-format-system">Dual Output Format System</h3>
+<ul>
+<li><strong>Compact Format</strong>: Structured, machine-readable format optimized for LLMs and AI agents</li>
+<li><strong>Python Format</strong>: Traditional human-readable format for developers  </li>
+<li><strong>Duplex Mode</strong>: Both formats simultaneously for maximum compatibility</li>
+</ul>
+<h3 id="security-and-privacy">Security and Privacy</h3>
+<ul>
+<li>Automatic masking of sensitive information (passwords, tokens, keys)</li>
+<li>Configurable sensitive pattern detection</li>
+<li>Size limits for variable output to prevent information leakage</li>
+</ul>
+<h3 id="flexible-configuration">Flexible Configuration</h3>
+<ul>
+<li>Environment variable control (TRACE_VERBOSE, TRACE_FORMAT)</li>
+<li>Programmatic configuration via Config objects</li>
+<li>Multiple disable options for production environments</li>
+</ul>
+<hr/>
+<h2 id="modules">Modules</h2>
+<ul>
+<li><a href="formatter/">formatter</a>: Core compact trace formatting functionality</li>
+<li><a href="masking/">masking</a>: Sensitive information masking and security features</li>
+</ul>
+<hr/>
+<h2 id="core-classes">Core Classes</h2>
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings">
+<code>src.rdetoolkit.models.config.TracebackSettings</code>
+</h2>
+<div class="doc doc-contents first">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+<p>TracebackSettings is a configuration model for compact stacktrace formatting.</p>
+<p>This class defines configuration options for the LLM/AI-friendly traceback formatting system,
+providing control over output format, detail level, and security settings.</p>
+<p><span class="doc-section-title">属性：</span></p>
+<table>
+<thead>
+<tr>
+<th>名前</th>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.enabled" title="enabled = Field(default=False, description='Enable compact traceback formatting')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.enabled)">enabled</a></code></td>
+<td>
+<code><span title="bool">bool</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Enable compact traceback formatting. Default is False.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.format" title="format = Field(default='duplex', description='Output format: compact, python, duplex')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.format)">format</a></code></td>
+<td>
+<code><span title="str">str</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Output format. Options: "compact", "python", "duplex". Default is "duplex"</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.include_context" title="include_context = Field(default=False, description='Include source code context')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.include_context)">include_context</a></code></td>
+<td>
+<code><span title="bool">bool</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Include source code context in traceback. Default is True.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.include_locals" title="include_locals = Field(default=False, description='Include local variables')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.include_locals)">include_locals</a></code></td>
+<td>
+<code><span title="bool">bool</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Include local variables in traceback. Default is False.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.include_env" title="include_env = Field(default=False, description='Include environment info')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.include_env)">include_env</a></code></td>
+<td>
+<code><span title="bool">bool</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Include environment information in traceback. Default is False.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.max_locals_size" title="max_locals_size = Field(default=512, description='Max size for locals (UTF-8 bytes)')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.max_locals_size)">max_locals_size</a></code></td>
+<td>
+<code><span title="int">int</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Maximum size for local variable representation (UTF-8 bytes). Default is 512.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.config.TracebackSettings.sensitive_patterns" title="sensitive_patterns = Field(default_factory=list, description='Custom sensitive patterns')
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.config.TracebackSettings.sensitive_patterns)">sensitive_patterns</a></code></td>
+<td>
+<code><span title="list">list</span>[<span title="str">str</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Custom patterns for sensitive information masking. Default is empty.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.enabled">
+<code class="highlight language-python">enabled <span style="color: #333">=</span> Field(default<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Enable compact traceback formatting'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.format">
+<code class="highlight language-python"><span style="color: #007020">format</span> <span style="color: #333">=</span> Field(default<span style="color: #333">=</span><span style="background-color: #FFF0F0">'duplex'</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Output format: compact, python, duplex'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.include_context">
+<code class="highlight language-python">include_context <span style="color: #333">=</span> Field(default<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Include source code context'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.include_env">
+<code class="highlight language-python">include_env <span style="color: #333">=</span> Field(default<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Include environment info'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.include_locals">
+<code class="highlight language-python">include_locals <span style="color: #333">=</span> Field(default<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Include local variables'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.max_locals_size">
+<code class="highlight language-python">max_locals_size <span style="color: #333">=</span> Field(default<span style="color: #333">=</span><span style="color: #00D; font-weight: bold">512</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Max size for locals (UTF-8 bytes)'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.sensitive_patterns">
+<code class="highlight language-python">sensitive_patterns <span style="color: #333">=</span> Field(default_factory<span style="color: #333">=</span><span style="color: #007020">list</span>, description<span style="color: #333">=</span><span style="background-color: #FFF0F0">'Custom sensitive patterns'</span>)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.validate_format">
+<code class="highlight language-python">validate_format(v)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+<p>Validate format field to only allow valid output formats.</p>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="src.rdetoolkit.models.config.TracebackSettings.validate_max_locals_size">
+<code class="highlight language-python">validate_max_locals_size(v)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+<p>Validate max_locals_size to ensure it's a positive integer.</p>
+<p>Provide distinct error messages for negative and zero values so tests
+and callers can distinguish invalid input (negative) from non-positive
+but specific boundary (zero).</p>
+</div>
+</div>
+</div>
+</div>
+</div><hr/>
+<h2 id="environment-integration">Environment Integration</h2>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.config.get_traceback_settings_from_env">
+<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>config<span style="color: #333">.</span>get_traceback_settings_from_env()</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Get TracebackSettings from environment variables.</p>
+<p>Reads TRACE_VERBOSE environment variable and creates TracebackSettings.
+TRACE_VERBOSE can contain comma-separated values: context, locals, env
+TRACE_FORMAT can specify output format: compact, python, duplex</p>
+<p>Special values:
+- TRACE_VERBOSE="" (empty): Disabled (returns None)
+- TRACE_VERBOSE="off" or "false": Explicitly disabled (returns disabled settings)
+- TRACE_VERBOSE="context,locals": Enabled with specified options</p>
+<p><span class="doc-section-title">戻り値：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.models.config.TracebackSettings">TracebackSettings</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>TracebackSettings configured from environment, or None if not set.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<h2 id="error-handling-integration">Error Handling Integration</h2>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="src.rdetoolkit.errors.handle_exception">
+<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>errors<span style="color: #333">.</span>handle_exception(e, error_message<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, error_code<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, eobj<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, verbose<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, config<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
+</h2>
+<div class="doc doc-contents first">
+<p>Handles exceptions and formats them into a StructuredError with optional custom message, error code, and additional object.</p>
+<p>This function captures the exception type and traceback, then formats a simplified version of the traceback.
+It constructs a custom error message, optionally including the full original traceback if verbose mode is enabled.
+The function returns a StructuredError containing the error message, error code, optional additional object,
+and simplified traceback information.</p>
+<p><span class="doc-section-title">引数：</span></p>
+<table>
+<thead>
+<tr>
+<th>名前</th>
+<th>タイプ</th>
+<th>デスクリプション</th>
+<th>デフォルト</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>e</code>
+</td>
+<td>
+<code><span title="Exception">Exception</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The exception to handle.</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>error_message</code>
+</td>
+<td>
+<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Customized message to be used in case of an error. Defaults to the exception message.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>error_code</code>
+</td>
+<td>
+<code><span title="Optional">Optional</span>[<span title="int">int</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Error code to be used in case of an error. Defaults to 1.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>eobj</code>
+</td>
+<td>
+<code><span title="Optional">Optional</span>[<span title="typing.Any">Any</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Additional object to include in the error. Defaults to None.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>verbose</code>
+</td>
+<td>
+<code><span title="bool">bool</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If set to True, includes the original traceback in the error message. Defaults to False.</p>
+</div>
+</td>
+<td>
+<code>False</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>config</code>
+</td>
+<td>
+<code><span title="rdetoolkit.models.config.Config">Config</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Optional configuration object whose <code>traceback</code> attribute (<code>TracebackSettings</code>)
+        determines how traceback text is produced when <code>e.traceback_info</code> is missing.
+        If None, traceback settings are resolved from environment variables (fallback behavior).</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">戻り値：</span></p>
+<table>
+<thead>
+<tr>
+<th>名前</th> <th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>StructuredError</code></td> <td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A structured error object containing the error message, error code, additional object,</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td></td> <td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>and simplified traceback information.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><hr/>
+<h2 id="practical-usage">Practical Usage</h2>
+<h3 id="basic-activation">Basic Activation</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">basic_activation.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">os</span>
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.errors</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> handle_exception
+
+<span style="color: #888"># Activate via environment variables</span>
+os<span style="color: #333">.</span>environ[<span style="background-color: #FFF0F0">'TRACE_VERBOSE'</span>] <span style="color: #333">=</span> <span style="background-color: #FFF0F0">'context,locals'</span>
+os<span style="color: #333">.</span>environ[<span style="background-color: #FFF0F0">'TRACE_FORMAT'</span>] <span style="color: #333">=</span> <span style="background-color: #FFF0F0">'duplex'</span>
+
+<span style="color: #080; font-weight: bold">try</span>:
+    <span style="color: #888"># Your code that might raise an exception</span>
+    risky_operation()
+<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> e:
+    structured_error <span style="color: #333">=</span> handle_exception(e)
+    <span style="color: #007020">print</span>(structured_error<span style="color: #333">.</span>traceback_info)
+</code></pre></div></td></tr></table></div>
+<h3 id="programmatic-configuration">Programmatic Configuration</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">programmatic_config.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.config</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Config, TracebackSettings
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.errors</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> handle_exception
+
+<span style="color: #888"># Create AI-optimized configuration</span>
+ai_config <span style="color: #333">=</span> Config(
+    traceback<span style="color: #333">=</span>TracebackSettings(
+        enabled<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+        <span style="color: #007020">format</span><span style="color: #333">=</span><span style="background-color: #FFF0F0">"compact"</span>,           <span style="color: #888"># Machine-readable only</span>
+        include_context<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,       <span style="color: #888"># Show error line code</span>
+        include_locals<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,       <span style="color: #888"># Privacy protection</span>
+        include_env<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,          <span style="color: #888"># Minimal info</span>
+        max_locals_size<span style="color: #333">=</span><span style="color: #00D; font-weight: bold">256</span>
+    )
+)
+
+<span style="color: #080; font-weight: bold">try</span>:
+    process_data()
+<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> e:
+    structured_error <span style="color: #333">=</span> handle_exception(e, config<span style="color: #333">=</span>ai_config)
+    <span style="color: #888"># Send to AI agent</span>
+    ai_response <span style="color: #333">=</span> analyze_with_ai(structured_error<span style="color: #333">.</span>traceback_info)
+</code></pre></div></td></tr></table></div>
+<h3 id="ai-agent-integration">AI Agent Integration</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">ai_agent_integration.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.config</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Config, TracebackSettings
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.errors</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> handle_exception
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">create_ai_error_handler</span>():
+<span style="color: #BBB">    </span><span style="color: #D42">"""Create error handler optimized for AI analysis."""</span>
+    <span style="color: #080; font-weight: bold">return</span> Config(
+        traceback<span style="color: #333">=</span>TracebackSettings(
+            enabled<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+            <span style="color: #007020">format</span><span style="color: #333">=</span><span style="background-color: #FFF0F0">"compact"</span>,
+            include_context<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+            include_locals<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,  <span style="color: #888"># Security first</span>
+            include_env<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,
+            sensitive_patterns<span style="color: #333">=</span>[   <span style="color: #888"># Custom masking</span>
+                <span style="background-color: #FFF0F0">"database_url"</span>,
+                <span style="background-color: #FFF0F0">"private_key"</span>, 
+                <span style="background-color: #FFF0F0">"connection_string"</span>
+            ]
+        )
+    )
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">handle_error_with_ai</span>(exception, custom_message<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>):
+<span style="color: #BBB">    </span><span style="color: #D42">"""Handle errors with AI-friendly output."""</span>
+    config <span style="color: #333">=</span> create_ai_error_handler()
+    structured_error <span style="color: #333">=</span> handle_exception(exception, config<span style="color: #333">=</span>config, custom_error_message<span style="color: #333">=</span>custom_message)
+
+    <span style="color: #888"># Structured prompt for AI</span>
+    ai_prompt <span style="color: #333">=</span> <span style="background-color: #FFF0F0">f"""</span>
+<span style="background-color: #FFF0F0">    Error Analysis Request:</span>
+
+<span style="background-color: #FFF0F0">    Structured Traceback:</span>
+<span style="background-color: #FFF0F0">    </span><span style="background-color: #EEE">{</span>structured_error<span style="color: #333">.</span>traceback_info<span style="background-color: #EEE">}</span>
+
+<span style="background-color: #FFF0F0">    Please analyze this error and provide:</span>
+<span style="background-color: #FFF0F0">    1. Root cause identification</span>
+<span style="background-color: #FFF0F0">    2. Suggested fix</span>
+<span style="background-color: #FFF0F0">    3. Prevention strategies</span>
+<span style="background-color: #FFF0F0">    """</span>
+
+    <span style="color: #080; font-weight: bold">return</span> send_to_llm(ai_prompt)
+
+<span style="color: #888"># Usage example</span>
+<span style="color: #080; font-weight: bold">try</span>:
+    complex_operation()
+<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">ValueError</span> <span style="color: #080; font-weight: bold">as</span> e:
+    suggestion <span style="color: #333">=</span> handle_error_with_ai(e, <span style="background-color: #FFF0F0">"Data validation failed"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"AI Suggestion: </span><span style="background-color: #EEE">{</span>suggestion<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="production-monitoring">Production Monitoring</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">production_monitoring.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">os</span>
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.errors</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> handle_exception
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.config</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Config, TracebackSettings
+
+<span style="color: #080; font-weight: bold">class</span><span style="color: #BBB"> </span><span style="color: #B06; font-weight: bold">ProductionErrorMonitor</span>:
+<span style="color: #BBB">    </span><span style="color: #D42">"""Production-safe error monitoring with AI integration."""</span>
+
+    <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, enable_ai_analysis<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>):
+        <span style="color: #007020">self</span><span style="color: #333">.</span>enable_ai_analysis <span style="color: #333">=</span> enable_ai_analysis
+
+        <span style="color: #888"># Production-safe configuration</span>
+        <span style="color: #007020">self</span><span style="color: #333">.</span>config <span style="color: #333">=</span> Config(
+            traceback<span style="color: #333">=</span>TracebackSettings(
+                enabled<span style="color: #333">=</span>enable_ai_analysis,
+                <span style="color: #007020">format</span><span style="color: #333">=</span><span style="background-color: #FFF0F0">"compact"</span> <span style="color: #080; font-weight: bold">if</span> enable_ai_analysis <span style="color: #080; font-weight: bold">else</span> <span style="background-color: #FFF0F0">"python"</span>,
+                include_context<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+                include_locals<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,     <span style="color: #888"># Never in production</span>
+                include_env<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,        <span style="color: #888"># Minimal info leak</span>
+                max_locals_size<span style="color: #333">=</span><span style="color: #00D; font-weight: bold">0</span>         <span style="color: #888"># No local variables</span>
+            )
+        )
+
+    <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">handle_production_error</span>(<span style="color: #007020">self</span>, exception, operation_context<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>):
+<span style="color: #BBB">        </span><span style="color: #D42">"""Handle production errors safely."""</span>
+        structured_error <span style="color: #333">=</span> handle_exception(
+            exception, 
+            config<span style="color: #333">=</span><span style="color: #007020">self</span><span style="color: #333">.</span>config,
+            custom_error_message<span style="color: #333">=</span><span style="background-color: #FFF0F0">f"Production error in </span><span style="background-color: #EEE">{</span>operation_context<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>
+        )
+
+        <span style="color: #888"># Log for monitoring</span>
+        <span style="color: #007020">self</span><span style="color: #333">.</span>log_error(structured_error)
+
+        <span style="color: #888"># Optional AI analysis (if enabled)</span>
+        <span style="color: #080; font-weight: bold">if</span> <span style="color: #007020">self</span><span style="color: #333">.</span>enable_ai_analysis:
+            <span style="color: #080; font-weight: bold">return</span> <span style="color: #007020">self</span><span style="color: #333">.</span>analyze_with_ai(structured_error<span style="color: #333">.</span>traceback_info)
+
+        <span style="color: #080; font-weight: bold">return</span> structured_error<span style="color: #333">.</span>traceback_info
+
+    <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">log_error</span>(<span style="color: #007020">self</span>, structured_error):
+<span style="color: #BBB">        </span><span style="color: #D42">"""Log error to monitoring system."""</span>
+        <span style="color: #888"># Implementation depends on your logging system</span>
+        <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"[PRODUCTION ERROR] </span><span style="background-color: #EEE">{</span>structured_error<span style="color: #333">.</span>emsg<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+        <span style="color: #007020">print</span>(structured_error<span style="color: #333">.</span>traceback_info)
+
+    <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">analyze_with_ai</span>(<span style="color: #007020">self</span>, traceback_info):
+<span style="color: #BBB">        </span><span style="color: #D42">"""Send to AI for analysis (production-safe)."""</span>
+        <span style="color: #888"># Implementation depends on your AI service</span>
+        <span style="color: #080; font-weight: bold">return</span> <span style="background-color: #FFF0F0">f"AI analysis of: </span><span style="background-color: #EEE">{</span>traceback_info[:<span style="color: #00D; font-weight: bold">100</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">..."</span>
+
+<span style="color: #888"># Usage</span>
+monitor <span style="color: #333">=</span> ProductionErrorMonitor(enable_ai_analysis<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>)
+
+<span style="color: #080; font-weight: bold">try</span>:
+    critical_operation()
+<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> e:
+    monitor<span style="color: #333">.</span>handle_production_error(e, <span style="background-color: #FFF0F0">"user_data_processing"</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="custom-masking-configuration">Custom Masking Configuration</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">custom_masking.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.config</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Config, TracebackSettings
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.errors</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> handle_exception
+
+<span style="color: #888"># Configure custom sensitive patterns</span>
+config <span style="color: #333">=</span> Config(
+    traceback<span style="color: #333">=</span>TracebackSettings(
+        enabled<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+        <span style="color: #007020">format</span><span style="color: #333">=</span><span style="background-color: #FFF0F0">"duplex"</span>,
+        include_context<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+        include_locals<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+        sensitive_patterns<span style="color: #333">=</span>[
+            <span style="background-color: #FFF0F0">"database_url"</span>,
+            <span style="background-color: #FFF0F0">"private_key"</span>,
+            <span style="background-color: #FFF0F0">"connection_string"</span>,
+            <span style="background-color: #FFF0F0">"encryption_key"</span>,
+            <span style="background-color: #FFF0F0">"wallet_address"</span>,
+            <span style="background-color: #FFF0F0">"personal_info"</span>
+        ],
+        max_locals_size<span style="color: #333">=</span><span style="color: #00D; font-weight: bold">512</span>
+    )
+)
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">demo_with_sensitive_data</span>():
+<span style="color: #BBB">    </span><span style="color: #D42">"""Function with sensitive data for masking demo."""</span>
+    database_url <span style="color: #333">=</span> <span style="background-color: #FFF0F0">"postgresql://user:password@host/db"</span>
+    private_key <span style="color: #333">=</span> <span style="background-color: #FFF0F0">"-----BEGIN PRIVATE KEY-----"</span>
+    wallet_address <span style="color: #333">=</span> <span style="background-color: #FFF0F0">"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"</span>
+    normal_data <span style="color: #333">=</span> <span style="background-color: #FFF0F0">"This is safe to display"</span>
+
+    <span style="color: #888"># This will raise an error to demonstrate masking</span>
+    <span style="color: #080; font-weight: bold">raise</span> <span style="color: #F00; font-weight: bold">ValueError</span>(<span style="background-color: #FFF0F0">"Demo error with sensitive context"</span>)
+
+<span style="color: #080; font-weight: bold">try</span>:
+    demo_with_sensitive_data()
+<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> e:
+    structured_error <span style="color: #333">=</span> handle_exception(e, config<span style="color: #333">=</span>config)
+    <span style="color: #007020">print</span>(structured_error<span style="color: #333">.</span>traceback_info)
+    <span style="color: #888"># Sensitive values will be masked as ***</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="batch-error-processing">Batch Error Processing</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">batch_processing.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">61</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.config</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Config, TracebackSettings
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.errors</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> handle_exception
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">batch_process_with_error_collection</span>():
+<span style="color: #BBB">    </span><span style="color: #D42">"""Process multiple items with comprehensive error collection."""</span>
+
+    config <span style="color: #333">=</span> Config(
+        traceback<span style="color: #333">=</span>TracebackSettings(
+            enabled<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+            <span style="color: #007020">format</span><span style="color: #333">=</span><span style="background-color: #FFF0F0">"compact"</span>,
+            include_context<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+            include_locals<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,
+            include_env<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>
+        )
+    )
+
+    items <span style="color: #333">=</span> [<span style="background-color: #FFF0F0">"item1"</span>, <span style="background-color: #FFF0F0">"item2"</span>, <span style="background-color: #FFF0F0">"broken_item"</span>, <span style="background-color: #FFF0F0">"item4"</span>]
+    results <span style="color: #333">=</span> []
+    errors <span style="color: #333">=</span> []
+
+    <span style="color: #080; font-weight: bold">for</span> item <span style="color: #000; font-weight: bold">in</span> items:
+        <span style="color: #080; font-weight: bold">try</span>:
+            result <span style="color: #333">=</span> process_single_item(item)
+            results<span style="color: #333">.</span>append({<span style="background-color: #FFF0F0">"item"</span>: item, <span style="background-color: #FFF0F0">"status"</span>: <span style="background-color: #FFF0F0">"success"</span>, <span style="background-color: #FFF0F0">"result"</span>: result})
+
+        <span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> e:
+            structured_error <span style="color: #333">=</span> handle_exception(e, config<span style="color: #333">=</span>config)
+
+            error_info <span style="color: #333">=</span> {
+                <span style="background-color: #FFF0F0">"item"</span>: item,
+                <span style="background-color: #FFF0F0">"status"</span>: <span style="background-color: #FFF0F0">"error"</span>, 
+                <span style="background-color: #FFF0F0">"error_message"</span>: structured_error<span style="color: #333">.</span>emsg,
+                <span style="background-color: #FFF0F0">"structured_trace"</span>: structured_error<span style="color: #333">.</span>traceback_info
+            }
+
+            errors<span style="color: #333">.</span>append(error_info)
+
+    <span style="color: #080; font-weight: bold">return</span> {
+        <span style="background-color: #FFF0F0">"successful_items"</span>: <span style="color: #007020">len</span>(results),
+        <span style="background-color: #FFF0F0">"failed_items"</span>: <span style="color: #007020">len</span>(errors),
+        <span style="background-color: #FFF0F0">"results"</span>: results,
+        <span style="background-color: #FFF0F0">"errors"</span>: errors
+    }
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">process_single_item</span>(item):
+<span style="color: #BBB">    </span><span style="color: #D42">"""Process a single item (may fail)."""</span>
+    <span style="color: #080; font-weight: bold">if</span> item <span style="color: #333">==</span> <span style="background-color: #FFF0F0">"broken_item"</span>:
+        <span style="color: #080; font-weight: bold">raise</span> <span style="color: #F00; font-weight: bold">RuntimeError</span>(<span style="background-color: #FFF0F0">f"Processing failed for </span><span style="background-color: #EEE">{</span>item<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+    <span style="color: #080; font-weight: bold">return</span> <span style="background-color: #FFF0F0">f"processed_</span><span style="background-color: #EEE">{</span>item<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>
+
+<span style="color: #888"># Execute batch processing</span>
+batch_result <span style="color: #333">=</span> batch_process_with_error_collection()
+<span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Processed </span><span style="background-color: #EEE">{</span>batch_result[<span style="background-color: #FFF0F0">'successful_items'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0"> items successfully"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Failed on </span><span style="background-color: #EEE">{</span>batch_result[<span style="background-color: #FFF0F0">'failed_items'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0"> items"</span>)
+
+<span style="color: #888"># Send all errors to AI for analysis</span>
+<span style="color: #080; font-weight: bold">if</span> batch_result[<span style="background-color: #FFF0F0">'errors'</span>]:
+    <span style="color: #080; font-weight: bold">for</span> error <span style="color: #000; font-weight: bold">in</span> batch_result[<span style="background-color: #FFF0F0">'errors'</span>]:
+        <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"</span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\n</span><span style="background-color: #FFF0F0">Error in </span><span style="background-color: #EEE">{</span>error[<span style="background-color: #FFF0F0">'item'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">:"</span>)
+        <span style="color: #007020">print</span>(error[<span style="background-color: #FFF0F0">'structured_trace'</span>])
+</code></pre></div></td></tr></table></div>
+<!-- Dify Chatbot Script -->
+<script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
+</script>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/nims-dpfc/rdetoolkit" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-consent" data-md-component="consent" hidden="" id="__consent">
+<div class="md-consent__overlay"></div>
+<aside class="md-consent__inner">
+<form class="md-consent__form md-grid md-typeset" name="consent">
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" id="__settings" type="checkbox"/>
+<div class="md-consent__settings">
+<ul class="task-list">
+<li class="task-list-item">
+<label class="task-list-control">
+<input checked="" name="github" type="checkbox"/>
+<span class="task-list-indicator"></span>
+      GitHub
+    </label>
+</li>
+</ul>
+</div>
+<div class="md-consent__controls">
+<button class="md-button md-button--primary">Accept</button>
+<label class="md-button" for="__settings">Manage settings</label>
+</div>
+</form>
+</aside>
+</div>
+<script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.expand"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+<script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
+</body>
+</html>
