@@ -82,7 +82,7 @@ class MinIOStorage:
         """Creates a default HTTP client with optional proxy.
 
         Returns:
-            ProxyManager | PoolManager: Configured proxy or pool manager.
+            ProxyManager | PoolManager: Configured client for communicating with MinIO.
         """
         proxy_url = (
             os.environ.get("HTTP_PROXY")

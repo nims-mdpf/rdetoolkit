@@ -41,12 +41,12 @@ Install extra dependencies if you use object storage (MinIO).
 
 === "Unix/macOS"
     ```bash title="terminal"
-    pip install rdetoolkit[minio]
+    pip install 'rdetoolkit[minio]'
     ```
 
 === "Windows"
     ```cmd title="command_prompt"
-    pip install rdetoolkit[minio]
+    pip install 'rdetoolkit[minio]'
     ```
 
 ### 3. Installation with Plotly Support
@@ -55,12 +55,12 @@ Plotly is a visualization library that generates interactive graphs and dashboar
 
 === "Unix/macOS"
     ```bash title="terminal"
-    pip install rdetoolkit[plotly]
+    pip install' rdetoolkit[plotly]'
     ```
 
 === "Windows"
     ```cmd title="command_prompt"
-    pip install rdetoolkit[plotly]
+    pip install 'rdetoolkit[plotly]'
     ```
 
 ### 4. Development Version Installation

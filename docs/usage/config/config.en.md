@@ -9,7 +9,7 @@ This document explains how to create and configure the `rdeconfig.yaml` configur
 
 - Familiarity with the basic usage of RDEToolKit
 - Basic knowledge of the YAML file format
-- Understanding of the directory structure used for structured processing
+- Understanding of the directory structure used for structuring processing
 
 **## Configuration‑File Requirements**
 
@@ -32,6 +32,10 @@ data/
 └── tasksupport/
     └── rdeconfig.yaml   # ← place it here
 ```
+
+### Magic Variables
+
+Use magic variables when you need dataset names or metadata entries to include runtime information (for example `${filename}`). See the **[Magic Variable Feature](magic_variable.en.md)** guide for advanced patterns and safeguards.
 
 ---
 
@@ -121,7 +125,7 @@ system:
 }
 ```
 
-*After structured processing*
+*After structuring processing*
 
 ```json
 {
@@ -172,10 +176,12 @@ Specifies an extended data‑registration mode.
 system:
   extended_mode: null               # standard mode
   extended_mode: "rdeformat"        # RDE format mode
-  extended_mode: "MultiDataTile"    # Multi‑data‑tile mode
+  extended_mode: "MultiDataTile"    # Multi-data-tile mode
 ```
 
-For details on each mode, see the **[Data Registration Modes](../mode/mode.md)** documentation.
+### Processing Modes
+
+Choose the `extended_mode` value that matches your workflow. The **[Data Registration Modes](../mode/mode.en.md)** documentation describes prerequisites, inputs, and expected outputs for every mode.
 
 ---
 
@@ -319,7 +325,7 @@ traceback:
 
 To learn more about configuration files, consult the following documents:
 
-- **[Processing Modes](../mode/mode.ja.md)** – details on each `extended_mode`
-- **[Magic Variable Feature](magic_variable.ja.md)** – how dynamic substitution works
-- **[Concept of Structured Processing](../structured_process/structured.ja.md)** – how configuration influences the processing flow
-- **[LLM/AI‑Friendly Traceback Settings](../structured_process/traceback.ja.md)** – deep dive into stack‑trace customization
+- **[Processing Modes](../mode/mode.en.md)** – details on each `extended_mode`
+- **[Magic Variable Feature](magic_variable.en.md)** – how dynamic substitution works
+- **[Concept of Structuring Processing](../structured_process/structured.en.md)** – how configuration influences the processing flow
+- **[LLM/AI‑Friendly Traceback Settings](../structured_process/traceback.en.md)** – deep dive into stack‑trace customization

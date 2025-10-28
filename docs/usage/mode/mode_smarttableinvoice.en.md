@@ -129,7 +129,7 @@ data/
     └── fsmarttable_experiment_0002.csv
 ```
 
-## Retrieving a Single Row of Table Data in Structured Processing
+## Retrieving a Single Row of Table Data in Structuring Processing
 
 If you define the structured processing as shown below, you can obtain the CSV path from `RdeOutputResourcePath.rawfiles`. In the example directory structure above, this would be `temp/fsmarttable_experiment_0001.csv`, etc.
 

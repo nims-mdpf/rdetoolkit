@@ -157,7 +157,7 @@ save_raw = config.system.save_raw  # Enable raw saving
 
 | Japanese | English | Notes |
 |----------|---------|-------|
-| 構造化処理 | Structured Processing | Core concept |
+| 構造化処理 | Structuring Processing | Core concept |
 | 設定ファイル | Configuration File | General term |
 | 前提条件 | Prerequisites | Standard expression |
 | 手順 | Steps / Instructions | Choose based on context |

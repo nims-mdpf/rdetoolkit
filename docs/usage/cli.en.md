@@ -215,6 +215,6 @@ def insecure():
 
 ## Next Steps
 
-- Understand [Structured Processing Concepts](../user-guide/structured-processing.en.md)
+- Understand [Structuring Processing Concepts](../user-guide/structured-processing.en.md)
 - Learn how to create [Configuration Files](../user-guide/config.en.md)
 - Check detailed features in [API Reference](../api/index.en.md)

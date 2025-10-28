@@ -157,7 +157,7 @@ save_raw = config.system.save_raw  # Raw保存の有効化
 
 | 日本語 | 英語 | 備考 |
 |--------|------|------|
-| 構造化処理 | Structured Processing | 中核概念 |
+| 構造化処理 | Structuring Processing | 中核概念 |
 | 設定ファイル | Configuration File | 一般的な用語 |
 | 前提条件 | Prerequisites | 標準的な表現 |
 | 手順 | Steps / Instructions | 文脈に応じて選択 |

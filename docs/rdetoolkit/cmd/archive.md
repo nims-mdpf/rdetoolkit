@@ -451,7 +451,7 @@ scanner_ext = get_scanner('external', source_dir)
 
 ## See Also
 
-- [Artifact Report Module](artifact/report.md) - For custom report generation
-- [Models Module](models/reports.md) - For report data structures
-- [Compressed Controller](impl/compressed_controller.md) - For archive creation
+- [Artifact Report Module](../artifact/report.md) - For custom report generation
+- [Models Module](../models/report.md) - For report data structures
+- [Compressed Controller](../impl/compressed_controller.md) - For archive creation
 - [Configuration Guide](../config.md) - For project configuration options

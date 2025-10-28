@@ -1,0 +1,35 @@
+name: Verify MkDocs Build on Docs PRs
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-docs:
+    if: startsWith(github.head_ref, 'docs') || startsWith(github.head_ref, 'doc')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Calculate cache key
+        run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.lock
+
+      - name: Build MkDocs site
+        run: mkdocs build

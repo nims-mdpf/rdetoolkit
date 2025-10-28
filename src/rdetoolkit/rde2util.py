@@ -411,10 +411,9 @@ class Meta:
         The target format is validated using the key, format, and Unit specified in metadata-def.json.
 
         Args:
-            entry_dict_meta (EntryMetaData): metadata(key/value) to register
-            ignore_empty_strvalue (bool, optional): When ignore_empty_strvalue is True,
-            even if the metadata value is an empty string, it is registered as a meta.
-            However, if false, an empty string is not registered as a meta. Defaults to True.
+            entry_dict_meta: Metadata key/value pairs to register.
+            ignore_empty_strvalue: When True, empty-string values are still registered.
+                When False, empty strings are skipped. Defaults to True.
 
         Raises:
             StructuredError: an exception is raised when the 'action' is included in the metadata-def.json.
@@ -456,8 +455,7 @@ class Meta:
         and registers them in the referred values table using the original keys.
 
         Args:
-            entry_dict_meta (Union[MetaType, RepeatedMetaType]): The metadata dictionary
-            containing key-value pairs to be registered.
+            entry_dict_meta: Metadata dictionary containing key-value pairs to register.
 
         """
         for keysrc, vsrc in entry_dict_meta.items():

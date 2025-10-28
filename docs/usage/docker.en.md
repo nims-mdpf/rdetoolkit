@@ -15,7 +15,7 @@ This guide explains how to run RDE structured processing using RDEToolKit on Doc
 Recommended directory structure for structured processing projects:
 
 ```shell
-(Structured Processing Project Directory)
+(Structuring Processing Project Directory)
 ├── container
 │   ├── data/
 │   ├── modules/
@@ -264,6 +264,6 @@ coverage.xml
 
 ## Next Steps
 
-- Understand [Structured Processing Concepts](../user-guide/structured-processing.en.md)
+- Understand [Structuring Processing Concepts](../user-guide/structured-processing.en.md)
 - Learn Docker environment configuration in [Configuration Files](../user-guide/config.en.md)
 - Check archive creation using artifact command in [Command Line Interface](cli.en.md)

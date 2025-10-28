@@ -97,10 +97,10 @@ RDE構造化処理でサポートされるディレクトリ構造の詳細仕�
 
 ### 概要
 
-RDE構造化処理では、[ExcelInvoice](../config/mode.ja.md)や、[マルチデータタイルモード](../config/mode.ja.md)という、一度に複数のデータを登録するモードが存在します。このモードを使用する場合、`divided`というディレクトリを作成しなければなりません。
+RDE構造化処理では、[ExcelInvoice](../mode/mode.ja.md)や、[マルチデータタイルモード](../mode/mode.ja.md)という、一度に複数のデータを登録するモードが存在します。このモードを使用する場合、`divided`というディレクトリを作成しなければなりません。
 
 !!! note
-    [ExcelInvoice](../config/mode.ja.md)や、[マルチデータタイルモード](../config/mode.ja.md)を設定ファイルに記述し、指定した入力規則で構造化処理を実行した場合、自動的にdividedディレクトリが作成されます。
+    [ExcelInvoice](../mode/mode.ja.md)や、[マルチデータタイルモード](../mode/mode.ja.md)を設定ファイルに記述し、指定した入力規則で構造化処理を実行した場合、自動的にdividedディレクトリが作成されます。
 
 ### dividedディレクトリの命名規則
 
@@ -186,4 +186,4 @@ print(p)  # ['data/divided/0002/structured/structured_item_1.csv', ...]
 
 - [構造化処理の概念](structured.ja.md)でディレクトリが使用される処理フローを理解する
 - [ディレクトリパス取得](rdepath.ja.md)でパス操作方法を確認する
-- [処理モード](../config/mode.ja.md)でdividedディレクトリを使用するモードを学ぶ
+- [処理モード](../mode/mode.ja.md)でdividedディレクトリを使用するモードを学ぶ

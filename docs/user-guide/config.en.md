@@ -38,11 +38,11 @@ RDEToolKit automatically searches for configuration files in the following locat
     system:
       # Extended mode specification
       extended_mode: 'MultiDataTile'  # or 'rdeformat'
-      
+
       # File saving settings
       save_raw: true
       save_nonshared_raw: true
-      
+
       # Feature enable/disable
       magic_variable: true
       save_thumbnail_image: true
@@ -83,7 +83,7 @@ system:
 ```yaml title="tasksupport/rdeconfig.yaml"
 system:
   extended_mode: 'MultiDataTile'
-  
+
 multidata_tile:
   ignore_errors: true  # Continue processing on errors
 ```
@@ -108,12 +108,12 @@ Define custom configuration values that can be referenced within structured proc
       thumbnail_image_name: "inputdata/sample_image.png"
       image_quality: 85
       max_image_size: 1920
-      
+
       # Data processing settings
       analysis_parameters:
         threshold: 0.5
         iterations: 100
-      
+
       # Output settings
       output_format: "csv"
       include_metadata: true
@@ -127,13 +127,13 @@ Define custom configuration values that can be referenced within structured proc
     max_image_size = 1920
     output_format = "csv"
     include_metadata = true
-    
+
     [tool.rdetoolkit.custom.analysis_parameters]
     threshold = 0.5
     iterations = 100
     ```
 
-### 5. Reference Settings in Structured Processing
+### 5. Reference Settings in Structuring Processing
 
 How to use created configuration values within structured processing functions:
 
@@ -145,23 +145,23 @@ def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     extended_mode = srcpaths.config.system.extended_mode
     save_raw = srcpaths.config.system.save_raw
     magic_variable = srcpaths.config.system.magic_variable
-    
+
     print(f"Processing mode: {extended_mode}")
     print(f"Save raw: {save_raw}")
     print(f"Magic Variable: {magic_variable}")
-    
+
     # Reference custom settings
     if hasattr(srcpaths.config, 'custom'):
         custom_config = srcpaths.config.custom
-        
+
         # Get image settings
         thumbnail_name = custom_config.get('thumbnail_image_name')
         image_quality = custom_config.get('image_quality', 75)
-        
+
         # Get analysis parameters
         analysis_params = custom_config.get('analysis_parameters', {})
         threshold = analysis_params.get('threshold', 0.5)
-        
+
         print(f"Thumbnail image: {thumbnail_name}")
         print(f"Image quality: {image_quality}")
         print(f"Threshold: {threshold}")
@@ -243,8 +243,8 @@ def safe_get_custom_config(config, key, default=None):
 
 # Usage example
 thumbnail_name = safe_get_custom_config(
-    srcpaths.config, 
-    'thumbnail_image_name', 
+    srcpaths.config,
+    'thumbnail_image_name',
     'default_thumbnail.png'
 )
 ```

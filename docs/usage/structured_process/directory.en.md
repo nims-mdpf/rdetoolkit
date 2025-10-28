@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document explains the technical specifications of directory structures supported by RDE structured processing. It provides detailed definitions of directories required for project setup and execution.
+This document explains the technical specifications of directory structures supported by RDE structuring processing. It provides detailed definitions of directories required for project setup and execution.
 
 ## Input Directory Specification
 
-Directory groups required before executing structured processing. These are created manually for local execution and auto-generated in RDE environments.
+Directory groups required before executing structuring processing. These are created manually for local execution and auto-generated in RDE environments.
 
 ### Required Input Directories
 
@@ -34,7 +34,7 @@ data/
 
 ## Output Directory Specification
 
-Directory groups automatically generated as results of structured processing execution.
+Directory groups automatically generated as results of structuring processing execution.
 
 ### Standard Output Directories
 
@@ -152,8 +152,8 @@ print(divided_path)  # data/divided/0002/structured
 # Create all directories at once
 all_paths = dir_ops.all()
 print(all_paths)
-# ['data/invoice', 'data/attachment', 'data/tasksupport', 
-#  'data/structured', 'data/meta', 'data/thumbnail', 
+# ['data/invoice', 'data/attachment', 'data/tasksupport',
+#  'data/structured', 'data/meta', 'data/thumbnail',
 #  'data/main_image', 'data/other_image', 'data/nonshared_raw', 'data/raw']
 
 # Create indexed directories at once
@@ -198,6 +198,6 @@ print(divided_files)
 
 After understanding the directory structure specifications, refer to the following documents:
 
-- Understand directory roles in [Structured Processing Concepts](structured.en.md)
+- Understand directory roles in [Structuring Processing Concepts](structured.en.md)
 - Customize directory settings in [Configuration Files](../config/config.en.md)
-- Learn how to use divided directories in [Processing Modes](../config/mode.en.md)
+- Learn how to use divided directories in [Processing Modes](../mode/mode.en.md)

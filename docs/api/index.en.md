@@ -28,6 +28,7 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 - [invoicefile](../rdetoolkit/invoicefile.md) - Invoice file processing
 - [validation](../rdetoolkit/validation.md) - Data validation
 - [rde2util](../rdetoolkit/rde2util.md) - RDE-related utility functions
+- [csv2graph](../rdetoolkit/csv2graph.md) - CSV visualization and plotting pipeline
 
 ### Representative Image Operations
 
@@ -68,7 +69,7 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 
 ### Command Line
 
-- [CLI Commands](../usage/cli.ja.md) - Command line interface usage
+- [CLI Commands](../usage/cli.en.md) - Command line interface usage
 
 ## Usage Patterns
 
@@ -126,6 +127,7 @@ except RdeToolkitError as e:
 | 1.0.x | Stable | Initial release |
 | 1.1.x | Backward compatible | New features added |
 | 1.2.x | Backward compatible | Performance improvements |
+| 1.4.x | Backward compatible | CSV-to-graph API, config generator CLI, SmartTable metadata automation |
 
 !!! note "API Stability"
     Backward compatibility is maintained within major versions. Breaking changes only occur during major version upgrades.

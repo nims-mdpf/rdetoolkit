@@ -50,7 +50,7 @@ In this example, development proceeds within a directory named `container`.
 - **requirements.txt**
   - Add any Python packages you wish to use for building the structured program. Run `pip install` as needed.
 - **modules**
-  - Store programs you want to use for structured processing here. Details are explained in a later section.
+  - Store programs you want to use for structuring processing here. Details are explained in a later section.
 - **main.py**
   - Defines the entry point for the structured program.
 - **data/inputdata**
@@ -58,7 +58,7 @@ In this example, development proceeds within a directory named `container`.
 - **data/invoice**
   - Required even as an empty file for local execution.
 - **data/tasksupport**
-  - Place supporting files for structured processing here.
+  - Place supporting files for structuring processing here.
 
 ```shell
 container
@@ -74,7 +74,7 @@ container
 └── requirements.txt
 ```
 
-### Implementing Structured Processing
+### Implementing Structuring Processing
 
 You can process input data (e.g., data transformation, visualization, creation of CSV files for machine learning) and register the results into RDE. By following the format below, you can incorporate your own processing into the RDE structured workflow.
 
@@ -90,7 +90,7 @@ def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
-In this example, we define a dummy function `display_messsage()` under `modules` to demonstrate how to implement custom structured processing. Create a file named `modules/modules.py` as follows:
+In this example, we define a dummy function `display_messsage()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
 
 ```python
 # modules/modules.py
@@ -112,17 +112,17 @@ Next, use `rdetoolkit.workflow.run()` to define the entry point. The main tasks 
 
 - Checking input files
 - Obtaining various directory paths as specified by RDE structure
-- Executing user-defined structured processing
+- Executing user-defined structuring processing
 
 ```python
 import rdetoolkit
-from modules.modules import dataset  # User-defined structured processing function
+from modules.modules import dataset  # User-defined structuring processing function
 
-# Pass the user-defined structured processing function as an argument
+# Pass the user-defined structuring processing function as an argument
 rdetoolkit.workflows.run(custom_dataset_function=dataset)
 ```
 
-If you do not wish to pass a custom structured processing function, define as follows:
+If you do not wish to pass a custom structuring processing function, define as follows:
 
 ```python
 import rdetoolkit
