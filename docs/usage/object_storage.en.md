@@ -368,4 +368,4 @@ Using the MinIOStorage class makes integration with MinIO servers very easy. Mai
 
 - Check detailed features in [API Reference](../rdetoolkit/storage/minio.md)
 - Refer to [MinIO Python SDK Official Documentation](https://min.io/docs/minio/linux/developers/python/API.html)
-- Learn how to use object storage in [Structured Processing](../user-guide/structured-processing.en.md)
+- Learn how to use object storage in [Structuring Processing](../user-guide/structured-processing.en.md)

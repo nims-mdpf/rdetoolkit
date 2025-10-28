@@ -95,14 +95,14 @@ def validate_against_schema(data, schema_path):
     try:
         with open(schema_path, 'r') as f:
             schema = json.load(f)
-        
+
         # Check required fields
         if 'required' in schema:
             for field in schema['required']:
                 if field not in data:
                     print(f"❌ Missing required field: {field}")
                     return False
-        
+
         print("✅ Schema validation passed")
         return True
     except Exception as e:
@@ -124,17 +124,17 @@ def dataset_with_error_handling(srcpaths, resource_paths):
     except FileNotFoundError as e:
         # Set RDE error information
         raise StructuredError(
-            "Configuration file not found", 
-            ecode=3, 
+            "Configuration file not found",
+            ecode=3,
             eobj=e
         ) from e
     except json.JSONDecodeError as e:
         raise StructuredError(
-            "Configuration file format is incorrect", 
-            ecode=4, 
+            "Configuration file format is incorrect",
+            ecode=4,
             eobj=e
         ) from e
-    
+
     # Normal processing
     return process_data(config)
 ```
@@ -145,8 +145,8 @@ def dataset_with_error_handling(srcpaths, resource_paths):
 from rdetoolkit.errors import catch_exception_with_message
 
 @catch_exception_with_message(
-    error_message="An unexpected error occurred", 
-    error_code=100, 
+    error_message="An unexpected error occurred",
+    error_code=100,
     verbose=False
 )
 def dataset_with_decorator(srcpaths, resource_paths):
@@ -170,17 +170,17 @@ def setup_detailed_logging():
             logging.StreamHandler()
         ]
     )
-    
+
     logger = logging.getLogger(__name__)
     return logger
 
 def debug_processing(srcpaths, resource_paths):
     logger = setup_detailed_logging()
-    
+
     logger.info("Starting structured processing")
     logger.debug(f"Input paths: {srcpaths}")
     logger.debug(f"Output paths: {resource_paths}")
-    
+
     try:
         # Execute processing
         result = your_processing_logic()
@@ -254,7 +254,7 @@ grep -i "warning" data/logs/rdesys.log
 
 To learn more about error handling, refer to the following documents:
 
-- Understand processing phases where errors occur in [Structured Processing Concepts](structured.en.md)
+- Understand processing phases where errors occur in [Structuring Processing Concepts](structured.en.md)
 - Learn how to handle configuration-related errors in [Configuration Files](../config/config.en.md)
 - Check data validation error handling in [Validation](../validation.en.md)
 - Learn about LLM/AI-friendly stacktrace formatting in [Traceback System](traceback.en.md)

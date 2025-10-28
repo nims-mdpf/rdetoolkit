@@ -29,37 +29,22 @@ def rdeformat_mode_process(
     resource_paths: RdeOutputResourcePath,
     datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
-    """Process the source data and apply specific transformations using the provided callback function.
-
-    This function performs several steps:
-
-    1. Overwrites the invoice file.
-    2. Copies input files to the rawfile directory.
-    3. Runs a custom dataset process function if provided.
-    4. Copies images to the thumbnail directory.
-    5. Updates descriptions with features, ignoring any errors during this step.
-    6. Validates the metadata-def.json file.
-    7. Validates the invoice file against the invoice schema.
+    """Run the ``rdeformat`` pipeline and optional dataset callback.
 
     Args:
-        index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
-        srcpaths (RdeInputDirPaths): Input paths for the source data.
-        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
-        config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
 
     Raises:
-        Any exceptions raised by `datasets_process_function` or during the validation steps will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+        Exception: Propagates failures raised by the dataset callback or
+            pipeline validation steps. Errors from the description update stage
+            are swallowed by the pipeline implementation.
 
     Returns:
-        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
-            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
-            - title (str): A descriptive title for the workflow execution.
-            - status (str): The status of the workflow execution, either "success" or "failed".
-            - mode (str): The mode in which the workflow was executed, e.g., "rdeformat".
-            - error_code (int | None): The error code if an error occurred, otherwise None.
-            - error_message (str | None): The error message if an error occurred, otherwise None.
-            - target (str): The target directory or file path related to the workflow execution.
+        WorkflowExecutionStatus: Execution metadata including status, target,
+        and optional error information.
     """
     context = ProcessingContext(
         index=index,
@@ -79,38 +64,22 @@ def multifile_mode_process(
     resource_paths: RdeOutputResourcePath,
     datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
-    """Processes multiple source files and applies transformations using the provided callback function.
-
-    This function performs several steps:
-
-    1. Overwrites the invoice file.
-    2. Copies input files to the rawfile directory.
-    3. Runs a custom dataset process function if provided.
-    4. Replaces the placeholder '${filename}' in the invoice with the actual filename if necessary.
-    5. Copies images to the thumbnail directory.
-    6. Attempts to update descriptions with features, ignoring any errors during this step.
-    7. Validates the metadata-def.json file.
-    8. Validates the invoice file against the invoice schema.
+    """Run the ``MultiDataTile`` pipeline and optional dataset callback.
 
     Args:
-        index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
-        srcpaths (RdeInputDirPaths): Input paths for the source data.
-        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
-        config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
 
     Raises:
-        Any exceptions raised by `datasets_process_function` or during the validation steps will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+        Exception: Propagates failures raised by the dataset callback or
+            pipeline validation steps. Errors from the description update stage
+            are swallowed by the pipeline implementation.
 
     Returns:
-        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
-            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
-            - title (str): A descriptive title for the workflow execution.
-            - status (str): The status of the workflow execution, either "success" or "failed".
-            - mode (str): The mode in which the workflow was executed, e.g., "rdeformat".
-            - error_code (int | None): The error code if an error occurred, otherwise None.
-            - error_message (str | None): The error message if an error occurred, otherwise None.
-            - target (str): The target directory or file path related to the workflow execution.
+        WorkflowExecutionStatus: Execution metadata including status, target,
+        and optional error information.
     """
     context = ProcessingContext(
         index=index,
@@ -131,40 +100,23 @@ def excel_invoice_mode_process(
     idx: int,
     datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
-    """Processes invoice data from an Excel file and applies dataset transformations using the provided callback function.
-
-    This function performs several steps:
-
-    1. Overwrites the Excel invoice file.
-    2. Copies input files to the rawfile directory.
-    3. Runs a custom dataset process function if provided.
-    4. Replaces the placeholder '${filename}' in the invoice with the actual filename if necessary.
-    5. Copies images to the thumbnail directory.
-    6. Attempts to update descriptions with features, ignoring any errors during this step.
-    7. Validates the metadata-def.json file.
-    8. Validates the invoice file against the invoice schema.
+    """Run the ``ExcelInvoice`` pipeline and optional dataset callback.
 
     Args:
-        srcpaths (RdeInputDirPaths): Input paths for the source data.
-        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        excel_invoice_file (Path): Path to the source Excel invoice file.
-        idx (int): Index or identifier for the data being processed.
-        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
-        config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        excel_invoice_file: Source Excel invoice file.
+        idx: Index of the workbook row to process.
+        datasets_process_function: Optional hook executed before validation.
 
     Raises:
-        StructuredError: When encountering issues related to Excel invoice overwriting or during the validation steps.
-        Any exceptions raised by `datasets_process_function` will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+        Exception: Propagates failures raised by the dataset callback or
+            pipeline validation steps. Errors from the description update stage
+            are swallowed by the pipeline implementation.
 
     Returns:
-        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
-            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
-            - title (str): A descriptive title for the workflow execution.
-            - status (str): The status of the workflow execution, either "success" or "failed".
-            - mode (str): The mode in which the workflow was executed, e.g., "rdeformat".
-            - error_code (int | None): The error code if an error occurred, otherwise None.
-            - error_message (str | None): The error message if an error occurred, otherwise None.
-            - target (str): The target directory or file path related to the workflow execution.
+        WorkflowExecutionStatus: Execution metadata including status, target,
+        and optional error information.
     """
     context = ProcessingContext(
         index=str(idx),
@@ -186,37 +138,22 @@ def invoice_mode_process(
     resource_paths: RdeOutputResourcePath,
     datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
-    """Processes invoice-related data, applies dataset transformations using the provided callback function, and updates descriptions.
-
-    This function performs several steps:
-
-    1. Copies input files to the rawfile directory.
-    2. Runs a custom dataset process function if provided.
-    3. Copies images to the thumbnail directory.
-    4. Replaces the placeholder '${filename}' in the invoice with the actual filename if necessary.
-    5. Attempts to update descriptions with features, ignoring any errors during this step.
-    6. Validates the metadata-def.json file.
-    7. Validates the invoice file against the invoice schema.
+    """Run the standard invoice pipeline and optional dataset callback.
 
     Args:
-        index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
-        srcpaths (RdeInputDirPaths): Input paths for the source data.
-        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
-        config (Config, optional): Configuration instance for structured processing execution. Defaults to None.
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
 
     Raises:
-        Any exceptions raised by `datasets_process_function` will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+        Exception: Propagates failures raised by the dataset callback or
+            pipeline validation steps. Errors from the description update stage
+            are swallowed by the pipeline implementation.
 
     Returns:
-        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
-            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
-            - title (str): A descriptive title for the workflow execution.
-            - status (str): The status of the workflow execution, either "success" or "failed".
-            - mode (str): The mode in which the workflow was executed, e.g., "rdeformat".
-            - error_code (int | None): The error code if an error occurred, otherwise None.
-            - error_message (str | None): The error message if an error occurred, otherwise None.
-            - target (str): The target directory or file path related to the workflow execution.
+        WorkflowExecutionStatus: Execution metadata including status, target,
+        and optional error information.
     """
     context = ProcessingContext(
         index=index,
@@ -237,39 +174,23 @@ def smarttable_invoice_mode_process(
     smarttable_file: Path,
     datasets_process_function: DatasetCallback | None = None,
 ) -> WorkflowExecutionStatus:
-    """Processes SmartTable files and generates invoice data for structured processing.
-
-    This function performs several steps:
-
-    1. Initializes invoice from SmartTable file data.
-    2. Copies input files to the rawfile directory.
-    3. Runs a custom dataset process function if provided.
-    4. Copies images to the thumbnail directory.
-    5. Replaces the placeholder '${filename}' in the invoice with the actual filename if necessary.
-    6. Attempts to update descriptions with features, ignoring any errors during this step.
-    7. Validates the metadata-def.json file.
-    8. Validates the invoice file against the invoice schema.
+    """Run the ``SmartTableInvoice`` pipeline and optional dataset callback.
 
     Args:
-        index: The workflow execution ID (run_id) is a unique identifier used to distinguish a specific execution of a workflow.
-        srcpaths (RdeInputDirPaths): Input paths for the source data.
-        resource_paths (RdeOutputResourcePath): Paths to the resources where data will be written or read from.
-        smarttable_file (Path): Path to the SmartTable file (.xlsx, .csv, .tsv).
-        datasets_process_function (DatasetCallback, optional): A callback function that processes datasets. Defaults to None.
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        smarttable_file: SmartTable spreadsheet supplying invoice data.
+        datasets_process_function: Optional hook executed before validation.
 
     Raises:
-        StructuredError: When encountering issues related to SmartTable processing or during the validation steps.
-        Any exceptions raised by `datasets_process_function` will propagate upwards. Exceptions during the `update_description_with_features` step are caught and silently ignored.
+        Exception: Propagates failures raised by the dataset callback or
+            pipeline validation steps. Errors from the description update stage
+            are swallowed by the pipeline implementation.
 
     Returns:
-        WorkflowExecutionStatus: An object containing the execution status of the workflow, including:
-            - run_id (str): The unique identifier for the workflow execution, zero-padded to four digits.
-            - title (str): A descriptive title for the workflow execution.
-            - status (str): The status of the workflow execution, either "success" or "failed".
-            - mode (str): The mode in which the workflow was executed, e.g., "SmartTableInvoice".
-            - error_code (int | None): The error code if an error occurred, otherwise None.
-            - error_message (str | None): The error message if an error occurred, otherwise None.
-            - target (str): The target directory or file path related to the workflow execution.
+        WorkflowExecutionStatus: Execution metadata including status, target,
+        and optional error information.
     """
     context = ProcessingContext(
         index=index,
@@ -342,13 +263,15 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
         src_paths (RdeInputDirPaths): Paths for the source input files.
         unpacked_dir_path (Path): Directory path for unpacked files.
         mode (str | None): Format flags indicating which checker mode is enabled. Expected values include "rdeformat", "multidatatile", or None.
-        config (Config | None): Configuration instance for structured processing execution. Defaults to None.
+        config (Config | None): Configuration instance for structuring processing execution. Defaults to None.
 
     Returns:
         IInputFileChecker: An instance of the appropriate input file checker based on the provided criteria.
 
-    Raises:
-        None, but callers should be aware that downstream exceptions can be raised by individual checker initializations.
+    Note:
+        The concrete checker constructors may raise exceptions if their
+        initialization requirements are not met; those exceptions are not
+        intercepted here.
     """
     input_files = list(src_paths.inputdata.glob("*"))
     smarttable_files = [f for f in input_files if f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"]]

@@ -1,4 +1,4 @@
-## Implementing Structured Processing with Real Data
+## Implementing Structuring Processing with Real Data
 
 This document explains how to build structured processing for registering RAS files output from Rigaku's X-ray diffraction (XRD) equipment to RDE using the RDEToolKit library.
 
@@ -53,18 +53,18 @@ RAS files (Rigaku) are standard data formats output from Rigaku's X-ray diffract
 *RAS_DATA_END
 ```
 
-## Building RDE Structured Processing with rdetoolkit
+## Building RDE Structuring Processing with rdetoolkit
 
-### RDE Structured Processing Development Process
+### RDE Structuring Processing Development Process
 
 The development process shown in this document is an example. Please adjust according to user needs.
 
 ```mermaid
 flowchart TD
     %% Specify overall direction as vertical (Top→Bottom)
-    subgraph RDE Structured Processing Development Process
+    subgraph RDE Structuring Processing Development Process
         direction TB
-        style RDE Structured Processing Development Process fill:#f0f4f8,stroke:#333,stroke-width:2px,rx:10,ry:10
+        style RDE Structuring Processing Development Process fill:#f0f4f8,stroke:#333,stroke-width:2px,rx:10,ry:10
     end
 
     %% Common style definition for nodes
@@ -481,7 +481,7 @@ system:
     save_thumbnail_image: true
 ```
 
-### Basic Structure Recommended by rdetoolkit for Structured Processing
+### Basic Structure Recommended by rdetoolkit for Structuring Processing
 
 rdetoolkit recommends the following basic directory structure for structured processing:
 
@@ -577,36 +577,36 @@ import pandas as pd
 
 def parse_ras_file(filepath: str | Path) -> tuple[dict[str, str], pd.DataFrame]:
     """Parse RAS file and extract metadata and measurement data"""
-    
+
     filepath = Path(filepath)
     if not filepath.exists():
         raise FileNotFoundError(f"File not found: {filepath}")
-    
+
     metadata = {}
     measurement_data = []
-    
+
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
-    
+
     in_data_section = False
-    
+
     for line in lines:
         line = line.strip()
-        
+
         # Skip empty lines
         if not line:
             continue
-            
+
         # Start of measurement data section
         if line == "*RAS_INT_START":
             in_data_section = True
             continue
-            
+
         # End of measurement data section
         if line == "*RAS_INT_END":
             in_data_section = False
             continue
-            
+
         # Process measurement data
         if in_data_section:
             try:
@@ -622,7 +622,7 @@ def parse_ras_file(filepath: str | Path) -> tuple[dict[str, str], pd.DataFrame]:
                     })
             except ValueError:
                 continue
-                
+
         # Process metadata (lines starting with *)
         elif line.startswith("*") and not line.startswith("*RAS_"):
             # Extract metadata using regular expressions
@@ -631,10 +631,10 @@ def parse_ras_file(filepath: str | Path) -> tuple[dict[str, str], pd.DataFrame]:
                 key = match.group(1).lower()
                 value = match.group(2).strip()
                 metadata[key] = value
-    
+
     # Convert measurement data to DataFrame
     df = pd.DataFrame(measurement_data)
-    
+
     return metadata, df
 ```
 
@@ -648,20 +648,20 @@ from rdetoolkit.rde2util import Meta
 
 def save_metadata(metadata: dict[str, str], metadata_def_json_path: str | Path, save_path: str | Path):
     """Save metadata using rdetoolkit Meta utility"""
-    
+
     # Load metadata definition
     with open(metadata_def_json_path, 'r', encoding='utf-8') as f:
         metadata_def = json.load(f)
-    
+
     # Create Meta instance
     meta = Meta(metadata_def)
-    
+
     # Map metadata to defined schema
     mapped_metadata = {}
     for key, value in metadata.items():
         if key in metadata_def:
             mapped_metadata[key] = value
-    
+
     # Save metadata
     meta.save_meta_file(mapped_metadata, save_path)
 ```
@@ -776,7 +776,7 @@ def my_xrd_func(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePat
         raise StructuredError(f"An error occurred during XRD processing: {e}") from e
 ```
 
-#### Step6: Verify Structured Processing Operation
+#### Step6: Verify Structuring Processing Operation
 
 ```bash
 cd container
@@ -814,7 +814,7 @@ container/data
 
 Logs are output to `rdesys.log` under `container/data/logs`. If errors occur, error messages are recorded here.
 
-## Submit Structured Processing to RDE
+## Submit Structuring Processing to RDE
 
 If there are no problems with operation, submit the structured processing to RDE. Execute the following command to generate a zip file, then submit this zip file to RDE.
 

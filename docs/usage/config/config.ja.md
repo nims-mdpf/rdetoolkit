@@ -127,6 +127,10 @@ system:
 }
 ```
 
+### Magic Variable機能
+
+`magic_variable` を有効にすると、`${filename}` などの変数を送り状やメタデータ内で実際の値に置き換えられます。詳しい使い方は[マジック変数ガイド](magic_variable.ja.md)を参照してください。
+
 #### save_thumbnail_image設定
 
 - メイン画像(main_imageディレクトリ)からサムネイル画像の自動生成を制御します
@@ -156,7 +160,9 @@ system:
   extended_mode: "MultiDataTile" # マルチデータタイルモード
 ```
 
-モードの詳細については、[データ登録モード](../mode/mode.md)を参照してください。
+### 処理モード
+
+ワークフローに応じて `extended_mode` を選択してください。各モードの前提条件や振る舞いは[データ登録モード](../mode/mode.ja.md)で詳しく解説しています。
 
 ### 4. 登録モード固有の設定を追加する
 

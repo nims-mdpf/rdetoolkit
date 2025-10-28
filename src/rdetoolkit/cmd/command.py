@@ -32,14 +32,7 @@ class InitCommand:
     ]
 
     def invoke(self) -> None:
-        """Invokes the command and performs the necessary actions.
-
-        Args:
-            ctx (click.Context): The Click context object.
-
-        Returns:
-            None
-        """
+        """Create the boilerplate layout for developing RDE structured programs."""
         try:
             self._info_msg("Ready to develop a structured program for RDE.")
             current_dir = Path.cwd()
@@ -140,14 +133,7 @@ class InitCommand:
 
 class VersionCommand:
     def invoke(self) -> None:
-        """Invokes the command and prints the version number.
-
-        Args:
-            ctx (click.Context): The Click context object.
-
-        Returns:
-            None
-        """
+        """Print the installed RDEToolKit version."""
         click.echo(__version__)
 
 

@@ -1,8 +1,8 @@
-# What is Structured Processing
+# What is Structuring Processing
 
 ## Purpose
 
-This page explains the basic concepts and processing flow of RDE structured processing. You will understand why structured processing is necessary and how it works.
+This page explains the basic concepts and processing flow of RDE structuring processing. You will understand why structuring processing is necessary and how it works.
 
 ## Challenges and Background
 
@@ -13,19 +13,19 @@ Research data management faced the following challenges:
 - **Reproducibility Assurance**: Need for standardization and recording of data processing procedures
 - **Quality Control**: Requirement for data consistency and validity verification
 
-The concept of RDE structured processing was created to address these challenges.
+The concept of RDE structuring processing was created to address these challenges.
 
 ## Key Concepts
 
 ### Three Phases
 
-RDE structured processing consists of the following three phases:
+RDE structuring processing consists of the following three phases:
 
 ```mermaid
 flowchart LR
     A[Initialization Phase] --> B[Custom Processing Phase]
     B --> C[Termination Phase]
-    
+
     A1[Directory Creation<br/>File Validation<br/>Configuration Loading] --> A
     B1[User-defined Processing<br/>Data Transformation<br/>Metadata Generation] --> B
     C1[Output Validation<br/>Log Finalization<br/>Cleanup] --> C
@@ -87,7 +87,7 @@ flowchart TD
     D --> E[Metadata Generation]
     E --> F[Output Validation]
     F --> G[RDE Dataset]
-    
+
     H[Configuration Files] --> C
     I[Schema Definition] --> B
     I --> F
@@ -122,7 +122,7 @@ RDEToolKit provides four processing modes according to data types and registrati
 
 ## Summary
 
-RDE structured processing is a comprehensive framework for ensuring the quality and reproducibility of research data. Key features include:
+RDE structuring processing is a comprehensive framework for ensuring the quality and reproducibility of research data. Key features include:
 
 - **Three-stage Processing Flow**: Clear separation of initialization, custom processing, and termination
 - **Standardized Directory Structure**: Consistent data organization
@@ -131,9 +131,9 @@ RDE structured processing is a comprehensive framework for ensuring the quality 
 
 ## Next Steps
 
-After understanding the concepts of structured processing, refer to the following practical guides:
+After understanding the concepts of structuring processing, refer to the following practical guides:
 
-- Experience structured processing with [Quick Start](../quickstart.en.md)
-- Learn details of each mode in [Processing Modes](../config/mode.en.md)
+- Experience structuring processing with [Quick Start](../quickstart.en.md)
+- Learn details of each mode in [Processing Modes](../mode/mode.en.md)
 - Check customization methods in [Configuration Files](../config/config.en.md)
 - Learn troubleshooting in [Error Handling](errorhandling.en.md)

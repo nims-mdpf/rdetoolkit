@@ -24,18 +24,18 @@ Research data management and sharing faced several challenges:
 
 ## Key Concepts
 
-### Structured Processing Workflow
+### Structuring Processing Workflow
 
 RDEToolKit executes "structured processing" to convert research data into standardized RDE format through three phases:
 
 ```mermaid
 graph LR
-    Initialization --> Custom_Processing[Custom Structured Processing]
+    Initialization --> Custom_Processing[Custom Structuring Processing]
     Custom_Processing --> Finalization
 ```
 
 - **Initialization**: Directory creation, file loading, mode detection
-- **Custom Structured Processing**: User-defined data transformation and analysis
+- **Custom Structuring Processing**: User-defined data transformation and analysis
 - **Finalization**: Validation, thumbnail generation, metadata description
 
 ### Four Processing Modes
@@ -71,7 +71,7 @@ pip install rdetoolkit
 
 ## Code Sample
 
-|       Sample1: With User-Defined Structured Processing       |            Sample2: Without User-Defined Structured Processing            |
+|       Sample1: With User-Defined Structuring Processing       |            Sample2: Without User-Defined Structuring Processing            |
 | :---------------------------------------------: | :-------------------------------------------------------: |
 | ![quick-sample-code](img/quick-sample-code.svg) | ![quick-sample-code-none](img/quick-sample-code-none.svg) |
 

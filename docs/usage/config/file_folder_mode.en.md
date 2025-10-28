@@ -24,7 +24,7 @@ flowchart TD
     A[Analyze zip file] --> B{Folders exist at top level?}
     B -->|Yes| C[Folder Mode]
     B -->|No| D[File Mode]
-    
+
     C --> E[Compare folder count with ExcelInvoice rows]
     D --> F[Compare file count with ExcelInvoice rows]
 ```
@@ -124,6 +124,6 @@ Key features of File Mode and Folder Mode:
 
 To utilize File Mode and Folder Mode, refer to the following documents:
 
-- Check ExcelInvoice mode details in [Data Registration Modes](mode.en.md)
+- Check ExcelInvoice mode details in [Data Registration Modes](../mode/mode.en.md)
 - Learn related settings in [Configuration Files](config.en.md)
-- Understand processing flows in [Structured Processing Concepts](../structured_process/structured.en.md)
+- Understand processing flows in [Structuring Processing Concepts](../structured_process/structured.en.md)

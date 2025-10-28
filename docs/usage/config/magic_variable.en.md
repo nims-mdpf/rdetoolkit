@@ -7,7 +7,7 @@ This document explains the Magic Variable feature of RDEToolKit. You will unders
 
 ## Problem Statement and Background
 
-In structured processing, we faced the following issues:
+In structuring processing, we faced the following issues:
 
 - **Manual entry of file names**: File names had to be typed manually into the metadata.
 - **Maintaining consistency**: It was difficult to enter the exact same file name correctly across multiple entries.
@@ -79,6 +79,6 @@ Key benefits of the Magic Variable feature:
 
 To make the most of the Magic Variable feature, refer to the following documents:
 
-- Learn detailed configuration in the [Configuration File](config.ja.md) documentation.
-- Understand the processing flow in the [Structured Processing Concept](../structured_process/structured.ja.md) guide.
-- Review metadata design in the [Metadata Definition File](../metadata_definition_file.ja.md) documentation.
+- Learn detailed configuration in the [Configuration File](config.en.md) documentation.
+- Understand the processing flow in the [Structuring Processing Concept](../structured_process/structured.en.md) guide.
+- Review metadata design in the [Metadata Definition File](../metadata_definition_file.en.md) documentation.

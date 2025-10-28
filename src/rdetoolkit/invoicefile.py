@@ -540,8 +540,8 @@ class ExcelInvoiceFile:
             tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Three dataframes (dfexcelinvoice, df_general, df_specific).
 
         Raises:
-            StructuredError: If the invoice file is not found, or if multiple sheets exist in the invoice list files,
-            or if no sheet is present in the invoice list files.
+            StructuredError: If the invoice file is missing, if multiple invoice-list sheets exist, or if no
+            invoice-list sheet is present.
         """
         if target_path is None:
             target_path = self.invoice_path

@@ -85,7 +85,7 @@ The dataset emulates XRD intensity measurements.
 - [data.csv](./csv2graph_samples/sample2/data.csv)
 
 === "Generated Plot"
-![Overlay: I-V_Curve_of_a_Diode_(log scale)](./csv2graph_samples/sample2/I-V_Curve_of_a_Diode_(log scale).png){ width="700" }
+![Overlay: I–V_Curve_of_a_Diode_(log scale)](./csv2graph_samples/sample2/I–V_Curve_of_a_Diode_(log scale).png){ width="700" }
 
 ### Directory Layout
 

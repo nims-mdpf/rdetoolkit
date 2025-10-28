@@ -3,7 +3,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-mdpf/rdetoolkit/blob/main/LICENSE)
 [![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-mdpf/rdetoolkit/issues)
 ![workflow](https://github.com/nims-mdpf/rdetoolkit/actions/workflows/main.yml/badge.svg)
-![coverage](docs/img/coverage.svg)
+![coverage](img/coverage.svg)
 
 # RDEToolKit
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This tutorial will guide you through creating and running your first RDE structured processing project using RDEToolKit. You can experience the basic structured processing workflow in approximately 15 minutes.
+This tutorial will guide you through creating and running your first RDE structuring processing project using RDEToolKit. You can experience the basic structuring processing workflow in approximately 15 minutes.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This tutorial will guide you through creating and running your first RDE structu
 
 ## 1. Initialize the Project
 
-Create a new RDE structured processing project:
+Create a new RDE structuring processing project:
 
 === "Unix/macOS"
 
@@ -44,9 +44,9 @@ container
 
 ### Description of Generated Files
 
-- **requirements.txt**: Python dependencies for your structured processing
+- **requirements.txt**: Python dependencies for your structuring processing
 - **modules/**: Directory for custom processing modules
-- **main.py**: Entry point for the structured processing program
+- **main.py**: Entry point for the structuring processing program
 - **data/inputdata/**: Place input data files here
 - **data/invoice/**: Contains invoice.json (required for local execution)
 - **data/tasksupport/**: Schema and metadata definition files
@@ -56,7 +56,7 @@ container
 
 ## 2. Implement Custom Processing
 
-Edit the `main.py` file to implement your custom structured processing function:
+Edit the `main.py` file to implement your custom structuring processing function:
 
 ```python title="main.py"
 import rdetoolkit.workflows as workflows
@@ -64,23 +64,23 @@ import rdetoolkit.workflows as workflows
 def my_dataset(rde):
     """
     Custom dataset processing function
-    
+
     Args:
         rde: RDE processing context object
     """
     # Write your custom processing logic here
     print("Processing dataset...")
-    
+
     # Example: Set metadata
     rde.set_metadata({
         "processing_status": "completed",
         "timestamp": "2023-01-01T00:00:00Z"
     })
-    
+
     return 0
 
 if __name__ == "__main__":
-    # Execute the structured processing workflow
+    # Execute the structuring processing workflow
     workflows.run(my_dataset)
 ```
 
@@ -93,9 +93,9 @@ Place your data files in the `data/inputdata/` directory:
 cp your_data_file.csv container/data/inputdata/
 ```
 
-## 4. Execute Structured Processing
+## 4. Execute Structuring Processing
 
-Run the structured processing:
+Run the structuring processing:
 
 === "Unix/macOS"
 
@@ -151,7 +151,7 @@ container/data/
 
 ## Congratulations!
 
-You have successfully completed your first structured processing project using RDEToolKit. You have achieved the following:
+You have successfully completed your first structuring processing project using RDEToolKit. You have achieved the following:
 
 - ✅ Project initialization
 - ✅ Custom processing function implementation
@@ -160,9 +160,9 @@ You have successfully completed your first structured processing project using R
 
 ## Next Steps
 
-Now that you have experienced basic structured processing, learn about the following topics:
+Now that you have experienced basic structuring processing, learn about the following topics:
 
-- Understand [Structured Processing Concepts](../user-guide/structured-processing.en.md)
+- Understand [Structuring Processing Concepts](../user-guide/structured-processing.en.md)
 - Explore [Configuration Options](config/config.en.md)
-- Learn about [Processing Modes](config/mode.en.md)
+- Learn about [Processing Modes](../mode/mode.en.md)
 - Check [CLI Reference](cli.en.md) for advanced commands

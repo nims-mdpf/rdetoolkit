@@ -77,7 +77,7 @@ Add `"description": true` to items you want to display in the description field:
 }
 ```
 
-### 2. Value Setting in Structured Processing
+### 2. Value Setting in Structuring Processing
 
 Set metadata values in custom structured processing:
 
@@ -85,7 +85,7 @@ Set metadata values in custom structured processing:
 def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     # Process experimental data
     experiment_data = process_experiment_data()
-    
+
     # Generate metadata
     metadata = {
         "experiment_name": "High Temperature Experiment Series A",
@@ -93,7 +93,7 @@ def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
         "pressure": 101325,  # Not displayed in description field
         "sample_count": 25
     }
-    
+
     # Save as metadata.json
     metadata_file = Path(resource_paths.meta) / "metadata.json"
     with open(metadata_file, 'w', encoding='utf-8') as f:
@@ -149,16 +149,16 @@ def generate_conditional_metadata(data):
         "project_name": data.get("name", "Not Set"),
         "completion_rate": calculate_completion_rate(data)
     }
-    
+
     # Add metadata based on conditions
     if data.get("validated"):
         metadata["is_validated"] = True
         metadata["validation_date"] = data["validation_date"]
-    
+
     # Add tags only if they exist
     if data.get("tags"):
         metadata["tags"] = data["tags"]
-    
+
     return metadata
 ```
 
@@ -173,11 +173,11 @@ def check_description_settings(metadata_def_path, metadata_path):
     # Check metadata-def.json
     with open(metadata_def_path, 'r') as f:
         schema = json.load(f)
-    
+
     # Check metadata.json
     with open(metadata_path, 'r') as f:
         metadata = json.load(f)
-    
+
     # Check description settings
     for prop_name, prop_def in schema.get("properties", {}).items():
         if prop_def.get("description") is True:
@@ -211,5 +211,5 @@ Key features of the automatic transfer to data tile description field:
 To utilize the automatic transfer feature, refer to the following documents:
 
 - Learn schema design in [Metadata Definition Files](../metadata_definition_file.en.md)
-- Understand processing flows in [Structured Processing Concepts](structured.en.md)
+- Understand processing flows in [Structuring Processing Concepts](structured.en.md)
 - Check file operation methods in [Directory Path Retrieval](rdepath.en.md)

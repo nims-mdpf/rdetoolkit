@@ -292,6 +292,6 @@ def verify_file_structure(divided_dir):
 
 ExcelInvoice処理をさらに活用するために、以下のドキュメントを参照してください：
 
-- [処理モード](mode.ja.md)でExcelInvoiceモードの詳細を学ぶ
+- [処理モード](../mode/mode.ja.md)でExcelInvoiceモードの詳細を学ぶ
 - [構造化処理の概念](../structured_process/structured.ja.md)で処理フローを理解する
 - [ディレクトリ構造](../structured_process/directory.ja.md)でdividedディレクトリの仕様を確認する

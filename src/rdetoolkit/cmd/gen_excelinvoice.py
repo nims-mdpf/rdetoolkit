@@ -20,14 +20,7 @@ class GenerateExcelInvoiceCommand:
         self.mode = mode
 
     def invoke(self) -> None:
-        """Invokes the command and generates an Excel invoice.
-
-        Args:
-            ctx (click.Context): The Click context object.
-
-        Returns:
-            None
-        """
+        """Generate an Excel invoice template from the provided schema."""
         rule_excelinvoice_suffix = '_excel_invoice.xlsx'
         click.echo("📄 Generating ExcelInvoice template...")
         click.echo(f"- Schema: {self.invoice_schema_file}")

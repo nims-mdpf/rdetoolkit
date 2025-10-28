@@ -363,44 +363,44 @@ from rdetoolkit.exceptions import InvoiceSchemaValidationError
 
 def validate_all_files(project_dir: Path):
     """Validate all files in the project"""
-    
+
     # 1. invoice.schema.json validation
     schema_path = project_dir / "tasksupport" / "invoice.schema.json"
     invoice_path = project_dir / "invoice" / "invoice.json"
-    
+
     try:
         invoice_validator = InvoiceValidator(schema_path)
         print("✓ invoice.schema.json validation successful")
-        
+
         # 2. invoice.json validation
         with open(invoice_path) as f:
             invoice_data = json.load(f)
-        
+
         invoice_validator.validate(obj=invoice_data)
         print("✓ invoice.json validation successful")
-        
+
     except ValidationError as e:
         print(f"✗ Invoice validation error: {e}")
         return False
-    
+
     # 3. metadata-def.json validation
     metadata_def_path = project_dir / "tasksupport" / "metadata-def.json"
     metadata_path = project_dir / "metadata.json"
-    
+
     try:
         metadata_validator = MetadataValidator(metadata_def_path)
         metadata_validator.validate_schema()
         print("✓ metadata-def.json validation successful")
-        
+
         # 4. metadata.json validation
         if metadata_path.exists():
             metadata_validator.validate_data(metadata_path)
             print("✓ metadata.json validation successful")
-        
+
     except ValidationError as e:
         print(f"✗ Metadata validation error: {e}")
         return False
-    
+
     print("🎉 All file validation completed")
     return True
 
@@ -412,5 +412,5 @@ validate_all_files(project_directory)
 ## Next Steps
 
 - Learn schema definition details in [Template Files](metadata_definition_file.en.md)
-- Understand validation usage in [Structured Processing](../user-guide/structured-processing.en.md)
+- Understand validation usage in [Structuring Processing](../user-guide/structured-processing.en.md)
 - Check detailed validation features in [API Reference](../rdetoolkit/validation.md)

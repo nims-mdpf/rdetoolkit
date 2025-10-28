@@ -64,7 +64,7 @@ rdetoolkit>=1.0.0
 ### Expected Result
 The `requirements.txt` file is created with RDEToolKit dependencies defined.
 
-## 3. Create Custom Structured Processing
+## 3. Create Custom Structuring Processing
 
 ### Purpose
 Create a custom function containing data processing logic.
@@ -178,7 +178,7 @@ Status: Ready for processing
 ### Expected Result
 The `data/inputdata/sample_data.txt` file is created with sample data ready for processing.
 
-## 6. Execute Structured Processing
+## 6. Execute Structuring Processing
 
 ### Purpose
 Execute RDE structured processing with the created project and verify its operation.
@@ -250,7 +250,7 @@ You have completed your first structured processing using RDEToolKit.
 
 To learn more in detail:
 
-1. [Structured Processing Concepts](user-guide/structured-processing.en.md) - Detailed understanding of processing flow
+1. [Structuring Processing Concepts](user-guide/structured-processing.en.md) - Detailed understanding of processing flow
 2. [Configuration File](user-guide/config.en.md) - How to customize behavior
 3. [API Reference](api/index.en.md) - Check all available features
 

@@ -123,6 +123,6 @@ def verify_outputs(paths: RdeDatasetPaths) -> None:
 
 ## Related Information
 
-- [Structured Processing Concepts](structured.en.md)
+- [Structuring Processing Concepts](structured.en.md)
 - [Directory Structure Specification](directory.en.md)
 - [Error Handling](errorhandling.en.md)

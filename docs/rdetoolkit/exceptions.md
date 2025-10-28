@@ -49,7 +49,7 @@ This module defines specialized exception classes for RDEToolKit. It provides ex
 
 ## Practical Usage
 
-### Structured Processing Error Handling
+### Structuring Processing Error Handling
 
 ```python title="structured_error_handling.py"
 from rdetoolkit.exceptions import StructuredError
@@ -61,18 +61,18 @@ def safe_structured_processing(dataset_function):
         result = run(custom_dataset_function=dataset_function)
         print(f"Structured processing completed: {result}")
         return result
-        
+
     except StructuredError as e:
         print(f"Structured processing error: {e}")
         print(f"Error type: {type(e).__name__}")
-        
+
         if hasattr(e, 'error_code'):
             print(f"Error code: {e.error_code}")
         if hasattr(e, 'context'):
             print(f"Error context: {e.context}")
-            
+
         return {"status": "error", "error": str(e)}
-    
+
     except Exception as e:
         print(f"Unexpected error: {e}")
         return {"status": "unexpected_error", "error": str(e)}
@@ -89,9 +89,9 @@ print(f"Final result: {result}")
 
 ```python title="mode_specific_errors.py"
 from rdetoolkit.exceptions import (
-    InvoiceModeError, 
-    ExcelInvoiceModeError, 
-    MultiDataTileModeError, 
+    InvoiceModeError,
+    ExcelInvoiceModeError,
+    MultiDataTileModeError,
     RdeFormatModeError
 )
 
@@ -133,7 +133,7 @@ from pathlib import Path
 def comprehensive_validation(data_dir: Path):
     """Comprehensive validation processing"""
     results = {"metadata": None, "invoice": None, "errors": []}
-    
+
     # Metadata validation
     metadata_path = data_dir / "meta" / "metadata.json"
     try:
@@ -144,7 +144,7 @@ def comprehensive_validation(data_dir: Path):
         results["metadata"] = "invalid"
         results["errors"].append(f"Metadata error: {e}")
         print(f"✗ Metadata validation failed: {e}")
-    
+
     # Invoice validation
     invoice_path = data_dir / "invoice" / "invoice.json"
     schema_path = data_dir / "tasksupport" / "invoice.schema.json"
@@ -156,7 +156,7 @@ def comprehensive_validation(data_dir: Path):
         results["invoice"] = "invalid"
         results["errors"].append(f"Invoice error: {e}")
         print(f"✗ Invoice validation failed: {e}")
-    
+
     return results
 
 # Usage example
