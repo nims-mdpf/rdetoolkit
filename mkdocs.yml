@@ -40,8 +40,7 @@ plugins:
                 - プロジェクト概要: README_ja.md
                 - はじめに: index.ja.md
                 - インストール: installation.md
-                - クイックスタート: usage/quickstart.md
-                - クイックスタート（詳細ガイド）: quick-start.ja.md
+                - クイックスタート: quick-start.ja.md
             - ユーザーガイド:
                 - ガイド概要: user-guide/index.ja.md
                 - 設定ガイド: user-guide/config.ja.md
@@ -132,6 +131,7 @@ plugins:
                     - MinIO 統合: rdetoolkit/storage/minio.md
                 - アーティファクト:
                     - レポート生成: rdetoolkit/artifact/report.md
+            - Changelog: releases/index.ja.md
             - コントリビューション:
                 - 概要: development/index.md
                 - ドキュメントへの貢献: development/docs.md
@@ -147,8 +147,7 @@ plugins:
                 - Project Overview (JA): README_ja.md
                 - Introduction: index.en.md
                 - Installation: installation.md
-                - Quick Start: usage/quickstart.md
-                - Detailed Quick Start: quick-start.en.md
+                - Quick Start: quick-start.en.md
             - User Guide:
                 - Guide Overview: user-guide/index.en.md
                 - Configuration Guide: user-guide/config.en.md
@@ -239,6 +238,7 @@ plugins:
                     - MinIO Integration: rdetoolkit/storage/minio.md
                 - Artifacts:
                     - Report Generation: rdetoolkit/artifact/report.md
+            - Changelog: releases/index.en.md
             - Contributing:
                 - Overview: development/index.md
                 - Documentation: development/docs.md
