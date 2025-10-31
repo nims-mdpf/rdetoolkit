@@ -14,10 +14,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  IS_DOCS_BRANCH: ${{ (github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
+    (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/'))) }}
+
 jobs:
   test-build-multi-platform:
     name: Test Build on ${{ matrix.os }} (Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
+    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -101,6 +106,7 @@ jobs:
   test-build-cross-platform:
     name: Cross-platform Build Test
     runs-on: ubuntu-latest
+    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -138,7 +144,7 @@ jobs:
     name: Build Test Summary
     needs: [test-build-multi-platform, test-build-cross-platform]
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ always() && env.IS_DOCS_BRANCH != 'true' }}
 
     steps:
       - name: Download all artifacts

@@ -11,10 +11,14 @@ concurrency:
 
 permissions: write-all
 
+env:
+  IS_DOCS_BRANCH: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
+
 jobs:
   coverage_py:
     name: Code Coverage with pytest
     runs-on: ubuntu-latest
+    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
