@@ -93,7 +93,7 @@ jobs:
           & test_env\Scripts\python.exe -c "import rdetoolkit.core; print('Successfully imported rdetoolkit.core')"
 
       - name: Upload built wheels as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-${{ matrix.platform_name }}-py${{ matrix.python-version }}
           path: dist/*.whl
@@ -129,7 +129,7 @@ jobs:
           args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13
 
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist/*.whl
