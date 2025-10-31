@@ -57,6 +57,9 @@ class InvoiceChecker(IInputFileChecker):
                 - Optional[Path]: This is always None for this implementation.
         """
         input_files = list(src_dir_input.glob("*"))
+        # Filter out system files before processing
+        cleaner = SystemFilesCleaner()
+        input_files = [f for f in input_files if not cleaner.is_excluded(f)]
         zipfiles, _, other_files = self._get_group_by_files(input_files)
         if not isinstance(other_files, list):
             other_files = list(other_files)
@@ -67,7 +70,7 @@ class InvoiceChecker(IInputFileChecker):
 
     def _get_group_by_files(self, input_files: list[Path]) -> InputFilesGroup:
         zipfiles = [f for f in input_files if f.suffix.lower() == ".zip"]
-        excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", "xlsx"] and f.stem.endswith("_excel_invoice")]
+        excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
         other_files = [f for f in input_files if f not in zipfiles and f not in excel_invoice_files]
         return zipfiles, excel_invoice_files, other_files
 
@@ -107,6 +110,9 @@ class ExcelInvoiceChecker(IInputFileChecker):
                 - Optional[Path]: Path to the Excel Invoice file.
         """
         input_files = list(src_dir_input.glob("*"))
+        # Filter out system files before processing
+        cleaner = SystemFilesCleaner()
+        input_files = [f for f in input_files if not cleaner.is_excluded(f)]
         zipfiles, excel_invoice_files, other_files = self._get_group_by_files(input_files)
         self._validate_files(zipfiles, excel_invoice_files, other_files)
 
@@ -209,6 +215,9 @@ class RDEFormatChecker(IInputFileChecker):
                 - Optional[Path]: This will always return None for this implementation.
         """
         input_files = list(src_dir_input.glob("*"))
+        # Filter out system files before processing
+        cleaner = SystemFilesCleaner()
+        input_files = [f for f in input_files if not cleaner.is_excluded(f)]
         zipfiles = self._get_zipfiles(input_files)
         if len(zipfiles) != 1:
             emsg = "ERROR: no zipped input files"
@@ -276,12 +285,15 @@ class MultiFileChecker(IInputFileChecker):
                 - Optional[Path]: This will always return None for this implementation.
         """
         input_files = list(src_dir_input.glob("*"))
+        # Filter out system files before processing
+        cleaner = SystemFilesCleaner()
+        input_files = [f for f in input_files if not cleaner.is_excluded(f)]
         other_files = self._get_group_by_files(input_files)
         _rawfiles: list[tuple[Path, ...]] = [(f,) for f in other_files]
         return sorted(_rawfiles, key=lambda path: str(path)), None
 
     def _get_group_by_files(self, input_files: list[Path]) -> OtherFilesPathList:
-        excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", "xlsx"] and f.stem.endswith("_excel_invoice")]
+        excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
         return [f for f in input_files if f not in excel_invoice_files]
 
     def _unpacked(self, zipfile: Path, target_dir: Path) -> list[Path]:
@@ -332,12 +344,12 @@ class SmartTableChecker(IInputFileChecker):
             StructuredError: If no SmartTable files are found or if multiple SmartTable files are present.
         """
         input_files = list(src_dir_input.glob("*"))
+        # Filter out system files before processing
+        cleaner = SystemFilesCleaner()
+        input_files = [f for f in input_files if not cleaner.is_excluded(f)]
 
         # Find SmartTable files
-        smarttable_files = [
-            f for f in input_files
-            if (f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"])
-        ]
+        smarttable_files = [f for f in input_files if (f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"])]
 
         if not smarttable_files:
             error_msg = "No SmartTable files found. Files must start with 'smarttable_' and have .xlsx, .csv, or .tsv extension."
@@ -360,7 +372,8 @@ class SmartTableChecker(IInputFileChecker):
         # Generate CSV files for each row with file mapping
         st_handler = SmartTableFile(smarttable_file)
         csv_file_mappings = st_handler.generate_row_csvs_with_file_mapping(
-            self.out_dir_temp, extracted_files,
+            self.out_dir_temp,
+            extracted_files,
         )
 
         # Convert to RawFiles format: each mapping becomes a tuple
