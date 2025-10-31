@@ -13,6 +13,8 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: ${{ !(startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') ||
+      startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup uv (Python 3.11)

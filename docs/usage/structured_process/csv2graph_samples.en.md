@@ -6,17 +6,22 @@ Every sample's CSV file is available for direct download on this page. Pre-rende
 
 ## Sample 1: Basic Overlay Only
 
-This minimal example plots diode I-V data and uses `--no-individual` so that only the overlay image is produced.
+This minimal example plots XRD intensity data and uses `--no-individual` so that only the overlay image is produced.
 
 ### Data Overview
 
-The following dataset mimics the I-V characteristics of a diode.
+The dataset emulates XRD intensity measurements.
 
 ```bash
-Voltage (V),Current (A)
-0.0,9.999999999999999e-19
-0.0008008008008008008,1.735937164947776e-14
-0.0016016016016016017,3.5020091083020285e-14
+2theta (deg),Intensity (counts)
+10.0,204.9671
+10.02,198.6174
+10.04,206.4769
+10.06,215.2303
+10.08,197.6585
+10.1,197.6586
+10.12,215.7921
+10.14,207.6743
 ...
 ```
 
@@ -63,29 +68,29 @@ Switch between the Python script and CLI examples using the tabs below.
 
 ## Sample 2: Log-Scale Y Axis
 
-This sample uses synthetic XRD data to show how `--logy` plots the Y axis on a logarithmic scale while setting a custom title.
+This sample uses synthetic diode I-V data to show how `--logy` plots the Y axis on a logarithmic scale while setting a custom title.
 
 ### Data Overview
 
-The dataset emulates XRD intensity measurements.
+The dataset approximates the I-V characteristics of a diode.
 
 ```bash
-2theta (deg),Intensity (counts)
-10.0,204.9671
-10.02,198.6174
-10.04,206.4769
-10.06,215.2303
-10.08,197.6585
-10.1,197.6586
-10.12,215.7921
-10.14,207.6743
+Voltage (V),Current (A)
+0.0,9.999999999999999e-19
+0.0008008008008008008,1.735937164947776e-14
+0.0016016016016016017,3.5020091083020285e-14
+0.0024024024024024027,5.298738950880688e-14
+0.0032032032032032033,7.095468793459339e-14
+0.004004004004004004,8.891763700246374e-14
+0.0048048048048048045,1.0684102478227538e-13
+0.005605605605605606,1.2485910126202743e-13
 ...
 ```
 
 - [data.csv](./csv2graph_samples/sample2/data.csv)
 
 === "Generated Plot"
-![Overlay: I–V_Curve_of_a_Diode_(log scale)](./csv2graph_samples/sample2/I–V_Curve_of_a_Diode_(log scale).png){ width="700" }
+![Overlay: I–V_Curve_of_a_Diode_(log scale)](./csv2graph_samples/sample2/I–V_Curve_of_a_Diode_log_scale.png){ width="700" }
 
 ### Directory Layout
 
