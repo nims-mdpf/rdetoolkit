@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup uv (Python 3.12)
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
       - name: Cache uv
