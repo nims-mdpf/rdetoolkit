@@ -349,10 +349,7 @@ class SmartTableChecker(IInputFileChecker):
         input_files = [f for f in input_files if not cleaner.is_excluded(f)]
 
         # Find SmartTable files
-        smarttable_files = [
-            f for f in input_files
-            if (f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"])
-        ]
+        smarttable_files = [f for f in input_files if (f.name.startswith("smarttable_") and f.suffix.lower() in [".xlsx", ".csv", ".tsv"])]
 
         if not smarttable_files:
             error_msg = "No SmartTable files found. Files must start with 'smarttable_' and have .xlsx, .csv, or .tsv extension."
@@ -375,7 +372,8 @@ class SmartTableChecker(IInputFileChecker):
         # Generate CSV files for each row with file mapping
         st_handler = SmartTableFile(smarttable_file)
         csv_file_mappings = st_handler.generate_row_csvs_with_file_mapping(
-            self.out_dir_temp, extracted_files,
+            self.out_dir_temp,
+            extracted_files,
         )
 
         # Convert to RawFiles format: each mapping becomes a tuple
