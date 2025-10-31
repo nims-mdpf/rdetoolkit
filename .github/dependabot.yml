@@ -7,9 +7,6 @@ updates:
       day: "monday"
       time: "06:00"
       timezone: "Asia/Tokyo"
-    requirements:
-      - "requirements.lock"
-      - "requirements-dev.lock"
     open-pull-requests-limit: 10
   - package-ecosystem: "cargo"
     directory: "/"
