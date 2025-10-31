@@ -2622,17 +2622,27 @@
 <p><code>csv2graph</code> の主なオプションを実際のデータと合わせて確認できるサンプル集です。各セクションに記載されたコマンドは、サンプルのディレクトリ構成を再現するとそのまま実行できます。</p>
 <p>各サンプルの CSV はこのページから直接ダウンロードできます。必要に応じて生成済み画像やスクリプトも合わせて公開しています。</p>
 <h2 id="1">サンプル1: オーバーレイのみ生成する基本例</h2>
-<p>ダイオードの I–V データを使って <code>--no-individual</code> で代表グラフだけを出力する最小構成のサンプルです。</p>
+<p>XRDのデータを使って <code>--no-individual</code> で代表グラフだけを出力する最小構成のサンプルです。</p>
 <h3 id="_1">データの概要</h3>
-<p>以下のデータを使用します。ダイオードのI–V特性のデータを想定しています。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Voltage<span style="color: #BBB"> </span><span style="color: #333">(</span>V<span style="color: #333">)</span>,Current<span style="color: #BBB"> </span><span style="color: #333">(</span>A<span style="color: #333">)</span>
-<span style="color: #60E; font-weight: bold">0</span>.0,9.999999999999999e-19
-<span style="color: #60E; font-weight: bold">0</span>.0008008008008008008,1.735937164947776e-14
-<span style="color: #60E; font-weight: bold">0</span>.0016016016016016017,3.5020091083020285e-14
+<p>以下のデータを使用します。XRDのデータを想定しています。</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>2theta<span style="color: #BBB"> </span><span style="color: #333">(</span>deg<span style="color: #333">)</span>,Intensity<span style="color: #BBB"> </span><span style="color: #333">(</span>counts<span style="color: #333">)</span>
+<span style="color: #60E; font-weight: bold">10</span>.0,204.9671
+<span style="color: #60E; font-weight: bold">10</span>.02,198.6174
+<span style="color: #60E; font-weight: bold">10</span>.04,206.4769
+<span style="color: #60E; font-weight: bold">10</span>.06,215.2303
+<span style="color: #60E; font-weight: bold">10</span>.08,197.6585
+<span style="color: #60E; font-weight: bold">10</span>.1,197.6586
+<span style="color: #60E; font-weight: bold">10</span>.12,215.7921
+<span style="color: #60E; font-weight: bold">10</span>.14,207.6743
 ...
 </code></pre></div></td></tr></table></div>
 <ul>
@@ -2692,36 +2702,27 @@
 <h2 id="2-y">サンプル2: Y 軸を対数表示する</h2>
 <p>XRD 想定データを <code>--logy</code> で対数スケール表示し、タイトルを指定するサンプルです。</p>
 <h3 id="_5">データの概要</h3>
-<p>以下のデータを使用します。XRDのデータを想定しています。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>2theta<span style="color: #BBB"> </span><span style="color: #333">(</span>deg<span style="color: #333">)</span>,Intensity<span style="color: #BBB"> </span><span style="color: #333">(</span>counts<span style="color: #333">)</span>
-<span style="color: #60E; font-weight: bold">10</span>.0,204.9671
-<span style="color: #60E; font-weight: bold">10</span>.02,198.6174
-<span style="color: #60E; font-weight: bold">10</span>.04,206.4769
-<span style="color: #60E; font-weight: bold">10</span>.06,215.2303
-<span style="color: #60E; font-weight: bold">10</span>.08,197.6585
-<span style="color: #60E; font-weight: bold">10</span>.1,197.6586
-<span style="color: #60E; font-weight: bold">10</span>.12,215.7921
-<span style="color: #60E; font-weight: bold">10</span>.14,207.6743
+<p>以下のデータを使用します。ダイオードのI–V特性のデータを想定しています。</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Voltage<span style="color: #BBB"> </span><span style="color: #333">(</span>V<span style="color: #333">)</span>,Current<span style="color: #BBB"> </span><span style="color: #333">(</span>A<span style="color: #333">)</span>
+<span style="color: #60E; font-weight: bold">0</span>.0,9.999999999999999e-19
+<span style="color: #60E; font-weight: bold">0</span>.0008008008008008008,1.735937164947776e-14
+<span style="color: #60E; font-weight: bold">0</span>.0016016016016016017,3.5020091083020285e-14
 ...
 </code></pre></div></td></tr></table></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"><div class="tabbed-labels"><label for="__tabbed_3_1">生成 グラフ</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><img alt="Overlay" src="sample2/I%E2%80%93V_Curve_of_a_Diode_log_scale.png" width="700"/></p>
+</div>
+</div>
+</input></div>
 <ul>
 <li><a href="sample2/data.csv">data.csv</a></li>
 </ul>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"><div class="tabbed-labels"><label for="__tabbed_3_1">生成グラフ</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</input></div>
-<p><img alt="Overlay: I–V_Curve_of_a_Diode_(log scale)" src="sample2/I%E2%80%93V_Curve_of_a_Diode_%28log%20scale%29.png" width="700"/></p>
 <h3 id="_6">ディレクトリ構造</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>

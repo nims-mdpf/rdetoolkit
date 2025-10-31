@@ -2623,17 +2623,27 @@
 <p>This gallery lets you explore the main <code>csv2graph</code> options with real sample data. Reproduce the sample directory layout shown in each section and you can run the commands exactly as written.</p>
 <p>Every sample's CSV file is available for direct download on this page. Pre-rendered images and helper scripts are included when they add context.</p>
 <h2 id="sample-1-basic-overlay-only">Sample 1: Basic Overlay Only</h2>
-<p>This minimal example plots diode I-V data and uses <code>--no-individual</code> so that only the overlay image is produced.</p>
+<p>This minimal example plots XRD intensity data and uses <code>--no-individual</code> so that only the overlay image is produced.</p>
 <h3 id="data-overview">Data Overview</h3>
-<p>The following dataset mimics the I-V characteristics of a diode.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Voltage<span style="color: #BBB"> </span><span style="color: #333">(</span>V<span style="color: #333">)</span>,Current<span style="color: #BBB"> </span><span style="color: #333">(</span>A<span style="color: #333">)</span>
-<span style="color: #60E; font-weight: bold">0</span>.0,9.999999999999999e-19
-<span style="color: #60E; font-weight: bold">0</span>.0008008008008008008,1.735937164947776e-14
-<span style="color: #60E; font-weight: bold">0</span>.0016016016016016017,3.5020091083020285e-14
+<p>The dataset emulates XRD intensity measurements.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>2theta<span style="color: #BBB"> </span><span style="color: #333">(</span>deg<span style="color: #333">)</span>,Intensity<span style="color: #BBB"> </span><span style="color: #333">(</span>counts<span style="color: #333">)</span>
+<span style="color: #60E; font-weight: bold">10</span>.0,204.9671
+<span style="color: #60E; font-weight: bold">10</span>.02,198.6174
+<span style="color: #60E; font-weight: bold">10</span>.04,206.4769
+<span style="color: #60E; font-weight: bold">10</span>.06,215.2303
+<span style="color: #60E; font-weight: bold">10</span>.08,197.6585
+<span style="color: #60E; font-weight: bold">10</span>.1,197.6586
+<span style="color: #60E; font-weight: bold">10</span>.12,215.7921
+<span style="color: #60E; font-weight: bold">10</span>.14,207.6743
 ...
 </code></pre></div></td></tr></table></div>
 <ul>
@@ -2691,9 +2701,9 @@
 <li><code>no_individual=True</code>, <code>--no-individual</code>: Skip individual plots and emit only the overlay image.</li>
 </ul>
 <h2 id="sample-2-log-scale-y-axis">Sample 2: Log-Scale Y Axis</h2>
-<p>This sample uses synthetic XRD data to show how <code>--logy</code> plots the Y axis on a logarithmic scale while setting a custom title.</p>
+<p>This sample uses synthetic diode I-V data to show how <code>--logy</code> plots the Y axis on a logarithmic scale while setting a custom title.</p>
 <h3 id="data-overview_1">Data Overview</h3>
-<p>The dataset emulates XRD intensity measurements.</p>
+<p>The dataset approximates the I-V characteristics of a diode.</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -2703,15 +2713,15 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>2theta<span style="color: #BBB"> </span><span style="color: #333">(</span>deg<span style="color: #333">)</span>,Intensity<span style="color: #BBB"> </span><span style="color: #333">(</span>counts<span style="color: #333">)</span>
-<span style="color: #60E; font-weight: bold">10</span>.0,204.9671
-<span style="color: #60E; font-weight: bold">10</span>.02,198.6174
-<span style="color: #60E; font-weight: bold">10</span>.04,206.4769
-<span style="color: #60E; font-weight: bold">10</span>.06,215.2303
-<span style="color: #60E; font-weight: bold">10</span>.08,197.6585
-<span style="color: #60E; font-weight: bold">10</span>.1,197.6586
-<span style="color: #60E; font-weight: bold">10</span>.12,215.7921
-<span style="color: #60E; font-weight: bold">10</span>.14,207.6743
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Voltage<span style="color: #BBB"> </span><span style="color: #333">(</span>V<span style="color: #333">)</span>,Current<span style="color: #BBB"> </span><span style="color: #333">(</span>A<span style="color: #333">)</span>
+<span style="color: #60E; font-weight: bold">0</span>.0,9.999999999999999e-19
+<span style="color: #60E; font-weight: bold">0</span>.0008008008008008008,1.735937164947776e-14
+<span style="color: #60E; font-weight: bold">0</span>.0016016016016016017,3.5020091083020285e-14
+<span style="color: #60E; font-weight: bold">0</span>.0024024024024024027,5.298738950880688e-14
+<span style="color: #60E; font-weight: bold">0</span>.0032032032032032033,7.095468793459339e-14
+<span style="color: #60E; font-weight: bold">0</span>.004004004004004004,8.891763700246374e-14
+<span style="color: #60E; font-weight: bold">0</span>.0048048048048048045,1.0684102478227538e-13
+<span style="color: #60E; font-weight: bold">0</span>.005605605605605606,1.2485910126202743e-13
 ...
 </code></pre></div></td></tr></table></div>
 <ul>
@@ -2722,7 +2732,7 @@
 <div class="tabbed-block"></div>
 </div>
 </input></div>
-<p><img alt="Overlay: I–V_Curve_of_a_Diode_(log scale)" src="../../../../usage/structured_process/csv2graph_samples/sample2/I%E2%80%93V_Curve_of_a_Diode_%28log%20scale%29.png" width="700"/></p>
+<p><img alt="Overlay: I–V_Curve_of_a_Diode_(log scale)" src="../../../../usage/structured_process/csv2graph_samples/sample2/I%E2%80%93V_Curve_of_a_Diode_log_scale.png" width="700"/></p>
 <h3 id="directory-layout_1">Directory Layout</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
