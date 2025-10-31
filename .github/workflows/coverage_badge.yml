@@ -10,13 +10,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  IS_DOCS_BRANCH: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ !(startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') ||
+      startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup uv (Python 3.11)

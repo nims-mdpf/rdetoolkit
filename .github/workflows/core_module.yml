@@ -21,13 +21,11 @@ env:
   # Enable Forward-Compatibility for abi3 builds
   PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
   CARGO_TERM_COLOR: always
-  IS_DOCS_BRANCH: ${{ (github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
-    (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/'))) }}
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ github.event_name != 'pull_request' || ! (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -54,7 +52,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ github.event_name != 'pull_request' || ! (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - uses: actions/checkout@v4
 

@@ -13,14 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  IS_DOCS_BRANCH: ${{ (github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
-    (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/'))) }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
+      (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/')))) }}
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
@@ -43,7 +40,8 @@ jobs:
   test_rs:
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
+      (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/')))) }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -87,7 +85,8 @@ jobs:
   build-check:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && ! (startsWith(github.head_ref, 'docs-') ||
+      startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
@@ -107,7 +106,8 @@ jobs:
   coverage:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ env.IS_DOCS_BRANCH != 'true' }}
+    if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
+      (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/')))) }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup up Python 3.11
