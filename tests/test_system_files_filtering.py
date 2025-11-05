@@ -32,7 +32,6 @@ def inputdata_with_ds_store(setup_test_dir):
     input_dir = setup_test_dir / "inputdata"
     input_dir.mkdir(exist_ok=True)
 
-    # Create .DS_Store file (system file that should be filtered)
     ds_store = input_dir / ".DS_Store"
     ds_store.write_text("fake DS_Store content")
 
@@ -44,7 +43,6 @@ def excel_invoice_file(inputdata_with_ds_store):
     """Create a minimal Excel invoice file."""
     excel_file = inputdata_with_ds_store / "sample_excel_invoice.xlsx"
 
-    # Create a minimal Excel file using openpyxl
     try:
         from openpyxl import Workbook
 
@@ -54,7 +52,6 @@ def excel_invoice_file(inputdata_with_ds_store):
         ws["A2"] = "test_data"
         wb.save(str(excel_file))
     except ImportError:
-        # If openpyxl is not available, create a simple file as placeholder
         excel_file.touch()
 
     return excel_file
@@ -65,7 +62,6 @@ def zip_file_with_data(inputdata_with_ds_store):
     """Create a zip file with test data."""
     zip_path = inputdata_with_ds_store / "data.zip"
 
-    # Create a temporary file to zip
     temp_file = Path("test_data.txt")
     temp_file.write_text("test content")
 
@@ -86,30 +82,24 @@ class TestExcelInvoiceCheckerWithSystemFiles:
 
         checker = ExcelInvoiceChecker(unpacked_dir)
 
-        # Get the grouped files - .DS_Store should be filtered before grouping
         input_files = list(inputdata_with_ds_store.glob("*"))
 
-        # First verify .DS_Store exists in the directory
         ds_store = inputdata_with_ds_store / ".DS_Store"
         assert ds_store.exists()
         assert ds_store in input_files
 
-        # Now filter using SystemFilesCleaner as the parse method does
         from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
 
         cleaner = SystemFilesCleaner()
         filtered_files = [f for f in input_files if not cleaner.is_excluded(f)]
 
-        # .DS_Store should be filtered out
         assert ds_store not in filtered_files
 
-        # Now check that grouping works without .DS_Store
         zipfiles, excel_files, other_files = checker._get_group_by_files(filtered_files)
 
-        # Should have the Excel file and no other files (DS_Store was filtered)
         assert len(excel_files) == 1
         assert excel_invoice_file in excel_files
-        assert len(other_files) == 0  # This would have been 1 if .DS_Store wasn't filtered
+        assert len(other_files) == 0
 
     def test_ds_store_with_zip_filtered(self, inputdata_with_ds_store, excel_invoice_file, zip_file_with_data):
         """Test that .DS_Store is filtered when both zip and Excel files are present."""
@@ -118,26 +108,21 @@ class TestExcelInvoiceCheckerWithSystemFiles:
 
         checker = ExcelInvoiceChecker(unpacked_dir)
 
-        # Get the grouped files
         input_files = list(inputdata_with_ds_store.glob("*"))
 
-        # Filter using SystemFilesCleaner
         from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
 
         cleaner = SystemFilesCleaner()
         filtered_files = [f for f in input_files if not cleaner.is_excluded(f)]
 
-        # Verify .DS_Store is filtered
         ds_store = inputdata_with_ds_store / ".DS_Store"
         assert ds_store not in filtered_files
 
-        # Now check grouping
         zipfiles, excel_files, other_files = checker._get_group_by_files(filtered_files)
 
-        # Should have the Excel file, zip file, and no other files
         assert len(excel_files) == 1
         assert len(zipfiles) == 1
-        assert len(other_files) == 0  # .DS_Store filtered out, so this is empty
+        assert len(other_files) == 0
 
 
 class TestInvoiceCheckerWithSystemFiles:
@@ -145,7 +130,6 @@ class TestInvoiceCheckerWithSystemFiles:
 
     def test_parse_with_ds_store(self, inputdata_with_ds_store):
         """Test that .DS_Store is filtered out in invoice mode."""
-        # Create a regular file
         regular_file = inputdata_with_ds_store / "test_file.txt"
         regular_file.write_text("test content")
 
@@ -156,7 +140,6 @@ class TestInvoiceCheckerWithSystemFiles:
         rawfiles, _ = checker.parse(inputdata_with_ds_store)
 
         assert len(rawfiles) == 1
-        # Only the regular file should be in rawfiles, not .DS_Store
         assert regular_file in rawfiles[0]
         assert inputdata_with_ds_store / ".DS_Store" not in rawfiles[0]
 
@@ -166,7 +149,6 @@ class TestMultiFileCheckerWithSystemFiles:
 
     def test_parse_with_ds_store(self, inputdata_with_ds_store):
         """Test that .DS_Store is filtered out in multifile mode."""
-        # Create regular files
         file1 = inputdata_with_ds_store / "file1.txt"
         file2 = inputdata_with_ds_store / "file2.txt"
         file1.write_text("content1")
@@ -178,7 +160,6 @@ class TestMultiFileCheckerWithSystemFiles:
         checker = MultiFileChecker(unpacked_dir)
         rawfiles, _ = checker.parse(inputdata_with_ds_store)
 
-        # Only the two regular files should be included
         assert len(rawfiles) == 2
         file_paths = [rf[0] for rf in rawfiles]
         assert file1 in file_paths
@@ -194,7 +175,6 @@ class TestExcelExtensionMatching:
         input_dir = setup_test_dir / "inputdata"
         input_dir.mkdir(exist_ok=True)
 
-        # Create .xls file
         xls_file = input_dir / "test_excel_invoice.xls"
         xls_file.touch()
 
@@ -210,7 +190,6 @@ class TestExcelExtensionMatching:
         input_dir = setup_test_dir / "inputdata"
         input_dir.mkdir(exist_ok=True)
 
-        # Create .xlsx file
         xlsx_file = input_dir / "test_excel_invoice.xlsx"
         xlsx_file.touch()
 
@@ -226,7 +205,6 @@ class TestExcelExtensionMatching:
         input_dir = setup_test_dir / "inputdata"
         input_dir.mkdir(exist_ok=True)
 
-        # Create .XLSX file with uppercase extension
         xlsx_file = input_dir / "test_excel_invoice.XLSX"
         xlsx_file.touch()
 
