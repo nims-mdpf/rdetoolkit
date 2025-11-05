@@ -206,6 +206,8 @@ def _process_mode(  # noqa: C901 PLR0912
                 with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
                     status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
                 if status is None:
+                    if any(value is not None for value in error_info.values()):
+                        return status, error_info, mode
                     emsg = "MultiDataTile mode did not return a workflow status"
                     raise StructuredError(emsg)
                 return status, error_info, mode
