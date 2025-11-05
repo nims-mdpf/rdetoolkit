@@ -177,6 +177,7 @@ class RdeOutputResourcePath:
         invoice (Path): Path for storing invoice files.
         invoice_schema_json (Path): Path for the invoice.schema.json file.
         invoice_org (Path): Path for storing the backup of invoice.json.
+        smarttable_rowfile (Optional[Path]): Path for the SmartTable-generated row CSV file.
         temp (Optional[Path]): Path for storing temporary files.
         invoice_patch (Optional[Path]): Path for storing modified invoice files.
         attachment (Optional[Path]): Path for storing attachment files.
@@ -194,6 +195,7 @@ class RdeOutputResourcePath:
     invoice: Path
     invoice_schema_json: Path
     invoice_org: Path
+    smarttable_rowfile: Path | None = None
     temp: Path | None = None
     invoice_patch: Path | None = None
     attachment: Path | None = None
@@ -254,6 +256,29 @@ class RdeDatasetPaths:
     def nonshared_raw(self) -> Path:
         """Return the output directory for non-shared raw data."""
         return self.output_paths.nonshared_raw
+
+    @property
+    def smarttable_rowfile(self) -> Path | None:
+        """Return SmartTable row CSV path with rawfiles fallback."""
+        rowfile = self.output_paths.smarttable_rowfile
+        if rowfile is not None:
+            return rowfile
+
+        rawfiles = getattr(self.output_paths, "rawfiles", ())
+        if rawfiles:
+            candidate = rawfiles[0]
+            if (
+                isinstance(candidate, Path)
+                and candidate.suffix.lower() == ".csv"
+                and candidate.stem.startswith("fsmarttable_")
+            ):
+                warnings.warn(
+                    "RdeDatasetPaths.smarttable_rowfile uses rawfiles[0] fallback; update generators to populate smarttable_rowfile.",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+                return candidate
+        return None
 
     @property
     def rawfiles(self) -> tuple[Path, ...]:
