@@ -17,17 +17,19 @@
 ## v1.4.1 (2025-11-05)
 
 !!! info "References"
-    - Key issues: [#204](https://github.com/nims-mdpf/rdetoolkit/issues/204), [#272](https://github.com/nims-mdpf/rdetoolkit/issues/272), [#273](https://github.com/nims-mdpf/rdetoolkit/issues/273)
+    - Key issues: [#204](https://github.com/nims-mdpf/rdetoolkit/issues/204), [#272](https://github.com/nims-mdpf/rdetoolkit/issues/272), [#273](https://github.com/nims-mdpf/rdetoolkit/issues/273), [#278](https://github.com/nims-mdpf/rdetoolkit/issues/278)
 
 #### Highlights
 - Dedicated SmartTable row CSV accessors replace ad-hoc `rawfiles[0]` lookups without breaking existing callbacks.
 - MultiDataTile workflows now guarantee a returned status and surface the failing mode instead of producing silent job artifacts.
 - CSV parsing tolerates metadata comments and empty data windows, removing spurious parser exceptions.
+- Graph helpers (`csv2graph`, `plot_from_dataframe`) are now exported directly via `rdetoolkit.graph` for simpler imports.
 
 #### Enhancements
 - Introduced the `smarttable_rowfile` field on `RdeOutputResourcePath` and exposed it via `ProcessingContext.smarttable_rowfile` and `RdeDatasetPaths`.
 - SmartTable processors populate the new field automatically; when fallbacks hit `rawfiles[0]` a `FutureWarning` is emitted to prompt migration while preserving backward compatibility.
 - Refreshed developer guidance so SmartTable callbacks expect the dedicated row-file accessor.
+- Re-exported `csv2graph` and `plot_from_dataframe` from `rdetoolkit.graph`, aligning documentation and samples with the simplified import path.
 
 #### Fixes
 - Ensured MultiDataTile mode always returns a `WorkflowExecutionStatus` and raises a `StructuredError` that names the failing mode if the pipeline fails to report back.
@@ -37,6 +39,7 @@
 - Existing callbacks using `resource_paths.rawfiles[0]` continue to work, but now emit a `FutureWarning`; migrate to `smarttable_rowfile` to silence it.
 - The `rawfiles` tuple itself remains the primary list of user-supplied files—only the assumption that its first entry is always the SmartTable row CSV is being phased out.
 - No configuration changes are required for CSV ingestion; the parser improvements are backward compatible.
+- Prefer `from rdetoolkit.graph import csv2graph, plot_from_dataframe`; the previous `rdetoolkit.graph.api` path remains available for now.
 
 #### Known Issues
 - None reported at this time.

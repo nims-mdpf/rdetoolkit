@@ -17,17 +17,19 @@
 ## v1.4.1 (2025-11-05)
 
 !!! info "参照資料"
-    - 対応Issue: [#204](https://github.com/nims-mdpf/rdetoolkit/issues/204), [#272](https://github.com/nims-mdpf/rdetoolkit/issues/272), [#273](https://github.com/nims-mdpf/rdetoolkit/issues/273)
+    - 対応Issue: [#204](https://github.com/nims-mdpf/rdetoolkit/issues/204), [#272](https://github.com/nims-mdpf/rdetoolkit/issues/272), [#273](https://github.com/nims-mdpf/rdetoolkit/issues/273), [#278](https://github.com/nims-mdpf/rdetoolkit/issues/278)
 
 #### ハイライト
 - SmartTable 行CSVへの専用アクセサを追加し、`rawfiles[0]` 依存の既存コールバックとの互換性を維持。
 - MultiDataTile ワークフローが必ずステータスを返し、失敗モード名付きで `StructuredError` を通知するよう改善。
 - CSV パーサーがメタデータ行と空データに対応し、`ParserError` / `EmptyDataError` を防止。
+- グラフ可視化ヘルパー（`csv2graph`, `plot_from_dataframe`）を `rdetoolkit.graph` 直下からインポート可能に。
 
 #### 追加機能 / 改善
 - `RdeOutputResourcePath` に `smarttable_rowfile` を追加し、`ProcessingContext.smarttable_rowfile` と `RdeDatasetPaths` から参照可能に。
 - SmartTable 系処理で行CSVを自動設定し、フォールバックで `rawfiles[0]` を参照した場合は移行を促す `FutureWarning` を発行。
 - SmartTable の開発者向けドキュメントを更新し、行CSVの取得方法を新アクセサ基準に整理。
+- `rdetoolkit.graph` パッケージで `csv2graph` / `plot_from_dataframe` を再エクスポートし、ドキュメントとサンプルのインポート例を統一。
 
 #### 不具合修正
 - MultiDataTile モードが `WorkflowExecutionStatus` を必ず返し、応答がない場合は失敗したモード名付きで `StructuredError` を送出するよう修正。
@@ -37,6 +39,7 @@
 - `resource_paths.rawfiles[0]` を利用するコードは動作を継続するが、`smarttable_rowfile` へ移行しないと警告が表示される。
 - `rawfiles` タプル自体は引き続きユーザー投入ファイルの一覧として利用される。先頭要素が常に SmartTable 行CSVであるという前提のみ段階的に解消する方針。
 - CSV 取り込み側での追加対応は不要。今回の改修は後方互換。
+- 推奨インポートは `from rdetoolkit.graph import csv2graph, plot_from_dataframe`。従来の `rdetoolkit.graph.api` パスは当面利用可能。
 
 #### 既知の問題
 - 現時点で報告されている既知の問題はありません。
