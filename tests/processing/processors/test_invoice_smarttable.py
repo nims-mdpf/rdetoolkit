@@ -28,11 +28,12 @@ class TestSmartTableInvoiceInitializerIntegration:
             'sample/generalAttributes.term1': ['value1'],
             'sample/specificAttributes.class1.term2': ['value2'],
             'meta/ignored': ['should be ignored'],
-            'inputdata1': ['also ignored']
+            'inputdata1': ['also ignored'],
         })
 
         # Write CSV to actual file
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         # Process
@@ -42,7 +43,7 @@ class TestSmartTableInvoiceInitializerIntegration:
         invoice_path = context.invoice_dst_filepath
         assert invoice_path.exists()
 
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         # Check basic fields
@@ -78,17 +79,17 @@ class TestSmartTableInvoiceInitializerIntegration:
         existing_invoice = {
             "basic": {
                 "dataName": "Original Name",
-                "description": "Original Description"
+                "description": "Original Description",
             },
             "custom": {
-                "existingField": "preserved_value"
+                "existingField": "preserved_value",
             },
             "sample": {
                 "generalAttributes": [
                     {"termId": "term1", "value": "old_value1"},
-                    {"termId": "term2", "value": "preserved_value2"}
-                ]
-            }
+                    {"termId": "term2", "value": "preserved_value2"},
+                ],
+            },
         }
 
         with open(context.resource_paths.invoice_org, 'w') as f:
@@ -98,10 +99,11 @@ class TestSmartTableInvoiceInitializerIntegration:
         csv_data = pd.DataFrame({
             'basic/dataName': ['Updated Name'],
             'sample/generalAttributes.term1': ['updated_value1'],
-            'sample/generalAttributes.term3': ['new_value3']
+            'sample/generalAttributes.term3': ['new_value3'],
         })
 
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         # Process
@@ -109,7 +111,7 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         # Read and verify the updated invoice
         invoice_path = context.invoice_dst_filepath
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         # Check updated fields
@@ -139,10 +141,11 @@ class TestSmartTableInvoiceInitializerIntegration:
             'basic/dataName': ['Valid Name'],
             'basic/empty': [''],  # Empty string - should be skipped
             'basic/nan': [pd.NA],  # NaN - should be skipped
-            'custom/field1': ['value1']
+            'custom/field1': ['value1'],
         })
 
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         # Process
@@ -150,7 +153,7 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         # Read and verify
         invoice_path = context.invoice_dst_filepath
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         # Check that only non-empty values were written
@@ -171,14 +174,15 @@ class TestSmartTableInvoiceInitializerIntegration:
             'custom/sample3': ['1'],
         })
 
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         processor.process(context)
 
         # Read and verify type conversions
         invoice_path = context.invoice_dst_filepath
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         assert invoice_data['custom']['sample1'] == "2023-01-01"
@@ -192,8 +196,9 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         # Remove rawfiles
         context.resource_paths.rawfiles = ()
+        context.resource_paths.smarttable_rowfile = None
 
-        with pytest.raises(StructuredError, match="No CSV file found in rawfiles"):
+        with pytest.raises(StructuredError, match="No SmartTable row CSV file found"):
             processor.process(context)
 
     def test_process_csv_read_error(self, smarttable_processing_context):
@@ -202,7 +207,8 @@ class TestSmartTableInvoiceInitializerIntegration:
         context = smarttable_processing_context
 
         # Create an invalid CSV file
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_path.write_text("This is not valid CSV content\x00\x01\x02")
 
         with pytest.raises(StructuredError) as exc_info:
@@ -219,10 +225,11 @@ class TestSmartTableInvoiceInitializerIntegration:
         csv_data = pd.DataFrame({
             'sample/specificAttributes.class1.term1': ['value1'],
             'sample/specificAttributes.class1.term2': ['value2'],
-            'sample/specificAttributes.class2.term1': ['value3']
+            'sample/specificAttributes.class2.term1': ['value3'],
         })
 
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         # Process
@@ -230,7 +237,7 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         # Read and verify specific attributes structure
         invoice_path = context.invoice_dst_filepath
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         spec_attrs = invoice_data['sample']['specificAttributes']
@@ -252,10 +259,11 @@ class TestSmartTableInvoiceInitializerIntegration:
         csv_data = pd.DataFrame({
             'sample/generalAttributes.color': ['red'],
             'sample/generalAttributes.size': ['large'],
-            'sample/generalAttributes.weight': ['100kg']
+            'sample/generalAttributes.weight': ['100kg'],
         })
 
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         # Process
@@ -263,7 +271,7 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         # Read and verify
         invoice_path = context.invoice_dst_filepath
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         gen_attrs = invoice_data['sample']['generalAttributes']
@@ -284,10 +292,11 @@ class TestSmartTableInvoiceInitializerIntegration:
         # Create CSV with names field
         csv_data = pd.DataFrame({
             'sample/names': ['Test Sample Name'],
-            'sample/otherField': ['Not an array']
+            'sample/otherField': ['Not an array'],
         })
 
-        csv_path = context.resource_paths.rawfiles[0]
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
         csv_data.to_csv(csv_path, index=False)
 
         # Process
@@ -295,7 +304,7 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         # Read and verify
         invoice_path = context.invoice_dst_filepath
-        with open(invoice_path, 'r') as f:
+        with open(invoice_path) as f:
             invoice_data = json.load(f)
 
         # names should be an array
@@ -316,6 +325,17 @@ class TestSmartTableInvoiceInitializerIntegration:
 
         with pytest.raises(ValueError, match="SmartTable file not provided in processing context"):
             processor.process(context)
+
+    def test_smarttable_rowfile_fallback_emits_warning(self, smarttable_processing_context):
+        """Fallback to rawfiles[0] should emit FutureWarning when no explicit rowfile is set."""
+        context = smarttable_processing_context
+
+        context.resource_paths.smarttable_rowfile = None
+
+        with pytest.warns(FutureWarning):
+            fallback_path = context.smarttable_rowfile
+
+        assert fallback_path == context.resource_paths.rawfiles[0]
 
     def test_get_name(self):
         """Test processor name."""
@@ -342,17 +362,17 @@ class TestSmartTableEarlyExitProcessorIntegration:
                 "dataName": "original_data_name",
                 "instrumentId": None,
                 "experimentId": None,
-                "description": "Original test description"
+                "description": "Original test description",
             },
             "custom": {
                 "field1": "value1",
-                "field2": 123
+                "field2": 123,
             },
             "sample": {
                 "sampleId": "",
                 "names": ["test sample"],
-                "generalAttributes": []
-            }
+                "generalAttributes": [],
+            },
         }
 
         # Write initial invoice.json
@@ -363,6 +383,8 @@ class TestSmartTableEarlyExitProcessorIntegration:
         # Set up SmartTable file path with XLSX extension
         smarttable_file = Path("/data/inputdata/smarttable_experiment_data.xlsx")
         context.resource_paths.rawfiles = (smarttable_file,)
+        context.resource_paths.smarttable_rowfile = None
+        context.resource_paths.smarttable_rowfile = None
 
         # Enable save_table_file
         if context.srcpaths.config.smarttable is None:
@@ -383,7 +405,7 @@ class TestSmartTableEarlyExitProcessorIntegration:
             processor.process(context)
 
         # Read updated invoice.json
-        with open(invoice_path, 'r', encoding='utf-8') as f:
+        with open(invoice_path, encoding='utf-8') as f:
             updated_invoice = json.load(f)
 
         # Verify dataName was updated to file name
@@ -408,10 +430,10 @@ class TestSmartTableEarlyExitProcessorIntegration:
         initial_invoice_data = {
             "basic": {
                 "dataName": "old_name",
-                "description": "Test description"
+                "description": "Test description",
             },
             "custom": {},
-            "sample": {}
+            "sample": {},
         }
 
         invoice_path = context.invoice_dst_filepath
@@ -437,7 +459,7 @@ class TestSmartTableEarlyExitProcessorIntegration:
             processor.process(context)
 
         # Verify dataName was updated
-        with open(invoice_path, 'r', encoding='utf-8') as f:
+        with open(invoice_path, encoding='utf-8') as f:
             updated_invoice = json.load(f)
 
         assert updated_invoice['basic']['dataName'] == 'smarttable_results.csv'
@@ -454,10 +476,10 @@ class TestSmartTableEarlyExitProcessorIntegration:
         initial_invoice_data = {
             "basic": {
                 "dataName": "initial_name",
-                "description": None
+                "description": None,
             },
             "custom": {"existing": "value"},
-            "sample": {"names": ["sample"]}
+            "sample": {"names": ["sample"]},
         }
 
         invoice_path = context.invoice_dst_filepath
@@ -483,7 +505,7 @@ class TestSmartTableEarlyExitProcessorIntegration:
             processor.process(context)
 
         # Verify dataName was updated
-        with open(invoice_path, 'r', encoding='utf-8') as f:
+        with open(invoice_path, encoding='utf-8') as f:
             updated_invoice = json.load(f)
 
         assert updated_invoice['basic']['dataName'] == 'smarttable_measurements.tsv'
@@ -503,8 +525,8 @@ class TestSmartTableEarlyExitProcessorIntegration:
         initial_invoice_data = {
             "basic": {
                 "dataName": original_data_name,
-                "description": "Test"
-            }
+                "description": "Test",
+            },
         }
 
         invoice_path = context.invoice_dst_filepath
@@ -528,7 +550,7 @@ class TestSmartTableEarlyExitProcessorIntegration:
             processor.process(context)
 
         # Verify dataName was NOT updated
-        with open(invoice_path, 'r', encoding='utf-8') as f:
+        with open(invoice_path, encoding='utf-8') as f:
             updated_invoice = json.load(f)
 
         assert updated_invoice['basic']['dataName'] == original_data_name  # Should remain unchanged
@@ -544,7 +566,7 @@ class TestSmartTableEarlyExitProcessorIntegration:
         initial_invoice_data = {
             "basic": {"dataName": "original"},
             "custom": {},
-            "sample": {}
+            "sample": {},
         }
 
         invoice_path = context.invoice_dst_filepath
@@ -555,9 +577,10 @@ class TestSmartTableEarlyExitProcessorIntegration:
         smarttable_files = (
             Path("/data/inputdata/smarttable_first.xlsx"),
             Path("/data/inputdata/smarttable_second.csv"),
-            Path("/data/temp/fsmarttable_extracted.csv")  # This is not original SmartTable
+            Path("/data/temp/fsmarttable_extracted.csv"),  # This is not original SmartTable
         )
         context.resource_paths.rawfiles = smarttable_files
+        context.resource_paths.smarttable_rowfile = None
         if context.srcpaths.config.smarttable is None:
             from unittest.mock import Mock
             context.srcpaths.config.smarttable = Mock()
@@ -574,7 +597,7 @@ class TestSmartTableEarlyExitProcessorIntegration:
             processor.process(context)
 
         # Verify dataName was updated with the first SmartTable file
-        with open(invoice_path, 'r', encoding='utf-8') as f:
+        with open(invoice_path, encoding='utf-8') as f:
             updated_invoice = json.load(f)
 
         assert updated_invoice['basic']['dataName'] == 'smarttable_first.xlsx'
