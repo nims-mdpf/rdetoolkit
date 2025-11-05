@@ -23,11 +23,6 @@ RDE構造化処理用のプロジェクトディレクトリを作成し、必�
     # プロジェクトディレクトリを作成
     mkdir my-rde-project
     cd my-rde-project
-
-    # 必要なディレクトリを作成
-    mkdir -p data/inputdata
-    mkdir -p tasksupport
-    mkdir -p modules
     ```
 
 === "Windows"
@@ -35,54 +30,89 @@ RDE構造化処理用のプロジェクトディレクトリを作成し、必�
     # プロジェクトディレクトリを作成
     mkdir my-rde-project
     cd my-rde-project
-
-    # 必要なディレクトリを作成
-    mkdir data\inputdata
-    mkdir tasksupport
-    mkdir modules
     ```
-
-### 期待される結果
-以下のディレクトリ構造が作成されます：
-```
-my-rde-project/
-├── data/
-│   └── inputdata/
-├── tasksupport/
-└── modules/
-```
 
 ## 2. 依存関係を定義する
 
 ### 目的
 プロジェクトで使用するPythonパッケージを定義します。
 
-### 実行するコード
+### rdetoolkitをインストールする
 
-```text title="requirements.txt"
-rdetoolkit>=1.0.0
+=== "Unix/macOS"
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install "rdetoolkit>=1.4.0"
+    ```
+
+=== "Windows"
+    ```cmd
+    python -m venv .venv
+    .venv\Scripts\Activate.ps1
+    pip install "rdetoolkit>=1.4.0"
+    ```
+
+### 期待される結果
+
+`pip list`コマンドで`rdetoolkit`がインストールされていることを確認できます。
+
+```bash
+$ pip list
+Package                   Version
+------------------------- -----------------
+rdetoolkit                1.4.0
+```
+
+## 3. プロジェクト構造を作成する
+
+### 目的
+
+プロジェクトの基本的なディレクトリ構造を作成します。
+
+### 実行するコード
+```bash
+rdetoolkit init
 ```
 
 ### 期待される結果
-`requirements.txt`ファイルが作成され、RDEToolKitの依存関係が定義されます。
+
+```bash
+Ready to develop a structured program for RDE.
+Created: /Users/user1/my-rde-project/my-rde-project/container/requirements.txt
+Created: /Users/user1/my-rde-project/my-rde-project/container/Dockerfile
+Created: /Users/user1/my-rde-project/my-rde-project/container/data/invoice/invoice.json
+Created: /Users/user1/my-rde-project/my-rde-project/container/data/tasksupport/invoice.schema.json
+Created: /Users/user1/my-rde-project/my-rde-project/container/data/tasksupport/metadata-def.json
+Created: /Users/user1/my-rde-project/my-rde-project/templates/tasksupport/invoice.schema.json
+Created: /Users/user1/my-rde-project/my-rde-project/templates/tasksupport/metadata-def.json
+Created: /Users/user1/my-rde-project/my-rde-project/input/invoice/invoice.json
+
+Check the folder: /Users/user1/my-rde-project/my-rde-project
+```
 
 ## 3. カスタム構造化処理を作成する
 
 ### 目的
+
 データ処理のロジックを含むカスタム関数を作成します。
 
-### 実行するコード
+### 作成するファイル
 
-```python title="modules/process.py"
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+`container/modules/process.py`を以下のように作成します。
+
+```python title="container/modules/process.py"
+from pathlib import Path
 import json
 import os
+
+from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 
 def display_message(message):
     """メッセージを表示する補助関数"""
     print(f"[INFO] {message}")
 
-def create_sample_metadata(resource_paths):
+def create_sample_metadata(srcpaths: RdeInputDirPaths):
     """サンプルメタデータを作成する"""
     metadata = {
         "title": "Sample Dataset",
@@ -92,8 +122,9 @@ def create_sample_metadata(resource_paths):
     }
 
     # メタデータファイルを保存
-    metadata_path = os.path.join(resource_paths.tasksupport, "sample_metadata.json")
-    with open(metadata_path, 'w', encoding='utf-8') as f:
+    metadata_path = Path(srcpaths.tasksupport) / "sample_metadata.json"
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    with metadata_path.open('w', encoding='utf-8') as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
 
     display_message(f"メタデータを保存しました: {metadata_path}")
@@ -110,10 +141,11 @@ def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
 
     # 入力パス情報を表示
     display_message(f"入力データディレクトリ: {srcpaths.inputdata}")
-    display_message(f"出力リソースディレクトリ: {resource_paths.root}")
+    display_message(f"構造化データ出力ディレクトリ: {resource_paths.struct}")
+    display_message(f"メタデータ出力ディレクトリ: {resource_paths.meta}")
 
     # サンプルメタデータを作成
-    create_sample_metadata(resource_paths)
+    create_sample_metadata(srcpaths)
 
     # 入力ファイルの一覧を表示
     if os.path.exists(srcpaths.inputdata):
@@ -125,15 +157,17 @@ def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     display_message("構造化処理が完了しました")
 ```
 
-### 期待される結果
-`modules/process.py`ファイルが作成され、構造化処理のロジックが定義されます。
-
 ## 4. メインスクリプトを作成する
 
 ### 目的
+
 RDEToolKitのワークフローを起動するエントリーポイントを作成します。
 
-### 実行するコード
+### 作成するファイル
+
+`container/main.py` を以下のように書き換えます。
+
+
 
 ```python title="main.py"
 import rdetoolkit
@@ -157,17 +191,15 @@ if __name__ == "__main__":
     main()
 ```
 
-### 期待される結果
-`main.py`ファイルが作成され、構造化処理を実行する準備が整います。
-
 ## 5. サンプルデータを準備する
 
 ### 目的
-構造化処理をテストするためのサンプルデータを作成します。
 
-### 実行するコード
+構造化処理をテストするためのサンプルデータ(`data/inputdata/sample_data.txt`)を作成します。
 
-```text title="data/inputdata/sample_data.txt"
+### 作成するファイル
+
+```text title="container/data/inputdata/sample_data.txt"
 Sample Research Data
 ====================
 
@@ -177,9 +209,6 @@ Type: Text Data
 Status: Ready for processing
 ```
 
-### 期待される結果
-`data/inputdata/sample_data.txt`ファイルが作成され、処理対象のサンプルデータが準備されます。
-
 ## 6. 構造化処理を実行する
 
 ### 目的
@@ -187,11 +216,11 @@ Status: Ready for processing
 
 ### 実行するコード
 
-```bash title="terminal"
-# 依存関係をインストール
-pip install -r requirements.txt
+dataディレクトリと同じディレクトリに移動しmain.pyを実行します。
 
+```bash title="terminal"
 # 構造化処理を実行
+cd container
 python main.py
 ```
 
@@ -202,34 +231,59 @@ python main.py
 ```
 === RDEToolKit チュートリアル ===
 [INFO] 構造化処理を開始します
-[INFO] 入力データディレクトリ: /path/to/my-rde-project/data/inputdata
-[INFO] 出力リソースディレクトリ: /path/to/my-rde-project
-[INFO] メタデータを保存しました: /path/to/my-rde-project/tasksupport/sample_metadata.json
+[INFO] 入力データディレクトリ: data/inputdata
+[INFO] 構造化データ出力ディレクトリ: data/structured
+[INFO] メタデータ出力ディレクトリ: data/meta
+[INFO] メタデータを保存しました: data/tasksupport/sample_metadata.json
 [INFO] 入力ファイル数: 1
 [INFO]   - sample_data.txt
 [INFO] 構造化処理が完了しました
 
 === 処理結果 ===
-実行ステータス: {'statuses': [{'run_id': '0000', 'title': 'sample-dataset', 'status': 'success', ...}]}
+実行ステータス: {
+  "statuses": [
+    {
+      "run_id": "0000",
+      "title": "toy dataset",
+      "status": "success",
+      "mode": "invoice",
+      "error_code": null,
+      "error_message": null,
+      "target": "data/inputdata",
+      "stacktrace": null
+    }
+  ]
+}
 ```
 
 ## 7. 結果を確認する
 
-### 目的
-構造化処理の実行結果とファイル生成を確認します。
+dataディレクトリを確認してください。
 
-### 実行するコード
-
-```bash title="terminal"
-# 生成されたファイル構造を確認
-find . -type f -name "*.json" | head -10
+```bash
+data
+├── attachment
+├── inputdata
+│   └── sample_data.txt
+├── invoice
+│   └── invoice.json
+├── invoice_patch
+├── logs
+│   └── rdesys.log
+├── main_image
+├── meta
+├── nonshared_raw
+│   └── sample_data.txt
+├── other_image
+├── raw
+├── structured
+├── tasksupport
+│   ├── invoice.schema.json
+│   ├── metadata-def.json
+│   └── sample_metadata.json
+├── temp
+└── thumbnail
 ```
-
-### 期待される結果
-
-以下のようなファイルが生成されていることを確認できます：
-- `tasksupport/sample_metadata.json` - 作成したメタデータファイル
-- `raw/` または `nonshared_raw/` - 入力ファイルのコピー（設定による）
 
 ## おめでとうございます！
 
@@ -244,7 +298,7 @@ RDEToolKitを使用した最初の構造化処理が完了しました。
 
 ### 学んだ重要な概念
 
-- **プロジェクト構造**: `data/inputdata/`, `tasksupport/`, `modules/`の役割
+- **プロジェクト構造**: `data/inputdata/`, `data/tasksupport/`, `modules/`の役割
 - **カスタム関数**: `RdeInputDirPaths`と`RdeOutputResourcePath`の使用方法
 - **ワークフロー実行**: `rdetoolkit.workflows.run()`の基本的な使い方
 
