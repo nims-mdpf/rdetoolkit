@@ -214,6 +214,35 @@ class TestParseNoHeader:
         # skiprows=1 (data_start_line - 1), so first data line is skipped
         assert len(df) == 2  # Lines 2 and 3
 
+    def test_ignores_comment_rows(self, tmp_path: Path):
+        """Rows starting with # are ignored instead of causing ParserError."""
+        csv_file = tmp_path / "comments.csv"
+        csv_file.write_text(
+            "#note,this,row,should,be,ignored\n"
+            "1.0,2.0\n"
+            "3.0,4.0\n",
+        )
+
+        df, _ = CSVParser._parse_no_header(csv_file, data_start_line=1)
+
+        assert len(df) == 2
+        assert list(df.columns) == ["x (arb.unit)", "y1 (arb.unit)"]
+
+    def test_returns_empty_dataframe_when_all_rows_skipped(self, tmp_path: Path):
+        """All data rows skipped → empty DataFrame with default metadata."""
+        csv_file = tmp_path / "skip_all.csv"
+        csv_file.write_text(
+            "1.0,2.0\n"
+            "3.0,4.0\n",
+        )
+
+        df, metadata = CSVParser._parse_no_header(csv_file, data_start_line=3)
+
+        assert df.empty is True
+        assert list(df.columns) == ["x (arb.unit)"]
+        assert metadata["legends"] == []
+        assert metadata["yaxis_label"] is None
+
 
 class TestParseMetaBlock:
     """Test _parse_meta_block() for CSV with metadata block."""
@@ -246,6 +275,34 @@ class TestParseMetaBlock:
         assert metadata["xaxis_label"] == "voltage (V)"
         assert metadata["yaxis_label"] == "current (A)"
         assert metadata["mode"] == "x1y1x2y2"
+
+    def test_ignores_comment_rows_in_data_section(self, tmp_path: Path):
+        """Comment rows appearing in data section are skipped."""
+        csv_file = tmp_path / "meta_block_with_comments.csv"
+        csv_file.write_text(
+            "#title,Battery Cycling\n"
+            "#dimension,x,y\n"
+            "#x,voltage,V\n"
+            "#y,current,A\n"
+            "#legend,1cyc,2cyc\n"
+            "1.0,2.0,3.0\n"
+            "#note,this,row,should,be,ignored\n"
+            "4.0,5.0,6.0\n",
+        )
+
+        meta_lines = [
+            ["#title", "Battery Cycling"],
+            ["#dimension", "x", "y"],
+            ["#x", "voltage", "V"],
+            ["#y", "current", "A"],
+            ["#legend", "1cyc", "2cyc"],
+        ]
+
+        df, metadata = CSVParser._parse_meta_block(csv_file, meta_lines, data_start_line=6)
+
+        assert len(df) == 2
+        assert list(df.columns) == ["voltage (V)", "1cyc (A)", "2cyc (A)"]
+        assert metadata["title"] == "Battery Cycling"
 
 
 class TestExtractMetadata:
