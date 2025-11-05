@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `rdetoolkit.graph.api.csv2graph` module turns CSV or Pandas data into static Matplotlib images and optional interactive Plotly visuals. The API handles column selection, direction-aware styling, legend management, and on-disk artifact management so that callers can focus on configuring plots rather than reproducing plotting boilerplate.
+The `rdetoolkit.graph.csv2graph` module turns CSV or Pandas data into static Matplotlib images and optional interactive Plotly visuals. The API handles column selection, direction-aware styling, legend management, and on-disk artifact management so that callers can focus on configuring plots rather than reproducing plotting boilerplate.
 
 ## Supported CSV Formats
 
@@ -56,11 +56,11 @@ Both the Matplotlib and Plotly renderers honour these settings. In Matplotlib, t
 
 ## API Reference
 
-::: rdetoolkit.graph.api.csv2graph.csv2graph
+::: rdetoolkit.graph.csv2graph
 
 ---
 
-::: rdetoolkit.graph.api.csv2graph.plot_from_dataframe
+::: rdetoolkit.graph.plot_from_dataframe
 
 ---
 
@@ -69,7 +69,7 @@ Both the Matplotlib and Plotly renderers honour these settings. In Matplotlib, t
 ### Basic CSV conversion
 
 ```python title="basic_csv2graph.py"
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 csv2graph("data.csv")  # output next to the CSV
 
@@ -84,7 +84,7 @@ csv2graph(
 ### Selecting columns and enabling individual plots
 
 ```python title="column_selection.py"
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 csv2graph(
     "measurements.csv",
@@ -109,7 +109,7 @@ csv2graph(
 ### Working with direction metadata
 
 ```python title="direction_filtering.py"
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 csv2graph(
     "battery_cycles.csv",
@@ -128,7 +128,7 @@ csv2graph(
 ### Parsing alternate CSV layouts
 
 ```python title="transpose_format.py"
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 csv2graph(
     "transposed_data.csv",
@@ -147,7 +147,7 @@ csv2graph(
 ### Controlling output locations
 
 ```python title="main_image_dir.py"
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 csv2graph(
     "series.csv",
@@ -162,7 +162,7 @@ csv2graph(
 
 ```python title="dataframe_plotting.py"
 import pandas as pd
-from rdetoolkit.graph.api import plot_from_dataframe
+from rdetoolkit.graph import plot_from_dataframe
 
 frame = pd.read_csv("processed.csv")
 frame["normalized"] = frame["value"] / frame["value"].max()

@@ -19,7 +19,7 @@
 ## 構造化処理への組み込み
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # 作成したcsvをグラフ化
 csv2graph(
@@ -248,7 +248,7 @@ csv2graph(
 ### 基本的なCSV変換
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # 最もシンプルな使用方法
 csv2graph("data.csv")
@@ -265,7 +265,7 @@ csv2graph(
 ### 列選択と個別プロット生成
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # 統合プロットと個別プロットの両方を生成
 csv2graph(
@@ -292,7 +292,7 @@ csv2graph(
 ### Direction機能の使用
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # バッテリーサイクルデータの可視化
 csv2graph(
@@ -312,7 +312,7 @@ csv2graph(
 ### 転置CSVの処理
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # 転置形式のCSVを処理
 csv2graph(
@@ -333,7 +333,7 @@ csv2graph(
 ### 出力ディレクトリの制御
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # 統合プロットと個別プロットを別ディレクトリに保存
 csv2graph(
@@ -349,7 +349,7 @@ csv2graph(
 
 ```python
 import pandas as pd
-from rdetoolkit.graph.api import plot_from_dataframe
+from rdetoolkit.graph import plot_from_dataframe
 
 # DataFrameを読み込み
 frame = pd.read_csv("processed.csv")
@@ -374,7 +374,7 @@ for artifact in artifacts:
 ### XPSスペクトルの可視化
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # X軸反転でXPSスペクトルを表示
 csv2graph(
@@ -391,7 +391,7 @@ csv2graph(
 ### 凡例項目数の制限
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # 多数の系列を持つデータで凡例を制限
 csv2graph(
