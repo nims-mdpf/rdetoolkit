@@ -201,6 +201,8 @@ convention = "google"
 # Unused imports are allowed in __init__.py.
 "__init__.py" = ["F401", "F403"]
 "**/*.pyi" = ["ALL"]
+# Test files can use assert statements and don't need full type annotations
+"tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
 
 [tool.mypy]
 show_error_context = true

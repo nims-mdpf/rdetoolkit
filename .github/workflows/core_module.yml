@@ -25,6 +25,7 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || ! (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -51,6 +52,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || ! (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - uses: actions/checkout@v4
 
