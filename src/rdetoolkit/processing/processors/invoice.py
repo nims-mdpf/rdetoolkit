@@ -162,11 +162,10 @@ class SmartTableInvoiceInitializer(Processor):
             raise ValueError(error_msg)
 
         try:
-            if not context.resource_paths.rawfiles:
-                error_msg = "No CSV file found in rawfiles"
+            csv_file = context.smarttable_rowfile
+            if csv_file is None:
+                error_msg = "No SmartTable row CSV file found"
                 raise StructuredError(error_msg)
-
-            csv_file = context.resource_paths.rawfiles[0]
             logger.debug(f"Processing CSV file: {csv_file}")
 
             csv_data = pd.read_csv(csv_file, dtype=str)
