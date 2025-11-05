@@ -316,7 +316,7 @@ class TestSmartTableInvoiceInitializer:
             'sample/generalAttributes.term1': ['value1'],
             'sample/specificAttributes.class1.term2': ['value2'],
             'meta/ignored': ['should be ignored'],
-            'inputdata1': ['also ignored']
+            'inputdata1': ['also ignored'],
         })
         mock_read_csv.return_value = csv_data
 
@@ -336,9 +336,9 @@ class TestSmartTableInvoiceInitializer:
                         "sample1": {
                             "type": "string",
                             "format": "date",
-                            "label": {"ja": "サンプル１", "en": "sample1"}
-                        }
-                    }
+                            "label": {"ja": "サンプル１", "en": "sample1"},
+                        },
+                    },
                 },
                 "sample": {
                     "type": "object",
@@ -346,15 +346,15 @@ class TestSmartTableInvoiceInitializer:
                     "properties": {
                         "generalAttributes": {
                             "type": "array",
-                            "items": []
+                            "items": [],
                         },
                         "specificAttributes": {
                             "type": "array",
-                            "items": []
-                        }
-                    }
-                }
-            }
+                            "items": [],
+                        },
+                    },
+                },
+            },
         }
 
         # Process
@@ -403,7 +403,7 @@ class TestSmartTableInvoiceInitializer:
         csv_data = pd.DataFrame({
             'basic/dataName': ['Updated Name'],
             'sample/generalAttributes.term1': ['updated_value1'],
-            'sample/generalAttributes.term3': ['new_value3']
+            'sample/generalAttributes.term3': ['new_value3'],
         })
         mock_read_csv.return_value = csv_data
 
@@ -414,23 +414,23 @@ class TestSmartTableInvoiceInitializer:
         existing_invoice = {
             "basic": {
                 "dataName": "Original Name",
-                "description": "Original Description"
+                "description": "Original Description",
             },
             "custom": {
-                "existingField": "preserved_value"
+                "existingField": "preserved_value",
             },
             "sample": {
                 "generalAttributes": [
                     {"termId": "term1", "value": "old_value1"},
-                    {"termId": "term2", "value": "preserved_value2"}
-                ]
-            }
+                    {"termId": "term2", "value": "preserved_value2"},
+                ],
+            },
         }
 
         # Mock schema
         mock_readf_json.side_effect = [
             existing_invoice,
-            {"definitions": {}, "properties": {}}
+            {"definitions": {}, "properties": {}},
         ]
 
         # Process
@@ -471,7 +471,7 @@ class TestSmartTableInvoiceInitializer:
             'basic/dataName': ['Valid Name'],
             'basic/empty': [''],
             'basic/nan': [pd.NA],
-            'custom/field1': ['value1']
+            'custom/field1': ['value1'],
         })
         mock_read_csv.return_value = csv_data
 
@@ -490,16 +490,16 @@ class TestSmartTableInvoiceInitializer:
                     "properties": {
                         "field1": {
                             "type": "string",
-                            "label": {"ja": "フィールド１", "en": "Field 1"}
-                        }
-                    }
+                            "label": {"ja": "フィールド１", "en": "Field 1"},
+                        },
+                    },
                 },
                 "sample": {
                     "type": "object",
                     "label": {"ja": "試料情報", "en": "Sample Information"},
-                    "properties": {}
-                }
-            }
+                    "properties": {},
+                },
+            },
         }
 
         processor.process(context)
@@ -527,7 +527,7 @@ class TestSmartTableInvoiceInitializer:
             'custom/intField': ['42'],
             'custom/floatField': ['3.14'],
             'custom/boolField': ['true'],
-            'custom/stringField': ['text']
+            'custom/stringField': ['text'],
         })
         mock_read_csv.return_value = csv_data
 
@@ -546,28 +546,28 @@ class TestSmartTableInvoiceInitializer:
                     "properties": {
                         "intField": {
                             "type": "integer",
-                            "label": {"ja": "整数フィールド", "en": "Integer Field"}
+                            "label": {"ja": "整数フィールド", "en": "Integer Field"},
                         },
                         "floatField": {
                             "type": "number",
-                            "label": {"ja": "浮動小数点フィールド", "en": "Float Field"}
+                            "label": {"ja": "浮動小数点フィールド", "en": "Float Field"},
                         },
                         "boolField": {
                             "type": "boolean",
-                            "label": {"ja": "ブールフィールド", "en": "Boolean Field"}
+                            "label": {"ja": "ブールフィールド", "en": "Boolean Field"},
                         },
                         "stringField": {
                             "type": "string",
-                            "label": {"ja": "文字列フィールド", "en": "String Field"}
-                        }
-                    }
+                            "label": {"ja": "文字列フィールド", "en": "String Field"},
+                        },
+                    },
                 },
                 "sample": {
                     "type": "object",
                     "label": {"ja": "試料情報", "en": "Sample Information"},
-                    "properties": {}
-                }
-            }
+                    "properties": {},
+                },
+            },
         }
 
         processor.process(context)
@@ -586,8 +586,9 @@ class TestSmartTableInvoiceInitializer:
 
         # Remove rawfiles
         context.resource_paths.rawfiles = ()
+        context.resource_paths.smarttable_rowfile = None
 
-        with pytest.raises(StructuredError, match="No CSV file found in rawfiles"):
+        with pytest.raises(StructuredError, match="No SmartTable row CSV file found"):
             processor.process(context)
 
     @patch('pandas.read_csv')
@@ -643,7 +644,7 @@ class TestSmartTableInvoiceInitializer:
         csv_data = pd.DataFrame({
             'sample/specificAttributes.class1.term1': ['value1'],
             'sample/specificAttributes.class1.term2': ['value2'],
-            'sample/specificAttributes.class2.term1': ['value3']
+            'sample/specificAttributes.class2.term1': ['value3'],
         })
         mock_read_csv.return_value = csv_data
 
