@@ -1217,8 +1217,6 @@ def my_xrd_func(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePat
 `xrd_plot`関数では、XRDデータのプロット画像を作成します。以下のように実装します。
 
 ```python
-
-```python
 def parse_ras_file(filepath: str | Path) -> tuple[dict[str, str], pd.DataFrame]:
     # ... 省略: 上記のparse_ras_file関数の内容をここに含める ...
     return metadata, df
