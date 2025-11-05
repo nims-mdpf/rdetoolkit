@@ -384,7 +384,6 @@ class TestSmartTableEarlyExitProcessorIntegration:
         smarttable_file = Path("/data/inputdata/smarttable_experiment_data.xlsx")
         context.resource_paths.rawfiles = (smarttable_file,)
         context.resource_paths.smarttable_rowfile = None
-        context.resource_paths.smarttable_rowfile = None
 
         # Enable save_table_file
         if context.srcpaths.config.smarttable is None:
