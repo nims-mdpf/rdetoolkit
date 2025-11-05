@@ -19,7 +19,7 @@ See the [csv2graph sample gallery](./csv2graph_samples.en.md) for end-to-end exa
 ## Integrating with Structured Processes
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Generate graphs from the prepared CSV
 csv2graph(
@@ -248,7 +248,7 @@ When the number of legend items exceeds `max_legend_items`, the legend is automa
 ### Basic CSV Conversion
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Simplest usage
 csv2graph("data.csv")
@@ -265,7 +265,7 @@ csv2graph(
 ### Column Selection and Individual Plot Generation
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Generate both overlay and individual plots
 csv2graph(
@@ -292,7 +292,7 @@ csv2graph(
 ### Using the Direction Feature
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Visualize battery cycle data
 csv2graph(
@@ -312,7 +312,7 @@ csv2graph(
 ### Processing Transposed CSV
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Process transposed CSV
 csv2graph(
@@ -333,7 +333,7 @@ csv2graph(
 ### Controlling Output Directories
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Save overlay and individual plots to separate directories
 csv2graph(
@@ -349,7 +349,7 @@ csv2graph(
 
 ```python
 import pandas as pd
-from rdetoolkit.graph.api import plot_from_dataframe
+from rdetoolkit.graph import plot_from_dataframe
 
 # Load DataFrame
 frame = pd.read_csv("processed.csv")
@@ -374,7 +374,7 @@ for artifact in artifacts:
 ### Visualizing XPS Spectra
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Display XPS spectrum with inverted X-axis
 csv2graph(
@@ -391,7 +391,7 @@ csv2graph(
 ### Limiting Legend Items
 
 ```python
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 # Limit legend for data with many series
 csv2graph(
