@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0  | 2025-10-24   | SmartTable `metadata.json` auto-generation / LLM-friendly traceback / CSV visualization utility / `gen-config` | [v1.4.0](#v140-2025-10-24) |
 | v1.3.4  | 2025-08-21   | Stable SmartTable validation | [v1.3.4](#v134-2025-08-21) |
 | v1.3.3  | 2025-07-29   | Fixed `ValidationError` handling / Added `sampleWhenRestructured` schema | [v1.3.3](#v133-2025-07-29) |
@@ -13,11 +14,38 @@
 
 # Release Details
 
+## v1.4.1 (2025-11-05)
+
+!!! info "References"
+    - Key issues: [#204](https://github.com/nims-mdpf/rdetoolkit/issues/204), [#272](https://github.com/nims-mdpf/rdetoolkit/issues/272), [#273](https://github.com/nims-mdpf/rdetoolkit/issues/273)
+
+#### Highlights
+- Dedicated SmartTable row CSV accessors replace ad-hoc `rawfiles[0]` lookups without breaking existing callbacks.
+- MultiDataTile workflows now guarantee a returned status and surface the failing mode instead of producing silent job artifacts.
+- CSV parsing tolerates metadata comments and empty data windows, removing spurious parser exceptions.
+
+#### Enhancements
+- Introduced the `smarttable_rowfile` field on `RdeOutputResourcePath` and exposed it via `ProcessingContext.smarttable_rowfile` and `RdeDatasetPaths`.
+- SmartTable processors populate the new field automatically; when fallbacks hit `rawfiles[0]` a `FutureWarning` is emitted to prompt migration while preserving backward compatibility.
+- Refreshed developer guidance so SmartTable callbacks expect the dedicated row-file accessor.
+
+#### Fixes
+- Ensured MultiDataTile mode always returns a `WorkflowExecutionStatus` and raises a `StructuredError` that names the failing mode if the pipeline fails to report back.
+- Updated `CSVParser._parse_meta_block()` and `_parse_no_header()` to ignore `#`-prefixed metadata rows and return an empty `DataFrame` when no data remains, eliminating `ParserError` / `EmptyDataError`.
+
+#### Migration / Compatibility
+- Existing callbacks using `resource_paths.rawfiles[0]` continue to work, but now emit a `FutureWarning`; migrate to `smarttable_rowfile` to silence it.
+- The `rawfiles` tuple itself remains the primary list of user-supplied files—only the assumption that its first entry is always the SmartTable row CSV is being phased out.
+- No configuration changes are required for CSV ingestion; the parser improvements are backward compatible.
+
+#### Known Issues
+- None reported at this time.
+
+---
+
 ## v1.4.0 (2025-10-24)
 
 !!! info "References"
-    - `local/develop/release_v140.md`
-    - `local/develop/PR_v140.md`
     - Key issues: [#144](https://github.com/nims-mdpf/rdetoolkit/issues/144), [#188](https://github.com/nims-mdpf/rdetoolkit/issues/188), [#197](https://github.com/nims-mdpf/rdetoolkit/issues/197), [#205](https://github.com/nims-mdpf/rdetoolkit/issues/205), [#236](https://github.com/nims-mdpf/rdetoolkit/issues/236)
 
 #### Highlights
@@ -50,7 +78,6 @@
 ## v1.3.4 (2025-08-21)
 
 !!! info "References"
-    - `local/develop/PR_v134.md` (equivalent)
     - Key issue: [#217](https://github.com/nims-mdpf/rdetoolkit/issues/217) (SmartTable/Invoice validation reliability)
 
 #### Highlights
@@ -73,7 +100,6 @@
 ## v1.3.3 (2025-07-29)
 
 !!! info "References"
-    - `local/develop/Release_v133.md`
     - Key issue: [#201](https://github.com/nims-mdpf/rdetoolkit/issues/201)
 
 #### Highlights
@@ -99,7 +125,6 @@
 ## v1.3.2 (2025-07-22)
 
 !!! info "References"
-    - `local/develop/PR_v132.md` (equivalent)
     - Key issue: [#193](https://github.com/nims-mdpf/rdetoolkit/issues/193)
 
 #### Highlights
@@ -123,7 +148,6 @@
 ## v1.3.1 (2025-07-14)
 
 !!! info "References"
-    - `local/develop/Release_v131.md`
     - Key issues: [#144](https://github.com/nims-mdpf/rdetoolkit/issues/144), [#161](https://github.com/nims-mdpf/rdetoolkit/issues/161), [#163](https://github.com/nims-mdpf/rdetoolkit/issues/163), [#168](https://github.com/nims-mdpf/rdetoolkit/issues/168), [#169](https://github.com/nims-mdpf/rdetoolkit/issues/169), [#173](https://github.com/nims-mdpf/rdetoolkit/issues/173), [#174](https://github.com/nims-mdpf/rdetoolkit/issues/174), [#177](https://github.com/nims-mdpf/rdetoolkit/issues/177), [#185](https://github.com/nims-mdpf/rdetoolkit/issues/185)
 
 #### Highlights
@@ -155,7 +179,6 @@
 ## v1.2.0 (2025-04-14)
 
 !!! info "References"
-    - `local/develop/PR_v120.md`
     - Key issue: [#157](https://github.com/nims-mdpf/rdetoolkit/issues/157)
 
 #### Highlights
