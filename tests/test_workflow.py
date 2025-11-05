@@ -6,8 +6,10 @@ import pytest
 import yaml
 import toml
 
-from rdetoolkit.workflows import run
+from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.workflows import run, _process_mode, _create_error_status
 from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
+from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 
 
 @pytest.fixture
@@ -118,6 +120,79 @@ def test_run_config_file_multifile_mode(
     assert config.system.save_thumbnail_image is False
     assert config.system.magic_variable is False
     assert config.multidata_tile.ignore_errors is False
+
+
+def test_multidatatitle_ignore_errors_collects_structured_error(monkeypatch, tmp_path):
+    """ignore_errors=True の MultiDataTile で StructuredError が捕捉され、ジョブが継続できることを確認する"""
+    input_dir = tmp_path / "inputdata"
+    tasksupport_dir = tmp_path / "tasksupport"
+    invoice_dir = tmp_path / "invoice"
+    for directory in (input_dir, tasksupport_dir, invoice_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    raw_file = input_dir / "sample.txt"
+    raw_file.write_text("dummy", encoding="utf-8")
+    (tasksupport_dir / "invoice.schema.json").write_text("{}", encoding="utf-8")
+    (tasksupport_dir / "invoice_org.json").write_text("{}", encoding="utf-8")
+
+    rdeoutput_resource = RdeOutputResourcePath(
+        raw=tmp_path / "raw",
+        nonshared_raw=tmp_path / "nonshared_raw",
+        rawfiles=(raw_file,),
+        struct=tmp_path / "struct",
+        main_image=tmp_path / "main_image",
+        other_image=tmp_path / "other_image",
+        meta=tmp_path / "meta",
+        thumbnail=tmp_path / "thumbnail",
+        logs=tmp_path / "logs",
+        invoice=invoice_dir,
+        invoice_schema_json=tasksupport_dir / "invoice.schema.json",
+        invoice_org=tasksupport_dir / "invoice_org.json",
+        temp=tmp_path / "temp",
+    )
+
+    config = Config(
+        system=SystemSettings(extended_mode="MultiDataTile", save_raw=True, save_thumbnail_image=False, magic_variable=False),
+        multidata_tile=MultiDataTileSettings(ignore_errors=True),
+    )
+
+    srcpaths = RdeInputDirPaths(
+        inputdata=input_dir,
+        invoice=invoice_dir,
+        tasksupport=tasksupport_dir,
+        config=config,
+    )
+
+    error_message = "温度数とサイクル数が不一致です。invoiceで1個の温度を指定してください。"
+    structured_error = StructuredError(error_message, ecode=1060)
+
+    def raise_structured_error(*_args, **_kwargs):
+        raise structured_error
+
+    monkeypatch.setattr("rdetoolkit.workflows.multifile_mode_process", raise_structured_error)
+
+    status, error_info, mode = _process_mode(
+        idx=0,
+        srcpaths=srcpaths,
+        rdeoutput_resource=rdeoutput_resource,
+        config=config,
+        excel_invoice_files=None,
+        smarttable_file=None,
+        custom_dataset_function=None,
+        logger=None,
+    )
+
+    assert status is None
+    assert mode == "MultiDataTile"
+    assert error_info["code"] == 1060
+    assert error_message in (error_info["message"] or "")
+    assert "StructuredError" in (error_info["stacktrace"] or "")
+
+    failure_status = _create_error_status(0, error_info, rdeoutput_resource, mode)
+    assert failure_status.status == "failed"
+    assert failure_status.error_code == 1060
+    assert error_message in (failure_status.error_message or "")
+    assert str(raw_file) in (failure_status.target or "")
 
 
 def test_run_empty_config(
