@@ -10,6 +10,7 @@ Public API:
 
 from __future__ import annotations
 
+from rdetoolkit.graph.api import csv2graph, plot_from_dataframe
 from rdetoolkit.graph.exceptions import (
     ColumnNotFoundError,
     DirectionError,
@@ -43,6 +44,8 @@ from rdetoolkit.graph.config import (
 )
 
 __all__ = [
+    "csv2graph",
+    "plot_from_dataframe",
     "GraphPlottingError",
     "ColumnNotFoundError",
     "InvalidMetadataError",
