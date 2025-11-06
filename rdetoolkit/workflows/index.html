@@ -1944,7 +1944,7 @@ excelinvoice: /data/temp/<registered_files></registered_files></registered_files
 </div><hr/>
 <div class="doc doc-object doc-function">
 <h2 class="doc doc-heading" id="src.rdetoolkit.workflows.generate_folder_paths_iterator">
-<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.</span>generate_folder_paths_iterator(raw_files_group, invoice_org_filepath, invoice_schema_filepath)</code>
+<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.</span>generate_folder_paths_iterator(raw_files_group, invoice_org_filepath, invoice_schema_filepath, <span style="color: #333">*</span>, smarttable_mode<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
 </h2>
 <div class="doc doc-contents first">
 <p>Generates iterator for RDE output folder paths.</p>
@@ -2007,6 +2007,22 @@ Excel invoice: Create divided folders according to the number of registered data
 </td>
 <td>
 <em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>smarttable_mode</code>
+</td>
+<td>
+<code><span title="bool">bool</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Set to True when running in SmartTable mode to populate <code>smarttable_rowfile</code>.</p>
+</div>
+</td>
+<td>
+<code>False</code>
 </td>
 </tr>
 </tbody>

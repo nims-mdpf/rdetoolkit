@@ -4191,7 +4191,7 @@ rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.
     plt<span style="color: #333">.</span>close()
 
 <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">my_xrd_func</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    metadata, dataframe <span style="color: #333">=</span> parse_ras_file(resource_paths<span style="color: #333">.</span>rawfiles[<span style="color: #00D; font-weight: bold">0</span>])
+        metadata, dataframe <span style="color: #333">=</span> parse_ras_file(resource_paths<span style="color: #333">.</span>rawfiles[<span style="color: #00D; font-weight: bold">0</span>])
 
     metadata_def_json_path <span style="color: #333">=</span> srcpaths<span style="color: #333">.</span>tasksupport<span style="color: #333">.</span>joinpath(<span style="background-color: #FFF0F0">"metadata-def.json"</span>)
     save_path <span style="color: #333">=</span> resource_paths<span style="color: #333">.</span>meta<span style="color: #333">.</span>joinpath(<span style="background-color: #FFF0F0">"metadata.json"</span>)

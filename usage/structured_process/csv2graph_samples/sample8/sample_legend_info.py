@@ -1,5 +1,5 @@
 from pathlib import Path
-from rdetoolkit.graph.api import csv2graph
+from rdetoolkit.graph import csv2graph
 
 if __name__ == "__main__":
     csv2graph(

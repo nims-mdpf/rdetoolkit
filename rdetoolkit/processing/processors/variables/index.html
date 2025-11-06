@@ -2920,7 +2920,7 @@ pipeline<span style="color: #333">.</span>process(context)
 <span style="color: #080; font-weight: bold">try</span>:
     result <span style="color: #333">=</span> apply_magic_variable(
         context<span style="color: #333">.</span>invoice_dst_filepath,
-        context<span style="color: #333">.</span>resource_paths<span style="color: #333">.</span>rawfiles[<span style="color: #00D; font-weight: bold">0</span>],
+        context<span style="color: #333">.</span>smarttable_rowfile <span style="color: #000; font-weight: bold">or</span> context<span style="color: #333">.</span>resource_paths<span style="color: #333">.</span>rawfiles[<span style="color: #00D; font-weight: bold">0</span>],
         save_filepath<span style="color: #333">=</span>context<span style="color: #333">.</span>invoice_dst_filepath
     )
     <span style="color: #080; font-weight: bold">if</span> result:
