@@ -109,3 +109,25 @@ def test_rdeformat_output_dir_structured(inputfile_rdeformat_divived):
 
     for name in expect_dir_names:
         assert os.path.exists(Path("data", name))
+
+
+def test_generate_folder_paths_iterator_sets_smarttable_rowfile(tmp_path):
+    """SmartTableモードで行CSVがsmarttable_rowfileに設定されることを確認する。"""
+    raw_csv = tmp_path / "fsmarttable_sample_0000.csv"
+    related_file = tmp_path / "extracted" / "file.txt"
+    input_files = [(raw_csv, related_file)]
+    invoice_org_json = tmp_path / "invoice_org.json"
+    invoice_schema_json = tmp_path / "invoice.schema.json"
+
+    results = list(
+        generate_folder_paths_iterator(
+            input_files,
+            invoice_org_json,
+            invoice_schema_json,
+            smarttable_mode=True,
+        ),
+    )
+
+    assert results
+    assert results[0].smarttable_rowfile == raw_csv
+    assert results[0].rawfiles == input_files[0]

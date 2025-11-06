@@ -48,7 +48,7 @@ Switch between the Python script and CLI examples using the tabs below.
     # sample.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -109,7 +109,7 @@ Switch between the Python script and CLI examples using the tabs below.
     # sample_log_scale.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -179,7 +179,7 @@ Switch between the Python script and CLI examples using the tabs below.
     # sample_invert.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         # invert_x
@@ -201,7 +201,7 @@ Switch between the Python script and CLI examples using the tabs below.
     ```python
     # sample_invert.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         # invert_y
@@ -273,7 +273,7 @@ Switch between the Python script and CLI examples using the tabs below.
     # sample_pair_plot.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -343,7 +343,7 @@ Switch between the Python script and CLI examples using the tabs below.
     # sample_custom_title.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -413,7 +413,7 @@ Switch between the Python script and CLI examples using the tabs below.
     # sample_max_legend_items.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -468,7 +468,7 @@ Switch between the Python script and CLI examples using the tabs below.
     ```python
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -543,7 +543,7 @@ sample8/
     ```python
     # sample_legend_info.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -603,7 +603,7 @@ sample9/
     ```python
     # sample_grid.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -662,7 +662,7 @@ sample10/
     ```python
     # sample_lim.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -727,7 +727,7 @@ total 472
     ```python
     # sample11/switch_output_directory.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -796,7 +796,7 @@ sample12/
 === "Python"
     ```python
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(

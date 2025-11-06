@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import warnings
 from rdetoolkit.models.rde2types import DatasetCallback, RdeDatasetPaths, RdeInputDirPaths, RdeOutputResourcePath
 
 
@@ -84,3 +85,26 @@ class ProcessingContext:
             error_msg = "SmartTable file not set for this context"
             raise ValueError(error_msg)
         return self.smarttable_file
+
+    @property
+    def smarttable_rowfile(self) -> Path | None:
+        """Return SmartTable row CSV path with rawfiles fallback."""
+        rowfile = getattr(self.resource_paths, "smarttable_rowfile", None)
+        if rowfile is not None:
+            return rowfile
+
+        rawfiles = getattr(self.resource_paths, "rawfiles", ())
+        if rawfiles:
+            candidate = rawfiles[0]
+            if (
+                isinstance(candidate, Path)
+                and candidate.suffix.lower() == ".csv"
+                and candidate.stem.startswith("fsmarttable_")
+            ):
+                warnings.warn(
+                    "ProcessingContext.smarttable_rowfile uses rawfiles[0] fallback; update generators to populate smarttable_rowfile.",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+                return candidate
+        return None

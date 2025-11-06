@@ -121,6 +121,8 @@ def generate_folder_paths_iterator(
     raw_files_group: RawFiles,
     invoice_org_filepath: Path,
     invoice_schema_filepath: Path,
+    *,
+    smarttable_mode: bool = False,
 ) -> Generator[RdeOutputResourcePath, None, None]:
     """Generates iterator for RDE output folder paths.
 
@@ -131,6 +133,7 @@ def generate_folder_paths_iterator(
         raw_files_group (List[Tuple[pathlib.Path, ...]]): A list of tuples containing raw file paths.
         invoice_org_filepath (pathlib.Path): invoice_org.json file path
         invoice_schema_filepath (Path): invoice.schema.json file path
+        smarttable_mode (bool): Set to True when running in SmartTable mode to populate ``smarttable_rowfile``.
 
     Yields:
         RdeOutputResourcePath: A named tuple of output folder paths for RDE resources
@@ -149,6 +152,10 @@ def generate_folder_paths_iterator(
     """
     dir_ops = DirectoryOps("data")
     for idx, raw_files in enumerate(raw_files_group):
+        smarttable_rowfile = None
+        if smarttable_mode:
+            smarttable_rowfile = _select_smarttable_rowfile(raw_files)
+
         rdeoutput_resource_path = RdeOutputResourcePath(
             raw=Path(dir_ops.raw(idx).path),
             rawfiles=raw_files,
@@ -161,12 +168,38 @@ def generate_folder_paths_iterator(
             invoice=Path(dir_ops.invoice(idx).path),
             invoice_schema_json=invoice_schema_filepath,
             invoice_org=invoice_org_filepath,
+            smarttable_rowfile=smarttable_rowfile,
             temp=Path(dir_ops.temp(idx).path),
             nonshared_raw=Path(dir_ops.nonshared_raw(idx).path),
             invoice_patch=Path(dir_ops.invoice_patch(idx).path),
             attachment=Path(dir_ops.attachment(idx).path),
         )
         yield rdeoutput_resource_path
+
+
+def _select_smarttable_rowfile(raw_files: tuple[Path, ...]) -> Path | None:
+    """Return SmartTable row CSV if detected in path tuple."""
+    if not raw_files:
+        return None
+
+    candidate = raw_files[0]
+    if candidate.suffix.lower() != ".csv":
+        return None
+
+    name_without_ext = candidate.stem
+    if not name_without_ext.startswith("fsmarttable_"):
+        return None
+
+    parts = name_without_ext.split("_")
+    min_parts = 2
+    if len(parts) < min_parts:
+        return None
+
+    suffix = parts[-1]
+    if not suffix.isdigit():
+        return None
+
+    return candidate
 
 
 def _process_mode(  # noqa: C901 PLR0912
@@ -206,6 +239,8 @@ def _process_mode(  # noqa: C901 PLR0912
                 with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
                     status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
                 if status is None:
+                    if any(value is not None for value in error_info.values()):
+                        return status, error_info, mode
                     emsg = "MultiDataTile mode did not return a workflow status"
                     raise StructuredError(emsg)
                 return status, error_info, mode
@@ -326,6 +361,7 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
             raw_files_group,
             invoice_org_filepath,
             invoice_schema_filepath,
+            smarttable_mode=smarttable_file is not None,
         )
 
         for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):

@@ -1238,7 +1238,7 @@ def xrd_plot(data: pd.DataFrame, output_path: str | Path):
     plt.close()
 
 def my_xrd_func(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-    metadata, dataframe = parse_ras_file(resource_paths.rawfiles[0])
+        metadata, dataframe = parse_ras_file(resource_paths.rawfiles[0])
 
     metadata_def_json_path = srcpaths.tasksupport.joinpath("metadata-def.json")
     save_path = resource_paths.meta.joinpath("metadata.json")

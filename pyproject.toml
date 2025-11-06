@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.4.0"
+version = "1.4.1"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -201,6 +201,8 @@ convention = "google"
 # Unused imports are allowed in __init__.py.
 "__init__.py" = ["F401", "F403"]
 "**/*.pyi" = ["ALL"]
+# Test files can use assert statements and don't need full type annotations
+"tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
 
 [tool.mypy]
 show_error_context = true

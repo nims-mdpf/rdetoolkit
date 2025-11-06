@@ -201,16 +201,24 @@ class CSVParser:
         data_start_line: int,
     ) -> tuple[pd.DataFrame, dict[str, Any]]:
         skiprows = max(data_start_line - 1, 0)
-        df = pd.read_csv(csv_path, skiprows=skiprows, header=None)
+        try:
+            df = pd.read_csv(csv_path, skiprows=skiprows, header=None, comment="#")
+        except pd.errors.EmptyDataError:
+            df = pd.DataFrame()
 
         column_count = len(df.columns)
-        header = ["x (arb.unit)"]
-        if column_count > 1:
-            header.extend([f"y{i} (arb.unit)" for i in range(1, column_count)])
-        df.columns = header
-
-        legends = [col.split(" (")[0] for col in header[1:]]
-        yaxis_label = "y (arb.unit)" if column_count > 1 else None
+        if column_count > 0:
+            header = ["x (arb.unit)"]
+            if column_count > 1:
+                header.extend([f"y{i} (arb.unit)" for i in range(1, column_count)])
+            df.columns = header
+            legends = [col.split(" (")[0] for col in header[1:]]
+            yaxis_label = "y (arb.unit)" if column_count > 1 else None
+        else:
+            header = ["x (arb.unit)"]
+            df = pd.DataFrame(columns=header)
+            legends = []
+            yaxis_label = None
 
         metadata = {
             "title": csv_path.stem,
@@ -230,7 +238,7 @@ class CSVParser:
         title, _axis, legends, xaxis_label, yaxis_label = CSVParser._extract_metadata(meta_lines)
 
         skiprows = max(data_start_line - 1, 0)
-        df = pd.read_csv(csv_path, skiprows=skiprows, header=None)
+        df = pd.read_csv(csv_path, skiprows=skiprows, header=None, comment="#")
 
         _, y_unit = CSVParser._split_label_and_unit(yaxis_label)
         legend_names = [value.strip() for value in legends if value.strip()]

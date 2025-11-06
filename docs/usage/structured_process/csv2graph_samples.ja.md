@@ -48,7 +48,7 @@ sample1/
     #sample.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -104,7 +104,7 @@ sample2/
     # sample_log_scale.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -174,7 +174,7 @@ sample3/
     # sample_invert.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         # invert_x
@@ -196,7 +196,7 @@ sample3/
     ```python
     # sample_invert.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         # invert_y
@@ -268,7 +268,7 @@ sample4/
     # sample_pair_plot.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -338,7 +338,7 @@ sample5/
     # sample_custom_title.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -408,7 +408,7 @@ sample6/
     # sample_max_legend_items.py
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -464,7 +464,7 @@ Charge,2.0,1,0.9930867849414408,0.5693531709169787,3.1401720080365,Discharge,2.0
     ```python
     from pathlib import Path
 
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -548,7 +548,7 @@ sample8/
     ```python
     # sample_legend_info.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -608,7 +608,7 @@ sample9/
     ```python
     # sample_grid.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -667,7 +667,7 @@ sample10/
     ```python
     # sample_lim.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -732,7 +732,7 @@ total 472
     ```python
     # sample11/switch_output_directory.py
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(
@@ -801,7 +801,7 @@ sample12/
 === "Python"
     ```python
     from pathlib import Path
-    from rdetoolkit.graph.api import csv2graph
+    from rdetoolkit.graph import csv2graph
 
     if __name__ == "__main__":
         csv2graph(

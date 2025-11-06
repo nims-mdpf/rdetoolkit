@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.4.1     | 2025-11-05 | SmartTable行CSVアクセサ / 旧`rawfiles`フォールバック警告 | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0     | 2025-10-24 | SmartTableの`metadata.json`自動生成 / LLM向けスタックトレース / CSV可視化ユーティリティ / `gen-config` | [v1.4.0](#v140-2025-10-24) |
 | v1.3.4     | 2025-08-21 | SmartTable検証の安定化 | [v1.3.4](#v134-2025-08-21) |
 | v1.3.3     | 2025-07-29 | `ValidationError`修正 / 再構造化用`sampleWhenRestructured`追加 | [v1.3.3](#v133-2025-07-29) |
@@ -13,11 +14,41 @@
 
 # リリース詳細
 
+## v1.4.1 (2025-11-05)
+
+!!! info "参照資料"
+    - 対応Issue: [#204](https://github.com/nims-mdpf/rdetoolkit/issues/204), [#272](https://github.com/nims-mdpf/rdetoolkit/issues/272), [#273](https://github.com/nims-mdpf/rdetoolkit/issues/273), [#278](https://github.com/nims-mdpf/rdetoolkit/issues/278)
+
+#### ハイライト
+- SmartTable 行CSVへの専用アクセサを追加し、`rawfiles[0]` 依存の既存コールバックとの互換性を維持。
+- MultiDataTile ワークフローが必ずステータスを返し、失敗モード名付きで `StructuredError` を通知するよう改善。
+- CSV パーサーがメタデータ行と空データに対応し、`ParserError` / `EmptyDataError` を防止。
+- グラフ可視化ヘルパー（`csv2graph`, `plot_from_dataframe`）を `rdetoolkit.graph` 直下からインポート可能に。
+
+#### 追加機能 / 改善
+- `RdeOutputResourcePath` に `smarttable_rowfile` を追加し、`ProcessingContext.smarttable_rowfile` と `RdeDatasetPaths` から参照可能に。
+- SmartTable 系処理で行CSVを自動設定し、フォールバックで `rawfiles[0]` を参照した場合は移行を促す `FutureWarning` を発行。
+- SmartTable の開発者向けドキュメントを更新し、行CSVの取得方法を新アクセサ基準に整理。
+- `rdetoolkit.graph` パッケージで `csv2graph` / `plot_from_dataframe` を再エクスポートし、ドキュメントとサンプルのインポート例を統一。
+
+#### 不具合修正
+- MultiDataTile モードが `WorkflowExecutionStatus` を必ず返し、応答がない場合は失敗したモード名付きで `StructuredError` を送出するよう修正。
+- `CSVParser._parse_meta_block()` / `_parse_no_header()` で `#` 始まりのメタデータ行を無視し、データが空のときは空の `DataFrame` を返すことで `ParserError` / `EmptyDataError` を解消。
+
+#### 移行ガイド / 互換性
+- `resource_paths.rawfiles[0]` を利用するコードは動作を継続するが、`smarttable_rowfile` へ移行しないと警告が表示される。
+- `rawfiles` タプル自体は引き続きユーザー投入ファイルの一覧として利用される。先頭要素が常に SmartTable 行CSVであるという前提のみ段階的に解消する方針。
+- CSV 取り込み側での追加対応は不要。今回の改修は後方互換。
+- 推奨インポートは `from rdetoolkit.graph import csv2graph, plot_from_dataframe`。従来の `rdetoolkit.graph.api` パスは当面利用可能。
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
+
 ## v1.4.0 (2025-10-24)
 
 !!! info "参照資料"
-    - `local/develop/release_v140.md`
-    - `local/develop/PR_v140.md`
     - 主なIssues: [#144](https://github.com/nims-mdpf/rdetoolkit/issues/144), [#188](https://github.com/nims-mdpf/rdetoolkit/issues/188), [#197](https://github.com/nims-mdpf/rdetoolkit/issues/197), [#205](https://github.com/nims-mdpf/rdetoolkit/issues/205), [#236](https://github.com/nims-mdpf/rdetoolkit/issues/236)
 
 #### ハイライト
@@ -50,7 +81,6 @@
 ## v1.3.4 (2025-08-21)
 
 !!! info "参照資料"
-    - `local/develop/PR_v134.md`（相当）
     - 主なIssue: [#217](https://github.com/nims-mdpf/rdetoolkit/issues/217)（SmartTable/Invoice 検証の安定化）
 
 #### ハイライト
@@ -73,7 +103,6 @@
 ## v1.3.3 (2025-07-29)
 
 !!! info "参照資料"
-    - `local/develop/Release_v133.md`
     - 主なIssue: [#201](https://github.com/nims-mdpf/rdetoolkit/issues/201)
 
 #### ハイライト
@@ -99,7 +128,6 @@
 ## v1.3.2 (2025-07-22)
 
 !!! info "参照資料"
-    - `local/develop/PR_v132.md`（相当）
     - 主なIssue: [#193](https://github.com/nims-mdpf/rdetoolkit/issues/193)
 
 #### ハイライト
@@ -123,7 +151,6 @@
 ## v1.3.1 (2025-07-14)
 
 !!! info "参照資料"
-    - `local/develop/Release_v131.md`
     - 主なIssues: [#144](https://github.com/nims-mdpf/rdetoolkit/issues/144), [#161](https://github.com/nims-mdpf/rdetoolkit/issues/161), [#163](https://github.com/nims-mdpf/rdetoolkit/issues/163), [#168](https://github.com/nims-mdpf/rdetoolkit/issues/168), [#169](https://github.com/nims-mdpf/rdetoolkit/issues/169), [#173](https://github.com/nims-mdpf/rdetoolkit/issues/173), [#174](https://github.com/nims-mdpf/rdetoolkit/issues/174), [#177](https://github.com/nims-mdpf/rdetoolkit/issues/177), [#185](https://github.com/nims-mdpf/rdetoolkit/issues/185)
 
 #### ハイライト
@@ -156,7 +183,6 @@
 ## v1.2.0 (2025-04-14)
 
 !!! info "参照資料"
-    - `local/develop/PR_v120.md`
     - 主なIssue: [#157](https://github.com/nims-mdpf/rdetoolkit/issues/157)
 
 #### ハイライト

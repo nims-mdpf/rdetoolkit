@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import MagicMock
 
 import pytest
@@ -19,14 +19,13 @@ from rdetoolkit.models.rde2types import create_default_config
 @pytest.fixture
 def rde_input_paths():
     """Create a real RdeInputDirPaths object."""
-
     config = create_default_config()
 
     yield RdeInputDirPaths(
         inputdata=Path("data/inputdata"),
         invoice=Path("data/invoice"),
         tasksupport=Path("data/tasksupport"),
-        config=config
+        config=config,
     )
 
 
@@ -68,7 +67,7 @@ def rde_output_paths_rdeformat():
         rawfiles=(
             Path("data", "temp", "inputdata", "test_child1.txt"),
             Path("data", "temp", "structured", "test.csv"),
-            Path("data", "temp", "raw", "test_child1.txt")
+            Path("data", "temp", "raw", "test_child1.txt"),
         ),
         invoice_org=Path("data/invoice/invoice.json"),
     )
@@ -89,7 +88,7 @@ def basic_processing_context(rde_input_paths, rde_output_paths, mock_datasets_fu
         srcpaths=rde_input_paths,
         resource_paths=rde_output_paths,
         datasets_function=mock_datasets_function,
-        mode_name="test_mode"
+        mode_name="test_mode",
     )
 
 
@@ -101,7 +100,7 @@ def rdeformat_processing_context(rde_input_paths, rde_output_paths_rdeformat, mo
         srcpaths=rde_input_paths,
         resource_paths=rde_output_paths_rdeformat,
         datasets_function=mock_datasets_function,
-        mode_name="rdeformat"
+        mode_name="rdeformat",
     )
 
 
@@ -113,7 +112,7 @@ def multifile_processing_context(rde_input_paths, rde_output_paths, mock_dataset
         srcpaths=rde_input_paths,
         resource_paths=rde_output_paths,
         datasets_function=mock_datasets_function,
-        mode_name="MultiDataTile"
+        mode_name="MultiDataTile",
     )
 
 
@@ -126,7 +125,7 @@ def excel_processing_context(rde_input_paths, rde_output_paths, mock_datasets_fu
         resource_paths=rde_output_paths,
         datasets_function=mock_datasets_function,
         mode_name="Excelinvoice",
-        excel_file=Path("data/inputdata/test_excel_invoice.xlsx")
+        excel_file=Path("data/inputdata/test_excel_invoice.xlsx"),
     )
 
 
@@ -138,7 +137,7 @@ def invoice_processing_context(rde_input_paths, rde_output_paths, mock_datasets_
         srcpaths=rde_input_paths,
         resource_paths=rde_output_paths,
         datasets_function=mock_datasets_function,
-        mode_name="invoice"
+        mode_name="invoice",
     )
 
 
@@ -151,7 +150,7 @@ def processing_context_no_rawfiles(rde_input_paths, rde_output_paths, mock_datas
         srcpaths=rde_input_paths,
         resource_paths=rde_output_paths,
         datasets_function=mock_datasets_function,
-        mode_name="test_mode"
+        mode_name="test_mode",
     )
 
 
@@ -168,7 +167,7 @@ def processing_context_disabled_features(rde_input_paths, rde_output_paths, mock
         srcpaths=rde_input_paths,
         resource_paths=rde_output_paths,
         datasets_function=mock_datasets_function,
-        mode_name="test_mode"
+        mode_name="test_mode",
     )
 
 
@@ -182,7 +181,7 @@ def test_processing_context_mapping(rde_input_paths, rde_output_paths_rdeformat,
             srcpaths=rde_input_paths,
             resource_paths=rde_output_paths_rdeformat,
             datasets_function=mock_datasets_function,
-            mode_name="rdeformat"
+            mode_name="rdeformat",
         )
 
         context.resource_paths.raw = base_path / "raw"
@@ -234,7 +233,7 @@ def isolated_processing_context(rde_input_paths, mock_datasets_function) -> Gene
             rde_output_paths.thumbnail, rde_output_paths.meta,
             rde_output_paths.struct, rde_output_paths.logs,
             rde_output_paths.invoice, base_path / "tasksupport",
-            base_path / "inputdata"
+            base_path / "inputdata",
         ]:
             path.mkdir(parents=True, exist_ok=True)
 
@@ -246,7 +245,7 @@ def isolated_processing_context(rde_input_paths, mock_datasets_function) -> Gene
             srcpaths=rde_input_paths,
             resource_paths=rde_output_paths,
             datasets_function=mock_datasets_function,
-            mode_name="test_mode"
+            mode_name="test_mode",
         )
 
         yield context
@@ -259,7 +258,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
         base_path = Path(temp_dir)
 
         # Create CSV file for SmartTable
-        csv_path = base_path / "inputdata" / "smarttable_test.csv"
+        csv_path = base_path / "temp" / "fsmarttable_test_0000.csv"
         csv_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create isolated output paths
@@ -276,6 +275,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
             invoice_schema_json=base_path / "tasksupport" / "invoice.schema.json",
             rawfiles=(csv_path,),  # SmartTable CSV file
             invoice_org=base_path / "invoice" / "invoice.json",
+            smarttable_rowfile=csv_path,
         )
 
         # Create necessary directories
@@ -284,7 +284,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
             rde_output_paths.main_image, rde_output_paths.other_image,
             rde_output_paths.thumbnail, rde_output_paths.meta,
             rde_output_paths.struct, rde_output_paths.logs,
-            rde_output_paths.invoice, base_path / "tasksupport"
+            rde_output_paths.invoice, base_path / "tasksupport",
         ]:
             path.mkdir(parents=True, exist_ok=True)
 
@@ -305,29 +305,29 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
                         "properties": {
                             "customField1": {
                                 "type": "string",
-                                "label": {"ja": "カスタムフィールド1", "en": "Custom Field 1"}
+                                "label": {"ja": "カスタムフィールド1", "en": "Custom Field 1"},
                             },
                             "intField": {
                                 "type": "integer",
-                                "label": {"ja": "整数フィールド", "en": "Integer Field"}
+                                "label": {"ja": "整数フィールド", "en": "Integer Field"},
                             },
                             "floatField": {
                                 "type": "number",
-                                "label": {"ja": "浮動小数点フィールド", "en": "Float Field"}
+                                "label": {"ja": "浮動小数点フィールド", "en": "Float Field"},
                             },
                             "boolField": {
                                 "type": "boolean",
-                                "label": {"ja": "ブールフィールド", "en": "Boolean Field"}
+                                "label": {"ja": "ブールフィールド", "en": "Boolean Field"},
                             },
                             "stringField": {
                                 "type": "string",
-                                "label": {"ja": "文字列フィールド", "en": "String Field"}
+                                "label": {"ja": "文字列フィールド", "en": "String Field"},
                             },
                             "field1": {
                                 "type": "string",
-                                "label": {"ja": "フィールド1", "en": "Field 1"}
-                            }
-                        }
+                                "label": {"ja": "フィールド1", "en": "Field 1"},
+                            },
+                        },
                     },
                     "sample": {
                         "type": "object",
@@ -335,7 +335,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
                         "properties": {
                             "names": {
                                 "type": "array",
-                                "items": {"type": "string"}
+                                "items": {"type": "string"},
                             },
                             "generalAttributes": {
                                 "type": "array",
@@ -343,9 +343,9 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
                                     "type": "object",
                                     "properties": {
                                         "termId": {"type": "string"},
-                                        "value": {"type": "string"}
-                                    }
-                                }
+                                        "value": {"type": "string"},
+                                    },
+                                },
                             },
                             "specificAttributes": {
                                 "type": "array",
@@ -354,14 +354,14 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
                                     "properties": {
                                         "classId": {"type": "string"},
                                         "termId": {"type": "string"},
-                                        "value": {"type": "string"}
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        "value": {"type": "string"},
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
-                "definitions": {}
+                "definitions": {},
             }
 
             with open(rde_output_paths.invoice_schema_json, 'w') as f:
@@ -380,7 +380,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
             resource_paths=rde_output_paths,
             datasets_function=mock_datasets_function,
             mode_name="smarttable",
-            smarttable_file=csv_path  # This enables SmartTable mode
+            smarttable_file=csv_path,  # This enables SmartTable mode
         )
 
         yield context
