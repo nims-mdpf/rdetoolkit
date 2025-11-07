@@ -45,6 +45,9 @@ class ExcelInvoiceTemplateGenerator:
 class ExcelInvoiceFile:
     template_generator: Incomplete
     invoice_path: Incomplete
+    dfexcelinvoice: pd.DataFrame
+    df_general: pd.DataFrame | None
+    df_specific: pd.DataFrame | None
     def __init__(self, invoice_path: Path) -> None: ...
     def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: ...
     @classmethod

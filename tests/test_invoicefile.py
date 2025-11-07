@@ -412,8 +412,8 @@ def test_update_description_none_features_none_variable(
     assert result_contents["basic"]["description"] == expect_message
 
 
-def test_read_excelinvoice(inputfile_single_excelinvoice):
-    """read_excelinvoiceのテスト
+def test_excel_invoice_file_read(inputfile_single_excelinvoice):
+    """ExcelInvoiceFile.read のテスト
     dfexcelinvoice, df_general, dfSpecificが正しい値で返ってくるかテスト
     また、空のシートが含まれるエクセルインボイスを入れた時に想定通りの値を出力するかテスト
     """
@@ -474,9 +474,10 @@ def test_read_excelinvoice(inputfile_single_excelinvoice):
             "custom/key2",
         ],
     )
-
-    dfexcelinvoice, df_general, df_specific = read_excelinvoice(inputfile_single_excelinvoice)
-
+    excel_invoice = ExcelInvoiceFile(inputfile_single_excelinvoice)
+    dfexcelinvoice = excel_invoice.dfexcelinvoice
+    df_general = excel_invoice.df_general
+    df_specific = excel_invoice.df_specific
     assert_frame_equal(dfexcelinvoice, df1)
     assert isinstance(df_general, pd.DataFrame)
     assert df_general.columns.to_list() == ["term_id", "key_name"]
@@ -484,19 +485,31 @@ def test_read_excelinvoice(inputfile_single_excelinvoice):
     assert df_specific.columns.to_list() == ["sample_class_id", "term_id", "key_name"]
 
 
-def test_empty_excelinvoice_read_excelinvoice(empty_inputfile_excelinvoice):
+def test_read_excelinvoice_wrapper_warns(inputfile_single_excelinvoice):
+    """Deprecated read_excelinvoice helper still returns ExcelInvoiceFile outputs."""
+    excel_invoice = ExcelInvoiceFile(inputfile_single_excelinvoice)
+
+    with pytest.warns(DeprecationWarning, match="1\\.5\\.0"):
+        dfexcelinvoice, df_general, df_specific = read_excelinvoice(inputfile_single_excelinvoice)
+
+    assert_frame_equal(dfexcelinvoice, excel_invoice.dfexcelinvoice)
+    assert_frame_equal_ignore_column_names(df_general, excel_invoice.df_general)
+    assert_frame_equal_ignore_column_names(df_specific, excel_invoice.df_specific)
+
+
+def test_excel_invoice_file_read_empty(empty_inputfile_excelinvoice):
     """空のエクセルインボイスを入れた時に例外をキャッチできるかテスト"""
     with pytest.raises(StructuredError) as e:
-        _, _, _ = read_excelinvoice(empty_inputfile_excelinvoice)
+        ExcelInvoiceFile(empty_inputfile_excelinvoice)
     assert str(e.value) == "ERROR: no sheet in invoiceList files"
 
 
-def test_invalid_excelinvoice_read_excelinvoice(
+def test_excel_invoice_file_read_invalid_duplicate_sheet(
     inputfile_invalid_samesheet_excelinvoice,
 ):
     """sheet1の内容が複数あるエクセルインボイスを入れた時に例外をキャッチできるかテスト"""
     with pytest.raises(StructuredError) as e:
-        _, _, _ = read_excelinvoice(inputfile_invalid_samesheet_excelinvoice)
+        ExcelInvoiceFile(inputfile_invalid_samesheet_excelinvoice)
     assert str(e.value) == "ERROR: multiple sheet in invoiceList files"
 
 
@@ -566,7 +579,7 @@ class TestExcelinvoice:
     """Excelinvoiceクラスのテスト"""
 
     def test_read(self, inputfile_single_excelinvoice):
-        """read_excelinvoiceのテスト
+        """ExcelInvoiceFile.read のテスト
         dfexcelinvoice, df_general, dfSpecificが正しい値で返ってくるかテスト
         また、空のシートが含まれるエクセルインボイスを入れた時に想定通りの値を出力するかテスト
         """

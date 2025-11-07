@@ -4,7 +4,7 @@ from pathlib import Path
 from rdetoolkit.exceptions import StructuredError as StructuredError
 from rdetoolkit.impl import compressed_controller as compressed_controller
 from rdetoolkit.interfaces.filechecker import IInputFileChecker as IInputFileChecker
-from rdetoolkit.invoicefile import SmartTableFile as SmartTableFile, read_excelinvoice as read_excelinvoice
+from rdetoolkit.invoicefile import ExcelInvoiceFile as ExcelInvoiceFile, SmartTableFile as SmartTableFile
 from rdetoolkit.models.rde2types import ExcelInvoicePathList as ExcelInvoicePathList, InputFilesGroup as InputFilesGroup, OtherFilesPathList as OtherFilesPathList, RawFiles as RawFiles, ZipFilesPathList as ZipFilesPathList
 
 class InvoiceChecker(IInputFileChecker):
