@@ -22,6 +22,7 @@ from rdetoolkit.models.invoice import FixedHeaders, GeneralAttributeConfig, Gene
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, SampleField, SpecificProperty
 from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
 from rdetoolkit.rde2util import StorageDir
+from rdetoolkit.validation import InvoiceValidator
 
 STATIC_DIR = Path(__file__).parent / "static"
 EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
@@ -173,23 +174,28 @@ class InvoiceFile:
 
     Attributes:
         invoice_path (Path): Path to the invoice file.
+        schema_path (Path | None): Optional path to the invoice schema file used for validation.
         invoice_obj (dict): Dictionary representation of the invoice JSON file.
 
     Args:
         invoice_path (Path): The path to the invoice file.
+        schema_path (Path | None): Optional path to the invoice schema for validation when overwriting.
 
     Raises:
         ValueError: If `invoice_obj` is not a dictionary.
 
     Example:
         # Usage
-        invoice = InvoiceFile("invoice.json")
+        invoice = InvoiceFile(Path("invoice.json"), schema_path=Path("invoice.schema.json"))
         invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-        invoice.overwrite("invoice_new.json")
+        invoice.overwrite(Path("invoice_new.json"))
+        invoice.invoice_obj["basic"]["dataName"] = "updated"
+        invoice.overwrite(schema_path=Path("invoice.schema.json"))
     """
 
-    def __init__(self, invoice_path: Path):
-        self.invoice_path = invoice_path
+    def __init__(self, invoice_path: Path, *, schema_path: Path | None = None):
+        self.invoice_path = Path(invoice_path)
+        self.schema_path = Path(schema_path) if schema_path is not None else None
         self._invoice_obj = self.read()
 
     @property
@@ -230,28 +236,59 @@ class InvoiceFile:
         self.invoice_obj = readf_json(target_path)
         return self.invoice_obj
 
-    def overwrite(self, dst_file_path: Path, *, src_obj: Path | None = None) -> None:
-        """Overwrites the contents of the destination file with the invoice JSON data.
+    def overwrite(
+        self,
+        dst_file_path: Path | None = None,
+        *,
+        src_obj: dict[str, Any] | Path | str | None = None,
+        schema_path: Path | None = None,
+    ) -> None:
+        """Persist invoice data to disk.
 
         Args:
-            dst_file_path (Path): The path to the destination file.
-            src_obj (Optional[Path], optional): The path to the source object. Defaults to None.
+            dst_file_path: Destination file path. Defaults to `self.invoice_path` when omitted.
+            src_obj: Source invoice data. Accepts a dict to overwrite with explicit data or a path to a JSON file.
+                Defaults to the current `invoice_obj`.
+            schema_path: Optional path to `invoice.schema.json` for validation. Falls back to the instance level
+                `schema_path` when provided at construction time.
 
         Raises:
-            StructuredError: If the destination file does not exist.
+            TypeError: If `src_obj` is not a dict or path-like object.
+            InvoiceSchemaValidationError: When validation fails against the provided schema.
+            StructuredError: If writing the file fails.
 
-        Example:
-            # Usage
-            invoice = InvoiceFile("invoice.json")
-            invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-            invoice.overwrite("invoice_new.json")
-
+        Note:
+            When `dst_file_path` targets the instance's own `invoice_path`, the in-memory `invoice_obj` is updated with
+            the sanitized data after a successful write to keep state in sync. Writing to a different destination leaves
+            the instance state untouched.
         """
+        destination = Path(dst_file_path) if dst_file_path is not None else self.invoice_path
+        validator_schema = Path(schema_path) if schema_path is not None else self.schema_path
+
         if src_obj is None:
-            src_obj = self.invoice_path
-        parent_dir = os.path.dirname(dst_file_path)
-        os.makedirs(parent_dir, exist_ok=True)
-        writef_json(dst_file_path, self.invoice_obj)
+            candidate: dict[str, Any] = copy.deepcopy(self.invoice_obj)
+        elif isinstance(src_obj, dict):
+            candidate = copy.deepcopy(src_obj)
+        elif isinstance(src_obj, (str, Path)):
+            candidate = readf_json(Path(src_obj))
+        else:
+            emsg = "src_obj must be either a dict or a path-like object"
+            raise TypeError(emsg)
+
+        sanitized = self._sanitize_invoice_data(candidate, validator_schema)
+        should_update_instance = destination == self.invoice_path
+        os.makedirs(destination.parent, exist_ok=True)
+        writef_json(destination, sanitized)
+
+        if should_update_instance:
+            self.invoice_obj = sanitized
+
+    def _sanitize_invoice_data(self, candidate: dict[str, Any], schema_path: Path | None) -> dict[str, Any]:
+        """Validate and normalise invoice data prior to persisting."""
+        if schema_path is not None:
+            validator = InvoiceValidator(schema_path)
+            return validator.validate(obj=candidate)
+        return candidate
 
     @classmethod
     def copy_original_invoice(cls, src_file_path: Path, dst_file_path: Path) -> None:
