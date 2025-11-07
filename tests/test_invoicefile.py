@@ -125,6 +125,13 @@ def assert_frame_equal_ignore_column_names(df1, df2):
     assert_frame_equal(df1_temp, df2_temp, check_names=False)
 
 
+def assert_optional_frame_equal(df1, df2):
+    if df1 is None or df2 is None:
+        assert df1 is None and df2 is None, "One DataFrame is None while the other is not"
+        return
+    assert_frame_equal_ignore_column_names(df1, df2)
+
+
 def test_get_item_invoice(ivnoice_json_none_sample_info):
     invoice = InvoiceFile(ivnoice_json_none_sample_info)
     assert invoice["basic"]["dateSubmitted"] == "2023-03-14"
@@ -610,8 +617,8 @@ def test_read_excelinvoice_wrapper_warns(inputfile_single_excelinvoice):
         dfexcelinvoice, df_general, df_specific = read_excelinvoice(inputfile_single_excelinvoice)
 
     assert_frame_equal(dfexcelinvoice, excel_invoice.dfexcelinvoice)
-    assert_frame_equal_ignore_column_names(df_general, excel_invoice.df_general)
-    assert_frame_equal_ignore_column_names(df_specific, excel_invoice.df_specific)
+    assert_optional_frame_equal(df_general, excel_invoice.df_general)
+    assert_optional_frame_equal(df_specific, excel_invoice.df_specific)
 
 
 def test_excel_invoice_file_read_empty(empty_inputfile_excelinvoice):

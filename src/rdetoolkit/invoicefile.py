@@ -45,7 +45,7 @@ def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, p
     return excel_invoice.dfexcelinvoice, excel_invoice.df_general, excel_invoice.df_specific
 
 
-def _process_invoice_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_invoice_sheet(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
     hd1 = list(df.iloc[1, :].fillna(""))
     hd2 = list(df.iloc[2, :].fillna(""))
@@ -53,13 +53,13 @@ def _process_invoice_sheet(df: pd.DataFrame) -> pd.Series:
     return df.iloc[4:, :].reset_index(drop=True).copy()
 
 
-def _process_general_term_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_general_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_general = df[1:].copy()
     _df_general.columns = ["term_id", "key_name"]
     return _df_general
 
 
-def _process_specific_term_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_specific_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_specific = df[1:].copy()
     _df_specific.columns = ["sample_class_id", "term_id", "key_name"]
     return _df_specific
@@ -533,8 +533,8 @@ class ExcelInvoiceFile:
     Attributes:
         invoice_path (Path): Path to the excel invoice file (.xlsx).
         dfexcelinvoice (pd.DataFrame): Dataframe of the invoice.
-        df_general (pd.DataFrame): Dataframe of general data.
-        df_specific (pd.DataFrame): Dataframe of specific data.
+        df_general (pd.DataFrame | None): Dataframe of general data (None if the sheet is absent).
+        df_specific (pd.DataFrame | None): Dataframe of specific data (None if the sheet is absent).
         self.template_generator (ExcelInvoiceTemplateGenerator): Template generator for the Excelinvoice.
     """
     template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())  # type: ignore
