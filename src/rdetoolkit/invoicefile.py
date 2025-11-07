@@ -282,8 +282,9 @@ class InvoiceFile:
             StructuredError: If writing the file fails.
 
         Note:
-            When `dst_file_path` targets the instance's own `invoice_path`, the in-memory `invoice_obj` is updated to
-            keep state in sync. Writing to a different destination leaves the instance state untouched.
+            When `dst_file_path` targets the instance's own `invoice_path`, the in-memory `invoice_obj` is updated with
+            the sanitized data after a successful write to keep state in sync. Writing to a different destination leaves
+            the instance state untouched.
         """
         destination = Path(dst_file_path) if dst_file_path is not None else self.invoice_path
         validator_schema = Path(schema_path) if schema_path is not None else self.schema_path
