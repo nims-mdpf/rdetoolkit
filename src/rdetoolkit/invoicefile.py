@@ -36,7 +36,7 @@ def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, p
     """
     warnings.warn(
         "read_excelinvoice() is deprecated and will be removed in version 1.5.0. "
-        "Instantiate ExcelInvoiceFile(invoice_path).dfexcelinvoice instead.",
+        "Instantiate ExcelInvoiceFile(invoice_path) and use the .dfexcelinvoice, .df_general, and .df_specific attributes instead.",
         DeprecationWarning,
         stacklevel=2,
     )
