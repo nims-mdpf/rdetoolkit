@@ -84,6 +84,7 @@ def test_gen_config_interactive_overwrite_and_lang(cli_runner: CliRunner, tmp_pa
         "n",  # save_nonshared_raw
         "y",  # magic_variable
         "n",  # save_thumbnail_image
+        "y",  # save_invoice_to_structured
         "MultiDataTile",  # extended_mode
         "y",  # multidata ignore_errors
         "y",  # smarttable save_table_file
@@ -113,6 +114,7 @@ def test_gen_config_interactive_overwrite_and_lang(cli_runner: CliRunner, tmp_pa
           save_nonshared_raw: false
           magic_variable: true
           save_thumbnail_image: false
+          save_invoice_to_structured: true
           extended_mode: "MultiDataTile"
 
         multidata_tile:
