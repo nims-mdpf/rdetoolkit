@@ -213,7 +213,8 @@ class InvoiceFile:
         invoice = InvoiceFile(Path("invoice.json"), schema_path=Path("invoice.schema.json"))
         invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
         invoice.overwrite(Path("invoice_new.json"))
-        invoice.overwrite(src_obj={"basic": {"dataName": "updated"}}, schema_path=Path("invoice.schema.json"))
+        invoice.invoice_obj["basic"]["dataName"] = "updated"
+        invoice.overwrite(schema_path=Path("invoice.schema.json"))
     """
 
     def __init__(self, invoice_path: Path, *, schema_path: Path | None = None):
