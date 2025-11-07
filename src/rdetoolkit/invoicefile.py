@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Protocol, Union
 
@@ -29,47 +30,22 @@ EX_SPECIFICTERM = STATIC_DIR / "ex_specificterm.csv"
 
 
 def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Reads an ExcelInvoice and processes each sheet into a dataframe.
+    """Deprecated wrapper around :class:`ExcelInvoiceFile`.
 
-    This function reads an Excel file and processes three specific sheets:
-    1. A sheet containing 'invoiceList_format_id' in cell A1 (duplicate sheets with this value are not allowed)
-    2. A sheet named 'generalTerm'
-    3. A sheet named 'specificTerm'
-
-    Args:
-        excelinvoice_filepath (str): The file path of the Excel invoice file.
-
-    Returns:
-        tuple: A tuple containing dataframes for the invoice list, general terms, and specific terms.If any of these sheets are missing or if there are multiple invoice list sheets, a StructuredError is raised.
-
-    Raises:
-        StructuredError: If there are multiple sheets with `invoiceList_format_id` in the ExcelInvoice, or if no sheets are present in the ExcelInvoice.
+    This helper will be removed in version 1.5.0. Please instantiate ``ExcelInvoiceFile`` directly and use the
+    ``dfexcelinvoice``, ``df_general``, and ``df_specific`` attributes.
     """
-    dct_sheets = pd.read_excel(excelinvoice_filepath, sheet_name=None, dtype=str, header=None, index_col=None)
-    dfexcelinvoice = None
-    df_general = None
-    df_specific = None
-    for sh_name, df in dct_sheets.items():
-        if df.empty:
-            continue
-        if df.iat[0, 0] == "invoiceList_format_id":
-            if dfexcelinvoice is not None:
-                emsg = "ERROR: multiple sheet in invoiceList files"
-                raise StructuredError(emsg)
-            ExcelInvoiceFile.check_intermittent_empty_rows(df)
-            dfexcelinvoice = __process_invoice_sheet(df)
-        elif sh_name == "generalTerm":
-            df_general = __process_general_term_sheet(df)
-        elif sh_name == "specificTerm":
-            df_specific = __process_specific_term_sheet(df)
-
-    if dfexcelinvoice is None:
-        emsg = "ERROR: no sheet in invoiceList files"
-        raise StructuredError(emsg)
-    return dfexcelinvoice, df_general, df_specific
+    warnings.warn(
+        "read_excelinvoice() is deprecated and will be removed in version 1.5.0. "
+        "Instantiate ExcelInvoiceFile(invoice_path) and use the .dfexcelinvoice, .df_general, and .df_specific attributes instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    excel_invoice = ExcelInvoiceFile(Path(excelinvoice_filepath))
+    return excel_invoice.dfexcelinvoice, excel_invoice.df_general, excel_invoice.df_specific
 
 
-def __process_invoice_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_invoice_sheet(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
     hd1 = list(df.iloc[1, :].fillna(""))
     hd2 = list(df.iloc[2, :].fillna(""))
@@ -77,13 +53,13 @@ def __process_invoice_sheet(df: pd.DataFrame) -> pd.Series:
     return df.iloc[4:, :].reset_index(drop=True).copy()
 
 
-def __process_general_term_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_general_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_general = df[1:].copy()
     _df_general.columns = ["term_id", "key_name"]
     return _df_general
 
 
-def __process_specific_term_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_specific_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_specific = df[1:].copy()
     _df_specific.columns = ["sample_class_id", "term_id", "key_name"]
     return _df_specific
@@ -557,8 +533,8 @@ class ExcelInvoiceFile:
     Attributes:
         invoice_path (Path): Path to the excel invoice file (.xlsx).
         dfexcelinvoice (pd.DataFrame): Dataframe of the invoice.
-        df_general (pd.DataFrame): Dataframe of general data.
-        df_specific (pd.DataFrame): Dataframe of specific data.
+        df_general (pd.DataFrame | None): Dataframe of general data (None if the sheet is absent).
+        df_specific (pd.DataFrame | None): Dataframe of specific data (None if the sheet is absent).
         self.template_generator (ExcelInvoiceTemplateGenerator): Template generator for the Excelinvoice.
     """
     template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())  # type: ignore
@@ -600,34 +576,17 @@ class ExcelInvoiceFile:
                     emsg = "ERROR: multiple sheet in invoiceList files"
                     raise StructuredError(emsg)
                 ExcelInvoiceFile.check_intermittent_empty_rows(df)
-                dfexcelinvoice = self._process_invoice_sheet(df)
+                dfexcelinvoice = _process_invoice_sheet(df)
             elif sh_name == "generalTerm":
-                df_general = self._process_general_term_sheet(df)
+                df_general = _process_general_term_sheet(df)
             elif sh_name == "specificTerm":
-                df_specific = self._process_specific_term_sheet(df)
+                df_specific = _process_specific_term_sheet(df)
 
         if dfexcelinvoice is None:
             emsg = "ERROR: no sheet in invoiceList files"
             raise StructuredError(emsg)
 
         return dfexcelinvoice, df_general, df_specific
-
-    def _process_invoice_sheet(self, df: pd.DataFrame) -> pd.Series:
-        df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
-        hd1 = list(df.iloc[1, :].fillna(""))
-        hd2 = list(df.iloc[2, :].fillna(""))
-        df.columns = [f"{s1}/{s2}" if s1 else s2 for s1, s2 in zip(hd1, hd2)]
-        return df.iloc[4:, :].reset_index(drop=True).copy()
-
-    def _process_general_term_sheet(self, df: pd.DataFrame) -> pd.Series:
-        _df_general = df[1:].copy()
-        _df_general.columns = ["term_id", "key_name"]
-        return _df_general
-
-    def _process_specific_term_sheet(self, df: pd.DataFrame) -> pd.Series:
-        _df_specific = df[1:].copy()
-        _df_specific.columns = ["sample_class_id", "term_id", "key_name"]
-        return _df_specific
 
     @classmethod
     def generate_template(cls, invoice_schema_path: str | Path, save_path: str | Path, file_mode: Literal["file", "folder"] = "file") -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:

@@ -10,7 +10,7 @@ from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl import compressed_controller
 from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
-from rdetoolkit.invoicefile import read_excelinvoice, SmartTableFile
+from rdetoolkit.invoicefile import ExcelInvoiceFile, SmartTableFile
 from rdetoolkit.models.rde2types import (
     ExcelInvoicePathList,
     InputFilesGroup,
@@ -127,7 +127,7 @@ class ExcelInvoiceChecker(IInputFileChecker):
         return zipfiles, excel_invoice_files, other_files
 
     def _get_rawfiles(self, zipfile: Path | None, excel_invoice_file: Path) -> list[tuple[Path, ...]]:
-        df_excel_invoice, _, _ = read_excelinvoice(excel_invoice_file)
+        df_excel_invoice = ExcelInvoiceFile(excel_invoice_file).dfexcelinvoice
         original_sort_items = df_excel_invoice.iloc[:, 0].to_list()
         if zipfile is None:
             return [() for _ in range(len(df_excel_invoice["basic/dataName"]))]
