@@ -279,6 +279,10 @@ class InvoiceFile:
             TypeError: If `src_obj` is not a dict or path-like object.
             InvoiceSchemaValidationError: When validation fails against the provided schema.
             StructuredError: If writing the file fails.
+
+        Note:
+            When `dst_file_path` targets the instance's own `invoice_path`, the in-memory `invoice_obj` is updated to
+            keep state in sync. Writing to a different destination leaves the instance state untouched.
         """
         destination = Path(dst_file_path) if dst_file_path is not None else self.invoice_path
         validator_schema = Path(schema_path) if schema_path is not None else self.schema_path
@@ -294,10 +298,14 @@ class InvoiceFile:
             raise TypeError(emsg)
 
         sanitized = self._sanitize_invoice_data(candidate, validator_schema)
-        self.invoice_obj = sanitized
+        if destination == self.invoice_path:
+            self.invoice_obj = sanitized
+            obj_to_write = self.invoice_obj
+        else:
+            obj_to_write = sanitized
 
         os.makedirs(destination.parent, exist_ok=True)
-        writef_json(destination, self.invoice_obj)
+        writef_json(destination, obj_to_write)
 
     def _sanitize_invoice_data(self, candidate: dict[str, Any], schema_path: Path | None) -> dict[str, Any]:
         """Validate and normalise invoice data prior to persisting."""

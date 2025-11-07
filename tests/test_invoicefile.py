@@ -197,6 +197,7 @@ def test_invoicefile_overwrite_writes_to_instance_path__tc_ep_inv_001(
     with open(working_invoice, encoding="utf-8") as handle:
         persisted = json.load(handle)
     assert persisted["basic"]["description"] == "refreshed description"
+    assert invoice_file.invoice_obj["basic"]["description"] == "refreshed description"
 
 
 def test_invoicefile_overwrite_rejects_unknown_top_level_key__tc_ep_inv_002(
@@ -250,6 +251,7 @@ def test_invoicefile_overwrite_can_target_custom_destination__tc_bv_inv_001(
     with open(working_invoice, encoding="utf-8") as src_handle:
         original_contents = json.load(src_handle)
     assert original_contents == original_snapshot
+    assert invoice_file.invoice_obj["basic"]["description"] == original_snapshot["basic"]["description"]
 
 
 def test_invoicefile_overwrite_raises_type_error_for_invalid_source__tc_bv_inv_002(
