@@ -75,9 +75,10 @@ This module handles processing of invoice files (invoice.json) and Excel invoice
 from rdetoolkit.invoicefile import InvoiceFile
 from pathlib import Path
 
-# Load invoice file
+# Load invoice file with optional schema validation
 invoice_path = Path("data/invoice/invoice.json")
-invoice = InvoiceFile(invoice_path)
+schema_path = Path("data/tasksupport/invoice.schema.json")
+invoice = InvoiceFile(invoice_path, schema_path=schema_path)
 
 # Read invoice data
 invoice_data = invoice.read()
@@ -86,7 +87,7 @@ print(f"Data name: {invoice_data.get('basic', {}).get('dataName')}")
 # Overwrite invoice file
 updated_data = invoice_data.copy()
 updated_data['basic']['description'] = "Updated description"
-invoice.overwrite(updated_data)
+invoice.overwrite(src_obj=updated_data)
 ```
 
 ### Excel Invoice File Processing
