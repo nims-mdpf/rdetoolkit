@@ -299,14 +299,12 @@ class InvoiceFile:
             raise TypeError(emsg)
 
         sanitized = self._sanitize_invoice_data(candidate, validator_schema)
-        if destination == self.invoice_path:
-            self.invoice_obj = sanitized
-            obj_to_write = self.invoice_obj
-        else:
-            obj_to_write = sanitized
-
+        should_update_instance = destination == self.invoice_path
         os.makedirs(destination.parent, exist_ok=True)
-        writef_json(destination, obj_to_write)
+        writef_json(destination, sanitized)
+
+        if should_update_instance:
+            self.invoice_obj = sanitized
 
     def _sanitize_invoice_data(self, candidate: dict[str, Any], schema_path: Path | None) -> dict[str, Any]:
         """Validate and normalise invoice data prior to persisting."""
