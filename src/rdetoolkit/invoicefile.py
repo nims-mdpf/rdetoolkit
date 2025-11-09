@@ -29,7 +29,7 @@ EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
 EX_SPECIFICTERM = STATIC_DIR / "ex_specificterm.csv"
 
 
-def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
     """Deprecated wrapper around :class:`ExcelInvoiceFile`.
 
     This helper will be removed in version 1.5.0. Please instantiate ``ExcelInvoiceFile`` directly and use the
@@ -543,14 +543,16 @@ class ExcelInvoiceFile:
         self.invoice_path = invoice_path
         self.dfexcelinvoice, self.df_general, self.df_specific = self.read()
 
-    def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
         """Reads the content of the Excel invoice file and returns it as three dataframes.
 
         Args:
             target_path (Optional[Path], optional): Path to the excelinvoice file(.xlsx) to be read. If not provided, uses the path from `self.invoice_path`. Defaults to None.
 
         Returns:
-            tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Three dataframes (dfexcelinvoice, df_general, df_specific).
+            tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
+                Three dataframes (dfexcelinvoice, df_general, df_specific). The general and specific sheets are ``None``
+                when the source workbook does not define the corresponding sheet.
 
         Raises:
             StructuredError: If the invoice file is missing, if multiple invoice-list sheets exist, or if no
@@ -728,7 +730,11 @@ class ExcelInvoiceFile:
 
     def _assign_sample_general(self, key: str, value: str, invoice_obj: dict, schema_obj: dict) -> None:
         cval = key.replace("sample.general/", "sample.general.")
-        term_id = self.df_general[self.df_general["key_name"] == cval]["term_id"].values[0]
+        df_general = self.df_general
+        if df_general is None:
+            emsg = "ERROR: generalTerm sheet is required to assign general attributes."
+            raise StructuredError(emsg)
+        term_id = df_general[df_general["key_name"] == cval]["term_id"].values[0]
         for dictobj in invoice_obj["sample"]["generalAttributes"]:
             if dictobj.get("termId") == term_id:
                 dictobj["value"] = value
@@ -736,7 +742,11 @@ class ExcelInvoiceFile:
 
     def _assign_sample_specific(self, key: str, value: str, invoice_obj: dict, schema_obj: dict) -> None:
         cval = key.replace("sample.specific/", "sample.specific.")
-        term_id = self.df_specific[self.df_specific["key_name"] == cval]["term_id"].values[0]
+        df_specific = self.df_specific
+        if df_specific is None:
+            emsg = "ERROR: specificTerm sheet is required to assign specific attributes."
+            raise StructuredError(emsg)
+        term_id = df_specific[df_specific["key_name"] == cval]["term_id"].values[0]
         for dictobj in invoice_obj["sample"]["specificAttributes"]:
             if dictobj.get("termId") == term_id:
                 dictobj["value"] = value
