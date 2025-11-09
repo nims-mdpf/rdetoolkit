@@ -260,7 +260,9 @@ def csv2graph(
 
     parameter_source = ctx.get_parameter_source("no_individual")
     resolved_no_individual: bool | None
-    resolved_no_individual = None if parameter_source is None or parameter_source == ParameterSource.DEFAULT else no_individual
+    resolved_no_individual = (
+        None if parameter_source == ParameterSource.DEFAULT else no_individual
+    )
 
     cmd = Csv2GraphCommand(
         csv_path=csv_path,
