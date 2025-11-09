@@ -5,6 +5,7 @@ import pathlib
 from typing import Literal, cast
 
 import click
+from click.core import ParameterSource
 
 from rdetoolkit.cmd.archive import CreateArtifactCommand
 from rdetoolkit.cmd.command import InitCommand, VersionCommand
@@ -171,9 +172,16 @@ def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list
 @click.option("--grid", is_flag=True, help="Show grid")
 @click.option("--invert-x", is_flag=True, help="Invert x-axis")
 @click.option("--invert-y", is_flag=True, help="Invert y-axis")
-@click.option("--no-individual", is_flag=True, help="Skip individual plots")
+@click.option(
+    "--no-individual/--individual",
+    "no_individual",
+    default=None,
+    help="Skip individual plots; defaults to auto for single-series overlay.",
+)
 @click.option("--max-legend-items", type=int, help="Maximum legend items")
+@click.pass_context
 def csv2graph(
+    ctx: click.Context,
     csv_path: pathlib.Path,
     output_dir: pathlib.Path | None,
     main_image_dir: pathlib.Path | None,
@@ -195,12 +203,13 @@ def csv2graph(
     grid: bool,
     invert_x: bool,
     invert_y: bool,
-    no_individual: bool,
+    no_individual: bool | None,
     max_legend_items: int | None,
 ) -> None:
     """Generate graphs from CSV files.
 
     Args:
+        ctx: Click context for parameter-source inspection
         csv_path: Path to CSV file
         output_dir: Output directory
         main_image_dir: Directory for combined plot outputs
@@ -222,7 +231,7 @@ def csv2graph(
         grid: Show grid
         invert_x: Invert X
         invert_y: Invert Y
-        no_individual: Skip individual
+        no_individual: Skip individual (None enables auto-detection)
         max_legend_items: Max legend items
     """
     # Parse column specifications
@@ -249,6 +258,10 @@ def csv2graph(
                 direction, color = color_spec.split("=", 1)
                 parsed_direction_colors[direction.strip()] = color.strip()
 
+    parameter_source = ctx.get_parameter_source("no_individual")
+    resolved_no_individual: bool | None
+    resolved_no_individual = None if parameter_source is None or parameter_source == ParameterSource.DEFAULT else no_individual
+
     cmd = Csv2GraphCommand(
         csv_path=csv_path,
         output_dir=output_dir,
@@ -271,7 +284,7 @@ def csv2graph(
         grid=grid,
         invert_x=invert_x,
         invert_y=invert_y,
-        no_individual=no_individual,
+        no_individual=resolved_no_individual,
         max_legend_items=max_legend_items,
     )
     cmd.invoke()

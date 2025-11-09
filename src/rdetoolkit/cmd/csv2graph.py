@@ -39,7 +39,7 @@ class Csv2GraphCommand:
         grid: bool = False,
         invert_x: bool = False,
         invert_y: bool = False,
-        no_individual: bool = False,
+        no_individual: bool | None = None,
         max_legend_items: int | None = None,
     ) -> None:
         """Initialize Csv2GraphCommand.
@@ -66,7 +66,7 @@ class Csv2GraphCommand:
             grid: Show grid
             invert_x: Invert x-axis
             invert_y: Invert y-axis
-            no_individual: Skip individual plots
+            no_individual: Skip individual plots (None enables auto-detection)
             max_legend_items: Maximum legend items
         """
         self.csv_path = csv_path
