@@ -289,6 +289,9 @@ class MultiFileChecker(IInputFileChecker):
         cleaner = SystemFilesCleaner()
         input_files = [f for f in input_files if not cleaner.is_excluded(f)]
         other_files = self._get_group_by_files(input_files)
+        if not other_files:
+            # Align with InvoiceChecker: ensure pipeline executes once even when inputdata is empty
+            return [()], None
         _rawfiles: list[tuple[Path, ...]] = [(f,) for f in other_files]
         return sorted(_rawfiles, key=lambda path: str(path)), None
 
