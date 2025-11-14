@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.4.2     | 2025-12-18 | Invoice overwrite検証 / Excelインボイス統合 / csv2graph単一系列自動判定 / MultiDataTile空入力実行 | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1     | 2025-11-05 | SmartTable行CSVアクセサ / 旧`rawfiles`フォールバック警告 | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0     | 2025-10-24 | SmartTableの`metadata.json`自動生成 / LLM向けスタックトレース / CSV可視化ユーティリティ / `gen-config` | [v1.4.0](#v140-2025-10-24) |
 | v1.3.4     | 2025-08-21 | SmartTable検証の安定化 | [v1.3.4](#v134-2025-08-21) |
@@ -13,6 +14,39 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.4.2 (2025-12-18)
+
+!!! info "参照資料"
+    - 対応Issue: [#30](https://github.com/nims-mdpf/rdetoolkit/issues/30), [#36](https://github.com/nims-mdpf/rdetoolkit/issues/36), [#246](https://github.com/nims-mdpf/rdetoolkit/issues/246), [#293](https://github.com/nims-mdpf/rdetoolkit/issues/293)
+
+#### ハイライト
+- `InvoiceFile.overwrite()` が辞書入力を受け付け、`InvoiceValidator` での検証と `invoice_path` へのフォールバック保存に対応。
+- Excel インボイスの読み込みを `ExcelInvoiceFile` に集約し、`read_excelinvoice()` は v1.5.0 で削除予定の警告付き互換ラッパーへ移行。
+- csv2graph が単一系列を自動検出し、CLI フラグの明示がない限り個別プロット生成を抑止して CLI / API のデフォルト動作を統一。
+- MultiDataTile パイプラインが Excel のみ / 空ディレクトリでも実行され、必ずデータセット検証が発火。
+
+#### 追加機能 / 改善
+- `InvoiceFile.overwrite()` のシグネチャをマッピング受け取りに拡張し、`InvoiceValidator` によるスキーマ検証とインスタンス `invoice_path` へのデフォルト書き込みを追加。docstring と `docs/rdetoolkit/invoicefile.md` も更新。
+- `read_excelinvoice()` を警告付きラッパーとして `ExcelInvoiceFile.read()` に委譲し、`src/rdetoolkit/impl/input_controller.py` がクラス API を直接利用するよう変更。`df_general` / `df_specific` が `None` を取り得ることをドキュメントと型定義で明確化。
+- `Csv2GraphCommand` の `no_individual` を `bool | None` 型に改め、CLI では `ctx.get_parameter_source()` を用いて明示指定を検出。`docs/rdetoolkit/csv2graph.md` に新しい自動判定の仕様を追記。
+- `assert_optional_frame_equal` を追加し、csv2graph CLI/API・MultiFileChecker（Excelのみ/空/単体/複数ファイル）を網羅する新規テストで退行を防止。
+
+#### 不具合修正
+- 単一系列の自動検出により空の個別グラフ生成を回避し、CLI と Python API の出力整合性を確保。
+- `_process_invoice_sheet()` / `_process_general_term_sheet()` / `_process_specific_term_sheet()` が一貫して `pd.DataFrame` を返すように修正し、フレーム操作の前提崩壊を防止。
+- 入力ファイルが存在しない場合に `MultiFileChecker.parse()` が `[()]` を返すよう変更し、MultiDataTile でも空ディレクトリ時に検証が必ず実行されるよう統一。
+
+#### 移行ガイド / 互換性
+- `InvoiceFile.overwrite()` には辞書を直接渡せるようになった。出力先を省略した場合はインスタンスの `invoice_path` に書き込まれ、不正なスキーマは検証エラーとして通知される。
+- `read_excelinvoice()` は非推奨となり v1.5.0 で削除予定のため、`ExcelInvoiceFile().read()` への移行を推奨。
+- `csv2graph` は `--no-individual` を指定しない単一系列入力でオーバーレイのみを生成する。旧挙動を維持するには `--no-individual=false` を指定し、常に抑止したい場合は `--no-individual` を付与する。
+- MultiDataTile では空ディレクトリでも処理と検証が走るため、これまで静かにスキップされていたケースでも不足ファイルのエラーが表に出る。
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
 
 ## v1.4.1 (2025-11-05)
 

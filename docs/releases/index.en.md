@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0  | 2025-10-24   | SmartTable `metadata.json` auto-generation / LLM-friendly traceback / CSV visualization utility / `gen-config` | [v1.4.0](#v140-2025-10-24) |
 | v1.3.4  | 2025-08-21   | Stable SmartTable validation | [v1.3.4](#v134-2025-08-21) |
@@ -13,6 +14,39 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.4.2 (2025-12-18)
+
+!!! info "References"
+    - Key issues: [#30](https://github.com/nims-mdpf/rdetoolkit/issues/30), [#36](https://github.com/nims-mdpf/rdetoolkit/issues/36), [#246](https://github.com/nims-mdpf/rdetoolkit/issues/246), [#293](https://github.com/nims-mdpf/rdetoolkit/issues/293)
+
+#### Highlights
+- `InvoiceFile.overwrite()` now accepts dictionaries, validates them through `InvoiceValidator`, and can fall back to the existing `invoice_path`.
+- Excel invoice reading is centralized inside `ExcelInvoiceFile`, with `read_excelinvoice()` acting as a warning-backed compatibility wrapper slated for v1.5.0 removal.
+- `csv2graph` detects when a single series is requested and suppresses per-series plots unless the CLI flag explicitly demands them, keeping CLI and API defaults in sync.
+- MultiDataTile pipelines continue to run—and therefore validate datasets—even when the input directory only contains Excel invoices or is empty.
+
+#### Enhancements
+- Updated `InvoiceFile.overwrite()` to accept mapping objects, apply schema validation through `InvoiceValidator`, and default the destination path to the instance’s `invoice_path`; refreshed docstrings and `docs/rdetoolkit/invoicefile.md` to describe the new API.
+- Converted `read_excelinvoice()` into a wrapper that emits a deprecation warning and delegates to `ExcelInvoiceFile.read()`, updated `src/rdetoolkit/impl/input_controller.py` to use the class API directly, and clarified docstrings/type hints so `df_general` / `df_specific` may be `None`.
+- Adjusted `Csv2GraphCommand` so `no_individual` is typed as `bool | None`, added CLI plumbing that inspects `ctx.get_parameter_source()` to detect explicit user input, and documented the overlay-only default in `docs/rdetoolkit/csv2graph.md`.
+- Added `assert_optional_frame_equal` and new regression tests that cover csv2graph CLI/API flows plus MultiFileChecker behaviors for Excel-only, empty, single-file, and multi-file directories.
+
+#### Fixes
+- Auto-detecting single-series requests avoids generating empty per-series artifacts and aligns CLI defaults with the Python API.
+- `_process_invoice_sheet()`, `_process_general_term_sheet()`, and `_process_specific_term_sheet()` now correctly return `pd.DataFrame` objects, avoiding attribute errors in callers that expect frame operations.
+- `MultiFileChecker.parse()` returns `[()]` when no payload files are detected so MultiDataTile validation runs even on empty input directories, matching Invoice mode semantics.
+
+#### Migration / Compatibility
+- Code calling `InvoiceFile.overwrite()` can now supply dictionaries directly; omit the destination argument to write to the instance path, and expect schema validation errors when invalid structures are provided.
+- `read_excelinvoice()` is officially deprecated and scheduled for removal in v1.5.0—migrate to `ExcelInvoiceFile().read()` or `ExcelInvoiceFile.read()` helpers.
+- `csv2graph` now generates only the overlay/summary graph when `--no-individual` is not specified and there is one (or zero) value columns; pass `--no-individual=false` to force legacy per-series output or `--no-individual` to always skip them.
+- MultiDataTile runs on empty directories no longer short-circuit; expect validation failures to surface when required payload files are absent.
+
+#### Known Issues
+- None reported at this time.
+
+---
 
 ## v1.4.1 (2025-11-05)
 
