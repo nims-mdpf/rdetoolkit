@@ -1671,13 +1671,6 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#6">
-<span class="md-ellipsis">
-      6. 処理結果の詳細確認
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#_3">
 <span class="md-ellipsis">
       おめでとうございます！
@@ -1709,28 +1702,154 @@
 </ul>
 <h2 id="1">1. プロジェクトを初期化する</h2>
 <p>まず、RDEToolKitを使用して新しいプロジェクトを作成します。</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdetoolkit<span style="color: #BBB"> </span>init<span style="color: #BBB"> </span>sample_project
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>mkdir<span style="color: #BBB"> </span>sample_project
+<span style="color: #007020">cd</span><span style="color: #BBB"> </span>sample_project
+python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdetoolkit<span style="color: #BBB"> </span>init
 </code></pre></div></td></tr></table></div>
 <p>このコマンドを実行すると、以下のディレクトリ構造が作成されます：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample_project/
+├── container
+│   ├── data
+│   │   ├── inputdata
+│   │   ├── invoice
+│   │   │   └── invoice.json
+│   │   └── tasksupport
+│   │       ├── invoice.schema.json
+│   │       └── metadata-def.json
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── modules
+│   └── requirements.txt
+├── input
+│   ├── inputdata
+│   └── invoice
+│       └── invoice.json
+└── templates
+    └── tasksupport
+        ├── invoice.schema.json
+        └── metadata-def.json
+</code></pre></div></td></tr></table></div>
+<h2 id="2">2. カスタム処理を実装する</h2>
+<p><code>sample_project/container/modules/process.py</code>ファイルを開き、以下のようにカスタム処理を実装します：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">modules/process.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.rde2types</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
+<span style="color: #BBB">    </span><span style="color: #D42">"""</span>
+<span style="color: #D42">    カスタムデータ処理関数</span>
+
+<span style="color: #D42">    Args:</span>
+<span style="color: #D42">        srcpaths: 入力ディレクトリパス</span>
+<span style="color: #D42">        resource_paths: 出力リソースパス</span>
+<span style="color: #D42">    """</span>
+    <span style="color: #888"># 入力データの確認</span>
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"入力データディレクトリ: </span><span style="background-color: #EEE">{</span>srcpaths<span style="color: #333">.</span>inputdata<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"インボイスディレクトリ: </span><span style="background-color: #EEE">{</span>srcpaths<span style="color: #333">.</span>invoice<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+
+    <span style="color: #888"># 簡単なファイル処理の例</span>
+    <span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">shutil</span>
+    <span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
+    <span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pdb</span>; pdb<span style="color: #333">.</span>set_trace()
+    <span style="color: #888"># 入力ファイルを構造化ディレクトリにコピー</span>
+    input_files <span style="color: #333">=</span> <span style="color: #007020">list</span>(srcpaths<span style="color: #333">.</span>inputdata<span style="color: #333">.</span>glob(<span style="background-color: #FFF0F0">"*"</span>))
+    <span style="color: #080; font-weight: bold">for</span> file_path <span style="color: #000; font-weight: bold">in</span> input_files:
+        <span style="color: #080; font-weight: bold">if</span> file_path<span style="color: #333">.</span>is_file():
+            dest_path <span style="color: #333">=</span> resource_paths<span style="color: #333">.</span>struct <span style="color: #333">/</span> file_path<span style="color: #333">.</span>name
+            shutil<span style="color: #333">.</span>copy2(file_path, dest_path)
+            <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"ファイルをコピーしました: </span><span style="background-color: #EEE">{</span>file_path<span style="color: #333">.</span>name<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">"カスタム処理が完了しました"</span>)
+    <span style="color: #080; font-weight: bold">return</span> <span style="color: #00D; font-weight: bold">0</span>
+</code></pre></div></td></tr></table></div>
+<p>その後、<code>main.py</code>ファイルを以下のように編集して、カスタム処理関数を呼び出します：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">main.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample_project/
-├── main.py                    # メイン実行ファイル
-├── requirements.txt           # 依存関係
-├── modules/                   # カスタム処理モジュール
-└── data/
-    ├── inputdata/            # 入力データ
-    ├── invoice/              # メタデータファイル
-    └── tasksupport/          # 設定・スキーマファイル
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># The following script is a template for the source code.</span>
+
+<span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit</span>
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">modules.process</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> dataset
+
+rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.</span>run(custom_dataset_function<span style="color: #333">=</span>dataset)
 </code></pre></div></td></tr></table></div>
-<h2 id="2">2. カスタム処理を実装する</h2>
-<p><code>modules/process.py</code>ファイルを開き、以下のようにカスタム処理を実装します：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">modules/process.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<h2 id="3">3. サンプルデータを準備する</h2>
+<p><code>data/inputdata/</code>ディレクトリにサンプルファイルを配置します：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># サンプルテキストファイルを作成</span>
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"これはサンプルデータです"</span><span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>sample_project/container/data/inputdata/sample.txt
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"実験データ: 温度 25°C, 湿度 60%"</span><span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>sample_project/container/data/inputdata/experiment_data.txt
+</code></pre></div></td></tr></table></div>
+<h2 id="4">4. 構造化処理を実行する</h2>
+<p>プロジェクトディレクトリに移動して、構造化処理を実行します：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007020">cd</span><span style="color: #BBB"> </span>sample_project/container
+python<span style="color: #BBB"> </span>main.py
+</code></pre></div></td></tr></table></div>
+<p>実行が成功すると、以下のような出力が表示されます：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>入力データディレクトリ: data/inputdata
+インボイスディレクトリ: data/invoice
+ファイルをコピーしました: experiment_data.txt
+ファイルをコピーしました: sample.txt
+カスタム処理が完了しました
+</code></pre></div></td></tr></table></div>
+<h2 id="5">5. 結果を確認する</h2>
+<p>処理完了後、以下のディレクトリ構造が生成されます：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -1762,151 +1881,39 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.rde2types</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
-
-<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
-<span style="color: #BBB">    </span><span style="color: #D42">"""</span>
-<span style="color: #D42">    カスタムデータ処理関数</span>
-
-<span style="color: #D42">    Args:</span>
-<span style="color: #D42">        srcpaths: 入力ディレクトリパス</span>
-<span style="color: #D42">        resource_paths: 出力リソースパス</span>
-<span style="color: #D42">    """</span>
-    <span style="color: #888"># 入力データの確認</span>
-    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"入力データディレクトリ: </span><span style="background-color: #EEE">{</span>srcpaths<span style="color: #333">.</span>inputdata<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
-    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"インボイスディレクトリ: </span><span style="background-color: #EEE">{</span>srcpaths<span style="color: #333">.</span>invoice<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
-
-    <span style="color: #888"># 簡単なファイル処理の例</span>
-    <span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">shutil</span>
-    <span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
-
-    <span style="color: #888"># 入力ファイルを構造化ディレクトリにコピー</span>
-    input_files <span style="color: #333">=</span> <span style="color: #007020">list</span>(srcpaths<span style="color: #333">.</span>inputdata<span style="color: #333">.</span>glob(<span style="background-color: #FFF0F0">"*"</span>))
-    <span style="color: #080; font-weight: bold">for</span> file_path <span style="color: #000; font-weight: bold">in</span> input_files:
-        <span style="color: #080; font-weight: bold">if</span> file_path<span style="color: #333">.</span>is_file():
-            dest_path <span style="color: #333">=</span> resource_paths<span style="color: #333">.</span>structured <span style="color: #333">/</span> file_path<span style="color: #333">.</span>name
-            shutil<span style="color: #333">.</span>copy2(file_path, dest_path)
-            <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"ファイルをコピーしました: </span><span style="background-color: #EEE">{</span>file_path<span style="color: #333">.</span>name<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
-
-    <span style="color: #888"># メタデータの設定例</span>
-    metadata <span style="color: #333">=</span> {
-        <span style="background-color: #FFF0F0">"processed_files"</span>: <span style="color: #007020">len</span>(input_files),
-        <span style="background-color: #FFF0F0">"processing_status"</span>: <span style="background-color: #FFF0F0">"completed"</span>
-    }
-
-    <span style="color: #888"># メタデータをJSONファイルとして保存</span>
-    <span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">json</span>
-    metadata_file <span style="color: #333">=</span> resource_paths<span style="color: #333">.</span>meta <span style="color: #333">/</span> <span style="background-color: #FFF0F0">"processing_metadata.json"</span>
-    <span style="color: #080; font-weight: bold">with</span> <span style="color: #007020">open</span>(metadata_file, <span style="background-color: #FFF0F0">'w'</span>, encoding<span style="color: #333">=</span><span style="background-color: #FFF0F0">'utf-8'</span>) <span style="color: #080; font-weight: bold">as</span> f:
-        json<span style="color: #333">.</span>dump(metadata, f, ensure_ascii<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, indent<span style="color: #333">=</span><span style="color: #00D; font-weight: bold">2</span>)
-
-    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">"カスタム処理が完了しました"</span>)
-    <span style="color: #080; font-weight: bold">return</span> <span style="color: #00D; font-weight: bold">0</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="3">3. サンプルデータを準備する</h2>
-<p><code>data/inputdata/</code>ディレクトリにサンプルファイルを配置します：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># サンプルテキストファイルを作成</span>
-<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"これはサンプルデータです"</span><span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>sample_project/data/inputdata/sample.txt
-<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"実験データ: 温度 25°C, 湿度 60%"</span><span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>sample_project/data/inputdata/experiment_data.txt
-</code></pre></div></td></tr></table></div>
-<h2 id="4">4. 構造化処理を実行する</h2>
-<p>プロジェクトディレクトリに移動して、構造化処理を実行します：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007020">cd</span><span style="color: #BBB"> </span>sample_project
-python<span style="color: #BBB"> </span>main.py
-</code></pre></div></td></tr></table></div>
-<p>実行が成功すると、以下のような出力が表示されます：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>入力データディレクトリ: /path/to/sample_project/data/inputdata
-インボイスディレクトリ: /path/to/sample_project/data/invoice
-ファイルをコピーしました: sample.txt
-ファイルをコピーしました: experiment_data.txt
-カスタム処理が完了しました
-構造化処理が正常に完了しました
-</code></pre></div></td></tr></table></div>
-<h2 id="5">5. 結果を確認する</h2>
-<p>処理完了後、以下のディレクトリ構造が生成されます：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample_project/
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample_project/container
+├── data
+│   ├── attachment
+│   ├── inputdata
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── invoice
+│   │   └── invoice.json
+│   ├── invoice_patch
+│   ├── job.failed
+│   ├── logs
+│   │   └── rdesys.log
+│   ├── main_image
+│   ├── meta
+│   │   └── processing_metadata.json
+│   ├── nonshared_raw
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── other_image
+│   ├── raw
+│   ├── structured
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── tasksupport
+│   │   ├── invoice.schema.json
+│   │   └── metadata-def.json
+│   ├── temp
+│   └── thumbnail
+├── Dockerfile
 ├── main.py
-├── requirements.txt
-├── modules/
-│   └── process.py
-├── data/
-│   ├── inputdata/
-│   │   ├── sample.txt
-│   │   └── experiment_data.txt
-│   ├── invoice/
-│   │   └── invoice.json
-│   └── tasksupport/
-│       └── invoice.schema.json
-└── output/                    # 新しく生成される出力ディレクトリ
-    ├── raw/                   # 生データ
-    ├── structured/            # 構造化データ
-    │   ├── sample.txt
-    │   └── experiment_data.txt
-    ├── meta/                  # メタデータ
-    │   └── processing_metadata.json
-    ├── main_image/            # メイン画像
-    ├── other_image/           # その他の画像
-    ├── thumbnail/             # サムネイル画像
-    └── logs/                  # ログファイル
-</code></pre></div></td></tr></table></div>
-<h2 id="6">6. 処理結果の詳細確認</h2>
-<p>生成されたファイルを確認してみましょう：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># 構造化データの確認</span>
-ls<span style="color: #BBB"> </span>-la<span style="color: #BBB"> </span>output/structured/
-
-<span style="color: #888"># メタデータの確認</span>
-cat<span style="color: #BBB"> </span>output/meta/processing_metadata.json
-</code></pre></div></td></tr></table></div>
-<p>メタデータファイルには以下のような内容が記録されています：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
-<span style="color: #BBB">  </span><span style="color: #070">"processed_files"</span>:<span style="color: #BBB"> </span><span style="color: #00D; font-weight: bold">2</span>,
-<span style="color: #BBB">  </span><span style="color: #070">"processing_status"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"completed"</span>
-}
+├── modules
+│   └── process.py
+└── requirements.txt
 </code></pre></div></td></tr></table></div>
 <h2 id="_3">おめでとうございます！</h2>
 <p>初めてのRDE構造化処理プロジェクトが完了しました。このチュートリアルで学んだこと：</p>
@@ -1920,7 +1927,7 @@ cat<span style="color: #BBB"> </span>output/meta/processing_metadata.json
 <h2 id="_4">次のステップ</h2>
 <p>基本的な構造化処理を体験したので、次は以下のトピックを学習してください：</p>
 <ul>
-<li><a href="../../user-guide/structured-processing/">構造化処理の概念</a>を理解する</li>
+<li><a href="../structured_process/development_guide/">実際のデータを用いた構造化処理の実装方法</a>を理解する</li>
 <li><a href="../../user-guide/config/">設定オプション</a>を探索する</li>
 <li><a href="../cli/">CLIリファレンス</a>で高度なコマンドを確認する</li>
 </ul>

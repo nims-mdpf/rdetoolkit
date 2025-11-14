@@ -1642,17 +1642,6 @@
       1. Initialize the Project
     </span>
 </a>
-<nav aria-label="1. Initialize the Project" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#description-of-generated-files">
-<span class="md-ellipsis">
-      Description of Generated Files
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#2-implement-custom-processing">
@@ -1662,23 +1651,23 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#3-add-input-data">
+<a class="md-nav__link" href="#3-prepare-sample-data">
 <span class="md-ellipsis">
-      3. Add Input Data
+      3. Prepare Sample Data
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#4-execute-structuring-processing">
+<a class="md-nav__link" href="#4-run-the-structured-processing">
 <span class="md-ellipsis">
-      4. Execute Structuring Processing
+      4. Run the Structured Processing
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#5-verify-results">
+<a class="md-nav__link" href="#5-check-the-results">
 <span class="md-ellipsis">
-      5. Verify Results
+      5. Check the Results
     </span>
 </a>
 </li>
@@ -1705,28 +1694,22 @@
 <article class="md-content__inner md-typeset">
 <h1 id="experience-rdetoolkit">Experience RDEToolKit</h1>
 <h2 id="purpose">Purpose</h2>
-<p>This tutorial will guide you through creating and running your first RDE structuring processing project using RDEToolKit. You can experience the basic structuring processing workflow in approximately 15 minutes.</p>
+<p>This tutorial walks you through creating and running your first RDE-structured processing project with RDEToolKit. You can experience the entire basic workflow in about 15 minutes.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <ul>
-<li>Python 3.9 or higher</li>
-<li>Basic Python programming knowledge</li>
+<li>Python 3.9 or later</li>
+<li>Basic knowledge of Python programming</li>
 <li>Basic understanding of command-line operations</li>
 </ul>
 <h2 id="1-initialize-the-project">1. Initialize the Project</h2>
-<p>Create a new RDE structuring processing project:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">Unix/macOS</label><label for="__tabbed_1_2">Windows</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdetoolkit<span style="color: #BBB"> </span>init
+<p>Start by creating a new project with RDEToolKit.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>mkdir<span style="color: #BBB"> </span>sample_project
+<span style="color: #007020">cd</span><span style="color: #BBB"> </span>sample_project
+python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdetoolkit<span style="color: #BBB"> </span>init
 </code></pre></div></td></tr></table></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>py -m rdetoolkit init
-</code></pre></div></td></tr></table></div>
-</div>
-</div>
-</input></input></div>
-<p>This command creates the following directory structure:</p>
+<p>After the command finishes, the following directory structure is created:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1737,34 +1720,41 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>container
-├──<span style="color: #BBB"> </span>data
-│<span style="color: #BBB">   </span>├──<span style="color: #BBB"> </span>inputdata
-│<span style="color: #BBB">   </span>├──<span style="color: #BBB"> </span>invoice
-│<span style="color: #BBB">   </span>│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>invoice.json
-│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>tasksupport
-│<span style="color: #BBB">       </span>├──<span style="color: #BBB"> </span>invoice.schema.json
-│<span style="color: #BBB">       </span>└──<span style="color: #BBB"> </span>metadata-def.json
-├──<span style="color: #BBB"> </span>main.py
-├──<span style="color: #BBB"> </span>modules
-└──<span style="color: #BBB"> </span>requirements.txt
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample_project/
+├── container
+│   ├── data
+│   │   ├── inputdata
+│   │   ├── invoice
+│   │   │   └── invoice.json
+│   │   └── tasksupport
+│   │       ├── invoice.schema.json
+│   │       └── metadata-def.json
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── modules
+│   └── requirements.txt
+├── input
+│   ├── inputdata
+│   └── invoice
+│       └── invoice.json
+└── templates
+    └── tasksupport
+        ├── invoice.schema.json
+        └── metadata-def.json
 </code></pre></div></td></tr></table></div>
-<h3 id="description-of-generated-files">Description of Generated Files</h3>
-<ul>
-<li><strong>requirements.txt</strong>: Python dependencies for your structuring processing</li>
-<li><strong>modules/</strong>: Directory for custom processing modules</li>
-<li><strong>main.py</strong>: Entry point for the structuring processing program</li>
-<li><strong>data/inputdata/</strong>: Place input data files here</li>
-<li><strong>data/invoice/</strong>: Contains invoice.json (required for local execution)</li>
-<li><strong>data/tasksupport/</strong>: Schema and metadata definition files</li>
-</ul>
-<div class="admonition tip">
-<p class="admonition-title">File Overwriting</p>
-<p>Existing files will not be overwritten. You can run this command safely.</p>
-</div>
 <h2 id="2-implement-custom-processing">2. Implement Custom Processing</h2>
-<p>Edit the <code>main.py</code> file to implement your custom structuring processing function:</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">main.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<p>Open the <code>sample_project/container/modules/process.py</code> file and implement your custom processing as shown below:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">modules/process.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -1786,61 +1776,84 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.workflows</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">as</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">workflows</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.rde2types</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> RdeInputDirPaths, RdeOutputResourcePath
 
-<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">my_dataset</span>(rde):
+
+<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">dataset</span>(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
 <span style="color: #BBB">    </span><span style="color: #D42">"""</span>
-<span style="color: #D42">    Custom dataset processing function</span>
+<span style="color: #D42">    Custom data processing function.</span>
 
 <span style="color: #D42">    Args:</span>
-<span style="color: #D42">        rde: RDE processing context object</span>
+<span style="color: #D42">        srcpaths: Input directory paths.</span>
+<span style="color: #D42">        resource_paths: Output resource paths.</span>
 <span style="color: #D42">    """</span>
-    <span style="color: #888"># Write your custom processing logic here</span>
-    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">"Processing dataset..."</span>)
+    <span style="color: #888"># Inspect the input data.</span>
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Input data directory: </span><span style="background-color: #EEE">{</span>srcpaths<span style="color: #333">.</span>inputdata<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Invoice directory: </span><span style="background-color: #EEE">{</span>srcpaths<span style="color: #333">.</span>invoice<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
 
-    <span style="color: #888"># Example: Set metadata</span>
-    rde<span style="color: #333">.</span>set_metadata({
-        <span style="background-color: #FFF0F0">"processing_status"</span>: <span style="background-color: #FFF0F0">"completed"</span>,
-        <span style="background-color: #FFF0F0">"timestamp"</span>: <span style="background-color: #FFF0F0">"2023-01-01T00:00:00Z"</span>
-    })
+    <span style="color: #888"># Simple example of file processing.</span>
+    <span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">shutil</span>
+    <span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
+    <span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pdb</span>; pdb<span style="color: #333">.</span>set_trace()
 
+    <span style="color: #888"># Copy input files into the structured directory.</span>
+    input_files <span style="color: #333">=</span> <span style="color: #007020">list</span>(srcpaths<span style="color: #333">.</span>inputdata<span style="color: #333">.</span>glob(<span style="background-color: #FFF0F0">"*"</span>))
+    <span style="color: #080; font-weight: bold">for</span> file_path <span style="color: #000; font-weight: bold">in</span> input_files:
+        <span style="color: #080; font-weight: bold">if</span> file_path<span style="color: #333">.</span>is_file():
+            dest_path <span style="color: #333">=</span> resource_paths<span style="color: #333">.</span>struct <span style="color: #333">/</span> file_path<span style="color: #333">.</span>name
+            shutil<span style="color: #333">.</span>copy2(file_path, dest_path)
+            <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Copied file: </span><span style="background-color: #EEE">{</span>file_path<span style="color: #333">.</span>name<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">"Custom processing is complete"</span>)
     <span style="color: #080; font-weight: bold">return</span> <span style="color: #00D; font-weight: bold">0</span>
+</code></pre></div></td></tr></table></div>
+<p>Next, edit the <code>main.py</code> file so that it calls the custom processing function:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">main.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># The following script is a template for the source code.</span>
 
-<span style="color: #080; font-weight: bold">if</span> <span style="color: #963">__name__</span> <span style="color: #333">==</span> <span style="background-color: #FFF0F0">"__main__"</span>:
-    <span style="color: #888"># Execute the structuring processing workflow</span>
-    workflows<span style="color: #333">.</span>run(my_dataset)
+<span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit</span>
+<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">modules.process</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> dataset
+
+rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.</span>run(custom_dataset_function<span style="color: #333">=</span>dataset)
 </code></pre></div></td></tr></table></div>
-<h2 id="3-add-input-data">3. Add Input Data</h2>
-<p>Place your data files in the <code>data/inputdata/</code> directory:</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">Example: Copy Data File</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Example: Copy your data file</span>
-cp<span style="color: #BBB"> </span>your_data_file.csv<span style="color: #BBB"> </span>container/data/inputdata/
-</code></pre></div></td></tr></table></div>
-<h2 id="4-execute-structuring-processing">4. Execute Structuring Processing</h2>
-<p>Run the structuring processing:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio"><input id="__tabbed_2_2" name="__tabbed_2" type="radio"><div class="tabbed-labels"><label for="__tabbed_2_1">Unix/macOS</label><label for="__tabbed_2_2">Windows</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
+<h2 id="3-prepare-sample-data">3. Prepare Sample Data</h2>
+<p>Place sample files in the <code>data/inputdata/</code> directory:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007020">cd</span><span style="color: #BBB"> </span>container
-python3<span style="color: #BBB"> </span>main.py
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Create sample text files</span>
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"This is sample data."</span><span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>sample_project/container/data/inputdata/sample.txt
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Experiment data: Temperature 25°C, humidity 60%"</span><span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>sample_project/container/data/inputdata/experiment_data.txt
 </code></pre></div></td></tr></table></div>
-</div>
-<div class="tabbed-block">
+<h2 id="4-run-the-structured-processing">4. Run the Structured Processing</h2>
+<p>Move to the project directory and run the structured processing:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007020">cd </span>container
-py main.py
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #007020">cd</span><span style="color: #BBB"> </span>sample_project/container
+python<span style="color: #BBB"> </span>main.py
 </code></pre></div></td></tr></table></div>
-</div>
-</div>
-</input></input></div>
-<p>During execution, you will see output similar to:</p>
+<p>When the execution succeeds, you will see output similar to the following:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Processing<span style="color: #BBB"> </span>dataset...
-Structured<span style="color: #BBB"> </span>processing<span style="color: #BBB"> </span>completed<span style="color: #BBB"> </span>successfully
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>Input data directory: data/inputdata
+Invoice directory: data/invoice
+Copied file: experiment_data.txt
+Copied file: sample.txt
+Custom processing is complete
 </code></pre></div></td></tr></table></div>
-<h2 id="5-verify-results">5. Verify Results</h2>
-<p>After successful execution, the following output structure will be generated:</p>
+<h2 id="5-check-the-results">5. Check the Results</h2>
+<p>After the processing finishes, the directory structure looks like this:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
@@ -1858,49 +1871,70 @@ Structured<span style="color: #BBB"> </span>processing<span style="color: #BBB">
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>container/data/
-├──<span style="color: #BBB"> </span>inputdata/
-│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>your_data_file.csv
-├──<span style="color: #BBB"> </span>invoice/
-│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>invoice.json
-├──<span style="color: #BBB"> </span>logs/
-│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>rdesys.log
-├──<span style="color: #BBB"> </span>main_image/
-├──<span style="color: #BBB"> </span>meta/
-├──<span style="color: #BBB"> </span>other_image/
-├──<span style="color: #BBB"> </span>raw/
-│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>your_data_file.csv
-├──<span style="color: #BBB"> </span>structured/
-├──<span style="color: #BBB"> </span>tasksupport/
-│<span style="color: #BBB">   </span>├──<span style="color: #BBB"> </span>invoice.schema.json
-│<span style="color: #BBB">   </span>└──<span style="color: #BBB"> </span>metadata-def.json
-├──<span style="color: #BBB"> </span>temp/
-└──<span style="color: #BBB"> </span>thumbnail/
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample_project/container
+├── data
+│   ├── attachment
+│   ├── inputdata
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── invoice
+│   │   └── invoice.json
+│   ├── invoice_patch
+│   ├── job.failed
+│   ├── logs
+│   │   └── rdesys.log
+│   ├── main_image
+│   ├── meta
+│   │   └── processing_metadata.json
+│   ├── nonshared_raw
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── other_image
+│   ├── raw
+│   ├── structured
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── tasksupport
+│   │   ├── invoice.schema.json
+│   │   └── metadata-def.json
+│   ├── temp
+│   └── thumbnail
+├── Dockerfile
+├── main.py
+├── modules
+│   └── process.py
+└── requirements.txt
 </code></pre></div></td></tr></table></div>
-<div class="admonition note">
-<p class="admonition-title">Output Directory Descriptions</p>
-<ul>
-<li><strong>raw/</strong>: Copy of input data</li>
-<li><strong>structured/</strong>: Processed data</li>
-<li><strong>meta/</strong>: Metadata files</li>
-<li><strong>logs/</strong>: Execution logs</li>
-</ul>
-</div>
 <h2 id="congratulations">Congratulations!</h2>
-<p>You have successfully completed your first structuring processing project using RDEToolKit. You have achieved the following:</p>
+<p>Your first RDE structured processing project is complete. In this tutorial you learned how to:</p>
 <ul>
-<li>✅ Project initialization</li>
-<li>✅ Custom processing function implementation</li>
-<li>✅ Structured processing execution</li>
-<li>✅ Result verification</li>
+<li><strong>Initialize a project</strong>: Create the project structure with <code>rdetoolkit init</code></li>
+<li><strong>Implement custom processing</strong>: Define the data-processing logic in the <code>dataset()</code> function</li>
+<li><strong>Handle files</strong>: Arrange input data inside the structured directory</li>
+<li><strong>Manage metadata</strong>: Record processing results as JSON files</li>
+<li><strong>Run and verify</strong>: Execute the structured processing and review the results</li>
 </ul>
 <h2 id="next-steps">Next Steps</h2>
-<p>Now that you have experienced basic structuring processing, learn about the following topics:</p>
+<p>Now that you have experienced the basic flow, continue with the following topics:</p>
 <ul>
-<li>Understand <a href="../../user-guide/structured-processing/">Structuring Processing Concepts</a></li>
-<li>Explore <a href="../config/config/">Configuration Options</a></li>
-<li>Learn about <a href="../mode/mode.en.md">Processing Modes</a></li>
-<li>Check <a href="../cli/">CLI Reference</a> for advanced commands</li>
+<li>Understand how to implement structured processing with real data in <a href="../structured_process/development_guide/">Development Guide</a></li>
+<li>Explore the available <a href="../../user-guide/config/">Configuration Options</a></li>
+<li>Review advanced commands in the <a href="../cli/">CLI Reference</a></li>
 </ul>
 <!-- Dify Chatbot Script -->
 <script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
