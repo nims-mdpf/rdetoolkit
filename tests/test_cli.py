@@ -1,3 +1,22 @@
+"""Test design tables for csv2graph CLI.
+
+Equivalence Partitioning
+
+| API | Input/State Partition | Rationale | Expected Outcome | Test ID |
+| --- | --- | --- | --- | --- |
+| `cli.csv2graph` | Single-series CSV, flag omitted | Auto suppression should remove per-series PNGs | Only overlay PNG exists | `TC-EP-CLI-001` |
+| `cli.csv2graph` | Single-series CSV, `--individual` specified | User override must force individual PNG creation | Overlay + individual PNGs exist | `TC-EP-CLI-002` |
+| `cli.csv2graph` | Multi-series CSV, flag omitted | Default behavior should emit both overlay and per-series PNGs | Overlay + >=1 individual PNG | `TC-EP-CLI-003` |
+| `cli.csv2graph` | Multi-series CSV, `--no-individual` specified | Explicit skip must remove per-series PNGs even w/ multiple series | Overlay PNG only | `TC-EP-CLI-004` |
+
+Boundary Value
+
+| API | Boundary | Rationale | Expected Outcome | Test ID |
+| --- | --- | --- | --- | --- |
+| `cli.csv2graph` | `len(y_cols)=1` vs `len(y_cols)=2` | Auto suppression applies only when at most one series is valid | `len=1`: overlay only, `len=2`: overlay + individual | `TC-BV-CLI-001` |
+| `cli.csv2graph` | `mode="overlay"` vs `mode="individual"` | Individual mode should bypass overlay generation regardless of flags | Overlay absent, individual PNGs exist | `TC-BV-CLI-002` |
+"""
+
 import json
 import os
 import platform
@@ -95,7 +114,7 @@ def test_make_requirements_txt():
 # ex.
 # pandas==2.0.3
 # numpy
-rdetoolkit==1.4.1
+rdetoolkit==1.4.2
 """
     assert content == expected_content
     test_path.unlink()
@@ -570,11 +589,201 @@ def sample_csv_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def single_series_csv_file(tmp_path: Path) -> Path:
+    """Create a CSV file with a single Y series."""
+    csv_file = tmp_path / "single_series.csv"
+    csv_file.write_text(
+        """X,Y1
+0,1
+1,2
+2,3
+""",
+        encoding="utf-8",
+    )
+    return csv_file
+
+
+@pytest.fixture
 def csv_output_dir(tmp_path: Path) -> Path:
     """Create a temporary output directory for graph files."""
     output_dir = tmp_path / "graphs"
     output_dir.mkdir()
     return output_dir
+
+
+def test_csv2graph_cli_auto_suppresses_single_series__tc_ep_cli_001(single_series_csv_file: Path, csv_output_dir: Path) -> None:
+    """Auto detection skips individual PNGs for single-series overlay inputs."""
+    runner = CliRunner()
+
+    # Given: a single-series CSV without explicit flags
+    # When: invoking csv2graph in overlay mode
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(single_series_csv_file),
+            "--output-dir", str(csv_output_dir),
+        ],
+    )
+
+    # Then: only the overlay PNG is present
+    assert result.exit_code == 0, result.output
+    overlay = csv_output_dir / f"{single_series_csv_file.stem}.png"
+    assert overlay.exists()
+    individual_files = list(csv_output_dir.glob(f"{single_series_csv_file.stem}_*.png"))
+    assert not individual_files
+
+
+def test_csv2graph_cli_individual_flag_restores_output__tc_ep_cli_002(single_series_csv_file: Path, csv_output_dir: Path) -> None:
+    """Explicit --individual should re-enable per-series PNGs."""
+    runner = CliRunner()
+
+    # Given: a single-series CSV
+    # When: invoking csv2graph with --individual
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(single_series_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--individual",
+        ],
+    )
+
+    # Then: both overlay and individual PNGs exist
+    assert result.exit_code == 0, result.output
+    overlay = csv_output_dir / f"{single_series_csv_file.stem}.png"
+    assert overlay.exists()
+    individual_files = list(csv_output_dir.glob(f"{single_series_csv_file.stem}_*.png"))
+    assert individual_files
+
+
+def test_csv2graph_cli_multiple_series_keeps_individuals__tc_ep_cli_003(sample_csv_file: Path, csv_output_dir: Path) -> None:
+    """Multi-series CSVs should still emit individual PNGs by default."""
+    runner = CliRunner()
+
+    # Given: a CSV with multiple Y columns
+    # When: invoking csv2graph without overriding flags
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+        ],
+    )
+
+    # Then: overlay and per-series PNGs exist
+    assert result.exit_code == 0, result.output
+    overlay = csv_output_dir / f"{sample_csv_file.stem}.png"
+    assert overlay.exists()
+    individual_files = list(csv_output_dir.glob(f"{sample_csv_file.stem}_*.png"))
+    assert individual_files
+
+
+def test_csv2graph_cli_explicit_no_individual_skips_outputs__tc_ep_cli_004(sample_csv_file: Path, csv_output_dir: Path) -> None:
+    """Explicit --no-individual suppresses per-series PNGs even with multiple series."""
+    runner = CliRunner()
+
+    # Given: a multi-series CSV
+    # When: invoking csv2graph with --no-individual
+    result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--no-individual",
+        ],
+    )
+
+    # Then: only the overlay PNG remains
+    assert result.exit_code == 0, result.output
+    overlay = csv_output_dir / f"{sample_csv_file.stem}.png"
+    assert overlay.exists()
+    individual_files = list(csv_output_dir.glob(f"{sample_csv_file.stem}_*.png"))
+    assert not individual_files
+
+
+def test_csv2graph_cli_series_count_boundary__tc_bv_cli_001(
+    single_series_csv_file: Path,
+    sample_csv_file: Path,
+    tmp_path: Path,
+) -> None:
+    """Validate the transition between single- and multi-series CSV handling."""
+    runner = CliRunner()
+
+    single_output = tmp_path / "single_out"
+    single_output.mkdir()
+    multi_output = tmp_path / "multi_out"
+    multi_output.mkdir()
+
+    # Given: a single-series CSV without overrides
+    # When: invoking csv2graph
+    result_single = runner.invoke(
+        csv2graph,
+        [
+            str(single_series_csv_file),
+            "--output-dir", str(single_output),
+        ],
+    )
+
+    # Then: the overlay PNG exists and no per-series PNG is produced
+    assert result_single.exit_code == 0, result_single.output
+    assert (single_output / f"{single_series_csv_file.stem}.png").exists()
+    assert not list(single_output.glob(f"{single_series_csv_file.stem}_*.png"))
+
+    # Given: a multi-series CSV without overrides
+    # When: invoking csv2graph
+    result_multi = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(multi_output),
+        ],
+    )
+
+    # Then: overlay and per-series PNGs exist
+    assert result_multi.exit_code == 0, result_multi.output
+    assert (multi_output / f"{sample_csv_file.stem}.png").exists()
+    assert list(multi_output.glob(f"{sample_csv_file.stem}_*.png"))
+
+
+def test_csv2graph_cli_mode_boundary__tc_bv_cli_002(sample_csv_file: Path, tmp_path: Path) -> None:
+    """Ensure mode transitions keep expected overlay/individual combinations."""
+    runner = CliRunner()
+
+    overlay_output = tmp_path / "overlay_out"
+    overlay_output.mkdir()
+    individual_output = tmp_path / "individual_out"
+    individual_output.mkdir()
+
+    # Given: overlay mode on a multi-series CSV
+    # When: invoking csv2graph
+    overlay_result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(overlay_output),
+        ],
+    )
+
+    # Then: overlay and per-series PNGs exist
+    assert overlay_result.exit_code == 0, overlay_result.output
+    assert (overlay_output / f"{sample_csv_file.stem}.png").exists()
+    assert list(overlay_output.glob(f"{sample_csv_file.stem}_*.png"))
+
+    # Given: individual mode on the same CSV
+    # When: invoking csv2graph with --mode individual
+    individual_result = runner.invoke(
+        csv2graph,
+        [
+            str(sample_csv_file),
+            "--output-dir", str(individual_output),
+            "--mode", "individual",
+        ],
+    )
+
+    # Then: overlay PNG is absent while per-series PNGs are generated
+    assert individual_result.exit_code == 0, individual_result.output
+    assert not (individual_output / f"{sample_csv_file.stem}.png").exists()
+    assert list(individual_output.glob(f"{sample_csv_file.stem}_*.png"))
 
 
 def test_csv2graph_basic_success(sample_csv_file, csv_output_dir):

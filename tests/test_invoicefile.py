@@ -1,15 +1,32 @@
+"""Tests for invoicefile module.
+
+Equivalence Partitioning Table
+| API | Input/State Partition | Rationale | Expected Outcome | Test ID |
+| --- | --- | --- | --- | --- |
+| `InvoiceFile.overwrite` | dict payload with schema validation | Validate happy path persisting updates without destination argument | Data written to existing invoice path | TC-EP-INV-001 |
+| `InvoiceFile.overwrite` | dict containing disallowed top-level section | Ensure unsafe mutations are rejected | `InvoiceSchemaValidationError` raised | TC-EP-INV-002 |
+
+Boundary Value Table
+| API | Boundary | Rationale | Expected Outcome | Test ID |
+| --- | --- | --- | --- | --- |
+| `InvoiceFile.overwrite` | Destination directory missing before write | Validate auto-creation of parent directories when explicit path provided | File persisted to custom destination | TC-BV-INV-001 |
+| `InvoiceFile.overwrite` | Non-dict `src_obj` payload | Type validation boundary for overwrite input | `TypeError` raised with guidance | TC-BV-INV-002 |
+"""
+
+import copy
 import json
 import os
 from pathlib import Path
 import pathlib
 import re
+import shutil
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
-from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.exceptions import InvoiceSchemaValidationError, StructuredError
 from rdetoolkit.invoicefile import (
     ExcelInvoiceFile,
     InvoiceFile,
@@ -108,6 +125,13 @@ def assert_frame_equal_ignore_column_names(df1, df2):
     assert_frame_equal(df1_temp, df2_temp, check_names=False)
 
 
+def assert_optional_frame_equal(df1, df2):
+    if df1 is None or df2 is None:
+        assert df1 is None and df2 is None, "One DataFrame is None while the other is not"
+        return
+    assert_frame_equal_ignore_column_names(df1, df2)
+
+
 def test_get_item_invoice(ivnoice_json_none_sample_info):
     invoice = InvoiceFile(ivnoice_json_none_sample_info)
     assert invoice["basic"]["dateSubmitted"] == "2023-03-14"
@@ -156,6 +180,106 @@ def test_overwrite_method(ivnoice_json_none_sample_info):
         assert dst_obj.get("custom").get("key3") == "test3"
     if os.path.exists(dst_file_path):
         os.remove(dst_file_path)
+
+
+def test_invoicefile_overwrite_writes_to_instance_path__tc_ep_inv_001(
+    tmp_path: Path,
+    ivnoice_json_none_sample_info: str,
+    ivnoice_schema_json_none_sample: str,
+) -> None:
+    """TC-EP-INV-001"""
+    # Given: a copied invoice.json and schema to validate writes
+    source_path = Path(ivnoice_json_none_sample_info)
+    working_invoice = tmp_path / "invoice.json"
+    shutil.copy(source_path, working_invoice)
+    schema_path = Path(ivnoice_schema_json_none_sample)
+    invoice_file = InvoiceFile(working_invoice, schema_path=schema_path)
+    updated_payload = copy.deepcopy(invoice_file.invoice_obj)
+    updated_payload["basic"]["description"] = "refreshed description"
+
+    # When: overwriting without specifying a destination
+    invoice_file.overwrite(src_obj=updated_payload)
+
+    # Then: the original invoice path is updated with validated content
+    with open(working_invoice, encoding="utf-8") as handle:
+        persisted = json.load(handle)
+    assert persisted["basic"]["description"] == "refreshed description"
+    assert invoice_file.invoice_obj["basic"]["description"] == "refreshed description"
+
+
+def test_invoicefile_overwrite_rejects_unknown_top_level_key__tc_ep_inv_002(
+    tmp_path: Path,
+    ivnoice_json_none_sample_info: str,
+    ivnoice_schema_json_none_sample: str,
+) -> None:
+    """TC-EP-INV-002"""
+    # Given: a valid invoice and schema for validation
+    source_path = Path(ivnoice_json_none_sample_info)
+    working_invoice = tmp_path / "invoice.json"
+    shutil.copy(source_path, working_invoice)
+    schema_path = Path(ivnoice_schema_json_none_sample)
+    invoice_file = InvoiceFile(working_invoice, schema_path=schema_path)
+    invalid_payload = copy.deepcopy(invoice_file.invoice_obj)
+    invalid_payload["unauthorized"] = {"key": "value"}
+
+    # When: attempting to overwrite with a disallowed field
+    with pytest.raises(InvoiceSchemaValidationError) as excinfo:
+        invoice_file.overwrite(src_obj=invalid_payload)
+
+    # Then: validator rejects the payload and mentions the offending section
+    assert "unauthorized" in str(excinfo.value)
+
+
+def test_invoicefile_overwrite_can_target_custom_destination__tc_bv_inv_001(
+    tmp_path: Path,
+    ivnoice_json_none_sample_info: str,
+    ivnoice_schema_json_none_sample: str,
+) -> None:
+    """TC-BV-INV-001"""
+    # Given: a source invoice and a destination directory that does not yet exist
+    source_path = Path(ivnoice_json_none_sample_info)
+    working_invoice = tmp_path / "source" / "invoice.json"
+    working_invoice.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(source_path, working_invoice)
+    schema_path = Path(ivnoice_schema_json_none_sample)
+    invoice_file = InvoiceFile(working_invoice, schema_path=schema_path)
+    updated_payload = copy.deepcopy(invoice_file.invoice_obj)
+    updated_payload["basic"]["description"] = "custom destination"
+    original_snapshot = copy.deepcopy(invoice_file.invoice_obj)
+    destination_path = tmp_path / "output" / "invoice.json"
+
+    # When: overwriting to an explicit destination path
+    invoice_file.overwrite(destination_path, src_obj=updated_payload)
+
+    # Then: the destination is created and contains the updated data, while the source remains unchanged
+    with open(destination_path, encoding="utf-8") as dest_handle:
+        persisted = json.load(dest_handle)
+    assert persisted["basic"]["description"] == "custom destination"
+    with open(working_invoice, encoding="utf-8") as src_handle:
+        original_contents = json.load(src_handle)
+    assert original_contents == original_snapshot
+    assert invoice_file.invoice_obj["basic"]["description"] == original_snapshot["basic"]["description"]
+
+
+def test_invoicefile_overwrite_raises_type_error_for_invalid_source__tc_bv_inv_002(
+    tmp_path: Path,
+    ivnoice_json_none_sample_info: str,
+    ivnoice_schema_json_none_sample: str,
+) -> None:
+    """TC-BV-INV-002"""
+    # Given: a valid invoice object
+    source_path = Path(ivnoice_json_none_sample_info)
+    working_invoice = tmp_path / "invoice.json"
+    shutil.copy(source_path, working_invoice)
+    schema_path = Path(ivnoice_schema_json_none_sample)
+    invoice_file = InvoiceFile(working_invoice, schema_path=schema_path)
+
+    # When: passing an unsupported src_obj type
+    with pytest.raises(TypeError) as excinfo:
+        invoice_file.overwrite(src_obj=["invalid"])  # type: ignore[arg-type]
+
+    # Then: a descriptive type error is raised
+    assert "src_obj" in str(excinfo.value)
 
 
 def test_copy_method(ivnoice_json_none_sample_info):
@@ -412,8 +536,8 @@ def test_update_description_none_features_none_variable(
     assert result_contents["basic"]["description"] == expect_message
 
 
-def test_read_excelinvoice(inputfile_single_excelinvoice):
-    """read_excelinvoiceのテスト
+def test_excel_invoice_file_read(inputfile_single_excelinvoice):
+    """ExcelInvoiceFile.read のテスト
     dfexcelinvoice, df_general, dfSpecificが正しい値で返ってくるかテスト
     また、空のシートが含まれるエクセルインボイスを入れた時に想定通りの値を出力するかテスト
     """
@@ -474,9 +598,10 @@ def test_read_excelinvoice(inputfile_single_excelinvoice):
             "custom/key2",
         ],
     )
-
-    dfexcelinvoice, df_general, df_specific = read_excelinvoice(inputfile_single_excelinvoice)
-
+    excel_invoice = ExcelInvoiceFile(inputfile_single_excelinvoice)
+    dfexcelinvoice = excel_invoice.dfexcelinvoice
+    df_general = excel_invoice.df_general
+    df_specific = excel_invoice.df_specific
     assert_frame_equal(dfexcelinvoice, df1)
     assert isinstance(df_general, pd.DataFrame)
     assert df_general.columns.to_list() == ["term_id", "key_name"]
@@ -484,19 +609,31 @@ def test_read_excelinvoice(inputfile_single_excelinvoice):
     assert df_specific.columns.to_list() == ["sample_class_id", "term_id", "key_name"]
 
 
-def test_empty_excelinvoice_read_excelinvoice(empty_inputfile_excelinvoice):
+def test_read_excelinvoice_wrapper_warns(inputfile_single_excelinvoice):
+    """Deprecated read_excelinvoice helper still returns ExcelInvoiceFile outputs."""
+    excel_invoice = ExcelInvoiceFile(inputfile_single_excelinvoice)
+
+    with pytest.warns(DeprecationWarning, match="1\\.5\\.0"):
+        dfexcelinvoice, df_general, df_specific = read_excelinvoice(inputfile_single_excelinvoice)
+
+    assert_frame_equal(dfexcelinvoice, excel_invoice.dfexcelinvoice)
+    assert_optional_frame_equal(df_general, excel_invoice.df_general)
+    assert_optional_frame_equal(df_specific, excel_invoice.df_specific)
+
+
+def test_excel_invoice_file_read_empty(empty_inputfile_excelinvoice):
     """空のエクセルインボイスを入れた時に例外をキャッチできるかテスト"""
     with pytest.raises(StructuredError) as e:
-        _, _, _ = read_excelinvoice(empty_inputfile_excelinvoice)
+        ExcelInvoiceFile(empty_inputfile_excelinvoice)
     assert str(e.value) == "ERROR: no sheet in invoiceList files"
 
 
-def test_invalid_excelinvoice_read_excelinvoice(
+def test_excel_invoice_file_read_invalid_duplicate_sheet(
     inputfile_invalid_samesheet_excelinvoice,
 ):
     """sheet1の内容が複数あるエクセルインボイスを入れた時に例外をキャッチできるかテスト"""
     with pytest.raises(StructuredError) as e:
-        _, _, _ = read_excelinvoice(inputfile_invalid_samesheet_excelinvoice)
+        ExcelInvoiceFile(inputfile_invalid_samesheet_excelinvoice)
     assert str(e.value) == "ERROR: multiple sheet in invoiceList files"
 
 
@@ -566,7 +703,7 @@ class TestExcelinvoice:
     """Excelinvoiceクラスのテスト"""
 
     def test_read(self, inputfile_single_excelinvoice):
-        """read_excelinvoiceのテスト
+        """ExcelInvoiceFile.read のテスト
         dfexcelinvoice, df_general, dfSpecificが正しい値で返ってくるかテスト
         また、空のシートが含まれるエクセルインボイスを入れた時に想定通りの値を出力するかテスト
         """

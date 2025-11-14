@@ -15,7 +15,7 @@ Pass the desired format with `csv_format="standard" | "transpose" | "noheader"`.
 
 ## Plotting Behaviour
 
-- **Overlay mode (`mode="overlay"`)** plots every series on one Matplotlib figure. Individual series plots are also produced unless `no_individual=True`.
+- **Overlay mode (`mode="overlay"`)** plots every series on one Matplotlib figure. When multiple Y-series exist, individual plots are generated; single-series overlays skip them unless you explicitly pass `no_individual=False` (CLI: `--individual`).
 - **Individual mode (`mode="individual"`)** skips the combined plot and writes one PNG per series. The `html` flag is ignored in this mode because HTML output is only generated when an overlay figure exists.
 
 Series naming follows the sanitised `title`/`name` parameter; individual plots append the series identifier derived from the column header.
