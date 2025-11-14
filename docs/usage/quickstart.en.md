@@ -2,167 +2,181 @@
 
 ## Purpose
 
-This tutorial will guide you through creating and running your first RDE structuring processing project using RDEToolKit. You can experience the basic structuring processing workflow in approximately 15 minutes.
+This tutorial walks you through creating and running your first RDE-structured processing project with RDEToolKit. You can experience the entire basic workflow in about 15 minutes.
 
 ## Prerequisites
 
-- Python 3.9 or higher
-- Basic Python programming knowledge
+- Python 3.9 or later
+- Basic knowledge of Python programming
 - Basic understanding of command-line operations
 
 ## 1. Initialize the Project
 
-Create a new RDE structuring processing project:
+Start by creating a new project with RDEToolKit.
 
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit init
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit init
-    ```
-
-This command creates the following directory structure:
-
-```shell
-container
-├── data
-│   ├── inputdata
-│   ├── invoice
-│   │   └── invoice.json
-│   └── tasksupport
-│       ├── invoice.schema.json
-│       └── metadata-def.json
-├── main.py
-├── modules
-└── requirements.txt
+```bash
+mkdir sample_project
+cd sample_project
+python3 -m rdetoolkit init
 ```
 
-### Description of Generated Files
+After the command finishes, the following directory structure is created:
 
-- **requirements.txt**: Python dependencies for your structuring processing
-- **modules/**: Directory for custom processing modules
-- **main.py**: Entry point for the structuring processing program
-- **data/inputdata/**: Place input data files here
-- **data/invoice/**: Contains invoice.json (required for local execution)
-- **data/tasksupport/**: Schema and metadata definition files
-
-!!! tip "File Overwriting"
-    Existing files will not be overwritten. You can run this command safely.
+```
+sample_project/
+├── container
+│   ├── data
+│   │   ├── inputdata
+│   │   ├── invoice
+│   │   │   └── invoice.json
+│   │   └── tasksupport
+│   │       ├── invoice.schema.json
+│   │       └── metadata-def.json
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── modules
+│   └── requirements.txt
+├── input
+│   ├── inputdata
+│   └── invoice
+│       └── invoice.json
+└── templates
+    └── tasksupport
+        ├── invoice.schema.json
+        └── metadata-def.json
+```
 
 ## 2. Implement Custom Processing
 
-Edit the `main.py` file to implement your custom structuring processing function:
+Open the `sample_project/container/modules/process.py` file and implement your custom processing as shown below:
 
-```python title="main.py"
-import rdetoolkit.workflows as workflows
+```python title="modules/process.py"
+from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 
-def my_dataset(rde):
+
+def dataset(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath):
     """
-    Custom dataset processing function
+    Custom data processing function.
 
     Args:
-        rde: RDE processing context object
+        srcpaths: Input directory paths.
+        resource_paths: Output resource paths.
     """
-    # Write your custom processing logic here
-    print("Processing dataset...")
+    # Inspect the input data.
+    print(f"Input data directory: {srcpaths.inputdata}")
+    print(f"Invoice directory: {srcpaths.invoice}")
 
-    # Example: Set metadata
-    rde.set_metadata({
-        "processing_status": "completed",
-        "timestamp": "2023-01-01T00:00:00Z"
-    })
+    # Simple example of file processing.
+    import shutil
+    from pathlib import Path
+    import pdb; pdb.set_trace()
 
+    # Copy input files into the structured directory.
+    input_files = list(srcpaths.inputdata.glob("*"))
+    for file_path in input_files:
+        if file_path.is_file():
+            dest_path = resource_paths.struct / file_path.name
+            shutil.copy2(file_path, dest_path)
+            print(f"Copied file: {file_path.name}")
+
+    print("Custom processing is complete")
     return 0
-
-if __name__ == "__main__":
-    # Execute the structuring processing workflow
-    workflows.run(my_dataset)
 ```
 
-## 3. Add Input Data
+Next, edit the `main.py` file so that it calls the custom processing function:
 
-Place your data files in the `data/inputdata/` directory:
+```python title="main.py"
+# The following script is a template for the source code.
 
-```shell title="Example: Copy Data File"
-# Example: Copy your data file
-cp your_data_file.csv container/data/inputdata/
+import rdetoolkit
+from modules.process import dataset
+
+rdetoolkit.workflows.run(custom_dataset_function=dataset)
 ```
 
-## 4. Execute Structuring Processing
+## 3. Prepare Sample Data
 
-Run the structuring processing:
+Place sample files in the `data/inputdata/` directory:
 
-=== "Unix/macOS"
-
-    ```shell
-    cd container
-    python3 main.py
-    ```
-
-=== "Windows"
-
-    ```powershell
-    cd container
-    py main.py
-    ```
-
-During execution, you will see output similar to:
-
-```shell
-Processing dataset...
-Structured processing completed successfully
+```bash
+# Create sample text files
+echo "This is sample data." > sample_project/container/data/inputdata/sample.txt
+echo "Experiment data: Temperature 25°C, humidity 60%" > sample_project/container/data/inputdata/experiment_data.txt
 ```
 
-## 5. Verify Results
+## 4. Run the Structured Processing
 
-After successful execution, the following output structure will be generated:
+Move to the project directory and run the structured processing:
 
-```shell
-container/data/
-├── inputdata/
-│   └── your_data_file.csv
-├── invoice/
-│   └── invoice.json
-├── logs/
-│   └── rdesys.log
-├── main_image/
-├── meta/
-├── other_image/
-├── raw/
-│   └── your_data_file.csv
-├── structured/
-├── tasksupport/
-│   ├── invoice.schema.json
-│   └── metadata-def.json
-├── temp/
-└── thumbnail/
+```bash
+cd sample_project/container
+python main.py
 ```
 
-!!! note "Output Directory Descriptions"
-    - **raw/**: Copy of input data
-    - **structured/**: Processed data
-    - **meta/**: Metadata files
-    - **logs/**: Execution logs
+When the execution succeeds, you will see output similar to the following:
+
+```
+Input data directory: data/inputdata
+Invoice directory: data/invoice
+Copied file: experiment_data.txt
+Copied file: sample.txt
+Custom processing is complete
+```
+
+## 5. Check the Results
+
+After the processing finishes, the directory structure looks like this:
+
+```
+sample_project/container
+├── data
+│   ├── attachment
+│   ├── inputdata
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── invoice
+│   │   └── invoice.json
+│   ├── invoice_patch
+│   ├── job.failed
+│   ├── logs
+│   │   └── rdesys.log
+│   ├── main_image
+│   ├── meta
+│   │   └── processing_metadata.json
+│   ├── nonshared_raw
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── other_image
+│   ├── raw
+│   ├── structured
+│   │   ├── experiment_data.txt
+│   │   └── sample.txt
+│   ├── tasksupport
+│   │   ├── invoice.schema.json
+│   │   └── metadata-def.json
+│   ├── temp
+│   └── thumbnail
+├── Dockerfile
+├── main.py
+├── modules
+│   └── process.py
+└── requirements.txt
+```
 
 ## Congratulations!
 
-You have successfully completed your first structuring processing project using RDEToolKit. You have achieved the following:
+Your first RDE structured processing project is complete. In this tutorial you learned how to:
 
-- ✅ Project initialization
-- ✅ Custom processing function implementation
-- ✅ Structured processing execution
-- ✅ Result verification
+- **Initialize a project**: Create the project structure with `rdetoolkit init`
+- **Implement custom processing**: Define the data-processing logic in the `dataset()` function
+- **Handle files**: Arrange input data inside the structured directory
+- **Manage metadata**: Record processing results as JSON files
+- **Run and verify**: Execute the structured processing and review the results
 
 ## Next Steps
 
-Now that you have experienced basic structuring processing, learn about the following topics:
+Now that you have experienced the basic flow, continue with the following topics:
 
-- Understand [Structuring Processing Concepts](../user-guide/structured-processing.en.md)
-- Explore [Configuration Options](config/config.en.md)
-- Learn about [Processing Modes](../mode/mode.en.md)
-- Check [CLI Reference](cli.en.md) for advanced commands
+- Understand how to implement structured processing with real data in [Development Guide](../usage/structured_process/development_guide.en.md)
+- Explore the available [Configuration Options](../user-guide/config.en.md)
+- Review advanced commands in the [CLI Reference](cli.en.md)
