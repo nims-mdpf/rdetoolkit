@@ -2173,7 +2173,7 @@
 <p>Pass the desired format with <code>csv_format="standard" | "transpose" | "noheader"</code>. Automatic detection is not triggered by default.</p>
 <h2 id="plotting-behaviour">Plotting Behaviour</h2>
 <ul>
-<li><strong>Overlay mode (<code>mode="overlay"</code>)</strong> plots every series on one Matplotlib figure. Individual series plots are also produced unless <code>no_individual=True</code>.</li>
+<li><strong>Overlay mode (<code>mode="overlay"</code>)</strong> plots every series on one Matplotlib figure. When multiple Y-series exist, individual plots are generated; single-series overlays skip them unless you explicitly pass <code>no_individual=False</code> (CLI: <code>--individual</code>).</li>
 <li><strong>Individual mode (<code>mode="individual"</code>)</strong> skips the combined plot and writes one PNG per series. The <code>html</code> flag is ignored in this mode because HTML output is only generated when an overlay figure exists.</li>
 </ul>
 <p>Series naming follows the sanitised <code>title</code>/<code>name</code> parameter; individual plots append the series identifier derived from the column header.</p>
@@ -2362,7 +2362,7 @@
 </div>
 <div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="rdetoolkit.graph.csv2graph.csv2graph">
-<code class="highlight language-python">csv2graph(csv_path, output_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, main_image_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, csv_format<span style="color: #333">=</span><span style="background-color: #FFF0F0">'standard'</span>, logy<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, logx<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'overlay'</span>, x_col<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_filter<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_colors<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, title<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_info<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_loc<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, xlim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, ylim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, grid<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_x<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_y<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, no_individual<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, max_legend_items<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
+<code class="highlight language-python">csv2graph(csv_path, output_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, main_image_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, csv_format<span style="color: #333">=</span><span style="background-color: #FFF0F0">'standard'</span>, logy<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, logx<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'overlay'</span>, x_col<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_filter<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_colors<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, title<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_info<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_loc<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, xlim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, ylim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, grid<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_x<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_y<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, no_individual<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, max_legend_items<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
 <p>Generate graph from CSV file.</p>
@@ -2720,15 +2720,15 @@
 <code>no_individual</code>
 </td>
 <td>
-<code><span title="bool">bool</span></code>
+<code><span title="bool">bool</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Skip individual plots (when mode="overlay")</p>
+<p>Skip individual plots; None enables auto-detection (overlay)</p>
 </div>
 </td>
 <td>
-<code>False</code>
+<code>None</code>
 </td>
 </tr>
 <tr class="doc-section-item">
@@ -2769,7 +2769,7 @@
 </div>
 <div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="rdetoolkit.graph.csv2graph.plot_from_dataframe">
-<code class="highlight language-python">plot_from_dataframe(df, output_dir, main_image_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, logy<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, logx<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'overlay'</span>, x_col<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_filter<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_colors<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, title<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, name<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, x_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_info<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_loc<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, xlim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, ylim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, grid<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_x<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_y<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, no_individual<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, max_legend_items<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, return_fig<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
+<code class="highlight language-python">plot_from_dataframe(df, output_dir, main_image_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, logy<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, logx<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'overlay'</span>, x_col<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_filter<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_colors<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, title<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, name<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, x_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_info<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_loc<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, xlim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, ylim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, grid<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_x<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_y<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, no_individual<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, max_legend_items<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, return_fig<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
 </h3>
 <div class="doc doc-contents">
 <p>Generate graph from pandas DataFrame.</p>
@@ -3160,15 +3160,15 @@ Maintains backward compatibility with existing code.</p>
 <code>no_individual</code>
 </td>
 <td>
-<code><span title="bool">bool</span></code>
+<code><span title="bool">bool</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Skip individual plots (when mode="overlay")</p>
+<p>Skip individual plots; None enables auto-detection (overlay)</p>
 </div>
 </td>
 <td>
-<code>False</code>
+<code>None</code>
 </td>
 </tr>
 <tr class="doc-section-item">
@@ -3251,7 +3251,7 @@ plot_from_dataframe(
 </div><hr/>
 <div class="doc doc-object doc-function">
 <h2 class="doc doc-heading" id="rdetoolkit.graph.plot_from_dataframe">
-<code class="highlight language-python">rdetoolkit<span style="color: #333">.</span>graph<span style="color: #333">.</span>plot_from_dataframe(df, output_dir, main_image_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, logy<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, logx<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'overlay'</span>, x_col<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_filter<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_colors<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, title<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, name<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, x_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_info<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_loc<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, xlim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, ylim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, grid<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_x<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_y<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, no_individual<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, max_legend_items<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, return_fig<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
+<code class="highlight language-python">rdetoolkit<span style="color: #333">.</span>graph<span style="color: #333">.</span>plot_from_dataframe(df, output_dir, main_image_dir<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, logy<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, logx<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'overlay'</span>, x_col<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_cols<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_filter<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, direction_colors<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, title<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, name<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, x_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, y_label<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_info<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, legend_loc<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, xlim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, ylim<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, grid<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_x<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, invert_y<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, no_individual<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, max_legend_items<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, return_fig<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
 </h2>
 <div class="doc doc-contents first">
 <p>Generate graph from pandas DataFrame.</p>
@@ -3642,15 +3642,15 @@ Maintains backward compatibility with existing code.</p>
 <code>no_individual</code>
 </td>
 <td>
-<code><span title="bool">bool</span></code>
+<code><span title="bool">bool</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Skip individual plots (when mode="overlay")</p>
+<p>Skip individual plots; None enables auto-detection (overlay)</p>
 </div>
 </td>
 <td>
-<code>False</code>
+<code>None</code>
 </td>
 </tr>
 <tr class="doc-section-item">

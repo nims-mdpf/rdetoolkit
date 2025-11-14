@@ -1159,6 +1159,13 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.schema_path">
+<span class="md-ellipsis">
+      schema_path
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.__delitem__">
 <span class="md-ellipsis">
       __delitem__
@@ -1192,17 +1199,6 @@
       overwrite
     </span>
 </a>
-<nav aria-label="overwrite" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.overwrite--usage">
-<span class="md-ellipsis">
-      Usage
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.read">
@@ -1222,6 +1218,27 @@
 </a>
 <nav aria-label="ExcelInvoiceFile" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general">
+<span class="md-ellipsis">
+      df_general
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific">
+<span class="md-ellipsis">
+      df_specific
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice">
+<span class="md-ellipsis">
+      dfexcelinvoice
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.invoice_path">
 <span class="md-ellipsis">
@@ -2126,6 +2143,13 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.schema_path">
+<span class="md-ellipsis">
+      schema_path
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.__delitem__">
 <span class="md-ellipsis">
       __delitem__
@@ -2159,17 +2183,6 @@
       overwrite
     </span>
 </a>
-<nav aria-label="overwrite" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.overwrite--usage">
-<span class="md-ellipsis">
-      Usage
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.read">
@@ -2189,6 +2202,27 @@
 </a>
 <nav aria-label="ExcelInvoiceFile" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general">
+<span class="md-ellipsis">
+      df_general
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific">
+<span class="md-ellipsis">
+      df_specific
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice">
+<span class="md-ellipsis">
+      dfexcelinvoice
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.invoice_path">
 <span class="md-ellipsis">
@@ -2462,82 +2496,9 @@
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>read_excelinvoice(excelinvoice_filepath)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Reads an ExcelInvoice and processes each sheet into a dataframe.</p>
-<p>This function reads an Excel file and processes three specific sheets:
-1. A sheet containing 'invoiceList_format_id' in cell A1 (duplicate sheets with this value are not allowed)
-2. A sheet named 'generalTerm'
-3. A sheet named 'specificTerm'</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>excelinvoice_filepath</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file path of the Excel invoice file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th> <th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>tuple</code></td> <td>
-<code><span title="tuple">tuple</span>[<span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>A tuple containing dataframes for the invoice list, general terms, and specific terms.If any of these sheets are missing or if there are multiple invoice list sheets, a StructuredError is raised.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If there are multiple sheets with <code>invoiceList_format_id</code> in the ExcelInvoice, or if no sheets are present in the ExcelInvoice.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
+<p>Deprecated wrapper around :class:<code>ExcelInvoiceFile</code>.</p>
+<p>This helper will be removed in version 1.5.0. Please instantiate <code>ExcelInvoiceFile</code> directly and use the
+<code>dfexcelinvoice</code>, <code>df_general</code>, and <code>df_specific</code> attributes.</p>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -2733,7 +2694,7 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 </div><hr/>
 <div class="doc doc-object doc-class">
 <h2 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile">
-<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>InvoiceFile(invoice_path)</code>
+<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>InvoiceFile(invoice_path, <span style="color: #333">*</span>, schema_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h2>
 <div class="doc doc-contents first">
 <p>Represents an invoice file and provides utilities to read and overwrite it.</p>
@@ -2748,7 +2709,7 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.InvoiceFile.invoice_path" title="invoice_path = invoice_path
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.InvoiceFile.invoice_path" title="invoice_path = Path(invoice_path)
 
   
       instance-attribute
@@ -2759,6 +2720,21 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 <td>
 <div class="doc-md-description">
 <p>Path to the invoice file.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.InvoiceFile.schema_path" title="schema_path = Path(schema_path) if schema_path is not None else None
+
+  
+      instance-attribute
+   (src.rdetoolkit.invoicefile.InvoiceFile.schema_path)">schema_path</a></code></td>
+<td>
+<code><span title="pathlib.Path">Path</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Optional path to the invoice schema file used for validation.</p>
 </div>
 </td>
 </tr>
@@ -2807,6 +2783,22 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 <em>必須</em>
 </td>
 </tr>
+<tr class="doc-section-item">
+<td>
+<code>schema_path</code>
+</td>
+<td>
+<code><span title="pathlib.Path">Path</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Optional path to the invoice schema for validation when overwriting.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
 </tbody>
 </table>
 <p><span class="doc-section-title">発生：</span></p>
@@ -2833,9 +2825,11 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 <details class="example" open="">
 <summary>Example</summary>
 <h3 id="src.rdetoolkit.invoicefile.InvoiceFile--usage">Usage</h3>
-<p>invoice = InvoiceFile("invoice.json")
+<p>invoice = InvoiceFile(Path("invoice.json"), schema_path=Path("invoice.schema.json"))
 invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-invoice.overwrite("invoice_new.json")</p>
+invoice.overwrite(Path("invoice_new.json"))
+invoice.invoice_obj["basic"]["dataName"] = "updated"
+invoice.overwrite(schema_path=Path("invoice.schema.json"))</p>
 </details>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
@@ -2852,7 +2846,17 @@ invoice.overwrite("invoice_new.json")</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.invoice_path">
-<code class="highlight language-python">invoice_path <span style="color: #333">=</span> invoice_path</code>
+<code class="highlight language-python">invoice_path <span style="color: #333">=</span> Path(invoice_path)</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.schema_path">
+<code class="highlight language-python">schema_path <span style="color: #333">=</span> Path(schema_path) <span style="color: #080; font-weight: bold">if</span> schema_path <span style="color: #000; font-weight: bold">is</span> <span style="color: #000; font-weight: bold">not</span> <span style="color: #080; font-weight: bold">None</span> <span style="color: #080; font-weight: bold">else</span> <span style="color: #080; font-weight: bold">None</span></code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
@@ -2981,10 +2985,10 @@ invoice.overwrite("invoice_new.json")</p>
 </div>
 <div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.overwrite">
-<code class="highlight language-python">overwrite(dst_file_path, <span style="color: #333">*</span>, src_obj<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
+<code class="highlight language-python">overwrite(dst_file_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, <span style="color: #333">*</span>, src_obj<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, schema_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Overwrites the contents of the destination file with the invoice JSON data.</p>
+<p>Persist invoice data to disk.</p>
 <p><span class="doc-section-title">引数：</span></p>
 <table>
 <thead>
@@ -3005,11 +3009,11 @@ invoice.overwrite("invoice_new.json")</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The path to the destination file.</p>
+<p>Destination file path. Defaults to <code>self.invoice_path</code> when omitted.</p>
 </div>
 </td>
 <td>
-<em>必須</em>
+<code>None</code>
 </td>
 </tr>
 <tr class="doc-section-item">
@@ -3017,11 +3021,29 @@ invoice.overwrite("invoice_new.json")</p>
 <code>src_obj</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
+<code><span title="pathlib.Path">Path</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The path to the source object. Defaults to None.</p>
+<p>Source invoice data. Accepts a dict to overwrite with explicit data or a path to a JSON file.
+Defaults to the current <code>invoice_obj</code>.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>schema_path</code>
+</td>
+<td>
+<code><span title="pathlib.Path">Path</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Optional path to <code>invoice.schema.json</code> for validation. Falls back to the instance level
+<code>schema_path</code> when provided at construction time.</p>
 </div>
 </td>
 <td>
@@ -3041,22 +3063,41 @@ invoice.overwrite("invoice_new.json")</p>
 <tbody>
 <tr class="doc-section-item">
 <td>
+<code><span title="TypeError">TypeError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If <code>src_obj</code> is not a dict or path-like object.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.InvoiceSchemaValidationError">InvoiceSchemaValidationError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>When validation fails against the provided schema.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
 <code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>If the destination file does not exist.</p>
+<p>If writing the file fails.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<details class="example" open="">
-<summary>Example</summary>
-<h4 id="src.rdetoolkit.invoicefile.InvoiceFile.overwrite--usage">Usage</h4>
-<p>invoice = InvoiceFile("invoice.json")
-invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-invoice.overwrite("invoice_new.json")</p>
+<details class="note" open="">
+<summary>Note</summary>
+<p>When <code>dst_file_path</code> targets the instance's own <code>invoice_path</code>, the in-memory <code>invoice_obj</code> is updated with
+the sanitized data after a successful write to keep state in sync. Writing to a different destination leaves
+the instance state untouched.</p>
 </details>
 </div>
 </div>
@@ -3154,7 +3195,11 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice">dfexcelinvoice</span></code></td>
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice" title="dfexcelinvoice
+
+  
+      instance-attribute
+   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice)">dfexcelinvoice</a></code></td>
 <td>
 <code><span title="pandas.DataFrame">DataFrame</span></code>
 </td>
@@ -3165,24 +3210,32 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general">df_general</span></code></td>
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general" title="df_general
+
+  
+      instance-attribute
+   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general)">df_general</a></code></td>
 <td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
+<code><span title="pandas.DataFrame">DataFrame</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Dataframe of general data.</p>
+<p>Dataframe of general data (None if the sheet is absent).</p>
 </div>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific">df_specific</span></code></td>
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific" title="df_specific
+
+  
+      instance-attribute
+   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific)">df_specific</a></code></td>
 <td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
+<code><span title="pandas.DataFrame">DataFrame</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Dataframe of specific data.</p>
+<p>Dataframe of specific data (None if the sheet is absent).</p>
 </div>
 </td>
 </tr>
@@ -3200,6 +3253,36 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </tbody>
 </table>
 <div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general">
+<code class="highlight language-python">df_general</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific">
+<code class="highlight language-python">df_specific</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice">
+<code class="highlight language-python">dfexcelinvoice</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+</div>
+</div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.invoice_path">
 <code class="highlight language-python">invoice_path <span style="color: #333">=</span> invoice_path</code>
@@ -3520,11 +3603,13 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 <tbody>
 <tr class="doc-section-item">
 <td>
-<code><span title="tuple">tuple</span>[<span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
+<code><span title="tuple">tuple</span>[<span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span> | None, <span title="pandas.DataFrame">DataFrame</span> | None]</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Three dataframes (dfexcelinvoice, df_general, df_specific).</p>
+<p>tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
+Three dataframes (dfexcelinvoice, df_general, df_specific). The general and specific sheets are <code>None</code>
+when the source workbook does not define the corresponding sheet.</p>
 </div>
 </td>
 </tr>
@@ -4645,12 +4730,14 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.invoicefile</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> InvoiceFile
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.invoicefile</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> InvoiceFile
 <span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
 
-<span style="color: #888"># Load invoice file</span>
+<span style="color: #888"># Load invoice file with optional schema validation</span>
 invoice_path <span style="color: #333">=</span> Path(<span style="background-color: #FFF0F0">"data/invoice/invoice.json"</span>)
-invoice <span style="color: #333">=</span> InvoiceFile(invoice_path)
+schema_path <span style="color: #333">=</span> Path(<span style="background-color: #FFF0F0">"data/tasksupport/invoice.schema.json"</span>)
+invoice <span style="color: #333">=</span> InvoiceFile(invoice_path, schema_path<span style="color: #333">=</span>schema_path)
 
 <span style="color: #888"># Read invoice data</span>
 invoice_data <span style="color: #333">=</span> invoice<span style="color: #333">.</span>read()
@@ -4659,7 +4746,7 @@ invoice_data <span style="color: #333">=</span> invoice<span style="color: #333"
 <span style="color: #888"># Overwrite invoice file</span>
 updated_data <span style="color: #333">=</span> invoice_data<span style="color: #333">.</span>copy()
 updated_data[<span style="background-color: #FFF0F0">'basic'</span>][<span style="background-color: #FFF0F0">'description'</span>] <span style="color: #333">=</span> <span style="background-color: #FFF0F0">"Updated description"</span>
-invoice<span style="color: #333">.</span>overwrite(updated_data)
+invoice<span style="color: #333">.</span>overwrite(src_obj<span style="color: #333">=</span>updated_data)
 </code></pre></div></td></tr></table></div>
 <h3 id="excel-invoice-file-processing">Excel Invoice File Processing</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">excel_invoice.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
