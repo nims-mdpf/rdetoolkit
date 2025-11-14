@@ -295,9 +295,9 @@ You have successfully completed your first structured processing flow with RDETo
 
 ### What You Accomplished
 
-✅ Created the basic structure of an RDE project  
-✅ Implemented a custom structured processing function  
-✅ Ran the structured processing workflow  
+✅ Created the basic structure of an RDE project
+✅ Implemented a custom structured processing function
+✅ Ran the structured processing workflow
 ✅ Learned how to validate the processing results
 
 ### Key Concepts Learned
