@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Print
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -111,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies

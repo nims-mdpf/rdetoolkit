@@ -20,7 +20,7 @@ jobs:
         target: [x86_64, i686]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Build wheels
@@ -45,7 +45,7 @@ jobs:
         target: [aarch64, armv7, s390x, ppc64le]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -72,7 +72,7 @@ jobs:
           - i686-unknown-linux-musl
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -101,7 +101,7 @@ jobs:
             arch: armv7
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
@@ -161,7 +161,7 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - name: Build wheels
