@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Cache uv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/uv
           key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}
