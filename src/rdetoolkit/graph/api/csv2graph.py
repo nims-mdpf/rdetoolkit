@@ -227,6 +227,18 @@ def _normalize_axis_limits(
     return (start, end)
 
 
+def _resolve_no_individual_flag(
+    *,
+    requested: bool | None,
+    plot_mode: PlotMode,
+    normalized: NormalizedColumns,
+) -> bool:
+    """Determine whether individual plots should be skipped."""
+    if requested is not None:
+        return requested
+    return plot_mode == PlotMode.OVERLAY and len(normalized.y_cols) <= 1
+
+
 def _build_plot_config(
     *,
     plot_mode: PlotMode,
@@ -405,7 +417,7 @@ def csv2graph(
     grid: bool = False,
     invert_x: bool = False,
     invert_y: bool = False,
-    no_individual: bool = False,
+    no_individual: bool | None = None,
     max_legend_items: int | None = None,
 ) -> None:
     """Generate graph from CSV file.
@@ -435,7 +447,7 @@ def csv2graph(
         grid: Show grid
         invert_x: Invert x-axis
         invert_y: Invert y-axis
-        no_individual: Skip individual plots (when mode="overlay")
+        no_individual: Skip individual plots; None enables auto-detection (overlay)
         max_legend_items: Maximum legend items to display
 
     Example:
@@ -507,7 +519,7 @@ def plot_from_dataframe(
     grid: bool = False,
     invert_x: bool = False,
     invert_y: bool = False,
-    no_individual: bool = False,
+    no_individual: bool | None = None,
     max_legend_items: int | None = None,
     return_fig: bool = False,
 ) -> list[Any] | None:
@@ -541,7 +553,7 @@ def plot_from_dataframe(
         grid: Show grid
         invert_x: Invert x-axis
         invert_y: Invert y-axis
-        no_individual: Skip individual plots (when mode="overlay")
+        no_individual: Skip individual plots; None enables auto-detection (overlay)
         max_legend_items: Maximum legend items to display
         return_fig: Return figure objects instead of saving
 
@@ -559,6 +571,10 @@ def plot_from_dataframe(
         ...     mode="overlay",
         ... )
     """
+    if no_individual is not None and not isinstance(no_individual, bool):
+        msg = "no_individual must be True, False, or None"
+        raise TypeError(msg)
+
     output_dir_path = Path(output_dir)
     main_image_dir_path = Path(main_image_dir) if main_image_dir is not None else None
 
@@ -576,6 +592,11 @@ def plot_from_dataframe(
     )
 
     plot_mode = _resolve_plot_mode(mode)
+    resolved_no_individual = _resolve_no_individual_flag(
+        requested=no_individual,
+        plot_mode=plot_mode,
+        normalized=normalized_columns,
+    )
     display_title, base_filename = _determine_titles(title=title, name=name)
     formats = _determine_formats(html=html, return_fig=return_fig)
 
@@ -597,7 +618,7 @@ def plot_from_dataframe(
         legend_loc=legend_loc,
         max_legend_items=max_legend_items,
         formats=formats,
-        no_individual=no_individual,
+        no_individual=resolved_no_individual,
         return_fig=return_fig,
         base_filename=base_filename,
         main_image_dir_path=main_image_dir_path,

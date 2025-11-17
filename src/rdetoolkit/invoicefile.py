@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Protocol, Union
 
@@ -21,54 +22,30 @@ from rdetoolkit.models.invoice import FixedHeaders, GeneralAttributeConfig, Gene
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, SampleField, SpecificProperty
 from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
 from rdetoolkit.rde2util import StorageDir
+from rdetoolkit.validation import InvoiceValidator
 
 STATIC_DIR = Path(__file__).parent / "static"
 EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
 EX_SPECIFICTERM = STATIC_DIR / "ex_specificterm.csv"
 
 
-def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Reads an ExcelInvoice and processes each sheet into a dataframe.
+def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
+    """Deprecated wrapper around :class:`ExcelInvoiceFile`.
 
-    This function reads an Excel file and processes three specific sheets:
-    1. A sheet containing 'invoiceList_format_id' in cell A1 (duplicate sheets with this value are not allowed)
-    2. A sheet named 'generalTerm'
-    3. A sheet named 'specificTerm'
-
-    Args:
-        excelinvoice_filepath (str): The file path of the Excel invoice file.
-
-    Returns:
-        tuple: A tuple containing dataframes for the invoice list, general terms, and specific terms.If any of these sheets are missing or if there are multiple invoice list sheets, a StructuredError is raised.
-
-    Raises:
-        StructuredError: If there are multiple sheets with `invoiceList_format_id` in the ExcelInvoice, or if no sheets are present in the ExcelInvoice.
+    This helper will be removed in version 1.5.0. Please instantiate ``ExcelInvoiceFile`` directly and use the
+    ``dfexcelinvoice``, ``df_general``, and ``df_specific`` attributes.
     """
-    dct_sheets = pd.read_excel(excelinvoice_filepath, sheet_name=None, dtype=str, header=None, index_col=None)
-    dfexcelinvoice = None
-    df_general = None
-    df_specific = None
-    for sh_name, df in dct_sheets.items():
-        if df.empty:
-            continue
-        if df.iat[0, 0] == "invoiceList_format_id":
-            if dfexcelinvoice is not None:
-                emsg = "ERROR: multiple sheet in invoiceList files"
-                raise StructuredError(emsg)
-            ExcelInvoiceFile.check_intermittent_empty_rows(df)
-            dfexcelinvoice = __process_invoice_sheet(df)
-        elif sh_name == "generalTerm":
-            df_general = __process_general_term_sheet(df)
-        elif sh_name == "specificTerm":
-            df_specific = __process_specific_term_sheet(df)
-
-    if dfexcelinvoice is None:
-        emsg = "ERROR: no sheet in invoiceList files"
-        raise StructuredError(emsg)
-    return dfexcelinvoice, df_general, df_specific
+    warnings.warn(
+        "read_excelinvoice() is deprecated and will be removed in version 1.5.0. "
+        "Instantiate ExcelInvoiceFile(invoice_path) and use the .dfexcelinvoice, .df_general, and .df_specific attributes instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    excel_invoice = ExcelInvoiceFile(Path(excelinvoice_filepath))
+    return excel_invoice.dfexcelinvoice, excel_invoice.df_general, excel_invoice.df_specific
 
 
-def __process_invoice_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_invoice_sheet(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
     hd1 = list(df.iloc[1, :].fillna(""))
     hd2 = list(df.iloc[2, :].fillna(""))
@@ -76,13 +53,13 @@ def __process_invoice_sheet(df: pd.DataFrame) -> pd.Series:
     return df.iloc[4:, :].reset_index(drop=True).copy()
 
 
-def __process_general_term_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_general_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_general = df[1:].copy()
     _df_general.columns = ["term_id", "key_name"]
     return _df_general
 
 
-def __process_specific_term_sheet(df: pd.DataFrame) -> pd.Series:
+def _process_specific_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_specific = df[1:].copy()
     _df_specific.columns = ["sample_class_id", "term_id", "key_name"]
     return _df_specific
@@ -197,23 +174,28 @@ class InvoiceFile:
 
     Attributes:
         invoice_path (Path): Path to the invoice file.
+        schema_path (Path | None): Optional path to the invoice schema file used for validation.
         invoice_obj (dict): Dictionary representation of the invoice JSON file.
 
     Args:
         invoice_path (Path): The path to the invoice file.
+        schema_path (Path | None): Optional path to the invoice schema for validation when overwriting.
 
     Raises:
         ValueError: If `invoice_obj` is not a dictionary.
 
     Example:
         # Usage
-        invoice = InvoiceFile("invoice.json")
+        invoice = InvoiceFile(Path("invoice.json"), schema_path=Path("invoice.schema.json"))
         invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-        invoice.overwrite("invoice_new.json")
+        invoice.overwrite(Path("invoice_new.json"))
+        invoice.invoice_obj["basic"]["dataName"] = "updated"
+        invoice.overwrite(schema_path=Path("invoice.schema.json"))
     """
 
-    def __init__(self, invoice_path: Path):
-        self.invoice_path = invoice_path
+    def __init__(self, invoice_path: Path, *, schema_path: Path | None = None):
+        self.invoice_path = Path(invoice_path)
+        self.schema_path = Path(schema_path) if schema_path is not None else None
         self._invoice_obj = self.read()
 
     @property
@@ -254,28 +236,59 @@ class InvoiceFile:
         self.invoice_obj = readf_json(target_path)
         return self.invoice_obj
 
-    def overwrite(self, dst_file_path: Path, *, src_obj: Path | None = None) -> None:
-        """Overwrites the contents of the destination file with the invoice JSON data.
+    def overwrite(
+        self,
+        dst_file_path: Path | None = None,
+        *,
+        src_obj: dict[str, Any] | Path | str | None = None,
+        schema_path: Path | None = None,
+    ) -> None:
+        """Persist invoice data to disk.
 
         Args:
-            dst_file_path (Path): The path to the destination file.
-            src_obj (Optional[Path], optional): The path to the source object. Defaults to None.
+            dst_file_path: Destination file path. Defaults to `self.invoice_path` when omitted.
+            src_obj: Source invoice data. Accepts a dict to overwrite with explicit data or a path to a JSON file.
+                Defaults to the current `invoice_obj`.
+            schema_path: Optional path to `invoice.schema.json` for validation. Falls back to the instance level
+                `schema_path` when provided at construction time.
 
         Raises:
-            StructuredError: If the destination file does not exist.
+            TypeError: If `src_obj` is not a dict or path-like object.
+            InvoiceSchemaValidationError: When validation fails against the provided schema.
+            StructuredError: If writing the file fails.
 
-        Example:
-            # Usage
-            invoice = InvoiceFile("invoice.json")
-            invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-            invoice.overwrite("invoice_new.json")
-
+        Note:
+            When `dst_file_path` targets the instance's own `invoice_path`, the in-memory `invoice_obj` is updated with
+            the sanitized data after a successful write to keep state in sync. Writing to a different destination leaves
+            the instance state untouched.
         """
+        destination = Path(dst_file_path) if dst_file_path is not None else self.invoice_path
+        validator_schema = Path(schema_path) if schema_path is not None else self.schema_path
+
         if src_obj is None:
-            src_obj = self.invoice_path
-        parent_dir = os.path.dirname(dst_file_path)
-        os.makedirs(parent_dir, exist_ok=True)
-        writef_json(dst_file_path, self.invoice_obj)
+            candidate: dict[str, Any] = copy.deepcopy(self.invoice_obj)
+        elif isinstance(src_obj, dict):
+            candidate = copy.deepcopy(src_obj)
+        elif isinstance(src_obj, (str, Path)):
+            candidate = readf_json(Path(src_obj))
+        else:
+            emsg = "src_obj must be either a dict or a path-like object"
+            raise TypeError(emsg)
+
+        sanitized = self._sanitize_invoice_data(candidate, validator_schema)
+        should_update_instance = destination == self.invoice_path
+        os.makedirs(destination.parent, exist_ok=True)
+        writef_json(destination, sanitized)
+
+        if should_update_instance:
+            self.invoice_obj = sanitized
+
+    def _sanitize_invoice_data(self, candidate: dict[str, Any], schema_path: Path | None) -> dict[str, Any]:
+        """Validate and normalise invoice data prior to persisting."""
+        if schema_path is not None:
+            validator = InvoiceValidator(schema_path)
+            return validator.validate(obj=candidate)
+        return candidate
 
     @classmethod
     def copy_original_invoice(cls, src_file_path: Path, dst_file_path: Path) -> None:
@@ -520,8 +533,8 @@ class ExcelInvoiceFile:
     Attributes:
         invoice_path (Path): Path to the excel invoice file (.xlsx).
         dfexcelinvoice (pd.DataFrame): Dataframe of the invoice.
-        df_general (pd.DataFrame): Dataframe of general data.
-        df_specific (pd.DataFrame): Dataframe of specific data.
+        df_general (pd.DataFrame | None): Dataframe of general data (None if the sheet is absent).
+        df_specific (pd.DataFrame | None): Dataframe of specific data (None if the sheet is absent).
         self.template_generator (ExcelInvoiceTemplateGenerator): Template generator for the Excelinvoice.
     """
     template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())  # type: ignore
@@ -530,14 +543,16 @@ class ExcelInvoiceFile:
         self.invoice_path = invoice_path
         self.dfexcelinvoice, self.df_general, self.df_specific = self.read()
 
-    def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
         """Reads the content of the Excel invoice file and returns it as three dataframes.
 
         Args:
             target_path (Optional[Path], optional): Path to the excelinvoice file(.xlsx) to be read. If not provided, uses the path from `self.invoice_path`. Defaults to None.
 
         Returns:
-            tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Three dataframes (dfexcelinvoice, df_general, df_specific).
+            tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
+                Three dataframes (dfexcelinvoice, df_general, df_specific). The general and specific sheets are ``None``
+                when the source workbook does not define the corresponding sheet.
 
         Raises:
             StructuredError: If the invoice file is missing, if multiple invoice-list sheets exist, or if no
@@ -563,34 +578,17 @@ class ExcelInvoiceFile:
                     emsg = "ERROR: multiple sheet in invoiceList files"
                     raise StructuredError(emsg)
                 ExcelInvoiceFile.check_intermittent_empty_rows(df)
-                dfexcelinvoice = self._process_invoice_sheet(df)
+                dfexcelinvoice = _process_invoice_sheet(df)
             elif sh_name == "generalTerm":
-                df_general = self._process_general_term_sheet(df)
+                df_general = _process_general_term_sheet(df)
             elif sh_name == "specificTerm":
-                df_specific = self._process_specific_term_sheet(df)
+                df_specific = _process_specific_term_sheet(df)
 
         if dfexcelinvoice is None:
             emsg = "ERROR: no sheet in invoiceList files"
             raise StructuredError(emsg)
 
         return dfexcelinvoice, df_general, df_specific
-
-    def _process_invoice_sheet(self, df: pd.DataFrame) -> pd.Series:
-        df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
-        hd1 = list(df.iloc[1, :].fillna(""))
-        hd2 = list(df.iloc[2, :].fillna(""))
-        df.columns = [f"{s1}/{s2}" if s1 else s2 for s1, s2 in zip(hd1, hd2)]
-        return df.iloc[4:, :].reset_index(drop=True).copy()
-
-    def _process_general_term_sheet(self, df: pd.DataFrame) -> pd.Series:
-        _df_general = df[1:].copy()
-        _df_general.columns = ["term_id", "key_name"]
-        return _df_general
-
-    def _process_specific_term_sheet(self, df: pd.DataFrame) -> pd.Series:
-        _df_specific = df[1:].copy()
-        _df_specific.columns = ["sample_class_id", "term_id", "key_name"]
-        return _df_specific
 
     @classmethod
     def generate_template(cls, invoice_schema_path: str | Path, save_path: str | Path, file_mode: Literal["file", "folder"] = "file") -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -732,7 +730,11 @@ class ExcelInvoiceFile:
 
     def _assign_sample_general(self, key: str, value: str, invoice_obj: dict, schema_obj: dict) -> None:
         cval = key.replace("sample.general/", "sample.general.")
-        term_id = self.df_general[self.df_general["key_name"] == cval]["term_id"].values[0]
+        df_general = self.df_general
+        if df_general is None:
+            emsg = "ERROR: generalTerm sheet is required to assign general attributes."
+            raise StructuredError(emsg)
+        term_id = df_general[df_general["key_name"] == cval]["term_id"].values[0]
         for dictobj in invoice_obj["sample"]["generalAttributes"]:
             if dictobj.get("termId") == term_id:
                 dictobj["value"] = value
@@ -740,7 +742,11 @@ class ExcelInvoiceFile:
 
     def _assign_sample_specific(self, key: str, value: str, invoice_obj: dict, schema_obj: dict) -> None:
         cval = key.replace("sample.specific/", "sample.specific.")
-        term_id = self.df_specific[self.df_specific["key_name"] == cval]["term_id"].values[0]
+        df_specific = self.df_specific
+        if df_specific is None:
+            emsg = "ERROR: specificTerm sheet is required to assign specific attributes."
+            raise StructuredError(emsg)
+        term_id = df_specific[df_specific["key_name"] == cval]["term_id"].values[0]
         for dictobj in invoice_obj["sample"]["specificAttributes"]:
             if dictobj.get("termId") == term_id:
                 dictobj["value"] = value

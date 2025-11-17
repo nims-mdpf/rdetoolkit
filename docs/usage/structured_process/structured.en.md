@@ -133,7 +133,7 @@ RDE structuring processing is a comprehensive framework for ensuring the quality
 
 After understanding the concepts of structuring processing, refer to the following practical guides:
 
-- Experience structuring processing with [Quick Start](../quickstart.en.md)
+- Experience structuring processing with [Quick Start](../../quick-start.en.md)
 - Learn details of each mode in [Processing Modes](../mode/mode.en.md)
 - Check customization methods in [Configuration Files](../config/config.en.md)
 - Learn troubleshooting in [Error Handling](errorhandling.en.md)

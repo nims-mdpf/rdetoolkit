@@ -19,8 +19,8 @@ jobs:
       matrix:
         target: [x86_64, i686]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Build wheels
@@ -31,7 +31,7 @@ jobs:
           manylinux: auto
           args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13 3.14
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist/*
@@ -44,8 +44,8 @@ jobs:
       matrix:
         target: [aarch64, armv7, s390x, ppc64le]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -56,7 +56,7 @@ jobs:
           manylinux: auto
           args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13 3.14
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist/*
@@ -71,8 +71,8 @@ jobs:
           - x86_64-unknown-linux-musl
           - i686-unknown-linux-musl
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -83,7 +83,7 @@ jobs:
           manylinux: musllinux_1_2
           args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13 3.14
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-musllinux-${{ matrix.target }}
           path: dist/*
@@ -100,8 +100,8 @@ jobs:
           - target: armv7-unknown-linux-musleabihf
             arch: armv7
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -112,7 +112,7 @@ jobs:
           manylinux: musllinux_1_2
           args: --release --out dist -i 3.9 3.10 3.11 3.12 3.13 3.14
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist/*
@@ -130,8 +130,8 @@ jobs:
             target: x86
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
@@ -143,7 +143,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-windows-${{ matrix.platform.target }}
           path: dist/*
@@ -160,8 +160,8 @@ jobs:
           - runner: macos-latest
             target: aarch64
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - name: Build wheels
@@ -172,7 +172,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist/*
@@ -182,14 +182,14 @@ jobs:
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: --out dist
       - name: Upload sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-sdist
           path: dist/*
@@ -202,7 +202,7 @@ jobs:
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: dist
           merge-multiple: true
@@ -223,7 +223,7 @@ jobs:
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: dist
           merge-multiple: true
@@ -248,7 +248,7 @@ jobs:
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: dist
           merge-multiple: true
@@ -274,13 +274,13 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download all the dists
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v6
         with:
           path: dist/
       - name: Sign the distribution 📦 with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        uses: sigstore/gh-action-sigstore-python@v3.1.0
         with:
           inputs: >-
             dist/**/*.whl

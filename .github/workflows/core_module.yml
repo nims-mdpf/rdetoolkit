@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' || ! (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install system Python 3.11 with headers
         run: |
@@ -35,7 +35,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3.11 python3.11-dev
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' || ! (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install system Python 3.11 + shared lib
         run: |
@@ -63,7 +63,7 @@ jobs:
           sudo apt-get install -y python3.11 python3.11-dev libpython3.11
           sudo ldconfig
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 

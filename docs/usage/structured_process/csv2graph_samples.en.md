@@ -6,7 +6,7 @@ Every sample's CSV file is available for direct download on this page. Pre-rende
 
 ## Sample 1: Basic Overlay Only
 
-This minimal example plots XRD intensity data and uses `--no-individual` so that only the overlay image is produced.
+This minimal example plots XRD intensity data and uses `--no-individual` so that only the overlay image is produced (pass `--individual` to force per-series images even on single-series CSVs).
 
 ### Data Overview
 
