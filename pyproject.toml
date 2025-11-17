@@ -39,6 +39,7 @@ dependencies = [
     "polars>=1.9.0",
     "pyarrow>=19.0.0",
     "pip>=24.3.1",
+    "rpds-py>=0.26",
     "markdown>=3.7",
     "types-pytz>=2025.2.0.20250326",
     "matplotlib>=3.9.4",
