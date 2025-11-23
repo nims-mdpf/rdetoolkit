@@ -19,7 +19,7 @@ jobs:
       startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup uv (Python 3.12)
         uses: astral-sh/setup-uv@v7
         with:

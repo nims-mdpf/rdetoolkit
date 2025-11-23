@@ -16,7 +16,7 @@ jobs:
     if: ${{ !(startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') ||
       startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup uv (Python 3.11)
         uses: astral-sh/setup-uv@v7
         with:
