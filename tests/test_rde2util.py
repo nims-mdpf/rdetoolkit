@@ -385,3 +385,44 @@ def test_metadata_validation_error(meta_const_instance):
     # Cases in which castval throws an error with invalid value
     with pytest.raises(StructuredError, match="ERROR: failed to cast metaDef value"):
         meta_const_instance.metadata_validation("abc", "integer", None, None, None)
+
+
+@pytest.mark.parametrize(
+    "valstr, expected",
+    [
+        # Test case for issue #292: Excel TRUE/FALSE string representations
+        ("TRUE", True),
+        ("FALSE", False),
+        ("true", True),
+        ("false", False),
+        ("True", True),
+        ("False", False),
+        ("TrUe", True),
+        ("FaLsE", False),
+        # Alternative boolean string representations
+        ("1", True),
+        ("0", False),
+        ("yes", True),
+        ("no", False),
+        ("YES", True),
+        ("NO", False),
+        # Empty string should be False
+        ("", False),
+        # Whitespace handling
+        ("  TRUE  ", True),
+        ("  FALSE  ", False),
+        ("  true  ", True),
+        ("  false  ", False),
+    ],
+)
+def test_castval_boolean_string_values(valstr, expected):
+    """Test castval function with boolean string values (issue #292)
+
+    This test verifies that string representations of boolean values
+    (especially from Excel files) are correctly converted to bool type.
+    Previously, bool("FALSE") would return True because any non-empty
+    string is truthy in Python.
+    """
+    result = castval(valstr, "boolean", None)
+    assert result == expected
+    assert isinstance(result, bool)
