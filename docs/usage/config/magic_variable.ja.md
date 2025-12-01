@@ -69,7 +69,7 @@ system:
     "dataName": "${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"
   },
   "custom": {
-    "batch": "${invoice:custom:batch}"
+    "batch": "B-9"
   },
   "sample": {
     "names": ["alpha", "", "beta"]

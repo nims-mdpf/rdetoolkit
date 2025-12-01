@@ -102,7 +102,7 @@ system:
   },
   "custom": {
     "project_code": "PRJ01",
-    "batch": "${invoice:custom:batch}"
+    "batch": "B-9"
   },
   "sample": {
     "names": ["alpha", "", "beta"]

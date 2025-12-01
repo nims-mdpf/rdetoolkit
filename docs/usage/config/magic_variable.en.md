@@ -69,7 +69,7 @@ Insert the variables inside `invoice.json` (or a SmartTable-generated invoice) b
   },
   "custom": {
     "project_code": "PRJ",
-    "batch": "${invoice:custom:batch}"
+    "batch": "B-9"
   },
   "sample": {
     "names": ["alpha", "", "beta"]
