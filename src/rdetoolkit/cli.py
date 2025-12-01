@@ -8,7 +8,7 @@ import click
 from click.core import ParameterSource
 
 from rdetoolkit.cmd.archive import CreateArtifactCommand
-from rdetoolkit.cmd.command import InitCommand, VersionCommand
+from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig, VersionCommand
 from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
 from rdetoolkit.cmd.gen_config import (
     GenerateConfigCommand,
@@ -24,9 +24,97 @@ def cli() -> None:
 
 
 @click.command()
-def init() -> None:
+@click.option(
+    "--template",
+    "template_path",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Optional template configuration (pyproject.toml or rdeconfig.yaml) used to seed generated files.",
+)
+@click.option(
+    "--entry-point",
+    "entry_point_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template main.py used instead of the default entry point.",
+)
+@click.option(
+    "--modules",
+    "modules_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template file or directory copied into container/modules.",
+)
+@click.option(
+    "--tasksupport",
+    "tasksupport_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template file or directory copied into tasksupport folders.",
+)
+@click.option(
+    "--inputdata",
+    "inputdata_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template directory copied into container/data/inputdata and input/inputdata.",
+)
+@click.option(
+    "--other",
+    "other_templates",
+    multiple=True,
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Additional template files or directories copied under container/ (can be passed multiple times).",
+)
+def init(
+    template_path: pathlib.Path | None,
+    entry_point_template: pathlib.Path | None,
+    modules_template: pathlib.Path | None,
+    tasksupport_template: pathlib.Path | None,
+    inputdata_template: pathlib.Path | None,
+    other_templates: tuple[pathlib.Path, ...],
+) -> None:
     """Output files needed to build RDE structured programs."""
-    cmd = InitCommand()
+    cli_templates = InitTemplateConfig(
+        entry_point=entry_point_template,
+        modules=modules_template,
+        tasksupport=tasksupport_template,
+        inputdata=inputdata_template,
+        other=list(other_templates) if other_templates else None,
+    )
+    cli_template_config = cli_templates if cli_templates.has_templates() else None
+    cmd = InitCommand(template_path=template_path, cli_template_config=cli_template_config)
     cmd.invoke()
 
 
