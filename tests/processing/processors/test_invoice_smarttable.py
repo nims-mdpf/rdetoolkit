@@ -189,6 +189,48 @@ class TestSmartTableInvoiceInitializerIntegration:
         assert invoice_data['custom']['sample2'] == 3.14
         assert invoice_data['custom']['sample3'] == 1
 
+    def test_process_boolean_conversion_with_schema(self, smarttable_processing_context):
+        """Test boolean type conversion for custom fields using schema (issue #292).
+
+        This test verifies that Excel TRUE/FALSE values are correctly converted
+        to boolean type when written to invoice.json via SmartTable.
+        Previously, both TRUE and FALSE were converted to True due to Python's
+        bool() behavior with non-empty strings.
+        """
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+
+        # Create CSV with boolean string values (as they come from Excel with dtype=str)
+        csv_data = pd.DataFrame({
+            'custom/invert_phase_axis': ['FALSE'],  # Should be False
+            'custom/enable_feature': ['TRUE'],      # Should be True
+            'custom/flag_lowercase': ['true'],      # Should be True
+            'custom/flag_mixed': ['False'],         # Should be False
+        })
+
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        processor.process(context)
+
+        # Read and verify boolean conversions
+        invoice_path = context.invoice_dst_filepath
+        with open(invoice_path) as f:
+            invoice_data = json.load(f)
+
+        # Verify that FALSE is correctly converted to False (not True)
+        assert invoice_data['custom']['invert_phase_axis'] is False
+        assert isinstance(invoice_data['custom']['invert_phase_axis'], bool)
+
+        # Verify that TRUE is correctly converted to True
+        assert invoice_data['custom']['enable_feature'] is True
+        assert isinstance(invoice_data['custom']['enable_feature'], bool)
+
+        # Verify case-insensitive handling
+        assert invoice_data['custom']['flag_lowercase'] is True
+        assert invoice_data['custom']['flag_mixed'] is False
+
     def test_process_no_rawfiles(self, smarttable_processing_context):
         """Test process raises StructuredError when no raw files exist."""
         processor = SmartTableInvoiceInitializer()
