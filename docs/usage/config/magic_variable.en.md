@@ -16,24 +16,35 @@ In structuring processing, we faced the following issues:
 
 The Magic Variable feature was created to solve these problems.
 
-## Core Concept
+## How to Use Magic Variables
 
-### How Magic Variables Work
+When you include variables listed under **Supported Variables**, RDE structured processing automatically completes the dataset name according to the rules below. For local testing, set up Magic Variables inside `invoice.json` in advance (see the examples later).
 
-```mermaid
-flowchart LR
-    A[JSON file] --> B[${filename}]
-    C[Actual file name] --> D[sample.csv]
-    B --> E[Substitution process]
-    D --> E
-    E --> F[sample.csv]
-```
+![docs/img/magic_filename.svg]
 
 ### Supported Variables
 
-| Variable Name | Description                     | Example                 |
-| ------------- | ------------------------------- | ----------------------- |
-| `${filename}` | File name without the extension | `sample.csv` → `sample` |
+| Variable Name                       | Description                                                                                      | Example                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `${filename}`                       | Raw file name including the extension                                                            | `sample.csv` → `sample.csv`                           |
+| `${invoice:basic:<field>}`          | Value copied from the `basic` node of the source invoice (`invoice_org`)                         | `${invoice:basic:experimentId}` → `EXP-42`            |
+| `${invoice:custom:<field>}`         | Value copied from the `custom` node of the source invoice                                        | `${invoice:custom:batchId}` → `BATCH-001`             |
+| `${invoice:sample:names}`           | All non-empty entries under `sample.names` joined with `_`                                       | `["alpha", "", "beta"]` → `alpha_beta`                |
+| `${metadata:constant:<field>}`      | Constant value from `metadata.json` (`paths.meta / metadata.json`)                               | `${metadata:constant:project_code}` → `PJT-001`       |
+
+> **Note:** The `${metadata:variable:<field>}` pattern remains unsupported because runtime values can change between jobs.
+
+### Invoice-Driven Variables
+
+Invoice lookups always read from `invoice_org` so the template can refer to original user input. Missing fields raise an error, while empty strings are skipped with a warning (and underscores are collapsed to avoid `__`).
+
+- `basic` fields cover properties such as `dataName`, `experimentId`, or `dateSubmitted`.
+- `custom` fields are copied verbatim according to the schema you defined in `invoice.schema.json`.
+- `sample.names` joins every non-empty string in the array. An empty array triggers an error to keep filenames meaningful.
+
+### Metadata Constants
+
+`${metadata:constant:<field>}` pulls values from `metadata.json` located at `RdeDatasetPaths.meta / metadata.json`. The constant must exist and include a `value`. Failing to resolve a constant (missing file or key) raises a `StructuredError` so the workflow cannot silently proceed with bad data.
 
 ## How to Set It Up
 
@@ -48,23 +59,45 @@ system:
 
 ### 2. Use in JSON Files
 
-Insert the variable in metadata files or any other JSON files:
+Insert the variables inside `invoice.json` (or a SmartTable-generated invoice) by combining multiple sources:
 
-```json title="metadata.json"
+```json title="invoice.json"
 {
-  "data_name": "${filename}"
+  "basic": {
+    "experimentId": "EXP-42",
+    "dataName": "${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"
+  },
+  "custom": {
+    "project_code": "PRJ",
+    "batch": "${invoice:custom:batch}"
+  },
+  "sample": {
+    "names": ["alpha", "", "beta"]
+  }
 }
 ```
 
 ### 3. Verify the Processing Result
 
-When the Magic Variable feature is enabled, the substitution will look like this:
+When the feature is enabled and `metadata.json` contains `{"constant": {"project_code": {"value": "PRJ01"}}}`, the substitution looks like this:
 
-```json title="metadata after processing.json"
+```json title="invoice after processing.json"
 {
-  "data_name": "sample.csv"
+  "basic": {
+    "experimentId": "EXP-42",
+    "dataName": "EXP-42_PRJ01_alpha_beta_sample.csv"
+  },
+  "custom": {
+    "project_code": "PRJ",
+    "batch": "B-9"
+  },
+  "sample": {
+    "names": ["alpha", "", "beta"]
+  }
 }
 ```
+
+If a referenced field is missing the processor raises a `StructuredError`. Empty strings are skipped with a warning and surrounding underscores are collapsed automatically.
 
 ## Summary
 
@@ -73,7 +106,7 @@ Key benefits of the Magic Variable feature:
 - **Automation**: Automatic substitution of file names and timestamps.
 - **Consistency**: Guarantees consistent information across multiple entries.
 - **Efficiency**: Greatly reduces manual entry work.
-- **Dynamic values**: Enables dynamic generation of timestamps and dates.
+- **Context awareness**: Pulls identifiers from both the invoice (`basic`, `custom`, `sample.names`) and `metadata.json`.
 
 ## Next Steps
 

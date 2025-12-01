@@ -15,24 +15,37 @@ RDEToolKitのMagic Variable機能について説明します。ファイル名�
 
 これらの課題を解決するために、Magic Variable機能が開発されました。
 
-## 主要コンセプト
+## Magic Variableの使い方
 
-### Magic Variableの仕組み
+RDEデータ登録時に、`サポートされる変数`記載の変数を指定すると、ルールに従ってRDE構造化処理内でデータセット名が自動補完されます。
 
-```mermaid
-flowchart LR
-    A[JSONファイル] --> B[${filename}]
-    C[実際のファイル名] --> D[sample.csv]
-    B --> E[置換処理]
-    D --> E
-    E --> F[sample.csv]
-```
+ローカルでテストする際は、invoice.jsonに事前にMagic Variableを設定してください。(後述)
 
-### サポートされる変数
+![docs/img/magic_filename.svg]
 
-| 変数名        | 説明                     | 例                      |
-| ------------- | ------------------------ | ----------------------- |
-| `${filename}` | 拡張子を除いたファイル名 | `sample.csv` → `sample` |
+## サポートされる変数
+
+| 変数名                           | 説明                                                                                | 例                                             |
+| -------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `${filename}`                    | 拡張子を含んだ元ファイル名                                                          | `sample.csv` → `sample.csv`                    |
+| `${invoice:basic:<field>}`       | `invoice_org` の `basic` 配下の値                                                   | `${invoice:basic:experimentId}` → `EXP-42`     |
+| `${invoice:custom:<field>}`      | `invoice_org` の `custom` 配下の値                                                  | `${invoice:custom:batch}` → `B-9`              |
+| `${invoice:sample:names}`        | `sample.names` に含まれる空でない文字列を `_` で連結                                | `["alpha", "", "beta"]` → `alpha_beta`         |
+| `${metadata:constant:<field>}`   | `metadata.json` (`paths.meta / metadata.json`) の `constant.<field>.value` の値     | `${metadata:constant:project_code}` → `PRJ01`  |
+
+> **注意:** `metadata:variable:<field>` は実行時に値が変化するため、Magic Variableではサポートしません。
+
+### 送り状定義の変数を指定する場合
+
+Invoice関連の参照は常に `invoice_org` を対象にし、ユーザーが入力した値をそのまま利用します。存在しないフィールドを参照すると `StructuredError` が発生し、値が空文字のときは警告を記録した上で置換をスキップし、連続した `_` が出ないよう自動調整します。
+
+- `basic` 配下では `experimentId` や `dateSubmitted` などを再利用できます。
+- `custom` 配下では `invoice.schema.json` で定義した任意のキーが対象です。
+- `sample.names` は空でない要素だけを `_` で連結します。配列が空の場合はエラーになります。
+
+## メタデータ定数を指定する場合
+
+`${metadata:constant:<field>}` は `RdeDatasetPaths.meta / metadata.json` に保存された `constant` の値を参照します。ファイルやキーが存在しない場合は `StructuredError` が発生し、ワークフローは中断されます。
 
 ## 設定方法
 
@@ -47,23 +60,43 @@ system:
 
 ### 2. JSONファイルでの使用
 
-メタデータファイルやその他のJSONファイルで変数を使用します：
+メタデータファイルや送り状で複数の変数を組み合わせます：
 
-```json title="metadata.json"
+```json title="invoice.json"
 {
-  "data_name": "${filename}",
+  "basic": {
+    "experimentId": "EXP-42",
+    "dataName": "${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"
+  },
+  "custom": {
+    "batch": "${invoice:custom:batch}"
+  },
+  "sample": {
+    "names": ["alpha", "", "beta"]
+  }
 }
 ```
 
 ### 3. 処理結果の確認
 
-Magic Variable機能が有効な場合、以下のように置換されます：
+`metadata.json` に `{"constant": {"project_code": {"value": "PRJ01"}}}` が含まれている場合、以下のように置換されます：
 
-```json title="処理後のmetadata.json"
+```json title="処理後のinvoice.json"
 {
-  "data_name": "sample.csv",
+  "basic": {
+    "experimentId": "EXP-42",
+    "dataName": "EXP-42_PRJ01_alpha_beta_sample.csv"
+  },
+  "custom": {
+    "batch": "B-9"
+  },
+  "sample": {
+    "names": ["alpha", "", "beta"]
+  }
 }
 ```
+
+存在しないフィールドを参照した場合は例外が発生し、値が空文字のときは警告が出力されて置換はスキップされます（`__` のような連続したアンダースコアは自動的に抑制されます）。
 
 ## まとめ
 
@@ -72,7 +105,7 @@ Magic Variable機能の主要な特徴：
 - **自動化**: ファイル名やタイムスタンプの自動置換
 - **一貫性**: 複数エントリでの情報の一貫性確保
 - **効率性**: 手動入力作業の大幅削減
-- **動的値**: タイムスタンプや日付の動的生成
+- **コンテキスト活用**: Invoiceの `basic/custom/sample.names` や `metadata.json` の値を動的に組み合わせ可能
 
 ## 次のステップ
 

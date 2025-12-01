@@ -93,7 +93,7 @@ system:
 
 #### **magic_variable**
 
-Enables dynamic filename substitution. When active, magic variables such as `${filename}` can be used in an invoice, and the data tile name is automatically replaced with the actual file name.
+Enables dynamic substitution inside `invoice.json`. Besides `${filename}`, you can reference values from `invoice_org` (`${invoice:basic:<field>}`, `${invoice:custom:<field>}`, `${invoice:sample:names}`) and constants in `metadata.json` (`${metadata:constant:<field>}`).
 
 - **type:** `bool`
 - **default:** `false`
@@ -104,7 +104,7 @@ system:
   magic_variable: false  # disable substitution (default)
 ```
 
-**Example** – Using a magic variable in an invoice:
+**Example** – Combining invoice, metadata, and filename:
 
 *Invoice before processing* (`20250101_sample_data.dat` is the file being registered)
 
@@ -114,12 +114,15 @@ system:
   "basic": {
     "dateSubmitted": "2025-01-01",
     "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
-    "dataName": "${filename}",
-    "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
-    "experimentId": null,
-    "description": "",
-    "dataset_title": "xrd",
-    "dataOwner": "Sample,Username"
+    "experimentId": "EXP-42",
+    "dataName": "${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"
+  },
+  "custom": {
+    "project_code": "PRJ01",
+    "batch": "${invoice:custom:batch}"
+  },
+  "sample": {
+    "names": ["alpha", "", "beta"]
   }
   /* … */
 }
@@ -133,12 +136,12 @@ system:
   "basic": {
     "dateSubmitted": "2025-01-01",
     "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
-    "dataName": "20250101_sample_data.dat",
-    "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
-    "experimentId": null,
-    "description": "",
-    "dataset_title": "xrd",
-    "dataOwner": "Sample,Username"
+    "experimentId": "EXP-42",
+    "dataName": "EXP-42_PRJ01_alpha_beta_20250101_sample_data.dat"
+  },
+  "custom": {
+    "project_code": "PRJ01",
+    "batch": "B-9"
   }
   /* … */
 }
