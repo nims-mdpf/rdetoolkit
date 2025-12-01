@@ -1053,6 +1053,9 @@ class RuleBasedReplacer:
 class MagicVariableResolver:
     """Resolve and expand supported magic-variable expressions."""
 
+    MIN_INVOICE_FIELD_SEGMENTS = 2
+    MIN_METADATA_SEGMENTS = 2
+
     def __init__(
         self,
         *,
@@ -1130,7 +1133,7 @@ class MagicVariableResolver:
             raise StructuredError(emsg)
 
         if section in {"basic", "custom"}:
-            if len(segments) < 2:
+            if len(segments) < self.MIN_INVOICE_FIELD_SEGMENTS:
                 emsg = f"Magic variable '{expression}' requires a field name"
                 raise StructuredError(emsg)
             field = segments[1]
@@ -1189,7 +1192,7 @@ class MagicVariableResolver:
             emsg = f"metadata.json is required to resolve '{expression}'"
             raise StructuredError(emsg)
 
-        if len(segments) < 2:
+        if len(segments) < self.MIN_METADATA_SEGMENTS:
             emsg = f"Magic variable '{expression}' requires a constant key"
             raise StructuredError(emsg)
 
@@ -1243,6 +1246,25 @@ def apply_default_filename_mapping_rule(replacement_rule: dict[str, Any], save_f
     return replacer.last_apply_result
 
 
+def _load_metadata(dataset_paths: RdeDatasetPaths | None) -> dict[str, Any] | None:
+    """Load metadata.json when dataset paths are available.
+
+    Args:
+        dataset_paths: Dataset paths that may include a metadata directory.
+
+    Returns:
+        Parsed metadata contents when the file exists; otherwise None.
+    """
+    if dataset_paths is None:
+        return None
+
+    metadata_path = dataset_paths.meta.joinpath("metadata.json")
+    if not metadata_path.exists():
+        return None
+
+    return readf_json(metadata_path)
+
+
 def apply_magic_variable(
     invoice_path: str | Path,
     rawfile_path: str | Path,
@@ -1269,14 +1291,9 @@ def apply_magic_variable(
     Raises:
         StructuredError: If required fields or metadata are missing for a referenced magic variable.
     """
-    if isinstance(invoice_path, str):
-        invoice_path = Path(invoice_path)
-    if isinstance(rawfile_path, str):
-        rawfile_path = Path(rawfile_path)
-    if save_filepath is None:
-        save_filepath = invoice_path
-    elif isinstance(save_filepath, str):
-        save_filepath = Path(save_filepath)
+    invoice_path = Path(invoice_path)
+    rawfile_path = Path(rawfile_path)
+    destination_path = Path(save_filepath) if save_filepath is not None else invoice_path
 
     invoice_contents = readf_json(invoice_path)
     basic_section = invoice_contents.get("basic")
@@ -1289,17 +1306,10 @@ def apply_magic_variable(
         # No magic variables to apply.
         return {}
 
-    invoice_source_path = invoice_path
-    if dataset_paths is not None:
-        invoice_source_path = dataset_paths.invoice_org
-
+    invoice_source_path = dataset_paths.invoice_org if dataset_paths is not None else invoice_path
     invoice_source = readf_json(invoice_source_path)
 
-    metadata_contents: dict[str, Any] | None = None
-    if dataset_paths is not None:
-        metadata_path = dataset_paths.meta.joinpath("metadata.json")
-        if metadata_path.exists():
-            metadata_contents = readf_json(metadata_path)
+    metadata_contents = _load_metadata(dataset_paths)
 
     resolver = MagicVariableResolver(
         rawfile_path=rawfile_path,
@@ -1312,7 +1322,7 @@ def apply_magic_variable(
         raise StructuredError(emsg)
 
     basic_section["dataName"] = resolved_name
-    writef_json(save_filepath, invoice_contents)
+    writef_json(destination_path, invoice_contents)
     return invoice_contents
 
 
