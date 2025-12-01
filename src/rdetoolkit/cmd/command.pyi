@@ -12,8 +12,25 @@ logger: Incomplete
 class Command(click.Command):
     def __init__(self, name: str, **attrs: Any) -> None: ...
 
+class InitTemplateError(Exception): ...
+
+class InitTemplateConfig:
+    entry_point: Path | None
+    modules: Path | None
+    tasksupport: Path | None
+    inputdata: Path | None
+    def has_templates(self) -> bool: ...
+
+class InitTemplateLoader:
+    SUPPORTED_FILENAMES: Incomplete
+    template_path: Path
+    def __init__(self, template_path: Path) -> None: ...
+    def load(self) -> InitTemplateConfig: ...
+
 class InitCommand:
     default_dirs: Incomplete
+    template_path: Path | None
+    def __init__(self, template_path: Path | None = ...) -> None: ...
     def invoke(self) -> None: ...
 
 class VersionCommand:
