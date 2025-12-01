@@ -732,6 +732,14 @@ def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int 
         outfmt (str): Formatting at output (related to date data)
     """
     if outtype == "boolean":
+        # Handle string representations of boolean values (e.g., "TRUE"/"FALSE" from Excel)
+        if isinstance(valstr, str):
+            valstr_lower = valstr.strip().lower()
+            if valstr_lower in ("true", "1", "yes"):
+                return True
+            if valstr_lower in ("false", "0", "no", ""):
+                return False
+        # Fallback to standard boolean conversion for non-string values
         if ValueCaster.trycast(valstr, bool) is not None:
             return bool(valstr)
 
