@@ -413,7 +413,7 @@ class InitCommand:
 
     def __apply_other_templates(self, sources: list[Path], container_dir: Path) -> None:
         for source in sources:
-            destination = container_dir / source.name if source.is_dir() else container_dir
+            destination = container_dir / source.name
             self.__populate_from_template(source, destination)
 
     def __populate_from_template(self, source: Path, destination: Path) -> None:
