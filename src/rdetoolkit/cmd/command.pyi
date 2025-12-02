@@ -19,6 +19,7 @@ class InitTemplateConfig:
     modules: Path | None
     tasksupport: Path | None
     inputdata: Path | None
+    other: list[Path] | None
     def has_templates(self) -> bool: ...
 
 class InitTemplateLoader:
