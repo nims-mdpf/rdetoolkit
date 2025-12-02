@@ -9,7 +9,7 @@ from typing import Any
 
 import click
 import yaml
-from tomlkit import document, table
+from tomlkit import document
 from tomlkit.toml_file import TOMLFile
 
 from rdetoolkit import __version__
