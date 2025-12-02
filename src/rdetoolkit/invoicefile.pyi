@@ -2,7 +2,7 @@ import pandas as pd
 from _typeshed import Incomplete as Incomplete
 from pathlib import Path
 from rdetoolkit.models.invoice import FixedHeaders as FixedHeaders, GeneralAttributeConfig as GeneralAttributeConfig, SpecificAttributeConfig as SpecificAttributeConfig, TemplateConfig as TemplateConfig
-from rdetoolkit.models.rde2types import RdeFsPath as RdeFsPath, RdeOutputResourcePath as RdeOutputResourcePath
+from rdetoolkit.models.rde2types import RdeDatasetPaths as RdeDatasetPaths, RdeFsPath as RdeFsPath, RdeOutputResourcePath as RdeOutputResourcePath
 from typing import Any, Literal, Protocol
 
 STATIC_DIR: Incomplete
@@ -70,7 +70,14 @@ class RuleBasedReplacer:
     def write_rule(self, replacements_rule: dict[str, Any], save_file_path: str | Path) -> str: ...
 
 def apply_default_filename_mapping_rule(replacement_rule: dict[str, Any], save_file_path: str | Path) -> dict[str, Any]: ...
-def apply_magic_variable(invoice_path: str | Path, rawfile_path: str | Path, *, save_filepath: str | Path | None = None) -> dict[str, Any]: ...
+def apply_magic_variable(invoice_path: str | Path, rawfile_path: str | Path, *, save_filepath: str | Path | None = None, dataset_paths: RdeDatasetPaths | None = None) -> dict[str, Any]: ...
+
+class MagicVariableResolver:
+    rawfile_path: Path
+    invoice_source: dict[str, Any]
+    metadata_source: dict[str, Any] | None
+    def __init__(self, *, rawfile_path: Path, invoice_source: dict[str, Any], metadata_source: dict[str, Any] | None) -> None: ...
+    def expand(self, template: str) -> str: ...
 
 class SmartTableFile:
     smarttable_path: Incomplete
