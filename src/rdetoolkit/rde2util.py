@@ -744,7 +744,7 @@ def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int 
         # Fallback to standard boolean conversion for non-string values
         return bool(valstr)
 
-    elif outtype in ("integer", "number"):
+    if outtype in ("integer", "number"):
         # Even if a string with units is passed, the assignment of units is not handled in this function. Assign units separately as necessary.
         val_unit_pair = _split_value_unit(valstr)
         if ValueCaster.trycast(val_unit_pair.value, int) is not None:

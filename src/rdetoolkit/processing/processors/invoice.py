@@ -271,6 +271,53 @@ class SmartTableInvoiceInitializer(Processor):
             # inputdata columns are handled separately for file mapping
             pass
 
+    def _clear_mapping_key(self, key: str, invoice_data: dict[str, Any]) -> None:
+        """Clear existing invoice data for the given mapping key to avoid stale inheritance."""
+        if key.startswith("basic/"):
+            field = key.replace("basic/", "")
+            invoice_data.setdefault("basic", {}).pop(field, None)
+            return
+
+        if key.startswith("custom/"):
+            field = key.replace("custom/", "")
+            invoice_data.setdefault("custom", {}).pop(field, None)
+            return
+
+        if key.startswith("sample/generalAttributes."):
+            term_id = key.replace("sample/generalAttributes.", "")
+            sample_section = invoice_data.setdefault("sample", {})
+            existing = sample_section.get("generalAttributes") or []
+            sample_section["generalAttributes"] = [
+                attr for attr in existing if attr.get("termId") != term_id
+            ]
+            return
+
+        if key.startswith("sample/specificAttributes."):
+            parts = key.replace("sample/specificAttributes.", "").split(".", 1)
+            required_parts = 2
+            if len(parts) == required_parts:
+                class_id, term_id = parts
+                sample_section = invoice_data.setdefault("sample", {})
+                existing = sample_section.get("specificAttributes") or []
+                sample_section["specificAttributes"] = [
+                    attr
+                    for attr in existing
+                    if not (
+                        attr.get("classId") == class_id
+                        and attr.get("termId") == term_id
+                    )
+                ]
+            return
+
+        if key.startswith("sample/"):
+            field = key.replace("sample/", "")
+            invoice_data.setdefault("sample", {}).pop(field, None)
+
+    def _is_invoice_mapping(self, key: str) -> bool:
+        """Return True when the mapping key targets invoice fields (not meta/inputdata)."""
+        invoice_prefixes = ("basic/", "custom/", "sample/")
+        return key.startswith(invoice_prefixes)
+
     def _process_general_attributes(self, key: str, value: str, invoice_data: dict[str, Any]) -> None:
         """Process sample/generalAttributes.<termId> mapping."""
         term_id = key.replace("sample/generalAttributes.", "")
@@ -311,8 +358,8 @@ class SmartTableInvoiceInitializer(Processor):
                 invoice_data["sample"]["specificAttributes"].append({
                     "classId": class_id,
                     "termId": term_id,
-                "value": value,
-            })
+                    "value": value,
+                })
 
     def _ensure_required_fields(self, invoice_data: dict) -> None:
         """Ensure required fields are present in invoice data."""
@@ -333,6 +380,8 @@ class SmartTableInvoiceInitializer(Processor):
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]
             if pd.isna(value) or value == "":
+                if self._is_invoice_mapping(col):
+                    self._clear_mapping_key(col, invoice_data)
                 continue
             if col.startswith("meta/"):
                 if not context.metadata_def_path.exists():
