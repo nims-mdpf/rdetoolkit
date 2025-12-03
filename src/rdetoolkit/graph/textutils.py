@@ -112,7 +112,7 @@ def _split_series(text: str) -> tuple[str | None, str]:
     return None, _text
 
 
-def parse_header(header: str) -> tuple[str | None, str, str | None]:
+def parse_header(header: str, *, humanize: bool = True) -> tuple[str | None, str, str | None]:
     """Parse header into series name, label name, and unit.
 
     Expected formats:
@@ -120,10 +120,12 @@ def parse_header(header: str) -> tuple[str | None, str, str | None]:
     - "label_name (unit)" → (None, label, unit)
     - "label_name" → (None, label, None)
 
-    Label names in lower_snake_case are automatically humanized.
+    Label names in lower_snake_case are automatically humanized when requested.
 
     Args:
         header: The header string to parse.
+        humanize: Whether to titleize series/label parts when they appear to be
+            machine-formatted.
 
     Returns:
         Tuple of (series_name, label_name, unit).
@@ -146,9 +148,10 @@ def parse_header(header: str) -> tuple[str | None, str, str | None]:
     label_raw, unit = _split_unit(header)
     series, label = _split_series(label_raw)
 
-    if series and ("_" in series or series[0].islower()):
-        series = titleize(series)
-    if label and ("_" in label or label[0].islower()):
-        label = titleize(label)
+    if humanize:
+        if series and ("_" in series or series[0].islower()):
+            series = titleize(series)
+        if label and ("_" in label or label[0].islower()):
+            label = titleize(label)
 
     return series, label, unit
