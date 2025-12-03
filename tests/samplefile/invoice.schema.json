@@ -120,6 +120,38 @@
           "type": "string",
           "default": "S10",
           "const": "S10"
+        },
+        "invert_phase_axis": {
+          "label": {
+            "ja": "反転フェーズ軸",
+            "en": "Invert Phase Axis"
+          },
+          "type": "boolean",
+          "description": "Whether to invert the phase axis when processing results."
+        },
+        "enable_feature": {
+          "label": {
+            "ja": "機能を有効化",
+            "en": "Enable Feature"
+          },
+          "type": "boolean",
+          "description": "Flag to enable an experimental SmartTable feature."
+        },
+        "flag_lowercase": {
+          "label": {
+            "ja": "フラグ（小文字）",
+            "en": "Flag Lowercase"
+          },
+          "type": "boolean",
+          "description": "Boolean flag used for lowercase TRUE/FALSE conversion tests."
+        },
+        "flag_mixed": {
+          "label": {
+            "ja": "フラグ（大小混在）",
+            "en": "Flag Mixed"
+          },
+          "type": "boolean",
+          "description": "Boolean flag used for mixed-case TRUE/FALSE conversion tests."
         }
       }
     },
