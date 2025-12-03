@@ -6,6 +6,7 @@ from typing import Any
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
+from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter, NullLocator
 
 from rdetoolkit.graph.models import Direction, PlotConfig
 from rdetoolkit.graph.config import apply_matplotlib_config
@@ -242,8 +243,10 @@ class MatplotlibRenderer:
 
         if config.x_axis.scale == "log":
             ax.set_xscale("log")
+            self._apply_log_axis_formatting(ax.xaxis)
         if config.y_axis.scale == "log":
             ax.set_yscale("log")
+            self._apply_log_axis_formatting(ax.yaxis)
 
         if config.x_axis.lim:
             ax.set_xlim(config.x_axis.lim)
@@ -571,6 +574,15 @@ class MatplotlibRenderer:
         except (TypeError, ValueError):
             numeric = 12.0
         return max(8, numeric - 2)
+
+    @staticmethod
+    def _apply_log_axis_formatting(axis: Any) -> None:
+        """Use decade-only major ticks with mathtext formatting for log axes."""
+        axis.set_major_locator(LogLocator(base=10, subs=(1.0,)))
+        axis.set_minor_locator(NullLocator())
+        axis.set_major_formatter(LogFormatterMathtext(base=10, labelOnlyBase=True))
+        axis.set_minor_formatter(NullFormatter())
+
 
 def _resolve_column_index(df: pd.DataFrame, column: int | str) -> int:
     """Resolve a column specification (index or name) into a column index."""
