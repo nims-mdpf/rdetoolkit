@@ -9,6 +9,7 @@ class Csv2GraphCommand:
     csv_path: Incomplete
     output_dir: Incomplete
     main_image_dir: Incomplete
+    html_output_dir: Incomplete
     csv_format: Incomplete
     logy: Incomplete
     logx: Incomplete
@@ -29,5 +30,5 @@ class Csv2GraphCommand:
     invert_y: Incomplete
     no_individual: Incomplete
     max_legend_items: Incomplete
-    def __init__(self, csv_path: pathlib.Path, output_dir: pathlib.Path | None = None, main_image_dir: pathlib.Path | None = None, csv_format: Literal['standard', 'transpose', 'noheader'] = 'standard', logy: bool = False, logx: bool = False, html: bool = False, mode: Literal['overlay', 'individual'] = 'overlay', x_col: list[int | str] | None = None, y_cols: list[int | str] | None = None, direction_cols: list[int | str] | None = None, direction_filter: list[str] | None = None, direction_colors: dict[str, str] | None = None, title: str | None = None, legend_info: str | None = None, legend_loc: str | None = None, xlim: tuple[float, float] | None = None, ylim: tuple[float, float] | None = None, grid: bool = False, invert_x: bool = False, invert_y: bool = False, no_individual: bool = False, max_legend_items: int | None = None) -> None: ...
+    def __init__(self, csv_path: pathlib.Path, output_dir: pathlib.Path | None = None, main_image_dir: pathlib.Path | None = None, html_output_dir: pathlib.Path | None = None, csv_format: Literal['standard', 'transpose', 'noheader'] = 'standard', logy: bool = False, logx: bool = False, html: bool = False, mode: Literal['overlay', 'individual'] = 'overlay', x_col: list[int | str] | None = None, y_cols: list[int | str] | None = None, direction_cols: list[int | str] | None = None, direction_filter: list[str] | None = None, direction_colors: dict[str, str] | None = None, title: str | None = None, legend_info: str | None = None, legend_loc: str | None = None, xlim: tuple[float, float] | None = None, ylim: tuple[float, float] | None = None, grid: bool = False, invert_x: bool = False, invert_y: bool = False, no_individual: bool | None = None, max_legend_items: int | None = None) -> None: ...
     def invoke(self) -> None: ...
