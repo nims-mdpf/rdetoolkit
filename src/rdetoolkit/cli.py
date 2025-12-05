@@ -30,7 +30,7 @@ def cli() -> None:
     type=click.Path(
         exists=True,
         dir_okay=True,
-        file_okay=True,
+        file_okay=False,
         resolve_path=True,
         path_type=pathlib.Path,
     ),
