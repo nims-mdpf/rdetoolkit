@@ -23,7 +23,7 @@ Series naming follows the sanitised `title`/`name` parameter; individual plots a
 ## Output Artifacts
 
 - Matplotlib renders PNG files by default. Additional formats can be supplied through the builder pipeline, but the public API currently emits PNG.
-- When `html=True` (and overlay plots are enabled), a Plotly figure is produced and saved as `{base}.html` inside `output_dir`.
+- When `html=True` (and overlay plots are enabled), a Plotly figure is produced. `csv2graph()` saves `{base}.html` next to the source CSV even if `output_dir` points elsewhere; override with `html_output_dir`/`--html-output-dir`. `plot_from_dataframe()` defaults the HTML destination to `output_dir` unless `html_output_dir` is provided.
 - Set `main_image_dir` to move non-HTML overlay outputs (for example the representative PNG) into a separate directory. Individual PNGs always live under `output_dir`.
 - Directories are created on demand, and filenames are validated to prevent path traversal.
 - If `return_fig=True` (available in `plot_from_dataframe()`), no files are written; instead a list of `MatplotlibArtifact` items is returned for the non-HTML artifacts.
@@ -121,7 +121,7 @@ csv2graph(
         "Discharge": "#4ECDC4",
     },
     legend_info="Cell: 18650\n25C",
-    html=True,  # saves battery.html alongside PNG in output_dir
+    html=True,  # saves battery.html next to the CSV by default
 )
 ```
 
@@ -157,6 +157,8 @@ csv2graph(
     grid=True,
 )
 ```
+
+- Use `html_output_dir` (CLI: `--html-output-dir`) to move the HTML output away from the CSV directory when needed (for example, keep it under `data/structured` while PNGs live in `data/other_image`).
 
 ### Plotting from a DataFrame
 

@@ -154,6 +154,11 @@ def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list
 @click.argument("csv_path", type=click.Path(exists=False, dir_okay=False, path_type=pathlib.Path))
 @click.option("--output-dir", "-o", type=click.Path(path_type=pathlib.Path), help="Output directory for plots")
 @click.option("--main-image-dir", type=click.Path(path_type=pathlib.Path), help="Directory for combined plot outputs")
+@click.option(
+    "--html-output-dir",
+    type=click.Path(path_type=pathlib.Path),
+    help="Directory for HTML outputs (defaults to the CSV directory)",
+)
 @click.option("--csv-format", type=click.Choice(["standard", "transpose", "noheader"]), default="standard", help="CSV format type")
 @click.option("--logy", is_flag=True, help="Use log scale for Y axis")
 @click.option("--logx", is_flag=True, help="Use log scale for X axis")
@@ -185,6 +190,7 @@ def csv2graph(
     csv_path: pathlib.Path,
     output_dir: pathlib.Path | None,
     main_image_dir: pathlib.Path | None,
+    html_output_dir: pathlib.Path | None,
     csv_format: Literal["standard", "transpose", "noheader"],
     logy: bool,
     logx: bool,
@@ -213,6 +219,7 @@ def csv2graph(
         csv_path: Path to CSV file
         output_dir: Output directory
         main_image_dir: Directory for combined plot outputs
+        html_output_dir: Directory for HTML outputs
         csv_format: CSV format type
         logy: Log scale for Y
         logx: Log scale for X
@@ -268,6 +275,7 @@ def csv2graph(
         csv_path=csv_path,
         output_dir=output_dir,
         main_image_dir=main_image_dir,
+        html_output_dir=html_output_dir,
         csv_format=csv_format,
         logy=logy,
         logx=logx,
