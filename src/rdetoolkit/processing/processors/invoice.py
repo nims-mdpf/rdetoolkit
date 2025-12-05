@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Any
+import copy
 
 import pandas as pd
 
@@ -145,6 +146,9 @@ ExcelInvoiceHandler = ExcelInvoiceInitializer
 class SmartTableInvoiceInitializer(Processor):
     """Processor for initializing invoice from SmartTable files."""
 
+    def __init__(self) -> None:
+        self._base_invoice_data: dict[str, Any] | None = None
+
     def process(self, context: ProcessingContext) -> None:
         """Process SmartTable file and generate invoice.
 
@@ -170,15 +174,8 @@ class SmartTableInvoiceInitializer(Processor):
 
             csv_data = pd.read_csv(csv_file, dtype=str)
 
-            # Load original invoice.json to inherit existing values
-            invoice_data = {}
-            if context.resource_paths.invoice_org.exists():
-
-                invoice_data = readf_json(context.resource_paths.invoice_org)
-                logger.debug(f"Loaded original invoice from {context.resource_paths.invoice_org}")
-            else:
-                # If no original invoice, initialize empty structure
-                invoice_data = self._initialize_invoice_data()
+            # Load original invoice.json to inherit existing values (cached for multi-row processing)
+            invoice_data = self._get_base_invoice_data(context)
 
             schema_dict = readf_json(context.resource_paths.invoice_schema_json)
             invoice_schema_json_data = InvoiceSchemaJson(**schema_dict)
@@ -219,6 +216,22 @@ class SmartTableInvoiceInitializer(Processor):
             "custom": {},
             "sample": {},
         }
+
+    def _get_base_invoice_data(self, context: ProcessingContext) -> dict[str, Any]:
+        """Return a fresh copy of the original invoice data.
+
+        SmartTable processing iterates per-row; we cache the original invoice once so later rows
+        are not affected by modifications made during earlier iterations.
+        """
+        if self._base_invoice_data is None:
+            if context.resource_paths.invoice_org.exists():
+                self._base_invoice_data = readf_json(context.resource_paths.invoice_org)
+                logger.debug(f"Loaded original invoice from {context.resource_paths.invoice_org}")
+            else:
+                self._base_invoice_data = self._initialize_invoice_data()
+                logger.debug("Original invoice not found; using empty invoice template")
+
+        return copy.deepcopy(self._base_invoice_data)
 
     def _process_mapping_key(self, key: str, value: str, invoice_data: dict[str, Any], invoice_schema_obj: InvoiceSchemaJson) -> None:
         """Process a mapping key and assign the provided value to the appropriate location in the invoice data dictionary.
