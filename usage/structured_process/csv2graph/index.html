@@ -2735,7 +2735,8 @@ csv2graph(<span style="background-color: #FFF0F0">"data.csv"</span>, x_col<span 
 )
 </code></pre></div></td></tr></table></div>
 <ul>
-<li><code>output_dir</code>: 個別プロットとHTML出力の保存先</li>
+<li><code>output_dir</code>: PNG（個別 / 統合）の出力先（<code>main_image_dir</code> がない場合）</li>
+<li><code>html_output_dir</code>: HTML出力の保存先。<code>csv2graph()</code> は <code>output_dir</code> を変えてもデフォルトでCSVと同じディレクトリにHTMLを保存します。必要に応じてこのオプション（CLI: <code>--html-output-dir</code>）で変更してください。</li>
 <li><code>main_image_dir</code>: 統合プロット（PNG）の保存先（指定時のみ）</li>
 </ul>
 <h3 id="_15">個別プロットのスキップ</h3>
@@ -2747,6 +2748,7 @@ csv2graph(<span style="background-color: #FFF0F0">"data.csv"</span>, x_col<span 
 <p>インタラクティブなPlotlyグラフを生成します。</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>csv2graph(<span style="background-color: #FFF0F0">"data.csv"</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>)
 </code></pre></div></td></tr></table></div>
+<p>デフォルトではHTMLはCSVと同じ場所に書き出されます。別の場所に保存したい場合は <code>html_output_dir</code>（CLI: <code>--html-output-dir</code>）を指定してください。</p>
 <p><strong>注意</strong>: Plotlyライブラリのインストールが必要です。</p>
 <h3 id="_16">凡例制御</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
@@ -3192,14 +3194,16 @@ python<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdet
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>output_dir/
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>output_dir/
 ├── plot.png              # 統合プロット（overlayモード）
 ├── plot_series1.png      # 個別プロット
 ├── plot_series2.png      # 個別プロット
-└── plot.html             # HTML出力（html=Trueの場合）
-
 main_image_dir/           # main_image_dir指定時のみ
 └── plot.png              # 統合プロット（PNG）
+
+html_output_dir/          # csv2graph() ではデフォルトでCSVと同じ場所
+└── plot.html             # HTML出力（html=Trueの場合）
 </code></pre></div></td></tr></table></div>
 <h3 id="_28">出力形式</h3>
 <ul>

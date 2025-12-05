@@ -2736,7 +2736,8 @@ csv2graph(<span style="background-color: #FFF0F0">"data.csv"</span>, x_col<span 
 )
 </code></pre></div></td></tr></table></div>
 <ul>
-<li><code>output_dir</code>: Destination for individual plots and HTML output</li>
+<li><code>output_dir</code>: Destination for PNG outputs (individual plots and overlay when no <code>main_image_dir</code> is set)</li>
+<li><code>html_output_dir</code>: Destination for HTML output. <code>csv2graph()</code> defaults to the CSV directory even if <code>output_dir</code> points elsewhere; override with this option (CLI: <code>--html-output-dir</code>).</li>
 <li><code>main_image_dir</code>: Destination for overlay plots (PNG) (only when specified)</li>
 </ul>
 <h3 id="skipping-individual-plots">Skipping Individual Plots</h3>
@@ -2748,6 +2749,7 @@ To suppress individual plots even when multiple series are present:</p>
 <p>Generates interactive Plotly graphs.</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>csv2graph(<span style="background-color: #FFF0F0">"data.csv"</span>, html<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>)
 </code></pre></div></td></tr></table></div>
+<p>HTML files are written next to the source CSV by default; pass <code>html_output_dir</code> (CLI: <code>--html-output-dir</code>) to move them elsewhere.</p>
 <p><strong>Note</strong>: The Plotly library must be installed.</p>
 <h3 id="legend-control">Legend Control</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
@@ -3193,14 +3195,16 @@ python<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdet
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>output_dir/
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>output_dir/
 ├── plot.png              # Overlay plot (overlay mode)
 ├── plot_series1.png      # Individual plot
 ├── plot_series2.png      # Individual plot
-└── plot.html             # HTML output (when html=True)
-
 main_image_dir/           # Only when main_image_dir is specified
 └── plot.png              # Overlay plot (PNG)
+
+html_output_dir/          # Defaults to the CSV directory when using csv2graph()
+└── plot.html             # HTML output (when html=True)
 </code></pre></div></td></tr></table></div>
 <h3 id="output-formats">Output Formats</h3>
 <ul>

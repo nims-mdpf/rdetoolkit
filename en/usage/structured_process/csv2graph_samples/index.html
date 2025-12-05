@@ -3638,7 +3638,9 @@ total<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bo
 <div class="tabbed-block">
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>csv2graph<span style="color: #BBB"> </span>sample12/data.csv<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>csv2graph<span style="color: #BBB"> </span>sample12/data.csv<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--output-dir<span style="color: #BBB"> </span>plots<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
 <span style="color: #BBB">  </span>--html<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
 <span style="color: #BBB">  </span>--no-individual
 </code></pre></div></td></tr></table></div>
@@ -3650,16 +3652,18 @@ total<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bo
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample12/
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>sample12/
 |--<span style="color: #BBB"> </span>data.csv
-|--<span style="color: #BBB"> </span>data.html<span style="color: #BBB"> </span><span style="color: #888"># generated</span>
-|--<span style="color: #BBB"> </span>data.png<span style="color: #BBB"> </span><span style="color: #888"># generated</span>
-<span style="background-color: #FFF0F0">`</span>--<span style="color: #BBB"> </span>output_html.py
+|--<span style="color: #BBB"> </span>data.html<span style="color: #BBB"> </span><span style="color: #888"># generated (HTML stays next to the CSV)</span>
+|--<span style="color: #BBB"> </span>output_html.py
+<span style="background-color: #FFF0F0">`</span>--<span style="color: #BBB"> </span>plots/
+<span style="color: #BBB">    </span><span style="background-color: #FFF0F0">`</span>--<span style="color: #BBB"> </span>data.png<span style="color: #BBB"> </span><span style="color: #888"># generated</span>
 </code></pre></div></td></tr></table></div>
 <h3 id="option-details_11">Option Details</h3>
 <ul>
 <li><code>--html</code>: Produce interactive Plotly HTML files (<code>*.html</code>). Open them in a browser to zoom and inspect traces.</li>
-<li><code>--no-individual</code>: Skip per-series plots and keep only the combined output (the HTML goes to the same directory).</li>
+<li><code>--no-individual</code>: Skip per-series plots and keep only the combined output (the HTML stays next to the CSV by default unless you pass <code>--html-output-dir</code>).</li>
 </ul>
 <p>Plotly output requires the Plotly library. If it is missing, you will see the following error message:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
