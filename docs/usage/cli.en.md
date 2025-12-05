@@ -84,7 +84,7 @@ Relative paths are resolved from the configuration file location, so template re
 
 #### Specify template paths directly with PATH options
 
-If you prefer not to store personal paths in config files, pass PATH options directly (can be combined). These paths are applied first; existing `pyproject.toml` / `rdeconfig.yaml(yml)` will be updated, or a new `pyproject.toml` will be created when missing.
+If you prefer not to store personal paths in config files, pass PATH options directly (can be combined). CLI-specified paths override values from config files; existing `pyproject.toml` / `rdeconfig.yaml(yml)` will be updated, or a new `pyproject.toml` will be created when missing.
 
 | Option          | Destination and role                                                                        |
 | --------------- | ------------------------------------------------------------------------------------------- |

@@ -19,6 +19,7 @@ class InitTemplateConfig:
     modules: Path | None
     tasksupport: Path | None
     inputdata: Path | None
+    other: list[Path] | None
     def has_templates(self) -> bool: ...
 
 class InitTemplateLoader:
@@ -30,7 +31,7 @@ class InitTemplateLoader:
 class InitCommand:
     default_dirs: Incomplete
     template_path: Path | None
-    def __init__(self, template_path: Path | None = ...) -> None: ...
+    def __init__(self, template_path: Path | None = ..., cli_template_config: InitTemplateConfig | None = ...) -> None: ...
     def invoke(self) -> None: ...
 
 class VersionCommand:
