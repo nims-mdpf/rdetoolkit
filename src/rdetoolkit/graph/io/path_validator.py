@@ -77,10 +77,15 @@ class PathValidator:
             Resolved absolute Path object
 
         Raises:
+            ValueError: If path exists and is not a directory
             PermissionError: If directory creation fails due to permissions
             OSError: If directory creation fails for other reasons
         """
         directory = directory.resolve()
+
+        if directory.exists() and not directory.is_dir():
+            msg = f"Output path is not a directory: {directory}"
+            raise ValueError(msg)
 
         if not directory.exists():
             try:

@@ -21,6 +21,7 @@ class Csv2GraphCommand:
         csv_path: pathlib.Path,
         output_dir: pathlib.Path | None = None,
         main_image_dir: pathlib.Path | None = None,
+        html_output_dir: pathlib.Path | None = None,
         csv_format: Literal["standard", "transpose", "noheader"] = "standard",
         logy: bool = False,
         logx: bool = False,
@@ -48,6 +49,7 @@ class Csv2GraphCommand:
             csv_path: Path to CSV file
             output_dir: Output directory for plots
             main_image_dir: Directory to write combined plots (if provided)
+            html_output_dir: Directory to write HTML outputs (if provided)
             csv_format: CSV format type
             logy: Use log scale for y-axis
             logx: Use log scale for x-axis
@@ -72,6 +74,7 @@ class Csv2GraphCommand:
         self.csv_path = csv_path
         self.output_dir = output_dir
         self.main_image_dir = main_image_dir
+        self.html_output_dir = html_output_dir
         self.csv_format = csv_format
         self.logy = logy
         self.logx = logx
@@ -104,6 +107,8 @@ class Csv2GraphCommand:
         click.echo(f"- Output: {self.output_dir or 'same as CSV directory'}")
         if self.main_image_dir:
             click.echo(f"- Main images: {self.main_image_dir}")
+        if self.html_output_dir:
+            click.echo(f"- HTML output: {self.html_output_dir}")
         click.echo(f"- Mode: {self.mode}")
 
         try:
@@ -115,6 +120,7 @@ class Csv2GraphCommand:
                 csv_path=self.csv_path,
                 output_dir=self.output_dir,
                 main_image_dir=self.main_image_dir,
+                html_output_dir=self.html_output_dir,
                 csv_format=self.csv_format,
                 logy=self.logy,
                 logx=self.logx,

@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.4.3     | 2025-12-25 | SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整 | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2     | 2025-12-18 | Invoice overwrite検証 / Excelインボイス統合 / csv2graph単一系列自動判定 / MultiDataTile空入力実行 | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1     | 2025-11-05 | SmartTable行CSVアクセサ / 旧`rawfiles`フォールバック警告 | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0     | 2025-10-24 | SmartTableの`metadata.json`自動生成 / LLM向けスタックトレース / CSV可視化ユーティリティ / `gen-config` | [v1.4.0](#v140-2025-10-24) |
@@ -14,6 +15,41 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.4.3 (2025-12-25)
+
+!!! info "参照資料"
+    - 対応Issue: [#292](https://github.com/nims-mdpf/rdetoolkit/issues/292), [#310](https://github.com/nims-mdpf/rdetoolkit/issues/310), [#311](https://github.com/nims-mdpf/rdetoolkit/issues/311), [#302](https://github.com/nims-mdpf/rdetoolkit/issues/302), [#304](https://github.com/nims-mdpf/rdetoolkit/issues/304)
+
+#### ハイライト
+- SmartTable 分割処理で `sample.ownerId` と boolean 列が失われず、空欄が前行から継承されないよう修正し、行単位のデータ整合性を回復。
+- csv2graph の HTML 出力を CSV 保存先（structured）にデフォルト固定し、`html_output_dir` で任意ディレクトリへ振り分け可能に。Plotly/Matplotlib の凡例表示とログ目盛を統一し再現性を向上。
+
+#### 追加機能 / 改善
+- SmartTableInvoiceInitializer で元 invoice を一度だけ読み込み、各行処理に deepcopy を渡すことで分割後も `sample.ownerId` を保持。
+- SmartTable 行の空欄セルを検出して既存値をクリアし、basic/custom/sample いずれも前行値を引き継がないようマッピングを整理。
+- SmartTable boolean 変換で `"TRUE"` / `"FALSE"`（大文字小文字無視）をスキーマの boolean 型に従って確定し、Excel 由来の文字列を正しく反映。
+- csv2graph に `html_output_dir` / `--html-output-dir` を追加し、HTML を CSV と同じディレクトリへ保存するデフォルトを導入。ドキュメントとサンプル（英/日）も更新。
+- グラフレンダラーで Plotly 凡例をシリーズ名のみに統一し、ログ軸を 10 の累乗目盛・10^n 表記に固定（Plotly/Matplotlib 両方）。
+- EP/BV 表付きの回帰テストを SmartTable・csv2graph・レンダラーに追加し、ownerId 継承、空欄クリア、boolean 変換、HTML 出力先、凡例/ログ目盛を網羅。
+
+#### 不具合修正
+- SmartTable 分割時に 2 行目以降の `sample.ownerId` が消失する問題を解消。
+- SmartTable の空欄セルが前行の basic/description や sample/composition などを引き継いでしまう問題を解消。
+- `"FALSE"` が真と解釈される boolean 変換の不具合を修正し、スキーマ型に基づいたキャストを強制。
+- csv2graph で `output_dir=other_image` を指定した際に HTML が構造化ディレクトリ外へ出力される問題を修正し、デフォルトで CSV 直下（structured）へ保存。
+- Plotly 凡例にヘッダー全体（例: `total:intensity`）が表示される挙動と、ログ軸の 2・5 の補助目盛/非指数表記を修正。
+
+#### 移行ガイド / 互換性
+- csv2graph の HTML 出力は既定で CSV 配下（通常は `data/structured`）に保存されます。別ディレクトリに出力したい場合は `html_output_dir`（API）または `--html-output-dir`（CLI）を指定してください。
+- SmartTable で空欄セルが自動的に既存値を再利用する挙動は廃止されました。必要な値は各行に明示的に入力してください。
+- `"TRUE"` / `"FALSE"` の文字列は boolean 型に強制キャストされます。旧挙動（非空文字列は常に真）に依存したワークフローがある場合は見直しを推奨します。
+- その他の後方互換性への影響はありません。
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
 
 ## v1.4.2 (2025-12-18)
 

@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0  | 2025-10-24   | SmartTable `metadata.json` auto-generation / LLM-friendly traceback / CSV visualization utility / `gen-config` | [v1.4.0](#v140-2025-10-24) |
@@ -14,6 +15,41 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.4.3 (2025-12-25)
+
+!!! info "References"
+    - Key issues: [#292](https://github.com/nims-mdpf/rdetoolkit/issues/292), [#310](https://github.com/nims-mdpf/rdetoolkit/issues/310), [#311](https://github.com/nims-mdpf/rdetoolkit/issues/311), [#302](https://github.com/nims-mdpf/rdetoolkit/issues/302), [#304](https://github.com/nims-mdpf/rdetoolkit/issues/304)
+
+#### Highlights
+- SmartTable split processing now preserves `sample.ownerId`, respects boolean columns, and prevents empty cells from inheriting values from previous rows, restoring per-row data integrity.
+- csv2graph defaults HTML artifacts to the CSV directory (structured) and adds `html_output_dir` for overrides, while aligning Plotly/Matplotlib legend text and log-scale tick formatting for consistent outputs.
+
+#### Enhancements
+- Cache the base invoice once in SmartTable processing and pass deep copies per row so divided invoices retain `sample.ownerId`.
+- Detect empty SmartTable cells and clear mapped basic/custom/sample fields instead of reusing prior-row values.
+- Cast `"TRUE"` / `"FALSE"` (case-insensitive) according to schema boolean types so Excel-derived strings convert correctly during SmartTable writes.
+- Added `html_output_dir` / `--html-output-dir` to csv2graph, defaulting HTML saves to the CSV directory, and refreshed English/Japanese docs and samples.
+- Standardized Plotly legend labels to series names (trimmed before `:`) and enforced decade-only log ticks with 10^ notation across Plotly and Matplotlib.
+- Added EP/BV-backed regression tests for SmartTable ownerId inheritance, empty-cell clearing, boolean casting, csv2graph HTML destinations, and renderer legend/log formatting.
+
+#### Fixes
+- Resolved loss of `sample.ownerId` on SmartTable rows after the first split.
+- Prevented empty SmartTable cells from carrying forward prior-row values into basic/description and sample/composition/description fields.
+- Fixed boolean casting that treated `"FALSE"` as truthy; schema-driven conversion now produces correct booleans.
+- Corrected csv2graph HTML placement when `output_dir` pointed to `other_image`, defaulting HTML to the CSV/structured directory unless overridden.
+- Normalized Plotly legends that previously showed full headers (e.g., `total:intensity`) and removed 2/5 minor log ticks while enforcing exponential labels.
+
+#### Migration / Compatibility
+- csv2graph now saves HTML alongside the CSV by default (typically `data/structured`). Use `html_output_dir` (API) or `--html-output-dir` (CLI) to target a different directory.
+- SmartTable no longer reuses prior-row values for empty cells; provide explicit values on each row where inheritance was previously relied upon.
+- String booleans `"TRUE"` / `"FALSE"` are force-cast to real booleans. Review workflows that accidentally depended on non-empty strings always evaluating to `True`.
+- No other compatibility changes.
+
+#### Known Issues
+- None reported at this time.
+
+---
 
 ## v1.4.2 (2025-12-18)
 

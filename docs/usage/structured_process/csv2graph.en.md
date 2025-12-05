@@ -208,7 +208,8 @@ csv2graph(
 )
 ```
 
-- `output_dir`: Destination for individual plots and HTML output
+- `output_dir`: Destination for PNG outputs (individual plots and overlay when no `main_image_dir` is set)
+- `html_output_dir`: Destination for HTML output. `csv2graph()` defaults to the CSV directory even if `output_dir` points elsewhere; override with this option (CLI: `--html-output-dir`).
 - `main_image_dir`: Destination for overlay plots (PNG) (only when specified)
 
 ### Skipping Individual Plots
@@ -227,6 +228,8 @@ Generates interactive Plotly graphs.
 ```python
 csv2graph("data.csv", html=True)
 ```
+
+HTML files are written next to the source CSV by default; pass `html_output_dir` (CLI: `--html-output-dir`) to move them elsewhere.
 
 **Note**: The Plotly library must be installed.
 
@@ -544,10 +547,12 @@ output_dir/
 ├── plot.png              # Overlay plot (overlay mode)
 ├── plot_series1.png      # Individual plot
 ├── plot_series2.png      # Individual plot
-└── plot.html             # HTML output (when html=True)
-
 main_image_dir/           # Only when main_image_dir is specified
 └── plot.png              # Overlay plot (PNG)
+
+html_output_dir/          # Defaults to the CSV directory when using csv2graph()
+└── plot.html             # HTML output (when html=True)
+
 ```
 
 ### Output Formats
