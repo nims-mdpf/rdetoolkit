@@ -15,6 +15,8 @@ Boundary Value
 | `graph.csv2graph` | `html_output_dir` points to an existing file | Guard against non-directory destinations | Raise `ValueError` about invalid directory | `TC-BV-HTML-001` |
 """
 
+from __future__ import annotations
+
 import importlib
 from pathlib import Path
 
