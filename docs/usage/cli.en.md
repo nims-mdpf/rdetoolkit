@@ -18,13 +18,13 @@ Creates a startup project for RDE structured processing.
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit init
+    python3 -m rdetoolkit init [PATH options]
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit init
+    py -m rdetoolkit init [PATH options]
     ```
 
 The following directories and files will be generated:
@@ -54,6 +54,80 @@ Description of each file:
 
 !!! tip "File Overwriting"
     Existing files will be skipped from overwriting or generation.
+
+#### Template-based Initialization
+
+Pass `--template <path>` to reuse your own boilerplate. The path can point to either:
+
+- A directory that contains `pyproject.toml` or `rdeconfig.yaml`/`rdeconfig.yml`
+- A direct path to one of the files above
+
+When `--template .` is used, the command searches for `pyproject.toml` in the current directory first.  
+The configuration file must define template paths under `[tool.rdetoolkit.init]` (pyproject) or an `init` block (rdeconfig):
+
+```toml
+[tool.rdetoolkit.init]
+entry_point = "templates/main.py"
+modules = "templates/modules"
+tasksupport = "templates/tasksupport"
+inputdata = "templates/inputdata"
+```
+
+Key meaning:
+
+- `entry_point`: File copied to `container/main.py`.
+- `modules`: File or directory copied under `container/modules/`.
+- `tasksupport`: File or directory mirrored to both `container/data/tasksupport/` and `templates/tasksupport/`.
+- `inputdata`: Directory copied into `container/data/inputdata/` and `input/inputdata/`.
+
+Relative paths are resolved from the configuration file location, so template repositories stay portable.
+
+#### Specify template paths directly with PATH options
+
+If you prefer not to store personal paths in config files, pass PATH options directly (can be combined). CLI-specified paths override values from config files; existing `pyproject.toml` / `rdeconfig.yaml(yml)` will be updated, or a new `pyproject.toml` will be created when missing.
+
+| Option          | Destination and role                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| `--entry-point` | Copied as `container/main.py` (file only)                                                   |
+| `--modules`     | Copied under `container/modules/` (file or directory)                                       |
+| `--tasksupport` | Copied to both `container/data/tasksupport/` and `templates/tasksupport/` (file or directory) |
+| `--inputdata`   | Copied to `container/data/inputdata/` and `input/inputdata/` (directory recommended)        |
+| `--other` (repeatable) | Copies arbitrary files or directories under `container/`                             |
+
+Relative paths are saved from the current working directory. CLI-specified paths override values from config files.
+
+##### Sample output with PATH options
+
+Example run with templates under `tpl/`:
+
+```shell
+python3 -m rdetoolkit init \
+  --entry-point tpl/custom_main.py \
+  --modules tpl/modules \
+  --tasksupport tpl/tasksupport \
+  --inputdata tpl/inputdata \
+  --other tpl/extra.txt --other tpl/extras
+```
+
+Output (paths vary by environment):
+
+```
+Ready to develop a structured program for RDE.
+Created from template: /private/tmp/rdt-init-check/container/main.py
+Created: /private/tmp/rdt-init-check/container/requirements.txt
+Created: /private/tmp/rdt-init-check/container/Dockerfile
+Populated /private/tmp/rdt-init-check/container/modules from template directory: /private/tmp/rdt-init-check/tpl/modules
+Created: /private/tmp/rdt-init-check/container/data/invoice/invoice.json
+Populated /private/tmp/rdt-init-check/container/data/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
+Populated /private/tmp/rdt-init-check/templates/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
+Populated /private/tmp/rdt-init-check/container/data/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
+Populated /private/tmp/rdt-init-check/input/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
+Copied template file /private/tmp/rdt-init-check/tpl/extra.txt into /private/tmp/rdt-init-check/container
+Populated /private/tmp/rdt-init-check/container/extras from template directory: /private/tmp/rdt-init-check/tpl/extras
+Created: /private/tmp/rdt-init-check/input/invoice/invoice.json
+```
+
+After the run, `[tool.rdetoolkit.init]` (or `init` in `rdeconfig.yaml`) is written with the provided paths, stored as relative paths when possible.
 
 ### make-excelinvoice: Generate Excel Invoice
 
