@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Any
+import copy
 
 import pandas as pd
 
@@ -145,6 +146,8 @@ ExcelInvoiceHandler = ExcelInvoiceInitializer
 class SmartTableInvoiceInitializer(Processor):
     """Processor for initializing invoice from SmartTable files."""
 
+    _BASE_INVOICE_CACHE: dict[Path, dict[str, Any]] = {}
+
     def process(self, context: ProcessingContext) -> None:
         """Process SmartTable file and generate invoice.
 
@@ -170,15 +173,8 @@ class SmartTableInvoiceInitializer(Processor):
 
             csv_data = pd.read_csv(csv_file, dtype=str)
 
-            # Load original invoice.json to inherit existing values
-            invoice_data = {}
-            if context.resource_paths.invoice_org.exists():
-
-                invoice_data = readf_json(context.resource_paths.invoice_org)
-                logger.debug(f"Loaded original invoice from {context.resource_paths.invoice_org}")
-            else:
-                # If no original invoice, initialize empty structure
-                invoice_data = self._initialize_invoice_data()
+            # Load original invoice.json to inherit existing values (cached for multi-row processing)
+            invoice_data = self._get_base_invoice_data(context)
 
             schema_dict = readf_json(context.resource_paths.invoice_schema_json)
             invoice_schema_json_data = InvoiceSchemaJson(**schema_dict)
@@ -212,13 +208,32 @@ class SmartTableInvoiceInitializer(Processor):
             error_msg = f"Failed to initialize invoice from SmartTable: {str(e)}"
             raise StructuredError(error_msg) from e
 
-    def _initialize_invoice_data(self) -> dict:
+    @staticmethod
+    def _initialize_invoice_data() -> dict[str, Any]:
         """Initialize empty invoice data structure."""
         return {
             "basic": {},
             "custom": {},
             "sample": {},
         }
+
+    @classmethod
+    def _get_base_invoice_data(cls, context: ProcessingContext) -> dict[str, Any]:
+        """Return a fresh copy of the original invoice data.
+
+        SmartTable processing iterates per-row; we cache the original invoice once so later rows
+        are not affected by modifications made during earlier iterations.
+        """
+        cache_key = context.resource_paths.invoice_org.resolve()
+        if cache_key not in cls._BASE_INVOICE_CACHE:
+            if cache_key.exists():
+                cls._BASE_INVOICE_CACHE[cache_key] = readf_json(cache_key)
+                logger.debug(f"Loaded original invoice from {cache_key}")
+            else:
+                cls._BASE_INVOICE_CACHE[cache_key] = cls._initialize_invoice_data()
+                logger.debug("Original invoice not found; using empty invoice template")
+
+        return copy.deepcopy(cls._BASE_INVOICE_CACHE[cache_key])
 
     def _process_mapping_key(self, key: str, value: str, invoice_data: dict[str, Any], invoice_schema_obj: InvoiceSchemaJson) -> None:
         """Process a mapping key and assign the provided value to the appropriate location in the invoice data dictionary.
