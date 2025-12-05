@@ -1,15 +1,15 @@
 """
 Equivalence Partitioning
-| API                                 | Input/State Partition                              | Rationale                                         | Expected Outcome                                      | Test ID       |
-| ----------------------------------- | --------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------- | ------------- |
-| `SmartTableInvoiceInitializer.process` | Multiple SmartTable rows sharing an invoice template | Later rows should reuse the original ownerId value | Later invoices retain `sample.ownerId` after mutation | `TC-EP-001`   |
-| `SmartTableInvoiceInitializer.process` | Missing SmartTable row CSV in SmartTable mode        | Invalid SmartTable input should be rejected        | Raises `StructuredError`                              | `TC-EP-002`   |
+| API                                   | Input/State Partition                                     | Rationale                                                     | Expected Outcome                                      | Test ID       |
+| ------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------- | ------------- |
+| `SmartTableInvoiceInitializer.process` | Multiple SmartTable rows with fresh processors per row    | Pipelines re-instantiate processors for each row              | Later invoices retain `sample.ownerId` after mutation | `TC-EP-001`   |
+| `SmartTableInvoiceInitializer.process` | Missing SmartTable row CSV in SmartTable mode              | Invalid SmartTable input should be rejected                    | Raises `StructuredError`                              | `TC-EP-002`   |
 
 Boundary Value
-| API                                 | Boundary                                | Rationale                                       | Expected Outcome                                      | Test ID       |
-| ----------------------------------- | --------------------------------------- | ----------------------------------------------- | ----------------------------------------------------- | ------------- |
-| `SmartTableInvoiceInitializer.process` | First vs. subsequent invocation per file | Cache must survive mutations between iterations | Later invoices retain `sample.ownerId` after mutation | `TC-BV-001`   |
-| `SmartTableInvoiceInitializer.process` | `smarttable_file` is `None`              | SmartTable mode should be enforced              | Raises `ValueError`                                   | `TC-BV-002`   |
+| API                                   | Boundary                                      | Rationale                                                    | Expected Outcome                                      | Test ID       |
+| ------------------------------------- | --------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------- | ------------- |
+| `SmartTableInvoiceInitializer.process` | First vs. subsequent invocation per invoice   | Cache must survive across pipeline instances and mutations   | Later invoices retain `sample.ownerId` after mutation | `TC-BV-001`   |
+| `SmartTableInvoiceInitializer.process` | `smarttable_file` is `None`                    | SmartTable mode should be enforced                           | Raises `ValueError`                                   | `TC-BV-002`   |
 """
 
 from __future__ import annotations
@@ -29,6 +29,14 @@ from rdetoolkit.models.rde2types import (
 )
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
+
+
+@pytest.fixture(autouse=True)
+def reset_initializer_cache() -> None:
+    """Ensure SmartTable initializer cache isolation per test."""
+    SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
+    yield
+    SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
 
 
 def _copy_sample_invoice_files(base_dir: Path) -> tuple[Path, Path]:
@@ -103,7 +111,6 @@ def test_smarttable_invoice_initializer_preserves_owner_id_after_source_mutation
         tasksupport=schema_path.parent,
         config=create_default_config(),
     )
-    initializer = SmartTableInvoiceInitializer()
 
     resource_paths_first = _build_resource_paths(
         tmp_path, invoice_org.parent, invoice_org, schema_path, row0,
@@ -116,14 +123,15 @@ def test_smarttable_invoice_initializer_preserves_owner_id_after_source_mutation
         mode_name="smarttable",
         smarttable_file=smarttable_file,
     )
-    initializer.process(context_first)
+    initializer_first = SmartTableInvoiceInitializer()
+    initializer_first.process(context_first)
 
     # And: the invoice source is externally mutated to drop ownerId
     mutated_invoice = json.loads(invoice_org.read_text())
     mutated_invoice["sample"].pop("ownerId", None)
     invoice_org.write_text(json.dumps(mutated_invoice))
 
-    # When: processing the second SmartTable row with the mutated source
+    # When: processing the second SmartTable row with a new pipeline instance and mutated source
     divided_invoice_dir = tmp_path / "divided" / "0001" / "invoice"
     resource_paths_second = _build_resource_paths(
         tmp_path, divided_invoice_dir, invoice_org, schema_path, row1,
@@ -136,7 +144,8 @@ def test_smarttable_invoice_initializer_preserves_owner_id_after_source_mutation
         mode_name="smarttable",
         smarttable_file=smarttable_file,
     )
-    initializer.process(context_second)
+    initializer_second = SmartTableInvoiceInitializer()
+    initializer_second.process(context_second)
 
     output_invoice = json.loads((divided_invoice_dir / "invoice.json").read_text())
 
