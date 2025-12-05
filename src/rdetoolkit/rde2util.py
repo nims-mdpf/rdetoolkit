@@ -732,8 +732,17 @@ def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int 
         outfmt (str): Formatting at output (related to date data)
     """
     if outtype == "boolean":
-        if ValueCaster.trycast(valstr, bool) is not None:
-            return bool(valstr)
+        # Handle string representations of boolean values (e.g., "TRUE"/"FALSE" from Excel)
+        if isinstance(valstr, str):
+            valstr_lower = valstr.strip().lower()
+            if valstr_lower == "true":
+                return True
+            if valstr_lower == "false":
+                return False
+            emsg = f"ERROR: invalid boolean value '{valstr}'"
+            raise StructuredError(emsg)
+        # Fallback to standard boolean conversion for non-string values
+        return bool(valstr)
 
     elif outtype in ("integer", "number"):
         # Even if a string with units is passed, the assignment of units is not handled in this function. Assign units separately as necessary.
