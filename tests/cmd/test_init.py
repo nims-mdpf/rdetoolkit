@@ -19,7 +19,10 @@ Test execution (local env):
 
 from __future__ import annotations
 
-import tomllib
+try:  # Python 3.11+
+    import tomllib  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    import toml as tomllib  # type: ignore[assignment]
 from pathlib import Path
 
 import pytest

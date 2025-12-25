@@ -9,6 +9,7 @@ Equivalence Partitioning Table
 | `rdetoolkit.cli.init` | pyproject lacks `[tool.rdetoolkit.init]` | Invalid configuration shape | Command aborts describing missing section | `TC-EP-INIT-004` |
 | `rdetoolkit.cli.init` | Entry-point path missing on disk | Boundary on template existence | Command aborts with missing-path error | `TC-EP-INIT-005` |
 | `rdetoolkit.cli.init` | Filesystem copy raises `PermissionError` | External dependency failure | Command aborts with generic failure guidance | `TC-EP-INIT-006` |
+| `rdetoolkit.cli.init` | `--inputdata` points to a file | Invalid type for directory-only option | Command aborts with CLI path error | `TC-EP-INIT-007` |
 
 Boundary Value Table
 | API | Boundary | Rationale | Expected Outcome | Test ID |
@@ -219,3 +220,17 @@ def test_init_templates_copy_failure__tc_ep_init_006(cli_runner: CliRunner, monk
         # Then: the command aborts with the generic failure guidance
         assert result.exit_code != 0
         assert "Failed to create files required for structured RDE programs." in result.output
+
+
+def test_init_templates_rejects_inputdata_file__tc_ep_init_007(cli_runner: CliRunner) -> None:
+    """TC-EP-INIT-007"""
+    with cli_runner.isolated_filesystem():
+        # Given: a file path passed to the directory-only inputdata option
+        Path("inputdata.txt").write_text("data\n", encoding="utf-8")
+
+        # When: running init with --inputdata pointing to a file
+        result = cli_runner.invoke(init, ["--inputdata", "inputdata.txt"])
+
+        # Then: the CLI rejects the file path
+        assert result.exit_code != 0
+        assert "Invalid value for '--inputdata'" in result.output
