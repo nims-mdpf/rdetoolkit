@@ -1,12 +1,20 @@
 from __future__ import annotations
 
+import importlib
+import importlib.util
+import inspect
 import json
+import os
 import pathlib
+import sys
+from collections.abc import Callable
+from types import ModuleType
 from typing import Literal, cast
 
 import click
 from click.core import ParameterSource
 
+import rdetoolkit.workflows as workflows
 from rdetoolkit.cmd.archive import CreateArtifactCommand
 from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig, VersionCommand
 from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
@@ -21,6 +29,85 @@ from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
 @click.group()
 def cli() -> None:
     """CLI generates template projects for RDE structured programs."""
+
+
+def _parse_run_target(target: str) -> tuple[str, str]:
+    if "::" not in target:
+        emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
+        raise click.ClickException(emsg)
+    parts = target.split("::")
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
+        raise click.ClickException(emsg)
+    return parts[0], parts[1]
+
+
+def _looks_like_file(value: str) -> bool:
+    if value.endswith(".py"):
+        return True
+    if value.startswith((".", "/", "~")):
+        return True
+    if os.sep in value:
+        return True
+    return os.altsep is not None and os.altsep in value
+
+
+def _load_module_from_file(path: pathlib.Path) -> ModuleType:
+    if not path.exists() or not path.is_file():
+        emsg = f"File not found: {path}"
+        raise click.ClickException(emsg)
+    module_name = f"_rdetoolkit_run_{path.stem}_{abs(hash(path))}"
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    if spec is None or spec.loader is None:
+        emsg = f"Unable to load module from file: {path}"
+        raise click.ClickException(emsg)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_target_module(module_or_file: str) -> ModuleType:
+    if _looks_like_file(module_or_file):
+        path = pathlib.Path(module_or_file).expanduser()
+        return _load_module_from_file(path)
+    try:
+        return importlib.import_module(module_or_file)
+    except Exception as exc:
+        emsg = f"Failed to import module: {module_or_file}"
+        raise click.ClickException(emsg) from exc
+
+
+def _resolve_target_attr(module: ModuleType, attr: str) -> object:
+    target: object = module
+    for part in attr.split("."):
+        if not hasattr(target, part):
+            emsg = f"Attribute not found: {attr}"
+            raise click.ClickException(emsg)
+        target = getattr(target, part)
+    return target
+
+
+def _validate_target_function(func: Callable[..., object]) -> None:
+    if inspect.isclass(func):
+        emsg = "Classes are not allowed. Please specify a function."
+        raise click.ClickException(emsg)
+    if not inspect.isfunction(func):
+        emsg = "Only functions are allowed. Please specify a function."
+        raise click.ClickException(emsg)
+    try:
+        inspect.signature(func).bind(1, 2)
+    except (TypeError, ValueError) as exc:
+        emsg = "The function cannot be called with two positional arguments."
+        raise click.ClickException(emsg) from exc
+
+
+def _load_target_function(target: str) -> Callable[..., object]:
+    module_or_file, attr = _parse_run_target(target)
+    module = _load_target_module(module_or_file)
+    func = _resolve_target_attr(module, attr)
+    _validate_target_function(func)
+    return func
 
 
 @click.command()
@@ -123,6 +210,19 @@ def version() -> None:
     """Command to display version."""
     cmd = VersionCommand()
     cmd.invoke()
+
+
+@click.command()
+@click.argument("target", metavar="<module_or_file::attr>")
+def run(target: str) -> None:
+    """Run rdetoolkit workflows with a user-defined dataset function."""
+    func = _load_target_function(target)
+    try:
+        result = workflows.run(custom_dataset_function=func)
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+    if result is not None:
+        click.echo(result)
 
 
 def _validation_json_file(
@@ -449,6 +549,7 @@ def gen_config(
 
 cli.add_command(init)
 cli.add_command(version)
+cli.add_command(run)
 cli.add_command(make_excelinvoice)
 cli.add_command(artifact)
 cli.add_command(csv2graph)
