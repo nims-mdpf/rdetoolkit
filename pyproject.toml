@@ -199,7 +199,16 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 # Unused imports are allowed in __init__.py.
-"__init__.py" = ["F401", "F403"]
+"__init__.py" = ["F401", "F403", "PLC0415"]
+"src/rdetoolkit/cli.py" = ["PLC0415"]
+"src/rdetoolkit/errors.py" = ["PLC0415"]
+"src/rdetoolkit/fileops.py" = ["PLC0415"]
+"src/rdetoolkit/graph/__init__.py" = ["PLC0415"]
+"src/rdetoolkit/graph/api/csv2graph.py" = ["PLC0415"]
+"src/rdetoolkit/invoicefile.py" = ["PLC0415"]
+"src/rdetoolkit/rde2util.py" = ["PLC0415"]
+"src/rdetoolkit/validation.py" = ["PLC0415"]
+"src/rdetoolkit/workflows.py" = ["PLC0415"]
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
