@@ -11,16 +11,35 @@ import zipfile
 from copy import deepcopy
 from typing import Any, Callable, Final, TypedDict, cast
 
-import chardet  # for following failure cases
-import dateutil.parser
-from chardet.universaldetector import UniversalDetector
-from charset_normalizer import detect
-
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.models.rde2types import MetadataDefJson, MetaItem, MetaType, RdeFsPath, RepeatedMetaType, ValueUnitPair
 
 LANG_ENC_FLAG: Final[int] = 0x800
+
+
+def _ensure_chardet() -> Any:
+    import chardet
+
+    return chardet
+
+
+def _ensure_universal_detector() -> Any:
+    from chardet.universaldetector import UniversalDetector
+
+    return UniversalDetector
+
+
+def _ensure_charset_detector() -> Callable[[bytes], Any]:
+    from charset_normalizer import detect
+
+    return detect
+
+
+def _ensure_dateutil_parser() -> Any:
+    import dateutil.parser
+
+    return dateutil.parser
 
 
 class _ChardetType(TypedDict):
@@ -45,6 +64,7 @@ def get_default_values(default_values_filepath: RdeFsPath) -> dict[str, Any]:
     dct_default_values = {}
     with open(default_values_filepath, "rb") as rf:
         enc_default_values_data = rf.read()
+    chardet = _ensure_chardet()
     enc = chardet.detect(enc_default_values_data)["encoding"]
     with open(default_values_filepath, encoding=enc) as fin:
         for row in csv.DictReader(fin):
@@ -78,6 +98,7 @@ class CharDecEncoding:
 
         with open(text_filepath, "rb") as tf:
             bcontents = tf.read()
+        detect = _ensure_charset_detector()
         _cast_detect_ret: _ChardetType = cast(_ChardetType, detect(bcontents))
         enc = _cast_detect_ret["encoding"].replace("-", "_").lower() if _cast_detect_ret["encoding"] is not None else ""
 
@@ -97,7 +118,7 @@ class CharDecEncoding:
         Returns:
             str: The detected encoding of the text file.
         """
-        detector = UniversalDetector()
+        detector = _ensure_universal_detector()()
 
         try:
             with open(text_filepath, mode="rb") as f:
@@ -708,7 +729,8 @@ class ValueCaster:
         Raises:
             StructuredError: If the specified format is unknown.
         """
-        dtobj = dateutil.parser.parse(value)
+        parser = _ensure_dateutil_parser()
+        dtobj = parser.parse(value)
         if fmt == "date-time":
             return dtobj.isoformat()
         if fmt == "date":
