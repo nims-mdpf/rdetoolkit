@@ -4,11 +4,18 @@ import json
 from pathlib import Path
 from typing import Any
 
-from rdetoolkit.core import detect_encoding
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.rdelogger import get_logger
 
-logger = get_logger(__name__)
+_logger = None
+
+
+def _get_logger() -> Any:
+    global _logger
+    if _logger is None:
+        from rdetoolkit.rdelogger import get_logger
+
+        _logger = get_logger(__name__)
+    return _logger
 
 
 def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
@@ -25,13 +32,15 @@ def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
     """
     _path = str(path) if isinstance(path, Path) else path
     try:
+        from rdetoolkit.core import detect_encoding
+
         enc = detect_encoding(_path)
         normalize_enc = enc.lower().replace("-", "_") if enc else "utf_8"
         with open(_path, encoding=normalize_enc) as f:
             return json.load(f)
     except Exception as e:
         emsg = f"An error occurred while processing the file: {str(e)}"
-        logger.error(emsg)
+        _get_logger().error(emsg)
         raise StructuredError(emsg) from e
 
 
