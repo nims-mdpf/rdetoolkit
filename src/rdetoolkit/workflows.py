@@ -3,26 +3,14 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-from rdetoolkit.config import load_config
-from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error, skip_exception_context
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.invoicefile import backup_invoice_json_files
-from rdetoolkit.models.config import Config
-from rdetoolkit.models.rde2types import DatasetCallback, RawFiles, RdeInputDirPaths, RdeOutputResourcePath
-from rdetoolkit.models.result import WorkflowExecutionStatus, WorkflowResultManager
-from rdetoolkit.modeproc import (
-    excel_invoice_mode_process,
-    invoice_mode_process,
-    multifile_mode_process,
-    rdeformat_mode_process,
-    selected_input_checker,
-    smarttable_invoice_mode_process,
-)
-from rdetoolkit.rde2util import StorageDir
-from rdetoolkit.rdelogger import get_logger
-from rdetoolkit.core import DirectoryOps
-from typing import Any
+
+if TYPE_CHECKING:
+    from rdetoolkit.models.config import Config
+    from rdetoolkit.models.rde2types import DatasetCallback, RawFiles, RdeInputDirPaths, RdeOutputResourcePath
+    from rdetoolkit.models.result import WorkflowExecutionStatus
 
 
 def _create_error_status(
@@ -32,6 +20,8 @@ def _create_error_status(
     mode: str,
 ) -> WorkflowExecutionStatus:
     """Create error status from error information."""
+    from rdetoolkit.models.result import WorkflowExecutionStatus
+
     _code = error_info.get("code")
     code = 999
     if isinstance(_code, int):
@@ -102,6 +92,9 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config 
         invoice: /data/inputdata/<registered_files>
         excelinvoice: /data/temp/<registered_files>
     """
+    from rdetoolkit.modeproc import selected_input_checker
+    from rdetoolkit.rde2util import StorageDir
+
     out_dir_temp = StorageDir.get_specific_outputdir(True, "temp")
     if mode is None:
         mode = ""
@@ -150,6 +143,9 @@ def generate_folder_paths_iterator(
         create_folders(raw_files_group, excel_invoice_files)
         ```
     """
+    from rdetoolkit.core import DirectoryOps
+    from rdetoolkit.models.rde2types import RdeOutputResourcePath
+
     dir_ops = DirectoryOps("data")
     for idx, raw_files in enumerate(raw_files_group):
         smarttable_rowfile = None
@@ -217,6 +213,15 @@ def _process_mode(  # noqa: C901 PLR0912
     Returns:
         tuple[WorkflowExecutionStatus, dict | None, str]: Status, error info if any, and mode
     """
+    from rdetoolkit.errors import skip_exception_context
+    from rdetoolkit.modeproc import (
+        excel_invoice_mode_process,
+        invoice_mode_process,
+        multifile_mode_process,
+        rdeformat_mode_process,
+        smarttable_invoice_mode_process,
+    )
+
     error_info = None
     status: WorkflowExecutionStatus | None = None
 
@@ -327,6 +332,13 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
         workflow.run(custom_dataset_function=custom_dataset, config=cfg) # Execute structuring process
         ```
     """
+    from rdetoolkit.config import load_config
+    from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error
+    from rdetoolkit.invoicefile import backup_invoice_json_files
+    from rdetoolkit.models.result import WorkflowResultManager
+    from rdetoolkit.rde2util import StorageDir
+    from rdetoolkit.rdelogger import get_logger
+
     logger = get_logger(__name__, file_path=StorageDir.get_specific_outputdir(True, "logs").joinpath("rdesys.log"))
     wf_manager = WorkflowResultManager()
     error_info = None
