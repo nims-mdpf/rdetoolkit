@@ -7,15 +7,15 @@ from typing import Literal, cast
 import click
 from click.core import ParameterSource
 
-from rdetoolkit.cmd.archive import CreateArtifactCommand
-from rdetoolkit.cmd.command import InitCommand, VersionCommand
-from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
-from rdetoolkit.cmd.gen_config import (
-    GenerateConfigCommand,
-    TEMPLATE_CHOICES,
-    LANG_CHOICES,
+TEMPLATE_CHOICES = (
+    "minimal",
+    "full",
+    "multitile",
+    "rdeformat",
+    "smarttable",
+    "interactive",
 )
-from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+LANG_CHOICES = ("en", "ja")
 
 
 @click.group()
@@ -26,6 +26,8 @@ def cli() -> None:
 @click.command()
 def init() -> None:
     """Output files needed to build RDE structured programs."""
+    from rdetoolkit.cmd.command import InitCommand
+
     cmd = InitCommand()
     cmd.invoke()
 
@@ -33,6 +35,8 @@ def init() -> None:
 @click.command()
 def version() -> None:
     """Command to display version."""
+    from rdetoolkit.cmd.command import VersionCommand
+
     cmd = VersionCommand()
     cmd.invoke()
 
@@ -123,6 +127,8 @@ def make_excelinvoice(
     Returns:
         None
     """
+    from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+
     cmd = GenerateExcelInvoiceCommand(invoice_schema_json_path, output_path, mode)
     cmd.invoke()
 
@@ -142,6 +148,8 @@ def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list
     Returns:
         None
     """
+    from rdetoolkit.cmd.archive import CreateArtifactCommand
+
     cmd = CreateArtifactCommand(
         pathlib.Path(source_dir),
         output_archive_path=(pathlib.Path(output_archive) if output_archive else None),
@@ -241,6 +249,8 @@ def csv2graph(
         no_individual: Skip individual (None enables auto-detection)
         max_legend_items: Max legend items
     """
+    from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
+
     # Parse column specifications
     def parse_col(col: str) -> int | str:
         try:
@@ -333,6 +343,8 @@ def gen_config(
     lang: str,
 ) -> None:
     """Generate rdeconfig.yaml from templates."""
+    from rdetoolkit.cmd.gen_config import GenerateConfigCommand
+
     template_key = template_name.lower()
     lang_key = lang.lower()
 
