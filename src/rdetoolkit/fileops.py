@@ -18,6 +18,12 @@ def _get_logger() -> Any:
     return _logger
 
 
+def detect_encoding(path: str) -> str:
+    from rdetoolkit.core import detect_encoding as _detect_encoding
+
+    return _detect_encoding(path)
+
+
 def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
     """A function that reads a JSON file and returns the JSON object.
 
@@ -32,8 +38,6 @@ def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
     """
     _path = str(path) if isinstance(path, Path) else path
     try:
-        from rdetoolkit.core import detect_encoding
-
         enc = detect_encoding(_path)
         normalize_enc = enc.lower().replace("-", "_") if enc else "utf_8"
         with open(_path, encoding=normalize_enc) as f:

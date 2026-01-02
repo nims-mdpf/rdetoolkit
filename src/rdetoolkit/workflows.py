@@ -13,6 +13,36 @@ if TYPE_CHECKING:
     from rdetoolkit.models.result import WorkflowExecutionStatus
 
 
+def excel_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    from rdetoolkit.modeproc import excel_invoice_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    from rdetoolkit.modeproc import invoice_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def multifile_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    from rdetoolkit.modeproc import multifile_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def rdeformat_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    from rdetoolkit.modeproc import rdeformat_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def smarttable_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    from rdetoolkit.modeproc import smarttable_invoice_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
 def _create_error_status(
     idx: int,
     error_info: dict[str, Any],
@@ -214,13 +244,6 @@ def _process_mode(  # noqa: C901 PLR0912
         tuple[WorkflowExecutionStatus, dict | None, str]: Status, error info if any, and mode
     """
     from rdetoolkit.errors import skip_exception_context
-    from rdetoolkit.modeproc import (
-        excel_invoice_mode_process,
-        invoice_mode_process,
-        multifile_mode_process,
-        rdeformat_mode_process,
-        smarttable_invoice_mode_process,
-    )
 
     error_info = None
     status: WorkflowExecutionStatus | None = None
@@ -336,12 +359,14 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
     from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error
     from rdetoolkit.invoicefile import backup_invoice_json_files
     from rdetoolkit.models.result import WorkflowResultManager
+    from rdetoolkit.models.rde2types import RdeInputDirPaths
     from rdetoolkit.rde2util import StorageDir
     from rdetoolkit.rdelogger import get_logger
 
     logger = get_logger(__name__, file_path=StorageDir.get_specific_outputdir(True, "logs").joinpath("rdesys.log"))
     wf_manager = WorkflowResultManager()
     error_info = None
+    __config: Config | None = None
 
     try:
         # Enabling mode flag and validating input file

@@ -63,7 +63,7 @@ class MetadataValidator:
             emsg = "Unexpected validation error"
             raise ValueError(emsg)
 
-        MetadataItem(**__data)
+        self.schema(**__data)
         return __data
 
 
@@ -276,6 +276,7 @@ class InvoiceValidator:
             List of validation errors for fields not in required array
         """
         errors = []
+        _, _, _, SchemaValidationError = _jsonschema_tools()
 
         # Get required fields from schema
         required_fields = set(self.schema.get("required", []))
@@ -326,5 +327,5 @@ def invoice_validate(path: str | Path, schema: str | Path) -> None:
     validator = InvoiceValidator(schema)
     try:
         validator.validate(path=path)
-    except ValidationError as validation_error:
+    except _pydantic_validation_error() as validation_error:
         raise InvoiceSchemaValidationError from validation_error

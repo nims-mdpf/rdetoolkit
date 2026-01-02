@@ -25,6 +25,34 @@ TEMPLATE_CHOICES = (
 LANG_CHOICES = ("en", "ja")
 
 
+class _LazyModuleProxy:
+    def __init__(self, module_name: str) -> None:
+        self._module_name = module_name
+        self._module: ModuleType | None = None
+
+    def _load(self) -> ModuleType:
+        if self._module is None:
+            self._module = importlib.import_module(self._module_name)
+        return self._module
+
+    def __getattr__(self, name: str) -> object:
+        module = self._load()
+        return getattr(module, name)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name in {"_module_name", "_module"}:
+            object.__setattr__(self, name, value)
+            return
+        module = self._load()
+        setattr(module, name, value)
+
+    def __repr__(self) -> str:
+        return f"<LazyModuleProxy {self._module_name}>"
+
+
+workflows = _LazyModuleProxy("rdetoolkit.workflows")
+
+
 @click.group()
 def cli() -> None:
     """CLI generates template projects for RDE structured programs."""
@@ -219,7 +247,6 @@ def version() -> None:
 @click.argument("target", metavar="<module_or_file::attr>")
 def run(target: str) -> None:
     """Run rdetoolkit workflows with a user-defined dataset function."""
-    from rdetoolkit import workflows
     func = _load_target_function(target)
     try:
         result = workflows.run(custom_dataset_function=func)
