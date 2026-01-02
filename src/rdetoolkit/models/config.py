@@ -12,6 +12,7 @@ class SystemSettings(BaseModel):
         save_nonshared_raw (bool): Indicates whether to save nonshared raw data. If True, non-shared raw data will be saved. Default is True.
         save_thumbnail_image (bool): Indicates whether to automatically save the main image to the thumbnail directory. Default is False.
         magic_variable (bool): A feature where specifying '${filename}' as the data name results in the filename being transcribed as the data name. Default is False.
+        save_invoice_to_structured (bool): Indicates whether to store invoice.json under the structured directory. Default is False.
     """
 
     extended_mode: str | None = Field(default=None, description="The mode to run the RDEtoolkit in. select: rdeformat, MultiDataTile")
@@ -21,6 +22,10 @@ class SystemSettings(BaseModel):
     magic_variable: bool = Field(
         default=False,
         description="The feature where specifying '${filename}' as the data name results in the filename being transcribed as the data name.",
+    )
+    save_invoice_to_structured: bool = Field(
+        default=False,
+        description="Store invoice.json inside the structured directory after processing.",
     )
 
     @field_validator('extended_mode')
