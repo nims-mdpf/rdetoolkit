@@ -815,6 +815,7 @@ sample12/
 === "CLI"
     ```bash
     rdetoolkit csv2graph sample12/data.csv \
+      --output-dir plots \
       --html \
       --no-individual
     ```
@@ -824,15 +825,16 @@ sample12/
 ```bash
 sample12/
 ├── data.csv
-├── data.html # 生成
-├── data.png # 生成
-└── output_html.py
+├── data.html # 生成（HTMLはデフォルトでCSVと同じ場所）
+├── output_html.py
+└── plots/
+    └── data.png # 生成
 ```
 
 ### オプションの説明
 
 - `--html` : Plotly を使ったインタラクティブな HTML ファイル（`*.html`）を出力します。生成された HTML はブラウザで開き、マウス操作でズームやホバー表示が可能です。
-- `--no-individual` : 個別プロットをスキップし、統合プロットのみ生成します（HTML も同じ出力先に保存されます）。
+- `--no-individual` : 個別プロットをスキップし、統合プロットのみ生成します（HTML はデフォルトで CSV と同じ出力先に保存されます。必要に応じて `--html-output-dir` を指定してください）。
 
 インタラクティブ出力を利用するには Plotly ライブラリがインストールされている必要があります。インストールされていないと、以下のようなエラーが出力されます。
 

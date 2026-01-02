@@ -30,6 +30,7 @@ from unittest.mock import patch
 import click
 import pytest
 from click.testing import CliRunner
+from rdetoolkit import __version__
 from rdetoolkit.cli import (
     init,
     version,
@@ -103,7 +104,7 @@ def test_make_requirements_txt():
     with open(test_path, encoding="utf-8") as f:
         content = f.read()
 
-    expected_content = """# ----------------------------------------------------
+    expected_content = f"""# ----------------------------------------------------
 # Please add the desired packages and install the libraries after that.
 # Then, run
 #
@@ -114,7 +115,7 @@ def test_make_requirements_txt():
 # ex.
 # pandas==2.0.3
 # numpy
-rdetoolkit==1.5.0
+rdetoolkit=={__version__}
 """
     assert content == expected_content
     test_path.unlink()

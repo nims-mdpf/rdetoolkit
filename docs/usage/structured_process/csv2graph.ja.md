@@ -208,7 +208,8 @@ csv2graph(
 )
 ```
 
-- `output_dir`: 個別プロットとHTML出力の保存先
+- `output_dir`: PNG（個別 / 統合）の出力先（`main_image_dir` がない場合）
+- `html_output_dir`: HTML出力の保存先。`csv2graph()` は `output_dir` を変えてもデフォルトでCSVと同じディレクトリにHTMLを保存します。必要に応じてこのオプション（CLI: `--html-output-dir`）で変更してください。
 - `main_image_dir`: 統合プロット（PNG）の保存先（指定時のみ）
 
 ### 個別プロットのスキップ
@@ -227,6 +228,8 @@ csv2graph("data.csv", no_individual=True)
 ```python
 csv2graph("data.csv", html=True)
 ```
+
+デフォルトではHTMLはCSVと同じ場所に書き出されます。別の場所に保存したい場合は `html_output_dir`（CLI: `--html-output-dir`）を指定してください。
 
 **注意**: Plotlyライブラリのインストールが必要です。
 
@@ -544,10 +547,11 @@ output_dir/
 ├── plot.png              # 統合プロット（overlayモード）
 ├── plot_series1.png      # 個別プロット
 ├── plot_series2.png      # 個別プロット
-└── plot.html             # HTML出力（html=Trueの場合）
-
 main_image_dir/           # main_image_dir指定時のみ
 └── plot.png              # 統合プロット（PNG）
+
+html_output_dir/          # csv2graph() ではデフォルトでCSVと同じ場所
+└── plot.html             # HTML出力（html=Trueの場合）
 ```
 
 ### 出力形式

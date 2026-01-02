@@ -8,30 +8,67 @@ import shutil
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Protocol, Union
+from typing import TYPE_CHECKING, Any, Callable, Literal, Protocol, Union
 
-import chardet
-import pandas as pd
-from openpyxl.styles import Border, Font, Side
-from openpyxl.utils import get_column_letter
-from pydantic import ValidationError
-
-from rdetoolkit import __version__, rde2util
+from rdetoolkit import __version__
 from rdetoolkit.exceptions import InvoiceSchemaValidationError, StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
-from rdetoolkit.models.invoice import FixedHeaders, GeneralAttributeConfig, GeneralTermRegistry, SpecificAttributeConfig, SpecificTermRegistry, TemplateConfig
-from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, SampleField, SpecificProperty
-from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeFsPath, RdeOutputResourcePath
-from rdetoolkit.rde2util import StorageDir
-from rdetoolkit.rdelogger import get_logger
-from rdetoolkit.validation import InvoiceValidator
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from rdetoolkit.models.invoice import (
+        FixedHeaders,
+        GeneralAttributeConfig,
+        SpecificAttributeConfig,
+        TemplateConfig,
+    )
+    from rdetoolkit.models.invoice_schema import SampleField
+    from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
 
 STATIC_DIR = Path(__file__).parent / "static"
 EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
 EX_SPECIFICTERM = STATIC_DIR / "ex_specificterm.csv"
 MAGIC_VARIABLE_PATTERN = re.compile(r"\$\{([^{}]+)\}")
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+
+def _ensure_pandas() -> Any:
+    import pandas as pd
+
+    return pd
+
+
+def _ensure_openpyxl_styles() -> tuple[Any, Any, Any]:
+    from openpyxl.styles import Border, Font, Side
+
+    return Border, Font, Side
+
+
+def _ensure_openpyxl_utils() -> Any:
+    from openpyxl.utils import get_column_letter
+
+    return get_column_letter
+
+
+def _ensure_chardet() -> Any:
+    import chardet
+
+    return chardet
+
+
+def _ensure_validation_error() -> type[Exception]:
+    from pydantic import ValidationError
+
+    return ValidationError
+
+
+def _ensure_logger() -> Callable[..., Any]:
+    from rdetoolkit.rdelogger import get_logger
+
+    return get_logger
+
+
+logger = _ensure_logger()(__name__, file_path="data/logs/rdesys.log")
 
 
 def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
@@ -104,6 +141,8 @@ def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path
 def _assign_invoice_val(invoiceobj: dict[str, Any], key1: str, key2: str, valobj: Any, invoiceschema_obj: dict[str, Any]) -> None:
     """When the destination key, which is the first key 'keys1', is 'custom', valobj is cast according to the invoiceschema_obj. In all other cases, valobj is assigned without changing its type."""
     if key1 == "custom":
+        from rdetoolkit import rde2util
+
         dct_schema = invoiceschema_obj["properties"][key1]["properties"][key2]
         try:
             invoiceobj[key1][key2] = rde2util.castval(valobj, dct_schema["type"], dct_schema.get("format"))
@@ -128,6 +167,7 @@ def overwrite_invoicefile_for_dpfterm(
         invoiceschema_filepath (RdeFsPath): The file path of invoice.schema.json.
         invoice_info (dict[str, Any]): Information about the invoice file.
     """
+    chardet = _ensure_chardet()
     with open(invoiceschema_filepath, "rb") as f:
         data = f.read()
     enc = chardet.detect(data)["encoding"]
@@ -291,6 +331,8 @@ class InvoiceFile:
     def _sanitize_invoice_data(self, candidate: dict[str, Any], schema_path: Path | None) -> dict[str, Any]:
         """Validate and normalise invoice data prior to persisting."""
         if schema_path is not None:
+            from rdetoolkit.validation import InvoiceValidator
+
             validator = InvoiceValidator(schema_path)
             return validator.validate(obj=candidate)
         return candidate
@@ -329,10 +371,13 @@ class TemplateGenerator(Protocol):
         ...
 
 
-if sys.version_info >= (3, 10):
-    AttributeConfig = GeneralAttributeConfig | SpecificAttributeConfig
+if TYPE_CHECKING:
+    if sys.version_info >= (3, 10):
+        AttributeConfig = GeneralAttributeConfig | SpecificAttributeConfig
+    else:
+        AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
 else:
-    AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
+    AttributeConfig = Any
 
 
 class ExcelInvoiceTemplateGenerator:
@@ -344,6 +389,7 @@ class ExcelInvoiceTemplateGenerator:
         self.fixed_header = fixed_header
 
     def _version_info(self) -> pd.DataFrame:
+        pd = _ensure_pandas()
         return pd.DataFrame({
             "items": ["version"],
             "values": [__version__],
@@ -362,9 +408,13 @@ class ExcelInvoiceTemplateGenerator:
                 - A DataFrame containing references for specific terms.
                 - A DataFrame containing rdetoolkit version.
         """
+        pd = _ensure_pandas()
+        from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
+
         base_df = self.fixed_header.to_template_dataframe().to_pandas()
         invoice_schema_obj = readf_json(config.schema_path)
         try:
+            ValidationError = _ensure_validation_error()
             invoice_schema = InvoiceSchemaJson(**invoice_schema_obj)
         except ValidationError as e:
             raise InvoiceSchemaValidationError(str(e)) from e
@@ -398,6 +448,15 @@ class ExcelInvoiceTemplateGenerator:
         return base_df, general_term_df, specific_term_df, version_df
 
     def _add_sample_field(self, base_df: pd.DataFrame, config: TemplateConfig, sample_field: SampleField, prefixes: dict[str, str]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        from rdetoolkit.models.invoice import (
+            GeneralAttributeConfig,
+            GeneralTermRegistry,
+            SpecificAttributeConfig,
+            SpecificTermRegistry,
+        )
+        from rdetoolkit.models.invoice_schema import SpecificProperty
+
+        pd = _ensure_pandas()
         attribute_configs: list[AttributeConfig] = [
             GeneralAttributeConfig(
                 type="general",
@@ -482,6 +541,7 @@ class ExcelInvoiceTemplateGenerator:
             - Applies a thin border to all cells in the range from row 5 to row 40.
             - Applies a thick top border and a double bottom border to the cells in the 5th row.
         """
+        pd = _ensure_pandas()
         with pd.ExcelWriter(save_path, engine="openpyxl") as writer:
             for sheet_name, df in dataframes.items():
                 if sheet_name != "invoice_form":
@@ -492,6 +552,8 @@ class ExcelInvoiceTemplateGenerator:
                     self._style_main_sheet(writer, df, sheet_name)
 
     def _style_main_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
+        Border, _, Side = _ensure_openpyxl_styles()
+        get_column_letter = _ensure_openpyxl_utils()
         default_row_height: int = 40
         default_column_width: int = 20
         default_start_row: int = 4
@@ -523,6 +585,7 @@ class ExcelInvoiceTemplateGenerator:
             cell.border = Border(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
 
     def _style_sub_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
+        _, Font, _ = _ensure_openpyxl_styles()
         default_cell_style = 'Normal'
         _ = writer.book
         worksheet = writer.sheets[sheet_name]
@@ -542,11 +605,19 @@ class ExcelInvoiceFile:
         df_specific (pd.DataFrame | None): Dataframe of specific data (None if the sheet is absent).
         self.template_generator (ExcelInvoiceTemplateGenerator): Template generator for the Excelinvoice.
     """
-    template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())  # type: ignore
+    template_generator: ExcelInvoiceTemplateGenerator | None = None
 
     def __init__(self, invoice_path: Path):
         self.invoice_path = invoice_path
         self.dfexcelinvoice, self.df_general, self.df_specific = self.read()
+
+    @classmethod
+    def _get_template_generator(cls) -> ExcelInvoiceTemplateGenerator:
+        if cls.template_generator is None:
+            from rdetoolkit.models.invoice import FixedHeaders
+
+            cls.template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())
+        return cls.template_generator
 
     def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
         """Reads the content of the Excel invoice file and returns it as three dataframes.
@@ -570,6 +641,7 @@ class ExcelInvoiceFile:
             emsg = f"ERROR: excelinvoice not found {target_path}"
             raise StructuredError(emsg)
 
+        pd = _ensure_pandas()
         dct_sheets = pd.read_excel(target_path, sheet_name=None, dtype=str, header=None, index_col=None)
 
         dfexcelinvoice, df_general, df_specific = None, None, None
@@ -610,6 +682,8 @@ class ExcelInvoiceFile:
                 - A DataFrame containing references for general terms.
                 - A DataFrame containing references for specific terms.
         """
+        from rdetoolkit.models.invoice import TemplateConfig
+
         config = TemplateConfig(
             schema_path=invoice_schema_path,
             general_term_path=EX_GENERALTERM,
@@ -617,14 +691,15 @@ class ExcelInvoiceFile:
             inputfile_mode=file_mode,
         )
 
-        template_df, df_general, df_specific, _df_version = cls.template_generator.generate(config)
+        generator = cls._get_template_generator()
+        template_df, df_general, df_specific, _df_version = generator.generate(config)
         _dataframes = {
             "invoice_form": template_df,
             "generalTerm": df_general,
             "specificTerm": df_specific,
             "_version": _df_version,
         }
-        cls.template_generator.save(_dataframes, str(save_path))
+        generator.save(_dataframes, str(save_path))
         return template_df, df_general, df_specific
 
     def save(self, save_path: str | Path, *, invoice: pd.DataFrame | None = None, sheet_name: str = "invoice_form", index: list[str] | None = None, header: list[str] | None = None) -> None:
@@ -640,6 +715,7 @@ class ExcelInvoiceFile:
         Returns:
             None
         """
+        pd = _ensure_pandas()
         _invoice_df = invoice if invoice is not None else self.dfexcelinvoice
         try:
             if index:
@@ -706,6 +782,7 @@ class ExcelInvoiceFile:
 
     @staticmethod
     def __is_empty_row(row: pd.Series) -> bool:
+        pd = _ensure_pandas()
         return all(cell == "" or pd.isnull(cell) for cell in row)
 
     def _assign_value_to_invoice(self, key: str, value: str, invoice_obj: dict, schema_obj: dict) -> None:
@@ -802,6 +879,8 @@ def backup_invoice_json_files(excel_invoice_file: Path | None, mode: str | None)
     """
     if mode is None:
         mode = ""
+    from rdetoolkit.rde2util import StorageDir
+
     invoice_org_filepath = StorageDir.get_specific_outputdir(False, "invoice").joinpath("invoice.json")
     if (excel_invoice_file is not None) or (mode is not None and mode.lower() in ["rdeformat", "multidatatile"]):
         invoice_org_filepath = StorageDir.get_specific_outputdir(True, "temp").joinpath("invoice_org.json")
@@ -842,6 +921,7 @@ def update_description_with_features(
     Returns:
         None: The function does not return a value but writes the features to the invoice.json file in the description field.
     """
+    chardet = _ensure_chardet()
     with open(dst_invoice_json, "rb") as dst_invoice:
         enc_dst_invoice_data = dst_invoice.read()
     enc = chardet.detect(enc_dst_invoice_data)["encoding"]
@@ -1377,6 +1457,7 @@ class SmartTableFile:
         if self._data is not None:
             return self._data
 
+        pd = _ensure_pandas()
         try:
             if self.smarttable_path.suffix.lower() == ".xlsx":
                 # Read Excel file, skip first row (display names), use second row as header
@@ -1437,6 +1518,7 @@ class SmartTableFile:
         data = self.read_table()
         csv_file_mappings = []
 
+        pd = _ensure_pandas()
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
             inputdata_columns = [col for col in data.columns if col.startswith("inputdata")]

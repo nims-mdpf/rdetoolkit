@@ -14,16 +14,43 @@ from typing import Literal, cast
 import click
 from click.core import ParameterSource
 
-import rdetoolkit.workflows as workflows
-from rdetoolkit.cmd.archive import CreateArtifactCommand
-from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig, VersionCommand
-from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
-from rdetoolkit.cmd.gen_config import (
-    GenerateConfigCommand,
-    TEMPLATE_CHOICES,
-    LANG_CHOICES,
+TEMPLATE_CHOICES = (
+    "minimal",
+    "full",
+    "multitile",
+    "rdeformat",
+    "smarttable",
+    "interactive",
 )
-from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+LANG_CHOICES = ("en", "ja")
+
+
+class _LazyModuleProxy:
+    def __init__(self, module_name: str) -> None:
+        self._module_name = module_name
+        self._module: ModuleType | None = None
+
+    def _load(self) -> ModuleType:
+        if self._module is None:
+            self._module = importlib.import_module(self._module_name)
+        return self._module
+
+    def __getattr__(self, name: str) -> object:
+        module = self._load()
+        return getattr(module, name)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name in {"_module_name", "_module"}:
+            object.__setattr__(self, name, value)
+            return
+        module = self._load()
+        setattr(module, name, value)
+
+    def __repr__(self) -> str:
+        return f"<LazyModuleProxy {self._module_name}>"
+
+
+workflows = _LazyModuleProxy("rdetoolkit.workflows")
 
 
 @click.group()
@@ -193,6 +220,8 @@ def init(
     other_templates: tuple[pathlib.Path, ...],
 ) -> None:
     """Output files needed to build RDE structured programs."""
+    from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig
+
     cli_templates = InitTemplateConfig(
         entry_point=entry_point_template,
         modules=modules_template,
@@ -208,6 +237,8 @@ def init(
 @click.command()
 def version() -> None:
     """Command to display version."""
+    from rdetoolkit.cmd.command import VersionCommand
+
     cmd = VersionCommand()
     cmd.invoke()
 
@@ -311,6 +342,8 @@ def make_excelinvoice(
     Returns:
         None
     """
+    from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+
     cmd = GenerateExcelInvoiceCommand(invoice_schema_json_path, output_path, mode)
     cmd.invoke()
 
@@ -330,6 +363,8 @@ def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list
     Returns:
         None
     """
+    from rdetoolkit.cmd.archive import CreateArtifactCommand
+
     cmd = CreateArtifactCommand(
         pathlib.Path(source_dir),
         output_archive_path=(pathlib.Path(output_archive) if output_archive else None),
@@ -342,6 +377,11 @@ def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list
 @click.argument("csv_path", type=click.Path(exists=False, dir_okay=False, path_type=pathlib.Path))
 @click.option("--output-dir", "-o", type=click.Path(path_type=pathlib.Path), help="Output directory for plots")
 @click.option("--main-image-dir", type=click.Path(path_type=pathlib.Path), help="Directory for combined plot outputs")
+@click.option(
+    "--html-output-dir",
+    type=click.Path(path_type=pathlib.Path),
+    help="Directory for HTML outputs (defaults to the CSV directory)",
+)
 @click.option("--csv-format", type=click.Choice(["standard", "transpose", "noheader"]), default="standard", help="CSV format type")
 @click.option("--logy", is_flag=True, help="Use log scale for Y axis")
 @click.option("--logx", is_flag=True, help="Use log scale for X axis")
@@ -373,6 +413,7 @@ def csv2graph(
     csv_path: pathlib.Path,
     output_dir: pathlib.Path | None,
     main_image_dir: pathlib.Path | None,
+    html_output_dir: pathlib.Path | None,
     csv_format: Literal["standard", "transpose", "noheader"],
     logy: bool,
     logx: bool,
@@ -401,6 +442,7 @@ def csv2graph(
         csv_path: Path to CSV file
         output_dir: Output directory
         main_image_dir: Directory for combined plot outputs
+        html_output_dir: Directory for HTML outputs
         csv_format: CSV format type
         logy: Log scale for Y
         logx: Log scale for X
@@ -422,6 +464,8 @@ def csv2graph(
         no_individual: Skip individual (None enables auto-detection)
         max_legend_items: Max legend items
     """
+    from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
+
     # Parse column specifications
     def parse_col(col: str) -> int | str:
         try:
@@ -456,6 +500,7 @@ def csv2graph(
         csv_path=csv_path,
         output_dir=output_dir,
         main_image_dir=main_image_dir,
+        html_output_dir=html_output_dir,
         csv_format=csv_format,
         logy=logy,
         logx=logx,
@@ -513,6 +558,8 @@ def gen_config(
     lang: str,
 ) -> None:
     """Generate rdeconfig.yaml from templates."""
+    from rdetoolkit.cmd.gen_config import GenerateConfigCommand
+
     template_key = template_name.lower()
     lang_key = lang.lower()
 

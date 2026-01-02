@@ -810,6 +810,7 @@ sample12/
 === "CLI"
     ```bash
     rdetoolkit csv2graph sample12/data.csv \
+      --output-dir plots \
       --html \
       --no-individual
     ```
@@ -819,15 +820,16 @@ sample12/
 ```bash
 sample12/
 |-- data.csv
-|-- data.html # generated
-|-- data.png # generated
-`-- output_html.py
+|-- data.html # generated (HTML stays next to the CSV)
+|-- output_html.py
+`-- plots/
+    `-- data.png # generated
 ```
 
 ### Option Details
 
 - `--html`: Produce interactive Plotly HTML files (`*.html`). Open them in a browser to zoom and inspect traces.
-- `--no-individual`: Skip per-series plots and keep only the combined output (the HTML goes to the same directory).
+- `--no-individual`: Skip per-series plots and keep only the combined output (the HTML stays next to the CSV by default unless you pass `--html-output-dir`).
 
 Plotly output requires the Plotly library. If it is missing, you will see the following error message:
 
