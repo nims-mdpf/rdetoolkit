@@ -3,14 +3,10 @@ from __future__ import annotations
 import copy
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 
 from rdetoolkit.exceptions import InvoiceSchemaValidationError, MetadataValidationError
 from rdetoolkit.fileops import readf_json
-
-if TYPE_CHECKING:
-    from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
-    from rdetoolkit.models.metadata import MetadataItem
 
 
 def _jsonschema_tools() -> tuple[Any, Any, Any, type[Exception]]:

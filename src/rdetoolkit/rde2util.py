@@ -752,6 +752,10 @@ def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int 
         valstr (Any): String to be converted of type
         outtype (str): Type information at output
         outfmt (str): Formatting at output (related to date data)
+
+    Notes:
+        For boolean output, string inputs must be "true" or "false" (case-insensitive). Other
+        string values raise StructuredError.
     """
     if outtype == "boolean":
         # Handle string representations of boolean values (e.g., "TRUE"/"FALSE" from Excel)

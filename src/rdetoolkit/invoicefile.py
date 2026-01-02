@@ -20,12 +20,10 @@ if TYPE_CHECKING:
     from rdetoolkit.models.invoice import (
         FixedHeaders,
         GeneralAttributeConfig,
-        GeneralTermRegistry,
         SpecificAttributeConfig,
-        SpecificTermRegistry,
         TemplateConfig,
     )
-    from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, SampleField, SpecificProperty
+    from rdetoolkit.models.invoice_schema import SampleField
     from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
 
 STATIC_DIR = Path(__file__).parent / "static"

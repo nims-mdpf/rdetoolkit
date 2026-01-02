@@ -385,6 +385,10 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
             mode=__config.system.extended_mode,
             config=__config,
         )
+        if smarttable_file is not None:
+            from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
+
+            SmartTableInvoiceInitializer.clear_base_invoice_cache()
 
         # Backup of invoice.json
         invoice_org_filepath = backup_invoice_json_files(

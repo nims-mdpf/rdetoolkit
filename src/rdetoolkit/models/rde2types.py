@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, TypedDict, Union, overload
 
 if TYPE_CHECKING:
-    from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
+    from rdetoolkit.models.config import Config
 
 ZipFilesPathList = Sequence[Path]
 UnZipFilesPathList = Sequence[Path]
