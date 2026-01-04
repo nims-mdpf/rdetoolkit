@@ -65,6 +65,44 @@ def _process_specific_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     return _df_specific
 
 
+SheetType = Literal["invoice", "general_term", "specific_term", "unknown"]
+
+
+def _identify_sheet_type(sh_name: str, df: pd.DataFrame) -> SheetType:
+    """Identify the type of an Excel sheet.
+
+    Args:
+        sh_name: Excel sheet name.
+        df: DataFrame loaded from the sheet.
+
+    Returns:
+        Sheet type:
+        - "invoice": InvoiceList sheet (cell A1 is "invoiceList_format_id")
+        - "general_term": generalTerm sheet
+        - "specific_term": specificTerm sheet
+        - "unknown": Other sheets (skipped in processing)
+    """
+    if not df.empty and len(df) > 0 and len(df.columns) > 0:
+        target_comment_value = df.iat[0, 0]
+        if target_comment_value == "invoiceList_format_id":
+            return "invoice"
+
+    if sh_name == "generalTerm":
+        return "general_term"
+    if sh_name == "specificTerm":
+        return "specific_term"
+
+    return "unknown"
+
+
+# Sheet type to processor function mapping
+_SHEET_PROCESSORS: dict[SheetType, Callable[[pd.DataFrame], pd.DataFrame]] = {
+    "invoice": _process_invoice_sheet,
+    "general_term": _process_general_term_sheet,
+    "specific_term": _process_specific_term_sheet,
+}
+
+
 def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path]) -> list[Path]:
     """Checks for the existence of raw file paths listed in a DataFrame against a list of file Paths.
 
@@ -572,17 +610,19 @@ class ExcelInvoiceFile:
             if df.empty:
                 continue
 
-            target_comment_value = df.iat[0, 0]
-            if target_comment_value == "invoiceList_format_id":
+            sheet_type = _identify_sheet_type(sh_name, df)
+
+            if sheet_type == "invoice":
                 if dfexcelinvoice is not None:
                     emsg = "ERROR: multiple sheet in invoiceList files"
                     raise StructuredError(emsg)
                 ExcelInvoiceFile.check_intermittent_empty_rows(df)
-                dfexcelinvoice = _process_invoice_sheet(df)
-            elif sh_name == "generalTerm":
-                df_general = _process_general_term_sheet(df)
-            elif sh_name == "specificTerm":
-                df_specific = _process_specific_term_sheet(df)
+                dfexcelinvoice = _SHEET_PROCESSORS[sheet_type](df)
+            elif sheet_type == "general_term":
+                df_general = _SHEET_PROCESSORS[sheet_type](df)
+            elif sheet_type == "specific_term":
+                df_specific = _SHEET_PROCESSORS[sheet_type](df)
+            # sheet_type == "unknown" の場合は何もしない（スキップ）
 
         if dfexcelinvoice is None:
             emsg = "ERROR: no sheet in invoiceList files"
