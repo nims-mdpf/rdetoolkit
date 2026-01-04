@@ -21,6 +21,7 @@ from rdetoolkit.modeproc import (
 )
 from rdetoolkit.rde2util import StorageDir
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.result import Result, Success, Failure
 from rdetoolkit.core import DirectoryOps
 from typing import Any
 
@@ -50,6 +51,51 @@ def _create_error_status(
         stacktrace=error_info.get("stacktrace"),
         target=",".join(str(file) for file in rdeoutput_resource.rawfiles),
     )
+
+
+def check_files_result(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> Result[tuple[RawFiles, Path | None, Path | None], StructuredError]:
+    """Classify input files with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        srcpaths: Input directory paths
+        mode: Processing mode (invoice, excelinvoice, etc.)
+        config: Optional configuration object
+
+    Returns:
+        Result containing:
+            Success: tuple of (RawFiles, excel_invoice_path, smarttable_path)
+            Failure: StructuredError with error details
+
+    Example:
+        >>> result = check_files_result(srcpaths, mode="invoice")
+        >>> if result.is_success():
+        ...     rawfiles, excel_invoice, smarttable = result.unwrap()
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error.emsg}")
+    """
+    try:
+        out_dir_temp = StorageDir.get_specific_outputdir(True, "temp")
+        if mode is None:
+            mode = ""
+
+        input_checker = selected_input_checker(srcpaths, out_dir_temp, mode, config)
+        rawfiles, special_file = input_checker.parse(srcpaths.inputdata)
+
+        # Use checker_type property to distinguish between different checkers
+        if input_checker.checker_type == "smarttable":
+            return Success((rawfiles, None, special_file))  # excelinvoice=None, smarttable_file=Path
+        if input_checker.checker_type == "excel_invoice":
+            return Success((rawfiles, special_file, None))  # excelinvoice=Path, smarttable_file=None
+        return Success((rawfiles, None, None))  # InvoiceMode
+    except StructuredError as e:
+        return Failure(e)
+    except Exception as e:
+        # Wrap unexpected exceptions in StructuredError
+        emsg = f"Unexpected error in check_files: {e}"
+        return Failure(StructuredError(emsg, 999))
 
 
 def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> tuple[RawFiles, Path | None, Path | None]:
@@ -101,20 +147,14 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config 
         The destination paths for reading input files are different for the shipping label and ExcelInvoice.
         invoice: /data/inputdata/<registered_files>
         excelinvoice: /data/temp/<registered_files>
+
+    Raises:
+        StructuredError: When file classification fails
     """
-    out_dir_temp = StorageDir.get_specific_outputdir(True, "temp")
-    if mode is None:
-        mode = ""
-
-    input_checker = selected_input_checker(srcpaths, out_dir_temp, mode, config)
-    rawfiles, special_file = input_checker.parse(srcpaths.inputdata)
-
-    # Use checker_type property to distinguish between different checkers
-    if input_checker.checker_type == "smarttable":
-        return rawfiles, None, special_file  # excelinvoice=None, smarttable_file=Path
-    if input_checker.checker_type == "excel_invoice":
-        return rawfiles, special_file, None  # excelinvoice=Path, smarttable_file=None
-    return rawfiles, None, None  # InvoiceMode
+    result = check_files_result(srcpaths, mode=mode, config=config)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
 
 def generate_folder_paths_iterator(
@@ -254,7 +294,7 @@ def _process_mode(  # noqa: C901 PLR0912
             raise StructuredError(emsg)
 
         if status.status == "failed":
-            if hasattr(status, 'exception_object'):
+            if hasattr(status, "exception_object"):
                 if isinstance(status.exception_object, StructuredError):
                     raise status.exception_object
                 logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
@@ -351,7 +391,8 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
 
         # Backup of invoice.json
         invoice_org_filepath = backup_invoice_json_files(
-            excel_invoice_files, __config.system.extended_mode,
+            excel_invoice_files,
+            __config.system.extended_mode,
         )
         invoice_schema_filepath = srcpaths.tasksupport.joinpath("invoice.schema.json")
 
@@ -366,9 +407,14 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
 
         for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
             status, error_info, mode = _process_mode(
-                idx, srcpaths, rdeoutput_resource, __config,
-                excel_invoice_files, smarttable_file,
-                custom_dataset_function, logger,
+                idx,
+                srcpaths,
+                rdeoutput_resource,
+                __config,
+                excel_invoice_files,
+                smarttable_file,
+                custom_dataset_function,
+                logger,
             )
             if error_info and any(value is not None for value in error_info.values()):
                 status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
