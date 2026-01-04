@@ -989,3 +989,59 @@ def test_cli_integration_header_only(empty_attributes_schema, tmp_path):
 
     except Exception as e:
         pytest.fail(f"CLI integration test failed: {str(e)}")
+
+
+class TestSheetTypeIdentification:
+    """シート種別判定のユニットテスト"""
+
+    def test_identify_invoice_sheet(self):
+        """InvoiceListシートの判定"""
+        import pandas as pd
+        from rdetoolkit.invoicefile import _identify_sheet_type
+        df = pd.DataFrame([["invoiceList_format_id", "v1.0"], ["col1", "col2"]])
+        assert _identify_sheet_type("Sheet1", df) == "invoice"
+
+    def test_identify_general_term_sheet(self):
+        """generalTermシートの判定"""
+        import pandas as pd
+        from rdetoolkit.invoicefile import _identify_sheet_type
+        df = pd.DataFrame([["header1", "header2"], ["data1", "data2"]])
+        assert _identify_sheet_type("generalTerm", df) == "general_term"
+
+    def test_identify_specific_term_sheet(self):
+        """specificTermシートの判定"""
+        import pandas as pd
+        from rdetoolkit.invoicefile import _identify_sheet_type
+        df = pd.DataFrame([["header1", "header2"], ["data1", "data2"]])
+        assert _identify_sheet_type("specificTerm", df) == "specific_term"
+
+    def test_identify_unknown_sheet(self):
+        """未知のシート種別の判定"""
+        import pandas as pd
+        from rdetoolkit.invoicefile import _identify_sheet_type
+        df = pd.DataFrame([["some_data", "value"], ["row1", "row2"]])
+        assert _identify_sheet_type("RandomSheetName", df) == "unknown"
+
+    def test_empty_dataframe(self):
+        """空DataFrameの判定"""
+        import pandas as pd
+        from rdetoolkit.invoicefile import _identify_sheet_type
+        df = pd.DataFrame()
+        assert _identify_sheet_type("Sheet1", df) == "unknown"
+
+
+class TestSheetProcessorDispatch:
+    """ディスパッチテーブルの検証"""
+
+    def test_sheet_processors_completeness(self):
+        """すべてのシート種別が登録されている"""
+        from rdetoolkit.invoicefile import _SHEET_PROCESSORS
+        expected_types = {"invoice", "general_term", "specific_term"}
+        assert set(_SHEET_PROCESSORS.keys()) == expected_types
+
+    def test_sheet_processors_mapping(self):
+        """正しいプロセッサ関数がマッピングされている"""
+        from rdetoolkit.invoicefile import _SHEET_PROCESSORS, _process_invoice_sheet, _process_general_term_sheet, _process_specific_term_sheet
+        assert _SHEET_PROCESSORS["invoice"] is _process_invoice_sheet
+        assert _SHEET_PROCESSORS["general_term"] is _process_general_term_sheet
+        assert _SHEET_PROCESSORS["specific_term"] is _process_specific_term_sheet

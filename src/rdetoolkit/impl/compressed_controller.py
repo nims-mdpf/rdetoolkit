@@ -6,7 +6,7 @@ import shutil
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Final
+from typing import Callable, Final
 
 import charset_normalizer
 import pandas as pd
@@ -552,6 +552,15 @@ class TarGzArtifactPackageCompressor(IArtifactPackageCompressor):
         )
 
 
+# Dispatch table for archive format to archiver class mapping
+_ARCHIVE_FORMAT_REGISTRY: dict[str, Callable[[str | Path, list[str]], IArtifactPackageCompressor]] = {
+    "zip": ZipArtifactPackageCompressor,
+    "tar.gz": TarGzArtifactPackageCompressor,
+    "targz": TarGzArtifactPackageCompressor,
+    "tgz": TarGzArtifactPackageCompressor,
+}
+
+
 def get_artifact_archiver(fmt: str, source_dir: str | Path, exclude_patterns: list[str]) -> IArtifactPackageCompressor:
     """Factory function to get the appropriate archiver based on the format.
 
@@ -566,9 +575,8 @@ def get_artifact_archiver(fmt: str, source_dir: str | Path, exclude_patterns: li
     Raises:
         ValueError: If the format is not supported.
     """
-    if fmt.lower() == "zip":
-        return ZipArtifactPackageCompressor(source_dir, exclude_patterns)
-    if fmt.lower() in ("tar.gz", "targz", "tgz"):
-        return TarGzArtifactPackageCompressor(source_dir, exclude_patterns)
-    emsg = "Unsupported archive format. Use 'zip' or 'tar.gz'."
-    raise ValueError(emsg)
+    archiver_class = _ARCHIVE_FORMAT_REGISTRY.get(fmt.lower())
+    if archiver_class is None:
+        emsg = "Unsupported archive format. Use 'zip' or 'tar.gz'."
+        raise ValueError(emsg)
+    return archiver_class(source_dir, exclude_patterns)

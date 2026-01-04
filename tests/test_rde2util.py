@@ -385,3 +385,90 @@ def test_metadata_validation_error(meta_const_instance):
     # Cases in which castval throws an error with invalid value
     with pytest.raises(StructuredError, match="ERROR: failed to cast metaDef value"):
         meta_const_instance.metadata_validation("abc", "integer", None, None, None)
+
+
+class TestCastvalCompatibility:
+    """castvalリファクタリング後の互換性テスト"""
+
+    def test_outtype_none_raises_unknown_type_error(self):
+        """outtype=None時に正しいエラーメッセージを送出"""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("test", None, None)
+        assert str(exc_info.value) == "ERROR: unknown value type in metaDef"
+
+    def test_outtype_unknown_raises_unknown_type_error(self):
+        """未知のouttypeは'unknown value type'エラー"""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("test", "unknown_type", None)
+        assert str(exc_info.value) == "ERROR: unknown value type in metaDef"
+
+    def test_string_without_format_returns_original(self):
+        """outfmt=None時はvalstrの型を維持"""
+        result = castval(12345, "string", None)
+        assert result == 12345
+        assert isinstance(result, int)  # 型も維持される
+
+    def test_integer_cast_failure_message(self):
+        """integer変換失敗のエラーメッセージ"""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("not_a_number", "integer", None)
+        assert str(exc_info.value) == "ERROR: failed to cast metaDef value"
+
+    def test_number_cast_failure_message(self):
+        """number変換失敗のエラーメッセージ"""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("not_a_number", "number", None)
+        assert str(exc_info.value) == "ERROR: failed to cast metaDef value"
+
+
+class TestTypeHandlers:
+    """個別ハンドラ関数のユニットテスト"""
+
+    def test_cast_boolean_handler_true(self):
+        """_cast_boolean: 'true'をTrueに変換"""
+        from rdetoolkit.rde2util import _cast_boolean
+        assert _cast_boolean("true", None) is True
+        assert _cast_boolean("TRUE", None) is True
+        assert _cast_boolean("  True  ", None) is True
+
+    def test_cast_boolean_handler_false(self):
+        """_cast_boolean: 'false'をFalseに変換"""
+        from rdetoolkit.rde2util import _cast_boolean
+        assert _cast_boolean("false", None) is False
+        assert _cast_boolean("FALSE", None) is False
+
+    def test_cast_integer_handler(self):
+        """_cast_integer: 整数変換と単位分離"""
+        from rdetoolkit.rde2util import _cast_integer
+        assert _cast_integer("100", None) == 100
+        assert _cast_integer("100 kg", None) == 100  # 単位分離
+
+    def test_cast_number_handler_integer_priority(self):
+        """_cast_number: 整数優先ロジック"""
+        from rdetoolkit.rde2util import _cast_number
+        result = _cast_number("100", None)
+        assert result == 100
+        assert isinstance(result, int)  # 整数優先
+
+    def test_cast_string_handler_no_format(self):
+        """_cast_string: outfmt=None時は型を維持"""
+        from rdetoolkit.rde2util import _cast_string
+        result = _cast_string(12345, None)
+        assert result == 12345
+        assert isinstance(result, int)
+
+
+class TestDispatchTable:
+    """ディスパッチテーブルの検証"""
+
+    def test_type_casters_completeness(self):
+        """すべての型がディスパッチテーブルに登録されている"""
+        from rdetoolkit.rde2util import _TYPE_CASTERS
+        expected_types = {"boolean", "integer", "number", "string"}
+        assert set(_TYPE_CASTERS.keys()) == expected_types
+
+    def test_type_casters_callable(self):
+        """ディスパッチテーブルの値がすべて呼び出し可能"""
+        from rdetoolkit.rde2util import _TYPE_CASTERS
+        for type_name, caster in _TYPE_CASTERS.items():
+            assert callable(caster), f"{type_name}のcasterが呼び出し可能でない"
