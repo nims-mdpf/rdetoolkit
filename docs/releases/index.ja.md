@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.5.0     | 未リリース | Resultパターンによる明示的エラーハンドリング | [v1.5.0](#v150-未リリース) |
 | v1.4.3     | 2025-12-25 | SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整 | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2     | 2025-12-18 | Invoice overwrite検証 / Excelインボイス統合 / csv2graph単一系列自動判定 / MultiDataTile空入力実行 | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1     | 2025-11-05 | SmartTable行CSVアクセサ / 旧`rawfiles`フォールバック警告 | [v1.4.1](#v141-2025-11-05) |
@@ -15,6 +16,72 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.5.0 (未リリース)
+
+!!! info "参照資料"
+    - 対応Issue: [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334)
+
+#### ハイライト
+- Resultパターン（`Result[T, E]`）を導入し、例外を使わない型安全な明示的エラーハンドリングを実現
+- 関数型プログラミングパターン（map、unwrap）を持つ`Success[T]`と`Failure[E]`型を追加
+- 主要なワークフロー・モード処理関数のResult版を提供し、段階的移行を可能に
+
+#### 追加機能 / 改善
+- **新規Resultモジュール** (`rdetoolkit.result`):
+  - `Success[T]`: 成功結果を表す値を持つイミュータブルなfrozen dataclass
+  - `Failure[E]`: 失敗結果を表すエラーを持つイミュータブルなfrozen dataclass
+  - `Result[T, E]`: `Success[T] | Failure[E]`の型エイリアス
+  - `try_result` デコレーター: 例外ベース関数をResult返却関数に変換
+  - `TypeVar`と`ParamSpec`による完全なジェネリック型サポート
+  - 関数型メソッド: `is_success()`, `map()`, `unwrap()`
+- **Resultベースワークフロー関数**:
+  - `check_files_result()`: 明示的Result型によるファイル分類
+  - 戻り値: `Result[tuple[RawFiles, Path | None, Path | None], StructuredError]`
+- **Resultベースモード処理関数**:
+  - `invoice_mode_process_result()`: Result型によるインボイス処理
+  - 戻り値: `Result[WorkflowExecutionStatus, Exception]`
+- **型スタブ**: IDEの自動補完と型チェック用の完全な`.pyi`ファイル
+- **ドキュメント**: 英語・日本語の包括的APIドキュメント（`docs/api/result.en.md`, `docs/api/result.ja.md`）
+- **パブリックAPI**: `rdetoolkit.__init__.py`からResult型をエクスポートし、簡単にインポート可能
+- **100%テストカバレッジ**: Resultモジュール用の40個の包括的ユニットテスト
+
+#### 移行 / 互換性
+- **後方互換**: 元の例外ベース関数はすべて変更なし
+- **段階的移行**: 例外ベースとResultベースの両パターンが共存可能
+- **デリゲーションパターン**: 元の関数は内部で`*_result()`版に委譲
+- **型安全性**: `isinstance(result, Failure)`による型安全なエラーチェック
+- **エラー情報保持**: すべてのエラー情報（StructuredError属性、Exception詳細）をFailureに保持
+
+#### 使用例
+
+**Resultベースエラーハンドリング:**
+```python
+from rdetoolkit.workflows import check_files_result
+
+result = check_files_result(srcpaths, mode="Invoice")
+if result.is_success():
+    raw_files, excel_path, smarttable_path = result.unwrap()
+    # ファイルを処理
+else:
+    error = result.error
+    print(f"エラー {error.ecode}: {error.emsg}")
+```
+
+**従来の例外ベース（引き続き動作）:**
+```python
+from rdetoolkit.workflows import check_files
+
+try:
+    raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="Invoice")
+except StructuredError as e:
+    print(f"エラー {e.ecode}: {e.emsg}")
+```
+
+#### 既知の問題
+- `invoice_mode_process`のみがResultベース版を持ち、他のモード処理関数は今後のリリースで移行予定
+
+---
 
 ## v1.4.3 (2025-12-25)
 
