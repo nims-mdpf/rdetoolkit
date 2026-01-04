@@ -18,6 +18,7 @@ from rdetoolkit.models.config import Config
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.factories import PipelineFactory
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.result import Result, Success, Failure
 
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
@@ -132,6 +133,52 @@ def excel_invoice_mode_process(
     return pipeline.execute(context)
 
 
+def invoice_mode_process_result(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    datasets_process_function: DatasetCallback | None = None,
+) -> Result[WorkflowExecutionStatus, Exception]:
+    """Run invoice pipeline with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
+
+    Returns:
+        Result containing:
+            Success: WorkflowExecutionStatus with execution metadata
+            Failure: Exception from callback or pipeline validation
+
+    Example:
+        >>> result = invoice_mode_process_result("0", srcpaths, resource_paths)
+        >>> if result.is_success():
+        ...     status = result.unwrap()
+        ...     print(f"Status: {status.status}")
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error}")
+    """
+    try:
+        context = ProcessingContext(
+            index=index,
+            srcpaths=srcpaths,
+            resource_paths=resource_paths,
+            datasets_function=datasets_process_function,
+            mode_name="invoice",
+        )
+
+        pipeline = PipelineFactory.create_invoice_pipeline()
+        status = pipeline.execute(context)
+        return Success(status)
+    except Exception as e:
+        return Failure(e)
+
+
 def invoice_mode_process(
     index: str,
     srcpaths: RdeInputDirPaths,
@@ -155,16 +202,10 @@ def invoice_mode_process(
         WorkflowExecutionStatus: Execution metadata including status, target,
         and optional error information.
     """
-    context = ProcessingContext(
-        index=index,
-        srcpaths=srcpaths,
-        resource_paths=resource_paths,
-        datasets_function=datasets_process_function,
-        mode_name="invoice",
-    )
-
-    pipeline = PipelineFactory.create_invoice_pipeline()
-    return pipeline.execute(context)
+    result = invoice_mode_process_result(index, srcpaths, resource_paths, datasets_process_function)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
 
 def smarttable_invoice_mode_process(
