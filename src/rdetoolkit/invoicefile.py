@@ -24,7 +24,7 @@ if TYPE_CHECKING:
         TemplateConfig,
     )
     from rdetoolkit.models.invoice_schema import SampleField
-    from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
+    from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeFsPath, RdeOutputResourcePath
 
 STATIC_DIR = Path(__file__).parent / "static"
 EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
@@ -452,9 +452,9 @@ class ExcelInvoiceTemplateGenerator:
         base_df = self.fixed_header.to_template_dataframe().to_pandas()
         invoice_schema_obj = readf_json(config.schema_path)
         try:
-            ValidationError = _ensure_validation_error()
+            validation_error_cls = _ensure_validation_error()
             invoice_schema = InvoiceSchemaJson(**invoice_schema_obj)
-        except ValidationError as e:
+        except validation_error_cls as e:
             raise InvoiceSchemaValidationError(str(e)) from e
         prefixes = {
             "general": self.GENERAL_PREFIX,
@@ -590,7 +590,7 @@ class ExcelInvoiceTemplateGenerator:
                     self._style_main_sheet(writer, df, sheet_name)
 
     def _style_main_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
-        Border, _, Side = _ensure_openpyxl_styles()
+        border_cls, _, side_cls = _ensure_openpyxl_styles()
         get_column_letter = _ensure_openpyxl_utils()
         default_row_height: int = 40
         default_column_width: int = 20
@@ -608,10 +608,10 @@ class ExcelInvoiceTemplateGenerator:
             worksheet.column_dimensions[col_letter].width = default_column_width
 
         # settings cell border
-        thin = Side(border_style="thin", color="000000")
-        thick = Side(border_style="thick", color="000000")
-        double = Side(border_style="double", color="000000")
-        grid_border = Border(top=thin, left=thin, right=thin, bottom=thin)
+        thin = side_cls(border_style="thin", color="000000")
+        thick = side_cls(border_style="thick", color="000000")
+        double = side_cls(border_style="double", color="000000")
+        grid_border = border_cls(top=thin, left=thin, right=thin, bottom=thin)
 
         for row in range(default_start_row, default_end_row):
             for col in range(default_start_col, max_col + 1):
@@ -620,17 +620,17 @@ class ExcelInvoiceTemplateGenerator:
 
         for col in range(1, max_col + 1):
             cell = worksheet.cell(row=4, column=col)
-            cell.border = Border(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
+            cell.border = border_cls(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
 
     def _style_sub_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
-        _, Font, _ = _ensure_openpyxl_styles()
-        default_cell_style = 'Normal'
+        _, font_cls, _ = _ensure_openpyxl_styles()
+        default_cell_style = "Normal"
         _ = writer.book
         worksheet = writer.sheets[sheet_name]
         for row in worksheet.iter_rows():
             for cell in row:
                 cell.style = default_cell_style
-                cell.font = Font(bold=False)
+                cell.font = font_cls(bold=False)
 
 
 class ExcelInvoiceFile:

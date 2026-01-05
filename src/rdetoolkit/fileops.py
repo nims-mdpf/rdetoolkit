@@ -1,24 +1,29 @@
 from __future__ import annotations
 
+import functools
 import json
 from pathlib import Path
 from typing import Any
 
 from rdetoolkit.exceptions import StructuredError
 
-_logger = None
 
-
+@functools.lru_cache(maxsize=1)
 def _get_logger() -> Any:
-    global _logger
-    if _logger is None:
-        from rdetoolkit.rdelogger import get_logger
+    from rdetoolkit.rdelogger import get_logger
 
-        _logger = get_logger(__name__)
-    return _logger
+    return get_logger(__name__)
 
 
 def detect_encoding(path: str) -> str:
+    """Detect encoding for the given file path.
+
+    Args:
+        path (str): Path to the target file.
+
+    Returns:
+        str: Detected encoding.
+    """
     from rdetoolkit.core import detect_encoding as _detect_encoding
 
     return _detect_encoding(path)

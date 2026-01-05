@@ -6,7 +6,7 @@ import shutil
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Callable, Final, Union
+from typing import Callable, Final
 
 import charset_normalizer
 import pandas as pd
@@ -368,7 +368,7 @@ class CompressedFolderParser(ICompressedFileStructParser):
         """Check if there are any non-unique directory names under the target directory.
 
         Args:
-            target_path (Union[str, Path]): The directory path to scan
+            target_path (str | Path): The directory path to scan
             exclude_names (list[str]): Excluded files
 
         Raises:
@@ -553,7 +553,7 @@ class TarGzArtifactPackageCompressor(IArtifactPackageCompressor):
 
 
 # Dispatch table for archive format to archiver class mapping
-_ARCHIVE_FORMAT_REGISTRY: dict[str, Callable[[Union[str, Path], list[str]], IArtifactPackageCompressor]] = {
+_ARCHIVE_FORMAT_REGISTRY: dict[str, Callable[[str | Path, list[str]], IArtifactPackageCompressor]] = {
     "zip": ZipArtifactPackageCompressor,
     "tar.gz": TarGzArtifactPackageCompressor,
     "targz": TarGzArtifactPackageCompressor,

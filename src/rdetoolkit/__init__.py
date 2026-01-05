@@ -75,7 +75,8 @@ def __getattr__(name: str) -> Any:
             globals()[name] = value
             return value
 
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    emsg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(emsg)
 
 
 def __dir__() -> list[str]:

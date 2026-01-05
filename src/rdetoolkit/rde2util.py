@@ -9,7 +9,7 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import Any, Callable, Final, TypedDict, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Final, TypedDict, cast
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
@@ -149,8 +149,8 @@ def _split_value_unit(target_char: str) -> ValueUnitPair:  # pragma: no cover
     """
     valpair = ValueUnitPair(value="", unit="")
     valleft = str(target_char).strip()
-    ptn1 = r"^[+-]?[0-9]*\.?[0-9]*"  # 実数部の正規表現
-    ptn2 = r"[eE][+-]?[0-9]+"  # 指数部の正規表現
+    ptn1 = r"^[+-]?[0-9]*\.?[0-9]*"
+    ptn2 = r"[eE][+-]?[0-9]+"
     r1 = re.match(ptn1, valleft)
     if r1:
         _v = r1.group()
@@ -270,7 +270,7 @@ class StorageDir:
         - tasksupport
     """
 
-    __nDigit = 4  # 分割データインデックスの桁数。固定値
+    __nDigit = 4
 
     @classmethod
     def get_datadir(cls, is_mkdir: bool, idx: int = 0) -> str:
@@ -378,7 +378,7 @@ class Meta:
             metaConst (dict[str, MetaItem]): A dictionary for constant metadata.
             metaVar (list[dict[str, MetaItem]]): A list of dictionaries for variable metadata.
             actions (list[str]): A list of actions.
-            referedmap (dict[str, Optional[Union[str, list]]]): A dictionary mapping references.
+            referedmap (dict[str, str | list | None]): A dictionary mapping references.
             metaDef (dict[str, MetadataDefJson]): A dictionary for metadata definition, read from the metadata definition file.
         """
         self.metaConst: dict[str, MetaItem] = {}
@@ -595,7 +595,7 @@ class Meta:
 
         Args:
             key (str): The key to be registered in the referred value table. Typically represents an action or unit name.
-            value (Union[str, list[str]]): The value to be registered in the referred value table. This can be a single string or a list of strings,
+            value (str | list[str]): The value to be registered in the referred value table. This can be a single string or a list of strings,
                 representing the raw names to be associated with the key.
 
         Returns:
@@ -665,7 +665,7 @@ class Meta:
             outunit (Optional[str]): The unit of the converted metadata.
 
         Returns:
-            dict[str, Union[bool, int, float, str]]: Returns the conversion result in the form of metadata for metadata.json.
+            dict[str, bool | int | float | str]: Returns the conversion result in the form of metadata for metadata.json.
 
         Note:
             original func: _vDict()
@@ -742,7 +742,10 @@ class ValueCaster:
 
 
 # Type handler functions for castval dispatch table
-TypeCaster = Callable[[Any, Union[str, None]], Union[bool, int, float, str]]
+if TYPE_CHECKING:
+    TypeCaster = Callable[[Any, str | None], Any]
+else:
+    TypeCaster = Callable[..., Any]
 
 
 def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:
@@ -827,7 +830,7 @@ def _cast_string(valstr: Any, outfmt: str | None) -> Any:
         Example: castval(12345, "string", None) -> 12345 (int type)
     """
     if not outfmt:
-        return valstr  # Type is preserved!
+        return valstr
     return ValueCaster.convert_to_date_format(valstr, outfmt)
 
 
@@ -840,7 +843,7 @@ _TYPE_CASTERS: dict[str, TypeCaster] = {
 }
 
 
-def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int | float | str:
+def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> Any:
     """Cast the value-string to the specified type-string.
 
     Args:
@@ -849,7 +852,7 @@ def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int 
         outfmt: Data format (used only for "string" type).
 
     Returns:
-        Casted value (bool, int, float, or str).
+        Any: Casted value. For "string" without a format, returns the original value.
 
     Raises:
         StructuredError: If the type conversion fails or the type is unknown.

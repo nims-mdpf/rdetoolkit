@@ -14,30 +14,75 @@ if TYPE_CHECKING:
 
 
 def excel_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the Excel invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the implementation.
+        **kwargs: Keyword arguments forwarded to the implementation.
+
+    Returns:
+        WorkflowExecutionStatus: Workflow execution status.
+    """
     from rdetoolkit.modeproc import excel_invoice_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the implementation.
+        **kwargs: Keyword arguments forwarded to the implementation.
+
+    Returns:
+        WorkflowExecutionStatus: Workflow execution status.
+    """
     from rdetoolkit.modeproc import invoice_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def multifile_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the multifile workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the implementation.
+        **kwargs: Keyword arguments forwarded to the implementation.
+
+    Returns:
+        WorkflowExecutionStatus: Workflow execution status.
+    """
     from rdetoolkit.modeproc import multifile_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def rdeformat_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the RDE format workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the implementation.
+        **kwargs: Keyword arguments forwarded to the implementation.
+
+    Returns:
+        WorkflowExecutionStatus: Workflow execution status.
+    """
     from rdetoolkit.modeproc import rdeformat_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def smarttable_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the SmartTable invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the implementation.
+        **kwargs: Keyword arguments forwarded to the implementation.
+
+    Returns:
+        WorkflowExecutionStatus: Workflow execution status.
+    """
     from rdetoolkit.modeproc import smarttable_invoice_mode_process as _impl
 
     return _impl(*args, **kwargs)
