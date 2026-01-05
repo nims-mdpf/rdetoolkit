@@ -70,6 +70,8 @@ print(result.is_success())  # False
 Result[T, E] = Success[T] | Failure[E]
 ```
 
+Note: This `|` union syntax requires Python 3.10+. For Python 3.9, use `Union[Success[T], Failure[E]]`.
+
 A union type representing either success or failure.
 
 ### try_result Decorator

@@ -70,6 +70,8 @@ print(result.is_success())  # False
 Result[T, E] = Success[T] | Failure[E]
 ```
 
+※この`|`によるユニオン型の記法はPython 3.10+で利用可能です。Python 3.9では`Union[Success[T], Failure[E]]`を使用してください。
+
 成功または失敗を表すユニオン型。
 
 ### try_result デコレーター
