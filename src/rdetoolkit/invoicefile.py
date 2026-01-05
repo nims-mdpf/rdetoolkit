@@ -699,7 +699,7 @@ class ExcelInvoiceFile:
                 df_general = _SHEET_PROCESSORS[sheet_type](df)
             elif sheet_type == "specific_term":
                 df_specific = _SHEET_PROCESSORS[sheet_type](df)
-            # sheet_type == "unknown" の場合は何もしない（スキップ）
+            # If sheet_type == "unknown", do nothing (skip)
 
         if dfexcelinvoice is None:
             emsg = "ERROR: no sheet in invoiceList files"
