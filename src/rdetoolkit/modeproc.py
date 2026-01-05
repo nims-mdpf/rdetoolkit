@@ -154,6 +154,10 @@ def invoice_mode_process_result(
             Success: WorkflowExecutionStatus with execution metadata
             Failure: Exception from callback or pipeline validation
 
+    Note:
+        Only the invoice mode currently provides a Result-returning processor.
+        Other mode processors remain exception-based until a future release.
+
     Example:
         >>> result = invoice_mode_process_result("0", srcpaths, resource_paths)
         >>> if result.is_success():

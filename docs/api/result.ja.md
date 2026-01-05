@@ -38,7 +38,7 @@ print(result.is_success())  # True
 **メソッド:**
 
 - `is_success() -> bool` - Successの場合、常に `True` を返す
-- `map(f: Callable[[T], U]) -> Success[U] | Failure[E]` - 値を変換
+- `map(f: Callable[[T], U]) -> Success[U]` - 値を変換
 - `unwrap() -> T` - 値を取り出す
 
 ### Failure[E]
@@ -62,7 +62,7 @@ print(result.is_success())  # False
 
 - `is_success() -> bool` - Failureの場合、常に `False` を返す
 - `map(f: Callable) -> Failure[E]` - selfを変更せずに返す（短絡評価）
-- `unwrap() -> Never` - ラップされたエラーを送出
+- `unwrap() -> Never` - ラップされたエラーを送出（Exception以外の場合は型情報付きのValueError）
 
 ### Result型エイリアス
 

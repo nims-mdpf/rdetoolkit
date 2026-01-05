@@ -282,7 +282,7 @@ def test_result_pattern_enables_explicit_error_handling():
         result = check_files_result(srcpaths, mode="invoice")
 
         if result.is_success():
-            rawfiles, excel, smarttable = result.unwrap()
+            _rawfiles, _excel, _smarttable = result.unwrap()
             # Process files
         else:
             # Handle error explicitly

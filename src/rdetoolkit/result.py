@@ -6,17 +6,31 @@ enabling explicit representation of success and failure cases in function signat
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Generic, Never, ParamSpec, TypeVar
+from typing import Any, Callable, Generic, TypeVar, Union
+
+if sys.version_info >= (3, 11):
+    from typing import Never, ParamSpec, TypeAlias, dataclass_transform
+else:  # pragma: no cover - fallback for Python < 3.11
+    from typing_extensions import Never, ParamSpec, TypeAlias, dataclass_transform
 
 T = TypeVar("T")
 E = TypeVar("E")
 U = TypeVar("U")
 P = ParamSpec("P")
+C = TypeVar("C")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass_transform(frozen_default=True)
+def _frozen_dataclass(cls: type[C]) -> type[C]:
+    if sys.version_info >= (3, 10):
+        return dataclass(frozen=True, slots=True)(cls)
+    return dataclass(frozen=True)(cls)
+
+
+@_frozen_dataclass
 class Success(Generic[T]):
     """Represents successful result containing a value.
 
@@ -31,6 +45,9 @@ class Success(Generic[T]):
         True
     """
 
+    if sys.version_info < (3, 10):
+        __slots__ = ("value",)
+
     value: T
 
     def is_success(self) -> bool:
@@ -41,7 +58,7 @@ class Success(Generic[T]):
         """
         return True
 
-    def map(self, f: Callable[[T], U]) -> Success[U] | Failure[E]:
+    def map(self, f: Callable[[T], U]) -> Success[U]:
         """Transform the success value using provided function.
 
         Args:
@@ -69,7 +86,7 @@ class Success(Generic[T]):
         return self.value
 
 
-@dataclass(frozen=True, slots=True)
+@_frozen_dataclass
 class Failure(Generic[E]):
     """Represents failure result containing an error.
 
@@ -83,6 +100,9 @@ class Failure(Generic[E]):
         >>> result.is_success()
         False
     """
+
+    if sys.version_info < (3, 10):
+        __slots__ = ("error",)
 
     error: E
 
@@ -114,7 +134,7 @@ class Failure(Generic[E]):
 
         Raises:
             The wrapped error if it's an Exception
-            ValueError with string representation otherwise
+            ValueError with type information otherwise
 
         Example:
             >>> Failure(ValueError("test")).unwrap()
@@ -123,11 +143,15 @@ class Failure(Generic[E]):
         """
         if isinstance(self.error, Exception):
             raise self.error
-        raise ValueError(str(self.error))
+        emsg = (
+            f"Failure error is not an Exception: {self.error!r} "
+            f"(type={type(self.error).__name__})"
+        )
+        raise ValueError(emsg)
 
 
 # Type alias for Result type (Success or Failure)
-Result = Success[T] | Failure[E]
+Result: TypeAlias = Union[Success[T], Failure[E]]
 
 
 def try_result(func: Callable[P, T]) -> Callable[P, Result[T, Exception]]:

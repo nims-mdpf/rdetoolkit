@@ -9,7 +9,7 @@ import pathlib
 import sys
 from collections.abc import Callable
 from types import ModuleType
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 import click
 from click.core import ParameterSource
@@ -35,7 +35,7 @@ class _LazyModuleProxy:
             self._module = importlib.import_module(self._module_name)
         return self._module
 
-    def __getattr__(self, name: str) -> object:
+    def __getattr__(self, name: str) -> Any:
         module = self._load()
         return getattr(module, name)
 
@@ -59,11 +59,12 @@ def cli() -> None:
 
 
 def _parse_run_target(target: str) -> tuple[str, str]:
+    expected_parts = 2
     if "::" not in target:
         emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
         raise click.ClickException(emsg)
     parts = target.split("::")
-    if len(parts) != 2 or not parts[0] or not parts[1]:
+    if len(parts) != expected_parts or not parts[0] or not parts[1]:
         emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
         raise click.ClickException(emsg)
     return parts[0], parts[1]
@@ -115,7 +116,7 @@ def _resolve_target_attr(module: ModuleType, attr: str) -> object:
     return target
 
 
-def _validate_target_function(func: Callable[..., object]) -> None:
+def _validate_target_function(func: object) -> Callable[..., object]:
     if inspect.isclass(func):
         emsg = "Classes are not allowed. Please specify a function."
         raise click.ClickException(emsg)
@@ -127,14 +128,14 @@ def _validate_target_function(func: Callable[..., object]) -> None:
     except (TypeError, ValueError) as exc:
         emsg = "The function cannot be called with two positional arguments."
         raise click.ClickException(emsg) from exc
+    return cast(Callable[..., object], func)
 
 
 def _load_target_function(target: str) -> Callable[..., object]:
     module_or_file, attr = _parse_run_target(target)
     module = _load_target_module(module_or_file)
     func = _resolve_target_attr(module, attr)
-    _validate_target_function(func)
-    return func
+    return _validate_target_function(func)
 
 
 @click.command()

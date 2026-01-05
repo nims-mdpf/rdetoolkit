@@ -6,23 +6,23 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field
 
+from rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
+from rdetoolkit.models.invoice_schema import GeneralAttribute, SpecificAttribute
+
 if TYPE_CHECKING:
     import polars as pl
 
 
 def _ensure_polars() -> Any:
-    import polars as pl
+    import polars as pl  # noqa: PLC0415
 
     return pl
 
 
 def _ensure_column_letter() -> Any:
-    from openpyxl.utils import get_column_letter
+    from openpyxl.utils import get_column_letter  # noqa: PLC0415
 
     return get_column_letter
-
-from rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
-from rdetoolkit.models.invoice_schema import GeneralAttribute, SpecificAttribute
 
 
 class HeaderRow1(BaseModel):

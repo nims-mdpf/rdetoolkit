@@ -110,7 +110,7 @@ def create_default_config() -> Config:
     Returns:
         Config: A default configuration object.
     """
-    from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
+    from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings  # noqa: PLC0415
 
     return Config(
         system=SystemSettings(

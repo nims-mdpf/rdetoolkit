@@ -38,7 +38,7 @@ print(result.is_success())  # True
 **Methods:**
 
 - `is_success() -> bool` - Always returns `True` for Success
-- `map(f: Callable[[T], U]) -> Success[U] | Failure[E]` - Transform the value
+- `map(f: Callable[[T], U]) -> Success[U]` - Transform the value
 - `unwrap() -> T` - Extract the value
 
 ### Failure[E]
@@ -62,7 +62,7 @@ print(result.is_success())  # False
 
 - `is_success() -> bool` - Always returns `False` for Failure
 - `map(f: Callable) -> Failure[E]` - Returns self unchanged (short-circuits)
-- `unwrap() -> Never` - Raises the wrapped error
+- `unwrap() -> Never` - Raises the wrapped error (or a ValueError with type info if the error is not an Exception)
 
 ### Result Type Alias
 

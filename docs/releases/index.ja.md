@@ -59,7 +59,7 @@
 ```python
 from rdetoolkit.workflows import check_files_result
 
-result = check_files_result(srcpaths, mode="Invoice")
+result = check_files_result(srcpaths, mode="invoice")
 if result.is_success():
     raw_files, excel_path, smarttable_path = result.unwrap()
     # ファイルを処理
@@ -73,7 +73,7 @@ else:
 from rdetoolkit.workflows import check_files
 
 try:
-    raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="Invoice")
+    raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="invoice")
 except StructuredError as e:
     print(f"エラー {e.ecode}: {e.emsg}")
 ```

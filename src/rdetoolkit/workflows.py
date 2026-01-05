@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import traceback
 from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -15,30 +16,75 @@ if TYPE_CHECKING:
 
 
 def excel_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the Excel invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
     from rdetoolkit.modeproc import excel_invoice_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
     from rdetoolkit.modeproc import invoice_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def multifile_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the multifile workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
     from rdetoolkit.modeproc import multifile_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def rdeformat_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the RDE format workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
     from rdetoolkit.modeproc import rdeformat_mode_process as _impl
 
     return _impl(*args, **kwargs)
 
 
 def smarttable_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the smart table invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
     from rdetoolkit.modeproc import smarttable_invoice_mode_process as _impl
 
     return _impl(*args, **kwargs)
@@ -119,7 +165,13 @@ def check_files_result(srcpaths: RdeInputDirPaths, *, mode: str | None, config: 
     except Exception as e:
         # Wrap unexpected exceptions in StructuredError
         emsg = f"Unexpected error in check_files: {e}"
-        return Failure(StructuredError(emsg, 999))
+        error = StructuredError(
+            emsg,
+            999,
+            eobj=e,
+            traceback_info=traceback.format_exc(),
+        )
+        return Failure(error)
 
 
 def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> tuple[RawFiles, Path | None, Path | None]:
@@ -174,12 +226,16 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config 
 
     Raises:
         StructuredError: When file classification fails
+        Exception: Propagates unexpected exceptions from input checker
     """
     from rdetoolkit.result import Failure
 
     result = check_files_result(srcpaths, mode=mode, config=config)
     if isinstance(result, Failure):
-        raise result.error
+        error = result.error
+        if isinstance(error, StructuredError) and isinstance(error.eobj, Exception):
+            raise error.eobj from error
+        raise error
     return result.unwrap()
 
 
