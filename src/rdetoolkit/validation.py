@@ -9,14 +9,14 @@ from rdetoolkit.exceptions import InvoiceSchemaValidationError, MetadataValidati
 from rdetoolkit.fileops import readf_json
 
 
-def _jsonschema_tools() -> tuple[Any, Any, Any, type[Exception]]:
+def _jsonschema_tools() -> tuple[Any, Any, Any, type[Any]]:
     from jsonschema import Draft202012Validator, FormatChecker, validate
     from jsonschema import ValidationError as SchemaValidationError
 
     return Draft202012Validator, FormatChecker, validate, SchemaValidationError
 
 
-def _pydantic_validation_error() -> type[Exception]:
+def _pydantic_validation_error() -> type[Any]:
     from pydantic import ValidationError
 
     return ValidationError
@@ -129,20 +129,20 @@ class InvoiceValidator:
             emsg = "Expected a dictionary, but got a different type."
             raise ValueError(emsg)
 
-        Draft202012Validator, FormatChecker, validate, SchemaValidationError = _jsonschema_tools()
+        draft202012_validator_cls, format_checker_cls, validate_func, schema_validation_error_cls = _jsonschema_tools()
         basic_info = readf_json(self.pre_basic_info_schema)
         # with open(self.pre_basic_info_schema, encoding="utf-8") as f:
         #     basic_info = json.load(f)
         try:
-            validate(instance=data, schema=basic_info)
-        except SchemaValidationError as schema_error:
+            validate_func(instance=data, schema=basic_info)
+        except schema_validation_error_cls as schema_error:
             emsg = "Error in validating system standard field.\nPlease correct the following fields in invoice.json\n"
             emsg += f"Field: {'.'.join(list(map(str, schema_error.path)))}\n"
             emsg += f"Type: {schema_error.validator}\n"
             emsg += f"Context: {schema_error.message}\n"
             raise InvoiceSchemaValidationError(emsg) from schema_error
 
-        validator = Draft202012Validator(self.schema, format_checker=FormatChecker())
+        validator = draft202012_validator_cls(self.schema, format_checker=format_checker_cls())
         errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
 
         # Custom validation: Check if invoice.json contains only required fields
@@ -272,7 +272,7 @@ class InvoiceValidator:
             List of validation errors for fields not in required array
         """
         errors = []
-        _, _, _, SchemaValidationError = _jsonschema_tools()
+        _, _, _, schema_validation_error_cls = _jsonschema_tools()
 
         # Get required fields from schema
         required_fields = set(self.schema.get("required", []))
@@ -286,7 +286,7 @@ class InvoiceValidator:
                 # Create a SchemaValidationError for consistency with other jsonschema errors
                 # This will be processed together with other validation errors and eventually
                 # wrapped in InvoiceSchemaValidationError when raised (line 149)
-                error = SchemaValidationError(
+                error = schema_validation_error_cls(
                     message=f"Field '{field_name}' is not allowed. Only required fields {sorted(required_fields)} are permitted in invoice.json",
                     path=[field_name],
                     validator='required_fields_only',

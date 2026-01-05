@@ -23,6 +23,7 @@ TEMPLATE_CHOICES = (
     "interactive",
 )
 LANG_CHOICES = ("en", "ja")
+TARGET_PARTS_COUNT = 2
 
 
 class _LazyModuleProxy:
@@ -63,7 +64,7 @@ def _parse_run_target(target: str) -> tuple[str, str]:
         emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
         raise click.ClickException(emsg)
     parts = target.split("::")
-    if len(parts) != 2 or not parts[0] or not parts[1]:
+    if len(parts) != TARGET_PARTS_COUNT or not parts[0] or not parts[1]:
         emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
         raise click.ClickException(emsg)
     return parts[0], parts[1]
@@ -115,7 +116,7 @@ def _resolve_target_attr(module: ModuleType, attr: str) -> object:
     return target
 
 
-def _validate_target_function(func: Callable[..., object]) -> None:
+def _validate_target_function(func: object) -> None:
     if inspect.isclass(func):
         emsg = "Classes are not allowed. Please specify a function."
         raise click.ClickException(emsg)
@@ -134,7 +135,7 @@ def _load_target_function(target: str) -> Callable[..., object]:
     module = _load_target_module(module_or_file)
     func = _resolve_target_attr(module, attr)
     _validate_target_function(func)
-    return func
+    return cast(Callable[..., object], func)
 
 
 @click.command()
@@ -249,7 +250,8 @@ def run(target: str) -> None:
     """Run rdetoolkit workflows with a user-defined dataset function."""
     func = _load_target_function(target)
     try:
-        result = workflows.run(custom_dataset_function=func)
+        workflow_run = cast(Callable[..., str], workflows.run)
+        result = workflow_run(custom_dataset_function=func)
     except Exception as exc:
         raise click.ClickException(str(exc)) from exc
     if result is not None:
