@@ -2,11 +2,24 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-import polars as pl
-from openpyxl.utils import get_column_letter
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    import polars as pl
+
+
+def _ensure_polars() -> Any:
+    import polars as pl
+
+    return pl
+
+
+def _ensure_column_letter() -> Any:
+    from openpyxl.utils import get_column_letter
+
+    return get_column_letter
 
 from rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
 from rdetoolkit.models.invoice_schema import GeneralAttribute, SpecificAttribute
@@ -74,6 +87,8 @@ class FixedHeaders(BaseModel):
         Returns:
             pl.DataFrame: A Polars DataFrame containing the formatted invoice data.
         """
+        pl = _ensure_polars()
+        get_column_letter = _ensure_column_letter()
         padding_value = None
         row1 = [self.row1.A1] + [padding_value] * 12
         row2 = [self.row2.A2] + [padding_value] * 2 + self.row2.D2_G2 + self.row2.H2_M2 + [padding_value]
@@ -97,19 +112,23 @@ class TemplateConfig:
 
 class BaseTermRegistry:
     """Base class for term registries."""
-    base_schema = {
-        "term_id": pl.Utf8,
-        "key_name": pl.Utf8,
-        "ja": pl.Utf8,
-        "en": pl.Utf8,
-    }
+    @staticmethod
+    def _base_schema() -> dict[str, Any]:
+        pl = _ensure_polars()
+        return {
+            "term_id": pl.Utf8,
+            "key_name": pl.Utf8,
+            "ja": pl.Utf8,
+            "en": pl.Utf8,
+        }
 
 
 class GeneralTermRegistry(BaseTermRegistry):
     """Class for managing general terms."""
 
     def __init__(self, csv_path: str):
-        self.df = pl.read_csv(csv_path, schema_overrides=self.base_schema)
+        pl = _ensure_polars()
+        self.df = pl.read_csv(csv_path, schema_overrides=self._base_schema())
 
     def search(self, column: str, value: str, out_cols: list[str]) -> list[dict[str, Any]]:
         """Search for rows in the DataFrame where the specified column matches the given value and return selected columns.
@@ -122,6 +141,7 @@ class GeneralTermRegistry(BaseTermRegistry):
         Returns:
             list[dict[str, Any]]: A list of dictionaries representing the rows that match the search criteria, with only the specified columns included.
         """
+        pl = _ensure_polars()
         filtered_df = self.df.filter(pl.col(column) == value)
         return filtered_df.select(out_cols).to_dicts()
 
@@ -164,9 +184,10 @@ class SpecificTermRegistry(BaseTermRegistry):
     """Class for managing specific terms."""
 
     def __init__(self, csv_path: str):
+        pl = _ensure_polars()
         schema = {
             "sample_class_id": pl.Utf8,
-            **self.base_schema,
+            **self._base_schema(),
         }
         self.df = pl.read_csv(csv_path, schema_overrides=schema)
 
@@ -186,6 +207,7 @@ class SpecificTermRegistry(BaseTermRegistry):
             raise ValueError(emsg)
 
         try:
+            pl = _ensure_polars()
             filter_expr = pl.lit(True)
             for col, val in zip(columns, values):
                 expr = pl.col(col) == val

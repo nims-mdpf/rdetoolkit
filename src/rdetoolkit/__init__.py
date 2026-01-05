@@ -1,17 +1,43 @@
-__version__ = "1.4.3"
+from __future__ import annotations
 
-from rdetoolkit.core import DirectoryOps, ManagedDirectory, detect_encoding, resize_image_aspect_ratio
-from rdetoolkit.result import Result, Success, Failure, try_result
+from importlib import import_module
+from typing import Any
 
-from . import errors, exceptions, img2thumb, invoicefile, modeproc, rde2util, rdelogger, workflows
-from .impl import *
-from .interfaces import *
-from .models import config, invoice, invoice_schema, metadata, rde2types
+__version__ = "1.5.0"
+
+_LAZY_ATTRS: dict[str, tuple[str, str]] = {
+    "DirectoryOps": ("rdetoolkit.core", "DirectoryOps"),
+    "ManagedDirectory": ("rdetoolkit.core", "ManagedDirectory"),
+    "detect_encoding": ("rdetoolkit.core", "detect_encoding"),
+    "resize_image_aspect_ratio": ("rdetoolkit.core", "resize_image_aspect_ratio"),
+    # Result types for explicit error handling
+    "Result": ("rdetoolkit.result", "Result"),
+    "Success": ("rdetoolkit.result", "Success"),
+    "Failure": ("rdetoolkit.result", "Failure"),
+    "try_result": ("rdetoolkit.result", "try_result"),
+}
+
+_LAZY_MODULES: dict[str, str] = {
+    "errors": "rdetoolkit.errors",
+    "exceptions": "rdetoolkit.exceptions",
+    "img2thumb": "rdetoolkit.img2thumb",
+    "invoicefile": "rdetoolkit.invoicefile",
+    "modeproc": "rdetoolkit.modeproc",
+    "rde2util": "rdetoolkit.rde2util",
+    "rdelogger": "rdetoolkit.rdelogger",
+    "workflows": "rdetoolkit.workflows",
+    "config": "rdetoolkit.models.config",
+    "invoice": "rdetoolkit.models.invoice",
+    "invoice_schema": "rdetoolkit.models.invoice_schema",
+    "metadata": "rdetoolkit.models.metadata",
+    "rde2types": "rdetoolkit.models.rde2types",
+    "impl": "rdetoolkit.impl",
+    "interfaces": "rdetoolkit.interfaces",
+    "models": "rdetoolkit.models",
+}
 
 __all__ = [
-    # Version
     "__version__",
-    # Core utilities
     "DirectoryOps",
     "ManagedDirectory",
     "detect_encoding",
@@ -21,7 +47,6 @@ __all__ = [
     "Success",
     "Failure",
     "try_result",
-    # Submodules
     "errors",
     "exceptions",
     "img2thumb",
@@ -35,4 +60,33 @@ __all__ = [
     "invoice_schema",
     "metadata",
     "rde2types",
+    "impl",
+    "interfaces",
+    "models",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    if name in _LAZY_ATTRS:
+        module_name, attr_name = _LAZY_ATTRS[name]
+        module = import_module(module_name)
+        value = getattr(module, attr_name)
+        globals()[name] = value
+        return value
+    if name in _LAZY_MODULES:
+        module = import_module(_LAZY_MODULES[name])
+        globals()[name] = module
+        return module
+
+    for module_name in ("rdetoolkit.impl", "rdetoolkit.interfaces"):
+        module = import_module(module_name)
+        if hasattr(module, name):
+            value = getattr(module, name)
+            globals()[name] = value
+            return value
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(__all__) | set(globals()))

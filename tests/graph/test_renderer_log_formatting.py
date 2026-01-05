@@ -38,8 +38,7 @@ import pytest
 import rdetoolkit.graph.renderers.plotly_renderer as pr
 from rdetoolkit.graph.models import AxisConfig, DirectionConfig, LegendConfig, OutputConfig, PlotConfig, PlotMode
 from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
-from rdetoolkit.graph.renderers.plotly_renderer import PlotlyRenderer
-from tests.test_renderers import AttrDict, StubFigure, StubLayout, StubScatter
+from tests.test_renderers import StubFigure, StubLayout, StubScatter
 
 
 @pytest.fixture(autouse=True)
@@ -76,7 +75,7 @@ def test_plotly_renderer_render_html_drops_suffix__tc_ep_001() -> None:
     config = build_config()
 
     # When: rendering the HTML plot
-    fig = PlotlyRenderer().render_html(df, config)
+    fig = pr.PlotlyRenderer().render_html(df, config)
 
     # Then: the legend shows only the prefix before the colon
     assert {trace.name for trace in fig.data} == {"total"}
@@ -90,7 +89,7 @@ def test_plotly_renderer_mismatched_columns_raise__tc_ep_002() -> None:
     # When: rendering is attempted with mismatched axes
     # Then: the renderer rejects the invalid configuration
     with pytest.raises(ValueError):
-        PlotlyRenderer().render_html(df, config)
+        pr.PlotlyRenderer().render_html(df, config)
 
 
 def test_plotly_renderer_direction_length_mismatch__tc_ep_003() -> None:
@@ -101,7 +100,7 @@ def test_plotly_renderer_direction_length_mismatch__tc_ep_003() -> None:
     # When: rendering is attempted with excess direction columns
     # Then: the renderer raises a validation error
     with pytest.raises(ValueError):
-        PlotlyRenderer().render_html(df, config)
+        pr.PlotlyRenderer().render_html(df, config)
 
 
 def test_plotly_renderer_log_layout_uses_decades__tc_bv_001() -> None:
@@ -113,7 +112,7 @@ def test_plotly_renderer_log_layout_uses_decades__tc_bv_001() -> None:
     )
 
     # When: building the HTML plot
-    fig = PlotlyRenderer().render_html(df, config)
+    fig = pr.PlotlyRenderer().render_html(df, config)
 
     # Then: the axis layout uses decade ticks and power-of-ten formatting
     assert fig.layout.xaxis["dtick"] == 1

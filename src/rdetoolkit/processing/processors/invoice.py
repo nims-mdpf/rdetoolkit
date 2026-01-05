@@ -148,6 +148,15 @@ class SmartTableInvoiceInitializer(Processor):
 
     _BASE_INVOICE_CACHE: dict[Path, dict[str, Any]] = {}
 
+    @classmethod
+    def clear_base_invoice_cache(cls) -> None:
+        """Clear cached base invoice data.
+
+        Intended to be called between separate SmartTable workflow runs to avoid
+        unbounded cache growth in long-lived processes.
+        """
+        cls._BASE_INVOICE_CACHE.clear()
+
     def process(self, context: ProcessingContext) -> None:
         """Process SmartTable file and generate invoice.
 
