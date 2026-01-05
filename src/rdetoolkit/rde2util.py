@@ -9,7 +9,7 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import Any, Callable, Final, TypedDict, cast
+from typing import Any, Callable, Final, TypedDict, Union, cast
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
