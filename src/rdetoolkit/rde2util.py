@@ -9,7 +9,7 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import Any, Callable, Final, TypedDict, cast
+from typing import Any, Callable, Final, TypedDict, Union, cast
 
 import chardet  # for following failure cases
 import dateutil.parser
@@ -720,7 +720,7 @@ class ValueCaster:
 
 
 # Type handler functions for castval dispatch table
-TypeCaster = Callable[[Any, str | None], bool | int | float | str]
+TypeCaster = Callable[[Any, Union[str, None]], Union[bool, int, float, str]]
 
 
 def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:

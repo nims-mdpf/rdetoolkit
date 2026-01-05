@@ -6,7 +6,7 @@ import shutil
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Callable, Final
+from typing import Callable, Final, Union
 
 import charset_normalizer
 import pandas as pd
@@ -553,7 +553,7 @@ class TarGzArtifactPackageCompressor(IArtifactPackageCompressor):
 
 
 # Dispatch table for archive format to archiver class mapping
-_ARCHIVE_FORMAT_REGISTRY: dict[str, Callable[[str | Path, list[str]], IArtifactPackageCompressor]] = {
+_ARCHIVE_FORMAT_REGISTRY: dict[str, Callable[[Union[str, Path], list[str]], IArtifactPackageCompressor]] = {
     "zip": ZipArtifactPackageCompressor,
     "tar.gz": TarGzArtifactPackageCompressor,
     "targz": TarGzArtifactPackageCompressor,
