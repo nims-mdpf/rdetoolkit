@@ -5,9 +5,10 @@ import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Protocol, TypedDict, Union, overload
+from typing import TYPE_CHECKING, Protocol, TypedDict, Union, overload
 
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
+if TYPE_CHECKING:
+    from rdetoolkit.models.config import Config
 
 ZipFilesPathList = Sequence[Path]
 UnZipFilesPathList = Sequence[Path]
@@ -109,6 +110,8 @@ def create_default_config() -> Config:
     Returns:
         Config: A default configuration object.
     """
+    from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
+
     return Config(
         system=SystemSettings(
             extended_mode=None,

@@ -1,21 +1,56 @@
 from __future__ import annotations
 
+import importlib
+import importlib.util
+import inspect
 import json
+import os
 import pathlib
+import sys
+from collections.abc import Callable
+from types import ModuleType
 from typing import Literal, cast
 
 import click
 from click.core import ParameterSource
 
-from rdetoolkit.cmd.archive import CreateArtifactCommand
-from rdetoolkit.cmd.command import InitCommand, VersionCommand
-from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
-from rdetoolkit.cmd.gen_config import (
-    GenerateConfigCommand,
-    TEMPLATE_CHOICES,
-    LANG_CHOICES,
+TEMPLATE_CHOICES = (
+    "minimal",
+    "full",
+    "multitile",
+    "rdeformat",
+    "smarttable",
+    "interactive",
 )
-from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+LANG_CHOICES = ("en", "ja")
+
+
+class _LazyModuleProxy:
+    def __init__(self, module_name: str) -> None:
+        self._module_name = module_name
+        self._module: ModuleType | None = None
+
+    def _load(self) -> ModuleType:
+        if self._module is None:
+            self._module = importlib.import_module(self._module_name)
+        return self._module
+
+    def __getattr__(self, name: str) -> object:
+        module = self._load()
+        return getattr(module, name)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name in {"_module_name", "_module"}:
+            object.__setattr__(self, name, value)
+            return
+        module = self._load()
+        setattr(module, name, value)
+
+    def __repr__(self) -> str:
+        return f"<LazyModuleProxy {self._module_name}>"
+
+
+workflows = _LazyModuleProxy("rdetoolkit.workflows")
 
 
 @click.group()
@@ -23,18 +58,202 @@ def cli() -> None:
     """CLI generates template projects for RDE structured programs."""
 
 
+def _parse_run_target(target: str) -> tuple[str, str]:
+    if "::" not in target:
+        emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
+        raise click.ClickException(emsg)
+    parts = target.split("::")
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
+        raise click.ClickException(emsg)
+    return parts[0], parts[1]
+
+
+def _looks_like_file(value: str) -> bool:
+    if value.endswith(".py"):
+        return True
+    if value.startswith((".", "/", "~")):
+        return True
+    if os.sep in value:
+        return True
+    return os.altsep is not None and os.altsep in value
+
+
+def _load_module_from_file(path: pathlib.Path) -> ModuleType:
+    if not path.exists() or not path.is_file():
+        emsg = f"File not found: {path}"
+        raise click.ClickException(emsg)
+    module_name = f"_rdetoolkit_run_{path.stem}_{abs(hash(path))}"
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    if spec is None or spec.loader is None:
+        emsg = f"Unable to load module from file: {path}"
+        raise click.ClickException(emsg)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_target_module(module_or_file: str) -> ModuleType:
+    if _looks_like_file(module_or_file):
+        path = pathlib.Path(module_or_file).expanduser()
+        return _load_module_from_file(path)
+    try:
+        return importlib.import_module(module_or_file)
+    except Exception as exc:
+        emsg = f"Failed to import module: {module_or_file}"
+        raise click.ClickException(emsg) from exc
+
+
+def _resolve_target_attr(module: ModuleType, attr: str) -> object:
+    target: object = module
+    for part in attr.split("."):
+        if not hasattr(target, part):
+            emsg = f"Attribute not found: {attr}"
+            raise click.ClickException(emsg)
+        target = getattr(target, part)
+    return target
+
+
+def _validate_target_function(func: Callable[..., object]) -> None:
+    if inspect.isclass(func):
+        emsg = "Classes are not allowed. Please specify a function."
+        raise click.ClickException(emsg)
+    if not inspect.isfunction(func):
+        emsg = "Only functions are allowed. Please specify a function."
+        raise click.ClickException(emsg)
+    try:
+        inspect.signature(func).bind(1, 2)
+    except (TypeError, ValueError) as exc:
+        emsg = "The function cannot be called with two positional arguments."
+        raise click.ClickException(emsg) from exc
+
+
+def _load_target_function(target: str) -> Callable[..., object]:
+    module_or_file, attr = _parse_run_target(target)
+    module = _load_target_module(module_or_file)
+    func = _resolve_target_attr(module, attr)
+    _validate_target_function(func)
+    return func
+
+
 @click.command()
-def init() -> None:
+@click.option(
+    "--template",
+    "template_path",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Optional template configuration (pyproject.toml or rdeconfig.yaml) used to seed generated files.",
+)
+@click.option(
+    "--entry-point",
+    "entry_point_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template main.py used instead of the default entry point.",
+)
+@click.option(
+    "--modules",
+    "modules_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template file or directory copied into container/modules.",
+)
+@click.option(
+    "--tasksupport",
+    "tasksupport_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template file or directory copied into tasksupport folders.",
+)
+@click.option(
+    "--inputdata",
+    "inputdata_template",
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=False,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Path to a template directory copied into container/data/inputdata and input/inputdata.",
+)
+@click.option(
+    "--other",
+    "other_templates",
+    multiple=True,
+    type=click.Path(
+        exists=True,
+        dir_okay=True,
+        file_okay=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    help="Additional template files or directories copied under container/ (can be passed multiple times).",
+)
+def init(
+    template_path: pathlib.Path | None,
+    entry_point_template: pathlib.Path | None,
+    modules_template: pathlib.Path | None,
+    tasksupport_template: pathlib.Path | None,
+    inputdata_template: pathlib.Path | None,
+    other_templates: tuple[pathlib.Path, ...],
+) -> None:
     """Output files needed to build RDE structured programs."""
-    cmd = InitCommand()
+    from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig
+
+    cli_templates = InitTemplateConfig(
+        entry_point=entry_point_template,
+        modules=modules_template,
+        tasksupport=tasksupport_template,
+        inputdata=inputdata_template,
+        other=list(other_templates) if other_templates else None,
+    )
+    cli_template_config = cli_templates if cli_templates.has_templates() else None
+    cmd = InitCommand(template_path=template_path, cli_template_config=cli_template_config)
     cmd.invoke()
 
 
 @click.command()
 def version() -> None:
     """Command to display version."""
+    from rdetoolkit.cmd.command import VersionCommand
+
     cmd = VersionCommand()
     cmd.invoke()
+
+
+@click.command()
+@click.argument("target", metavar="<module_or_file::attr>")
+def run(target: str) -> None:
+    """Run rdetoolkit workflows with a user-defined dataset function."""
+    func = _load_target_function(target)
+    try:
+        result = workflows.run(custom_dataset_function=func)
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+    if result is not None:
+        click.echo(result)
 
 
 def _validation_json_file(
@@ -123,6 +342,8 @@ def make_excelinvoice(
     Returns:
         None
     """
+    from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+
     cmd = GenerateExcelInvoiceCommand(invoice_schema_json_path, output_path, mode)
     cmd.invoke()
 
@@ -142,6 +363,8 @@ def artifact(source_dir: str, output_archive: pathlib.Path | None, exclude: list
     Returns:
         None
     """
+    from rdetoolkit.cmd.archive import CreateArtifactCommand
+
     cmd = CreateArtifactCommand(
         pathlib.Path(source_dir),
         output_archive_path=(pathlib.Path(output_archive) if output_archive else None),
@@ -241,6 +464,8 @@ def csv2graph(
         no_individual: Skip individual (None enables auto-detection)
         max_legend_items: Max legend items
     """
+    from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
+
     # Parse column specifications
     def parse_col(col: str) -> int | str:
         try:
@@ -333,6 +558,8 @@ def gen_config(
     lang: str,
 ) -> None:
     """Generate rdeconfig.yaml from templates."""
+    from rdetoolkit.cmd.gen_config import GenerateConfigCommand
+
     template_key = template_name.lower()
     lang_key = lang.lower()
 
@@ -369,6 +596,7 @@ def gen_config(
 
 cli.add_command(init)
 cli.add_command(version)
+cli.add_command(run)
 cli.add_command(make_excelinvoice)
 cli.add_command(artifact)
 cli.add_command(csv2graph)

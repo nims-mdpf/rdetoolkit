@@ -3,9 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
-
-import pandas as pd
+from typing import TYPE_CHECKING, Any, Literal
 
 from rdetoolkit.graph.config import PlotConfigBuilder
 from rdetoolkit.graph.io.file_writer import FileWriter
@@ -20,11 +18,12 @@ from rdetoolkit.graph.models import (
     RenderResult,
 )
 from rdetoolkit.graph.normalizers import validate_column_specs
-from rdetoolkit.graph.parsers.parser_factory import ParserFactory
-from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
 from rdetoolkit.graph.strategies.all_graphs import OverlayStrategy
 from rdetoolkit.graph.strategies.individual import IndividualStrategy
 from rdetoolkit.graph.textutils import parse_header
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @dataclass(frozen=True)
@@ -316,6 +315,8 @@ def _collect_render_results(
     plot_mode: PlotMode,
 ) -> RenderCollections:
     """Render graphs according to the selected strategy."""
+    from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
+
     renderer = MatplotlibRenderer()
     overlay_results: list[RenderResult] = []
     individual_results: list[RenderResult] = []
@@ -466,6 +467,8 @@ def csv2graph(
         ...     grid=True,
         ... )
     """
+    from rdetoolkit.graph.parsers.parser_factory import ParserFactory
+
     csv_path = Path(csv_path)
     parser = ParserFactory.create(csv_format)
     df = parser.parse(csv_path)

@@ -5,18 +5,27 @@ import os
 from pathlib import Path
 from typing import Any, cast
 
-from jsonschema import Draft202012Validator, FormatChecker, validate
-from jsonschema import ValidationError as SchemaValidationError
-from pydantic import ValidationError
-
 from rdetoolkit.exceptions import InvoiceSchemaValidationError, MetadataValidationError
 from rdetoolkit.fileops import readf_json
-from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
-from rdetoolkit.models.metadata import MetadataItem
+
+
+def _jsonschema_tools() -> tuple[Any, Any, Any, type[Exception]]:
+    from jsonschema import Draft202012Validator, FormatChecker, validate
+    from jsonschema import ValidationError as SchemaValidationError
+
+    return Draft202012Validator, FormatChecker, validate, SchemaValidationError
+
+
+def _pydantic_validation_error() -> type[Exception]:
+    from pydantic import ValidationError
+
+    return ValidationError
 
 
 class MetadataValidator:
     def __init__(self) -> None:
+        from rdetoolkit.models.metadata import MetadataItem
+
         self.schema = MetadataItem
 
     def validate(self, *, path: str | Path | None = None, json_obj: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -50,7 +59,7 @@ class MetadataValidator:
             emsg = "Unexpected validation error"
             raise ValueError(emsg)
 
-        MetadataItem(**__data)
+        self.schema(**__data)
         return __data
 
 
@@ -77,7 +86,7 @@ def metadata_validate(path: str | Path) -> None:
     validator = MetadataValidator()
     try:
         validator.validate(path=path)
-    except ValidationError as validation_error:
+    except _pydantic_validation_error() as validation_error:
         emsg = "Validation Errors in metadata.json. Please correct the following fields\n"
         for idx, error in enumerate(validation_error.errors(), start=1):
             emsg += f"{idx}. Field: {'.'.join([str(e) for e in error['loc']])}\n"
@@ -120,6 +129,7 @@ class InvoiceValidator:
             emsg = "Expected a dictionary, but got a different type."
             raise ValueError(emsg)
 
+        Draft202012Validator, FormatChecker, validate, SchemaValidationError = _jsonschema_tools()
         basic_info = readf_json(self.pre_basic_info_schema)
         # with open(self.pre_basic_info_schema, encoding="utf-8") as f:
         #     basic_info = json.load(f)
@@ -166,6 +176,8 @@ class InvoiceValidator:
         raise ValueError(emsg)
 
     def __pre_validate(self) -> dict[str, Any]:
+        from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
+
         __path = Path(self.schema_path) if isinstance(self.schema_path, str) else self.schema_path
 
         if __path.suffix != ".json":
@@ -178,7 +190,7 @@ class InvoiceValidator:
             try:
                 # _data, line_map = load_json_with_line_numbers(data)
                 InvoiceSchemaJson(**data)
-            except ValidationError as validation_error:
+            except _pydantic_validation_error() as validation_error:
                 emsg = "Validation Errors in invoice.schema.json. Please correct the following fields\n"
                 for idx, error in enumerate(validation_error.errors(), start=1):
                     emsg += f"{idx}. Field: {'.'.join([str(e) for e in error['loc']])}\n"
@@ -260,6 +272,7 @@ class InvoiceValidator:
             List of validation errors for fields not in required array
         """
         errors = []
+        _, _, _, SchemaValidationError = _jsonschema_tools()
 
         # Get required fields from schema
         required_fields = set(self.schema.get("required", []))
@@ -310,5 +323,5 @@ def invoice_validate(path: str | Path, schema: str | Path) -> None:
     validator = InvoiceValidator(schema)
     try:
         validator.validate(path=path)
-    except ValidationError as validation_error:
+    except _pydantic_validation_error() as validation_error:
         raise InvoiceSchemaValidationError from validation_error
