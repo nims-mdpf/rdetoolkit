@@ -288,13 +288,13 @@ def test_japanese_filename_end_to_end(temp_dir):
 
 
 def test_get_zip_archiver(sample_dir: pathlib.Path):
-    """ZIP アーカイバを取得できるかテスト"""
+    """Test retrieving the ZIP archiver."""
     archiver = get_artifact_archiver("zip", sample_dir, [])
     assert isinstance(archiver, ZipArtifactPackageCompressor)
 
 
 def test_get_targz_archiver(sample_dir: pathlib.Path):
-    """tar.gz アーカイバを取得できるかテスト"""
+    """Test retrieving the tar.gz archiver."""
     archiver = get_artifact_archiver("tar.gz", sample_dir, [])
     assert isinstance(archiver, TarGzArtifactPackageCompressor)
 
@@ -306,7 +306,7 @@ def test_get_targz_archiver(sample_dir: pathlib.Path):
 
 
 def test_get_unsupported_archiver(sample_dir: pathlib.Path):
-    """サポートされていない形式でエラーが発生するかテスト"""
+    """Test error for unsupported formats."""
     with pytest.raises(ValueError, match="Unsupported archive format"):
         get_artifact_archiver("invalid", sample_dir, [])
 
@@ -318,10 +318,10 @@ def test_exclude_patterns_are_passed(sample_dir: pathlib.Path):
 
 
 class TestCompressedControllerCompatibility:
-    """compressed_controller リファクタリング後の互換性テスト"""
+    """Compatibility tests after compressed_controller refactoring."""
 
     def test_unsupported_format_error_message(self, tmp_path):
-        """未サポート形式で正確なエラーメッセージを送出"""
+        """Raise the exact error message for unsupported formats."""
         from rdetoolkit.impl.compressed_controller import get_artifact_archiver
         import pytest
 
@@ -330,7 +330,7 @@ class TestCompressedControllerCompatibility:
         assert str(exc_info.value) == "Unsupported archive format. Use 'zip' or 'tar.gz'."
 
     def test_all_format_variants_supported(self, tmp_path):
-        """すべての形式バリエーション（zip, tar.gz, targz, tgz）をサポート"""
+        """Support all format variants (zip, tar.gz, targz, tgz)."""
         from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor, TarGzArtifactPackageCompressor
 
         # zip
@@ -350,7 +350,7 @@ class TestCompressedControllerCompatibility:
         assert isinstance(archiver_tgz, TarGzArtifactPackageCompressor)
 
     def test_case_insensitive_format(self, tmp_path):
-        """形式名は大文字小文字を区別しない"""
+        """Format names are case-insensitive."""
         from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor
 
         archiver_upper = get_artifact_archiver("ZIP", tmp_path, [])
@@ -362,17 +362,17 @@ class TestCompressedControllerCompatibility:
 
 
 class TestArchiveFormatSelection:
-    """アーカイブ形式選択ロジックの検証"""
+    """Verify archive format selection logic."""
 
     def test_supported_zip_format(self, tmp_path):
-        """zip形式がZipArtifactPackageCompressorを返す"""
+        """zip returns ZipArtifactPackageCompressor."""
         from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor
 
         archiver = get_artifact_archiver("zip", tmp_path, [])
         assert isinstance(archiver, ZipArtifactPackageCompressor)
 
     def test_supported_targz_formats(self, tmp_path):
-        """tar.gz系の全形式バリエーションがTarGzArtifactPackageCompressorを返す"""
+        """All tar.gz variants return TarGzArtifactPackageCompressor."""
         from rdetoolkit.impl.compressed_controller import get_artifact_archiver, TarGzArtifactPackageCompressor
 
         # tar.gz
@@ -388,7 +388,7 @@ class TestArchiveFormatSelection:
         assert isinstance(archiver_tgz, TarGzArtifactPackageCompressor)
 
     def test_format_selection_is_case_insensitive(self, tmp_path):
-        """形式選択は大文字小文字を区別しない"""
+        """Format selection is case-insensitive."""
         from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor, TarGzArtifactPackageCompressor
 
         # ZIP (uppercase)
@@ -405,17 +405,17 @@ class TestArchiveFormatSelection:
 
 
 class TestArchiveDispatchTable:
-    """ディスパッチテーブルの直接検証"""
+    """Direct verification of the dispatch table."""
 
     def test_archive_format_registry_completeness(self):
-        """すべての形式がディスパッチテーブルに登録されている"""
+        """All formats are registered in the dispatch table."""
         from rdetoolkit.impl.compressed_controller import _ARCHIVE_FORMAT_REGISTRY
 
         expected_formats = {"zip", "tar.gz", "targz", "tgz"}
         assert set(_ARCHIVE_FORMAT_REGISTRY.keys()) == expected_formats
 
     def test_archive_format_registry_mapping(self):
-        """ディスパッチテーブルの形式→クラスマッピングが正しい"""
+        """Dispatch table format-to-class mapping is correct."""
         from rdetoolkit.impl.compressed_controller import (
             _ARCHIVE_FORMAT_REGISTRY,
             ZipArtifactPackageCompressor,

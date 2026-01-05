@@ -700,12 +700,13 @@ def test_apply_magic_variable_inputfile_check(ivnoice_json_magic_filename_variab
 
 
 class TestExcelinvoice:
-    """Excelinvoiceクラスのテスト"""
+    """Unit tests for the ExcelInvoice class."""
 
     def test_read(self, inputfile_single_excelinvoice):
-        """ExcelInvoiceFile.read のテスト
-        dfexcelinvoice, df_general, dfSpecificが正しい値で返ってくるかテスト
-        また、空のシートが含まれるエクセルインボイスを入れた時に想定通りの値を出力するかテスト
+        """Tests ExcelInvoiceFile.read.
+
+        Verifies dfexcelinvoice, df_general, and df_specific return expected values,
+        including invoices that contain empty sheets.
         """
         expect_sheet1 = [
             [
@@ -992,38 +993,38 @@ def test_cli_integration_header_only(empty_attributes_schema, tmp_path):
 
 
 class TestSheetTypeIdentification:
-    """シート種別判定のユニットテスト"""
+    """Unit tests for sheet type identification."""
 
     def test_identify_invoice_sheet(self):
-        """InvoiceListシートの判定"""
+        """Identify the InvoiceList sheet."""
         import pandas as pd
         from rdetoolkit.invoicefile import _identify_sheet_type
         df = pd.DataFrame([["invoiceList_format_id", "v1.0"], ["col1", "col2"]])
         assert _identify_sheet_type("Sheet1", df) == "invoice"
 
     def test_identify_general_term_sheet(self):
-        """generalTermシートの判定"""
+        """Identify the generalTerm sheet."""
         import pandas as pd
         from rdetoolkit.invoicefile import _identify_sheet_type
         df = pd.DataFrame([["header1", "header2"], ["data1", "data2"]])
         assert _identify_sheet_type("generalTerm", df) == "general_term"
 
     def test_identify_specific_term_sheet(self):
-        """specificTermシートの判定"""
+        """Identify the specificTerm sheet."""
         import pandas as pd
         from rdetoolkit.invoicefile import _identify_sheet_type
         df = pd.DataFrame([["header1", "header2"], ["data1", "data2"]])
         assert _identify_sheet_type("specificTerm", df) == "specific_term"
 
     def test_identify_unknown_sheet(self):
-        """未知のシート種別の判定"""
+        """Identify an unknown sheet type."""
         import pandas as pd
         from rdetoolkit.invoicefile import _identify_sheet_type
         df = pd.DataFrame([["some_data", "value"], ["row1", "row2"]])
         assert _identify_sheet_type("RandomSheetName", df) == "unknown"
 
     def test_empty_dataframe(self):
-        """空DataFrameの判定"""
+        """Identify an empty DataFrame."""
         import pandas as pd
         from rdetoolkit.invoicefile import _identify_sheet_type
         df = pd.DataFrame()
@@ -1031,16 +1032,16 @@ class TestSheetTypeIdentification:
 
 
 class TestSheetProcessorDispatch:
-    """ディスパッチテーブルの検証"""
+    """Verify the dispatch table."""
 
     def test_sheet_processors_completeness(self):
-        """すべてのシート種別が登録されている"""
+        """All sheet types are registered."""
         from rdetoolkit.invoicefile import _SHEET_PROCESSORS
         expected_types = {"invoice", "general_term", "specific_term"}
         assert set(_SHEET_PROCESSORS.keys()) == expected_types
 
     def test_sheet_processors_mapping(self):
-        """正しいプロセッサ関数がマッピングされている"""
+        """Correct processor functions are mapped."""
         from rdetoolkit.invoicefile import _SHEET_PROCESSORS, _process_invoice_sheet, _process_general_term_sheet, _process_specific_term_sheet
         assert _SHEET_PROCESSORS["invoice"] is _process_invoice_sheet
         assert _SHEET_PROCESSORS["general_term"] is _process_general_term_sheet
