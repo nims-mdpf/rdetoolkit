@@ -1,28 +1,26 @@
 from __future__ import annotations
 
+import importlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field
 
+from rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
+from rdetoolkit.models.invoice_schema import GeneralAttribute, SpecificAttribute
+
 if TYPE_CHECKING:
     import polars as pl
 
 
 def _ensure_polars() -> Any:
-    import polars as pl
-
-    return pl
+    return importlib.import_module("polars")
 
 
 def _ensure_column_letter() -> Any:
-    from openpyxl.utils import get_column_letter
-
-    return get_column_letter
-
-from rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
-from rdetoolkit.models.invoice_schema import GeneralAttribute, SpecificAttribute
+    module = importlib.import_module("openpyxl.utils")
+    return module.get_column_letter
 
 
 class HeaderRow1(BaseModel):

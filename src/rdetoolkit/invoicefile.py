@@ -24,7 +24,7 @@ if TYPE_CHECKING:
         TemplateConfig,
     )
     from rdetoolkit.models.invoice_schema import SampleField
-    from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
+    from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeFsPath, RdeOutputResourcePath
 
 STATIC_DIR = Path(__file__).parent / "static"
 EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
@@ -105,6 +105,44 @@ def _process_specific_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     _df_specific = df[1:].copy()
     _df_specific.columns = ["sample_class_id", "term_id", "key_name"]
     return _df_specific
+
+
+SheetType = Literal["invoice", "general_term", "specific_term", "unknown"]
+
+
+def _identify_sheet_type(sh_name: str, df: pd.DataFrame) -> SheetType:
+    """Identify the type of an Excel sheet.
+
+    Args:
+        sh_name: Excel sheet name.
+        df: DataFrame loaded from the sheet.
+
+    Returns:
+        Sheet type:
+        - "invoice": InvoiceList sheet (cell A1 is "invoiceList_format_id")
+        - "general_term": generalTerm sheet
+        - "specific_term": specificTerm sheet
+        - "unknown": Other sheets (skipped in processing)
+    """
+    if not df.empty and len(df) > 0 and len(df.columns) > 0:
+        target_comment_value = df.iat[0, 0]
+        if target_comment_value == "invoiceList_format_id":
+            return "invoice"
+
+    if sh_name == "generalTerm":
+        return "general_term"
+    if sh_name == "specificTerm":
+        return "specific_term"
+
+    return "unknown"
+
+
+# Sheet type to processor function mapping
+_SHEET_PROCESSORS: dict[SheetType, Callable[[pd.DataFrame], pd.DataFrame]] = {
+    "invoice": _process_invoice_sheet,
+    "general_term": _process_general_term_sheet,
+    "specific_term": _process_specific_term_sheet,
+}
 
 
 def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path]) -> list[Path]:
@@ -414,9 +452,9 @@ class ExcelInvoiceTemplateGenerator:
         base_df = self.fixed_header.to_template_dataframe().to_pandas()
         invoice_schema_obj = readf_json(config.schema_path)
         try:
-            ValidationError = _ensure_validation_error()
+            validation_error_cls = _ensure_validation_error()
             invoice_schema = InvoiceSchemaJson(**invoice_schema_obj)
-        except ValidationError as e:
+        except validation_error_cls as e:
             raise InvoiceSchemaValidationError(str(e)) from e
         prefixes = {
             "general": self.GENERAL_PREFIX,
@@ -552,7 +590,7 @@ class ExcelInvoiceTemplateGenerator:
                     self._style_main_sheet(writer, df, sheet_name)
 
     def _style_main_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
-        Border, _, Side = _ensure_openpyxl_styles()
+        border_cls, _, side_cls = _ensure_openpyxl_styles()
         get_column_letter = _ensure_openpyxl_utils()
         default_row_height: int = 40
         default_column_width: int = 20
@@ -570,10 +608,10 @@ class ExcelInvoiceTemplateGenerator:
             worksheet.column_dimensions[col_letter].width = default_column_width
 
         # settings cell border
-        thin = Side(border_style="thin", color="000000")
-        thick = Side(border_style="thick", color="000000")
-        double = Side(border_style="double", color="000000")
-        grid_border = Border(top=thin, left=thin, right=thin, bottom=thin)
+        thin = side_cls(border_style="thin", color="000000")
+        thick = side_cls(border_style="thick", color="000000")
+        double = side_cls(border_style="double", color="000000")
+        grid_border = border_cls(top=thin, left=thin, right=thin, bottom=thin)
 
         for row in range(default_start_row, default_end_row):
             for col in range(default_start_col, max_col + 1):
@@ -582,17 +620,17 @@ class ExcelInvoiceTemplateGenerator:
 
         for col in range(1, max_col + 1):
             cell = worksheet.cell(row=4, column=col)
-            cell.border = Border(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
+            cell.border = border_cls(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
 
     def _style_sub_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
-        _, Font, _ = _ensure_openpyxl_styles()
-        default_cell_style = 'Normal'
+        _, font_cls, _ = _ensure_openpyxl_styles()
+        default_cell_style = "Normal"
         _ = writer.book
         worksheet = writer.sheets[sheet_name]
         for row in worksheet.iter_rows():
             for cell in row:
                 cell.style = default_cell_style
-                cell.font = Font(bold=False)
+                cell.font = font_cls(bold=False)
 
 
 class ExcelInvoiceFile:
@@ -649,17 +687,19 @@ class ExcelInvoiceFile:
             if df.empty:
                 continue
 
-            target_comment_value = df.iat[0, 0]
-            if target_comment_value == "invoiceList_format_id":
+            sheet_type = _identify_sheet_type(sh_name, df)
+
+            if sheet_type == "invoice":
                 if dfexcelinvoice is not None:
                     emsg = "ERROR: multiple sheet in invoiceList files"
                     raise StructuredError(emsg)
                 ExcelInvoiceFile.check_intermittent_empty_rows(df)
-                dfexcelinvoice = _process_invoice_sheet(df)
-            elif sh_name == "generalTerm":
-                df_general = _process_general_term_sheet(df)
-            elif sh_name == "specificTerm":
-                df_specific = _process_specific_term_sheet(df)
+                dfexcelinvoice = _SHEET_PROCESSORS[sheet_type](df)
+            elif sheet_type == "general_term":
+                df_general = _SHEET_PROCESSORS[sheet_type](df)
+            elif sheet_type == "specific_term":
+                df_specific = _SHEET_PROCESSORS[sheet_type](df)
+            # If sheet_type == "unknown", do nothing (skip)
 
         if dfexcelinvoice is None:
             emsg = "ERROR: no sheet in invoiceList files"

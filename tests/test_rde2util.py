@@ -9,27 +9,27 @@ from rdetoolkit.exceptions import StructuredError
 
 
 def test_split_value_unit():
-    # テストケース1: 値と単位が両方存在する場合
+    # Test case 1: both value and unit are present
     result = _split_value_unit("10.5 kg")
     assert result.value == "10.5"
     assert result.unit == "kg"
 
-    # テストケース2: 値のみ存在する場合
+    # Test case 2: only value is present
     result = _split_value_unit("25")
     assert result.value == "25"
     assert result.unit == ""
 
-    # テストケース3: 単位のみ存在する場合
+    # Test case 3: only unit is present
     result = _split_value_unit("m/s")
     assert result.value == ""
     assert result.unit == "m/s"
 
-    # テストケース4: 値と単位が空の場合
+    # Test case 4: value and unit are empty
     result = _split_value_unit("")
     assert result.value == ""
     assert result.unit == ""
 
-    # テストケース5: 値と単位が空白文字のみの場合
+    # Test case 5: value and unit are whitespace only
     result = _split_value_unit("   ")
     assert result.value == ""
     assert result.unit == ""
@@ -194,10 +194,10 @@ def test_has_variable_writefile(meta_variable_instance):
         assert content["variable"][2]["custom.user"]["value"] == "C"
 
 
-# detect_text_file_encodingに関するテスト
+# Tests for detect_text_file_encoding
 @pytest.fixture
 def utf_8_file():
-    # テスト用の"utf_8"エンコーディングのファイルを作成する
+    # Create a test file encoded with "utf_8"
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf_8", delete=False) as f:
         f.write("テストファイル（UTF-8）")
         file_path = f.name
@@ -207,7 +207,7 @@ def utf_8_file():
 
 @pytest.fixture
 def shift_jis_file():
-    # テスト用の"shift_jis"エンコーディングのファイルを作成する
+    # Create a test file encoded with "shift_jis"
     with tempfile.NamedTemporaryFile(mode="w", encoding="shift_jis", delete=False) as f:
         f.write("テストファイル（Shift-JIS）")
         file_path = f.name
@@ -217,7 +217,7 @@ def shift_jis_file():
 
 @pytest.fixture
 def utf_8_sig_file():
-    # テスト用の"utf_8_sig"エンコーディングのファイルを作成する
+    # Create a test file encoded with "utf_8_sig"
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf_8_sig", delete=False) as f:
         f.write("テストファイル（UTF-8 with BOM）")
         file_path = f.name
@@ -237,9 +237,9 @@ def test_detect_text_file_encoding_utf_8_sig(utf_8_sig_file):
     assert CharDecEncoding.detect_text_file_encoding(utf_8_sig_file) == "utf_8_sig"
 
 
-# read_invoice_json_fileのテスト
+# Tests for read_invoice_json_file
 def test_read_from_json_file_valid_json_file(ivnoice_json_none_sample_info):
-    """version1.2.0で削除予定"""
+    """Planned for removal in version 1.2.0."""
     expect_json = {
         "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
         "basic": {
@@ -251,7 +251,7 @@ def test_read_from_json_file_valid_json_file(ivnoice_json_none_sample_info):
         },
         "custom": {"key1": "test1", "key2": "test2"},
     }
-    # JSONファイルを読み込む関数を呼び出し
+    # Call the function to read the JSON file
     result = read_from_json_file(ivnoice_json_none_sample_info)
 
     assert result == expect_json
@@ -328,7 +328,7 @@ def test_trycast():
     assert ValueCaster.trycast("123", int) == 123
     assert ValueCaster.trycast("123.456", float) == 123.456
     assert ValueCaster.trycast("True", bool) is True
-    assert ValueCaster.trycast("abc", int) is None  # キャストが失敗するケース
+    assert ValueCaster.trycast("abc", int) is None  # Case where casting fails
 
 
 def test_convert_to_date_format():
@@ -351,7 +351,7 @@ def test_convert_to_date_format():
 
         # Case 2: orgtype=integer with unit
         ("100kg", "integer", None, "integer", None, {"value": 100}),
-        ("50.5m", "number", None, "integer", None, {"value": 50.5}), # integerなので小数点以下が切り捨て
+        ("50.5m", "number", None, "integer", None, {"value": 50.5}), # Decimal part is truncated for integer
 
         # Case 3: orgtype=number with unit
         ("100.5kg", "number", None, "number", None, {"value": 100.5}),
@@ -385,3 +385,90 @@ def test_metadata_validation_error(meta_const_instance):
     # Cases in which castval throws an error with invalid value
     with pytest.raises(StructuredError, match="ERROR: failed to cast metaDef value"):
         meta_const_instance.metadata_validation("abc", "integer", None, None, None)
+
+
+class TestCastvalCompatibility:
+    """Compatibility tests after castval refactoring."""
+
+    def test_outtype_none_raises_unknown_type_error(self):
+        """Raise correct error message when outtype=None."""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("test", None, None)
+        assert str(exc_info.value) == "ERROR: unknown value type in metaDef"
+
+    def test_outtype_unknown_raises_unknown_type_error(self):
+        """Unknown outtype raises 'unknown value type' error."""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("test", "unknown_type", None)
+        assert str(exc_info.value) == "ERROR: unknown value type in metaDef"
+
+    def test_string_without_format_returns_original(self):
+        """Preserve valstr type when outfmt=None."""
+        result = castval(12345, "string", None)
+        assert result == 12345
+        assert isinstance(result, int)  # Type is preserved
+
+    def test_integer_cast_failure_message(self):
+        """Error message on integer cast failure."""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("not_a_number", "integer", None)
+        assert str(exc_info.value) == "ERROR: failed to cast metaDef value"
+
+    def test_number_cast_failure_message(self):
+        """Error message on number cast failure."""
+        with pytest.raises(StructuredError) as exc_info:
+            castval("not_a_number", "number", None)
+        assert str(exc_info.value) == "ERROR: failed to cast metaDef value"
+
+
+class TestTypeHandlers:
+    """Unit tests for individual handler functions."""
+
+    def test_cast_boolean_handler_true(self):
+        """_cast_boolean: convert 'true' to True."""
+        from rdetoolkit.rde2util import _cast_boolean
+        assert _cast_boolean("true", None) is True
+        assert _cast_boolean("TRUE", None) is True
+        assert _cast_boolean("  True  ", None) is True
+
+    def test_cast_boolean_handler_false(self):
+        """_cast_boolean: convert 'false' to False."""
+        from rdetoolkit.rde2util import _cast_boolean
+        assert _cast_boolean("false", None) is False
+        assert _cast_boolean("FALSE", None) is False
+
+    def test_cast_integer_handler(self):
+        """_cast_integer: integer conversion and unit separation."""
+        from rdetoolkit.rde2util import _cast_integer
+        assert _cast_integer("100", None) == 100
+        assert _cast_integer("100 kg", None) == 100  # Unit separated
+
+    def test_cast_number_handler_integer_priority(self):
+        """_cast_number: integer-priority logic."""
+        from rdetoolkit.rde2util import _cast_number
+        result = _cast_number("100", None)
+        assert result == 100
+        assert isinstance(result, int)  # Integer priority
+
+    def test_cast_string_handler_no_format(self):
+        """_cast_string: preserve type when outfmt=None."""
+        from rdetoolkit.rde2util import _cast_string
+        result = _cast_string(12345, None)
+        assert result == 12345
+        assert isinstance(result, int)
+
+
+class TestDispatchTable:
+    """Dispatch table validation."""
+
+    def test_type_casters_completeness(self):
+        """All types are registered in the dispatch table."""
+        from rdetoolkit.rde2util import _TYPE_CASTERS
+        expected_types = {"boolean", "integer", "number", "string"}
+        assert set(_TYPE_CASTERS.keys()) == expected_types
+
+    def test_type_casters_callable(self):
+        """All dispatch table values are callable."""
+        from rdetoolkit.rde2util import _TYPE_CASTERS
+        for type_name, caster in _TYPE_CASTERS.items():
+            assert callable(caster), f"caster for type '{type_name}' is not callable"
