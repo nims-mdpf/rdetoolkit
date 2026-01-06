@@ -151,7 +151,7 @@ srcpaths = RdeInputDirPaths(
     tasksupport=Path("data/tasksupport")
 )
 
-checker_result = selected_input_checker(srcpaths, mode="Invoice")
+checker_result = selected_input_checker(srcpaths, mode="invoice")
 if checker_result:
     print("Input files are appropriate")
 else:

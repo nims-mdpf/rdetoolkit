@@ -10,6 +10,11 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "ManagedDirectory": ("rdetoolkit.core", "ManagedDirectory"),
     "detect_encoding": ("rdetoolkit.core", "detect_encoding"),
     "resize_image_aspect_ratio": ("rdetoolkit.core", "resize_image_aspect_ratio"),
+    # Result types for explicit error handling
+    "Result": ("rdetoolkit.result", "Result"),
+    "Success": ("rdetoolkit.result", "Success"),
+    "Failure": ("rdetoolkit.result", "Failure"),
+    "try_result": ("rdetoolkit.result", "try_result"),
 }
 
 _LAZY_MODULES: dict[str, str] = {
@@ -37,6 +42,11 @@ __all__ = [
     "ManagedDirectory",
     "detect_encoding",
     "resize_image_aspect_ratio",
+    # Result types for explicit error handling
+    "Result",
+    "Success",
+    "Failure",
+    "try_result",
     "errors",
     "exceptions",
     "img2thumb",

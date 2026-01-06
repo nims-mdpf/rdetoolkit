@@ -111,19 +111,16 @@ def create_default_config() -> Config:
     Returns:
         Config: A default configuration object.
     """
-    module = importlib.import_module("rdetoolkit.models.config")
-    config_cls = module.Config
-    multidata_tile_settings_cls = module.MultiDataTileSettings
-    system_settings_cls = module.SystemSettings
+    from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings  # noqa: PLC0415
 
-    return config_cls(
-        system=system_settings_cls(
+    return Config(
+        system=SystemSettings(
             extended_mode=None,
             save_raw=True,
             save_thumbnail_image=False,
             magic_variable=False,
         ),
-        multidata_tile=multidata_tile_settings_cls(ignore_errors=False),
+        multidata_tile=MultiDataTileSettings(ignore_errors=False),
     )
 
 

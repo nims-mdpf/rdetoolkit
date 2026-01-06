@@ -36,6 +36,7 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 
 ### Error Handling and Logging
 
+- [result](result.en.md) - Type-safe error handling with Result pattern
 - [rdelogger](../rdetoolkit/rdelogger.md) - Logging functionality
 - [errors](../rdetoolkit/errors.md) - Error handling
 - [exceptions](../rdetoolkit/exceptions.md) - Exception handling

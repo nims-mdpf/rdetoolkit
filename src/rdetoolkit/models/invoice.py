@@ -15,12 +15,15 @@ if TYPE_CHECKING:
 
 
 def _ensure_polars() -> Any:
-    return importlib.import_module("polars")
+    import polars as pl  # noqa: PLC0415
+
+    return pl
 
 
 def _ensure_column_letter() -> Any:
-    module = importlib.import_module("openpyxl.utils")
-    return module.get_column_letter
+    from openpyxl.utils import get_column_letter  # noqa: PLC0415
+
+    return get_column_letter
 
 
 class HeaderRow1(BaseModel):

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import functools
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 from rdetoolkit.exceptions import StructuredError
 
-
-@functools.lru_cache(maxsize=1)
+@lru_cache(maxsize=1)
 def _get_logger() -> Any:
     from rdetoolkit.rdelogger import get_logger
 
@@ -16,13 +16,13 @@ def _get_logger() -> Any:
 
 
 def detect_encoding(path: str) -> str:
-    """Detect encoding for the given file path.
+    """Detect file encoding using the core implementation.
 
     Args:
-        path (str): Path to the target file.
+        path: Path to the target file.
 
     Returns:
-        str: Detected encoding.
+        Detected encoding name.
     """
     from rdetoolkit.core import detect_encoding as _detect_encoding
 

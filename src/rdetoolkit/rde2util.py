@@ -806,7 +806,6 @@ def _cast_number(valstr: Any, outfmt: str | None) -> int | float:
         StructuredError: If the value cannot be converted to number.
     """
     val_unit_pair = _split_value_unit(valstr)
-    # Integer priority logic (maintains existing behavior)
     if ValueCaster.trycast(val_unit_pair.value, int) is not None:
         return int(val_unit_pair.value)
     if ValueCaster.trycast(val_unit_pair.value, float) is not None:
@@ -826,15 +825,13 @@ def _cast_string(valstr: Any, outfmt: str | None) -> Any:
         Formatted string if outfmt is specified, otherwise valstr as-is.
 
     Note:
-        Important: When outfmt=None, the original type of valstr is preserved.
-        Example: castval(12345, "string", None) -> 12345 (int type)
+        When outfmt=None, the original type of valstr is preserved.
     """
     if not outfmt:
         return valstr
     return ValueCaster.convert_to_date_format(valstr, outfmt)
 
 
-# Dispatch table for type casting
 _TYPE_CASTERS: dict[str, TypeCaster] = {
     "boolean": _cast_boolean,
     "integer": _cast_integer,
@@ -843,7 +840,7 @@ _TYPE_CASTERS: dict[str, TypeCaster] = {
 }
 
 
-def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> Any:
+def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int | float | str:
     """Cast the value-string to the specified type-string.
 
     Args:
@@ -852,20 +849,10 @@ def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> Any:
         outfmt: Data format (used only for "string" type).
 
     Returns:
-        Any: Casted value. For "string" without a format, returns the original value.
+        Casted value. For "string" without a format, returns the original value.
 
     Raises:
         StructuredError: If the type conversion fails or the type is unknown.
-
-    Examples:
-        >>> castval("True", "boolean", None)
-        True
-        >>> castval("100", "integer", None)
-        100
-        >>> castval("100", "number", None)
-        100
-        >>> castval("2023/1/1", "string", "date")
-        '2023-01-01'
     """
     caster = _TYPE_CASTERS.get(outtype) if outtype else None
     if caster is None:

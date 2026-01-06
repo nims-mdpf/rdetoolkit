@@ -452,9 +452,9 @@ class ExcelInvoiceTemplateGenerator:
         base_df = self.fixed_header.to_template_dataframe().to_pandas()
         invoice_schema_obj = readf_json(config.schema_path)
         try:
-            validation_error_cls = _ensure_validation_error()
+            validation_error = _ensure_validation_error()
             invoice_schema = InvoiceSchemaJson(**invoice_schema_obj)
-        except validation_error_cls as e:
+        except validation_error as e:
             raise InvoiceSchemaValidationError(str(e)) from e
         prefixes = {
             "general": self.GENERAL_PREFIX,
