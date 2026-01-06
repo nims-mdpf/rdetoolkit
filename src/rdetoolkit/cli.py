@@ -250,7 +250,8 @@ def run(target: str) -> None:
     """Run rdetoolkit workflows with a user-defined dataset function."""
     func = _load_target_function(target)
     try:
-        result = workflows.run(custom_dataset_function=func)
+        workflow_run = cast(Callable[..., str], workflows.run)
+        result = workflow_run(custom_dataset_function=func)
     except Exception as exc:
         raise click.ClickException(str(exc)) from exc
     if result is not None:
