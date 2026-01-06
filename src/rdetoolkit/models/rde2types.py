@@ -113,14 +113,14 @@ def create_default_config() -> Config:
     """
     from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings  # noqa: PLC0415
 
-    return config_cls(
-        system=system_settings_cls(
+    return Config(
+        system=SystemSettings(
             extended_mode=None,
             save_raw=True,
             save_thumbnail_image=False,
             magic_variable=False,
         ),
-        multidata_tile=multidata_tile_settings_cls(ignore_errors=False),
+        multidata_tile=MultiDataTileSettings(ignore_errors=False),
     )
 
 
