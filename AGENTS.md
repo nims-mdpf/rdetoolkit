@@ -21,6 +21,18 @@ pre-commit install
 
 We use `Ruff` and `mypy` to maintain code quality. Ruff replaces isort/black/flake8 and, together with strict typing enforced by mypy, improves readability and maintainability. See [0-cite-3](#0-cite-3).
 
+### 3.1 Coding Standards
+
+**Comments & Documentation:**
+
+* **All comments must be written in English.** This ensures consistency and accessibility for international contributors.
+* **Avoid redundant comments for self-explanatory code.** Code should be self-documenting where possible. Only add comments when they provide meaningful context, explain non-obvious logic, or clarify complex algorithms.
+* **Focus on "why" not "what".** Comments should explain the reasoning behind decisions, not restate what the code does.
+
+**File Format:**
+
+* **Use Unix-style line endings (LF, `\n`) for all files.** This ensures consistency across different development environments and prevents line-ending conflicts in version control.
+
 ## 4. Documentation Guidelines
 
 Docstrings **must** follow **Google Style**. See [0-cite-4](#0-cite-4).

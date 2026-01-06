@@ -281,16 +281,13 @@ def test_result_pattern_enables_explicit_error_handling():
         # Explicit error handling without try/except
         result = check_files_result(srcpaths, mode="invoice")
 
-        if result.is_success():
-            _rawfiles, _excel, _smarttable = result.unwrap()
-            # Process files
-        else:
-            # Handle error explicitly
-            error_obj = result.error
-            assert error_obj.emsg == "Validation error"
-            assert error_obj.ecode == 404
+        # In this scenario, the checker raises an error and the Result must be a failure
+        assert result.is_failure()
 
-
+        # Handle error explicitly
+        error_obj = result.error
+        assert error_obj.emsg == "Validation error"
+        assert error_obj.ecode == 404
 def test_migration_path_from_exception_to_result():
     """Test smooth migration from exception-based to Result-based code."""
     srcpaths = Mock(spec=RdeInputDirPaths)

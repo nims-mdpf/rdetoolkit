@@ -9,7 +9,7 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import Any, Callable, Final, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Callable, Final, TypedDict, cast
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
@@ -149,8 +149,8 @@ def _split_value_unit(target_char: str) -> ValueUnitPair:  # pragma: no cover
     """
     valpair = ValueUnitPair(value="", unit="")
     valleft = str(target_char).strip()
-    ptn1 = r"^[+-]?[0-9]*\.?[0-9]*"  # 実数部の正規表現
-    ptn2 = r"[eE][+-]?[0-9]+"  # 指数部の正規表現
+    ptn1 = r"^[+-]?[0-9]*\.?[0-9]*"
+    ptn2 = r"[eE][+-]?[0-9]+"
     r1 = re.match(ptn1, valleft)
     if r1:
         _v = r1.group()
@@ -270,7 +270,7 @@ class StorageDir:
         - tasksupport
     """
 
-    __nDigit = 4  # 分割データインデックスの桁数。固定値
+    __nDigit = 4
 
     @classmethod
     def get_datadir(cls, is_mkdir: bool, idx: int = 0) -> str:
@@ -378,7 +378,7 @@ class Meta:
             metaConst (dict[str, MetaItem]): A dictionary for constant metadata.
             metaVar (list[dict[str, MetaItem]]): A list of dictionaries for variable metadata.
             actions (list[str]): A list of actions.
-            referedmap (dict[str, Optional[Union[str, list]]]): A dictionary mapping references.
+            referedmap (dict[str, str | list | None]): A dictionary mapping references.
             metaDef (dict[str, MetadataDefJson]): A dictionary for metadata definition, read from the metadata definition file.
         """
         self.metaConst: dict[str, MetaItem] = {}
@@ -595,7 +595,7 @@ class Meta:
 
         Args:
             key (str): The key to be registered in the referred value table. Typically represents an action or unit name.
-            value (Union[str, list[str]]): The value to be registered in the referred value table. This can be a single string or a list of strings,
+            value (str | list[str]): The value to be registered in the referred value table. This can be a single string or a list of strings,
                 representing the raw names to be associated with the key.
 
         Returns:
@@ -665,7 +665,7 @@ class Meta:
             outunit (Optional[str]): The unit of the converted metadata.
 
         Returns:
-            dict[str, Union[bool, int, float, str]]: Returns the conversion result in the form of metadata for metadata.json.
+            dict[str, bool | int | float | str]: Returns the conversion result in the form of metadata for metadata.json.
 
         Note:
             original func: _vDict()
@@ -741,21 +741,25 @@ class ValueCaster:
         raise StructuredError(emsg)
 
 
-def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int | float | str:
-    """The function formats the string valstr based on outtype and outfmt and returns the formatted value.
+# Type handler functions for castval dispatch table
+if TYPE_CHECKING:
+    TypeCaster = Callable[[Any, str | None], Any]
+else:
+    TypeCaster = Callable[..., Any]
 
-    The function returns a formatted value of the string valstr according to the specified outtype and outfmt.
-    The outtype must be a string ("string") for outfmt to be used. If valstr contains a value with units, the assignment of units is not handled within this function.
-    It should be assigned separately as needed.
+
+def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:
+    """Cast value to boolean type.
 
     Args:
-        valstr (Any): String to be converted of type
-        outtype (str): Type information at output
-        outfmt (str): Formatting at output (related to date data)
+        valstr: Value to cast.
+        outfmt: Format (unused for boolean type).
 
-    Notes:
-        For boolean output, string inputs must be "true" or "false" (case-insensitive). Other
-        string values raise StructuredError.
+    Returns:
+        Boolean value.
+
+    Raises:
+        StructuredError: If the value cannot be converted to boolean.
     """
     if outtype == "boolean":
         # Handle string representations of boolean values (e.g., "TRUE"/"FALSE" from Excel)
