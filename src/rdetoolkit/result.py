@@ -58,6 +58,14 @@ class Success(Generic[T]):
         """
         return True
 
+    def is_failure(self) -> bool:
+        """Check if result is a failure.
+
+        Returns:
+            Always False for Success instances
+        """
+        return False
+
     def map(self, f: Callable[[T], U]) -> Success[U]:
         """Transform the success value using provided function.
 
@@ -113,6 +121,14 @@ class Failure(Generic[E]):
             Always False for Failure instances
         """
         return False
+
+    def is_failure(self) -> bool:
+        """Check if result is a failure.
+
+        Returns:
+            Always True for Failure instances
+        """
+        return True
 
     def map(self, f: Callable[[Any], Any]) -> Failure[E]:
         """Mapping over a Failure returns the same Failure.

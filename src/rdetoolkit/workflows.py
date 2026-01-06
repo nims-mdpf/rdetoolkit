@@ -234,7 +234,7 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config 
     if isinstance(result, Failure):
         error = result.error
         if isinstance(error, StructuredError) and isinstance(error.eobj, Exception):
-            raise error.eobj from error
+            raise error.eobj
         raise error
     return result.unwrap()
 
