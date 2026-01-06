@@ -7,8 +7,7 @@ on:
   push:
     branches:
       - 'develop/v*'
-    branches-ignore:
-      - 'develop/v*_*'
+      - '!develop/v*_*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
