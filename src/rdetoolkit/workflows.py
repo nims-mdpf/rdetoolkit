@@ -20,7 +20,7 @@ from rdetoolkit.modeproc import (
     smarttable_invoice_mode_process,
 )
 from rdetoolkit.rde2util import StorageDir
-from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.rdelogger import get_logger, generate_log_timestamp
 from rdetoolkit.core import DirectoryOps
 from typing import Any
 
@@ -327,7 +327,10 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
         workflow.run(custom_dataset_function=custom_dataset, config=cfg) # Execute structuring process
         ```
     """
-    logger = get_logger(__name__, file_path=StorageDir.get_specific_outputdir(True, "logs").joinpath("rdesys.log"))
+    # Generate timestamp once for this workflow run
+    log_timestamp = generate_log_timestamp()
+    log_filename = f"rdesys_{log_timestamp}.log"
+    logger = get_logger(__name__, file_path=StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename))
     wf_manager = WorkflowResultManager()
     error_info = None
 

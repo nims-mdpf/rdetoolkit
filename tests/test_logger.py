@@ -3,12 +3,14 @@ import logging.handlers
 import os
 import pathlib
 import shutil
+import time
 from collections.abc import Generator
+from datetime import datetime
 from unittest import mock
 
 import pytest
 
-from rdetoolkit.rdelogger import get_logger, CustomLog, log_decorator, LazyFileHandler
+from rdetoolkit.rdelogger import get_logger, CustomLog, log_decorator, LazyFileHandler, generate_log_timestamp
 
 
 def test_custom_log():
@@ -245,3 +247,136 @@ class TestLazyFileHandler:
         assert handler._handler is not None
         assert handler._handler.formatter == formatter
         assert handler._handler.level == logging.WARNING
+
+
+def test_generate_log_timestamp_format():
+    """Test that timestamp has correct format"""
+    timestamp = generate_log_timestamp()
+
+    # Check format: YYYYMMDD_HHMMSS (15 characters total)
+    assert len(timestamp) == 15
+    assert timestamp[8] == "_"
+
+    # Check all other characters are digits
+    assert timestamp[:8].isdigit()  # YYYYMMDD
+    assert timestamp[9:].isdigit()  # HHMMSS
+
+
+def test_generate_log_timestamp_filesystem_safe():
+    """Test that timestamp is filesystem-safe (no special characters)"""
+    timestamp = generate_log_timestamp()
+
+    # Should only contain alphanumeric characters and underscore
+    assert all(c.isalnum() or c == "_" for c in timestamp)
+
+    # Should not contain problematic characters
+    problematic_chars = [':', '/', '\\', '<', '>', '|', '*', '?', '"']
+    for char in problematic_chars:
+        assert char not in timestamp
+
+
+def test_generate_log_timestamp_consistency():
+    """Test that timestamp is consistent within a short time window"""
+    with mock.patch('rdetoolkit.rdelogger.datetime') as mock_datetime:
+        # Mock a specific datetime
+        mock_datetime.now.return_value = datetime(2026, 1, 6, 9, 28, 45)
+
+        timestamp = generate_log_timestamp()
+        assert timestamp == "20260106_092845"
+
+
+def test_generate_log_timestamp_uniqueness():
+    """Test that successive calls produce different timestamps"""
+    timestamp1 = generate_log_timestamp()
+    time.sleep(1.1)  # Sleep for more than 1 second
+    timestamp2 = generate_log_timestamp()
+
+    # Timestamps should be different if calls are separated by time
+    assert timestamp1 != timestamp2
+
+
+def test_get_logger_prevents_handler_accumulation(tmp_path):
+    """Test that calling get_logger multiple times doesn't accumulate handlers."""
+    import logging
+
+    # Clear any existing handlers for clean test
+    logger_name = "test_accumulation_logger"
+    test_logger = logging.getLogger(logger_name)
+    test_logger.handlers.clear()
+
+    # First call with first log file
+    log_file1 = tmp_path / "log1.log"
+    logger1 = get_logger(logger_name, file_path=log_file1)
+
+    # Verify exactly one handler
+    assert len(logger1.handlers) == 1
+    assert isinstance(logger1.handlers[0], LazyFileHandler)
+    assert logger1.handlers[0].filename == str(log_file1)
+
+    # Second call with different log file (simulates second run)
+    log_file2 = tmp_path / "log2.log"
+    logger2 = get_logger(logger_name, file_path=log_file2)
+
+    # Verify still exactly one handler, but with new filename
+    assert len(logger2.handlers) == 1
+    assert isinstance(logger2.handlers[0], LazyFileHandler)
+    assert logger2.handlers[0].filename == str(log_file2)
+
+    # Verify logger1 and logger2 are the same object (singleton)
+    assert logger1 is logger2
+
+    # Write to logger and verify only new log file receives content
+    test_message = "Test message for second run"
+    logger2.info(test_message)
+
+    # Only log_file2 should exist and contain the message
+    assert log_file2.exists()
+    assert test_message in log_file2.read_text()
+
+    # log_file1 should not exist (lazy creation never triggered)
+    assert not log_file1.exists()
+
+    # Cleanup
+    test_logger.handlers.clear()
+
+
+def test_get_logger_preserves_non_lazy_handlers(tmp_path):
+    """Test that handler cleanup only removes LazyFileHandlers, not other handlers."""
+    import logging
+
+    # Clear any existing handlers for clean test
+    logger_name = "test_preserve_logger"
+    test_logger = logging.getLogger(logger_name)
+    test_logger.handlers.clear()
+
+    # Add a StreamHandler manually
+    stream_handler = logging.StreamHandler()
+    test_logger.addHandler(stream_handler)
+
+    # Call get_logger with a file path
+    log_file = tmp_path / "test.log"
+    logger = get_logger(logger_name, file_path=log_file)
+
+    # Verify we have both StreamHandler and LazyFileHandler
+    assert len(logger.handlers) == 2
+    handler_types = [type(h).__name__ for h in logger.handlers]
+    assert "StreamHandler" in handler_types
+    assert "LazyFileHandler" in handler_types
+
+    # Call get_logger again with different file
+    log_file2 = tmp_path / "test2.log"
+    logger2 = get_logger(logger_name, file_path=log_file2)
+
+    # Verify StreamHandler is still present, but LazyFileHandler was replaced
+    assert len(logger2.handlers) == 2
+    handler_types = [type(h).__name__ for h in logger2.handlers]
+    assert "StreamHandler" in handler_types
+    assert "LazyFileHandler" in handler_types
+
+    # Verify the LazyFileHandler is for the new file
+    lazy_handlers = [h for h in logger2.handlers if isinstance(h, LazyFileHandler)]
+    assert len(lazy_handlers) == 1
+    assert lazy_handlers[0].filename == str(log_file2)
+
+    # Cleanup
+    test_logger.handlers.clear()

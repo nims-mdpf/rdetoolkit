@@ -2,11 +2,31 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 from logging import DEBUG, INFO, FileHandler, Formatter, Handler, Logger, NullHandler, StreamHandler, getLogger
 from pathlib import Path
 from typing import Callable
 
 from rdetoolkit.models.rde2types import RdeFsPath
+
+__all__ = ['LazyFileHandler', 'get_logger', 'CustomLog', 'log_decorator', 'generate_log_timestamp']
+
+
+def generate_log_timestamp() -> str:
+    """Generate a filesystem-safe timestamp string for log filenames.
+
+    Returns a timestamp string in the format YYYYMMDD_HHMMSS that can be
+    safely used in filenames across different operating systems.
+
+    Returns:
+        str: Timestamp string in format YYYYMMDD_HHMMSS (e.g., "20260106_092845")
+
+    Example:
+        >>> timestamp = generate_log_timestamp()
+        >>> timestamp  # doctest: +SKIP
+        '20260106_092845'
+    """
+    return datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
 
 
 class LazyFileHandler(logging.Handler):
@@ -101,13 +121,13 @@ def get_logger(name: str, *, file_path: RdeFsPath | None = None, level: int = lo
     file_handler.setLevel(level)
     file_handler.setFormatter(formatter)
 
-    # Prevent duplicate handler registration by checking if a LazyFileHandler
-    # with the same file path already exists. This is important because:
-    # 1. Multiple calls to get_logger() could add duplicate handlers.
-    # 2. Duplicate handlers would cause log messages to be written multiple times
-    # 3. Each duplicate handler would consume additional system resources
-    if not any(isinstance(handler, LazyFileHandler) and handler.filename == str(file_path) for handler in logger.handlers):
-        logger.addHandler(file_handler)
+    # Remove any existing LazyFileHandlers to prevent accumulation when
+    # run() is called multiple times in the same process. This ensures
+    # exactly one log file per execution.
+    logger.handlers = [h for h in logger.handlers if not isinstance(h, LazyFileHandler)]
+
+    # Add the new handler
+    logger.addHandler(file_handler)
 
     return logger
 

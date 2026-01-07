@@ -1327,7 +1327,7 @@ container/data
 
 ### エラーが発生したときは
 
-`container/data/logs`以下に、`rdesys.log`にログが出力されます。エラーが発生した場合は、ここにエラーメッセージが記録されます。
+`container/data/logs`以下に、タイムスタンプ付きのログファイル（例：`rdesys_20260106_092845.log`）が出力されます。エラーが発生した場合は、最新のログファイルにエラーメッセージが記録されます。`ls -t container/data/logs/rdesys_*.log | head -1`で最新のログを見つけることができます。
 
 ## RDEに構造化処理を提出する
 

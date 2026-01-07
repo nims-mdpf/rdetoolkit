@@ -337,3 +337,293 @@ def test_structured_error_propagation_in_workflow(tmp_path, monkeypatch):
         
     finally:
         os.chdir(original_cwd)
+
+
+def test_workflow_creates_timestamped_log_file(tmp_path, monkeypatch):
+    """Test that workflow.run() creates a log file with timestamp in name."""
+    from unittest import mock
+    from datetime import datetime
+
+    # Mock StorageDir to use tmp_path
+    def mock_get_outputdir(create, name):
+        path = tmp_path / name
+        if create:
+            path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+
+    # Mock datetime.now() to return a fixed timestamp
+    fixed_datetime = datetime(2026, 1, 6, 9, 28, 45)
+    with mock.patch('rdetoolkit.rdelogger.datetime') as mock_datetime:
+        mock_datetime.now.return_value = fixed_datetime
+
+        # Setup minimal test environment
+        (tmp_path / "inputdata").mkdir()
+        (tmp_path / "invoice").mkdir()
+        (tmp_path / "tasksupport").mkdir()
+        (tmp_path / "logs").mkdir()
+
+        # Create minimal config files
+        config_file = tmp_path / "tasksupport" / "rdeconfig.yml"
+        config_file.write_text("system:\n  extended_mode: null\n")
+
+        schema_file = tmp_path / "tasksupport" / "invoice.schema.json"
+        schema_file.write_text("{}")
+
+        invoice_file = tmp_path / "invoice" / "invoice.json"
+        invoice_file.write_text('{"basic": {}}')
+
+        metadata_file = tmp_path / "tasksupport" / "metadata-def.json"
+        metadata_file.write_text('{"constant": {}, "variable": []}')
+
+        # Create a test input file
+        test_input = tmp_path / "inputdata" / "test.txt"
+        test_input.write_text("test data")
+
+        # Execute workflow (may fail due to incomplete setup, but log file should be created)
+        try:
+            from rdetoolkit.workflows import run
+            run()
+        except (SystemExit, Exception):
+            # Workflow may fail due to missing data, but log file should be created
+            pass
+
+        # Verify timestamped log file was created
+        expected_log_filename = "rdesys_20260106_092845.log"
+        log_file_path = tmp_path / "logs" / expected_log_filename
+
+        assert log_file_path.exists(), f"Expected log file {expected_log_filename} was not created"
+
+
+def test_workflow_timestamp_consistency_in_single_run(tmp_path, monkeypatch):
+    """Test that a single workflow run uses the same timestamp throughout."""
+    from unittest import mock
+
+    # Mock StorageDir to use tmp_path
+    def mock_get_outputdir(create, name):
+        path = tmp_path / name
+        if create:
+            path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+
+    # Setup test environment
+    (tmp_path / "inputdata").mkdir()
+    (tmp_path / "invoice").mkdir()
+    (tmp_path / "tasksupport").mkdir()
+    (tmp_path / "logs").mkdir()
+
+    # Create minimal config files
+    config_file = tmp_path / "tasksupport" / "rdeconfig.yml"
+    config_file.write_text("system:\n  extended_mode: null\n")
+
+    schema_file = tmp_path / "tasksupport" / "invoice.schema.json"
+    schema_file.write_text("{}")
+
+    invoice_file = tmp_path / "invoice" / "invoice.json"
+    invoice_file.write_text('{"basic": {}}')
+
+    metadata_file = tmp_path / "tasksupport" / "metadata-def.json"
+    metadata_file.write_text('{"constant": {}, "variable": []}')
+
+    # Create a test input file
+    test_input = tmp_path / "inputdata" / "test.txt"
+    test_input.write_text("test data")
+
+    # Mock to track timestamp generation calls
+    timestamp_calls = []
+    original_generate = None
+
+    def mock_generate_timestamp():
+        from rdetoolkit.rdelogger import generate_log_timestamp
+        nonlocal original_generate
+        if original_generate is None:
+            # Store the original function for first call
+            import rdetoolkit.rdelogger
+            original_generate = rdetoolkit.rdelogger.generate_log_timestamp
+        result = original_generate()
+        timestamp_calls.append(result)
+        return result
+
+    with mock.patch('rdetoolkit.workflows.generate_log_timestamp', side_effect=mock_generate_timestamp):
+        try:
+            from rdetoolkit.workflows import run
+            run()
+        except (SystemExit, Exception):
+            pass
+
+    # Verify timestamp generation was called exactly once per run
+    assert len(timestamp_calls) == 1, f"Timestamp should be generated exactly once per workflow run, but was called {len(timestamp_calls)} times"
+
+
+def test_multiple_workflow_runs_create_different_log_files(tmp_path, monkeypatch):
+    """Test that consecutive workflow runs create separate log files."""
+    import time
+
+    # Mock StorageDir to use tmp_path
+    def mock_get_outputdir(create, name):
+        path = tmp_path / name
+        if create:
+            path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+
+    # Setup test environment
+    (tmp_path / "inputdata").mkdir()
+    (tmp_path / "invoice").mkdir()
+    (tmp_path / "tasksupport").mkdir()
+    (tmp_path / "logs").mkdir()
+
+    # Create minimal config files
+    config_file = tmp_path / "tasksupport" / "rdeconfig.yml"
+    config_file.write_text("system:\n  extended_mode: null\n")
+
+    schema_file = tmp_path / "tasksupport" / "invoice.schema.json"
+    schema_file.write_text("{}")
+
+    invoice_file = tmp_path / "invoice" / "invoice.json"
+    invoice_file.write_text('{"basic": {}}')
+
+    metadata_file = tmp_path / "tasksupport" / "metadata-def.json"
+    metadata_file.write_text('{"constant": {}, "variable": []}')
+
+    # Create a test input file
+    test_input = tmp_path / "inputdata" / "test.txt"
+    test_input.write_text("test data")
+
+    log_files_created = []
+
+    # Run workflow twice with a time gap
+    for i in range(2):
+        try:
+            from rdetoolkit.workflows import run
+            run()
+        except (SystemExit, Exception):
+            pass
+
+        # Collect log files created
+        logs_dir = tmp_path / "logs"
+        current_logs = list(logs_dir.glob("rdesys_*.log"))
+        log_files_created.extend(current_logs)
+
+        if i == 0:
+            time.sleep(1.1)  # Ensure different timestamp for second run
+
+    # Verify multiple log files were created
+    unique_logs = set(log_files_created)
+    assert len(unique_logs) >= 2, f"Multiple workflow runs should create different log files, but only {len(unique_logs)} unique file(s) found"
+
+    # Verify all log files follow the naming pattern
+    for log_file in unique_logs:
+        assert log_file.name.startswith("rdesys_"), f"Log file {log_file.name} should start with 'rdesys_'"
+        assert log_file.name.endswith(".log"), f"Log file {log_file.name} should end with '.log'"
+        # Extract timestamp part: rdesys_YYYYMMDD_HHMMSS.log
+        timestamp_part = log_file.stem.replace("rdesys_", "")
+        assert len(timestamp_part) == 15, f"Timestamp part should be 15 chars: {timestamp_part}"
+        assert timestamp_part[8] == "_", f"Timestamp should have underscore at position 8: {timestamp_part}"
+
+
+def test_log_filename_pattern():
+    """Test that generated log filename matches expected pattern."""
+    import re
+    from rdetoolkit.rdelogger import generate_log_timestamp
+
+    timestamp = generate_log_timestamp()
+    log_filename = f"rdesys_{timestamp}.log"
+
+    # Pattern: rdesys_YYYYMMDD_HHMMSS.log
+    pattern = r"^rdesys_\d{8}_\d{6}\.log$"
+    assert re.match(pattern, log_filename), f"Log filename {log_filename} does not match expected pattern"
+
+    # Verify no problematic characters for cross-platform compatibility
+    assert ":" not in log_filename, "Log filename should not contain colons"
+    assert "/" not in log_filename, "Log filename should not contain forward slashes"
+    assert "\\" not in log_filename, "Log filename should not contain backslashes"
+
+
+def test_multiple_workflow_runs_no_log_duplication(tmp_path, monkeypatch):
+    """Test that multiple workflow runs don't write to previous log files."""
+    from unittest import mock
+    from datetime import datetime
+
+    # Mock StorageDir to use tmp_path
+    def mock_get_outputdir(create, name):
+        path = tmp_path / name
+        if create:
+            path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+
+    # Setup test environment
+    (tmp_path / "inputdata").mkdir()
+    (tmp_path / "invoice").mkdir()
+    (tmp_path / "tasksupport").mkdir()
+    (tmp_path / "logs").mkdir()
+
+    # Create minimal config files
+    config_file = tmp_path / "tasksupport" / "rdeconfig.yml"
+    config_file.write_text("system:\n  extended_mode: null\n")
+
+    schema_file = tmp_path / "tasksupport" / "invoice.schema.json"
+    schema_file.write_text("{}")
+
+    invoice_file = tmp_path / "invoice" / "invoice.json"
+    invoice_file.write_text('{"basic": {}}')
+
+    metadata_file = tmp_path / "tasksupport" / "metadata-def.json"
+    metadata_file.write_text('{"constant": {}, "variable": []}')
+
+    # Create a test input file
+    test_input = tmp_path / "inputdata" / "test.txt"
+    test_input.write_text("test data")
+
+    # Track created log files
+    log_files = []
+
+    # Run workflow twice with different mocked timestamps
+    timestamps = [
+        datetime(2026, 1, 6, 10, 0, 0),
+        datetime(2026, 1, 6, 10, 1, 0),
+    ]
+
+    for i, timestamp in enumerate(timestamps):
+        with mock.patch('rdetoolkit.rdelogger.datetime') as mock_datetime:
+            mock_datetime.now.return_value = timestamp
+
+            try:
+                from rdetoolkit.workflows import run
+                run()
+            except (SystemExit, Exception):
+                # Workflow may fail, but log file should be created
+                pass
+
+        # Record the log file for this run
+        expected_filename = f"rdesys_{timestamp.strftime('%Y%m%d_%H%M%S')}.log"
+        log_file = tmp_path / "logs" / expected_filename
+        log_files.append(log_file)
+
+    # Verify both log files were created
+    assert log_files[0].exists(), "First log file should exist"
+    assert log_files[1].exists(), "Second log file should exist"
+
+    # Get file sizes
+    size_log1 = log_files[0].stat().st_size
+    size_log2 = log_files[1].stat().st_size
+
+    # Both should have content (not zero)
+    assert size_log1 > 0, "First log file should have content"
+    assert size_log2 > 0, "Second log file should have content"
+
+    # The key assertion: sizes should be similar (not doubled)
+    # If handlers accumulated, log2 would have content from both runs
+    # We allow some variance but they should be roughly equal
+    ratio = max(size_log1, size_log2) / min(size_log1, size_log2)
+    assert ratio < 1.5, (
+        f"Log file sizes too different (ratio: {ratio:.2f}). "
+        "This suggests handler accumulation - second run might be writing to both files. "
+        f"Log1: {size_log1} bytes, Log2: {size_log2} bytes"
+    )

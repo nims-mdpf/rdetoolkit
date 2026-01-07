@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.5.0  | TBD          | Timestamped system log filenames | [v1.5.0](#v150-tbd) |
 | v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
@@ -15,6 +16,38 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.5.0 (TBD)
+
+!!! info "References"
+    - Key issues: [#341](https://github.com/nims-mdpf/rdetoolkit/issues/341)
+
+#### Highlights
+- System logs now use timestamped filenames (`rdesys_YYYYMMDD_HHMMSS.log`) instead of static `rdesys.log`, enabling per-run log management and preventing log collision in concurrent or successive executions.
+
+#### Enhancements
+- Added `generate_log_timestamp()` utility function to create filesystem-safe timestamp strings.
+- Modified `workflows.run()` to generate unique timestamped log files for each workflow execution.
+- Updated all documentation to reference the new timestamped log filename pattern.
+
+#### Migration / Compatibility
+- **Log file naming change**: System logs are now written to `data/logs/rdesys_YYYYMMDD_HHMMSS.log` instead of `data/logs/rdesys.log`.
+- **Finding logs**: Use wildcard patterns to find logs: `ls -t data/logs/rdesys_*.log | head -1` for the latest log.
+- **Scripts and tools**: Update any scripts or monitoring tools that directly reference `rdesys.log` to use pattern matching with `rdesys_*.log`.
+- **Log collection**: Automated log collection systems should be updated to handle multiple timestamped files instead of a single static file.
+- **Old log files**: Existing `rdesys.log` files from previous versions will remain in place and are not automatically removed.
+- **No configuration needed**: The new behavior is automatic; no configuration changes are required.
+
+#### Benefits
+- **Per-run isolation**: Each workflow execution creates a separate log file, preventing log mixing.
+- **Concurrent execution**: No log collision when running multiple workflows simultaneously.
+- **Easy comparison**: Compare logs from different runs without manual separation.
+- **Simplified auditing**: Collect and archive logs per execution for debugging and compliance.
+
+#### Known Issues
+- None reported at this time.
+
+---
 
 ## v1.4.3 (2025-12-25)
 
