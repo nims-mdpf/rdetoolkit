@@ -119,7 +119,7 @@ def create_output_dir(path: Path | str) -> OutputDir:
 # These provide both compile-time type safety and runtime validation
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ValidatedPath:
     """Base class for validated path types.
 
@@ -189,7 +189,7 @@ class ValidatedPath:
         return cls(Path(*parts))
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ZipFile(ValidatedPath):
     """ZIP file path with validation.
 
@@ -212,7 +212,7 @@ class ZipFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ExcelFile(ValidatedPath):
     """Excel file path with validation.
 
@@ -236,7 +236,7 @@ class ExcelFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class CsvFile(ValidatedPath):
     """CSV file path with validation.
 
@@ -259,7 +259,7 @@ class CsvFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class JsonFile(ValidatedPath):
     """JSON file path with validation.
 
@@ -282,7 +282,7 @@ class JsonFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ValidatedDirectory(ValidatedPath):
     """Base class for validated directory paths.
 
