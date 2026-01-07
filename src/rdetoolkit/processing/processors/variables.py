@@ -29,6 +29,7 @@ class VariableApplier(Processor):
                 context.invoice_dst_filepath,
                 context.resource_paths.rawfiles[0],
                 save_filepath=context.invoice_dst_filepath,
+                dataset_paths=context.dataset_paths,
             )
 
             if result:

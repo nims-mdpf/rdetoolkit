@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.4.3"
+version = "1.5.0"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -14,6 +14,7 @@ classifiers = [
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Programming Language :: Rust',
     'License :: OSI Approved :: MIT License',
     'Operating System :: POSIX :: Linux',
@@ -34,10 +35,12 @@ dependencies = [
     "tomlkit>=0.12.4",
     "PyYAML>=6.0.1",
     "eval_type_backport>=0.2.0",
+    "typing-extensions>=4.12.2; python_version < '3.11'",
     "numpy>=1.26.4",
     "polars>=1.9.0",
     "pyarrow>=19.0.0",
     "pip>=24.3.1",
+    "rpds-py>=0.26",
     "markdown>=3.7",
     "types-pytz>=2025.2.0.20250326",
     "matplotlib>=3.9.4",
@@ -199,7 +202,16 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 # Unused imports are allowed in __init__.py.
-"__init__.py" = ["F401", "F403"]
+"__init__.py" = ["F401", "F403", "PLC0415"]
+"src/rdetoolkit/cli.py" = ["PLC0415"]
+"src/rdetoolkit/errors.py" = ["PLC0415"]
+"src/rdetoolkit/fileops.py" = ["PLC0415"]
+"src/rdetoolkit/graph/__init__.py" = ["PLC0415"]
+"src/rdetoolkit/graph/api/csv2graph.py" = ["PLC0415"]
+"src/rdetoolkit/invoicefile.py" = ["PLC0415"]
+"src/rdetoolkit/rde2util.py" = ["PLC0415"]
+"src/rdetoolkit/validation.py" = ["PLC0415"]
+"src/rdetoolkit/workflows.py" = ["PLC0415"]
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]

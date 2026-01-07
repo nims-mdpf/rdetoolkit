@@ -9,18 +9,37 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import Any, Callable, Final, TypedDict, cast
-
-import chardet  # for following failure cases
-import dateutil.parser
-from chardet.universaldetector import UniversalDetector
-from charset_normalizer import detect
+from typing import TYPE_CHECKING, Any, Callable, Final, TypedDict, cast
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.models.rde2types import MetadataDefJson, MetaItem, MetaType, RdeFsPath, RepeatedMetaType, ValueUnitPair
 
 LANG_ENC_FLAG: Final[int] = 0x800
+
+
+def _ensure_chardet() -> Any:
+    import chardet
+
+    return chardet
+
+
+def _ensure_universal_detector() -> Any:
+    from chardet.universaldetector import UniversalDetector
+
+    return UniversalDetector
+
+
+def _ensure_charset_detector() -> Callable[[bytes], Any]:
+    from charset_normalizer import detect
+
+    return detect
+
+
+def _ensure_dateutil_parser() -> Any:
+    import dateutil.parser
+
+    return dateutil.parser
 
 
 class _ChardetType(TypedDict):
@@ -45,6 +64,7 @@ def get_default_values(default_values_filepath: RdeFsPath) -> dict[str, Any]:
     dct_default_values = {}
     with open(default_values_filepath, "rb") as rf:
         enc_default_values_data = rf.read()
+    chardet = _ensure_chardet()
     enc = chardet.detect(enc_default_values_data)["encoding"]
     with open(default_values_filepath, encoding=enc) as fin:
         for row in csv.DictReader(fin):
@@ -78,6 +98,7 @@ class CharDecEncoding:
 
         with open(text_filepath, "rb") as tf:
             bcontents = tf.read()
+        detect = _ensure_charset_detector()
         _cast_detect_ret: _ChardetType = cast(_ChardetType, detect(bcontents))
         enc = _cast_detect_ret["encoding"].replace("-", "_").lower() if _cast_detect_ret["encoding"] is not None else ""
 
@@ -97,7 +118,7 @@ class CharDecEncoding:
         Returns:
             str: The detected encoding of the text file.
         """
-        detector = UniversalDetector()
+        detector = _ensure_universal_detector()()
 
         try:
             with open(text_filepath, mode="rb") as f:
@@ -128,8 +149,8 @@ def _split_value_unit(target_char: str) -> ValueUnitPair:  # pragma: no cover
     """
     valpair = ValueUnitPair(value="", unit="")
     valleft = str(target_char).strip()
-    ptn1 = r"^[+-]?[0-9]*\.?[0-9]*"  # 実数部の正規表現
-    ptn2 = r"[eE][+-]?[0-9]+"  # 指数部の正規表現
+    ptn1 = r"^[+-]?[0-9]*\.?[0-9]*"
+    ptn2 = r"[eE][+-]?[0-9]+"
     r1 = re.match(ptn1, valleft)
     if r1:
         _v = r1.group()
@@ -249,7 +270,7 @@ class StorageDir:
         - tasksupport
     """
 
-    __nDigit = 4  # 分割データインデックスの桁数。固定値
+    __nDigit = 4
 
     @classmethod
     def get_datadir(cls, is_mkdir: bool, idx: int = 0) -> str:
@@ -357,7 +378,7 @@ class Meta:
             metaConst (dict[str, MetaItem]): A dictionary for constant metadata.
             metaVar (list[dict[str, MetaItem]]): A list of dictionaries for variable metadata.
             actions (list[str]): A list of actions.
-            referedmap (dict[str, Optional[Union[str, list]]]): A dictionary mapping references.
+            referedmap (dict[str, str | list | None]): A dictionary mapping references.
             metaDef (dict[str, MetadataDefJson]): A dictionary for metadata definition, read from the metadata definition file.
         """
         self.metaConst: dict[str, MetaItem] = {}
@@ -574,7 +595,7 @@ class Meta:
 
         Args:
             key (str): The key to be registered in the referred value table. Typically represents an action or unit name.
-            value (Union[str, list[str]]): The value to be registered in the referred value table. This can be a single string or a list of strings,
+            value (str | list[str]): The value to be registered in the referred value table. This can be a single string or a list of strings,
                 representing the raw names to be associated with the key.
 
         Returns:
@@ -644,7 +665,7 @@ class Meta:
             outunit (Optional[str]): The unit of the converted metadata.
 
         Returns:
-            dict[str, Union[bool, int, float, str]]: Returns the conversion result in the form of metadata for metadata.json.
+            dict[str, bool | int | float | str]: Returns the conversion result in the form of metadata for metadata.json.
 
         Note:
             original func: _vDict()
@@ -708,7 +729,8 @@ class ValueCaster:
         Raises:
             StructuredError: If the specified format is unknown.
         """
-        dtobj = dateutil.parser.parse(value)
+        parser = _ensure_dateutil_parser()
+        dtobj = parser.parse(value)
         if fmt == "date-time":
             return dtobj.isoformat()
         if fmt == "date":
@@ -720,7 +742,10 @@ class ValueCaster:
 
 
 # Type handler functions for castval dispatch table
-TypeCaster = Callable[[Any, str | None], Any]
+if TYPE_CHECKING:
+    TypeCaster = Callable[[Any, str | None], Any]
+else:
+    TypeCaster = Callable[..., Any]
 
 
 def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:

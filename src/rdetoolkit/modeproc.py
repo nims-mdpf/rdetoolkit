@@ -18,9 +18,65 @@ from rdetoolkit.models.config import Config
 from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.factories import PipelineFactory
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.result import Result, Success, Failure
 
 
 logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+
+
+def rdeformat_mode_process_result(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    datasets_process_function: DatasetCallback | None = None,
+) -> Result[WorkflowExecutionStatus, Exception]:
+    """Run rdeformat pipeline with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
+
+    Returns:
+        Result containing:
+            Success: WorkflowExecutionStatus with execution metadata (status == "success")
+            Failure: Exception from callback, pipeline validation, or failed status
+
+    Example:
+        >>> result = rdeformat_mode_process_result("0", srcpaths, resource_paths)
+        >>> if result.is_success():
+        ...     status = result.unwrap()
+        ...     print(f"Status: {status.status}")
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error}")
+    """
+    try:
+        context = ProcessingContext(
+            index=index,
+            srcpaths=srcpaths,
+            resource_paths=resource_paths,
+            datasets_function=datasets_process_function,
+            mode_name="rdeformat",
+        )
+
+        pipeline = PipelineFactory.create_rdeformat_pipeline()
+        status = pipeline.execute(context)
+
+        # Check if pipeline execution resulted in failure status
+        if status.status == "failed":
+            # Use exception_object if available, otherwise create from error message
+            if hasattr(status, "exception_object") and status.exception_object:
+                return Failure(status.exception_object)
+            error_msg = f"Pipeline execution failed: {status.error_message or 'Unknown error'}"
+            return Failure(RuntimeError(error_msg))
+
+        return Success(status)
+    except Exception as e:
+        return Failure(e)
 
 
 def rdeformat_mode_process(
@@ -46,16 +102,65 @@ def rdeformat_mode_process(
         WorkflowExecutionStatus: Execution metadata including status, target,
         and optional error information.
     """
-    context = ProcessingContext(
-        index=index,
-        srcpaths=srcpaths,
-        resource_paths=resource_paths,
-        datasets_function=datasets_process_function,
-        mode_name="rdeformat",
-    )
+    result = rdeformat_mode_process_result(index, srcpaths, resource_paths, datasets_process_function)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
-    pipeline = PipelineFactory.create_rdeformat_pipeline()
-    return pipeline.execute(context)
+
+def multifile_mode_process_result(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    datasets_process_function: DatasetCallback | None = None,
+) -> Result[WorkflowExecutionStatus, Exception]:
+    """Run MultiDataTile pipeline with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
+
+    Returns:
+        Result containing:
+            Success: WorkflowExecutionStatus with execution metadata (status == "success")
+            Failure: Exception from callback, pipeline validation, or failed status
+
+    Example:
+        >>> result = multifile_mode_process_result("0", srcpaths, resource_paths)
+        >>> if result.is_success():
+        ...     status = result.unwrap()
+        ...     print(f"Status: {status.status}")
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error}")
+    """
+    try:
+        context = ProcessingContext(
+            index=index,
+            srcpaths=srcpaths,
+            resource_paths=resource_paths,
+            datasets_function=datasets_process_function,
+            mode_name="MultiDataTile",
+        )
+
+        pipeline = PipelineFactory.create_multifile_pipeline()
+        status = pipeline.execute(context)
+
+        # Check if pipeline execution resulted in failure status
+        if status.status == "failed":
+            # Use exception_object if available, otherwise create from error message
+            if hasattr(status, "exception_object") and status.exception_object:
+                return Failure(status.exception_object)
+            error_msg = f"Pipeline execution failed: {status.error_message or 'Unknown error'}"
+            return Failure(RuntimeError(error_msg))
+
+        return Success(status)
+    except Exception as e:
+        return Failure(e)
 
 
 def multifile_mode_process(
@@ -81,16 +186,69 @@ def multifile_mode_process(
         WorkflowExecutionStatus: Execution metadata including status, target,
         and optional error information.
     """
-    context = ProcessingContext(
-        index=index,
-        srcpaths=srcpaths,
-        resource_paths=resource_paths,
-        datasets_function=datasets_process_function,
-        mode_name="MultiDataTile",
-    )
+    result = multifile_mode_process_result(index, srcpaths, resource_paths, datasets_process_function)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
-    pipeline = PipelineFactory.create_multifile_pipeline()
-    return pipeline.execute(context)
+
+def excel_invoice_mode_process_result(
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    excel_invoice_file: Path,
+    idx: int,
+    datasets_process_function: DatasetCallback | None = None,
+) -> Result[WorkflowExecutionStatus, Exception]:
+    """Run ExcelInvoice pipeline with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        excel_invoice_file: Source Excel invoice file.
+        idx: Index of the workbook row to process.
+        datasets_process_function: Optional hook executed before validation.
+
+    Returns:
+        Result containing:
+            Success: WorkflowExecutionStatus with execution metadata (status == "success")
+            Failure: Exception from callback, pipeline validation, or failed status
+
+    Example:
+        >>> result = excel_invoice_mode_process_result(srcpaths, resource_paths, excel_file, 0)
+        >>> if result.is_success():
+        ...     status = result.unwrap()
+        ...     print(f"Status: {status.status}")
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error}")
+    """
+    try:
+        context = ProcessingContext(
+            index=str(idx),
+            srcpaths=srcpaths,
+            resource_paths=resource_paths,
+            datasets_function=datasets_process_function,
+            mode_name="Excelinvoice",
+            excel_file=excel_invoice_file,
+            excel_index=idx,
+        )
+
+        pipeline = PipelineFactory.create_excel_pipeline()
+        status = pipeline.execute(context)
+
+        # Check if pipeline execution resulted in failure status
+        if status.status == "failed":
+            # Use exception_object if available, otherwise create from error message
+            if hasattr(status, "exception_object") and status.exception_object:
+                return Failure(status.exception_object)
+            error_msg = f"Pipeline execution failed: {status.error_message or 'Unknown error'}"
+            return Failure(RuntimeError(error_msg))
+
+        return Success(status)
+    except Exception as e:
+        return Failure(e)
 
 
 def excel_invoice_mode_process(
@@ -118,18 +276,65 @@ def excel_invoice_mode_process(
         WorkflowExecutionStatus: Execution metadata including status, target,
         and optional error information.
     """
-    context = ProcessingContext(
-        index=str(idx),
-        srcpaths=srcpaths,
-        resource_paths=resource_paths,
-        datasets_function=datasets_process_function,
-        mode_name="Excelinvoice",
-        excel_file=excel_invoice_file,
-        excel_index=idx,
-    )
+    result = excel_invoice_mode_process_result(srcpaths, resource_paths, excel_invoice_file, idx, datasets_process_function)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
-    pipeline = PipelineFactory.create_excel_pipeline()
-    return pipeline.execute(context)
+
+def invoice_mode_process_result(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    datasets_process_function: DatasetCallback | None = None,
+) -> Result[WorkflowExecutionStatus, Exception]:
+    """Run invoice pipeline with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        datasets_process_function: Optional hook executed before validation.
+
+    Returns:
+        Result containing:
+            Success: WorkflowExecutionStatus with execution metadata (status == "success")
+            Failure: Exception from callback, pipeline validation, or failed status
+
+    Example:
+        >>> result = invoice_mode_process_result("0", srcpaths, resource_paths)
+        >>> if result.is_success():
+        ...     status = result.unwrap()
+        ...     print(f"Status: {status.status}")
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error}")
+    """
+    try:
+        context = ProcessingContext(
+            index=index,
+            srcpaths=srcpaths,
+            resource_paths=resource_paths,
+            datasets_function=datasets_process_function,
+            mode_name="invoice",
+        )
+
+        pipeline = PipelineFactory.create_invoice_pipeline()
+        status = pipeline.execute(context)
+
+        # Check if pipeline execution resulted in failure status
+        if status.status == "failed":
+            # Use exception_object if available, otherwise create from error message
+            if hasattr(status, "exception_object") and status.exception_object:
+                return Failure(status.exception_object)
+            error_msg = f"Pipeline execution failed: {status.error_message or 'Unknown error'}"
+            return Failure(RuntimeError(error_msg))
+
+        return Success(status)
+    except Exception as e:
+        return Failure(e)
 
 
 def invoice_mode_process(
@@ -155,16 +360,68 @@ def invoice_mode_process(
         WorkflowExecutionStatus: Execution metadata including status, target,
         and optional error information.
     """
-    context = ProcessingContext(
-        index=index,
-        srcpaths=srcpaths,
-        resource_paths=resource_paths,
-        datasets_function=datasets_process_function,
-        mode_name="invoice",
-    )
+    result = invoice_mode_process_result(index, srcpaths, resource_paths, datasets_process_function)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
-    pipeline = PipelineFactory.create_invoice_pipeline()
-    return pipeline.execute(context)
+
+def smarttable_invoice_mode_process_result(
+    index: str,
+    srcpaths: RdeInputDirPaths,
+    resource_paths: RdeOutputResourcePath,
+    smarttable_file: Path,
+    datasets_process_function: DatasetCallback | None = None,
+) -> Result[WorkflowExecutionStatus, Exception]:
+    """Run SmartTableInvoice pipeline with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        index: Workflow execution identifier.
+        srcpaths: Directories containing input data.
+        resource_paths: Destination directories for structured outputs.
+        smarttable_file: SmartTable spreadsheet supplying invoice data.
+        datasets_process_function: Optional hook executed before validation.
+
+    Returns:
+        Result containing:
+            Success: WorkflowExecutionStatus with execution metadata (status == "success")
+            Failure: Exception from callback, pipeline validation, or failed status
+
+    Example:
+        >>> result = smarttable_invoice_mode_process_result("0", srcpaths, resource_paths, smarttable_file)
+        >>> if result.is_success():
+        ...     status = result.unwrap()
+        ...     print(f"Status: {status.status}")
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error}")
+    """
+    try:
+        context = ProcessingContext(
+            index=index,
+            srcpaths=srcpaths,
+            resource_paths=resource_paths,
+            datasets_function=datasets_process_function,
+            mode_name="SmartTableInvoice",
+            smarttable_file=smarttable_file,
+        )
+
+        pipeline = PipelineFactory.create_smarttable_invoice_pipeline()
+        status = pipeline.execute(context)
+
+        # Check if pipeline execution resulted in failure status
+        if status.status == "failed":
+            # Use exception_object if available, otherwise create from error message
+            if hasattr(status, "exception_object") and status.exception_object:
+                return Failure(status.exception_object)
+            error_msg = f"Pipeline execution failed: {status.error_message or 'Unknown error'}"
+            return Failure(RuntimeError(error_msg))
+
+        return Success(status)
+    except Exception as e:
+        return Failure(e)
 
 
 def smarttable_invoice_mode_process(
@@ -192,17 +449,10 @@ def smarttable_invoice_mode_process(
         WorkflowExecutionStatus: Execution metadata including status, target,
         and optional error information.
     """
-    context = ProcessingContext(
-        index=index,
-        srcpaths=srcpaths,
-        resource_paths=resource_paths,
-        datasets_function=datasets_process_function,
-        mode_name="SmartTableInvoice",
-        smarttable_file=smarttable_file,
-    )
-
-    pipeline = PipelineFactory.create_smarttable_invoice_pipeline()
-    return pipeline.execute(context)
+    result = smarttable_invoice_mode_process_result(index, srcpaths, resource_paths, smarttable_file, datasets_process_function)
+    if isinstance(result, Failure):
+        raise result.error
+    return result.unwrap()
 
 
 def copy_input_to_rawfile_for_rdeformat(resource_paths: RdeOutputResourcePath) -> None:

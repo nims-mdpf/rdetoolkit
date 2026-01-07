@@ -18,6 +18,7 @@ from rdetoolkit.processing.processors import (
     SmartTableFileCopier,
     ThumbnailGenerator,
     VariableApplier,
+    StructuredInvoiceSaver,
 )
 from rdetoolkit.processing.processors.smarttable_early_exit import SmartTableEarlyExitProcessor
 
@@ -70,6 +71,7 @@ class MultiFilePipelineBuilder(PipelineBuilder):
                 .add(DatasetRunner())
                 .add(VariableApplier())
                 .add(ThumbnailGenerator())
+                .add(StructuredInvoiceSaver())
                 .add(DescriptionUpdater())
                 .add(MetadataValidator())
                 .add(InvoiceValidator()))
@@ -86,6 +88,7 @@ class ExcelInvoicePipelineBuilder(PipelineBuilder):
                 .add(DatasetRunner())
                 .add(VariableApplier())
                 .add(ThumbnailGenerator())
+                .add(StructuredInvoiceSaver())
                 .add(DescriptionUpdater())
                 .add(MetadataValidator())
                 .add(InvoiceValidator()))
@@ -100,6 +103,7 @@ class InvoicePipelineBuilder(PipelineBuilder):
                 .add(FileCopier())
                 .add(DatasetRunner())
                 .add(ThumbnailGenerator())
+                .add(StructuredInvoiceSaver())
                 .add(VariableApplier())
                 .add(DescriptionUpdater())
                 .add(MetadataValidator())
@@ -117,6 +121,7 @@ class SmartTableInvoicePipelineBuilder(PipelineBuilder):
                 .add(SmartTableFileCopier())
                 .add(DatasetRunner())
                 .add(ThumbnailGenerator())
+                .add(StructuredInvoiceSaver())
                 .add(VariableApplier())
                 .add(DescriptionUpdater())
                 .add(MetadataValidator())
