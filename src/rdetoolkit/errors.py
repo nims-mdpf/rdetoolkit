@@ -7,13 +7,12 @@ import sys
 import traceback
 from collections.abc import Generator
 from functools import wraps
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.rde2util import StorageDir
-from rdetoolkit.config import get_traceback_settings_from_env
-from rdetoolkit.models.config import Config
-from rdetoolkit.traceback.formatter import CompactTraceFormatter
+
+if TYPE_CHECKING:
+    from rdetoolkit.models.config import Config
 
 
 def catch_exception_with_message(
@@ -202,6 +201,9 @@ def handle_exception(
     _message = f"Error: {error_message}" if error_message else f"Error: {str(e)}"
     _code = error_code if error_code else 1
 
+    from rdetoolkit.config import get_traceback_settings_from_env
+    from rdetoolkit.traceback.formatter import CompactTraceFormatter
+
     traceback_settings = config.traceback if (config and config.traceback) else get_traceback_settings_from_env()
 
     if traceback_settings and traceback_settings.enabled:
@@ -294,6 +296,8 @@ def write_job_errorlog_file(code: int, message: str, *, filename: str = "job.fai
         write_job_errorlog_file(404, 'Not Found', filename='error.log')
         ```
     """
+    from rdetoolkit.rde2util import StorageDir
+
     with open(
         os.path.join(StorageDir.get_datadir(False), filename),
         "w",

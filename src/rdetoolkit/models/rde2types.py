@@ -18,9 +18,10 @@ import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NewType, Protocol, TypedDict, Union, overload
+from typing import TYPE_CHECKING, NewType, Protocol, TypedDict, Union, overload
 
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
+if TYPE_CHECKING:
+    from rdetoolkit.models.config import Config
 
 # Legacy type aliases - kept for backward compatibility
 # Consider using NewType definitions (ZipFilePath, etc.) for new code
@@ -619,6 +620,8 @@ def create_default_config() -> Config:
     Returns:
         Config: A default configuration object.
     """
+    from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings  # noqa: PLC0415
+
     return Config(
         system=SystemSettings(
             extended_mode=None,

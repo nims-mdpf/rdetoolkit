@@ -1,14 +1,31 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from rdetoolkit.core import detect_encoding
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.rdelogger import get_logger
 
-logger = get_logger(__name__)
+@lru_cache(maxsize=1)
+def _get_logger() -> Any:
+    from rdetoolkit.rdelogger import get_logger
+
+    return get_logger(__name__)
+
+
+def detect_encoding(path: str) -> str:
+    """Detect file encoding using the core implementation.
+
+    Args:
+        path: Path to the target file.
+
+    Returns:
+        Detected encoding name.
+    """
+    from rdetoolkit.core import detect_encoding as _detect_encoding
+
+    return _detect_encoding(path)
 
 
 def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
@@ -31,7 +48,7 @@ def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
             return json.load(f)
     except Exception as e:
         emsg = f"An error occurred while processing the file: {str(e)}"
-        logger.error(emsg)
+        _get_logger().error(emsg)
         raise StructuredError(emsg) from e
 
 

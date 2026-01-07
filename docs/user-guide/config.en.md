@@ -46,6 +46,7 @@ RDEToolKit automatically searches for configuration files in the following locat
       # Feature enable/disable
       magic_variable: true
       save_thumbnail_image: true
+      save_invoice_to_structured: false
     ```
 
 === "TOML Format"
@@ -56,6 +57,7 @@ RDEToolKit automatically searches for configuration files in the following locat
     save_nonshared_raw = true
     magic_variable = true
     save_thumbnail_image = true
+    save_invoice_to_structured = false
     ```
 
 #### Configuration Item Details
@@ -67,6 +69,7 @@ RDEToolKit automatically searches for configuration files in the following locat
 | `save_nonshared_raw` | boolean | true | Save input files to `nonshared_raw` directory |
 | `magic_variable` | boolean | false | Enable Magic Variable functionality |
 | `save_thumbnail_image` | boolean | false | Automatic thumbnail image generation |
+| `save_invoice_to_structured` | boolean | false | Store `invoice.json` under the structured directory |
 
 ### 3. Processing Mode-Specific Settings
 

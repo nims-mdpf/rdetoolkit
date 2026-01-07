@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.5.0  | Unreleased   | Result type pattern for explicit error handling | [v1.5.0](#v150-unreleased) |
 | v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
@@ -15,6 +16,72 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.5.0 (Unreleased)
+
+!!! info "References"
+    - Key issues: [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334)
+
+#### Highlights
+- Introduced Result type pattern (`Result[T, E]`) for explicit, type-safe error handling without exceptions
+- Added `Success[T]` and `Failure[E]` types with functional programming patterns (map, unwrap)
+- Provides Result-based versions of key workflow and mode processing functions for gradual migration
+
+#### Enhancements
+- **New Result Module** (`rdetoolkit.result`):
+  - `Success[T]`: Immutable frozen dataclass for successful results with value
+  - `Failure[E]`: Immutable frozen dataclass for failed results with error
+  - `Result[T, E]`: Type alias for `Success[T] | Failure[E]`
+  - `try_result` decorator: Converts exception-based functions to Result-returning functions
+  - Full generic type support with `TypeVar` and `ParamSpec` for type safety
+  - Functional methods: `is_success()`, `map()`, `unwrap()`
+- **Result-based Workflow Functions**:
+  - `check_files_result()`: File classification with explicit Result type
+  - Returns `Result[tuple[RawFiles, Path | None, Path | None], StructuredError]`
+- **Result-based Mode Processing Functions**:
+  - `invoice_mode_process_result()`: Invoice processing with Result type
+  - Returns `Result[WorkflowExecutionStatus, Exception]`
+- **Type Stubs**: Complete `.pyi` files for IDE autocomplete and type checking
+- **Documentation**: Comprehensive API docs in English and Japanese (`docs/api/result.en.md`, `docs/api/result.ja.md`)
+- **Public API**: Result types exported from `rdetoolkit.__init__.py` for easy import
+- **100% Test Coverage**: 40 comprehensive unit tests for Result module
+
+#### Migration / Compatibility
+- **Backward Compatible**: All original exception-based functions remain unchanged
+- **Gradual Migration**: Both patterns (exception-based and Result-based) can coexist
+- **Delegation Pattern**: Original functions delegate to `*_result()` versions internally
+- **Type Safety**: Use `isinstance(result, Failure)` for type-safe error checking
+- **Error Preservation**: All error information (StructuredError attributes, Exception details) preserved in Failure
+
+#### Usage Examples
+
+**Result-based error handling:**
+```python
+from rdetoolkit.workflows import check_files_result
+
+result = check_files_result(srcpaths, mode="invoice")
+if result.is_success():
+    raw_files, excel_path, smarttable_path = result.unwrap()
+    # Process files
+else:
+    error = result.error
+    print(f"Error {error.ecode}: {error.emsg}")
+```
+
+**Traditional exception-based (still works):**
+```python
+from rdetoolkit.workflows import check_files
+
+try:
+    raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="invoice")
+except StructuredError as e:
+    print(f"Error {e.ecode}: {e.emsg}")
+```
+
+#### Known Issues
+- Only `invoice_mode_process` has Result-based version; other mode processors will be migrated in future releases
+
+---
 
 ## v1.4.3 (2025-12-25)
 

@@ -288,13 +288,13 @@ def test_japanese_filename_end_to_end(temp_dir):
 
 
 def test_get_zip_archiver(sample_dir: pathlib.Path):
-    """ZIP アーカイバを取得できるかテスト"""
+    """Test retrieving the ZIP archiver."""
     archiver = get_artifact_archiver("zip", sample_dir, [])
     assert isinstance(archiver, ZipArtifactPackageCompressor)
 
 
 def test_get_targz_archiver(sample_dir: pathlib.Path):
-    """tar.gz アーカイバを取得できるかテスト"""
+    """Test retrieving the tar.gz archiver."""
     archiver = get_artifact_archiver("tar.gz", sample_dir, [])
     assert isinstance(archiver, TarGzArtifactPackageCompressor)
 
@@ -306,7 +306,7 @@ def test_get_targz_archiver(sample_dir: pathlib.Path):
 
 
 def test_get_unsupported_archiver(sample_dir: pathlib.Path):
-    """サポートされていない形式でエラーが発生するかテスト"""
+    """Test error for unsupported formats."""
     with pytest.raises(ValueError, match="Unsupported archive format"):
         get_artifact_archiver("invalid", sample_dir, [])
 
@@ -315,3 +315,114 @@ def test_exclude_patterns_are_passed(sample_dir: pathlib.Path):
     exclude_patterns = [".DS_Store", "__MACOSX"]
     archiver = get_artifact_archiver("zip", sample_dir, exclude_patterns)
     assert archiver.exclude_patterns == exclude_patterns
+
+
+class TestCompressedControllerCompatibility:
+    """Compatibility tests after compressed_controller refactoring."""
+
+    def test_unsupported_format_error_message(self, tmp_path):
+        """Raise the exact error message for unsupported formats."""
+        from rdetoolkit.impl.compressed_controller import get_artifact_archiver
+        import pytest
+
+        with pytest.raises(ValueError) as exc_info:
+            get_artifact_archiver("rar", tmp_path, [])
+        assert str(exc_info.value) == "Unsupported archive format. Use 'zip' or 'tar.gz'."
+
+    def test_all_format_variants_supported(self, tmp_path):
+        """Support all format variants (zip, tar.gz, targz, tgz)."""
+        from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor, TarGzArtifactPackageCompressor
+
+        # zip
+        archiver_zip = get_artifact_archiver("zip", tmp_path, [])
+        assert isinstance(archiver_zip, ZipArtifactPackageCompressor)
+
+        # tar.gz
+        archiver_targz = get_artifact_archiver("tar.gz", tmp_path, [])
+        assert isinstance(archiver_targz, TarGzArtifactPackageCompressor)
+
+        # targz
+        archiver_targz2 = get_artifact_archiver("targz", tmp_path, [])
+        assert isinstance(archiver_targz2, TarGzArtifactPackageCompressor)
+
+        # tgz
+        archiver_tgz = get_artifact_archiver("tgz", tmp_path, [])
+        assert isinstance(archiver_tgz, TarGzArtifactPackageCompressor)
+
+    def test_case_insensitive_format(self, tmp_path):
+        """Format names are case-insensitive."""
+        from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor
+
+        archiver_upper = get_artifact_archiver("ZIP", tmp_path, [])
+        assert isinstance(archiver_upper, ZipArtifactPackageCompressor)
+
+        archiver_mixed = get_artifact_archiver("TaR.Gz", tmp_path, [])
+        from rdetoolkit.impl.compressed_controller import TarGzArtifactPackageCompressor
+        assert isinstance(archiver_mixed, TarGzArtifactPackageCompressor)
+
+
+class TestArchiveFormatSelection:
+    """Verify archive format selection logic."""
+
+    def test_supported_zip_format(self, tmp_path):
+        """zip returns ZipArtifactPackageCompressor."""
+        from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor
+
+        archiver = get_artifact_archiver("zip", tmp_path, [])
+        assert isinstance(archiver, ZipArtifactPackageCompressor)
+
+    def test_supported_targz_formats(self, tmp_path):
+        """All tar.gz variants return TarGzArtifactPackageCompressor."""
+        from rdetoolkit.impl.compressed_controller import get_artifact_archiver, TarGzArtifactPackageCompressor
+
+        # tar.gz
+        archiver_targz = get_artifact_archiver("tar.gz", tmp_path, [])
+        assert isinstance(archiver_targz, TarGzArtifactPackageCompressor)
+
+        # targz
+        archiver_targz2 = get_artifact_archiver("targz", tmp_path, [])
+        assert isinstance(archiver_targz2, TarGzArtifactPackageCompressor)
+
+        # tgz
+        archiver_tgz = get_artifact_archiver("tgz", tmp_path, [])
+        assert isinstance(archiver_tgz, TarGzArtifactPackageCompressor)
+
+    def test_format_selection_is_case_insensitive(self, tmp_path):
+        """Format selection is case-insensitive."""
+        from rdetoolkit.impl.compressed_controller import get_artifact_archiver, ZipArtifactPackageCompressor, TarGzArtifactPackageCompressor
+
+        # ZIP (uppercase)
+        archiver_upper = get_artifact_archiver("ZIP", tmp_path, [])
+        assert isinstance(archiver_upper, ZipArtifactPackageCompressor)
+
+        # TaR.Gz (mixed case)
+        archiver_mixed = get_artifact_archiver("TaR.Gz", tmp_path, [])
+        assert isinstance(archiver_mixed, TarGzArtifactPackageCompressor)
+
+        # TGZ (uppercase)
+        archiver_tgz_upper = get_artifact_archiver("TGZ", tmp_path, [])
+        assert isinstance(archiver_tgz_upper, TarGzArtifactPackageCompressor)
+
+
+class TestArchiveDispatchTable:
+    """Direct verification of the dispatch table."""
+
+    def test_archive_format_registry_completeness(self):
+        """All formats are registered in the dispatch table."""
+        from rdetoolkit.impl.compressed_controller import _ARCHIVE_FORMAT_REGISTRY
+
+        expected_formats = {"zip", "tar.gz", "targz", "tgz"}
+        assert set(_ARCHIVE_FORMAT_REGISTRY.keys()) == expected_formats
+
+    def test_archive_format_registry_mapping(self):
+        """Dispatch table format-to-class mapping is correct."""
+        from rdetoolkit.impl.compressed_controller import (
+            _ARCHIVE_FORMAT_REGISTRY,
+            ZipArtifactPackageCompressor,
+            TarGzArtifactPackageCompressor,
+        )
+
+        assert _ARCHIVE_FORMAT_REGISTRY["zip"] == ZipArtifactPackageCompressor
+        assert _ARCHIVE_FORMAT_REGISTRY["tar.gz"] == TarGzArtifactPackageCompressor
+        assert _ARCHIVE_FORMAT_REGISTRY["targz"] == TarGzArtifactPackageCompressor
+        assert _ARCHIVE_FORMAT_REGISTRY["tgz"] == TarGzArtifactPackageCompressor

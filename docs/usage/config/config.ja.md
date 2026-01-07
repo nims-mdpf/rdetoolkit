@@ -76,7 +76,7 @@ system:
 
 #### magic_variable設定
 
-ファイル名の動的置換機能を制御します。この機能を有効化すると、`${filename}`などのマジック変数が送り状から使用可能となり、データタイル名が登録したデータファイル名に自動で置換されます。
+ファイル名の動的置換機能を制御します。この機能を有効化すると `${filename}` のほか、`invoice_org` の `basic/custom/sample.names` や `metadata.json` (`${metadata:constant:<field>}`) の値を組み合わせてデータタイル名を生成できます。
 
 - type: `bool`
 - デフォルト: `false`
@@ -95,16 +95,18 @@ system:
 {
   "datasetId": "e66233bf-821a-404c-a584-083ff36bb825",
   "basic": {
-      "dateSubmitted": "2025-01-01",
-      "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
-      "dataName": "${filename}",
-      "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
-      "experimentId": null,
-      "description": "",
-      "dataset_title": "xrd",
-      "dataOwner": "Sample,Username"
+    "dateSubmitted": "2025-01-01",
+    "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
+    "experimentId": "EXP-42",
+    "dataName": "${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"
   },
-  ...
+  "custom": {
+    "project_code": "PRJ01",
+    "batch": "B-9"
+  },
+  "sample": {
+    "names": ["alpha", "", "beta"]
+  }
 }
 ```
 
@@ -114,22 +116,21 @@ system:
 {
   "datasetId": "e66233bf-821a-404c-a584-083ff36bb825",
   "basic": {
-      "dateSubmitted": "2025-01-01",
-      "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
-      "dataName": "20250101_sample_data.dat",
-      "instrumentId": "409ada22-108f-42e2-8ba0-e53e5628a0b383098",
-      "experimentId": null,
-      "description": "",
-      "dataset_title": "xrd",
-      "dataOwner": "Sample,Username"
+    "dateSubmitted": "2025-01-01",
+    "dataOwnerId": "010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533",
+    "experimentId": "EXP-42",
+    "dataName": "EXP-42_PRJ01_alpha_beta_20250101_sample_data.dat"
   },
-  ...
+  "custom": {
+    "project_code": "PRJ01",
+    "batch": "B-9"
+  }
 }
 ```
 
 ### Magic Variable機能
 
-`magic_variable` を有効にすると、`${filename}` などの変数を送り状やメタデータ内で実際の値に置き換えられます。詳しい使い方は[マジック変数ガイド](magic_variable.ja.md)を参照してください。
+`magic_variable` を有効にすると、`${filename}` や `${invoice:basic:<field>}`, `${metadata:constant:<field>}` などの変数を送り状・メタデータ内で実際の値に置き換えられます。詳しい使い方は[マジック変数ガイド](magic_variable.ja.md)を参照してください。
 
 #### save_thumbnail_image設定
 

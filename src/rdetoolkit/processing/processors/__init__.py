@@ -13,6 +13,7 @@ from .invoice import (
     ExcelInvoiceHandler,
 )
 from .thumbnails import ThumbnailGenerator
+from .structured import StructuredInvoiceSaver
 from .validation import InvoiceValidator, MetadataValidator
 from .variables import VariableApplier
 
@@ -29,6 +30,7 @@ __all__ = [
     "RDEFormatFileCopier",
     "SmartTableFileCopier",
     "ThumbnailGenerator",
+    "StructuredInvoiceSaver",
     "VariableApplier",
     # Backward compatibility aliases
     "InvoiceHandler",
