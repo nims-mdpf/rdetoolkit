@@ -4,16 +4,16 @@ import os
 import pathlib
 import shutil
 import time
-from collections.abc import Generator
 from datetime import datetime
 from unittest import mock
 
 import pytest
 
-from rdetoolkit.rdelogger import get_logger, CustomLog, log_decorator, LazyFileHandler, generate_log_timestamp
+from rdetoolkit.rdelogger import get_logger, CustomLog, log_decorator, generate_log_timestamp
 
 
 def test_custom_log():
+    """Test CustomLog class initialization and logger retrieval."""
     custom_log = CustomLog('test')
 
     logger = custom_log.get_logger()
@@ -27,6 +27,7 @@ def test_custom_log():
 
 
 def test_log_decorator(caplog):
+    """Test log decorator function logging behavior."""
     logger_mock = mock.Mock(spec=CustomLog)
     logger_mock.get_logger.return_value = mock.Mock()
 
@@ -54,7 +55,7 @@ def test_get_logger_with_filepath():
     logger = get_logger(name, file_path=filepath)
     assert logger.name == name
     assert len(logger.handlers) == 1
-    assert isinstance(logger.handlers[0], LazyFileHandler)
+    assert isinstance(logger.handlers[0], logging.FileHandler)
 
     if os.path.exists(test_dir):
         shutil.rmtree(test_dir)
@@ -62,6 +63,7 @@ def test_get_logger_with_filepath():
 
 @pytest.fixture
 def tmp_path():
+    """Provide temporary test directory path."""
     yield pathlib.Path("tmp_tests")
 
     if os.path.exists("tmp_tests"):
@@ -69,7 +71,7 @@ def tmp_path():
 
 
 def test_get_logger_without_file():
-    """Test logger creation without file path"""
+    """Test logger creation without file path."""
     logger = get_logger("test_logger")
 
     assert isinstance(logger, logging.Logger)
@@ -79,7 +81,7 @@ def test_get_logger_without_file():
 
 
 def test_get_logger_with_file(tmp_path):
-    """Test logger creation with file path"""
+    """Test logger creation with file path."""
     log_file = tmp_path / "test.log"
     logger = get_logger("test_logger", file_path=log_file)
 
@@ -87,7 +89,7 @@ def test_get_logger_with_file(tmp_path):
     assert logger.name == "test_logger"
     assert logger.level == logging.DEBUG
     assert len(logger.handlers) == 1
-    assert isinstance(logger.handlers[0], LazyFileHandler)
+    assert isinstance(logger.handlers[0], logging.FileHandler)
 
     # Test log writing
     test_message = "Test debug message"
@@ -100,7 +102,7 @@ def test_get_logger_with_file(tmp_path):
 
 
 def test_get_logger_creates_directory(tmp_path):
-    """Test logger creates directory structure if not exists"""
+    """Test logger creates directory structure if not exists."""
     log_dir = tmp_path / "logs" / "subdir"
     log_file = log_dir / "test.log"
 
@@ -114,7 +116,7 @@ def test_get_logger_creates_directory(tmp_path):
 
 
 def test_get_logger_formatter():
-    """Test logger formatter"""
+    """Test logger formatter."""
     logger = get_logger("test_logger")
 
     assert logger.handlers == []
@@ -124,7 +126,7 @@ def test_get_logger_formatter():
 
 
 def test_get_logger_level(tmp_path):
-    """Test logger level"""
+    """Test logger level."""
     log_file = tmp_path / "test.log"
     logger = get_logger("test_logger", level=logging.INFO, file_path=log_file)
 
@@ -135,7 +137,7 @@ def test_get_logger_level(tmp_path):
 
 @pytest.fixture(autouse=True)
 def cleanup_logger():
-    """Clear logger handlers before and after each test"""
+    """Clear logger handlers before and after each test."""
     logger = logging.getLogger("test_logger")
     logger.handlers.clear()
 
@@ -145,112 +147,8 @@ def cleanup_logger():
     logger.handlers.clear()
 
 
-@pytest.fixture
-def temp_log_file() -> Generator[str, None, None]:
-    """Fixture that provides a temporary log file path.
-
-    Args:
-        tmp_path: Pytest temporary directory
-
-    Yields:
-        str: The path to a temporary log file.
-    """
-    tmp_path = pathlib.Path(__file__).parent / "logs"
-    log_path = tmp_path / "test_logs" / "test.log"
-    yield str(log_path)
-
-    if log_path.exists():
-        log_path.unlink()
-    if log_path.parent.exists():
-        log_path.parent.rmdir()
-
-
-class TestLazyFileHandler:
-    def test_init(self, temp_log_file: str) -> None:
-        handler = LazyFileHandler(temp_log_file)
-
-        assert handler.filename == temp_log_file
-        assert handler.mode == "a"
-        assert handler.encoding == "utf-8"
-        assert handler._handler is None
-        assert not os.path.exists(temp_log_file)
-
-    def test_emit_creates_file(self, temp_log_file: str) -> None:
-        handler = LazyFileHandler(temp_log_file)
-        record = logging.LogRecord(
-            name="test",
-            level=logging.INFO,
-            pathname=__file__,
-            lineno=42,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
-        handler.emit(record)
-        assert handler._handler is not None
-
-    def test_multiple_emit_calls(self, temp_log_file: str) -> None:
-        """Test that multiple calls to emit reuse the same handler"""
-        handler = LazyFileHandler(temp_log_file)
-        record = logging.LogRecord(
-            name="test",
-            level=logging.INFO,
-            pathname=__file__,
-            lineno=42,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
-        handler.emit(record)
-        first_handler = handler._handler
-        handler.emit(record)
-        assert handler._handler is first_handler
-
-    def test_costom_mode_and_encoding(self, temp_log_file) -> None:
-        """Test that a non-existent directory is automatically created"""
-        deep_path = pathlib.Path("tests", "deep", "nested", "dir", "test.log")
-        handler = LazyFileHandler(str(deep_path))
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.DEBUG,
-            pathname="test.py",
-            lineno=1,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
-
-        handler.emit(record)
-
-        assert deep_path.exists()
-        assert deep_path.parent.exists()
-
-    def test_formatter_and_level_propagation(self, temp_log_file: str) -> None:
-        """Test that the formatter and log level propagate correctly"""
-        handler = LazyFileHandler(temp_log_file)
-        formatter = logging.Formatter("%(message)s")
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.WARNING)
-
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.WARNING,
-            pathname="test.py",
-            lineno=1,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
-
-        handler.emit(record)
-
-        assert handler._handler is not None
-        assert handler._handler.formatter == formatter
-        assert handler._handler.level == logging.WARNING
-
-
 def test_generate_log_timestamp_format():
-    """Test that timestamp has correct format"""
+    """Test that timestamp has correct format."""
     timestamp = generate_log_timestamp()
 
     # Check format: YYYYMMDD_HHMMSS (15 characters total)
@@ -263,7 +161,7 @@ def test_generate_log_timestamp_format():
 
 
 def test_generate_log_timestamp_filesystem_safe():
-    """Test that timestamp is filesystem-safe (no special characters)"""
+    """Test that timestamp is filesystem-safe (no special characters)."""
     timestamp = generate_log_timestamp()
 
     # Should only contain alphanumeric characters and underscore
@@ -276,17 +174,17 @@ def test_generate_log_timestamp_filesystem_safe():
 
 
 def test_generate_log_timestamp_consistency():
-    """Test that timestamp is consistent within a short time window"""
+    """Test that timestamp is consistent within a short time window."""
     with mock.patch('rdetoolkit.rdelogger.datetime') as mock_datetime:
         # Mock a specific datetime
-        mock_datetime.now.return_value = datetime(2026, 1, 6, 9, 28, 45)
+        mock_datetime.now.return_value = datetime(2026, 1, 6, 9, 28, 45, tzinfo=None)  # noqa: DTZ001
 
         timestamp = generate_log_timestamp()
         assert timestamp == "20260106_092845"
 
 
 def test_generate_log_timestamp_uniqueness():
-    """Test that successive calls produce different timestamps"""
+    """Test that successive calls produce different timestamps."""
     timestamp1 = generate_log_timestamp()
     time.sleep(1.1)  # Sleep for more than 1 second
     timestamp2 = generate_log_timestamp()
@@ -310,8 +208,7 @@ def test_get_logger_prevents_handler_accumulation(tmp_path):
 
     # Verify exactly one handler
     assert len(logger1.handlers) == 1
-    assert isinstance(logger1.handlers[0], LazyFileHandler)
-    assert logger1.handlers[0].filename == str(log_file1)
+    assert isinstance(logger1.handlers[0], logging.FileHandler)
 
     # Second call with different log file (simulates second run)
     log_file2 = tmp_path / "log2.log"
@@ -319,8 +216,7 @@ def test_get_logger_prevents_handler_accumulation(tmp_path):
 
     # Verify still exactly one handler, but with new filename
     assert len(logger2.handlers) == 1
-    assert isinstance(logger2.handlers[0], LazyFileHandler)
-    assert logger2.handlers[0].filename == str(log_file2)
+    assert isinstance(logger2.handlers[0], logging.FileHandler)
 
     # Verify logger1 and logger2 are the same object (singleton)
     assert logger1 is logger2
@@ -340,8 +236,8 @@ def test_get_logger_prevents_handler_accumulation(tmp_path):
     test_logger.handlers.clear()
 
 
-def test_get_logger_preserves_non_lazy_handlers(tmp_path):
-    """Test that handler cleanup only removes LazyFileHandlers, not other handlers."""
+def test_get_logger_preserves_non_file_handlers(tmp_path):
+    """Test that handler cleanup only removes FileHandlers, not other handlers."""
     import logging
 
     # Clear any existing handlers for clean test
@@ -357,26 +253,27 @@ def test_get_logger_preserves_non_lazy_handlers(tmp_path):
     log_file = tmp_path / "test.log"
     logger = get_logger(logger_name, file_path=log_file)
 
-    # Verify we have both StreamHandler and LazyFileHandler
+    # Verify we have both StreamHandler and FileHandler
     assert len(logger.handlers) == 2
     handler_types = [type(h).__name__ for h in logger.handlers]
     assert "StreamHandler" in handler_types
-    assert "LazyFileHandler" in handler_types
+    assert "FileHandler" in handler_types
 
     # Call get_logger again with different file
     log_file2 = tmp_path / "test2.log"
     logger2 = get_logger(logger_name, file_path=log_file2)
 
-    # Verify StreamHandler is still present, but LazyFileHandler was replaced
+    # Verify StreamHandler is still present, but FileHandler was replaced
     assert len(logger2.handlers) == 2
     handler_types = [type(h).__name__ for h in logger2.handlers]
     assert "StreamHandler" in handler_types
-    assert "LazyFileHandler" in handler_types
+    assert "FileHandler" in handler_types
 
-    # Verify the LazyFileHandler is for the new file
-    lazy_handlers = [h for h in logger2.handlers if isinstance(h, LazyFileHandler)]
-    assert len(lazy_handlers) == 1
-    assert lazy_handlers[0].filename == str(log_file2)
+    # Verify the FileHandler is for the new file (check by writing to it)
+    test_message = "Test message for file handler verification"
+    logger2.info(test_message)
+    assert log_file2.exists()
+    assert test_message in log_file2.read_text()
 
     # Cleanup
     test_logger.handlers.clear()
