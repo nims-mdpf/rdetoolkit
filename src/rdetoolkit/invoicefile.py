@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import warnings
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Callable, Literal, Protocol, Union
 
@@ -96,8 +97,16 @@ def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path
         raise StructuredError(emsg) from e
 
 
-def _assign_invoice_val(invoiceobj: dict[str, Any], key1: str, key2: str, valobj: Any, invoiceschema_obj: dict[str, Any]) -> None:
-    """When the destination key, which is the first key 'keys1', is 'custom', valobj is cast according to the invoiceschema_obj. In all other cases, valobj is assigned without changing its type."""
+def _assign_invoice_val(invoiceobj: MutableMapping[str, Any], key1: str, key2: str, valobj: Any, invoiceschema_obj: Mapping[str, Any]) -> None:
+    """When the destination key, which is the first key 'keys1', is 'custom', valobj is cast according to the invoiceschema_obj. In all other cases, valobj is assigned without changing its type.
+
+    Args:
+        invoiceobj (MutableMapping[str, Any]): The invoice object to mutate (performs assignments).
+        key1 (str): The first-level key (e.g., 'basic', 'custom').
+        key2 (str): The second-level key within key1.
+        valobj (Any): The value to assign.
+        invoiceschema_obj (Mapping[str, Any]): The invoice schema for type casting (read-only).
+    """
     if key1 == "custom":
         dct_schema = invoiceschema_obj["properties"][key1]["properties"][key2]
         try:
@@ -113,7 +122,7 @@ def overwrite_invoicefile_for_dpfterm(
     invoiceobj: dict[str, Any],
     invoice_dst_filepath: RdeFsPath,
     invoiceschema_filepath: RdeFsPath,
-    invoice_info: dict[str, Any],
+    invoice_info: Mapping[str, Any],
 ) -> None:
     """A function to overwrite DPF metadata into an invoice file.
 
@@ -121,7 +130,7 @@ def overwrite_invoicefile_for_dpfterm(
         invoiceobj (dict[str, Any]): The object of invoice.json.
         invoice_dst_filepath (RdeFsPath): The file path for the destination invoice.json.
         invoiceschema_filepath (RdeFsPath): The file path of invoice.schema.json.
-        invoice_info (dict[str, Any]): Information about the invoice file.
+        invoice_info (Mapping[str, Any]): Information about the invoice file.
     """
     with open(invoiceschema_filepath, "rb") as f:
         data = f.read()
@@ -392,7 +401,7 @@ class ExcelInvoiceTemplateGenerator:
 
         return base_df, general_term_df, specific_term_df, version_df
 
-    def _add_sample_field(self, base_df: pd.DataFrame, config: TemplateConfig, sample_field: SampleField, prefixes: dict[str, str]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def _add_sample_field(self, base_df: pd.DataFrame, config: TemplateConfig, sample_field: SampleField, prefixes: Mapping[str, str]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         attribute_configs: list[AttributeConfig] = [
             GeneralAttributeConfig(
                 type="general",
@@ -462,11 +471,11 @@ class ExcelInvoiceTemplateGenerator:
 
         return base_df, df_registered_general, df_registered_specific
 
-    def save(self, dataframes: dict[str, pd.DataFrame], save_path: str) -> None:
+    def save(self, dataframes: Mapping[str, pd.DataFrame], save_path: str) -> None:
         """Save the given DataFrame to an Excel file with specific formatting.
 
         Args:
-            dataframes (dict[str, pd.DataFrame]): The DataFrame to be saved.
+            dataframes (Mapping[str, pd.DataFrame]): The DataFrame to be saved.
             save_path (str): The path where the Excel file will be saved.
 
         Note:
@@ -808,7 +817,7 @@ def backup_invoice_json_files(excel_invoice_file: Path | None, mode: str | None)
     return invoice_org_filepath
 
 
-def __serch_key_from_constant_variable_obj(key: str, metadata_json_obj: dict) -> dict | None:
+def __serch_key_from_constant_variable_obj(key: str, metadata_json_obj: Mapping[str, Any]) -> dict | None:
     if key in metadata_json_obj["constant"]:
         return metadata_json_obj["constant"]
     if metadata_json_obj.get("variable"):
@@ -932,19 +941,19 @@ class RuleBasedReplacer:
 
     def get_apply_rules_obj(
         self,
-        replacements: dict[str, Any],
-        source_json_obj: dict[str, Any] | None,
+        replacements: Mapping[str, Any],
+        source_json_obj: MutableMapping[str, Any] | None,
         *,
-        mapping_rules: dict[str, str] | None = None,
+        mapping_rules: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
         """Function to convert file mapping rules into a JSON format.
 
         This function takes string mappings separated by dots ('.') and converts them into a dictionary format, making it easier to handle within a target JsonObject.
 
         Args:
-            replacements (dict[str, str]): The object containing mapping rules.
-            source_json_obj (Optional[dict[str, Any]]): Objects of key and value to which you want to apply the rule
-            mapping_rules (Optional[dict[str, str]], optional): Rules for mapping key and value. Defaults to None.
+            replacements (Mapping[str, Any]): The object containing mapping rules (read-only).
+            source_json_obj (MutableMapping[str, Any] | None): Objects of key and value to which you want to apply the rule (performs nested assignments).
+            mapping_rules (Mapping[str, str] | None, optional): Rules for mapping key and value (read-only). Defaults to None.
 
         Returns:
             dict[str, Any]: dictionary type data after conversion
@@ -974,7 +983,7 @@ class RuleBasedReplacer:
         for key, value in self.rules.items():
             keys = key.split(".")
             replace_value = replacements.get(value, "")
-            current_obj: dict[str, Any] = source_json_obj
+            current_obj: MutableMapping[str, Any] = source_json_obj
             for k in keys[:-1]:
                 # search for the desired key in the dictionary from "xxx.xxx.xxx" ...
                 if k not in current_obj:
@@ -982,7 +991,7 @@ class RuleBasedReplacer:
                 current_obj = current_obj[k]
             current_obj[keys[-1]] = replace_value
 
-        self.last_apply_result = source_json_obj
+        self.last_apply_result = dict(source_json_obj)
 
         return self.last_apply_result
 
