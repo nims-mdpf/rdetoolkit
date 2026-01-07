@@ -13,6 +13,7 @@ from rdetoolkit.interfaces.filechecker import IInputFileChecker
 from rdetoolkit.invoicefile import ExcelInvoiceFile, SmartTableFile
 from rdetoolkit.models.rde2types import (
     ExcelInvoicePathList,
+    FileGroup,
     InputFilesGroup,
     OtherFilesPathList,
     RawFiles,
@@ -55,6 +56,11 @@ class InvoiceChecker(IInputFileChecker):
 
                 - RawFiles: A list of tuples where each tuple contains file paths grouped as 'other files'.
                 - Optional[Path]: This is always None for this implementation.
+
+        Note:
+            This method uses legacy InputFilesGroup for backward compatibility.
+            New implementations should consider FileGroup for enhanced type safety.
+            Migration path: RawFiles -> list[FileGroup] in future version.
         """
         input_files = list(src_dir_input.glob("*"))
         # Filter out system files before processing
@@ -69,10 +75,37 @@ class InvoiceChecker(IInputFileChecker):
         return rawfiles, None
 
     def _get_group_by_files(self, input_files: list[Path]) -> InputFilesGroup:
+        """Group input files by type.
+
+        Args:
+            input_files: List of paths to classify
+
+        Returns:
+            InputFilesGroup: Tuple of (zip_files, excel_files, other_files)
+
+        Note:
+            This method maintains backward compatibility. New code should
+            consider using FileGroup.from_paths() for enhanced type safety.
+        """
         zipfiles = [f for f in input_files if f.suffix.lower() == ".zip"]
         excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
         other_files = [f for f in input_files if f not in zipfiles and f not in excel_invoice_files]
         return zipfiles, excel_invoice_files, other_files
+
+    def _get_file_group(self, input_files: list[Path]) -> FileGroup:
+        """Group input files by type using FileGroup.
+
+        Args:
+            input_files: List of paths to classify
+
+        Returns:
+            FileGroup: Typed file group with classified files
+
+        Note:
+            This is the preferred method for new code. Use _get_group_by_files()
+            only where backward compatibility with InputFilesGroup is required.
+        """
+        return FileGroup.from_paths(input_files, auto_classify=True)
 
 
 class ExcelInvoiceChecker(IInputFileChecker):
@@ -108,6 +141,11 @@ class ExcelInvoiceChecker(IInputFileChecker):
 
                 - RawFiles: List of tuples containing paths of raw files.
                 - Optional[Path]: Path to the Excel Invoice file.
+
+        Note:
+            This method uses legacy InputFilesGroup for backward compatibility.
+            New implementations should consider FileGroup for enhanced type safety.
+            Migration path: RawFiles -> list[FileGroup] in future version.
         """
         input_files = list(src_dir_input.glob("*"))
         # Filter out system files before processing
@@ -121,10 +159,37 @@ class ExcelInvoiceChecker(IInputFileChecker):
         return rawfiles, excel_invoice_files[0]
 
     def _get_group_by_files(self, input_files: list[Path]) -> InputFilesGroup:
+        """Group input files by type.
+
+        Args:
+            input_files: List of paths to classify
+
+        Returns:
+            InputFilesGroup: Tuple of (zip_files, excel_files, other_files)
+
+        Note:
+            This method maintains backward compatibility. New code should
+            consider using FileGroup.from_paths() for enhanced type safety.
+        """
         zipfiles = [f for f in input_files if f.suffix.lower() == ".zip"]
         excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
         other_files = [f for f in input_files if f not in zipfiles and f not in excel_invoice_files]
         return zipfiles, excel_invoice_files, other_files
+
+    def _get_file_group(self, input_files: list[Path]) -> FileGroup:
+        """Group input files by type using FileGroup.
+
+        Args:
+            input_files: List of paths to classify
+
+        Returns:
+            FileGroup: Typed file group with classified files
+
+        Note:
+            This is the preferred method for new code. Use _get_group_by_files()
+            only where backward compatibility with InputFilesGroup is required.
+        """
+        return FileGroup.from_paths(input_files, auto_classify=True)
 
     def _get_rawfiles(self, zipfile: Path | None, excel_invoice_file: Path) -> list[tuple[Path, ...]]:
         df_excel_invoice = ExcelInvoiceFile(excel_invoice_file).dfexcelinvoice
@@ -213,6 +278,11 @@ class RDEFormatChecker(IInputFileChecker):
 
                 - RawFiles: List of tuples containing paths of raw files.
                 - Optional[Path]: This will always return None for this implementation.
+
+        Note:
+            This method uses legacy RawFiles type for backward compatibility.
+            New implementations should consider FileGroup and ProcessedFileGroup for
+            enhanced type safety. Migration path: RawFiles -> list[FileGroup] in future version.
         """
         input_files = list(src_dir_input.glob("*"))
         # Filter out system files before processing
@@ -283,6 +353,11 @@ class MultiFileChecker(IInputFileChecker):
 
                 - RawFiles: List of tuples containing paths of raw files.
                 - Optional[Path]: This will always return None for this implementation.
+
+        Note:
+            This method uses legacy RawFiles type for backward compatibility.
+            New implementations should consider FileGroup for enhanced type safety.
+            Migration path: RawFiles -> list[FileGroup] in future version.
         """
         input_files = list(src_dir_input.glob("*"))
         # Filter out system files before processing
@@ -345,6 +420,11 @@ class SmartTableChecker(IInputFileChecker):
 
         Raises:
             StructuredError: If no SmartTable files are found or if multiple SmartTable files are present.
+
+        Note:
+            This method uses legacy RawFiles type for backward compatibility.
+            New implementations should consider FileGroup and ProcessedFileGroup for
+            enhanced type safety. Migration path: RawFiles -> list[FileGroup] in future version.
         """
         input_files = list(src_dir_input.glob("*"))
         # Filter out system files before processing
