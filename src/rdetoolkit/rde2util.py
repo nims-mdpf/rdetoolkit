@@ -719,48 +719,121 @@ class ValueCaster:
         raise StructuredError(emsg)
 
 
-def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int | float | str:
-    """The function formats the string valstr based on outtype and outfmt and returns the formatted value.
+# Type handler functions for castval dispatch table
+TypeCaster = Callable[[Any, str | None], Any]
 
-    The function returns a formatted value of the string valstr according to the specified outtype and outfmt.
-    The outtype must be a string ("string") for outfmt to be used. If valstr contains a value with units, the assignment of units is not handled within this function.
-    It should be assigned separately as needed.
+
+def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:
+    """Cast value to boolean type.
 
     Args:
-        valstr (Any): String to be converted of type
-        outtype (str): Type information at output
-        outfmt (str): Formatting at output (related to date data)
+        valstr: Value to cast.
+        outfmt: Format (unused for boolean type).
+
+    Returns:
+        Boolean value.
+
+    Raises:
+        StructuredError: If the value cannot be converted to boolean.
     """
-    if outtype == "boolean":
-        # Handle string representations of boolean values (e.g., "TRUE"/"FALSE" from Excel)
-        if isinstance(valstr, str):
-            valstr_lower = valstr.strip().lower()
-            if valstr_lower == "true":
-                return True
-            if valstr_lower == "false":
-                return False
-            emsg = f"ERROR: invalid boolean value '{valstr}'"
-            raise StructuredError(emsg)
-        # Fallback to standard boolean conversion for non-string values
-        return bool(valstr)
-
-    if outtype in ("integer", "number"):
-        # Even if a string with units is passed, the assignment of units is not handled in this function. Assign units separately as necessary.
-        val_unit_pair = _split_value_unit(valstr)
-        if ValueCaster.trycast(val_unit_pair.value, int) is not None:
-            return int(val_unit_pair.value)
-        if outtype == "number" and ValueCaster.trycast(val_unit_pair.value, float) is not None:
-            return float(val_unit_pair.value)
-
-    elif outtype == "string":
-        return valstr if not outfmt else ValueCaster.convert_to_date_format(valstr, outfmt)
-
-    else:
-        emsg = "ERROR: unknown value type in metaDef"
+    if isinstance(valstr, str):
+        valstr_lower = valstr.strip().lower()
+        if valstr_lower == "true":
+            return True
+        if valstr_lower == "false":
+            return False
+        emsg = f"ERROR: invalid boolean value '{valstr}'"
         raise StructuredError(emsg)
+    return bool(valstr)
 
+
+def _cast_integer(valstr: Any, outfmt: str | None) -> int:
+    """Cast value to integer type.
+
+    Args:
+        valstr: Value to cast.
+        outfmt: Format (unused for integer type).
+
+    Returns:
+        Integer value.
+
+    Raises:
+        StructuredError: If the value cannot be converted to integer.
+    """
+    val_unit_pair = _split_value_unit(valstr)
+    if ValueCaster.trycast(val_unit_pair.value, int) is not None:
+        return int(val_unit_pair.value)
     emsg = "ERROR: failed to cast metaDef value"
     raise StructuredError(emsg)
+
+
+def _cast_number(valstr: Any, outfmt: str | None) -> int | float:
+    """Cast value to number type (int or float).
+
+    Args:
+        valstr: Value to cast.
+        outfmt: Format (unused for number type).
+
+    Returns:
+        Integer or float value (integer preferred if possible).
+
+    Raises:
+        StructuredError: If the value cannot be converted to number.
+    """
+    val_unit_pair = _split_value_unit(valstr)
+    if ValueCaster.trycast(val_unit_pair.value, int) is not None:
+        return int(val_unit_pair.value)
+    if ValueCaster.trycast(val_unit_pair.value, float) is not None:
+        return float(val_unit_pair.value)
+    emsg = "ERROR: failed to cast metaDef value"
+    raise StructuredError(emsg)
+
+
+def _cast_string(valstr: Any, outfmt: str | None) -> Any:
+    """Cast value to string type with optional format conversion.
+
+    Args:
+        valstr: Value to cast.
+        outfmt: Optional date format ("date-time", "date", "time").
+
+    Returns:
+        Formatted string if outfmt is specified, otherwise valstr as-is.
+
+    Note:
+        When outfmt=None, the original type of valstr is preserved.
+    """
+    if not outfmt:
+        return valstr
+    return ValueCaster.convert_to_date_format(valstr, outfmt)
+
+
+_TYPE_CASTERS: dict[str, TypeCaster] = {
+    "boolean": _cast_boolean,
+    "integer": _cast_integer,
+    "number": _cast_number,
+    "string": _cast_string,
+}
+
+
+def castval(valstr: Any, outtype: str | None, outfmt: str | None) -> bool | int | float | str:
+    """Cast the value-string to the specified type-string.
+
+    Args:
+        valstr: Value to cast.
+        outtype: Data type ("boolean", "integer", "number", "string").
+        outfmt: Data format (used only for "string" type).
+
+    Returns:
+        Casted value. For "string" without a format, returns the original value.
+
+    Raises:
+        StructuredError: If the type conversion fails or the type is unknown.
+    """
+    caster = _TYPE_CASTERS.get(outtype) if outtype else None
+    if caster is None:
+        emsg = "ERROR: unknown value type in metaDef"
+        raise StructuredError(emsg)
+    return caster(valstr, outfmt)
 
 
 def dict2meta(metadef_filepath: pathlib.Path, metaout_filepath: pathlib.Path, const_info: MetaType, val_info: MetaType) -> dict[str, set[Any]]:
