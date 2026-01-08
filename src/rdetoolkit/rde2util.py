@@ -9,7 +9,7 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Final, Optional, TypedDict, cast
+from typing import Any, Callable, Final, Optional, TypedDict, cast
 from typing_extensions import TypeAlias
 
 from rdetoolkit.exceptions import StructuredError
