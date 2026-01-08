@@ -37,7 +37,7 @@ def create_input_data_dir(path: Path | str) -> InputDataDir: ...
 def create_output_dir(path: Path | str) -> OutputDir: ...
 
 # Validated path types with runtime validation
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ValidatedPath:
     path: Path
     def __post_init__(self) -> None: ...
@@ -48,23 +48,23 @@ class ValidatedPath:
     @classmethod
     def from_parts(cls, *parts: str) -> ValidatedPath: ...
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ZipFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ExcelFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class CsvFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class JsonFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ValidatedDirectory(ValidatedPath):
     must_exist: bool
     def __post_init__(self) -> None: ...

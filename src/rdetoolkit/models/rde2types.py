@@ -837,9 +837,7 @@ class RdeDatasetPaths:
     @property
     def invoice_org(self) -> Path:
         """Return the path to the original invoice.json file."""
-        if self.output_paths.invoice_org is not None:
-            return self.output_paths.invoice_org
-        return self.input_paths.invoice.joinpath("invoice.json")  # type: ignore[unreachable]  # noqa: RET503
+        return self.output_paths.invoice_org
 
     @property
     def temp(self) -> Path | None:
