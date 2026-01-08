@@ -351,7 +351,7 @@ def test_workflow_creates_timestamped_log_file(tmp_path, monkeypatch):
             path.mkdir(parents=True, exist_ok=True)
         return path
 
-    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+    monkeypatch.setattr('rdetoolkit.rde2util.StorageDir.get_specific_outputdir', mock_get_outputdir)
 
     # Mock datetime.now() to return a fixed timestamp
     fixed_datetime = datetime(2026, 1, 6, 9, 28, 45)
@@ -407,7 +407,7 @@ def test_workflow_timestamp_consistency_in_single_run(tmp_path, monkeypatch):
             path.mkdir(parents=True, exist_ok=True)
         return path
 
-    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+    monkeypatch.setattr('rdetoolkit.rde2util.StorageDir.get_specific_outputdir', mock_get_outputdir)
 
     # Setup test environment
     (tmp_path / "inputdata").mkdir()
@@ -432,22 +432,11 @@ def test_workflow_timestamp_consistency_in_single_run(tmp_path, monkeypatch):
     test_input = tmp_path / "inputdata" / "test.txt"
     test_input.write_text("test data")
 
-    # Mock to track timestamp generation calls
-    timestamp_calls = []
-    original_generate = None
+    import rdetoolkit.rdelogger as rdelogger
 
-    def mock_generate_timestamp():
-        from rdetoolkit.rdelogger import generate_log_timestamp
-        nonlocal original_generate
-        if original_generate is None:
-            # Store the original function for first call
-            import rdetoolkit.rdelogger
-            original_generate = rdetoolkit.rdelogger.generate_log_timestamp
-        result = original_generate()
-        timestamp_calls.append(result)
-        return result
+    original_generate = rdelogger.generate_log_timestamp
 
-    with mock.patch('rdetoolkit.workflows.generate_log_timestamp', side_effect=mock_generate_timestamp):
+    with mock.patch('rdetoolkit.rdelogger.generate_log_timestamp', wraps=original_generate) as mock_generate:
         try:
             from rdetoolkit.workflows import run
             run()
@@ -455,7 +444,7 @@ def test_workflow_timestamp_consistency_in_single_run(tmp_path, monkeypatch):
             pass
 
     # Verify timestamp generation was called exactly once per run
-    assert len(timestamp_calls) == 1, f"Timestamp should be generated exactly once per workflow run, but was called {len(timestamp_calls)} times"
+    assert mock_generate.call_count == 1, f"Timestamp should be generated exactly once per workflow run, but was called {mock_generate.call_count} times"
 
 
 def test_multiple_workflow_runs_create_different_log_files(tmp_path, monkeypatch):
@@ -469,7 +458,7 @@ def test_multiple_workflow_runs_create_different_log_files(tmp_path, monkeypatch
             path.mkdir(parents=True, exist_ok=True)
         return path
 
-    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+    monkeypatch.setattr('rdetoolkit.rde2util.StorageDir.get_specific_outputdir', mock_get_outputdir)
 
     # Setup test environment
     (tmp_path / "inputdata").mkdir()
@@ -556,7 +545,7 @@ def test_multiple_workflow_runs_no_log_duplication(tmp_path, monkeypatch):
             path.mkdir(parents=True, exist_ok=True)
         return path
 
-    monkeypatch.setattr('rdetoolkit.workflows.StorageDir.get_specific_outputdir', mock_get_outputdir)
+    monkeypatch.setattr('rdetoolkit.rde2util.StorageDir.get_specific_outputdir', mock_get_outputdir)
 
     # Setup test environment
     (tmp_path / "inputdata").mkdir()
