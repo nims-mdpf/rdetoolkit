@@ -21,10 +21,12 @@ if TYPE_CHECKING:
     from rdetoolkit.models.invoice import (
         FixedHeaders,
         GeneralAttributeConfig,
+        GeneralTermRegistry,
         SpecificAttributeConfig,
+        SpecificTermRegistry,
         TemplateConfig,
     )
-    from rdetoolkit.models.invoice_schema import SampleField
+    from rdetoolkit.models.invoice_schema import SampleField, SpecificProperty
     from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeFsPath, RdeOutputResourcePath
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -424,6 +426,14 @@ if TYPE_CHECKING:
     else:
         AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
 else:
+    from rdetoolkit.models.invoice import (
+        GeneralAttributeConfig,
+        GeneralTermRegistry,
+        SpecificAttributeConfig,
+        SpecificTermRegistry,
+    )
+    from rdetoolkit.models.invoice_schema import SpecificProperty
+
     AttributeConfig = Any
 
 
@@ -495,6 +505,7 @@ class ExcelInvoiceTemplateGenerator:
         return base_df, general_term_df, specific_term_df, version_df
 
     def _add_sample_field(self, base_df: pd.DataFrame, config: TemplateConfig, sample_field: SampleField, prefixes: Mapping[str, str]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        pd = _ensure_pandas()
         attribute_configs: list[AttributeConfig] = [
             GeneralAttributeConfig(
                 type="general",
