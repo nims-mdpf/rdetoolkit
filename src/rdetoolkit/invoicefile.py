@@ -426,6 +426,7 @@ if TYPE_CHECKING:
     else:
         AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
 else:
+    # Runtime imports are required for isinstance checks in _add_sample_field.
     from rdetoolkit.models.invoice import (
         GeneralAttributeConfig,
         GeneralTermRegistry,
