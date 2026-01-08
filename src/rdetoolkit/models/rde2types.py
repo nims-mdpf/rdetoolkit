@@ -295,7 +295,7 @@ class ValidatedDirectory(ValidatedPath):
         ValueError: If must_exist is True and directory doesn't exist
     """
 
-    must_exist: bool = field(default=False, kw_only=True)
+    must_exist: bool = field(default=False)
 
     def __post_init__(self) -> None:
         """Validate directory path and existence if required."""

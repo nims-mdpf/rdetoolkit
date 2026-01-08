@@ -9,7 +9,8 @@ import re
 import warnings
 import zipfile
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Final, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Callable, Final, Optional, TypedDict, cast
+from typing_extensions import TypeAlias
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
@@ -743,7 +744,7 @@ class ValueCaster:
 
 # Type handler functions for castval dispatch table
 if TYPE_CHECKING:
-    TypeCaster = Callable[[Any, str | None], Any]
+    TypeCaster: TypeAlias = Callable[[Any, Optional[str]], Any]
 else:
     TypeCaster = Callable[..., Any]
 
