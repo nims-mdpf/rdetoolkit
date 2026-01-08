@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import os
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -108,19 +109,23 @@ class InvoiceValidator:
         self.schema = self.__pre_validate()
         self.__temporarily_modify_json_schema()
 
-    def validate(self, *, path: str | Path | None = None, obj: dict[str, Any] | None = None) -> dict[str, Any]:
+    def validate(self, *, path: str | Path | None = None, obj: Mapping[str, Any] | None = None) -> dict[str, Any]:
         """Validate the provided JSON data against the schema.
 
         Args:
             path (Optional[Union[str, Path]]): The path to the JSON file to validate.
-            obj (Optional[dict[str, Any]]): The JSON object to validate.
+            obj (Optional[Mapping[str, Any]]): The mapping object to validate.
+                The mapping will be copied to a dict, enabling read-only intent
+                while maintaining internal dict behavior. Accepts any Mapping type
+                including dict, MappingProxyType, ChainMap, etc.
 
         Raises:
             ValueError: If neither 'path' nor 'obj' is provided.
             ValueError: If both 'path' and 'obj' are provided.
+            InvoiceSchemaValidationError: If validation fails against the schema.
 
         Returns:
-            None
+            dict[str, Any]: The validated data as a concrete dict.
         """
         data = self.__get_data(path, obj)
 
@@ -165,7 +170,19 @@ class InvoiceValidator:
 
         return data
 
-    def __get_data(self, path: str | Path | None, obj: dict[str, Any] | None) -> dict[str, Any]:
+    def __get_data(self, path: str | Path | None, obj: Mapping[str, Any] | None) -> dict[str, Any]:
+        """Get validation data from path or object.
+
+        Args:
+            path: Path to JSON file
+            obj: Mapping object to validate (will be normalized to dict)
+
+        Returns:
+            dict[str, Any]: Data to validate (always a concrete dict)
+
+        Raises:
+            ValueError: If neither path nor obj provided, or if both are provided
+        """
         if path is None and obj is None:
             emsg = "At least one of 'path' or 'obj' must be provided"
             raise ValueError(emsg)
@@ -176,7 +193,7 @@ class InvoiceValidator:
         if path is not None:
             return readf_json(path)
         if obj is not None:
-            return obj
+            return dict(obj)  # normalize/copy Mapping -> dict
         emsg = "Unexpected error"
         raise ValueError(emsg)
 
@@ -294,7 +311,7 @@ class InvoiceValidator:
                 error = schema_validation_error(
                     message=f"Field '{field_name}' is not allowed. Only required fields {sorted(required_fields)} are permitted in invoice.json",
                     path=[field_name],
-                    validator='required_fields_only',
+                    validator="required_fields_only",
                 )
                 errors.append(error)
 
