@@ -195,7 +195,6 @@ def test_generate_log_timestamp_uniqueness():
 
 def test_get_logger_prevents_handler_accumulation(tmp_path):
     """Test that calling get_logger multiple times doesn't accumulate handlers."""
-    import logging
 
     # Clear any existing handlers for clean test
     logger_name = "test_accumulation_logger"
@@ -238,7 +237,6 @@ def test_get_logger_prevents_handler_accumulation(tmp_path):
 
 def test_get_logger_preserves_non_file_handlers(tmp_path):
     """Test that handler cleanup only removes FileHandlers, not other handlers."""
-    import logging
 
     # Clear any existing handlers for clean test
     logger_name = "test_preserve_logger"

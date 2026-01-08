@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from rdetoolkit.models.rde2types import RdeFsPath
 
 __all__ = ['get_logger', 'CustomLog', 'log_decorator', 'generate_log_timestamp']
+_RDETOOLKIT_HANDLER_ATTR = "_rdetoolkit_managed"
 
 
 def generate_log_timestamp() -> str:
@@ -46,6 +47,8 @@ def get_logger(name: str, *, file_path: RdeFsPath | None = None, level: int = lo
 
     This function creates a logger identified by `name`, sets its logging level, and, if a file
     path is provided, adds a file handler with lazy file creation to output log messages to that file.
+    If a file path is provided, file handlers previously added by this function are replaced to
+    prevent handler accumulation, while preserving other handlers attached to the logger.
     The default logging level is DEBUG, but it can be modified via the `level` parameter.
 
     Args:
@@ -87,10 +90,13 @@ def get_logger(name: str, *, file_path: RdeFsPath | None = None, level: int = lo
     file_handler.setLevel(level)
     file_handler.setFormatter(formatter)
 
-    # Remove any existing FileHandlers to prevent accumulation when
-    # run() is called multiple times in the same process. This ensures
-    # exactly one log file per execution.
-    logger.handlers = [h for h in logger.handlers if not isinstance(h, logging.FileHandler)]
+    setattr(file_handler, _RDETOOLKIT_HANDLER_ATTR, True)
+
+    # Remove FileHandlers previously added by this function to avoid accumulation.
+    for handler in list(logger.handlers):
+        if isinstance(handler, logging.FileHandler) and getattr(handler, _RDETOOLKIT_HANDLER_ATTR, False):
+            logger.removeHandler(handler)
+            handler.close()
 
     logger.addHandler(file_handler)
 

@@ -1,11 +1,14 @@
 import json
-from pathlib import Path
+import os
 import shutil
+from pathlib import Path
 from typing import Optional
-import pytest
-import yaml
-import toml
 
+import pytest
+import toml
+import yaml
+
+import rdetoolkit.rdelogger as rdelogger
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.workflows import run, _process_mode, _create_error_status
 from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
@@ -432,8 +435,6 @@ def test_workflow_timestamp_consistency_in_single_run(tmp_path, monkeypatch):
     test_input = tmp_path / "inputdata" / "test.txt"
     test_input.write_text("test data")
 
-    import rdetoolkit.rdelogger as rdelogger
-
     original_generate = rdelogger.generate_log_timestamp
 
     with mock.patch('rdetoolkit.rdelogger.generate_log_timestamp', wraps=original_generate) as mock_generate:
@@ -518,9 +519,7 @@ def test_multiple_workflow_runs_create_different_log_files(tmp_path, monkeypatch
 def test_log_filename_pattern():
     """Test that generated log filename matches expected pattern."""
     import re
-    from rdetoolkit.rdelogger import generate_log_timestamp
-
-    timestamp = generate_log_timestamp()
+    timestamp = rdelogger.generate_log_timestamp()
     log_filename = f"rdesys_{timestamp}.log"
 
     # Pattern: rdesys_YYYYMMDD_HHMMSS.log
