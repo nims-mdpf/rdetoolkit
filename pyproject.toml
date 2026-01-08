@@ -27,7 +27,7 @@ dependencies = [
     "openpyxl>=3.1.2",
     "pandas>=2.2.3",
     "build>=1.0.3",
-    "click>=8.1.7",
+    "typer>=0.9.0",
     "toml>=0.10.2",
     "pydantic>=2.8.3",
     "jsonschema>=4.21.1",
@@ -54,7 +54,7 @@ package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
 
 
 [project.scripts]
-rdetoolkit = "rdetoolkit.cli:cli"
+rdetoolkit = "rdetoolkit.cli.app:app"
 
 [project.urls]
 "Homepage" = "https://github.com/nims-dpfc/rdetoolkit"
@@ -203,6 +203,8 @@ convention = "google"
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
+# CLI commands use lazy imports for performance
+"src/rdetoolkit/cli/*.py" = ["PLC0415"]
 
 [tool.mypy]
 show_error_context = true

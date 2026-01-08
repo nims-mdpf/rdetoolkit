@@ -5,7 +5,7 @@ from __future__ import annotations
 import pathlib
 from typing import Literal
 
-import click
+import typer
 
 from rdetoolkit.graph.api.csv2graph import csv2graph as api_csv2graph
 from rdetoolkit.rdelogger import get_logger
@@ -100,16 +100,16 @@ class Csv2GraphCommand:
         """Execute the csv2graph command.
 
         Raises:
-            click.Abort: If an error occurs during graph generation
+            typer.Abort: If an error occurs during graph generation
         """
-        click.echo("📊 Generating graphs from CSV...")
-        click.echo(f"- CSV file: {self.csv_path}")
-        click.echo(f"- Output: {self.output_dir or 'same as CSV directory'}")
+        typer.echo("📊 Generating graphs from CSV...")
+        typer.echo(f"- CSV file: {self.csv_path}")
+        typer.echo(f"- Output: {self.output_dir or 'same as CSV directory'}")
         if self.main_image_dir:
-            click.echo(f"- Main images: {self.main_image_dir}")
+            typer.echo(f"- Main images: {self.main_image_dir}")
         if self.html_output_dir:
-            click.echo(f"- HTML output: {self.html_output_dir}")
-        click.echo(f"- Mode: {self.mode}")
+            typer.echo(f"- HTML output: {self.html_output_dir}")
+        typer.echo(f"- Mode: {self.mode}")
 
         try:
             if not self.csv_path.exists():
@@ -144,17 +144,17 @@ class Csv2GraphCommand:
             )
 
             output_location = self.output_dir if self.output_dir else self.csv_path.parent
-            click.echo(click.style(f"✨ Graphs generated successfully in: {output_location}", fg="green"))
+            typer.echo(typer.style(f"✨ Graphs generated successfully in: {output_location}", fg=typer.colors.GREEN))
 
         except FileNotFoundError as e:
             logger.error(f"File error: {e}")
-            click.echo(click.style(f"🔥 File Error: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"🔥 File Error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e
         except ValueError as e:
             logger.error(f"Value error: {e}")
-            click.echo(click.style(f"🔥 Value Error: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"🔥 Value Error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e
         except Exception as e:
             logger.exception(e)
-            click.echo(click.style(f"🔥 Unexpected error: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"🔥 Unexpected error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e

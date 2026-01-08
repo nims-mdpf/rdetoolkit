@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-import click
+import typer
 
 from rdetoolkit import __version__
 from rdetoolkit.cmd.default import INVOICE_JSON, PROPERTIES
@@ -15,9 +15,13 @@ from rdetoolkit.rdelogger import get_logger
 logger = get_logger(__name__)
 
 
-class Command(click.Command):
+class Command:
+    """Legacy command base class - no longer needed with Typer but kept for compatibility."""
+
     def __init__(self, name: str, **attrs: Any) -> None:
-        super().__init__(name, **attrs)
+        """Initialize command (legacy compatibility)."""
+        self.name = name
+        self.attrs = attrs
 
 
 class InitCommand:
@@ -54,7 +58,7 @@ class InitCommand:
         except Exception as e:
             logger.exception(e)
             self._error_msg("Failed to create files required for structured RDE programs.")
-            raise click.Abort from e
+            raise typer.Abort from e
 
     def __make_template_json(self, path: Path) -> None:
         if Path(path).exists():
@@ -90,7 +94,7 @@ class InitCommand:
             except Exception as e:
                 logger.exception(e)
                 self._error_msg(f"Failed to create directory: {d}")
-                raise click.Abort from e
+                raise typer.Abort from e
 
     def __make_requirements_txt(self, path: Path) -> None:
         if Path(path).exists():
@@ -122,19 +126,19 @@ class InitCommand:
                 shutil.rmtree(d)
 
     def _info_msg(self, msg: str) -> None:
-        click.echo(msg)
+        typer.echo(msg)
 
     def _success_msg(self, msg: str) -> None:
-        click.echo(click.style(msg, fg="green"))
+        typer.echo(typer.style(msg, fg=typer.colors.GREEN))
 
     def _error_msg(self, msg: str) -> None:
-        click.echo(click.style(f"Error! {msg}", fg="red"))
+        typer.echo(typer.style(f"Error! {msg}", fg=typer.colors.RED))
 
 
 class VersionCommand:
     def invoke(self) -> None:
         """Print the installed RDEToolKit version."""
-        click.echo(__version__)
+        typer.echo(__version__)
 
 
 class DockerfileGenerator:

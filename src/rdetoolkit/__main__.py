@@ -1,4 +1,5 @@
+"""Entry point for python -m rdetoolkit."""
 if __name__ == "__main__":
-    from .cli import cli
+    from rdetoolkit.cli.app import app
 
-    cli()
+    app()

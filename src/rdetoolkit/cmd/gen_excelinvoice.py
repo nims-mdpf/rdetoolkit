@@ -3,7 +3,7 @@ from __future__ import annotations
 import pathlib
 from typing import Literal
 
-import click
+import typer
 
 from rdetoolkit.exceptions import InvoiceSchemaValidationError
 from rdetoolkit.invoicefile import ExcelInvoiceFile
@@ -22,26 +22,26 @@ class GenerateExcelInvoiceCommand:
     def invoke(self) -> None:
         """Generate an Excel invoice template from the provided schema."""
         rule_excelinvoice_suffix = '_excel_invoice.xlsx'
-        click.echo("📄 Generating ExcelInvoice template...")
-        click.echo(f"- Schema: {self.invoice_schema_file}")
-        click.echo(f"- Output: {self.output_path}")
-        click.echo(f"- Mode: {self.mode}")
+        typer.echo("📄 Generating ExcelInvoice template...")
+        typer.echo(f"- Schema: {self.invoice_schema_file}")
+        typer.echo(f"- Output: {self.output_path}")
+        typer.echo(f"- Mode: {self.mode}")
 
         if not self.output_path.name.endswith(rule_excelinvoice_suffix):
-            click.echo(click.style(f"🔥 Warning: The output file name '{self.output_path.name}' must end with '{rule_excelinvoice_suffix}'.", fg="yellow"))
-            raise click.Abort
+            typer.echo(typer.style(f"🔥 Warning: The output file name '{self.output_path.name}' must end with '{rule_excelinvoice_suffix}'.", fg=typer.colors.YELLOW))
+            raise typer.Abort
 
         try:
             if not self.invoice_schema_file.exists():
                 emsg = f"Schema file not found: {self.invoice_schema_file}"
                 raise FileNotFoundError(emsg)
             ExcelInvoiceFile.generate_template(self.invoice_schema_file, self.output_path, self.mode)
-            click.echo(click.style(f"✨ ExcelInvoice template generated successfully! : {self.output_path}", fg="green"))
+            typer.echo(typer.style(f"✨ ExcelInvoice template generated successfully! : {self.output_path}", fg=typer.colors.GREEN))
         except InvoiceSchemaValidationError as e:
             logger.error(f"File error: {e}")
-            click.echo(click.style(f"🔥 Schema Error: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"🔥 Schema Error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
-            click.echo(click.style(f"🔥 Error: An unexpected error occurred: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"🔥 Error: An unexpected error occurred: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e

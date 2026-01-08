@@ -5,8 +5,8 @@ import pathlib
 from datetime import datetime
 from uuid import uuid4
 
-import click
 import pytz
+import typer
 
 from rdetoolkit.artifact.report import TemplateMarkdownReportGenerator, get_scanner
 from rdetoolkit.impl.compressed_controller import get_artifact_archiver
@@ -33,9 +33,9 @@ class CreateArtifactCommand:
 
     def invoke(self) -> None:
         """Invoke the command to create an archive and generate a report."""
-        click.echo(f"{self.MARK_ARCHIVE} Archiving project files...")
-        click.echo(f"{self.MARK_INFO} - Source Directory: {self.source_dir}")
-        click.echo(f"{self.MARK_INFO} - Output Archive: {self.output_archive_path}")
+        typer.echo(f"{self.MARK_ARCHIVE} Archiving project files...")
+        typer.echo(f"{self.MARK_INFO} - Source Directory: {self.source_dir}")
+        typer.echo(f"{self.MARK_INFO} - Output Archive: {self.output_archive_path}")
 
         dockerfile_path = self._check_file("Dockerfile", logo="🐳")
         requirements_path = self._check_file("requirements.txt", logo="🐍")
@@ -61,10 +61,10 @@ class CreateArtifactCommand:
             report_path = self.output_archive_path.with_suffix(".md")
             self.template_report_generator.generate(item)
             self.template_report_generator.save(report_path)
-            click.echo(f"{self.MARK_SUCCESS} Archive and report generation completed successfully.: {report_path}")
+            typer.echo(f"{self.MARK_SUCCESS} Archive and report generation completed successfully.: {report_path}")
         except Exception as e:
-            click.echo(click.style(f"{self.MARK_ERROR} Error: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"{self.MARK_ERROR} Error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e
 
     def _check_file(self, target_filename: str, *, logo: str | None = None) -> str:
         _result = f"{target_filename} not found"
@@ -81,17 +81,17 @@ class CreateArtifactCommand:
                     continue
 
         if _target_path is not None:
-            click.echo(click.style(f"{self.MARK_SUCCESS} {result_message} found!: {_target_path}"))
+            typer.echo(typer.style(f"{self.MARK_SUCCESS} {result_message} found!: {_target_path}", fg=typer.colors.GREEN))
         else:
-            click.echo(click.style(f"{self.MARK_WARNING} {result_message} not found.", fg="yellow"))
+            typer.echo(typer.style(f"{self.MARK_WARNING} {result_message} not found.", fg=typer.colors.YELLOW))
 
         return _result
 
     def _check_extention_type(self) -> str:
         output_archive_ext = self.output_archive_path.suffix
         if output_archive_ext.lower() not in ['.zip']:
-            click.echo(click.style(f"{self.MARK_ERROR} The output archive file must have a .zip extension.", fg="red"))
-            raise click.Abort
+            typer.echo(typer.style(f"{self.MARK_ERROR} The output archive file must have a .zip extension.", fg=typer.colors.RED))
+            raise typer.Abort
         return output_archive_ext.lstrip(".")
 
     def _archive_target_dir(self, fmt: str) -> list[pathlib.Path] | None:
@@ -99,41 +99,41 @@ class CreateArtifactCommand:
         try:
             archiver = get_artifact_archiver(fmt, self.source_dir, self.exclude_patterns)
             result_dirs = archiver.archive(str(self.output_archive_path))
-            click.echo(click.style(f"{self.MARK_SUCCESS} Archive created successfully: {self.output_archive_path}"))
+            typer.echo(typer.style(f"{self.MARK_SUCCESS} Archive created successfully: {self.output_archive_path}", fg=typer.colors.GREEN))
             return result_dirs
         except Exception as e:
-            click.echo(click.style(f"{self.MARK_ERROR} Archive Error: {e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"{self.MARK_ERROR} Archive Error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e
 
     def _scan_external_conn(self) -> list[CodeSnippet]:
         try:
-            click.echo(f"{self.MARK_SCAN} Scanning for external connections...", nl=False)
+            typer.echo(f"{self.MARK_SCAN} Scanning for external connections...", nl=False)
             scanner = get_scanner('external', self.source_dir)
             results = scanner.scan()
             if results:
-                click.echo(click.style(f" found {len(results)} reference(s).", fg="yellow"))
+                typer.echo(typer.style(f" found {len(results)} reference(s).", fg=typer.colors.YELLOW))
             else:
-                click.echo(click.style("OK", fg="green"))
+                typer.echo(typer.style("OK", fg=typer.colors.GREEN))
             return results
         except Exception as e:
-            click.echo(click.style(f"{self.MARK_ERROR} Error", fg="red"))
-            click.echo(click.style(f"{e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"{self.MARK_ERROR} Error", fg=typer.colors.RED))
+            typer.echo(typer.style(f"{e}", fg=typer.colors.RED))
+            raise typer.Abort from e
 
     def _scan_code_security(self) -> list[CodeSnippet]:
         try:
-            click.echo(f"{self.MARK_SCAN} Scanning for code security vulnerabilities...", nl=False)
+            typer.echo(f"{self.MARK_SCAN} Scanning for code security vulnerabilities...", nl=False)
             scanner = get_scanner('vulnerability', self.source_dir)
             results = scanner.scan()
             if results:
-                click.echo(click.style(f" found {len(results)} reference(s).", fg="yellow"))
+                typer.echo(typer.style(f" found {len(results)} reference(s).", fg=typer.colors.YELLOW))
             else:
-                click.echo(click.style("OK", fg="green"))
+                typer.echo(typer.style("OK", fg=typer.colors.GREEN))
             return results
         except Exception as e:
-            click.echo(click.style(f"{self.MARK_ERROR} Error", fg="red"))
-            click.echo(click.style(f"{e}", fg="red"))
-            raise click.Abort from e
+            typer.echo(typer.style(f"{self.MARK_ERROR} Error", fg=typer.colors.RED))
+            typer.echo(typer.style(f"{e}", fg=typer.colors.RED))
+            raise typer.Abort from e
 
     def _safe_relative(self, p: pathlib.Path) -> str:
         try:

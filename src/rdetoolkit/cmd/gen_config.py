@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Literal
 
-import click
+import typer
 
 from rdetoolkit.rdelogger import get_logger
 
@@ -130,8 +130,8 @@ class GenerateConfigCommand:
 
         Ensures the output directory exists, optionally prompts before overwriting an
         existing file, renders the configuration template, writes it to disk, and logs
-        the operation. Raises a `click.ClickException` if the directory creation or
-        file write fails, and raises `click.Abort` if the user declines to overwrite.
+        the operation. Raises a `typer.BadParameter` if the directory creation or
+        file write fails, and raises `typer.Abort` if the user declines to overwrite.
         """
         output_dir = self.output_dir.resolve()
         output_path = output_dir / CONFIG_FILE_NAME
@@ -140,14 +140,14 @@ class GenerateConfigCommand:
             output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             emsg = f"Failed to create output directory: {output_dir}"
-            raise click.ClickException(emsg) from exc
+            raise typer.BadParameter(emsg) from exc
 
         if (
             output_path.exists()
             and not self.overwrite
             and not self._confirm_overwrite(output_path)
         ):
-            raise click.Abort
+            raise typer.Abort
 
         content = self._render_template()
 
@@ -155,17 +155,17 @@ class GenerateConfigCommand:
             output_path.write_text(content, encoding="utf-8")
         except OSError as exc:
             emsg = f"Failed to write config file: {output_path}"
-            raise click.ClickException(emsg) from exc
+            raise typer.BadParameter(emsg) from exc
 
         self.logger.info("Generated rdeconfig.yaml at %s", output_path)
         if self.logger.isEnabledFor(logging.INFO):
-            click.echo(
-                click.style(f"Generated rdeconfig.yaml at {output_path}", fg="green"),
+            typer.echo(
+                typer.style(f"Generated rdeconfig.yaml at {output_path}", fg=typer.colors.GREEN),
             )
 
     def _confirm_overwrite(self, output_path: Path) -> bool:
         prompt = f"{output_path.resolve()} exists. Overwrite?"
-        return click.confirm(prompt, default=False, show_default=True)
+        return typer.confirm(prompt, default=False, show_default=True)
 
     def _render_template(self) -> str:
         if self.template == "interactive":
@@ -173,49 +173,50 @@ class GenerateConfigCommand:
         template = STATIC_TEMPLATES.get(self.template)
         if template is None:
             msg = f"Unknown template: {self.template}"
-            raise click.ClickException(msg)
+            raise typer.BadParameter(msg)
         return template
 
     def _render_interactive(self) -> str:
         prompts = PROMPTS[self.lang]
-        save_raw = click.confirm(
+        save_raw = typer.confirm(
             prompts["save_raw"], default=False, show_default=True,
         )
-        save_nonshared_raw = click.confirm(
+        save_nonshared_raw = typer.confirm(
             prompts["save_nonshared_raw"], default=True, show_default=True,
         )
-        magic_variable = click.confirm(
+        magic_variable = typer.confirm(
             prompts["magic_variable"], default=False, show_default=True,
         )
-        save_thumbnail_image = click.confirm(
+        save_thumbnail_image = typer.confirm(
             prompts["save_thumbnail_image"], default=True, show_default=True,
         )
-        extended_mode_choice = click.prompt(
+        extended_mode_choice = typer.prompt(
             prompts["extended_mode"],
-            type=click.Choice(
-                ["none", "MultiDataTile", "rdeformat"],
-                case_sensitive=False,
-            ),
+            type=str,
             default="none",
             show_default=True,
-            show_choices=True,
         )
+        # Validate the choice
+        valid_choices = ["none", "MultiDataTile", "rdeformat"]
+        if extended_mode_choice not in valid_choices:
+            msg = f"Invalid choice: {extended_mode_choice}. Choose from: {', '.join(valid_choices)}"
+            raise typer.BadParameter(msg)
         extended_mode = (
             None
             if extended_mode_choice.lower() == "none"
             else extended_mode_choice
         )
-        ignore_errors = click.confirm(
+        ignore_errors = typer.confirm(
             prompts["multidata_tile_ignore_errors"],
             default=False,
             show_default=True,
         )
-        save_table_file = click.confirm(
+        save_table_file = typer.confirm(
             prompts["smarttable_save_table_file"],
             default=False,
             show_default=True,
         )
-        traceback_enabled = click.confirm(
+        traceback_enabled = typer.confirm(
             prompts["traceback_enabled"],
             default=False,
             show_default=True,

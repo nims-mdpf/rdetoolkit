@@ -1,4 +1,4 @@
-"""Type stubs for rdetoolkit.cli module."""
+"""Type stubs for rdetoolkit.cli.app module."""
 from __future__ import annotations
 
 import pathlib
@@ -8,6 +8,8 @@ import typer
 
 app: typer.Typer
 
+def validate_json_file(value: pathlib.Path) -> pathlib.Path: ...
+def parse_column(col: str) -> int | str: ...
 def init() -> None: ...
 def version() -> None: ...
 def gen_config(
