@@ -1,5 +1,5 @@
 ![GitHub Release](https://img.shields.io/github/v/release/nims-dpfc/rdetoolkit)
-[![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11%7C3.12%7C3.13-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
+[![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11%7C3.12%7C3.13%7C3.14-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-dpfc/rdetoolkit/blob/main/LICENSE)
 [![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-dpfc/rdetoolkit/issues)
 ![workflow](https://github.com/nims-dpfc/rdetoolkit/actions/workflows/main.yml/badge.svg)

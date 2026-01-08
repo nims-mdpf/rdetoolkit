@@ -60,7 +60,8 @@ class TestVariableApplier:
         mock_apply.assert_called_once_with(
             context.invoice_dst_filepath,
             context.resource_paths.rawfiles[0],
-            save_filepath=context.invoice_dst_filepath
+            save_filepath=context.invoice_dst_filepath,
+            dataset_paths=context.dataset_paths,
         )
 
     @patch('rdetoolkit.processing.processors.variables.apply_magic_variable')
@@ -79,7 +80,8 @@ class TestVariableApplier:
         mock_apply.assert_called_once_with(
             context.invoice_dst_filepath,
             context.resource_paths.rawfiles[0],
-            save_filepath=context.invoice_dst_filepath
+            save_filepath=context.invoice_dst_filepath,
+            dataset_paths=context.dataset_paths,
         )
 
     @patch('rdetoolkit.processing.processors.variables.apply_magic_variable')
@@ -100,7 +102,8 @@ class TestVariableApplier:
         mock_apply.assert_called_once_with(
             context.invoice_dst_filepath,
             context.resource_paths.rawfiles[0],
-            save_filepath=context.invoice_dst_filepath
+            save_filepath=context.invoice_dst_filepath,
+            dataset_paths=context.dataset_paths,
         )
 
     @patch('rdetoolkit.processing.processors.variables.apply_magic_variable')
@@ -205,7 +208,8 @@ class TestVariableApplier:
         mock_apply.assert_called_once_with(
             context.invoice_dst_filepath,
             context.resource_paths.rawfiles[0],  # Should use the first file
-            save_filepath=context.invoice_dst_filepath
+            save_filepath=context.invoice_dst_filepath,
+            dataset_paths=context.dataset_paths,
         )
 
     @patch('rdetoolkit.processing.processors.variables.apply_magic_variable')

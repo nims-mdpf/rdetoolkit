@@ -5,9 +5,10 @@ import os
 from datetime import datetime
 from logging import DEBUG, INFO, FileHandler, Formatter, Handler, Logger, NullHandler, StreamHandler, getLogger
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
-from rdetoolkit.models.rde2types import RdeFsPath
+if TYPE_CHECKING:
+    from rdetoolkit.models.rde2types import RdeFsPath
 
 __all__ = ['get_logger', 'CustomLog', 'log_decorator', 'generate_log_timestamp']
 

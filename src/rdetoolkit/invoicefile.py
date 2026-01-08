@@ -3,30 +3,72 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import shutil
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Protocol, Union
+from typing import TYPE_CHECKING, Any, Callable, Literal, Protocol, Union
 
-import chardet
-import pandas as pd
-from openpyxl.styles import Border, Font, Side
-from openpyxl.utils import get_column_letter
-from pydantic import ValidationError
-
-from rdetoolkit import __version__, rde2util
+from rdetoolkit import __version__
 from rdetoolkit.exceptions import InvoiceSchemaValidationError, StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
-from rdetoolkit.models.invoice import FixedHeaders, GeneralAttributeConfig, GeneralTermRegistry, SpecificAttributeConfig, SpecificTermRegistry, TemplateConfig
-from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, SampleField, SpecificProperty
-from rdetoolkit.models.rde2types import RdeFsPath, RdeOutputResourcePath
-from rdetoolkit.rde2util import StorageDir
-from rdetoolkit.validation import InvoiceValidator
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from rdetoolkit.models.invoice import (
+        FixedHeaders,
+        GeneralAttributeConfig,
+        SpecificAttributeConfig,
+        TemplateConfig,
+    )
+    from rdetoolkit.models.invoice_schema import SampleField
+    from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeFsPath, RdeOutputResourcePath
 
 STATIC_DIR = Path(__file__).parent / "static"
 EX_GENERALTERM = STATIC_DIR / "ex_generalterm.csv"
 EX_SPECIFICTERM = STATIC_DIR / "ex_specificterm.csv"
+MAGIC_VARIABLE_PATTERN = re.compile(r"\$\{([^{}]+)\}")
+
+
+def _ensure_pandas() -> Any:
+    import pandas as pd
+
+    return pd
+
+
+def _ensure_openpyxl_styles() -> tuple[Any, Any, Any]:
+    from openpyxl.styles import Border, Font, Side
+
+    return Border, Font, Side
+
+
+def _ensure_openpyxl_utils() -> Any:
+    from openpyxl.utils import get_column_letter
+
+    return get_column_letter
+
+
+def _ensure_chardet() -> Any:
+    import chardet
+
+    return chardet
+
+
+def _ensure_validation_error() -> type[Exception]:
+    from pydantic import ValidationError
+
+    return ValidationError
+
+
+def _ensure_logger() -> Callable[..., Any]:
+    from rdetoolkit.rdelogger import get_logger
+
+    return get_logger
+
+
+logger = _ensure_logger()(__name__, file_path="data/logs/rdesys.log")
 
 
 def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
@@ -65,6 +107,44 @@ def _process_specific_term_sheet(df: pd.DataFrame) -> pd.DataFrame:
     return _df_specific
 
 
+SheetType = Literal["invoice", "general_term", "specific_term", "unknown"]
+
+
+def _identify_sheet_type(sh_name: str, df: pd.DataFrame) -> SheetType:
+    """Identify the type of an Excel sheet.
+
+    Args:
+        sh_name: Excel sheet name.
+        df: DataFrame loaded from the sheet.
+
+    Returns:
+        Sheet type:
+        - "invoice": InvoiceList sheet (cell A1 is "invoiceList_format_id")
+        - "general_term": generalTerm sheet
+        - "specific_term": specificTerm sheet
+        - "unknown": Other sheets (skipped in processing)
+    """
+    if not df.empty and len(df) > 0 and len(df.columns) > 0:
+        target_comment_value = df.iat[0, 0]
+        if target_comment_value == "invoiceList_format_id":
+            return "invoice"
+
+    if sh_name == "generalTerm":
+        return "general_term"
+    if sh_name == "specificTerm":
+        return "specific_term"
+
+    return "unknown"
+
+
+# Sheet type to processor function mapping
+_SHEET_PROCESSORS: dict[SheetType, Callable[[pd.DataFrame], pd.DataFrame]] = {
+    "invoice": _process_invoice_sheet,
+    "general_term": _process_general_term_sheet,
+    "specific_term": _process_specific_term_sheet,
+}
+
+
 def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path]) -> list[Path]:
     """Checks for the existence of raw file paths listed in a DataFrame against a list of file Paths.
 
@@ -99,6 +179,8 @@ def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path
 def _assign_invoice_val(invoiceobj: dict[str, Any], key1: str, key2: str, valobj: Any, invoiceschema_obj: dict[str, Any]) -> None:
     """When the destination key, which is the first key 'keys1', is 'custom', valobj is cast according to the invoiceschema_obj. In all other cases, valobj is assigned without changing its type."""
     if key1 == "custom":
+        from rdetoolkit import rde2util
+
         dct_schema = invoiceschema_obj["properties"][key1]["properties"][key2]
         try:
             invoiceobj[key1][key2] = rde2util.castval(valobj, dct_schema["type"], dct_schema.get("format"))
@@ -123,6 +205,7 @@ def overwrite_invoicefile_for_dpfterm(
         invoiceschema_filepath (RdeFsPath): The file path of invoice.schema.json.
         invoice_info (dict[str, Any]): Information about the invoice file.
     """
+    chardet = _ensure_chardet()
     with open(invoiceschema_filepath, "rb") as f:
         data = f.read()
     enc = chardet.detect(data)["encoding"]
@@ -286,6 +369,8 @@ class InvoiceFile:
     def _sanitize_invoice_data(self, candidate: dict[str, Any], schema_path: Path | None) -> dict[str, Any]:
         """Validate and normalise invoice data prior to persisting."""
         if schema_path is not None:
+            from rdetoolkit.validation import InvoiceValidator
+
             validator = InvoiceValidator(schema_path)
             return validator.validate(obj=candidate)
         return candidate
@@ -324,10 +409,13 @@ class TemplateGenerator(Protocol):
         ...
 
 
-if sys.version_info >= (3, 10):
-    AttributeConfig = GeneralAttributeConfig | SpecificAttributeConfig
+if TYPE_CHECKING:
+    if sys.version_info >= (3, 10):
+        AttributeConfig = GeneralAttributeConfig | SpecificAttributeConfig
+    else:
+        AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
 else:
-    AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
+    AttributeConfig = Any
 
 
 class ExcelInvoiceTemplateGenerator:
@@ -339,6 +427,7 @@ class ExcelInvoiceTemplateGenerator:
         self.fixed_header = fixed_header
 
     def _version_info(self) -> pd.DataFrame:
+        pd = _ensure_pandas()
         return pd.DataFrame({
             "items": ["version"],
             "values": [__version__],
@@ -357,11 +446,15 @@ class ExcelInvoiceTemplateGenerator:
                 - A DataFrame containing references for specific terms.
                 - A DataFrame containing rdetoolkit version.
         """
+        pd = _ensure_pandas()
+        from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
+
         base_df = self.fixed_header.to_template_dataframe().to_pandas()
         invoice_schema_obj = readf_json(config.schema_path)
         try:
+            validation_error = _ensure_validation_error()
             invoice_schema = InvoiceSchemaJson(**invoice_schema_obj)
-        except ValidationError as e:
+        except validation_error as e:
             raise InvoiceSchemaValidationError(str(e)) from e
         prefixes = {
             "general": self.GENERAL_PREFIX,
@@ -393,6 +486,15 @@ class ExcelInvoiceTemplateGenerator:
         return base_df, general_term_df, specific_term_df, version_df
 
     def _add_sample_field(self, base_df: pd.DataFrame, config: TemplateConfig, sample_field: SampleField, prefixes: dict[str, str]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        from rdetoolkit.models.invoice import (
+            GeneralAttributeConfig,
+            GeneralTermRegistry,
+            SpecificAttributeConfig,
+            SpecificTermRegistry,
+        )
+        from rdetoolkit.models.invoice_schema import SpecificProperty
+
+        pd = _ensure_pandas()
         attribute_configs: list[AttributeConfig] = [
             GeneralAttributeConfig(
                 type="general",
@@ -477,6 +579,7 @@ class ExcelInvoiceTemplateGenerator:
             - Applies a thin border to all cells in the range from row 5 to row 40.
             - Applies a thick top border and a double bottom border to the cells in the 5th row.
         """
+        pd = _ensure_pandas()
         with pd.ExcelWriter(save_path, engine="openpyxl") as writer:
             for sheet_name, df in dataframes.items():
                 if sheet_name != "invoice_form":
@@ -487,6 +590,8 @@ class ExcelInvoiceTemplateGenerator:
                     self._style_main_sheet(writer, df, sheet_name)
 
     def _style_main_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
+        border_cls, _, side_cls = _ensure_openpyxl_styles()
+        get_column_letter = _ensure_openpyxl_utils()
         default_row_height: int = 40
         default_column_width: int = 20
         default_start_row: int = 4
@@ -503,10 +608,10 @@ class ExcelInvoiceTemplateGenerator:
             worksheet.column_dimensions[col_letter].width = default_column_width
 
         # settings cell border
-        thin = Side(border_style="thin", color="000000")
-        thick = Side(border_style="thick", color="000000")
-        double = Side(border_style="double", color="000000")
-        grid_border = Border(top=thin, left=thin, right=thin, bottom=thin)
+        thin = side_cls(border_style="thin", color="000000")
+        thick = side_cls(border_style="thick", color="000000")
+        double = side_cls(border_style="double", color="000000")
+        grid_border = border_cls(top=thin, left=thin, right=thin, bottom=thin)
 
         for row in range(default_start_row, default_end_row):
             for col in range(default_start_col, max_col + 1):
@@ -515,16 +620,17 @@ class ExcelInvoiceTemplateGenerator:
 
         for col in range(1, max_col + 1):
             cell = worksheet.cell(row=4, column=col)
-            cell.border = Border(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
+            cell.border = border_cls(left=cell.border.left, right=cell.border.right, top=thick, bottom=double)
 
     def _style_sub_sheet(self, writer: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
-        default_cell_style = 'Normal'
+        _, font_cls, _ = _ensure_openpyxl_styles()
+        default_cell_style = "Normal"
         _ = writer.book
         worksheet = writer.sheets[sheet_name]
         for row in worksheet.iter_rows():
             for cell in row:
                 cell.style = default_cell_style
-                cell.font = Font(bold=False)
+                cell.font = font_cls(bold=False)
 
 
 class ExcelInvoiceFile:
@@ -537,11 +643,19 @@ class ExcelInvoiceFile:
         df_specific (pd.DataFrame | None): Dataframe of specific data (None if the sheet is absent).
         self.template_generator (ExcelInvoiceTemplateGenerator): Template generator for the Excelinvoice.
     """
-    template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())  # type: ignore
+    template_generator: ExcelInvoiceTemplateGenerator | None = None
 
     def __init__(self, invoice_path: Path):
         self.invoice_path = invoice_path
         self.dfexcelinvoice, self.df_general, self.df_specific = self.read()
+
+    @classmethod
+    def _get_template_generator(cls) -> ExcelInvoiceTemplateGenerator:
+        if cls.template_generator is None:
+            from rdetoolkit.models.invoice import FixedHeaders
+
+            cls.template_generator = ExcelInvoiceTemplateGenerator(FixedHeaders())
+        return cls.template_generator
 
     def read(self, *, target_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
         """Reads the content of the Excel invoice file and returns it as three dataframes.
@@ -565,6 +679,7 @@ class ExcelInvoiceFile:
             emsg = f"ERROR: excelinvoice not found {target_path}"
             raise StructuredError(emsg)
 
+        pd = _ensure_pandas()
         dct_sheets = pd.read_excel(target_path, sheet_name=None, dtype=str, header=None, index_col=None)
 
         dfexcelinvoice, df_general, df_specific = None, None, None
@@ -572,17 +687,19 @@ class ExcelInvoiceFile:
             if df.empty:
                 continue
 
-            target_comment_value = df.iat[0, 0]
-            if target_comment_value == "invoiceList_format_id":
+            sheet_type = _identify_sheet_type(sh_name, df)
+
+            if sheet_type == "invoice":
                 if dfexcelinvoice is not None:
                     emsg = "ERROR: multiple sheet in invoiceList files"
                     raise StructuredError(emsg)
                 ExcelInvoiceFile.check_intermittent_empty_rows(df)
-                dfexcelinvoice = _process_invoice_sheet(df)
-            elif sh_name == "generalTerm":
-                df_general = _process_general_term_sheet(df)
-            elif sh_name == "specificTerm":
-                df_specific = _process_specific_term_sheet(df)
+                dfexcelinvoice = _SHEET_PROCESSORS[sheet_type](df)
+            elif sheet_type == "general_term":
+                df_general = _SHEET_PROCESSORS[sheet_type](df)
+            elif sheet_type == "specific_term":
+                df_specific = _SHEET_PROCESSORS[sheet_type](df)
+            # If sheet_type == "unknown", do nothing (skip)
 
         if dfexcelinvoice is None:
             emsg = "ERROR: no sheet in invoiceList files"
@@ -605,6 +722,8 @@ class ExcelInvoiceFile:
                 - A DataFrame containing references for general terms.
                 - A DataFrame containing references for specific terms.
         """
+        from rdetoolkit.models.invoice import TemplateConfig
+
         config = TemplateConfig(
             schema_path=invoice_schema_path,
             general_term_path=EX_GENERALTERM,
@@ -612,14 +731,15 @@ class ExcelInvoiceFile:
             inputfile_mode=file_mode,
         )
 
-        template_df, df_general, df_specific, _df_version = cls.template_generator.generate(config)
+        generator = cls._get_template_generator()
+        template_df, df_general, df_specific, _df_version = generator.generate(config)
         _dataframes = {
             "invoice_form": template_df,
             "generalTerm": df_general,
             "specificTerm": df_specific,
             "_version": _df_version,
         }
-        cls.template_generator.save(_dataframes, str(save_path))
+        generator.save(_dataframes, str(save_path))
         return template_df, df_general, df_specific
 
     def save(self, save_path: str | Path, *, invoice: pd.DataFrame | None = None, sheet_name: str = "invoice_form", index: list[str] | None = None, header: list[str] | None = None) -> None:
@@ -635,6 +755,7 @@ class ExcelInvoiceFile:
         Returns:
             None
         """
+        pd = _ensure_pandas()
         _invoice_df = invoice if invoice is not None else self.dfexcelinvoice
         try:
             if index:
@@ -701,6 +822,7 @@ class ExcelInvoiceFile:
 
     @staticmethod
     def __is_empty_row(row: pd.Series) -> bool:
+        pd = _ensure_pandas()
         return all(cell == "" or pd.isnull(cell) for cell in row)
 
     def _assign_value_to_invoice(self, key: str, value: str, invoice_obj: dict, schema_obj: dict) -> None:
@@ -797,6 +919,8 @@ def backup_invoice_json_files(excel_invoice_file: Path | None, mode: str | None)
     """
     if mode is None:
         mode = ""
+    from rdetoolkit.rde2util import StorageDir
+
     invoice_org_filepath = StorageDir.get_specific_outputdir(False, "invoice").joinpath("invoice.json")
     if (excel_invoice_file is not None) or (mode is not None and mode.lower() in ["rdeformat", "multidatatile"]):
         invoice_org_filepath = StorageDir.get_specific_outputdir(True, "temp").joinpath("invoice_org.json")
@@ -837,6 +961,7 @@ def update_description_with_features(
     Returns:
         None: The function does not return a value but writes the features to the invoice.json file in the description field.
     """
+    chardet = _ensure_chardet()
     with open(dst_invoice_json, "rb") as dst_invoice:
         enc_dst_invoice_data = dst_invoice.read()
     enc = chardet.detect(enc_dst_invoice_data)["encoding"]
@@ -1045,6 +1170,172 @@ class RuleBasedReplacer:
         return contents
 
 
+class MagicVariableResolver:
+    """Resolve and expand supported magic-variable expressions."""
+
+    MIN_INVOICE_FIELD_SEGMENTS = 2
+    MIN_METADATA_SEGMENTS = 2
+
+    def __init__(
+        self,
+        *,
+        rawfile_path: Path,
+        invoice_source: dict[str, Any],
+        metadata_source: dict[str, Any] | None,
+    ) -> None:
+        self.rawfile_path = rawfile_path
+        self.invoice_source = invoice_source
+        self.metadata_source = metadata_source
+
+    def expand(self, template: str) -> str:
+        """Expand all magic variables present in *template*."""
+        result_parts: list[str] = []
+        last_end = 0
+        skip_pending = False
+
+        for match in MAGIC_VARIABLE_PATTERN.finditer(template):
+            literal = template[last_end : match.start()]
+            if literal:
+                literal = self._trim_redundant_underscore(literal, result_parts, skip_pending)
+                result_parts.append(literal)
+                skip_pending = False
+
+            expression = match.group(1).strip()
+            replacement = self._resolve_expression(expression)
+            if replacement is None:
+                skip_pending = True
+            else:
+                result_parts.append(replacement)
+                skip_pending = False
+
+            last_end = match.end()
+
+        trailing_literal = template[last_end:]
+        if trailing_literal:
+            trailing_literal = self._trim_redundant_underscore(trailing_literal, result_parts, skip_pending)
+            result_parts.append(trailing_literal)
+
+        return "".join(result_parts)
+
+    def _trim_redundant_underscore(self, literal: str, result_parts: list[str], skip_pending: bool) -> str:
+        """Drop leading underscores when a skipped placeholder already supplied one."""
+        if skip_pending and literal.startswith("_") and result_parts and result_parts[-1].endswith("_"):
+            return literal[1:]
+        return literal
+
+    def _resolve_expression(self, expression: str) -> str | None:
+        if not expression:
+            emsg = "Encountered empty magic variable expression"
+            raise StructuredError(emsg)
+
+        segments = expression.split(":")
+        prefix = segments[0]
+
+        if prefix == "filename":
+            return self.rawfile_path.name
+        if prefix == "invoice":
+            return self._resolve_invoice_expression(segments[1:], expression)
+        if prefix == "metadata":
+            return self._resolve_metadata_expression(segments[1:], expression)
+
+        emsg = f"Unsupported magic variable '{expression}'"
+        raise StructuredError(emsg)
+
+    def _resolve_invoice_expression(self, segments: list[str], expression: str) -> str | None:
+        if not segments:
+            emsg = f"Invalid invoice magic variable '{expression}'"
+            raise StructuredError(emsg)
+
+        section = segments[0]
+        invoice_section = self.invoice_source.get(section)
+        if invoice_section is None:
+            emsg = f"Invoice section '{section}' not found for magic variable '{expression}'"
+            raise StructuredError(emsg)
+
+        if section in {"basic", "custom"}:
+            if len(segments) < self.MIN_INVOICE_FIELD_SEGMENTS:
+                emsg = f"Magic variable '{expression}' requires a field name"
+                raise StructuredError(emsg)
+            field = segments[1]
+            if not isinstance(invoice_section, dict) or field not in invoice_section:
+                emsg = f"Field '{section}.{field}' is missing for magic variable '{expression}'"
+                raise StructuredError(emsg)
+            value = invoice_section.get(field)
+            return self._normalize_scalar(value, expression)
+
+        if section == "sample":
+            return self._resolve_sample_expression(segments[1:], expression)
+
+        emsg = f"Unsupported invoice section '{section}' in magic variable '{expression}'"
+        raise StructuredError(emsg)
+
+    def _resolve_sample_expression(self, segments: list[str], expression: str) -> str | None:
+        if not segments:
+            emsg = f"Magic variable '{expression}' must specify a sample field"
+            raise StructuredError(emsg)
+
+        sample_section = self.invoice_source.get("sample")
+        if sample_section is None:
+            emsg = f"Sample information missing in invoice for '{expression}'"
+            raise StructuredError(emsg)
+
+        field = segments[0]
+        if field != "names":
+            emsg = f"Unsupported sample field '{field}' in magic variable '{expression}'"
+            raise StructuredError(emsg)
+
+        names = sample_section.get("names")
+        if names is None or not isinstance(names, list):
+            emsg = f"'sample.names' is unavailable for magic variable '{expression}'"
+            raise StructuredError(emsg)
+        if len(names) == 0:
+            emsg = f"Magic variable '{expression}' cannot be applied because sample.names is empty"
+            raise StructuredError(emsg)
+
+        filtered_names = [name for name in names if isinstance(name, str) and name]
+        if not filtered_names:
+            emsg = f"Magic variable '{expression}' cannot be applied because sample.names only contains empty strings"
+            raise StructuredError(emsg)
+
+        return "_".join(filtered_names)
+
+    def _resolve_metadata_expression(self, segments: list[str], expression: str) -> str | None:
+        if not segments:
+            emsg = f"Invalid metadata magic variable '{expression}'"
+            raise StructuredError(emsg)
+
+        if segments[0] != "constant":
+            emsg = f"Unsupported metadata field '{segments[0]}' in magic variable '{expression}'"
+            raise StructuredError(emsg)
+
+        if self.metadata_source is None:
+            emsg = f"metadata.json is required to resolve '{expression}'"
+            raise StructuredError(emsg)
+
+        if len(segments) < self.MIN_METADATA_SEGMENTS:
+            emsg = f"Magic variable '{expression}' requires a constant key"
+            raise StructuredError(emsg)
+
+        constant_key = segments[1]
+        constants = self.metadata_source.get("constant", {})
+        metadata_entry = constants.get(constant_key)
+        if metadata_entry is None:
+            emsg = f"metadata.constant['{constant_key}'] is missing for magic variable '{expression}'"
+            raise StructuredError(emsg)
+
+        return self._normalize_scalar(metadata_entry.get("value"), expression)
+
+    def _normalize_scalar(self, value: Any, expression: str) -> str | None:
+        if value is None or (isinstance(value, str) and value == ""):
+            logger.warning("Magic variable '%s' resolved to an empty value and will be skipped", expression)
+            return None
+        if isinstance(value, (str, int, float, bool)):
+            return str(value)
+
+        emsg = f"Magic variable '{expression}' must resolve to a scalar value, got {type(value).__name__!s}"
+        raise StructuredError(emsg)
+
+
 def apply_default_filename_mapping_rule(replacement_rule: dict[str, Any], save_file_path: str | Path) -> dict[str, Any]:
     """Applies a default filename mapping rule based on the basename of the save file path.
 
@@ -1075,33 +1366,84 @@ def apply_default_filename_mapping_rule(replacement_rule: dict[str, Any], save_f
     return replacer.last_apply_result
 
 
-def apply_magic_variable(invoice_path: str | Path, rawfile_path: str | Path, *, save_filepath: str | Path | None = None) -> dict[str, Any]:
-    """Converts the magic variable ${filename}.
-
-    If ${filename} is present in basic.dataName of invoice.json, it is replaced with the filename of rawfile_path.
+def _load_metadata(dataset_paths: RdeDatasetPaths | None) -> dict[str, Any] | None:
+    """Load metadata.json when dataset paths are available.
 
     Args:
-        invoice_path (Union[str, Path]): The file path of invoice.json.
-        rawfile_path (Union[str, Path]): The file path of the input data.
-        save_filepath (Optional[Union[str, Path]], optional): The file path to save to. Defaults to None.
+        dataset_paths: Dataset paths that may include a metadata directory.
 
     Returns:
-        dict[str, Any]: The content of invoice.json after replacement.
+        Parsed metadata contents when the file exists; otherwise None.
     """
-    contents: dict[str, Any] = {}
-    if isinstance(invoice_path, str):
-        invoice_path = Path(invoice_path)
-    if isinstance(rawfile_path, str):
-        rawfile_path = Path(rawfile_path)
-    if save_filepath is None:
-        save_filepath = invoice_path
+    if dataset_paths is None:
+        return None
+
+    metadata_path = dataset_paths.meta.joinpath("metadata.json")
+    if not metadata_path.exists():
+        return None
+
+    return readf_json(metadata_path)
+
+
+def apply_magic_variable(
+    invoice_path: str | Path,
+    rawfile_path: str | Path,
+    *,
+    save_filepath: str | Path | None = None,
+    dataset_paths: RdeDatasetPaths | None = None,
+) -> dict[str, Any]:
+    """Expand supported magic variables inside ``invoice.json``.
+
+    Magic variables can reference the input filename, invoice metadata sourced
+    from ``invoice_org`` and constants defined in ``metadata.json``.  Only
+    ``basic.dataName`` currently supports substitution.
+
+    Args:
+        invoice_path: Target invoice file to update.
+        rawfile_path: Raw input file supplying ``${filename}``.
+        save_filepath: Destination path for the updated invoice. Defaults to ``invoice_path``.
+        dataset_paths: Dataset paths used to locate ``invoice_org`` and metadata files.
+
+    Returns:
+        dict[str, Any]: Updated invoice contents when substitutions occur. An empty dict is returned when
+        no magic variables are present.
+
+    Raises:
+        StructuredError: If required fields or metadata are missing for a referenced magic variable.
+    """
+    invoice_path = Path(invoice_path)
+    rawfile_path = Path(rawfile_path)
+    destination_path = Path(save_filepath) if save_filepath is not None else invoice_path
 
     invoice_contents = readf_json(invoice_path)
-    if invoice_contents.get("basic", {}).get("dataName") == "${filename}":
-        replacement_rule = {"${filename}": str(rawfile_path.name)}
-        contents = apply_default_filename_mapping_rule(replacement_rule, save_filepath)
+    basic_section = invoice_contents.get("basic")
+    if basic_section is None:
+        emsg = "invoice.json is missing the 'basic' section required for magic variable processing"
+        raise StructuredError(emsg)
 
-    return contents
+    data_name_template = basic_section.get("dataName")
+    if not isinstance(data_name_template, str) or MAGIC_VARIABLE_PATTERN.search(data_name_template) is None:
+        # No magic variables to apply.
+        return {}
+
+    invoice_source_path = dataset_paths.invoice_org if dataset_paths is not None else invoice_path
+    invoice_source = readf_json(invoice_source_path)
+
+    metadata_contents = _load_metadata(dataset_paths)
+
+    resolver = MagicVariableResolver(
+        rawfile_path=rawfile_path,
+        invoice_source=invoice_source,
+        metadata_source=metadata_contents,
+    )
+    resolved_name = resolver.expand(data_name_template)
+    if resolved_name == "":
+        emsg = "Magic variable expansion produced an empty dataName"
+        raise StructuredError(emsg)
+
+    basic_section["dataName"] = resolved_name
+    writef_json(destination_path, invoice_contents)
+    return invoice_contents
 
 
 class SmartTableFile:
@@ -1155,6 +1497,7 @@ class SmartTableFile:
         if self._data is not None:
             return self._data
 
+        pd = _ensure_pandas()
         try:
             if self.smarttable_path.suffix.lower() == ".xlsx":
                 # Read Excel file, skip first row (display names), use second row as header
@@ -1215,6 +1558,7 @@ class SmartTableFile:
         data = self.read_table()
         csv_file_mappings = []
 
+        pd = _ensure_pandas()
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
             inputdata_columns = [col for col in data.columns if col.startswith("inputdata")]
