@@ -7,9 +7,9 @@ from typing import Any
 import pandas as pd
 
 try:
-    import plotly.graph_objs as go  # type: ignore[import]
+    import plotly.graph_objs as go
 except ImportError:  # pragma: no cover - exercised in environments without plotly
-    go = None  # type: ignore[assignment]
+    go = None
     _PLOTLY_IMPORT_ERROR = (
         "Plotly is required for HTML output but is not installed. "
         "Install it with: pip install plotly"

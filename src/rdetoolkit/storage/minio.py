@@ -11,7 +11,7 @@ import urllib3
 from urllib3 import ProxyManager, PoolManager
 
 try:
-    from urllib3.response import BaseHTTPResponse  # type: ignore[attr-defined]
+    from urllib3.response import BaseHTTPResponse
 except ImportError:
     from urllib3.response import HTTPResponse as BaseHTTPResponse
 

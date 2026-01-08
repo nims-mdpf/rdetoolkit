@@ -3,7 +3,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from rdetoolkit.models.rde2types import RawFiles, UnZipFilesPathList, ZipFilesPathList
+from rdetoolkit.models.rde2types import (
+    RawFiles,
+    UnZipFilesPathList,
+    ZipFilesPathList,
+)
 
 
 class IInputFileHelper(ABC):
@@ -26,6 +30,10 @@ class IInputFileHelper(ABC):
 
         Returns:
             ZipFilesPathList: A list of paths pointing to the found zip files.
+
+        Note:
+            Future versions may return tuple[ZipFile, ...] for enhanced type safety.
+            Consider using ZipFile type for stricter validation in new implementations.
         """
         raise NotImplementedError
 
@@ -39,6 +47,10 @@ class IInputFileHelper(ABC):
 
         Returns:
             UnZipFilesPathList: A list of paths to the unpacked files.
+
+        Note:
+            Consider using ZipFile type for zipfile parameter and ValidatedDirectory
+            for target_dir in future versions for enhanced type safety and validation.
         """
         raise NotImplementedError
 
@@ -72,6 +84,11 @@ class IInputFileChecker(ABC):
         Returns:
             tuple[RawFiles, Optional[Path]]: A tuple where the first element is the extracted raw file data,
                                             and the second element is an optional path to additional relevant data.
+
+        Note:
+            This method uses legacy RawFiles type for backward compatibility.
+            Future implementations may consider FileGroup and ProcessedFileGroup for
+            enhanced type safety. Migration path: RawFiles -> list[FileGroup] in future version.
         """
         raise NotImplementedError
 
