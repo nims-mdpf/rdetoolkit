@@ -1,6 +1,8 @@
 import json
 import shutil
+from collections import ChainMap
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 from pydantic import ValidationError
@@ -315,9 +317,9 @@ def test_validate_required_fields_only():
         "properties": {
             "basic": {"type": "object"},
             "datasetId": {"type": "string"},
-            "custom": {"type": "object"}
+            "custom": {"type": "object"},
         },
-        "required": ["basic", "datasetId", "custom"]  # Only these fields are allowed
+        "required": ["basic", "datasetId", "custom"],  # Only these fields are allowed
     }
 
     # Create invoice data with an extra field that's not in required
@@ -326,11 +328,11 @@ def test_validate_required_fields_only():
         "basic": {
             "dataOwnerId": "12345678901234567890123456789012345678901234567890123456",
             "dateSubmitted": "2024-01-01",
-            "dataName": "Test Data"
+            "dataName": "Test Data",
         },
         "datasetId": "test123",
         "custom": {"field1": "value1"},
-        "extraField": "This field is not in required list"  # This should trigger error
+        "extraField": "This field is not in required list",  # This should trigger error
     }
 
     try:
@@ -387,15 +389,14 @@ def test_restructured_sample_pattern_matches():
 
 def test_restructured_pattern_with_basic_schema():
     """Test that restructured pattern works with invoice_basic_and_sample.schema_.json"""
-
     # Load the basic schema directly
     basic_schema_path = Path(__file__).parent.parent / "src" / "rdetoolkit" / "static" / "invoice_basic_and_sample.schema_.json"
 
-    with open(basic_schema_path, "r") as f:
+    with open(basic_schema_path) as f:
         schema = json.load(f)
 
     # Load restructured invoice data
-    with open(Path(__file__).parent.joinpath("samplefile", "invoice_restructured.json"), "r") as f:
+    with open(Path(__file__).parent.joinpath("samplefile", "invoice_restructured.json")) as f:
         data = json.load(f)
 
     # Should validate successfully against the basic schema
@@ -409,7 +410,7 @@ def test_restructured_pattern_with_basic_schema():
         ("sampleWhenRef", "invoice_sample_ref.json", "019a6150-6f3b-4384-8f12-8f8950f51098", True),
         ("sampleWhenAddingExcelInvoice", "invoice_sample_excel.json", "", True),
         ("sampleWhenRestructured", "invoice_restructured.json", "019a6150-6f3b-4384-8f12-8f8950f51098", False),
-    ]
+    ],
 )
 def test_all_sample_patterns(pattern_name, invoice_file, expected_sample_id, expected_has_names):
     """Test that all sample patterns work correctly"""
@@ -447,13 +448,13 @@ def test_invalid_restructured_sample_id():
         "basic": {
             "dateSubmitted": "2024-01-15",
             "dataOwnerId": "051d5eab8a6a8bea98f07bbdb6f7eac8623c54783930316135393066",
-            "dataName": "Invalid Test Data"
+            "dataName": "Invalid Test Data",
         },
         "sample": {
             "sampleId": "invalid-uuid-format",  # Invalid UUID format
             "names": None,
-            "ownerId": None
-        }
+            "ownerId": None,
+        },
     }
 
     schema_path = Path(__file__).parent.joinpath("samplefile", "invoice_schema_with_sample.json")
@@ -491,3 +492,61 @@ def test_existing_patterns_still_work_after_restructured_addition():
 
         # Should still validate successfully
         invoice_validate(invoice_path, schema_path)
+
+
+def test_validate_with_mapping_proxy():
+    """Test that validate accepts MappingProxyType (read-only mapping).
+
+    This test verifies that InvoiceValidator.validate() can accept
+    non-dict Mapping types like MappingProxyType, which is useful for
+    read-only intent. The input is normalized to dict internally.
+    """
+    # Given: a valid invoice data as dict
+    schema_path = Path(__file__).parent.joinpath("samplefile", "invoice.schema.json")
+    invoice_path = Path(__file__).parent.joinpath("samplefile", "invoice.json")
+
+    with open(invoice_path) as f:
+        data = json.load(f)
+
+    # When: converting to read-only MappingProxyType and validating
+    readonly = MappingProxyType(data)
+    validator = InvoiceValidator(schema_path)
+    result = validator.validate(obj=readonly)
+
+    # Then: result should be a dict with the same content
+    assert isinstance(result, dict)
+    assert result["datasetId"] == data["datasetId"]
+    assert result["basic"]["dataName"] == data["basic"]["dataName"]
+
+
+def test_validate_with_chainmap():
+    """Test that validate accepts ChainMap.
+
+    This test verifies that InvoiceValidator.validate() can accept
+    ChainMap, which is useful for combining multiple mapping sources.
+    The input is normalized to dict internally.
+    """
+    # Given: a valid invoice split into base and overrides
+    schema_path = Path(__file__).parent.joinpath("samplefile", "invoice.schema.json")
+    invoice_path = Path(__file__).parent.joinpath("samplefile", "invoice.json")
+
+    with open(invoice_path) as f:
+        data = json.load(f)
+
+    # Split data into base and overrides for ChainMap example
+    # Include all required fields in the base
+    base = {"datasetId": data["datasetId"], "basic": data["basic"], "sample": data.get("sample", {})}
+    overrides = {"custom": data.get("custom", {})}
+
+    # When: creating ChainMap and validating
+    chain = ChainMap(overrides, base)
+    validator = InvoiceValidator(schema_path)
+    result = validator.validate(obj=chain)
+
+    # Then: result should be a dict with merged content
+    assert isinstance(result, dict)
+    assert result["datasetId"] == data["datasetId"]
+    assert "basic" in result
+    # Verify that ChainMap lookup order works (overrides take precedence)
+    if "custom" in overrides:
+        assert "custom" in result

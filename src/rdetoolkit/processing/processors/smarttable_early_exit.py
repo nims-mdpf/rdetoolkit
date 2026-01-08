@@ -8,7 +8,7 @@ from rdetoolkit.processing.processors.validation import MetadataValidator, Invoi
 from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.fileops import readf_json, writef_json
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class SmartTableEarlyExitProcessor(Processor):

@@ -7,7 +7,7 @@ from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.rdelogger import get_logger
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class VariableApplier(Processor):
@@ -29,6 +29,7 @@ class VariableApplier(Processor):
                 context.invoice_dst_filepath,
                 context.resource_paths.rawfiles[0],
                 save_filepath=context.invoice_dst_filepath,
+                dataset_paths=context.dataset_paths,
             )
 
             if result:

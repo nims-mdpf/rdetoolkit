@@ -46,6 +46,7 @@ RDEToolKitは、以下の場所とファイル名で設定ファイルを自動�
       # 機能の有効/無効
       magic_variable: true
       save_thumbnail_image: true
+      save_invoice_to_structured: false
     ```
 
 === "TOML形式"
@@ -56,6 +57,7 @@ RDEToolKitは、以下の場所とファイル名で設定ファイルを自動�
     save_nonshared_raw = true
     magic_variable = true
     save_thumbnail_image = true
+    save_invoice_to_structured = false
     ```
 
 #### 設定項目の詳細
@@ -67,6 +69,7 @@ RDEToolKitは、以下の場所とファイル名で設定ファイルを自動�
 | `save_nonshared_raw` | boolean | true | `nonshared_raw`ディレクトリへの入力ファイル保存 |
 | `magic_variable` | boolean | false | Magic Variable機能の有効化 |
 | `save_thumbnail_image` | boolean | false | サムネイル画像の自動生成 |
+| `save_invoice_to_structured` | boolean | false | `structured`ディレクトリへ`invoice.json`を保存 |
 
 ### 3. 処理モード別の設定
 

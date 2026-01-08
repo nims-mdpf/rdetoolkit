@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 import copy
@@ -14,7 +15,7 @@ from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
 from rdetoolkit.rde2util import castval
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class StandardInvoiceInitializer(Processor):
@@ -147,6 +148,15 @@ class SmartTableInvoiceInitializer(Processor):
     """Processor for initializing invoice from SmartTable files."""
 
     _BASE_INVOICE_CACHE: dict[Path, dict[str, Any]] = {}
+
+    @classmethod
+    def clear_base_invoice_cache(cls) -> None:
+        """Clear cached base invoice data.
+
+        Intended to be called between separate SmartTable workflow runs to avoid
+        unbounded cache growth in long-lived processes.
+        """
+        cls._BASE_INVOICE_CACHE.clear()
 
     def process(self, context: ProcessingContext) -> None:
         """Process SmartTable file and generate invoice.
@@ -441,14 +451,14 @@ class SmartTableInvoiceInitializer(Processor):
         self,
         key: str,
         value: str,
-        metadata_def: dict[str, Any],
+        metadata_def: Mapping[str, Any],
     ) -> tuple[str, dict[str, Any]]:
         """Convert a SmartTable meta column into a metadata.json entry.
 
         Args:
             key: Column name from SmartTable (e.g., ``meta/comment``).
             value: String representation of the value extracted from the CSV row.
-            metadata_def: Loaded metadata definition dictionary.
+            metadata_def: Loaded metadata definition mapping.
 
         Returns:
             Tuple of metadata key and the corresponding metadata entry.

@@ -17,9 +17,77 @@ source .venv/bin/activate
 pre-commit install
 ```
 
+### 2.1 Common Development Commands
+
+**Building:**
+
+```bash
+# Build Rust extension and Python package
+python -m build
+
+# Build with Maturin (Rust extension only)
+maturin develop
+```
+
+**Testing:**
+
+```bash
+# Run all tests with coverage
+tox
+
+# Run tests for specific Python version and environment
+tox -e py312-module    # Tests only
+tox -e py312-ruff      # Linting only
+tox -e py312-mypy      # Type checking only
+
+# Run pytest directly (faster for development)
+pytest tests/ --cov=. --cov-report=term-missing
+
+# Run single test file
+pytest tests/test_workflow.py -v
+```
+
+**Code Quality:**
+
+```bash
+# Lint with Ruff
+ruff check src/rdetoolkit/
+
+# Format with Ruff
+ruff format src/rdetoolkit/
+
+# Type check with mypy
+mypy src/
+
+# Check cyclomatic complexity
+tox -e lizard
+```
+
+**Documentation:**
+
+```bash
+# Serve documentation locally
+mkdocs serve
+
+# Build documentation
+mkdocs build
+```
+
 ## 3. Code Formatting & Linters
 
 We use `Ruff` and `mypy` to maintain code quality. Ruff replaces isort/black/flake8 and, together with strict typing enforced by mypy, improves readability and maintainability. See [0-cite-3](#0-cite-3).
+
+### 3.1 Coding Standards
+
+**Comments & Documentation:**
+
+* **All comments must be written in English.** This ensures consistency and accessibility for international contributors.
+* **Avoid redundant comments for self-explanatory code.** Code should be self-documenting where possible. Only add comments when they provide meaningful context, explain non-obvious logic, or clarify complex algorithms.
+* **Focus on "why" not "what".** Comments should explain the reasoning behind decisions, not restate what the code does.
+
+**File Format:**
+
+* **Use Unix-style line endings (LF, `\n`) for all files.** This ensures consistency across different development environments and prevents line-ending conflicts in version control.
 
 ## 4. Documentation Guidelines
 
@@ -27,14 +95,83 @@ Docstrings **must** follow **Google Style**. See [0-cite-4](#0-cite-4).
 
 ## 5. Branch Strategy
 
-When adding features or fixes, create a branch from `develop/v<x.y.z>` and append an arbitrary suffix to describe the change. See [0-cite-5](#0-cite-5).
+### 5.1 Branch Naming Convention
 
-We also standardize branch prefixes (e.g., `feature/`, `bugfix/`, `docs/`, `test/`, etc.). See [0-cite-6](#0-cite-6).
+When adding features or fixes, create a branch from `develop/v<x.y.z>` and append a descriptive suffix. See [0-cite-5](#0-cite-5).
 
-**Example**
+**Command:**
 
 ```bash
-git checkout -b develop/v<x.y.z>/<short-descriptor> origin/develop/v<x.y.z>
+git checkout -b develop/v<x.y.z>/<prefix>/<short-descriptor> origin/develop/v<x.y.z>
+```
+
+### 5.2 Branch Prefixes
+
+We standardize branch prefixes to indicate the type of change. See [0-cite-6](#0-cite-6).
+
+| **Prefix**    | **Purpose**                          | **Example**                           |
+| ------------- | ------------------------------------ | ------------------------------------- |
+| `feature/`    | New feature development              | `feature/user-authentication`         |
+| `bugfix/`     | Bug fixes                            | `bugfix/login-error`                  |
+| `fix/`        | Bug fixes (same as `bugfix/`)        | `fix/login-error`                     |
+| `hotfix/`     | Critical/urgent fixes                | `hotfix/critical-security-issue`      |
+| `release/`    | Release preparation                  | `release/v1.2.0`                      |
+| `chore/`      | Refactoring and maintenance          | `chore/update-dependencies`           |
+| `experiment/` | Experimental features/proof-of-concept | `experiment/new-ui-concept`          |
+| `docs/`       | Documentation updates                | `docs/update-readme`                  |
+| `test/`       | Test-related changes                 | `test/add-unit-tests`                 |
+| `refactor/`   | Code refactoring                     | `refactor/cleanup-auth-module`        |
+| `ci/`         | CI/CD configuration changes          | `ci/update-github-actions`            |
+| `style/`      | Code style/formatting changes        | `style/format-codebase`               |
+| `perf/`       | Performance improvements             | `perf/optimize-db-queries`            |
+| `design/`     | Design-related changes               | `design/update-mockups`               |
+| `security/`   | Security fixes/enhancements          | `security/enhance-encryption`         |
+
+### 5.3 Commit Message Format
+
+All commit messages **must** include the issue number and follow this format:
+
+```bash
+git commit -m "#<issue-number> <brief description of changes>"
+```
+
+**Examples:**
+
+```bash
+git commit -m "#42 Add user authentication feature"
+git commit -m "#123 Fix login error on mobile devices"
+git commit -m "#89 Update API documentation"
+```
+
+**Important Notes:**
+- Always reference the issue number with `#<issue-number>` at the beginning
+- Use clear, concise descriptions
+- Write commit messages in English
+- If pre-commit hooks fail, resolve all errors before committing
+
+### 5.4 Pull Request Guidelines
+
+**⚠️ CRITICAL**: **DO NOT create pull requests directly to the `main` branch.**
+
+- PRs must target `develop/v<x.y.z>` branches, not `main`
+- The `main` branch is reserved for releases only
+- All CI tests must pass before requesting review
+- Merge to `main` only when all development is complete and ready for release
+
+**Workflow:**
+
+```bash
+# 1. Create feature branch
+git checkout -b develop/v1.5.0/feature/new-processor origin/develop/v1.5.0
+
+# 2. Make changes and commit
+git add .
+git commit -m "#335 Add new data processor"
+
+# 3. Push to remote
+git push origin develop/v1.5.0/feature/new-processor
+
+# 4. Create PR targeting develop/v1.5.0 (NOT main)
 ```
 
 ## 6. Testing

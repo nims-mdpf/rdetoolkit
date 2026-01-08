@@ -26,6 +26,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "traceback: # custom traceback settings\n"
         "  enabled: false\n"
@@ -36,6 +37,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "multidata_tile:\n"
         "  ignore_errors: false\n\n"
@@ -48,6 +50,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: \"MultiDataTile\"\n\n"
         "multidata_tile:\n"
         "  ignore_errors: false\n\n"
@@ -60,6 +63,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: \"rdeformat\"\n\n"
         "traceback: # custom traceback settings\n"
         "  enabled: false\n"
@@ -70,6 +74,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "smarttable:\n"
         "  save_table_file: true\n\n"
@@ -84,6 +89,7 @@ PROMPTS: dict[str, dict[str, str]] = {
         "save_nonshared_raw": "Save data to nonshared_raw directory?",
         "magic_variable": "Enable magic_variable expansion?",
         "save_thumbnail_image": "Save thumbnail images automatically?",
+        "save_invoice_to_structured": "Store invoice.json inside structured directory?",
         "extended_mode": "Select extended mode",
         "multidata_tile_ignore_errors": "Ignore errors during MultiDataTile processing?",
         "smarttable_save_table_file": "Save SmartTable source files?",
@@ -94,6 +100,7 @@ PROMPTS: dict[str, dict[str, str]] = {
         "save_nonshared_raw": "データをnonshared_rawディレクトリに保存しますか?",
         "magic_variable": "magic_variable機能を有効にしますか?",
         "save_thumbnail_image": "サムネイル画像を自動保存しますか?",
+        "save_invoice_to_structured": "structuredフォルダにinvoice.jsonを保存しますか?",
         "extended_mode": "extended_modeを選択してください",
         "multidata_tile_ignore_errors": "MultiDataTile処理でエラーを無視しますか?",
         "smarttable_save_table_file": "SmartTableの元ファイルを保存しますか?",
@@ -190,6 +197,9 @@ class GenerateConfigCommand:
         save_thumbnail_image = typer.confirm(
             prompts["save_thumbnail_image"], default=True, show_default=True,
         )
+        save_invoice_to_structured = typer.confirm(
+            prompts["save_invoice_to_structured"], default=False, show_default=True,
+        )
         extended_mode_choice = typer.prompt(
             prompts["extended_mode"],
             type=str,
@@ -228,6 +238,7 @@ class GenerateConfigCommand:
             f"  save_nonshared_raw: {self._bool_to_yaml(save_nonshared_raw)}",
             f"  magic_variable: {self._bool_to_yaml(magic_variable)}",
             f"  save_thumbnail_image: {self._bool_to_yaml(save_thumbnail_image)}",
+            f"  save_invoice_to_structured: {self._bool_to_yaml(save_invoice_to_structured)}",
             f"  extended_mode: {self._extended_mode_to_yaml(extended_mode)}",
         ]
 
