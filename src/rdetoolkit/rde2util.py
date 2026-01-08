@@ -743,7 +743,7 @@ class ValueCaster:
 
 
 # Type handler functions for castval dispatch table
-TypeCaster = Callable[[Any, Optional[str]], Any]
+TypeCaster: TypeAlias = Callable[[Any, Optional[str]], Any]
 
 
 def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:

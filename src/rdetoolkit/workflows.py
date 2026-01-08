@@ -6,13 +6,15 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from rdetoolkit.exceptions import StructuredError
 
 if TYPE_CHECKING:
     from rdetoolkit.models.config import Config
     from rdetoolkit.models.rde2types import DatasetCallback, RawFiles, RdeInputDirPaths, RdeOutputResourcePath
     from rdetoolkit.models.result import WorkflowExecutionStatus
     from rdetoolkit.result import Result
+
+
+from rdetoolkit.exceptions import StructuredError
 
 
 def excel_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
@@ -460,9 +462,14 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
     from rdetoolkit.models.result import WorkflowResultManager
     from rdetoolkit.models.rde2types import RdeInputDirPaths
     from rdetoolkit.rde2util import StorageDir
-    from rdetoolkit.rdelogger import get_logger
+    from rdetoolkit.rdelogger import get_logger, generate_log_timestamp
 
-    logger = get_logger(__name__, file_path=StorageDir.get_specific_outputdir(True, "logs").joinpath("rdesys.log"))
+    log_timestamp = generate_log_timestamp()
+    log_filename = f"rdesys_{log_timestamp}.log"
+    log_path = StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
+    get_logger("rdetoolkit", file_path=log_path)
+    logger = get_logger(__name__)
+
     wf_manager = WorkflowResultManager()
     error_info = None
     __config: Config | None = None

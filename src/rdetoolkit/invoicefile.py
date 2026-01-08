@@ -71,7 +71,7 @@ def _ensure_logger() -> Callable[..., Any]:
     return get_logger
 
 
-logger = _ensure_logger()(__name__, file_path="data/logs/rdesys.log")
+logger = _ensure_logger()(__name__)
 
 
 def read_excelinvoice(excelinvoice_filepath: RdeFsPath) -> tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:

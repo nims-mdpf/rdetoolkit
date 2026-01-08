@@ -4,7 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
-| v1.5.0  | Unreleased   | Result type pattern for explicit error handling | [v1.5.0](#v150-unreleased) |
+| v1.5.0  | TBD          | Timestamped system log filenames | [v1.5.0](#v150-tbd) |
 | v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
@@ -20,12 +20,15 @@
 ## v1.5.0 (Unreleased)
 
 !!! info "References"
-    - Key issues: [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334)
+    - Key issues: [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334), [#341](https://github.com/nims-mdpf/rdetoolkit/issues/341)
 
 #### Highlights
 - Introduced Result type pattern (`Result[T, E]`) for explicit, type-safe error handling without exceptions
-- Added `Success[T]` and `Failure[E]` types with functional programming patterns (map, unwrap)
-- Provides Result-based versions of key workflow and mode processing functions for gradual migration
+- System logs now use timestamped filenames (`rdesys_YYYYMMDD_HHMMSS.log`) instead of static `rdesys.log`, enabling per-run log management and preventing log collision in concurrent or successive executions
+
+---
+
+### Result Type Pattern (Issue #334)
 
 #### Enhancements
 - **New Result Module** (`rdetoolkit.result`):
@@ -45,13 +48,6 @@
 - **Documentation**: Comprehensive API docs in English and Japanese (`docs/api/result.en.md`, `docs/api/result.ja.md`)
 - **Public API**: Result types exported from `rdetoolkit.__init__.py` for easy import
 - **100% Test Coverage**: 40 comprehensive unit tests for Result module
-
-#### Migration / Compatibility
-- **Backward Compatible**: All original exception-based functions remain unchanged
-- **Gradual Migration**: Both patterns (exception-based and Result-based) can coexist
-- **Delegation Pattern**: Original functions delegate to `*_result()` versions internally
-- **Type Safety**: Use `isinstance(result, Failure)` for type-safe error checking
-- **Error Preservation**: All error information (StructuredError attributes, Exception details) preserved in Failure
 
 #### Usage Examples
 
@@ -77,6 +73,48 @@ try:
 except StructuredError as e:
     print(f"Error {e.ecode}: {e.emsg}")
 ```
+
+---
+
+### Timestamped Log Filenames (Issue #341)
+
+#### Enhancements
+- Added `generate_log_timestamp()` utility function to create filesystem-safe timestamp strings
+- Modified `workflows.run()` to generate unique timestamped log files for each workflow execution
+- Fixed P2 bug: Handler accumulation when `run()` called multiple times in the same process
+  - Root cause: Logger singleton retained old LazyFileHandlers with different filenames
+  - Solution: Clear existing LazyFileHandlers before adding new ones
+  - Impact: Ensures 1 execution = 1 log file, preventing log cross-contamination
+- Replaced custom `LazyFileHandler` with standard `logging.FileHandler(delay=True)` for better maintainability
+- Updated all documentation to reference the new timestamped log filename pattern
+
+#### Benefits
+- **Per-run isolation**: Each workflow execution creates a separate log file, preventing log mixing
+- **Concurrent execution**: No log collision when running multiple workflows simultaneously
+- **Easy comparison**: Compare logs from different runs without manual separation
+- **Simplified auditing**: Collect and archive logs per execution for debugging and compliance
+- **Better maintainability**: Standard library FileHandler is well-tested and widely understood
+
+---
+
+### Migration / Compatibility
+
+#### Result Type Pattern
+- **Backward Compatible**: All original exception-based functions remain unchanged
+- **Gradual Migration**: Both patterns (exception-based and Result-based) can coexist
+- **Delegation Pattern**: Original functions delegate to `*_result()` versions internally
+- **Type Safety**: Use `isinstance(result, Failure)` for type-safe error checking
+- **Error Preservation**: All error information (StructuredError attributes, Exception details) preserved in Failure
+
+#### Timestamped Log Filenames
+- **Log file naming change**: System logs are now written to `data/logs/rdesys_YYYYMMDD_HHMMSS.log` instead of `data/logs/rdesys.log`
+- **Finding logs**: Use wildcard patterns to find logs: `ls -t data/logs/rdesys_*.log | head -1` for the latest log
+- **Scripts and tools**: Update any scripts or monitoring tools that directly reference `rdesys.log` to use pattern matching with `rdesys_*.log`
+- **Log collection**: Automated log collection systems should be updated to handle multiple timestamped files instead of a single static file
+- **Old log files**: Existing `rdesys.log` files from previous versions will remain in place and are not automatically removed
+- **No configuration needed**: The new behavior is automatic; no configuration changes are required
+
+---
 
 #### Known Issues
 - Only `invoice_mode_process` has Result-based version; other mode processors will be migrated in future releases

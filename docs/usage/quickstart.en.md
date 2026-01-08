@@ -139,7 +139,7 @@ sample_project/container
 │   ├── invoice_patch
 │   ├── job.failed
 │   ├── logs
-│   │   └── rdesys.log
+│   │   └── rdesys_20260106_092845.log
 │   ├── main_image
 │   ├── meta
 │   │   └── processing_metadata.json

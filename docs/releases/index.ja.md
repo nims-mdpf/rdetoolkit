@@ -4,7 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
-| v1.5.0     | 未リリース | Resultパターンによる明示的エラーハンドリング | [v1.5.0](#v150-未リリース) |
+| v1.5.0     | TBD        | タイムスタンプ付きシステムログファイル名 | [v1.5.0](#v150-tbd) |
 | v1.4.3     | 2025-12-25 | SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整 | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2     | 2025-12-18 | Invoice overwrite検証 / Excelインボイス統合 / csv2graph単一系列自動判定 / MultiDataTile空入力実行 | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1     | 2025-11-05 | SmartTable行CSVアクセサ / 旧`rawfiles`フォールバック警告 | [v1.4.1](#v141-2025-11-05) |
@@ -19,67 +19,105 @@
 
 ## v1.5.0 (未リリース)
 
-!!! info "参照資料"
-    - 対応Issue: [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334)
+!!! info "参照"
+    - 主な課題: [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334), [#341](https://github.com/nims-mdpf/rdetoolkit/issues/341)
 
 #### ハイライト
-- Resultパターン（`Result[T, E]`）を導入し、例外を使わない型安全な明示的エラーハンドリングを実現
-- 関数型プログラミングパターン（map、unwrap）を持つ`Success[T]`と`Failure[E]`型を追加
-- 主要なワークフロー・モード処理関数のResult版を提供し、段階的移行を可能に
+- 例外を使用しない明示的で型安全なエラーハンドリングのためのResult型パターン(`Result[T, E]`)を導入
+- システムログファイル名が静的な`rdesys.log`からタイムスタンプ付き(`rdesys_YYYYMMDD_HHMMSS.log`)に変更され、実行ごとのログ管理が可能になり、並行実行や連続実行時のログ衝突を防止
 
-#### 追加機能 / 改善
-- **新規Resultモジュール** (`rdetoolkit.result`):
-  - `Success[T]`: 成功結果を表す値を持つイミュータブルなfrozen dataclass
-  - `Failure[E]`: 失敗結果を表すエラーを持つイミュータブルなfrozen dataclass
+---
+
+### Result型パターン (Issue #334)
+
+#### 機能強化
+- **新しいResultモジュール** (`rdetoolkit.result`):
+  - `Success[T]`: 値を持つ成功結果のためのイミュータブルなfrozen dataclass
+  - `Failure[E]`: エラーを持つ失敗結果のためのイミュータブルなfrozen dataclass
   - `Result[T, E]`: `Success[T] | Failure[E]`の型エイリアス
-  - `try_result` デコレーター: 例外ベース関数をResult返却関数に変換
-  - `TypeVar`と`ParamSpec`による完全なジェネリック型サポート
+  - `try_result`デコレータ: 例外ベースの関数をResult返却関数に変換
+  - `TypeVar`と`ParamSpec`による完全なジェネリック型サポートで型安全性を実現
   - 関数型メソッド: `is_success()`, `map()`, `unwrap()`
-- **Resultベースワークフロー関数**:
-  - `check_files_result()`: 明示的Result型によるファイル分類
-  - 戻り値: `Result[tuple[RawFiles, Path | None, Path | None], StructuredError]`
-- **Resultベースモード処理関数**:
+- **Resultベースのワークフロー関数**:
+  - `check_files_result()`: 明示的なResult型によるファイル分類
+  - `Result[tuple[RawFiles, Path | None, Path | None], StructuredError]`を返却
+- **Resultベースのモード処理関数**:
   - `invoice_mode_process_result()`: Result型によるインボイス処理
-  - 戻り値: `Result[WorkflowExecutionStatus, Exception]`
-- **型スタブ**: IDEの自動補完と型チェック用の完全な`.pyi`ファイル
-- **ドキュメント**: 英語・日本語の包括的APIドキュメント（`docs/api/result.en.md`, `docs/api/result.ja.md`）
-- **パブリックAPI**: `rdetoolkit.__init__.py`からResult型をエクスポートし、簡単にインポート可能
-- **100%テストカバレッジ**: Resultモジュール用の40個の包括的ユニットテスト
-
-#### 移行 / 互換性
-- **後方互換**: 元の例外ベース関数はすべて変更なし
-- **段階的移行**: 例外ベースとResultベースの両パターンが共存可能
-- **デリゲーションパターン**: 元の関数は内部で`*_result()`版に委譲
-- **型安全性**: `isinstance(result, Failure)`による型安全なエラーチェック
-- **エラー情報保持**: すべてのエラー情報（StructuredError属性、Exception詳細）をFailureに保持
+  - `Result[WorkflowExecutionStatus, Exception]`を返却
+- **型スタブ**: IDE自動補完と型チェックのための完全な`.pyi`ファイル
+- **ドキュメント**: 英語と日本語の包括的なAPIドキュメント(`docs/api/result.en.md`, `docs/api/result.ja.md`)
+- **公開API**: `rdetoolkit.__init__.py`からResult型をエクスポートし、簡単にインポート可能
+- **100%テストカバレッジ**: Resultモジュールの包括的な40ユニットテスト
 
 #### 使用例
 
-**Resultベースエラーハンドリング:**
+**Resultベースのエラーハンドリング:**
 ```python
 from rdetoolkit.workflows import check_files_result
 
 result = check_files_result(srcpaths, mode="invoice")
 if result.is_success():
     raw_files, excel_path, smarttable_path = result.unwrap()
-    # ファイルを処理
+    # ファイル処理
 else:
     error = result.error
-    print(f"エラー {error.ecode}: {error.emsg}")
+    print(f"Error {error.ecode}: {error.emsg}")
 ```
 
-**従来の例外ベース（引き続き動作）:**
+**従来の例外ベース (引き続き動作):**
 ```python
 from rdetoolkit.workflows import check_files
 
 try:
     raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="invoice")
 except StructuredError as e:
-    print(f"エラー {e.ecode}: {e.emsg}")
+    print(f"Error {e.ecode}: {e.emsg}")
 ```
 
+---
+
+### タイムスタンプ付きログファイル名 (Issue #341)
+
+#### 機能強化
+- ファイルシステムセーフなタイムスタンプ文字列を生成する`generate_log_timestamp()`ユーティリティ関数を追加
+- 各ワークフロー実行でユニークなタイムスタンプ付きログファイルを生成するように`workflows.run()`を変更
+- P2バグを修正: 同一プロセス内で`run()`を複数回呼び出した際のハンドラ蓄積問題
+  - 根本原因: Loggerシングルトンが異なるファイル名の古いLazyFileHandlerを保持
+  - 解決策: 新しいハンドラを追加する前に既存のLazyFileHandlerをクリア
+  - 影響: 1実行=1ログファイルを保証し、ログのクロスコンタミネーションを防止
+- 保守性向上のためカスタム`LazyFileHandler`を標準の`logging.FileHandler(delay=True)`に置き換え
+- 新しいタイムスタンプ付きログファイル名パターンを参照するようにすべてのドキュメントを更新
+
+#### 利点
+- **実行ごとの分離**: 各ワークフロー実行が個別のログファイルを作成し、ログの混在を防止
+- **並行実行**: 複数のワークフローを同時実行してもログが衝突しない
+- **比較が容易**: 手動で分離することなく、異なる実行のログを比較可能
+- **監査の簡素化**: デバッグやコンプライアンスのために実行ごとのログを収集・アーカイブ
+- **保守性の向上**: 標準ライブラリのFileHandlerは十分にテストされ、広く理解されている
+
+---
+
+### 移行 / 互換性
+
+#### Result型パターン
+- **後方互換性**: すべての元の例外ベース関数は変更なし
+- **段階的な移行**: 両方のパターン(例外ベースとResultベース)が共存可能
+- **委譲パターン**: 元の関数は内部的に`*_result()`バージョンに委譲
+- **型安全性**: `isinstance(result, Failure)`を使用した型安全なエラーチェック
+- **エラー情報の保持**: すべてのエラー情報(StructuredError属性、Exception詳細)がFailureに保持
+
+#### タイムスタンプ付きログファイル名
+- **ログファイル名の変更**: システムログは`data/logs/rdesys.log`ではなく`data/logs/rdesys_YYYYMMDD_HHMMSS.log`に書き込まれます
+- **ログの検索**: ワイルドカードパターンを使用してログを検索：`ls -t data/logs/rdesys_*.log | head -1`で最新のログを確認
+- **スクリプトとツール**: `rdesys.log`を直接参照するスクリプトや監視ツールを、`rdesys_*.log`のパターンマッチングを使用するように更新してください
+- **ログ収集**: 自動ログ収集システムは、単一の静的ファイルではなく、複数のタイムスタンプ付きファイルを処理するように更新が必要です
+- **古いログファイル**: 以前のバージョンからの既存の`rdesys.log`ファイルはそのまま残り、自動的には削除されません
+- **設定不要**: 新しい動作は自動的に適用され、設定変更は必要ありません
+
+---
+
 #### 既知の問題
-- `invoice_mode_process`のみがResultベース版を持ち、他のモード処理関数は今後のリリースで移行予定
+- `invoice_mode_process`のみがResultベースバージョンを持ちます。他のモードプロセッサは将来のリリースで移行される予定です
 
 ---
 
