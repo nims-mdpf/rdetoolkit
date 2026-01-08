@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 from logging import DEBUG, INFO, FileHandler, Formatter, Handler, Logger, NullHandler, StreamHandler, getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
@@ -9,63 +10,43 @@ from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from rdetoolkit.models.rde2types import RdeFsPath
 
+__all__ = ['get_logger', 'CustomLog', 'log_decorator', 'generate_log_timestamp']
 
-class LazyFileHandler(logging.Handler):
-    """A logging handler that lazily creates the actual FileHandler when needed.
 
-    This handler delays the creation of the log file until the first log message is emitted.
-    This helps prevent unnecessary file creation when logging is configured but not used.
+def generate_log_timestamp() -> str:
+    """Generate a filesystem-safe timestamp string for log filenames.
+
+    Returns a timestamp string in the format YYYYMMDD_HHMMSS that can be
+    safely used in filenames across different operating systems.
+
+    Returns:
+        str: Timestamp string in format YYYYMMDD_HHMMSS (e.g., "20260106_092845")
+
+    Example:
+        >>> timestamp = generate_log_timestamp()
+        >>> timestamp  # doctest: +SKIP
+        '20260106_092845'
+    """
+    return datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
+
+
+def _ensure_log_directory(file_path: str) -> None:
+    """Ensure the directory for the log file exists.
 
     Args:
-        filename: The path to the log file.
-        mode: The file opening mode. Defaults to 'a' (append).
-        encoding: The encoding to use for the file. Defaults to None.
-
-    Attributes:
-        filename: The path where the log file will be created.
-        mode: The file opening mode.
-        encoding: The file encoding.
-        _handler: The underlying FileHandler instance, created on first use.
+        file_path: Path to the log file.
     """
-
-    def __init__(self, filename: str, mode: str = "a", encoding: str = 'utf-8') -> None:
-        super().__init__()
-        self.filename = filename
-        self.mode = mode
-        self.encoding = encoding
-        self._handler: logging.FileHandler | None = None
-
-    def _ensure_handler(self) -> None:
-        """Creates the actual FileHandler if it hasn't been created yet.
-
-        This method handles the lazy initialization of the FileHandler,
-        creating necessary directories and configuring the handler with
-        the formatter and level settings from the parent handler.
-        """
-        if self._handler is None:
-            if not os.path.exists(os.path.dirname(self.filename)):
-                os.makedirs(os.path.dirname(self.filename), exist_ok=True)
-            self._handler = logging.FileHandler(self.filename, mode=self.mode, encoding=self.encoding)
-            self._handler.setFormatter(self.formatter)
-            self._handler.setLevel(self.level)
-
-    def emit(self, record: logging.LogRecord) -> None:
-        """Lazily creates the actual FileHandler and delegates the emission of the log record.
-
-        Args:
-            record: The LogRecord instance containing all the information of the logging event.
-        """
-        self._ensure_handler()
-        if self._handler is not None:
-            self._handler.emit(record)
+    log_dir = os.path.dirname(file_path)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir, exist_ok=True)
 
 
 def get_logger(name: str, *, file_path: RdeFsPath | None = None, level: int = logging.DEBUG) -> logging.Logger:
     """Creates and configures a logger using Python's built-in logging module.
 
     This function creates a logger identified by `name`, sets its logging level, and, if a file
-    path is provided, adds a lazy file handler to output log messages to that file. The default
-    logging level is DEBUG, but it can be modified via the `level` parameter.
+    path is provided, adds a file handler with lazy file creation to output log messages to that file.
+    The default logging level is DEBUG, but it can be modified via the `level` parameter.
 
     Args:
         name (str): The name of the logger (typically the module name, e.g. __name__).
@@ -98,17 +79,20 @@ def get_logger(name: str, *, file_path: RdeFsPath | None = None, level: int = lo
     if file_path is None:
         return logger
 
-    file_handler = LazyFileHandler(str(file_path))
+    # Ensure log directory exists before creating FileHandler
+    _ensure_log_directory(str(file_path))
+
+    # Use standard FileHandler with delay=True for lazy file creation
+    file_handler = logging.FileHandler(str(file_path), mode='a', encoding='utf-8', delay=True)
     file_handler.setLevel(level)
     file_handler.setFormatter(formatter)
 
-    # Prevent duplicate handler registration by checking if a LazyFileHandler
-    # with the same file path already exists. This is important because:
-    # 1. Multiple calls to get_logger() could add duplicate handlers.
-    # 2. Duplicate handlers would cause log messages to be written multiple times
-    # 3. Each duplicate handler would consume additional system resources
-    if not any(isinstance(handler, LazyFileHandler) and handler.filename == str(file_path) for handler in logger.handlers):
-        logger.addHandler(file_handler)
+    # Remove any existing FileHandlers to prevent accumulation when
+    # run() is called multiple times in the same process. This ensures
+    # exactly one log file per execution.
+    logger.handlers = [h for h in logger.handlers if not isinstance(h, logging.FileHandler)]
+
+    logger.addHandler(file_handler)
 
     return logger
 

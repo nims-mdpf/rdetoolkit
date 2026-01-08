@@ -63,7 +63,7 @@ data/
 ├── invoice/
 │   └── invoice.json
 ├── logs/
-│   └── rdesys.log
+│   └── rdesys_20260106_092845.log
 ├── main_image/
 │   └── chart.png
 ├── meta/
@@ -190,7 +190,7 @@ print(divided_files)
 |-----------|-------------------|---------|
 | **Metadata** | `metadata.json` | `data/meta/metadata.json` |
 | **Invoice** | `invoice.json` | `data/invoice/invoice.json` |
-| **Logs** | `rdesys.log` | `data/logs/rdesys.log` |
+| **Logs** | `rdesys_YYYYMMDD_HHMMSS.log` | `data/logs/rdesys_20260106_092845.log` |
 | **Schema** | `*.schema.json` | `invoice.schema.json` |
 | **Configuration** | `rdeconfig.yaml` | `rdeconfig.yaml` |
 

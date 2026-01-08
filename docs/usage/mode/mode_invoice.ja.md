@@ -49,7 +49,7 @@ data
 │   └── invoice.json
 ├── invoice_patch
 ├── logs
-│   └── rdesys.log
+│   └── rdesys_20260106_092845.log
 ├── main_image
 │   └── 20250101.png
 ├── meta

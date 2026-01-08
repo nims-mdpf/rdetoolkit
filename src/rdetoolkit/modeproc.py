@@ -21,7 +21,7 @@ from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.result import Result, Success, Failure
 
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 def rdeformat_mode_process_result(

@@ -67,7 +67,7 @@ RDE構造化処理でサポートされるディレクトリ構造の詳細仕�
 │   ├── invoice
 │   │   └── invoice.json
 │   ├── logs
-│   │   └── rdesys.log
+│   │   └── rdesys_20260106_092845.log
 │   ├── main_image
 │   │   └── iamge0.png
 │   ├── meta

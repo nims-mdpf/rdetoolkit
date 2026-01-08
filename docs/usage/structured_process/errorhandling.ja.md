@@ -156,6 +156,34 @@ def dataset_with_decorator(srcpaths, resource_paths):
 
 ### 5. ログを活用したデバッグ
 
+#### ログファイル名について
+
+RDEToolKitは、異なるワークフロー実行を区別するためにタイムスタンプ付きのログファイル名を使用します：
+
+- **形式**: `rdesys_YYYYMMDD_HHMMSS.log`
+- **例**: `rdesys_20260106_092845.log` (2026年1月6日 09:28:45に開始された実行)
+- **場所**: `data/logs/` ディレクトリ
+
+**タイムスタンプ付きログの利点**:
+
+- 各ワークフロー実行が個別のログファイルを作成
+- 並行実行または連続実行間でログの衝突がない
+- 異なる実行のログを簡単に比較可能
+- デバッグや監査のための実行ごとのログ収集が簡単
+
+**ログの見つけ方**:
+
+```shell title="最新のログファイルを見つける"
+# すべてのログファイルを更新時刻順に一覧表示（新しい順）
+ls -lt data/logs/rdesys_*.log
+
+# 最新のログファイルを表示
+ls -t data/logs/rdesys_*.log | head -1 | xargs less
+
+# すべてのログから特定のエラーを検索
+grep -i "error" data/logs/rdesys_*.log
+```
+
 #### 詳細ログの設定
 
 ```python title="ログ設定"
@@ -214,14 +242,17 @@ def check_error_file():
 ### ログファイルの確認
 
 ```shell title="ログ確認コマンド"
-# 最新のログエントリを確認
-tail -n 20 data/logs/rdesys.log
+# 最新のログエントリを確認（最新のログファイルを見つける）
+tail -n 20 data/logs/rdesys_*.log | tail -n 20
 
-# エラーメッセージを検索
-grep -i "error" data/logs/rdesys.log
+# または最新のログファイルを特定して確認
+ls -t data/logs/rdesys_*.log | head -1 | xargs tail -n 20
 
-# 警告メッセージを検索
-grep -i "warning" data/logs/rdesys.log
+# 最新のログでエラーメッセージを検索
+ls -t data/logs/rdesys_*.log | head -1 | xargs grep -i "error"
+
+# すべてのログで警告メッセージを検索
+grep -i "warning" data/logs/rdesys_*.log
 ```
 
 ## トラブルシューティングチェックリスト

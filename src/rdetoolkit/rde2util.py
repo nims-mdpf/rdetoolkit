@@ -10,6 +10,7 @@ import warnings
 import zipfile
 from copy import deepcopy
 from typing import Any, Callable, Final, Optional, TypedDict, cast
+from typing_extensions import TypeAlias
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
@@ -742,7 +743,7 @@ class ValueCaster:
 
 
 # Type handler functions for castval dispatch table
-TypeCaster = Callable[[Any, Optional[str]], Any]
+TypeCaster: TypeAlias = Callable[[Any, Optional[str]], Any]
 
 
 def _cast_boolean(valstr: Any, outfmt: str | None) -> bool:

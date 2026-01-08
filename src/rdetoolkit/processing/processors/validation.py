@@ -7,7 +7,7 @@ from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.validation import invoice_validate, metadata_validate
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class MetadataValidator(Processor):
