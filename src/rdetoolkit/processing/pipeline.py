@@ -11,7 +11,7 @@ from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.exceptions import SkipRemainingProcessorsError, StructuredError
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class Processor(ABC):

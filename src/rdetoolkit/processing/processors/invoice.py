@@ -14,7 +14,7 @@ from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
 from rdetoolkit.rde2util import castval
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class StandardInvoiceInitializer(Processor):
