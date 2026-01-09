@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import importlib
 from types import ModuleType
-from typing import Any
+from typing import Any, Optional
 
 import typer
 import click
@@ -14,7 +14,7 @@ from . import app as app_module
 class _LazyModuleProxy:
     def __init__(self, module_name: str) -> None:
         self._module_name = module_name
-        self._module: ModuleType | None = None
+        self._module: Optional[ModuleType] = None
 
     def _load(self) -> ModuleType:
         if self._module is None:

@@ -6,7 +6,7 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-
+from typing import Optional, Union
 
 from rdetoolkit.validation import InvoiceValidator, MetadataValidator
 
@@ -248,7 +248,7 @@ def _parse_validation_errors(error_message: str) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
     lines = error_message.split("\n")
-    current_error: dict[str, str] | None = None
+    current_error: Optional[dict[str, str]] = None
 
     for raw_line in lines:
         line = raw_line.strip()
@@ -558,7 +558,7 @@ class DiscoveredFile:
 
     path: Path
     file_type: str
-    schema_path: Path | None = None
+    schema_path: Optional[Path] = None
     exists: bool = True
 
 
@@ -578,7 +578,7 @@ class ValidateAllCommand:
     - input/metadata/metadata.json (with schema discovery, optional)
     """
 
-    def __init__(self, project_dir: str | Path | None = None) -> None:
+    def __init__(self, project_dir: Union[str, Path, None] = None) -> None:
         """Initialize validate-all command.
 
         Args:
@@ -790,7 +790,7 @@ class ValidateAllCommand:
 
         return discovered
 
-    def _find_schema(self, container_path: Path, template_path: Path) -> Path | None:
+    def _find_schema(self, container_path: Path, template_path: Path) -> Optional[Path]:
         """Find schema file, preferring container over template.
 
         Args:

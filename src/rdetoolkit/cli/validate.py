@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, Optional
 
 import typer
 
@@ -305,7 +305,7 @@ def metadata(
 @app.command("all")
 def validate_all(
     project_dir: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Argument(
             help="Root directory of RDE project (defaults to current directory)",
             exists=True,

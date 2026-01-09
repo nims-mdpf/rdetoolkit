@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import pathlib
 from datetime import datetime
+from typing import Optional
 from uuid import uuid4
 
 import pytz
@@ -21,7 +22,7 @@ class CreateArtifactCommand:
     MARK_SCAN = "🔍"
     MARK_ARCHIVE = "📦"
 
-    def __init__(self, source_dir: pathlib.Path, *, output_archive_path: pathlib.Path | None = None, exclude_patterns: list[str] | None = None) -> None:
+    def __init__(self, source_dir: pathlib.Path, *, output_archive_path: Optional[pathlib.Path] = None, exclude_patterns: Optional[list[str]] = None) -> None:
         self.source_dir = source_dir
         if output_archive_path is None:
             default_zip_filename = f"{datetime.now(tz=pytz.UTC).strftime('%Y%m%d')}_{uuid4().hex}_rde_artifact.zip"
@@ -66,7 +67,7 @@ class CreateArtifactCommand:
             typer.echo(typer.style(f"{self.MARK_ERROR} Error: {e}", fg=typer.colors.RED))
             raise typer.Abort from e
 
-    def _check_file(self, target_filename: str, *, logo: str | None = None) -> str:
+    def _check_file(self, target_filename: str, *, logo: Optional[str] = None) -> str:
         _result = f"{target_filename} not found"
         result_message = f"{logo} {target_filename}" if logo else target_filename
         _target_path = None
@@ -94,7 +95,7 @@ class CreateArtifactCommand:
             raise typer.Abort
         return output_archive_ext.lstrip(".")
 
-    def _archive_target_dir(self, fmt: str) -> list[pathlib.Path] | None:
+    def _archive_target_dir(self, fmt: str) -> Optional[list[pathlib.Path]]:
         result_dirs = []
         try:
             archiver = get_artifact_archiver(fmt, self.source_dir, self.exclude_patterns)

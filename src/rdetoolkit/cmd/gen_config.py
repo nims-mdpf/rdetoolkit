@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional, Union
 
 import typer
 
@@ -274,7 +274,7 @@ class GenerateConfigCommand:
         return "true" if value else "false"
 
     @staticmethod
-    def _extended_mode_to_yaml(value: str | None) -> str:
+    def _extended_mode_to_yaml(value: Optional[str]) -> str:
         if value is None:
             return "null"
         return f'"{value}"'

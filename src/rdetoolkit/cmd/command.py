@@ -6,7 +6,7 @@ import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 import typer
 import yaml
@@ -29,11 +29,11 @@ class InitTemplateError(RuntimeError):
 
 @dataclass(**_DATACLASS_KWARGS)
 class InitTemplateConfig:
-    entry_point: Path | None = None
-    modules: Path | None = None
-    tasksupport: Path | None = None
-    inputdata: Path | None = None
-    other: list[Path] | None = None
+    entry_point: Optional[Path] = None
+    modules: Optional[Path] = None
+    tasksupport: Optional[Path] = None
+    inputdata: Optional[Path] = None
+    other: Optional[list[Path]] = None
 
     def has_templates(self) -> bool:
         """Return True if any template path is defined."""
@@ -157,8 +157,8 @@ class InitTemplateLoader:
         *,
         allow_file: bool,
         allow_dir: bool,
-        required_description: str | None = None,
-    ) -> Path | None:
+        required_description: Optional[str] = None,
+    ) -> Optional[Path]:
         raw_value = section.get(key)
         if raw_value is None:
             return None
@@ -193,7 +193,7 @@ class InitTemplateLoader:
         *,
         allow_file: bool,
         allow_dir: bool,
-    ) -> list[Path] | None:
+    ) -> Optional[list[Path]]:
         raw_value = section.get(key)
         if raw_value is None:
             return None
@@ -245,8 +245,8 @@ class InitCommand:
 
     def __init__(
         self,
-        template_path: Path | None = None,
-        cli_template_config: InitTemplateConfig | None = None,
+        template_path: Optional[Path] = None,
+        cli_template_config: Optional[InitTemplateConfig] = None,
     ) -> None:
         self.template_path = template_path
         self.cli_template_config = cli_template_config
@@ -310,7 +310,7 @@ class InitCommand:
             self._error_msg("Failed to create files required for structured RDE programs.")
             raise typer.Abort from e
 
-    def __load_template_config(self) -> InitTemplateConfig | None:
+    def __load_template_config(self) -> Optional[InitTemplateConfig]:
         if self.template_path is None:
             return None
         loader = InitTemplateLoader(self.template_path)
@@ -389,9 +389,9 @@ class InitCommand:
 
     def __merge_template_configs(
         self,
-        base: InitTemplateConfig | None,
-        override: InitTemplateConfig | None,
-    ) -> InitTemplateConfig | None:
+        base: Optional[InitTemplateConfig],
+        override: Optional[InitTemplateConfig],
+    ) -> Optional[InitTemplateConfig]:
         if override is None or not override.has_templates():
             return base
         merged = base or InitTemplateConfig()
