@@ -149,3 +149,50 @@ container/
         ├── metadata-def.json
         └── invoice.schema.json
 ```
+
+### Validating RDE Files
+
+RDEToolKit provides validation commands to verify the structure and correctness of your RDE project files. These commands help catch configuration errors early and can be integrated into CI/CD pipelines.
+
+#### Validate Invoice Schema
+
+```bash
+rdetoolkit validate invoice-schema data/tasksupport/invoice.schema.json
+```
+
+#### Validate Invoice Data
+
+```bash
+rdetoolkit validate invoice data/invoice/invoice.json \
+  --schema data/tasksupport/invoice.schema.json
+```
+
+#### Validate Metadata Definition
+
+```bash
+rdetoolkit validate metadata-def data/tasksupport/metadata-def.json
+```
+
+#### Validate Metadata Data
+
+```bash
+rdetoolkit validate metadata data/metadata.json \
+  --schema data/tasksupport/metadata-def.json
+```
+
+#### Batch Validation
+
+Validate all standard files in your project at once:
+
+```bash
+# Validate all files in current directory
+rdetoolkit validate all
+
+# Validate all files in specific project
+rdetoolkit validate all /path/to/project
+
+# Use JSON output for CI/CD integration
+rdetoolkit validate all --format json
+```
+
+For more details, see the [validation documentation](https://nims-mdpf.github.io/rdetoolkit/rdetoolkit/cmd/validate/).

@@ -146,3 +146,50 @@ container/
         ├── metadata-def.json
         └── invoice.schema.json
 ```
+
+### RDEファイルのバリデーション
+
+RDEToolKitは、プロジェクトファイルの構造と正確性を検証するバリデーションコマンドを提供しています。これらのコマンドは、設定エラーを早期に発見し、CI/CDパイプラインに統合できます。
+
+#### インボイススキーマの検証
+
+```bash
+rdetoolkit validate invoice-schema data/tasksupport/invoice.schema.json
+```
+
+#### インボイスデータの検証
+
+```bash
+rdetoolkit validate invoice data/invoice/invoice.json \
+  --schema data/tasksupport/invoice.schema.json
+```
+
+#### メタデータ定義の検証
+
+```bash
+rdetoolkit validate metadata-def data/tasksupport/metadata-def.json
+```
+
+#### メタデータデータの検証
+
+```bash
+rdetoolkit validate metadata data/metadata.json \
+  --schema data/tasksupport/metadata-def.json
+```
+
+#### 一括検証
+
+プロジェクト内の全ての標準ファイルを一度に検証:
+
+```bash
+# カレントディレクトリの全ファイルを検証
+rdetoolkit validate all
+
+# 特定のプロジェクトの全ファイルを検証
+rdetoolkit validate all /path/to/project
+
+# CI/CD統合用にJSON形式で出力
+rdetoolkit validate all --format json
+```
+
+詳細については、[バリデーションドキュメント](https://nims-mdpf.github.io/rdetoolkit/rdetoolkit/cmd/validate/)を参照してください。

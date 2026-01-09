@@ -537,3 +537,15 @@ def csv2graph(
         max_legend_items=max_legend_items,
     )
     cmd.invoke()
+
+
+# Import validate commands module at end to avoid circular imports
+def _register_validate_commands() -> typer.Typer:
+    """Register validate subcommands."""
+    from rdetoolkit.cli.validate import app as validate_app_local
+
+    app.add_typer(validate_app_local, name="validate")
+    return validate_app_local
+
+
+validate_app = _register_validate_commands()
