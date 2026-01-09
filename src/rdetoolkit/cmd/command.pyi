@@ -1,4 +1,3 @@
-import click
 from _typeshed import Incomplete as Incomplete
 from pathlib import Path
 from rdetoolkit import __version__ as __version__
@@ -9,7 +8,9 @@ from typing import Any
 
 logger: Incomplete
 
-class Command(click.Command):
+class Command:
+    name: str
+    attrs: dict[str, Any]
     def __init__(self, name: str, **attrs: Any) -> None: ...
 
 class InitTemplateError(Exception): ...

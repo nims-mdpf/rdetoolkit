@@ -29,6 +29,7 @@ from pathlib import Path
 import textwrap
 
 from click.testing import CliRunner
+from click.utils import strip_ansi
 import pytest
 
 from rdetoolkit.cli import init
@@ -233,4 +234,5 @@ def test_init_templates_rejects_inputdata_file__tc_ep_init_007(cli_runner: CliRu
 
         # Then: the CLI rejects the file path
         assert result.exit_code != 0
-        assert "Invalid value for '--inputdata'" in result.output
+        output = strip_ansi(result.output)
+        assert "Invalid value for '--inputdata'" in output

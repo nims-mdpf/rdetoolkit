@@ -287,6 +287,86 @@ def insecure():
     - If `--output-archive` is not specified, an archive will be created with a default filename.
     - The `--exclude` option can be specified multiple times (e.g., `--exclude venv --exclude .git`).
 
+## Shell Completion
+
+Shell completion functionality is available to help complete command and option names. Press the Tab key to display candidate suggestions.
+
+### Supported Shells
+
+- Bash
+- Zsh
+- Fish
+- PowerShell
+
+### Installation
+
+Use the `--install-completion` option to install completion for your current shell:
+
+```bash
+python -m rdetoolkit --install-completion
+```
+
+After execution, restart your shell to enable the completion feature.
+
+```bash
+# Restart shell
+exec $SHELL
+```
+
+### Manual Installation
+
+To review the completion script before installing manually, use the `--show-completion` option:
+
+```bash
+python -m rdetoolkit --show-completion
+```
+
+Add the displayed script to your shell configuration file.
+
+#### For Bash
+
+```bash
+python -m rdetoolkit --show-completion >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### For Zsh
+
+```bash
+python -m rdetoolkit --show-completion >> ~/.zshrc
+source ~/.zshrc
+```
+
+### Usage Examples
+
+After installing the completion feature, press the Tab key to display candidates.
+
+```bash
+# Command name completion
+python -m rdetoolkit <Tab>
+# → init, version, gen-config, etc. will be displayed
+
+# Option name completion
+python -m rdetoolkit gen-config --<Tab>
+# → --template, --overwrite, --lang, etc. will be displayed
+
+# Option value completion
+python -m rdetoolkit gen-config --template <Tab>
+# → static, interactive will be displayed
+```
+
+### Uninstallation
+
+To remove the completion feature, delete the corresponding lines from your shell configuration file.
+
+For Bash, remove lines similar to the following from `~/.bashrc`; for Zsh, from `~/.zshrc`:
+
+```bash
+eval "$(_RDETOOLKIT_COMPLETE=bash_source python -m rdetoolkit)"
+```
+
+Restart your shell after removal.
+
 ## Next Steps
 
 - Understand [Structuring Processing Concepts](../user-guide/structured-processing.en.md)
