@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import importlib.util
 import inspect
@@ -20,6 +21,8 @@ app = typer.Typer(
     help="CLI generates template projects for RDE structured programs.",
     no_args_is_help=True,
 )
+
+DEFAULT_EXCEL_INVOICE_TEMPLATE = "template_excel_invoice.xlsx"
 
 
 def validate_json_file(value: Path) -> Path:
@@ -88,8 +91,10 @@ def _load_module_from_file(path: Path) -> ModuleType:
     if not path.exists() or not path.is_file():
         emsg = f"File not found: {path}"
         raise click.ClickException(emsg)
-    module_name = f"_rdetoolkit_run_{path.stem}_{abs(hash(path))}"
-    spec = importlib.util.spec_from_file_location(module_name, path)
+    resolved_path = path.expanduser().resolve()
+    module_hash = hashlib.sha256(str(resolved_path).encode()).hexdigest()
+    module_name = f"_rdetoolkit_run_{path.stem}_{module_hash}"
+    spec = importlib.util.spec_from_file_location(module_name, resolved_path)
     if spec is None or spec.loader is None:
         emsg = f"Unable to load module from file: {path}"
         raise click.ClickException(emsg)
@@ -127,11 +132,22 @@ def _validate_target_function(func: object) -> Callable[..., object]:
     if not inspect.isfunction(func):
         emsg = "Only functions are allowed. Please specify a function."
         raise click.ClickException(emsg)
+    signature = inspect.signature(func)
+    can_bind_one = False
+    can_bind_two = False
     try:
-        inspect.signature(func).bind(1, 2)
-    except (TypeError, ValueError) as exc:
-        emsg = "The function cannot be called with two positional arguments."
-        raise click.ClickException(emsg) from exc
+        signature.bind(1)
+        can_bind_one = True
+    except (TypeError, ValueError):
+        pass
+    try:
+        signature.bind(1, 2)
+        can_bind_two = True
+    except (TypeError, ValueError):
+        pass
+    if not (can_bind_one or can_bind_two):
+        emsg = "The function must accept at least one positional argument."
+        raise click.ClickException(emsg)
     return cast(Callable[..., object], func)
 
 
@@ -322,7 +338,7 @@ def make_excelinvoice(
         typer.Option(
             "-o",
             "--output",
-            help="Path to ExcelInvoice file output (default: ./template_excel_invoice.xlsx)",
+            help=f"Path to ExcelInvoice file output (default: ./{DEFAULT_EXCEL_INVOICE_TEMPLATE})",
             exists=False,
             dir_okay=False,
             resolve_path=True,
@@ -347,7 +363,7 @@ def make_excelinvoice(
     validated_path = validate_json_file(invoice_schema_json_path)
 
     # Set default output path if not provided
-    final_output_path = output_path if output_path is not None else Path.cwd() / "template_excel_invoice.xlsx"
+    final_output_path = output_path if output_path is not None else Path.cwd() / DEFAULT_EXCEL_INVOICE_TEMPLATE
 
     # Validate mode
     if mode.lower() not in ["file", "folder"]:
