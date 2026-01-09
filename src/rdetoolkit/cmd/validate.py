@@ -220,7 +220,99 @@ def create_formatter(format_type: str, quiet: bool = False) -> OutputFormatter:
     raise ValueError(msg)
 
 
-class InvoiceSchemaCommand:
+def _build_validation_error(error_data: dict[str, str]) -> ValidationError:
+    """Build a ValidationError from parsed error data.
+
+    Args:
+        error_data: Parsed error fields from a validation error message.
+
+    Returns:
+        ValidationError instance.
+    """
+    return ValidationError(
+        field=error_data.get("field", ""),
+        error_type=error_data.get("type", ""),
+        message=error_data.get("context", ""),
+    )
+
+
+def _parse_validation_errors(error_message: str) -> list[ValidationError]:
+    """Parse validation errors from exception message.
+
+    Args:
+        error_message: Error message from validation exceptions.
+
+    Returns:
+        List of ValidationError objects.
+    """
+    errors: list[ValidationError] = []
+
+    lines = error_message.split("\n")
+    current_error: dict[str, str] | None = None
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            if current_error:
+                errors.append(_build_validation_error(current_error))
+                current_error = None
+            continue
+
+        if line[:1].isdigit() and ". Field:" in line:
+            if current_error:
+                errors.append(_build_validation_error(current_error))
+            current_error = {}
+            field = line.split("Field:", 1)[1].strip()
+            current_error["field"] = field
+        elif line.startswith("Type:") and current_error is not None:
+            current_error["type"] = line.split("Type:", 1)[1].strip()
+        elif line.startswith("Context:") and current_error is not None:
+            current_error["context"] = line.split("Context:", 1)[1].strip()
+
+    if current_error:
+        errors.append(_build_validation_error(current_error))
+
+    return errors
+
+
+class _ValidationErrorParser:
+    """Shared validation error parser for command classes."""
+
+    def _parse_validation_errors(self, error_message: str) -> list[ValidationError]:
+        """Parse validation errors from exception message.
+
+        Args:
+            error_message: Error message from validation exceptions.
+
+        Returns:
+            List of ValidationError objects.
+        """
+        return _parse_validation_errors(error_message)
+
+    def _parse_validation_exception(self, exc: Exception) -> list[ValidationError]:
+        """Parse validation errors from an exception, with fallback.
+
+        Args:
+            exc: Validation exception to parse.
+
+        Returns:
+            List of ValidationError objects.
+        """
+        errors = self._parse_validation_errors(str(exc))
+        if errors:
+            return errors
+
+        message = str(exc) or f"Validation failed with {type(exc).__name__}."
+        return [
+            ValidationError(
+                field="",
+                error_type=type(exc).__name__,
+                message=message,
+            ),
+        ]
+
+
+class InvoiceSchemaCommand(_ValidationErrorParser):
     """Command to validate invoice schema JSON files.
 
     This command validates the structure and content of invoice.schema.json
@@ -259,7 +351,7 @@ class InvoiceSchemaCommand:
         except Exception as e:
             # Parse validation errors from exception message
             # InvoiceValidator raises InvoiceSchemaValidationError with structured messages
-            errors = self._parse_validation_errors(str(e))
+            errors = self._parse_validation_exception(e)
 
         is_valid = len(errors) == 0
 
@@ -270,72 +362,8 @@ class InvoiceSchemaCommand:
             warnings=warnings,
         )
 
-    def _parse_validation_errors(self, error_message: str) -> list[ValidationError]:
-        """Parse validation errors from exception message.
 
-        Args:
-            error_message: Error message from InvoiceValidator
-
-        Returns:
-            List of ValidationError objects
-        """
-        errors: list[ValidationError] = []
-
-        # InvoiceSchemaValidationError messages have structure:
-        # "Validation Errors in invoice.schema.json. Please correct the following fields\n"
-        # "1. Field: path.to.field\n"
-        # "   Type: error_type\n"
-        # "   Context: error_message\n"
-
-        lines = error_message.split("\n")
-        current_error: dict | None = None
-
-        for raw_line in lines:
-            line = raw_line.strip()
-            if not line:
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                    current_error = None
-                continue
-
-            if line[0].isdigit() and ". Field:" in line:
-                # New error entry
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                current_error = {}
-                field = line.split("Field:", 1)[1].strip()
-                current_error["field"] = field
-            elif line.startswith("Type:") and current_error is not None:
-                current_error["type"] = line.split("Type:", 1)[1].strip()
-            elif line.startswith("Context:") and current_error is not None:
-                current_error["context"] = line.split("Context:", 1)[1].strip()
-
-        # Add last error if exists
-        if current_error:
-            errors.append(
-                ValidationError(
-                    field=current_error.get("field", ""),
-                    error_type=current_error.get("type", ""),
-                    message=current_error.get("context", ""),
-                ),
-            )
-
-        return errors
-
-
-class InvoiceCommand:
+class InvoiceCommand(_ValidationErrorParser):
     """Command to validate invoice data files against schema.
 
     This command validates invoice.json files using the InvoiceValidator
@@ -384,7 +412,7 @@ class InvoiceCommand:
 
         except Exception as e:
             # Parse validation errors from exception message
-            errors = self._parse_validation_errors(str(e))
+            errors = self._parse_validation_exception(e)
 
         is_valid = len(errors) == 0
 
@@ -395,72 +423,8 @@ class InvoiceCommand:
             warnings=warnings,
         )
 
-    def _parse_validation_errors(self, error_message: str) -> list[ValidationError]:
-        """Parse validation errors from exception message.
 
-        Args:
-            error_message: Error message from InvoiceValidator
-
-        Returns:
-            List of ValidationError objects
-        """
-        errors: list[ValidationError] = []
-
-        # InvoiceSchemaValidationError messages have structure:
-        # "Error in validating invoice.json:\n"
-        # "1. Field: path.to.field\n"
-        # "   Type: error_type\n"
-        # "   Context: error_message\n"
-
-        lines = error_message.split("\n")
-        current_error: dict | None = None
-
-        for raw_line in lines:
-            line = raw_line.strip()
-            if not line:
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                    current_error = None
-                continue
-
-            if line[0].isdigit() and ". Field:" in line:
-                # New error entry
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                current_error = {}
-                field = line.split("Field:", 1)[1].strip()
-                current_error["field"] = field
-            elif line.startswith("Type:") and current_error is not None:
-                current_error["type"] = line.split("Type:", 1)[1].strip()
-            elif line.startswith("Context:") and current_error is not None:
-                current_error["context"] = line.split("Context:", 1)[1].strip()
-
-        # Add last error if exists
-        if current_error:
-            errors.append(
-                ValidationError(
-                    field=current_error.get("field", ""),
-                    error_type=current_error.get("type", ""),
-                    message=current_error.get("context", ""),
-                ),
-            )
-
-        return errors
-
-
-class MetadataDefCommand:
+class MetadataDefCommand(_ValidationErrorParser):
     """Command to validate metadata definition JSON files.
 
     This command validates metadata definition files using the
@@ -502,7 +466,7 @@ class MetadataDefCommand:
 
         except Exception as e:
             # Parse validation errors from exception message
-            errors = self._parse_validation_errors(str(e))
+            errors = self._parse_validation_exception(e)
 
         is_valid = len(errors) == 0
 
@@ -513,72 +477,8 @@ class MetadataDefCommand:
             warnings=warnings,
         )
 
-    def _parse_validation_errors(self, error_message: str) -> list[ValidationError]:
-        """Parse validation errors from exception message.
 
-        Args:
-            error_message: Error message from MetadataValidator
-
-        Returns:
-            List of ValidationError objects
-        """
-        errors: list[ValidationError] = []
-
-        # MetadataValidationError messages have structure similar to invoice:
-        # "Validation Errors in metadata.json. Please correct the following fields\n"
-        # "1. Field: path.to.field\n"
-        # "   Type: error_type\n"
-        # "   Context: error_message\n"
-
-        lines = error_message.split("\n")
-        current_error: dict | None = None
-
-        for raw_line in lines:
-            line = raw_line.strip()
-            if not line:
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                    current_error = None
-                continue
-
-            if line[0].isdigit() and ". Field:" in line:
-                # New error entry
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                current_error = {}
-                field = line.split("Field:", 1)[1].strip()
-                current_error["field"] = field
-            elif line.startswith("Type:") and current_error is not None:
-                current_error["type"] = line.split("Type:", 1)[1].strip()
-            elif line.startswith("Context:") and current_error is not None:
-                current_error["context"] = line.split("Context:", 1)[1].strip()
-
-        # Add last error if exists
-        if current_error:
-            errors.append(
-                ValidationError(
-                    field=current_error.get("field", ""),
-                    error_type=current_error.get("type", ""),
-                    message=current_error.get("context", ""),
-                ),
-            )
-
-        return errors
-
-
-class MetadataCommand:
+class MetadataCommand(_ValidationErrorParser):
     """Command to validate metadata data files against definition schema.
 
     This command validates metadata.json files using the MetadataValidator
@@ -633,7 +533,7 @@ class MetadataCommand:
 
         except Exception as e:
             # Parse validation errors from exception message
-            errors = self._parse_validation_errors(str(e))
+            errors = self._parse_validation_exception(e)
 
         is_valid = len(errors) == 0
 
@@ -643,70 +543,6 @@ class MetadataCommand:
             errors=errors,
             warnings=warnings,
         )
-
-    def _parse_validation_errors(self, error_message: str) -> list[ValidationError]:
-        """Parse validation errors from exception message.
-
-        Args:
-            error_message: Error message from MetadataValidator
-
-        Returns:
-            List of ValidationError objects
-        """
-        errors: list[ValidationError] = []
-
-        # MetadataValidationError messages have structure:
-        # "Validation Errors in metadata.json. Please correct the following fields\n"
-        # "1. Field: path.to.field\n"
-        # "   Type: error_type\n"
-        # "   Context: error_message\n"
-
-        lines = error_message.split("\n")
-        current_error: dict | None = None
-
-        for raw_line in lines:
-            line = raw_line.strip()
-            if not line:
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                    current_error = None
-                continue
-
-            if line[0].isdigit() and ". Field:" in line:
-                # New error entry
-                if current_error:
-                    errors.append(
-                        ValidationError(
-                            field=current_error.get("field", ""),
-                            error_type=current_error.get("type", ""),
-                            message=current_error.get("context", ""),
-                        ),
-                    )
-                current_error = {}
-                field = line.split("Field:", 1)[1].strip()
-                current_error["field"] = field
-            elif line.startswith("Type:") and current_error is not None:
-                current_error["type"] = line.split("Type:", 1)[1].strip()
-            elif line.startswith("Context:") and current_error is not None:
-                current_error["context"] = line.split("Context:", 1)[1].strip()
-
-        # Add last error if exists
-        if current_error:
-            errors.append(
-                ValidationError(
-                    field=current_error.get("field", ""),
-                    error_type=current_error.get("type", ""),
-                    message=current_error.get("context", ""),
-                ),
-            )
-
-        return errors
 
 
 @dataclass
@@ -748,9 +584,7 @@ class ValidateAllCommand:
         Args:
             project_dir: Root directory of RDE project (defaults to current directory)
         """
-        self.project_dir = Path(project_dir) if project_dir else Path.cwd()
-        if isinstance(project_dir, str):
-            self.project_dir = Path(project_dir)
+        self.project_dir = Path.cwd() if project_dir is None else Path(project_dir)
 
     def execute(self) -> list[ValidationResult]:
         """Execute validation for all discovered files.

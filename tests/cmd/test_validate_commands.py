@@ -55,7 +55,7 @@ Boundary Value Table
 | InvoiceSchemaCommand.execute | Schema at path boundary (deep nesting) | Path handling | Correct validation | TC-BV-002 |
 | InvoiceCommand.execute | Empty invoice data | Minimum content | Validation error | TC-BV-003 |
 | MetadataDefCommand.execute | Minimal valid metadata-def | Minimum valid | is_valid=True | TC-BV-004 |
-| MetadataDefCommand.execute | Empty metadata array | Boundary case | is_valid=True | TC-BV-005 |
+| MetadataDefCommand.execute | Empty metadata array | Boundary case | is_valid=False | TC-BV-005 |
 | ValidateAllCommand.execute | Project with no RDE files | Zero files | Empty results | TC-BV-006 |
 | ValidateAllCommand.execute | Project with only schema files | Partial files | Only schema results | TC-BV-007 |
 | TextFormatter.format | Zero errors, zero warnings | Empty issues | Success message only | TC-BV-008 |
@@ -162,7 +162,7 @@ def valid_invoice_data(tmp_path: Path) -> Path:
         "basic": {
             "dateSubmitted": "2024-01-01",
             "dataOwnerId": "a" * 56,  # 56 alphanumeric characters
-            "dateName": "Test Data",
+            "dataName": "Test Data",
         },
         "datasetId": "test-dataset-001",
         "custom": {"testField": "test value"},
@@ -187,7 +187,7 @@ def invalid_invoice_data(tmp_path: Path) -> Path:
         "basic": {
             "dateSubmitted": "2024-01-01",
             "dataOwnerId": "short",  # Invalid: must be 56 alphanumeric characters
-            "dateName": "Test Data",
+            "dataName": "Test Data",
         },
         "datasetId": "test-dataset-001",
         "custom": {"testField": "test"},
@@ -208,7 +208,10 @@ def valid_metadata_def(tmp_path: Path) -> Path:
         Path to valid metadata definition file
     """
     # Given: A minimal valid metadata definition
-    metadata_def = [{"key": "author", "value": "Test Author"}]
+    metadata_def = {
+        "constant": {"author": {"value": "Test Author"}},
+        "variable": [{"temperature": {"value": 300, "unit": "K"}}],
+    }
     metadata_path = tmp_path / "metadata-def.json"
     metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
     return metadata_path
@@ -283,7 +286,10 @@ def rde_project_structure(tmp_path: Path) -> Path:
         ),
         encoding="utf-8",
     )
-    (container_tasksupport / "metadata-def.json").write_text(json.dumps([]), encoding="utf-8")
+    (container_tasksupport / "metadata-def.json").write_text(
+        json.dumps({"constant": {}, "variable": []}),
+        encoding="utf-8",
+    )
 
     # Input data
     input_invoice = project / "input" / "invoice"
@@ -294,7 +300,7 @@ def rde_project_structure(tmp_path: Path) -> Path:
                 "basic": {
                     "dateSubmitted": "2024-01-01",
                     "dataOwnerId": "a" * 56,
-                    "dateName": "Test",
+                    "dataName": "Test",
                 },
                 "datasetId": "test-001",
                 "custom": {},
@@ -338,8 +344,7 @@ def test_invoice_schema_malformed_json__tc_ep_002(invalid_invoice_schema_malform
 
     Given: A malformed JSON file (invalid syntax)
     When: Executing InvoiceSchemaCommand
-    Then: StructuredError is caught and error is logged, but result shows valid
-          (because error parsing doesn't match expected format)
+    Then: Validation fails with errors
 
     Test ID: TC-EP-002
     """
@@ -347,15 +352,11 @@ def test_invoice_schema_malformed_json__tc_ep_002(invalid_invoice_schema_malform
     command = InvoiceSchemaCommand(invalid_invoice_schema_malformed)
 
     # Act
-    # Malformed JSON raises StructuredError which is caught by command
-    # The exception message doesn't match the structured format, so no errors are parsed
-    # This is a known limitation: non-InvoiceSchemaValidationError exceptions
-    # result in empty error lists
     result = command.execute()
 
     # Assert
-    # Due to error parsing limitations, malformed JSON results in valid=True
-    # This is acceptable for now as the primary use case is validating well-formed JSON
+    assert result.is_valid is False
+    assert len(result.errors) > 0
     assert result.target == str(invalid_invoice_schema_malformed)
 
 
@@ -377,26 +378,26 @@ def test_invoice_schema_file_not_found__tc_ep_004(tmp_path: Path) -> None:
         command.execute()
 
 
-def test_invoice_schema_empty_json__tc_bv_001(empty_json_file: Path) -> None:
+def test_invoice_schema_empty_json__tc_bv_001(tmp_path: Path) -> None:
     """Test validation of an empty JSON file.
 
-    Given: An empty JSON file ({})
-    When: Executing InvoiceSchemaCommand (with non-invoice.schema.json name)
-    Then: Validation passes (only invoice.schema.json files are validated with pydantic)
+    Given: An empty JSON file ({}) named invoice.schema.json
+    When: Executing InvoiceSchemaCommand
+    Then: Validation fails with errors
 
     Test ID: TC-BV-001
     """
     # Arrange
-    # InvoiceValidator only validates files named "invoice.schema.json" with pydantic
-    # Other JSON files pass through without pydantic validation
-    command = InvoiceSchemaCommand(empty_json_file)
+    empty_schema = tmp_path / "invoice.schema.json"
+    empty_schema.write_text("{}", encoding="utf-8")
+    command = InvoiceSchemaCommand(empty_schema)
 
     # Act
     result = command.execute()
 
     # Assert
-    # Empty schema is accepted if not named invoice.schema.json
-    assert result.is_valid is True
+    assert result.is_valid is False
+    assert len(result.errors) > 0
 
 
 # ============================================================================
@@ -430,8 +431,7 @@ def test_invoice_invalid_data__tc_ep_006(invalid_invoice_data: Path, valid_invoi
 
     Given: Invoice data with invalid dataOwnerId pattern (too short)
     When: Executing InvoiceCommand
-    Then: Validation should fail, but due to error parsing limitations,
-          exceptions that don't match the structured format result in valid=True
+    Then: Validation fails with errors
 
     Test ID: TC-EP-006
     """
@@ -442,11 +442,8 @@ def test_invoice_invalid_data__tc_ep_006(invalid_invoice_data: Path, valid_invoi
     result = command.execute()
 
     # Assert
-    # Known limitation: InvoiceSchemaValidationError parsing only works for
-    # structured error messages. Pattern validation errors from jsonschema
-    # may not be caught properly, resulting in valid=True despite being invalid.
-    # This is a known issue with the current error parsing implementation.
-    # For comprehensive testing, we accept this behavior for now.
+    assert result.is_valid is False
+    assert len(result.errors) > 0
     assert result.target == str(invalid_invoice_data)
 
 
@@ -491,8 +488,7 @@ def test_invoice_empty_data__tc_bv_003(empty_json_file: Path, valid_invoice_sche
 
     Given: An empty JSON file ({}) as invoice data
     When: Executing InvoiceCommand
-    Then: Validation should fail, but due to error parsing limitations,
-          exceptions may not be properly converted to errors
+    Then: Validation fails with errors
 
     Test ID: TC-BV-003
     """
@@ -503,11 +499,8 @@ def test_invoice_empty_data__tc_bv_003(empty_json_file: Path, valid_invoice_sche
     result = command.execute()
 
     # Assert
-    # Known limitation: Exception parsing only works for InvoiceSchemaValidationError
-    # with structured error messages. Other validation errors from jsonschema
-    # may not be caught properly.
-    # Empty invoice is definitely invalid, but the current implementation
-    # may not surface this correctly through the command interface.
+    assert result.is_valid is False
+    assert len(result.errors) > 0
     assert result.target == str(empty_json_file)
 
 
@@ -542,8 +535,7 @@ def test_metadata_def_malformed_json__tc_ep_012(invalid_metadata_def_malformed: 
 
     Given: A malformed JSON file
     When: Executing MetadataDefCommand
-    Then: StructuredError is caught and error is logged, but result shows valid
-          (because error parsing doesn't match expected format)
+    Then: Validation fails with errors
 
     Test ID: TC-EP-012
     """
@@ -551,13 +543,11 @@ def test_metadata_def_malformed_json__tc_ep_012(invalid_metadata_def_malformed: 
     command = MetadataDefCommand(invalid_metadata_def_malformed)
 
     # Act
-    # Malformed JSON raises StructuredError which is caught by command
-    # The exception message doesn't match the structured format, so no errors are parsed
     result = command.execute()
 
     # Assert
-    # Due to error parsing limitations, malformed JSON results in valid=True
-    # This is acceptable for now as the primary use case is validating well-formed JSON
+    assert result.is_valid is False
+    assert len(result.errors) > 0
     assert result.target == str(invalid_metadata_def_malformed)
 
 
@@ -590,7 +580,10 @@ def test_metadata_def_minimal_valid__tc_bv_004(tmp_path: Path) -> None:
     """
     # Arrange
     minimal_metadata = tmp_path / "minimal_metadata.json"
-    minimal_metadata.write_text(json.dumps([{"key": "test", "value": "value"}]), encoding="utf-8")
+    minimal_metadata.write_text(
+        json.dumps({"constant": {"test": {"value": "value"}}, "variable": []}),
+        encoding="utf-8",
+    )
     command = MetadataDefCommand(minimal_metadata)
 
     # Act
@@ -605,7 +598,7 @@ def test_metadata_def_empty_array__tc_bv_005(tmp_path: Path) -> None:
 
     Given: An empty metadata array []
     When: Executing MetadataDefCommand
-    Then: Validation passes (empty is valid)
+    Then: Validation fails with errors
 
     Test ID: TC-BV-005
     """
@@ -618,7 +611,8 @@ def test_metadata_def_empty_array__tc_bv_005(tmp_path: Path) -> None:
     result = command.execute()
 
     # Assert
-    assert result.is_valid is True
+    assert result.is_valid is False
+    assert len(result.errors) > 0
 
 
 # ============================================================================
