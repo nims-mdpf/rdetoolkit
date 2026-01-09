@@ -340,7 +340,9 @@ def validate_all(
     from rdetoolkit.cmd.validate import ValidateAllCommand, create_formatter
 
     try:
-        command = ValidateAllCommand(project_dir)
+        # Use current directory if project_dir is None
+        base_dir = project_dir if project_dir is not None else Path.cwd()
+        command = ValidateAllCommand(base_dir)
         results = command.execute()
 
         if not results:

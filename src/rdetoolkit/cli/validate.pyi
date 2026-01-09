@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 
@@ -15,6 +15,11 @@ app: typer.Typer
 class OutputFormat(str, Enum):
     TEXT = "text"
     JSON = "json"
+
+# Type aliases for common CLI options
+FormatOption = Annotated[OutputFormat, typer.Option]
+StrictOption = Annotated[bool, typer.Option]
+QuietOption = Annotated[bool, typer.Option]
 
 def handle_validation_result(
     result: ValidationResult,
