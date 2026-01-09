@@ -27,7 +27,7 @@
 
 ### 実践的な使用方法
 
-- [CLIツール](../usage/cli.ja.md) - コマンドライン操作の詳細
+- [CLIツール](../usage/cli.ja.md) - コマンドライン操作の詳細とシェル補完機能
 - [構造化処理開発ガイド（実装編）](../usage/structured_process/development_guide.ja.md) - 実データを用いた開発ハンズオン
 - [バリデーション](../usage/validation.ja.md) - データ品質の検証方法
 

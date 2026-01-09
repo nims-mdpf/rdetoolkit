@@ -286,6 +286,86 @@ def insecure():
     - `--output-archive`を指定しない場合、デフォルトのファイル名でアーカイブが作成されます。
     - `--exclude`オプションは複数回指定することができます（例：`--exclude venv --exclude .git`）。
 
+## シェル補完機能
+
+コマンドやオプションの入力を補完するシェル補完機能を利用できます。Tabキーを押すことでコマンド名やオプション名の候補を表示できます。
+
+### 対応シェル
+
+- Bash
+- Zsh
+- Fish
+- PowerShell
+
+### インストール方法
+
+`--install-completion` オプションを使用して、現在使用中のシェルに補完機能をインストールできます：
+
+```bash
+python -m rdetoolkit --install-completion
+```
+
+実行後、シェルを再起動することで補完機能が有効になります。
+
+```bash
+# シェルの再起動
+exec $SHELL
+```
+
+### 手動インストール
+
+補完スクリプトの内容を確認してから手動でインストールする場合は、`--show-completion` オプションを使用します：
+
+```bash
+python -m rdetoolkit --show-completion
+```
+
+表示されたスクリプトを、シェルの設定ファイルに追加してください。
+
+#### Bashの場合
+
+```bash
+python -m rdetoolkit --show-completion >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### Zshの場合
+
+```bash
+python -m rdetoolkit --show-completion >> ~/.zshrc
+source ~/.zshrc
+```
+
+### 使用例
+
+補完機能をインストールした後、Tabキーを押すことで候補を表示できます。
+
+```bash
+# コマンド名の補完
+python -m rdetoolkit <Tab>
+# → init, version, gen-config などが表示される
+
+# オプション名の補完
+python -m rdetoolkit gen-config --<Tab>
+# → --template, --overwrite, --lang などが表示される
+
+# オプション値の補完
+python -m rdetoolkit gen-config --template <Tab>
+# → static, interactive が表示される
+```
+
+### アンインストール
+
+補完機能を削除する場合は、シェルの設定ファイルから該当する行を削除してください。
+
+Bashの場合は `~/.bashrc` から、Zshの場合は `~/.zshrc` から以下のような行を削除します：
+
+```bash
+eval "$(_RDETOOLKIT_COMPLETE=bash_source python -m rdetoolkit)"
+```
+
+削除後、シェルを再起動してください。
+
 ## 次のステップ
 
 - [構造化処理の概念](../user-guide/structured-processing.ja.md)を理解する
