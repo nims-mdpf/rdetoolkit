@@ -1,5 +1,6 @@
 """Typer CLI application scaffold for rdetoolkit."""
-from __future__ import annotations
+
+# Avoid postponed evaluation so Typer can read Annotated metadata on Py3.9.
 
 import hashlib
 import importlib

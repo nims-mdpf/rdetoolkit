@@ -109,6 +109,7 @@ features = ["pyo3/extension-module"]
 [tool.ruff]
 line-length = 250
 indent-width = 4
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
@@ -157,6 +158,8 @@ ignore = [
     "ANN003",
     "ANN401",
     "BLE001",
+    "UP007",
+    "UP045",
 ]
 exclude = [
     "bzr",
@@ -217,6 +220,7 @@ convention = "google"
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
 # CLI commands use lazy imports for performance
 "src/rdetoolkit/cli/*.py" = ["PLC0415"]
+"src/rdetoolkit/cli/app.py" = ["FA100"]
 
 # Type Checking Configuration
 #
