@@ -1,4 +1,5 @@
 from _typeshed import Incomplete as Incomplete
+from dataclasses import dataclass
 from pathlib import Path
 from rdetoolkit import __version__ as __version__
 from rdetoolkit.cmd.default import INVOICE_JSON as INVOICE_JSON, PROPERTIES
@@ -15,12 +16,13 @@ class Command:
 
 class InitTemplateError(Exception): ...
 
+@dataclass
 class InitTemplateConfig:
-    entry_point: Path | None
-    modules: Path | None
-    tasksupport: Path | None
-    inputdata: Path | None
-    other: list[Path] | None
+    entry_point: Path | None = None
+    modules: Path | None = None
+    tasksupport: Path | None = None
+    inputdata: Path | None = None
+    other: list[Path] | None = None
     def has_templates(self) -> bool: ...
 
 class InitTemplateLoader:
