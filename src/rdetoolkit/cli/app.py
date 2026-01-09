@@ -11,7 +11,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
-from typing import Annotated, cast
+from typing import Annotated, Optional, Union, cast
 
 import click
 import typer
@@ -57,7 +57,7 @@ def validate_json_file(value: Path) -> Path:
     return value
 
 
-def parse_column(col: str) -> int | str:
+def parse_column(col: str) -> Union[int, str]:
     """Parse column specification as int or string."""
     try:
         return int(col)
@@ -196,7 +196,7 @@ def run(target: Annotated[str, typer.Argument(metavar="<module_or_file::attr>")]
 @app.command("gen-config")
 def gen_config(
     output_dir: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Argument(
             help="Target directory for rdeconfig.yaml",
             exists=False,
@@ -293,7 +293,7 @@ def artifact(
         ),
     ],
     output_archive: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Option(
             "--output-archive",
             "-o",
@@ -302,7 +302,7 @@ def artifact(
         ),
     ] = None,
     exclude: Annotated[
-        list[str] | None,
+        Optional[list[str]],
         typer.Option(
             "--exclude",
             "-e",
@@ -334,7 +334,7 @@ def make_excelinvoice(
         ),
     ],
     output_path: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Option(
             "-o",
             "--output",
@@ -384,29 +384,29 @@ def make_excelinvoice(
 @app.command()
 def csv2graph(
     csv_path: Annotated[Path, typer.Argument(help="Path to CSV file", exists=False, dir_okay=False)],
-    output_dir: Annotated[Path | None, typer.Option("--output-dir", "-o", help="Output directory for plots")] = None,
-    main_image_dir: Annotated[Path | None, typer.Option("--main-image-dir", help="Directory for combined plot outputs")] = None,
-    html_output_dir: Annotated[Path | None, typer.Option("--html-output-dir", help="Directory for HTML outputs (defaults to the CSV directory)")] = None,
+    output_dir: Annotated[Optional[Path], typer.Option("--output-dir", "-o", help="Output directory for plots")] = None,
+    main_image_dir: Annotated[Optional[Path], typer.Option("--main-image-dir", help="Directory for combined plot outputs")] = None,
+    html_output_dir: Annotated[Optional[Path], typer.Option("--html-output-dir", help="Directory for HTML outputs (defaults to the CSV directory)")] = None,
     csv_format: Annotated[str, typer.Option("--csv-format", help="CSV format type")] = "standard",
     logy: Annotated[bool, typer.Option("--logy", help="Use log scale for Y axis")] = False,
     logx: Annotated[bool, typer.Option("--logx", help="Use log scale for X axis")] = False,
     html: Annotated[bool, typer.Option("--html", help="Generate interactive HTML output")] = False,
     mode: Annotated[str, typer.Option("--mode", help="Plotting mode")] = "overlay",
-    x_col: Annotated[list[str] | None, typer.Option("--x-col", help="X-axis column(s) - index or name")] = None,
-    y_cols: Annotated[list[str] | None, typer.Option("--y-cols", help="Y-axis column(s) - index or name")] = None,
-    direction_cols: Annotated[list[str] | None, typer.Option("--direction-cols", help="Direction column(s)")] = None,
-    direction_filter: Annotated[list[str] | None, typer.Option("--direction-filter", help="Filter direction values")] = None,
-    direction_colors: Annotated[list[str] | None, typer.Option("--direction-colors", help="Direction colors (format: dir=color)")] = None,
-    title: Annotated[str | None, typer.Option("--title", help="Plot title")] = None,
-    legend_info: Annotated[str | None, typer.Option("--legend-info", help="Additional legend information")] = None,
-    legend_loc: Annotated[str | None, typer.Option("--legend-loc", help="Legend location")] = None,
-    xlim: Annotated[tuple[float, float] | None, typer.Option("--xlim", help="X-axis limits (min max)")] = None,
-    ylim: Annotated[tuple[float, float] | None, typer.Option("--ylim", help="Y-axis limits (min max)")] = None,
+    x_col: Annotated[Optional[list[str]], typer.Option("--x-col", help="X-axis column(s) - index or name")] = None,
+    y_cols: Annotated[Optional[list[str]], typer.Option("--y-cols", help="Y-axis column(s) - index or name")] = None,
+    direction_cols: Annotated[Optional[list[str]], typer.Option("--direction-cols", help="Direction column(s)")] = None,
+    direction_filter: Annotated[Optional[list[str]], typer.Option("--direction-filter", help="Filter direction values")] = None,
+    direction_colors: Annotated[Optional[list[str]], typer.Option("--direction-colors", help="Direction colors (format: dir=color)")] = None,
+    title: Annotated[Optional[str], typer.Option("--title", help="Plot title")] = None,
+    legend_info: Annotated[Optional[str], typer.Option("--legend-info", help="Additional legend information")] = None,
+    legend_loc: Annotated[Optional[str], typer.Option("--legend-loc", help="Legend location")] = None,
+    xlim: Annotated[Optional[tuple[float, float]], typer.Option("--xlim", help="X-axis limits (min max)")] = None,
+    ylim: Annotated[Optional[tuple[float, float]], typer.Option("--ylim", help="Y-axis limits (min max)")] = None,
     grid: Annotated[bool, typer.Option("--grid", help="Show grid")] = False,
     invert_x: Annotated[bool, typer.Option("--invert-x", help="Invert x-axis")] = False,
     invert_y: Annotated[bool, typer.Option("--invert-y", help="Invert y-axis")] = False,
-    no_individual: Annotated[bool | None, typer.Option("--no-individual/--individual", help="Skip individual plots; defaults to auto for single-series overlay.")] = None,
-    max_legend_items: Annotated[int | None, typer.Option("--max-legend-items", help="Maximum legend items")] = None,
+    no_individual: Annotated[Optional[bool], typer.Option("--no-individual/--individual", help="Skip individual plots; defaults to auto for single-series overlay.")] = None,
+    max_legend_items: Annotated[Optional[int], typer.Option("--max-legend-items", help="Maximum legend items")] = None,
 ) -> None:
     """Generate graphs from CSV files."""
     # Lazy imports
