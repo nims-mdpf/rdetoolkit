@@ -960,9 +960,10 @@ def test_csv2graph_help():
     result = runner.invoke(app, ["csv2graph", "--help"])
 
     assert result.exit_code == 0
-    assert "csv2graph" in result.output
-    assert "Generate graphs from CSV" in result.output
-    assert "--output-dir" in result.output or "-o" in result.output
-    assert "--main-image-dir" in result.output
-    assert "--mode" in result.output
-    assert "--title" in result.output
+    output = click.termui.strip_ansi(result.output)
+    assert "csv2graph" in output
+    assert "Generate graphs from CSV" in output
+    assert "--output-dir" in output or "-o" in output
+    assert "--main-image-dir" in output
+    assert "--mode" in output
+    assert "--title" in output

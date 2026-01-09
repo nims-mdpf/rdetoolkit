@@ -180,4 +180,5 @@ def test_gen_config_invalid_lang_combination(cli_runner: CliRunner, tmp_path: Pa
     # Then: Click rejects the arguments with a parameter error
     assert result.exit_code == 2
     assert isinstance(result.exception, SystemExit)
-    assert "--lang is only available" in result.output
+    output = click.termui.strip_ansi(result.output)
+    assert "--lang is only available" in output
