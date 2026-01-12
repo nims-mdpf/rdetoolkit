@@ -1699,6 +1699,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2130,7 +2138,7 @@
 <p>save_nonshared_rawの設定をtrueにした場合、下記のsave_rawの設定はfalseにしてください。両方trueにすると、save_rawディレクトリと, nonshared_rawディレクトリにコピーされます。</p>
 </div>
 <h4 id="magic_variable">magic_variable設定</h4>
-<p>ファイル名の動的置換機能を制御します。この機能を有効化すると、<code>${filename}</code>などのマジック変数が送り状から使用可能となり、データタイル名が登録したデータファイル名に自動で置換されます。</p>
+<p>ファイル名の動的置換機能を制御します。この機能を有効化すると <code>${filename}</code> のほか、<code>invoice_org</code> の <code>basic/custom/sample.names</code> や <code>metadata.json</code> (<code>${metadata:constant:&lt;field&gt;}</code>) の値を組み合わせてデータタイル名を生成できます。</p>
 <ul>
 <li>type: <code>bool</code></li>
 <li>デフォルト: <code>false</code></li>
@@ -2156,19 +2164,23 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
 <span style="color: #BBB">  </span><span style="color: #070">"datasetId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"e66233bf-821a-404c-a584-083ff36bb825"</span>,
 <span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
-<span style="color: #BBB">      </span><span style="color: #070">"dateSubmitted"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"2025-01-01"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataOwnerId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${filename}"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"instrumentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"409ada22-108f-42e2-8ba0-e53e5628a0b383098"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">null</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"description"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataset_title"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"xrd"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataOwner"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Sample,Username"</span>
+<span style="color: #BBB">    </span><span style="color: #070">"dateSubmitted"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"2025-01-01"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataOwnerId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"</span>
 <span style="color: #BBB">  </span>},
-<span style="color: #BBB">  </span><span style="color: #F00; background-color: #FAA">...</span>
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"project_code"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"PRJ01"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"sample"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"names"</span>:<span style="color: #BBB"> </span>[<span style="background-color: #FFF0F0">"alpha"</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"beta"</span>]
+<span style="color: #BBB">  </span>}
 }
 </code></pre></div></td></tr></table></div>
 <p>構造化処理後</p>
@@ -2184,24 +2196,22 @@
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
 <span style="color: #BBB">  </span><span style="color: #070">"datasetId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"e66233bf-821a-404c-a584-083ff36bb825"</span>,
 <span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
-<span style="color: #BBB">      </span><span style="color: #070">"dateSubmitted"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"2025-01-01"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataOwnerId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"20250101_sample_data.dat"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"instrumentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"409ada22-108f-42e2-8ba0-e53e5628a0b383098"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">null</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"description"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataset_title"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"xrd"</span>,
-<span style="color: #BBB">      </span><span style="color: #070">"dataOwner"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Sample,Username"</span>
+<span style="color: #BBB">    </span><span style="color: #070">"dateSubmitted"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"2025-01-01"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataOwnerId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42_PRJ01_alpha_beta_20250101_sample_data.dat"</span>
 <span style="color: #BBB">  </span>},
-<span style="color: #BBB">  </span><span style="color: #F00; background-color: #FAA">...</span>
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"project_code"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"PRJ01"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>}
 }
 </code></pre></div></td></tr></table></div>
 <h3 id="magic-variable">Magic Variable機能</h3>
-<p><code>magic_variable</code> を有効にすると、<code>${filename}</code> などの変数を送り状やメタデータ内で実際の値に置き換えられます。詳しい使い方は<a href="../magic_variable/">マジック変数ガイド</a>を参照してください。</p>
+<p><code>magic_variable</code> を有効にすると、<code>${filename}</code> や <code>${invoice:basic:&lt;field&gt;}</code>, <code>${metadata:constant:&lt;field&gt;}</code> などの変数を送り状・メタデータ内で実際の値に置き換えられます。詳しい使い方は<a href="../magic_variable/">マジック変数ガイド</a>を参照してください。</p>
 <h4 id="save_thumbnail_image">save_thumbnail_image設定</h4>
 <ul>
 <li>メイン画像(main_imageディレクトリ)からサムネイル画像の自動生成を制御します</li>

@@ -1907,6 +1907,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2605,6 +2613,99 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 </h2>
 <div class="doc doc-contents first">
 <p>When the destination key, which is the first key 'keys1', is 'custom', valobj is cast according to the invoiceschema_obj. In all other cases, valobj is assigned without changing its type.</p>
+<p><span class="doc-section-title">引数：</span></p>
+<table>
+<thead>
+<tr>
+<th>名前</th>
+<th>タイプ</th>
+<th>デスクリプション</th>
+<th>デフォルト</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>invoiceobj</code>
+</td>
+<td>
+<code><span title="collections.abc.MutableMapping">MutableMapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The invoice object to mutate (performs assignments).</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>key1</code>
+</td>
+<td>
+<code><span title="str">str</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The first-level key (e.g., 'basic', 'custom').</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>key2</code>
+</td>
+<td>
+<code><span title="str">str</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The second-level key within key1.</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>valobj</code>
+</td>
+<td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The value to assign.</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>invoiceschema_obj</code>
+</td>
+<td>
+<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The invoice schema for type casting (read-only).</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -2677,7 +2778,7 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 <code>invoice_info</code>
 </td>
 <td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -3295,7 +3396,7 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.template_generator">
-<code class="highlight language-python">template_generator <span style="color: #333">=</span> ExcelInvoiceTemplateGenerator(FixedHeaders())</code>
+<code class="highlight language-python">template_generator <span style="color: #333">=</span> <span style="color: #080; font-weight: bold">None</span></code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
@@ -3896,7 +3997,7 @@ when the source workbook does not define the corresponding sheet.</p>
 <code>dataframes</code>
 </td>
 <td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
+<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -4231,11 +4332,11 @@ rule file, sets rules, and performs file name transformations and replacements b
 <code>replacements</code>
 </td>
 <td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The object containing mapping rules.</p>
+<p>The object containing mapping rules (read-only).</p>
 </div>
 </td>
 <td>
@@ -4247,11 +4348,11 @@ rule file, sets rules, and performs file name transformations and replacements b
 <code>source_json_obj</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+<code><span title="collections.abc.MutableMapping">MutableMapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Objects of key and value to which you want to apply the rule</p>
+<p>Objects of key and value to which you want to apply the rule (performs nested assignments).</p>
 </div>
 </td>
 <td>
@@ -4263,11 +4364,11 @@ rule file, sets rules, and performs file name transformations and replacements b
 <code>mapping_rules</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]]</code>
+<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>] | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Rules for mapping key and value. Defaults to None.</p>
+<p>Rules for mapping key and value (read-only). Defaults to None.</p>
 </div>
 </td>
 <td>
@@ -4625,11 +4726,13 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 </div><hr/>
 <div class="doc doc-object doc-function">
 <h2 class="doc doc-heading" id="src.rdetoolkit.invoicefile.apply_magic_variable">
-<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>apply_magic_variable(invoice_path, rawfile_path, <span style="color: #333">*</span>, save_filepath<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
+<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>apply_magic_variable(invoice_path, rawfile_path, <span style="color: #333">*</span>, save_filepath<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, dataset_paths<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Converts the magic variable ${filename}.</p>
-<p>If ${filename} is present in basic.dataName of invoice.json, it is replaced with the filename of rawfile_path.</p>
+<p>Expand supported magic variables inside <code>invoice.json</code>.</p>
+<p>Magic variables can reference the input filename, invoice metadata sourced
+from <code>invoice_org</code> and constants defined in <code>metadata.json</code>.  Only
+<code>basic.dataName</code> currently supports substitution.</p>
 <p><span class="doc-section-title">引数：</span></p>
 <table>
 <thead>
@@ -4646,11 +4749,11 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 <code>invoice_path</code>
 </td>
 <td>
-<code><span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]</code>
+<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The file path of invoice.json.</p>
+<p>Target invoice file to update.</p>
 </div>
 </td>
 <td>
@@ -4662,11 +4765,11 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 <code>rawfile_path</code>
 </td>
 <td>
-<code><span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]</code>
+<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The file path of the input data.</p>
+<p>Raw input file supplying <code>${filename}</code>.</p>
 </div>
 </td>
 <td>
@@ -4678,11 +4781,27 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 <code>save_filepath</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]]</code>
+<code><span title="str">str</span> | <span title="pathlib.Path">Path</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The file path to save to. Defaults to None.</p>
+<p>Destination path for the updated invoice. Defaults to <code>invoice_path</code>.</p>
+</div>
+</td>
+<td>
+<code>None</code>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>dataset_paths</code>
+</td>
+<td>
+<code><span title="rdetoolkit.models.rde2types.RdeDatasetPaths">RdeDatasetPaths</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Dataset paths used to locate <code>invoice_org</code> and metadata files.</p>
 </div>
 </td>
 <td>
@@ -4706,7 +4825,38 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>dict[str, Any]: The content of invoice.json after replacement.</p>
+<p>dict[str, Any]: Updated invoice contents when substitutions occur. An empty dict is returned when</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>no magic variables are present.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">発生：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If required fields or metadata are missing for a referenced magic variable.</p>
 </div>
 </td>
 </tr>

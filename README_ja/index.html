@@ -687,6 +687,52 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rde">
+<span class="md-ellipsis">
+      RDEファイルのバリデーション
+    </span>
+</a>
+<nav aria-label="RDEファイルのバリデーション" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_5">
+<span class="md-ellipsis">
+      インボイススキーマの検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_6">
+<span class="md-ellipsis">
+      インボイスデータの検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_7">
+<span class="md-ellipsis">
+      メタデータ定義の検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_8">
+<span class="md-ellipsis">
+      メタデータデータの検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_9">
+<span class="md-ellipsis">
+      一括検証
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </li>
@@ -1552,6 +1598,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1755,6 +1809,52 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rde">
+<span class="md-ellipsis">
+      RDEファイルのバリデーション
+    </span>
+</a>
+<nav aria-label="RDEファイルのバリデーション" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_5">
+<span class="md-ellipsis">
+      インボイススキーマの検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_6">
+<span class="md-ellipsis">
+      インボイスデータの検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_7">
+<span class="md-ellipsis">
+      メタデータ定義の検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_8">
+<span class="md-ellipsis">
+      メタデータデータの検証
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_9">
+<span class="md-ellipsis">
+      一括検証
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </li>
@@ -1918,6 +2018,43 @@ rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.
 <span style="color: #BBB">        </span>├──<span style="color: #BBB"> </span>metadata-def.json
 <span style="color: #BBB">        </span>└──<span style="color: #BBB"> </span>invoice.schema.json
 </code></pre></div></td></tr></table></div>
+<h3 id="rde">RDEファイルのバリデーション</h3>
+<p>RDEToolKitは、プロジェクトファイルの構造と正確性を検証するバリデーションコマンドを提供しています。これらのコマンドは、設定エラーを早期に発見し、CI/CDパイプラインに統合できます。</p>
+<h4 id="_5">インボイススキーマの検証</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice-schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json
+</code></pre></div></td></tr></table></div>
+<h4 id="_6">インボイスデータの検証</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice<span style="color: #BBB"> </span>data/invoice/invoice.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json
+</code></pre></div></td></tr></table></div>
+<h4 id="_7">メタデータ定義の検証</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata-def<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json
+</code></pre></div></td></tr></table></div>
+<h4 id="_8">メタデータデータの検証</h4>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata<span style="color: #BBB"> </span>data/metadata.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json
+</code></pre></div></td></tr></table></div>
+<h4 id="_9">一括検証</h4>
+<p>プロジェクト内の全ての標準ファイルを一度に検証:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># カレントディレクトリの全ファイルを検証</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all
+
+<span style="color: #888"># 特定のプロジェクトの全ファイルを検証</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>/path/to/project
+
+<span style="color: #888"># CI/CD統合用にJSON形式で出力</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json
+</code></pre></div></td></tr></table></div>
+<p>詳細については、<a href="https://nims-mdpf.github.io/rdetoolkit/rdetoolkit/cmd/validate/">バリデーションドキュメント</a>を参照してください。</p>
 <!-- Dify Chatbot Script -->
 <script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
 </script>

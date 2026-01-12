@@ -1686,6 +1686,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -3345,7 +3353,7 @@ python3<span style="color: #BBB"> </span>main.py
 <span style="color: #BBB">    </span>└──<span style="color: #BBB"> </span>xrd_graph.png
 </code></pre></div></td></tr></table></div>
 <h3 id="when-errors-occur">When Errors Occur</h3>
-<p>Logs are output to <code>rdesys.log</code> under <code>container/data/logs</code>. If errors occur, error messages are recorded here.</p>
+<p>Logs are output to timestamped files (e.g., <code>rdesys_20260106_092845.log</code>) under <code>container/data/logs</code>. If errors occur, error messages are recorded in the latest log file. Use <code>ls -t container/data/logs/rdesys_*.log | head -1</code> to find the most recent log.</p>
 <h2 id="submit-structuring-processing-to-rde">Submit Structuring Processing to RDE</h2>
 <p>If there are no problems with operation, submit the structured processing to RDE. Execute the following command to generate a zip file, then submit this zip file to RDE.</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>uv<span style="color: #BBB"> </span>run<span style="color: #BBB"> </span>python<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>rdetoolkit<span style="color: #BBB"> </span>artifact<span style="color: #BBB"> </span>-s<span style="color: #BBB"> </span>.<span style="color: #BBB"> </span>-o<span style="color: #BBB"> </span>rde_submit_files.zip

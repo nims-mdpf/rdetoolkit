@@ -1664,6 +1664,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2082,7 +2090,7 @@ If you set <code>save_nonshared_raw</code> to <strong>true</strong>, make sure <
 </blockquote>
 <hr/>
 <h4 id="magic_variable"><strong>magic_variable</strong></h4>
-<p>Enables dynamic filename substitution. When active, magic variables such as <code>${filename}</code> can be used in an invoice, and the data tile name is automatically replaced with the actual file name.</p>
+<p>Enables dynamic substitution inside <code>invoice.json</code>. Besides <code>${filename}</code>, you can reference values from <code>invoice_org</code> (<code>${invoice:basic:&lt;field&gt;}</code>, <code>${invoice:custom:&lt;field&gt;}</code>, <code>${invoice:sample:names}</code>) and constants in <code>metadata.json</code> (<code>${metadata:constant:&lt;field&gt;}</code>).</p>
 <ul>
 <li><strong>type:</strong> <code>bool</code></li>
 <li><strong>default:</strong> <code>false</code></li>
@@ -2093,7 +2101,7 @@ If you set <code>save_nonshared_raw</code> to <strong>true</strong>, make sure <
 <span style="color: #BBB">  </span><span style="color: #070">magic_variable</span>:<span style="color: #BBB"> </span>true<span style="color: #BBB">   </span><span style="color: #888"># enable ${filename} etc.</span>
 <span style="color: #BBB">  </span><span style="color: #070">magic_variable</span>:<span style="color: #BBB"> </span>false<span style="color: #BBB">  </span><span style="color: #888"># disable substitution (default)</span>
 </code></pre></div></td></tr></table></div>
-<p><strong>Example</strong> – Using a magic variable in an invoice:</p>
+<p><strong>Example</strong> – Combining invoice, metadata, and filename:</p>
 <p><em>Invoice before processing</em> (<code>20250101_sample_data.dat</code> is the file being registered)</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
@@ -2108,17 +2116,23 @@ If you set <code>save_nonshared_raw</code> to <strong>true</strong>, make sure <
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
 <span style="color: #BBB">  </span><span style="color: #070">"datasetId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"e66233bf-821a-404c-a584-083ff36bb825"</span>,
 <span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
 <span style="color: #BBB">    </span><span style="color: #070">"dateSubmitted"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"2025-01-01"</span>,
 <span style="color: #BBB">    </span><span style="color: #070">"dataOwnerId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${filename}"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"instrumentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"409ada22-108f-42e2-8ba0-e53e5628a0b383098"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">null</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"description"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"dataset_title"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"xrd"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"dataOwner"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Sample,Username"</span>
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"project_code"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"PRJ01"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"sample"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"names"</span>:<span style="color: #BBB"> </span>[<span style="background-color: #FFF0F0">"alpha"</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"beta"</span>]
 <span style="color: #BBB">  </span>}
 <span style="color: #BBB">  </span><span style="color: #888">/* … */</span>
 }
@@ -2142,12 +2156,12 @@ If you set <code>save_nonshared_raw</code> to <strong>true</strong>, make sure <
 <span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
 <span style="color: #BBB">    </span><span style="color: #070">"dateSubmitted"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"2025-01-01"</span>,
 <span style="color: #BBB">    </span><span style="color: #070">"dataOwnerId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"010z27x4095x7fx10x5614428108ce53e5628a0b3830987098664533"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"20250101_sample_data.dat"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"instrumentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"409ada22-108f-42e2-8ba0-e53e5628a0b383098"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">null</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"description"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"dataset_title"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"xrd"</span>,
-<span style="color: #BBB">    </span><span style="color: #070">"dataOwner"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Sample,Username"</span>
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42_PRJ01_alpha_beta_20250101_sample_data.dat"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"project_code"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"PRJ01"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
 <span style="color: #BBB">  </span>}
 <span style="color: #BBB">  </span><span style="color: #888">/* … */</span>
 }

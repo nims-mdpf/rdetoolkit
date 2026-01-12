@@ -1478,6 +1478,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1674,6 +1682,12 @@
 </thead>
 <tbody>
 <tr>
+<td>v1.5.0</td>
+<td>2026-01-09</td>
+<td>Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14</td>
+<td><a href="#v150-2026-01-09">v1.5.0</a></td>
+</tr>
+<tr>
 <td>v1.4.3</td>
 <td>2025-12-25</td>
 <td>SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks</td>
@@ -1730,6 +1744,188 @@
 </tbody>
 </table>
 <h1 id="release-details">Release Details</h1>
+<h2 id="v150-2026-01-09">v1.5.0 (2026-01-09)</h2>
+<div class="admonition info">
+<p class="admonition-title">References</p>
+<ul>
+<li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/3">#3</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/247">#247</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/249">#249</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/262">#262</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/301">#301</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/323">#323</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/324">#324</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/325">#325</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/326">#326</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/327">#327</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/328">#328</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/329">#329</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/330">#330</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/333">#333</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/334">#334</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/335">#335</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/336">#336</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/337">#337</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/338">#338</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/341">#341</a></li>
+</ul>
+</div>
+<h4 id="highlights">Highlights</h4>
+<ul>
+<li>Introduced Result type pattern (<code>Result[T, E]</code>) for explicit, type-safe error handling without exceptions</li>
+<li>System logs now use timestamped filenames (<code>rdesys_YYYYMMDD_HHMMSS.log</code>) instead of static <code>rdesys.log</code>, enabling per-run log management and preventing log collision in concurrent or successive executions</li>
+<li>CLI modernized with Typer, adding <code>validate</code> subcommands, <code>rdetoolkit run</code>, and init template path options while preserving <code>python -m rdetoolkit</code> compatibility</li>
+<li>Lazy imports across core, workflow, CLI, and graph stacks reduce startup overhead and defer heavy dependencies until needed</li>
+<li>Added optional structured <code>invoice.json</code> export, expanded Magic Variables, and official Python 3.14 support</li>
+</ul>
+<hr/>
+<h3 id="result-type-pattern-issue-334">Result Type Pattern (Issue #334)</h3>
+<h4 id="enhancements">Enhancements</h4>
+<ul>
+<li><strong>New Result Module</strong> (<code>rdetoolkit.result</code>):</li>
+<li><code>Success[T]</code>: Immutable frozen dataclass for successful results with value</li>
+<li><code>Failure[E]</code>: Immutable frozen dataclass for failed results with error</li>
+<li><code>Result[T, E]</code>: Type alias for <code>Success[T] | Failure[E]</code></li>
+<li><code>try_result</code> decorator: Converts exception-based functions to Result-returning functions</li>
+<li>Full generic type support with <code>TypeVar</code> and <code>ParamSpec</code> for type safety</li>
+<li>Functional methods: <code>is_success()</code>, <code>map()</code>, <code>unwrap()</code></li>
+<li><strong>Result-based Workflow Functions</strong>:</li>
+<li><code>check_files_result()</code>: File classification with explicit Result type</li>
+<li>Returns <code>Result[tuple[RawFiles, Path | None, Path | None], StructuredError]</code></li>
+<li><strong>Result-based Mode Processing Functions</strong>:</li>
+<li><code>invoice_mode_process_result()</code>: Invoice processing with Result type</li>
+<li>Returns <code>Result[WorkflowExecutionStatus, Exception]</code></li>
+<li><strong>Type Stubs</strong>: Complete <code>.pyi</code> files for IDE autocomplete and type checking</li>
+<li><strong>Documentation</strong>: Comprehensive API docs in English and Japanese (<code>docs/api/result.en.md</code>, <code>docs/api/result.ja.md</code>)</li>
+<li><strong>Public API</strong>: Result types exported from <code>rdetoolkit.__init__.py</code> for easy import</li>
+<li><strong>100% Test Coverage</strong>: 40 comprehensive unit tests for Result module</li>
+</ul>
+<h4 id="usage-examples">Usage Examples</h4>
+<p><strong>Result-based error handling:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.workflows</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> check_files_result
+
+result <span style="color: #333">=</span> check_files_result(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice"</span>)
+<span style="color: #080; font-weight: bold">if</span> result<span style="color: #333">.</span>is_success():
+    raw_files, excel_path, smarttable_path <span style="color: #333">=</span> result<span style="color: #333">.</span>unwrap()
+    <span style="color: #888"># Process files</span>
+<span style="color: #080; font-weight: bold">else</span>:
+    error <span style="color: #333">=</span> result<span style="color: #333">.</span>error
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Error </span><span style="background-color: #EEE">{</span>error<span style="color: #333">.</span>ecode<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">: </span><span style="background-color: #EEE">{</span>error<span style="color: #333">.</span>emsg<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<p><strong>Traditional exception-based (still works):</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.workflows</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> check_files
+
+<span style="color: #080; font-weight: bold">try</span>:
+    raw_files, excel_path, smarttable_path <span style="color: #333">=</span> check_files(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice"</span>)
+<span style="color: #080; font-weight: bold">except</span> StructuredError <span style="color: #080; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Error </span><span style="background-color: #EEE">{</span>e<span style="color: #333">.</span>ecode<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">: </span><span style="background-color: #EEE">{</span>e<span style="color: #333">.</span>emsg<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h3 id="timestamped-log-filenames-issue-341">Timestamped Log Filenames (Issue #341)</h3>
+<h4 id="enhancements_1">Enhancements</h4>
+<ul>
+<li>Added <code>generate_log_timestamp()</code> utility function to create filesystem-safe timestamp strings</li>
+<li>Modified <code>workflows.run()</code> to generate unique timestamped log files for each workflow execution</li>
+<li>Fixed P2 bug: Handler accumulation when <code>run()</code> called multiple times in the same process</li>
+<li>Root cause: Logger singleton retained old LazyFileHandlers with different filenames</li>
+<li>Solution: Clear existing LazyFileHandlers before adding new ones</li>
+<li>Impact: Ensures 1 execution = 1 log file, preventing log cross-contamination</li>
+<li>Replaced custom <code>LazyFileHandler</code> with standard <code>logging.FileHandler(delay=True)</code> for better maintainability</li>
+<li>Updated all documentation to reference the new timestamped log filename pattern</li>
+</ul>
+<h4 id="benefits">Benefits</h4>
+<ul>
+<li><strong>Per-run isolation</strong>: Each workflow execution creates a separate log file, preventing log mixing</li>
+<li><strong>Concurrent execution</strong>: No log collision when running multiple workflows simultaneously</li>
+<li><strong>Easy comparison</strong>: Compare logs from different runs without manual separation</li>
+<li><strong>Simplified auditing</strong>: Collect and archive logs per execution for debugging and compliance</li>
+<li><strong>Better maintainability</strong>: Standard library FileHandler is well-tested and widely understood</li>
+</ul>
+<hr/>
+<h3 id="cli-modernization-and-validation-issues-247-262-337-338">CLI Modernization and Validation (Issues #247, #262, #337, #338)</h3>
+<h4 id="enhancements_2">Enhancements</h4>
+<ul>
+<li>Migrated CLI to Typer with lazy imports; preserved <code>python -m rdetoolkit</code> invocation and command names (<code>init</code>, <code>version</code>, <code>gen-config</code>, <code>make-excelinvoice</code>, <code>artifact</code>, <code>csv2graph</code>)</li>
+<li>Added <code>rdetoolkit run &lt;module_or_file::attr&gt;</code> to load a function dynamically, reject classes/callables, and ensure the function accepts two positional arguments</li>
+<li>Added <code>rdetoolkit validate</code> commands (<code>invoice-schema</code>, <code>invoice</code>, <code>metadata-def</code>, <code>metadata</code>, <code>all</code>) with <code>--format text|json</code>, <code>--quiet</code>, <code>--strict/--no-strict</code>, and CI-friendly exit codes (0/1/2/3)</li>
+<li>Added init template path options (<code>--entry-point</code>, <code>--modules</code>, <code>--tasksupport</code>, <code>--inputdata</code>, <code>--other</code>) and persist them to <code>pyproject.toml</code> / <code>rdeconfig.yaml</code></li>
+</ul>
+<hr/>
+<h3 id="startup-performance-improvements-issues-323-330">Startup Performance Improvements (Issues #323-330)</h3>
+<h4 id="enhancements_3">Enhancements</h4>
+<ul>
+<li>Implemented lazy exports in <code>rdetoolkit</code> and <code>rdetoolkit.graph</code> to avoid importing heavy submodules until needed</li>
+<li>Deferred heavy dependencies in invoice/validation/encoding, core utilities, workflows, CLI commands, and graph renderers</li>
+<li>Updated Ruff per-file ignores to allow intentional <code>PLC0415</code> in lazy-import modules</li>
+</ul>
+<hr/>
+<h3 id="type-safety-and-refactors-issues-333-335-336">Type Safety and Refactors (Issues #333, #335, #336)</h3>
+<h4 id="enhancements_4">Enhancements</h4>
+<ul>
+<li>Replaced <code>models.rde2types</code> aliases with NewType definitions and validated path classes; added <code>FileGroup</code> / <code>ProcessedFileGroup</code> for safer file grouping</li>
+<li>Broadened read-only inputs to <code>Mapping</code> and mutable inputs to <code>MutableMapping</code>, including <code>Validator.validate()</code> accepting <code>Mapping</code> and normalizing to <code>dict</code></li>
+<li>Replaced if/elif chains with dispatch tables for <code>rde2util.castval</code>, invoice sheet processing, and archive format selection, preserving behavior with new tests</li>
+</ul>
+<hr/>
+<h3 id="workflow-and-config-enhancements-issues-3-301">Workflow and Config Enhancements (Issues #3, #301)</h3>
+<h4 id="enhancements_5">Enhancements</h4>
+<ul>
+<li>Added <code>system.save_invoice_to_structured</code> (default <code>false</code>) and <code>StructuredInvoiceSaver</code> to optionally copy <code>invoice.json</code> into the <code>structured</code> directory after thumbnail generation</li>
+<li>Expanded Magic Variable patterns: <code>${invoice:basic:*}</code>, <code>${invoice:custom:*}</code>, <code>${invoice:sample:names:*}</code>, <code>${metadata:constant:*}</code>, with warnings on skipped values and strict validation for missing fields</li>
+</ul>
+<hr/>
+<h3 id="tooling-and-platform-support-issue-249">Tooling and Platform Support (Issue #249)</h3>
+<h4 id="enhancements_6">Enhancements</h4>
+<ul>
+<li>Added official Python 3.14 support across classifiers, tox environments, and CI build/test matrices</li>
+</ul>
+<hr/>
+<h3 id="migration-compatibility">Migration / Compatibility</h3>
+<h4 id="result-type-pattern">Result Type Pattern</h4>
+<ul>
+<li><strong>Backward Compatible</strong>: All original exception-based functions remain unchanged</li>
+<li><strong>Gradual Migration</strong>: Both patterns (exception-based and Result-based) can coexist</li>
+<li><strong>Delegation Pattern</strong>: Original functions delegate to <code>*_result()</code> versions internally</li>
+<li><strong>Type Safety</strong>: Use <code>isinstance(result, Failure)</code> for type-safe error checking</li>
+<li><strong>Error Preservation</strong>: All error information (StructuredError attributes, Exception details) preserved in Failure</li>
+</ul>
+<h4 id="timestamped-log-filenames">Timestamped Log Filenames</h4>
+<ul>
+<li><strong>Log file naming change</strong>: System logs are now written to <code>data/logs/rdesys_YYYYMMDD_HHMMSS.log</code> instead of <code>data/logs/rdesys.log</code></li>
+<li><strong>Finding logs</strong>: Use wildcard patterns to find logs: <code>ls -t data/logs/rdesys_*.log | head -1</code> for the latest log</li>
+<li><strong>Scripts and tools</strong>: Update any scripts or monitoring tools that directly reference <code>rdesys.log</code> to use pattern matching with <code>rdesys_*.log</code></li>
+<li><strong>Log collection</strong>: Automated log collection systems should be updated to handle multiple timestamped files instead of a single static file</li>
+<li><strong>Old log files</strong>: Existing <code>rdesys.log</code> files from previous versions will remain in place and are not automatically removed</li>
+<li><strong>No configuration needed</strong>: The new behavior is automatic; no configuration changes are required</li>
+</ul>
+<h4 id="cli-typer-migration-and-new-commands">CLI (Typer Migration and New Commands)</h4>
+<ul>
+<li><strong>Invocation unchanged</strong>: <code>python -m rdetoolkit ...</code> continues to work; command names and options are preserved</li>
+<li><strong>Dependency update</strong>: Click is removed in favor of Typer; avoid importing Click-specific objects from <code>rdetoolkit.cli</code></li>
+<li><strong>Validation commands</strong>: New <code>rdetoolkit validate</code> subcommands return exit codes 0/1/2/3 for CI automation</li>
+</ul>
+<h4 id="init-template-paths">Init Template Paths</h4>
+<ul>
+<li><strong>Config persistence</strong>: Template paths are stored in <code>pyproject.toml</code> / <code>rdeconfig.yaml</code> when provided; existing configs remain valid</li>
+</ul>
+<h4 id="structured-invoice-export">Structured Invoice Export</h4>
+<ul>
+<li><strong>Opt-in behavior</strong>: <code>system.save_invoice_to_structured</code> defaults to <code>false</code>; enabling it creates <code>structured/invoice.json</code> after thumbnail generation</li>
+</ul>
+<h4 id="magic-variables">Magic Variables</h4>
+<ul>
+<li><strong>Expanded patterns</strong>: <code>${invoice:basic:*}</code>, <code>${invoice:custom:*}</code>, <code>${invoice:sample:names:*}</code>, <code>${metadata:constant:*}</code> are now supported</li>
+<li><strong>Error handling</strong>: Missing required fields raise errors; empty segments are skipped with warnings to avoid double underscores</li>
+</ul>
+<h4 id="mapping-type-hints">Mapping Type Hints</h4>
+<ul>
+<li><strong>Type-only change</strong>: <code>Mapping</code> / <code>MutableMapping</code> widen input types without changing runtime behavior</li>
+<li><strong>Validation inputs</strong>: <code>Validator.validate(obj=...)</code> now copies mappings into a <code>dict</code> at the boundary</li>
+</ul>
+<h4 id="python-314-support">Python 3.14 Support</h4>
+<ul>
+<li><strong>Compatibility</strong>: Python 3.14 is now a supported runtime with CI and packaging updates</li>
+</ul>
+<hr/>
+<h4 id="known-issues">Known Issues</h4>
+<ul>
+<li>Only <code>invoice_mode_process</code> has Result-based version; other mode processors will be migrated in future releases</li>
+</ul>
+<hr/>
 <h2 id="v143-2025-12-25">v1.4.3 (2025-12-25)</h2>
 <div class="admonition info">
 <p class="admonition-title">References</p>
@@ -1737,12 +1933,12 @@
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/292">#292</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/310">#310</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/311">#311</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/302">#302</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/304">#304</a></li>
 </ul>
 </div>
-<h4 id="highlights">Highlights</h4>
+<h4 id="highlights_1">Highlights</h4>
 <ul>
 <li>SmartTable split processing now preserves <code>sample.ownerId</code>, respects boolean columns, and prevents empty cells from inheriting values from previous rows, restoring per-row data integrity.</li>
 <li>csv2graph defaults HTML artifacts to the CSV directory (structured) and adds <code>html_output_dir</code> for overrides, while aligning Plotly/Matplotlib legend text and log-scale tick formatting for consistent outputs.</li>
 </ul>
-<h4 id="enhancements">Enhancements</h4>
+<h4 id="enhancements_7">Enhancements</h4>
 <ul>
 <li>Cache the base invoice once in SmartTable processing and pass deep copies per row so divided invoices retain <code>sample.ownerId</code>.</li>
 <li>Detect empty SmartTable cells and clear mapped basic/custom/sample fields instead of reusing prior-row values.</li>
@@ -1759,14 +1955,14 @@
 <li>Corrected csv2graph HTML placement when <code>output_dir</code> pointed to <code>other_image</code>, defaulting HTML to the CSV/structured directory unless overridden.</li>
 <li>Normalized Plotly legends that previously showed full headers (e.g., <code>total:intensity</code>) and removed 2/5 minor log ticks while enforcing exponential labels.</li>
 </ul>
-<h4 id="migration-compatibility">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_1">Migration / Compatibility</h4>
 <ul>
 <li>csv2graph now saves HTML alongside the CSV by default (typically <code>data/structured</code>). Use <code>html_output_dir</code> (API) or <code>--html-output-dir</code> (CLI) to target a different directory.</li>
 <li>SmartTable no longer reuses prior-row values for empty cells; provide explicit values on each row where inheritance was previously relied upon.</li>
 <li>String booleans <code>"TRUE"</code> / <code>"FALSE"</code> are force-cast to real booleans. Review workflows that accidentally depended on non-empty strings always evaluating to <code>True</code>.</li>
 <li>No other compatibility changes.</li>
 </ul>
-<h4 id="known-issues">Known Issues</h4>
+<h4 id="known-issues_1">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1778,14 +1974,14 @@
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/30">#30</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/36">#36</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/246">#246</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/293">#293</a></li>
 </ul>
 </div>
-<h4 id="highlights_1">Highlights</h4>
+<h4 id="highlights_2">Highlights</h4>
 <ul>
 <li><code>InvoiceFile.overwrite()</code> now accepts dictionaries, validates them through <code>InvoiceValidator</code>, and can fall back to the existing <code>invoice_path</code>.</li>
 <li>Excel invoice reading is centralized inside <code>ExcelInvoiceFile</code>, with <code>read_excelinvoice()</code> acting as a warning-backed compatibility wrapper slated for v1.5.0 removal.</li>
 <li><code>csv2graph</code> detects when a single series is requested and suppresses per-series plots unless the CLI flag explicitly demands them, keeping CLI and API defaults in sync.</li>
 <li>MultiDataTile pipelines continue to run—and therefore validate datasets—even when the input directory only contains Excel invoices or is empty.</li>
 </ul>
-<h4 id="enhancements_1">Enhancements</h4>
+<h4 id="enhancements_8">Enhancements</h4>
 <ul>
 <li>Updated <code>InvoiceFile.overwrite()</code> to accept mapping objects, apply schema validation through <code>InvoiceValidator</code>, and default the destination path to the instance’s <code>invoice_path</code>; refreshed docstrings and <code>docs/rdetoolkit/invoicefile.md</code> to describe the new API.</li>
 <li>Converted <code>read_excelinvoice()</code> into a wrapper that emits a deprecation warning and delegates to <code>ExcelInvoiceFile.read()</code>, updated <code>src/rdetoolkit/impl/input_controller.py</code> to use the class API directly, and clarified docstrings/type hints so <code>df_general</code> / <code>df_specific</code> may be <code>None</code>.</li>
@@ -1798,14 +1994,14 @@
 <li><code>_process_invoice_sheet()</code>, <code>_process_general_term_sheet()</code>, and <code>_process_specific_term_sheet()</code> now correctly return <code>pd.DataFrame</code> objects, avoiding attribute errors in callers that expect frame operations.</li>
 <li><code>MultiFileChecker.parse()</code> returns <code>[()]</code> when no payload files are detected so MultiDataTile validation runs even on empty input directories, matching Invoice mode semantics.</li>
 </ul>
-<h4 id="migration-compatibility_1">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_2">Migration / Compatibility</h4>
 <ul>
 <li>Code calling <code>InvoiceFile.overwrite()</code> can now supply dictionaries directly; omit the destination argument to write to the instance path, and expect schema validation errors when invalid structures are provided.</li>
 <li><code>read_excelinvoice()</code> is officially deprecated and scheduled for removal in v1.5.0—migrate to <code>ExcelInvoiceFile().read()</code> or <code>ExcelInvoiceFile.read()</code> helpers.</li>
 <li><code>csv2graph</code> now generates only the overlay/summary graph when <code>--no-individual</code> is not specified and there is one (or zero) value columns; pass <code>--no-individual=false</code> to force legacy per-series output or <code>--no-individual</code> to always skip them.</li>
 <li>MultiDataTile runs on empty directories no longer short-circuit; expect validation failures to surface when required payload files are absent.</li>
 </ul>
-<h4 id="known-issues_1">Known Issues</h4>
+<h4 id="known-issues_2">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1817,14 +2013,14 @@
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/204">#204</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/272">#272</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/273">#273</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/278">#278</a></li>
 </ul>
 </div>
-<h4 id="highlights_2">Highlights</h4>
+<h4 id="highlights_3">Highlights</h4>
 <ul>
 <li>Dedicated SmartTable row CSV accessors replace ad-hoc <code>rawfiles[0]</code> lookups without breaking existing callbacks.</li>
 <li>MultiDataTile workflows now guarantee a returned status and surface the failing mode instead of producing silent job artifacts.</li>
 <li>CSV parsing tolerates metadata comments and empty data windows, removing spurious parser exceptions.</li>
 <li>Graph helpers (<code>csv2graph</code>, <code>plot_from_dataframe</code>) are now exported directly via <code>rdetoolkit.graph</code> for simpler imports.</li>
 </ul>
-<h4 id="enhancements_2">Enhancements</h4>
+<h4 id="enhancements_9">Enhancements</h4>
 <ul>
 <li>Introduced the <code>smarttable_rowfile</code> field on <code>RdeOutputResourcePath</code> and exposed it via <code>ProcessingContext.smarttable_rowfile</code> and <code>RdeDatasetPaths</code>.</li>
 <li>SmartTable processors populate the new field automatically; when fallbacks hit <code>rawfiles[0]</code> a <code>FutureWarning</code> is emitted to prompt migration while preserving backward compatibility.</li>
@@ -1836,14 +2032,14 @@
 <li>Ensured MultiDataTile mode always returns a <code>WorkflowExecutionStatus</code> and raises a <code>StructuredError</code> that names the failing mode if the pipeline fails to report back.</li>
 <li>Updated <code>CSVParser._parse_meta_block()</code> and <code>_parse_no_header()</code> to ignore <code>#</code>-prefixed metadata rows and return an empty <code>DataFrame</code> when no data remains, eliminating <code>ParserError</code> / <code>EmptyDataError</code>.</li>
 </ul>
-<h4 id="migration-compatibility_2">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_3">Migration / Compatibility</h4>
 <ul>
 <li>Existing callbacks using <code>resource_paths.rawfiles[0]</code> continue to work, but now emit a <code>FutureWarning</code>; migrate to <code>smarttable_rowfile</code> to silence it.</li>
 <li>The <code>rawfiles</code> tuple itself remains the primary list of user-supplied files—only the assumption that its first entry is always the SmartTable row CSV is being phased out.</li>
 <li>No configuration changes are required for CSV ingestion; the parser improvements are backward compatible.</li>
 <li>Prefer <code>from rdetoolkit.graph import csv2graph, plot_from_dataframe</code>; the previous <code>rdetoolkit.graph.api</code> path remains available for now.</li>
 </ul>
-<h4 id="known-issues_2">Known Issues</h4>
+<h4 id="known-issues_3">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1855,14 +2051,14 @@
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/188">#188</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/197">#197</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/205">#205</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/236">#236</a></li>
 </ul>
 </div>
-<h4 id="highlights_3">Highlights</h4>
+<h4 id="highlights_4">Highlights</h4>
 <ul>
 <li>SmartTableInvoice automatically writes <code>meta/</code> columns to <code>metadata.json</code></li>
 <li>Compact AI/LLM-friendly traceback output (duplex mode)</li>
 <li>CSV visualization utility <code>csv2graph</code></li>
 <li>Configuration scaffold generator <code>gen-config</code></li>
 </ul>
-<h4 id="enhancements_3">Enhancements</h4>
+<h4 id="enhancements_10">Enhancements</h4>
 <ul>
 <li>Added the <code>csv2graph</code> API with multi-format CSV support, direction filters, Plotly HTML export, and 220+ tests.</li>
 <li>Added the <code>gen-config</code> CLI with template presets, bilingual interactive mode, and <code>--overwrite</code> safeguards.</li>
@@ -1875,13 +2071,13 @@
 <li>Resolved a MultiDataTile issue where <code>StructuredError</code> failed to stop execution when <code>ignore_errors=True</code>.</li>
 <li>Cleaned up SmartTable error handling and annotations for more predictable failure behavior.</li>
 </ul>
-<h4 id="migration-compatibility_3">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_4">Migration / Compatibility</h4>
 <ul>
 <li>Legacy two-argument callbacks continue to work but should migrate to the single-argument <code>RdeDatasetPaths</code> form.</li>
 <li>Projects using SmartTable <code>meta/</code> columns should ensure <code>metadata-def.json</code> is present for automatic mapping.</li>
 <li>Traceback format configuration is optional; defaults remain unchanged.</li>
 </ul>
-<h4 id="known-issues_3">Known Issues</h4>
+<h4 id="known-issues_4">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1893,11 +2089,11 @@
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/217">#217</a> (SmartTable/Invoice validation reliability)</li>
 </ul>
 </div>
-<h4 id="highlights_4">Highlights</h4>
+<h4 id="highlights_5">Highlights</h4>
 <ul>
 <li>Stabilized SmartTable/Invoice validation flow.</li>
 </ul>
-<h4 id="enhancements_4">Enhancements</h4>
+<h4 id="enhancements_11">Enhancements</h4>
 <ul>
 <li>Reworked validation and initialization to block stray fields and improve exception messaging.</li>
 </ul>
@@ -1905,11 +2101,11 @@
 <ul>
 <li>Addressed SmartTableInvoice validation edge cases causing improper exception propagation or typing mismatches.</li>
 </ul>
-<h4 id="migration-compatibility_4">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_5">Migration / Compatibility</h4>
 <ul>
 <li>No breaking changes.</li>
 </ul>
-<h4 id="known-issues_4">Known Issues</h4>
+<h4 id="known-issues_5">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1921,12 +2117,12 @@
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/201">#201</a></li>
 </ul>
 </div>
-<h4 id="highlights_5">Highlights</h4>
+<h4 id="highlights_6">Highlights</h4>
 <ul>
 <li>Fixed <code>ValidationError</code> construction and stabilized Invoice processing.</li>
 <li>Added <code>sampleWhenRestructured</code> schema for copy-restructure workflows.</li>
 </ul>
-<h4 id="enhancements_5">Enhancements</h4>
+<h4 id="enhancements_12">Enhancements</h4>
 <ul>
 <li>Introduced the <code>sampleWhenRestructured</code> pattern so copy-restructured <code>invoice.json</code> files requiring only <code>sampleId</code> validate correctly.</li>
 <li>Expanded coverage across all sample-validation patterns to preserve backward compatibility.</li>
@@ -1936,11 +2132,11 @@
 <li>Replaced the faulty <code>ValidationError.__new__()</code> usage with <code>SchemaValidationError</code> during <code>_validate_required_fields_only</code> checks.</li>
 <li>Clarified optional fields for <code>InvoiceSchemaJson</code> and <code>Properties</code>, fixing CI/CD mypy failures.</li>
 </ul>
-<h4 id="migration-compatibility_5">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_6">Migration / Compatibility</h4>
 <ul>
 <li>No configuration changes required; existing <code>invoice.json</code> files remain compatible.</li>
 </ul>
-<h4 id="known-issues_5">Known Issues</h4>
+<h4 id="known-issues_6">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1952,11 +2148,11 @@
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/193">#193</a></li>
 </ul>
 </div>
-<h4 id="highlights_6">Highlights</h4>
+<h4 id="highlights_7">Highlights</h4>
 <ul>
 <li>Strengthened required-field validation for SmartTableInvoice.</li>
 </ul>
-<h4 id="enhancements_6">Enhancements</h4>
+<h4 id="enhancements_13">Enhancements</h4>
 <ul>
 <li>Added schema enforcement to restrict <code>invoice.json</code> to required fields, preventing unnecessary defaults.</li>
 <li>Ensured validation runs even when pipelines terminate early.</li>
@@ -1965,11 +2161,11 @@
 <ul>
 <li>Tidied exception handling and annotations within SmartTable validation.</li>
 </ul>
-<h4 id="migration-compatibility_6">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_7">Migration / Compatibility</h4>
 <ul>
 <li>Backward compatible, though workflows adding extraneous <code>invoice.json</code> fields should remove them.</li>
 </ul>
-<h4 id="known-issues_6">Known Issues</h4>
+<h4 id="known-issues_7">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -1981,12 +2177,12 @@
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/161">#161</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/163">#163</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/168">#168</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/169">#169</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/173">#173</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/174">#174</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/177">#177</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/185">#185</a></li>
 </ul>
 </div>
-<h4 id="highlights_7">Highlights</h4>
+<h4 id="highlights_8">Highlights</h4>
 <ul>
 <li>Fixed empty-sheet exports in Excel invoice templates.</li>
 <li>Enforced stricter validation for <code>extended_mode</code>.</li>
 </ul>
-<h4 id="enhancements_7">Enhancements</h4>
+<h4 id="enhancements_14">Enhancements</h4>
 <ul>
 <li>Added <code>serialization_alias</code> to <code>invoice_schema.py</code>, ensuring <code>$schema</code> and <code>$id</code> serialize correctly in <code>invoice.schema.json</code>.</li>
 <li>Restricted <code>extended_mode</code> in <code>models/config.py</code> to approved values and broadened tests for <code>save_raw</code> / <code>save_nonshared_raw</code> behavior.</li>
@@ -2000,13 +2196,13 @@
 <li>Ensured <code>generalTerm</code> / <code>specificTerm</code> sheets appear even when attributes are empty and corrected variable naming errors.</li>
 <li>Specified <code>orient</code> in <code>FixedHeaders</code> to silence future warnings.</li>
 </ul>
-<h4 id="migration-compatibility_7">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_8">Migration / Compatibility</h4>
 <ul>
 <li>Invalid <code>extended_mode</code> values now raise errors; normalize configuration accordingly.</li>
 <li>Review SmartTable defaults if relying on prior <code>save_table_file</code> behavior.</li>
 <li><code>tqdm</code> dependency removal may require adjustments in external tooling.</li>
 </ul>
-<h4 id="known-issues_7">Known Issues</h4>
+<h4 id="known-issues_8">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>
@@ -2018,12 +2214,12 @@
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/157">#157</a></li>
 </ul>
 </div>
-<h4 id="highlights_8">Highlights</h4>
+<h4 id="highlights_9">Highlights</h4>
 <ul>
 <li>Introduced MinIO storage integration.</li>
 <li>Delivered artifact archiving and report-generation workflows.</li>
 </ul>
-<h4 id="enhancements_8">Enhancements</h4>
+<h4 id="enhancements_15">Enhancements</h4>
 <ul>
 <li>Implemented the <code>MinIOStorage</code> class for object storage access.</li>
 <li>Added commands for archive creation (ZIP / tar.gz) and report generation.</li>
@@ -2033,11 +2229,11 @@
 <ul>
 <li>Updated dependencies and modernized CI configurations.</li>
 </ul>
-<h4 id="migration-compatibility_8">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_9">Migration / Compatibility</h4>
 <ul>
 <li>Fully backward compatible; enable optional dependencies when using MinIO.</li>
 </ul>
-<h4 id="known-issues_8">Known Issues</h4>
+<h4 id="known-issues_9">Known Issues</h4>
 <ul>
 <li>None reported at this time.</li>
 </ul>

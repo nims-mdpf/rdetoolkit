@@ -1117,45 +1117,6 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler">
-<span class="md-ellipsis">
-      LazyFileHandler
-    </span>
-</a>
-<nav aria-label="LazyFileHandler" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.encoding">
-<span class="md-ellipsis">
-      encoding
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.filename">
-<span class="md-ellipsis">
-      filename
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.mode">
-<span class="md-ellipsis">
-      mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.emit">
-<span class="md-ellipsis">
-      emit
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.rdelogger.get_logger">
 <span class="md-ellipsis">
       get_logger
@@ -1224,9 +1185,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#utilizing-lazy-file-handler">
+<a class="md-nav__link" href="#delayed-file-creation-with-get_logger">
 <span class="md-ellipsis">
-      Utilizing Lazy File Handler
+      Delayed file creation with get_logger
     </span>
 </a>
 </li>
@@ -1642,6 +1603,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/validate/">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1821,45 +1790,6 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler">
-<span class="md-ellipsis">
-      LazyFileHandler
-    </span>
-</a>
-<nav aria-label="LazyFileHandler" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.encoding">
-<span class="md-ellipsis">
-      encoding
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.filename">
-<span class="md-ellipsis">
-      filename
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.mode">
-<span class="md-ellipsis">
-      mode
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.rdelogger.LazyFileHandler.emit">
-<span class="md-ellipsis">
-      emit
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.rdelogger.get_logger">
 <span class="md-ellipsis">
       get_logger
@@ -1928,9 +1858,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#utilizing-lazy-file-handler">
+<a class="md-nav__link" href="#delayed-file-creation-with-get_logger">
 <span class="md-ellipsis">
-      Utilizing Lazy File Handler
+      Delayed file creation with get_logger
     </span>
 </a>
 </li>
@@ -1951,7 +1881,7 @@
 <h3 id="log-management">Log Management</h3>
 <ul>
 <li>Collection of structured processing execution logs</li>
-<li>Efficient log output through lazy file handlers</li>
+<li>Efficient log output with delayed file creation</li>
 <li>Custom log configuration and decorators</li>
 </ul>
 <h3 id="output-control">Output Control</h3>
@@ -1961,216 +1891,6 @@
 <li>Detailed control of debug information</li>
 </ul>
 <hr/>
-<div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="src.rdetoolkit.rdelogger.LazyFileHandler">
-<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>rdelogger<span style="color: #333">.</span>LazyFileHandler(filename, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">'a'</span>, encoding<span style="color: #333">=</span><span style="background-color: #FFF0F0">'utf-8'</span>)</code>
-</h2>
-<div class="doc doc-contents first">
-<p class="doc doc-class-bases">
-              Bases: <code><span title="logging.Handler">Handler</span></code></p>
-<p>A logging handler that lazily creates the actual FileHandler when needed.</p>
-<p>This handler delays the creation of the log file until the first log message is emitted.
-This helps prevent unnecessary file creation when logging is configured but not used.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>filename</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the log file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>mode</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file opening mode. Defaults to 'a' (append).</p>
-</div>
-</td>
-<td>
-<code>'a'</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>encoding</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The encoding to use for the file. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>'utf-8'</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">属性：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.rdelogger.LazyFileHandler.filename" title="filename = filename
-
-  
-      instance-attribute
-   (src.rdetoolkit.rdelogger.LazyFileHandler.filename)">filename</a></code></td>
-<td>
-<code><span title="_typeshed.Incomplete">Incomplete</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path where the log file will be created.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.rdelogger.LazyFileHandler.mode" title="mode = mode
-
-  
-      instance-attribute
-   (src.rdetoolkit.rdelogger.LazyFileHandler.mode)">mode</a></code></td>
-<td>
-<code><span title="_typeshed.Incomplete">Incomplete</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file opening mode.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.rdelogger.LazyFileHandler.encoding" title="encoding = encoding
-
-  
-      instance-attribute
-   (src.rdetoolkit.rdelogger.LazyFileHandler.encoding)">encoding</a></code></td>
-<td>
-<code><span title="_typeshed.Incomplete">Incomplete</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file encoding.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.rdelogger.LazyFileHandler._handler">_handler</span></code></td>
-<td>
-<code><span title="logging.FileHandler">FileHandler</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The underlying FileHandler instance, created on first use.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="doc doc-children">
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.rdelogger.LazyFileHandler.encoding">
-<code class="highlight language-python">encoding <span style="color: #333">=</span> encoding</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.rdelogger.LazyFileHandler.filename">
-<code class="highlight language-python">filename <span style="color: #333">=</span> filename</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.rdelogger.LazyFileHandler.mode">
-<code class="highlight language-python">mode <span style="color: #333">=</span> mode</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.rdelogger.LazyFileHandler.emit">
-<code class="highlight language-python">emit(record)</code>
-</h3>
-<div class="doc doc-contents">
-<p>Lazily creates the actual FileHandler and delegates the emission of the log record.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>record</code>
-</td>
-<td>
-<code><span title="logging.LogRecord">LogRecord</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The LogRecord instance containing all the information of the logging event.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div><hr/>
 <div class="doc doc-object doc-function">
 <h2 class="doc doc-heading" id="src.rdetoolkit.rdelogger.get_logger">
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>rdelogger<span style="color: #333">.</span>get_logger(name, <span style="color: #333">*</span>, file_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, level<span style="color: #333">=</span>logging<span style="color: #333">.</span>DEBUG)</code>
@@ -2178,8 +1898,10 @@ This helps prevent unnecessary file creation when logging is configured but not 
 <div class="doc doc-contents first">
 <p>Creates and configures a logger using Python's built-in logging module.</p>
 <p>This function creates a logger identified by <code>name</code>, sets its logging level, and, if a file
-path is provided, adds a lazy file handler to output log messages to that file. The default
-logging level is DEBUG, but it can be modified via the <code>level</code> parameter.</p>
+path is provided, adds a file handler with lazy file creation to output log messages to that file.
+If a file path is provided, file handlers previously added by this function are replaced to
+prevent handler accumulation, while preserving other handlers attached to the logger.
+The default logging level is DEBUG, but it can be modified via the <code>level</code> parameter.</p>
 <p><span class="doc-section-title">引数：</span></p>
 <table>
 <thead>
@@ -2475,23 +2197,13 @@ logger<span style="color: #333">.</span>error(<span style="background-color: #FF
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.rdelogger</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> CustomLog
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.rdelogger</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> CustomLog
 
-<span style="color: #888"># Configure custom log</span>
-log_file <span style="color: #333">=</span> Path(<span style="background-color: #FFF0F0">"logs/experiment.log"</span>)
-log_file<span style="color: #333">.</span>parent<span style="color: #333">.</span>mkdir(parents<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>, exist_ok<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>)
-
-custom_log <span style="color: #333">=</span> CustomLog()
-logger <span style="color: #333">=</span> custom_log<span style="color: #333">.</span>get_logger(<span style="background-color: #FFF0F0">"custom_logger"</span>, <span style="color: #007020">str</span>(log_file))
+<span style="color: #888"># Configure user log (writes to data/logs/rdeuser.log)</span>
+logger <span style="color: #333">=</span> CustomLog()<span style="color: #333">.</span>get_logger()
 
 <span style="color: #888"># Record logs</span>
-logger<span style="color: #333">.</span>info(<span style="background-color: #FFF0F0">"Started custom logging"</span>)
+logger<span style="color: #333">.</span>info(<span style="background-color: #FFF0F0">"Started user logging"</span>)
 logger<span style="color: #333">.</span>info(<span style="background-color: #FFF0F0">"Starting experimental data processing"</span>)
 
 <span style="color: #888"># Processing simulation</span>
@@ -2499,7 +2211,7 @@ logger<span style="color: #333">.</span>info(<span style="background-color: #FFF
     logger<span style="color: #333">.</span>debug(<span style="background-color: #FFF0F0">f"Executing processing step </span><span style="background-color: #EEE">{</span>i<span style="color: #333">+</span><span style="color: #00D; font-weight: bold">1</span><span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">/5"</span>)
 
 logger<span style="color: #333">.</span>info(<span style="background-color: #FFF0F0">"Experimental data processing completed"</span>)
-<span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Recorded to log file: </span><span style="background-color: #EEE">{</span>log_file<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+<span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">"Recorded to log file: data/logs/rdeuser.log"</span>)
 </code></pre></div></td></tr></table></div>
 <h3 id="using-log-decorator">Using Log Decorator</h3>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">log_decorator_usage.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
@@ -2550,12 +2262,12 @@ logger<span style="color: #333">.</span>info(<span style="background-color: #FFF
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.rdelogger</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> log_decorator, get_logger
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.rdelogger</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> CustomLog, log_decorator
 
-<span style="color: #888"># Configure logger</span>
-logger <span style="color: #333">=</span> get_logger(<span style="background-color: #FFF0F0">"decorated_functions"</span>)
+<span style="color: #888"># Configure logger for error reporting</span>
+logger <span style="color: #333">=</span> CustomLog()<span style="color: #333">.</span>get_logger()
 
-<span style="color: #555; font-weight: bold">@log_decorator</span>(logger)
+<span style="color: #555; font-weight: bold">@log_decorator</span>()
 <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">process_data</span>(data_file):
 <span style="color: #BBB">    </span><span style="color: #D42">"""Data processing function (with log decorator)"""</span>
     <span style="color: #080; font-weight: bold">if</span> <span style="color: #000; font-weight: bold">not</span> data_file<span style="color: #333">.</span>exists():
@@ -2569,7 +2281,7 @@ logger <span style="color: #333">=</span> get_logger(<span style="background-col
 
     <span style="color: #080; font-weight: bold">return</span> {<span style="background-color: #FFF0F0">"status"</span>: <span style="background-color: #FFF0F0">"success"</span>, <span style="background-color: #FFF0F0">"size"</span>: <span style="color: #007020">len</span>(content)}
 
-<span style="color: #555; font-weight: bold">@log_decorator</span>(logger)
+<span style="color: #555; font-weight: bold">@log_decorator</span>()
 <span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">analyze_results</span>(results):
 <span style="color: #BBB">    </span><span style="color: #D42">"""Result analysis function (with log decorator)"""</span>
     <span style="color: #080; font-weight: bold">if</span> <span style="color: #000; font-weight: bold">not</span> results:
@@ -2597,11 +2309,11 @@ logger <span style="color: #333">=</span> get_logger(<span style="background-col
     analysis <span style="color: #333">=</span> analyze_results(test_results)
     <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Analysis result: </span><span style="background-color: #EEE">{</span>analysis<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
 
-<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> e:
-    logger<span style="color: #333">.</span>error(<span style="background-color: #FFF0F0">f"Error occurred during processing: </span><span style="background-color: #EEE">{</span>e<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+<span style="color: #080; font-weight: bold">except</span> <span style="color: #F00; font-weight: bold">Exception</span> <span style="color: #080; font-weight: bold">as</span> exc:
+    logger<span style="color: #333">.</span>error(<span style="background-color: #FFF0F0">f"Error occurred during processing: </span><span style="background-color: #EEE">{</span>exc<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
 </code></pre></div></td></tr></table></div>
-<h3 id="utilizing-lazy-file-handler">Utilizing Lazy File Handler</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">lazy_file_handler.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<h3 id="delayed-file-creation-with-get_logger">Delayed file creation with <code>get_logger</code></h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">delayed_file_creation.py</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
@@ -2619,54 +2331,12 @@ logger <span style="color: #333">=</span> get_logger(<span style="background-col
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.rdelogger</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> LazyFileHandler, get_logger
-<span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">logging</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.rdelogger</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> get_logger
 <span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">pathlib</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Path
-
-<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">setup_lazy_logging</span>(log_file_path: Path):
-<span style="color: #BBB">    </span><span style="color: #D42">"""Log configuration using lazy file handler"""</span>
-
-    <span style="color: #888"># Create lazy file handler</span>
-    lazy_handler <span style="color: #333">=</span> LazyFileHandler(<span style="color: #007020">str</span>(log_file_path))
-    lazy_handler<span style="color: #333">.</span>setLevel(logging<span style="color: #333">.</span>INFO)
-
-    <span style="color: #888"># Configure formatter</span>
-    formatter <span style="color: #333">=</span> logging<span style="color: #333">.</span>Formatter(
-        <span style="background-color: #FFF0F0">'</span><span style="background-color: #EEE">%(asctime)s</span><span style="background-color: #FFF0F0"> - </span><span style="background-color: #EEE">%(name)s</span><span style="background-color: #FFF0F0"> - </span><span style="background-color: #EEE">%(levelname)s</span><span style="background-color: #FFF0F0"> - </span><span style="background-color: #EEE">%(message)s</span><span style="background-color: #FFF0F0">'</span>
-    )
-    lazy_handler<span style="color: #333">.</span>setFormatter(formatter)
-
-    <span style="color: #888"># Configure logger</span>
-    logger <span style="color: #333">=</span> get_logger(<span style="background-color: #FFF0F0">"lazy_logger"</span>)
-    logger<span style="color: #333">.</span>addHandler(lazy_handler)
-    logger<span style="color: #333">.</span>setLevel(logging<span style="color: #333">.</span>INFO)
-
-    <span style="color: #080; font-weight: bold">return</span> logger
 
 <span style="color: #888"># Usage example</span>
 log_path <span style="color: #333">=</span> Path(<span style="background-color: #FFF0F0">"logs/lazy_experiment.log"</span>)
-logger <span style="color: #333">=</span> setup_lazy_logging(log_path)
+logger <span style="color: #333">=</span> get_logger(<span style="background-color: #FFF0F0">"lazy_logger"</span>, file_path<span style="color: #333">=</span>log_path)
 
 <span style="color: #888"># Record logs (file is not created until actually written to)</span>
 logger<span style="color: #333">.</span>info(<span style="background-color: #FFF0F0">"Started lazy log system"</span>)

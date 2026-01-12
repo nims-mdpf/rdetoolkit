@@ -1833,6 +1833,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2391,7 +2399,7 @@ to load existing metadata is not supported and will raise an error.</p>
 <code>metafilepath</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span>]</code>
+<code><span title="typing.Optional">Optional</span>[<span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2476,7 +2484,7 @@ to load existing metadata is not supported and will raise an error.</p>
 <tr class="doc-section-item">
 <td><code><span title="src.rdetoolkit.rde2util.Meta.__init__.referedmap">referedmap</span></code></td>
 <td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="Optional">Optional</span>[<span title="Union">Union</span>[<span title="str">str</span>, <span title="list">list</span>]]]</code>
+<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span> | <span title="list">list</span> | None]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2649,7 +2657,7 @@ its value is replaced. If the key does not exist and is found within any of the 
 <code>value</code>
 </td>
 <td>
-<code><span title="Union">Union</span>[<span title="str">str</span>, <span title="list">list</span>[<span title="str">str</span>]]</code>
+<code><span title="str">str</span> | <span title="list">list</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2850,7 +2858,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>outtype</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2866,7 +2874,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>outfmt</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2882,7 +2890,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>orgtype</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2898,7 +2906,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>outunit</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -2926,7 +2934,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>dict[str, Union[bool, int, float, str]]: Returns the conversion result in the form of metadata for metadata.json.</p>
+<p>dict[str, bool | int | float | str]: Returns the conversion result in the form of metadata for metadata.json.</p>
 </div>
 </td>
 </tr>
@@ -3738,10 +3746,7 @@ in the destination directory.</p>
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>rde2util<span style="color: #333">.</span>castval(valstr, outtype, outfmt)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>The function formats the string valstr based on outtype and outfmt and returns the formatted value.</p>
-<p>The function returns a formatted value of the string valstr according to the specified outtype and outfmt.
-The outtype must be a string ("string") for outfmt to be used. If valstr contains a value with units, the assignment of units is not handled within this function.
-It should be assigned separately as needed.</p>
+<p>Cast the value-string to the specified type-string.</p>
 <p><span class="doc-section-title">引数：</span></p>
 <table>
 <thead>
@@ -3762,7 +3767,7 @@ It should be assigned separately as needed.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>String to be converted of type</p>
+<p>Value to cast.</p>
 </div>
 </td>
 <td>
@@ -3774,11 +3779,11 @@ It should be assigned separately as needed.</p>
 <code>outtype</code>
 </td>
 <td>
-<code><span title="str">str</span></code>
+<code><span title="str">str</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Type information at output</p>
+<p>Data type ("boolean", "integer", "number", "string").</p>
 </div>
 </td>
 <td>
@@ -3790,15 +3795,57 @@ It should be assigned separately as needed.</p>
 <code>outfmt</code>
 </td>
 <td>
-<code><span title="str">str</span></code>
+<code><span title="str">str</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Formatting at output (related to date data)</p>
+<p>Data format (used only for "string" type).</p>
 </div>
 </td>
 <td>
 <em>必須</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">戻り値：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="typing.Any">Any</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Casted value. For "string" without a format, returns the original value.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">発生：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If the type conversion fails or the type is unknown.</p>
+</div>
 </td>
 </tr>
 </tbody>

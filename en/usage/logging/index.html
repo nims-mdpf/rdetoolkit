@@ -1543,6 +1543,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1752,8 +1760,8 @@
 <ul>
 <li><strong>Name (<code>name</code>)</strong>: Identifier for the logger. Pass <code>__name__</code> to keep one logger per module.</li>
 <li><strong>Log level (<code>level</code>)</strong>: Defaults to <code>logging.DEBUG</code>, but you can set <code>INFO</code>, <code>WARNING</code>, and other levels as needed.</li>
-<li><strong>Destination (<code>file_path</code>)</strong>: Accepts an <code>RdeFsPath</code> or a string path. When provided, <code>LazyFileHandler</code> creates parent directories and the log file only when the first log record arrives.</li>
-<li><strong>Handler deduplication</strong>: Repeated calls with the same <code>name</code> and <code>file_path</code> do not register duplicate handlers, preventing duplicated log lines and file handles.</li>
+<li><strong>Destination (<code>file_path</code>)</strong>: Accepts an <code>RdeFsPath</code> or a string path. When provided, <code>get_logger</code> creates parent directories immediately and uses <code>logging.FileHandler(delay=True)</code> so the log file is created on the first write.</li>
+<li><strong>Handler replacement</strong>: Repeated calls clear any RDEToolKit-managed file handlers before adding a new one, preventing handler accumulation and duplicated log lines.</li>
 <li><strong>When <code>file_path</code> is omitted</strong>: The function returns a logger without handlers. Configure handlers separately with <code>logging.basicConfig()</code> or custom logging setup to emit records elsewhere.</li>
 </ul>
 <p>The default log format is <code>%(asctime)s - [%(name)s](%(levelname)s) - %(message)s</code>, which keeps timestamps, module names, and severities visible at a glance.</p>
@@ -1781,7 +1789,7 @@ logger <span style="color: #333">=</span> get_logger(<span style="color: #963">_
 logger<span style="color: #333">.</span>info(<span style="background-color: #FFF0F0">"Structured processing started"</span>)
 logger<span style="color: #333">.</span>warning(<span style="background-color: #FFF0F0">"Input files are missing"</span>)
 </code></pre></div></td></tr></table></div>
-<p>When this code runs, <code>LazyFileHandler</code> creates <code>data/logs/structured_process.log</code> on the first write and appends entries similar to:</p>
+<p>When this code runs, <code>get_logger</code> uses <code>logging.FileHandler(delay=True)</code>, so <code>data/logs/structured_process.log</code> is created on the first write and appends entries similar to:</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>2024-06-14 10:21:35,147 - [my_module](INFO) - Structured processing started
 2024-06-14 10:21:35,148 - [my_module](WARNING) - Input files are missing
@@ -1820,7 +1828,7 @@ logger <span style="color: #333">=</span> get_logger(<span style="color: #963">_
 </code></pre></div></td></tr></table></div>
 <ul>
 <li><code>logger.exception()</code> appends the stack trace automatically, which speeds up root cause analysis.</li>
-<li>Thanks to <code>LazyFileHandler</code>, <code>data/logs/dataset.log</code> is created only when the first record arrives.</li>
+<li>Thanks to <code>logging.FileHandler(delay=True)</code>, <code>data/logs/dataset.log</code> is created only when the first record arrives.</li>
 </ul>
 <h2 id="3-choosing-log-levels">3. Choosing log levels</h2>
 <table>
@@ -1874,9 +1882,9 @@ logger<span style="color: #333">.</span>info(<span style="background-color: #FFF
 <p>This approach plays nicely with applications that already define their own logging configuration.</p>
 <h2 id="5-frequently-asked-questions">5. Frequently asked questions</h2>
 <p><strong>Q. Will repeated initialization cause duplicate log lines?</strong><br/>
-A. No. <code>get_logger</code> checks for an existing <code>LazyFileHandler</code> targeting the same file before adding a new one.</p>
+A. No. <code>get_logger</code> clears any RDEToolKit-managed file handlers before adding a new one, so handlers do not accumulate.</p>
 <p><strong>Q. What if the target directory does not exist yet?</strong><br/>
-A. <code>LazyFileHandler</code> creates the directory tree and log file during the first write.</p>
+A. <code>get_logger</code> creates the directory tree immediately and uses <code>logging.FileHandler(delay=True)</code> so the log file is created on the first write.</p>
 <p><strong>Q. How should I construct an <code>RdeFsPath</code>?</strong><br/>
 A. Wrap a <code>Path</code> or string. RDEToolKit uses <code>RdeFsPath</code> to keep path handling consistent across the project.</p>
 <hr/>

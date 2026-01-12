@@ -1477,6 +1477,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1673,6 +1681,12 @@
 </thead>
 <tbody>
 <tr>
+<td>v1.5.0</td>
+<td>2026-01-09</td>
+<td>Result型 / Typer CLI+validate / タイムスタンプログ / 遅延import / Python 3.14対応</td>
+<td><a href="#v150-2026-01-09">v1.5.0</a></td>
+</tr>
+<tr>
 <td>v1.4.3</td>
 <td>2025-12-25</td>
 <td>SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整</td>
@@ -1729,6 +1743,188 @@
 </tbody>
 </table>
 <h1 id="_2">リリース詳細</h1>
+<h2 id="v150-2026-01-09">v1.5.0 (2026-01-09)</h2>
+<div class="admonition info">
+<p class="admonition-title">参照</p>
+<ul>
+<li>主な課題: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/3">#3</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/247">#247</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/249">#249</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/262">#262</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/301">#301</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/323">#323</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/324">#324</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/325">#325</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/326">#326</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/327">#327</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/328">#328</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/329">#329</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/330">#330</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/333">#333</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/334">#334</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/335">#335</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/336">#336</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/337">#337</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/338">#338</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/341">#341</a></li>
+</ul>
+</div>
+<h4 id="_3">ハイライト</h4>
+<ul>
+<li>例外を使用しない明示的で型安全なエラーハンドリングのためのResult型パターン(<code>Result[T, E]</code>)を導入</li>
+<li>システムログファイル名が静的な<code>rdesys.log</code>からタイムスタンプ付き(<code>rdesys_YYYYMMDD_HHMMSS.log</code>)に変更され、実行ごとのログ管理が可能になり、並行実行や連続実行時のログ衝突を防止</li>
+<li>CLIをTyperに刷新し、<code>validate</code>サブコマンド、<code>rdetoolkit run</code>、<code>init</code>のテンプレートパス指定を追加しつつ<code>python -m rdetoolkit</code>互換を維持</li>
+<li>コア/ワークフロー/CLI/グラフの遅延import化で起動負荷を軽減し、重い依存を必要時にのみロード</li>
+<li><code>structured</code>への<code>invoice.json</code>保存（任意）とMagic Variable拡張、Python 3.14公式対応を追加</li>
+</ul>
+<hr/>
+<h3 id="result-issue-334">Result型パターン (Issue #334)</h3>
+<h4 id="_4">機能強化</h4>
+<ul>
+<li><strong>新しいResultモジュール</strong> (<code>rdetoolkit.result</code>):</li>
+<li><code>Success[T]</code>: 値を持つ成功結果のためのイミュータブルなfrozen dataclass</li>
+<li><code>Failure[E]</code>: エラーを持つ失敗結果のためのイミュータブルなfrozen dataclass</li>
+<li><code>Result[T, E]</code>: <code>Success[T] | Failure[E]</code>の型エイリアス</li>
+<li><code>try_result</code>デコレータ: 例外ベースの関数をResult返却関数に変換</li>
+<li><code>TypeVar</code>と<code>ParamSpec</code>による完全なジェネリック型サポートで型安全性を実現</li>
+<li>関数型メソッド: <code>is_success()</code>, <code>map()</code>, <code>unwrap()</code></li>
+<li><strong>Resultベースのワークフロー関数</strong>:</li>
+<li><code>check_files_result()</code>: 明示的なResult型によるファイル分類</li>
+<li><code>Result[tuple[RawFiles, Path | None, Path | None], StructuredError]</code>を返却</li>
+<li><strong>Resultベースのモード処理関数</strong>:</li>
+<li><code>invoice_mode_process_result()</code>: Result型によるインボイス処理</li>
+<li><code>Result[WorkflowExecutionStatus, Exception]</code>を返却</li>
+<li><strong>型スタブ</strong>: IDE自動補完と型チェックのための完全な<code>.pyi</code>ファイル</li>
+<li><strong>ドキュメント</strong>: 英語と日本語の包括的なAPIドキュメント(<code>docs/api/result.en.md</code>, <code>docs/api/result.ja.md</code>)</li>
+<li><strong>公開API</strong>: <code>rdetoolkit.__init__.py</code>からResult型をエクスポートし、簡単にインポート可能</li>
+<li><strong>100%テストカバレッジ</strong>: Resultモジュールの包括的な40ユニットテスト</li>
+</ul>
+<h4 id="_5">使用例</h4>
+<p><strong>Resultベースのエラーハンドリング:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.workflows</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> check_files_result
+
+result <span style="color: #333">=</span> check_files_result(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice"</span>)
+<span style="color: #080; font-weight: bold">if</span> result<span style="color: #333">.</span>is_success():
+    raw_files, excel_path, smarttable_path <span style="color: #333">=</span> result<span style="color: #333">.</span>unwrap()
+    <span style="color: #888"># ファイル処理</span>
+<span style="color: #080; font-weight: bold">else</span>:
+    error <span style="color: #333">=</span> result<span style="color: #333">.</span>error
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Error </span><span style="background-color: #EEE">{</span>error<span style="color: #333">.</span>ecode<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">: </span><span style="background-color: #EEE">{</span>error<span style="color: #333">.</span>emsg<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<p><strong>従来の例外ベース (引き続き動作):</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.workflows</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> check_files
+
+<span style="color: #080; font-weight: bold">try</span>:
+    raw_files, excel_path, smarttable_path <span style="color: #333">=</span> check_files(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice"</span>)
+<span style="color: #080; font-weight: bold">except</span> StructuredError <span style="color: #080; font-weight: bold">as</span> e:
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Error </span><span style="background-color: #EEE">{</span>e<span style="color: #333">.</span>ecode<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">: </span><span style="background-color: #EEE">{</span>e<span style="color: #333">.</span>emsg<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h3 id="issue-341">タイムスタンプ付きログファイル名 (Issue #341)</h3>
+<h4 id="_6">機能強化</h4>
+<ul>
+<li>ファイルシステムセーフなタイムスタンプ文字列を生成する<code>generate_log_timestamp()</code>ユーティリティ関数を追加</li>
+<li>各ワークフロー実行でユニークなタイムスタンプ付きログファイルを生成するように<code>workflows.run()</code>を変更</li>
+<li>P2バグを修正: 同一プロセス内で<code>run()</code>を複数回呼び出した際のハンドラ蓄積問題</li>
+<li>根本原因: Loggerシングルトンが異なるファイル名の古いLazyFileHandlerを保持</li>
+<li>解決策: 新しいハンドラを追加する前に既存のLazyFileHandlerをクリア</li>
+<li>影響: 1実行=1ログファイルを保証し、ログのクロスコンタミネーションを防止</li>
+<li>保守性向上のためカスタム<code>LazyFileHandler</code>を標準の<code>logging.FileHandler(delay=True)</code>に置き換え</li>
+<li>新しいタイムスタンプ付きログファイル名パターンを参照するようにすべてのドキュメントを更新</li>
+</ul>
+<h4 id="_7">利点</h4>
+<ul>
+<li><strong>実行ごとの分離</strong>: 各ワークフロー実行が個別のログファイルを作成し、ログの混在を防止</li>
+<li><strong>並行実行</strong>: 複数のワークフローを同時実行してもログが衝突しない</li>
+<li><strong>比較が容易</strong>: 手動で分離することなく、異なる実行のログを比較可能</li>
+<li><strong>監査の簡素化</strong>: デバッグやコンプライアンスのために実行ごとのログを収集・アーカイブ</li>
+<li><strong>保守性の向上</strong>: 標準ライブラリのFileHandlerは十分にテストされ、広く理解されている</li>
+</ul>
+<hr/>
+<h3 id="cli-issue-247-262-337-338">CLI刷新とバリデーション (Issue #247, #262, #337, #338)</h3>
+<h4 id="_8">機能強化</h4>
+<ul>
+<li>CLIをTyperへ移行し遅延import化。<code>python -m rdetoolkit</code>の起動とコマンド名（<code>init</code>/<code>version</code>/<code>gen-config</code>/<code>make-excelinvoice</code>/<code>artifact</code>/<code>csv2graph</code>）を維持</li>
+<li><code>rdetoolkit run &lt;module_or_file::attr&gt;</code>を追加し、動的関数ロード、クラス/呼び出し可能オブジェクトの除外、2引数受け取り可否の検証を実装</li>
+<li><code>rdetoolkit validate</code>コマンド（<code>invoice-schema</code>/<code>invoice</code>/<code>metadata-def</code>/<code>metadata</code>/<code>all</code>）を追加し、<code>--format text|json</code>、<code>--quiet</code>、<code>--strict/--no-strict</code>、終了コード（0/1/2/3）を提供</li>
+<li><code>init</code>テンプレートパスオプション（<code>--entry-point</code>/<code>--modules</code>/<code>--tasksupport</code>/<code>--inputdata</code>/<code>--other</code>）を追加し、<code>pyproject.toml</code>/<code>rdeconfig.yaml</code>に保存</li>
+</ul>
+<hr/>
+<h3 id="issue-323-330">起動パフォーマンス改善 (Issue #323-330)</h3>
+<h4 id="_9">機能強化</h4>
+<ul>
+<li><code>rdetoolkit</code>および<code>rdetoolkit.graph</code>で遅延エクスポートを導入し、未使用時の重いサブモジュール読み込みを回避</li>
+<li>インボイス/検証/エンコード、コアユーティリティ、ワークフロー、CLI、グラフレンダラーの重い依存を必要時のみロード</li>
+<li>遅延importを行う対象ファイルで<code>PLC0415</code>を許可するRuffのper-file ignoreを追加</li>
+</ul>
+<hr/>
+<h3 id="issue-333-335-336">型安全性とリファクタ (Issue #333, #335, #336)</h3>
+<h4 id="_10">機能強化</h4>
+<ul>
+<li><code>models.rde2types</code>の型エイリアスをNewType定義と検証付きパス型に刷新し、<code>FileGroup</code>/<code>ProcessedFileGroup</code>を追加</li>
+<li>読み取り専用の入力を<code>Mapping</code>、変更を伴う入力を<code>MutableMapping</code>へ拡張し、<code>Validator.validate()</code>は<code>Mapping</code>を受け取り<code>dict</code>へ正規化</li>
+<li><code>rde2util.castval</code>、インボイスシート処理、アーカイブ形式判定のif/elif連鎖をディスパッチテーブルへ置換し、互換性テストで挙動を維持</li>
+</ul>
+<hr/>
+<h3 id="issue-3-301">ワークフロー/設定の拡張 (Issue #3, #301)</h3>
+<h4 id="_11">機能強化</h4>
+<ul>
+<li><code>system.save_invoice_to_structured</code>（デフォルト<code>false</code>）と<code>StructuredInvoiceSaver</code>を追加し、サムネイル生成後に<code>structured</code>へ<code>invoice.json</code>を任意でコピー</li>
+<li>Magic Variableパターンを拡張：<code>${invoice:basic:*}</code>、<code>${invoice:custom:*}</code>、<code>${invoice:sample:names:*}</code>、<code>${metadata:constant:*}</code>。欠損時の警告と厳密な検証を追加</li>
+</ul>
+<hr/>
+<h3 id="issue-249">ツール/プラットフォーム対応 (Issue #249)</h3>
+<h4 id="_12">機能強化</h4>
+<ul>
+<li>Python 3.14を公式サポートし、classifier/<code>tox</code>/CIのビルド・テストマトリクスを更新</li>
+</ul>
+<hr/>
+<h3 id="_13">移行 / 互換性</h3>
+<h4 id="result">Result型パターン</h4>
+<ul>
+<li><strong>後方互換性</strong>: すべての元の例外ベース関数は変更なし</li>
+<li><strong>段階的な移行</strong>: 両方のパターン(例外ベースとResultベース)が共存可能</li>
+<li><strong>委譲パターン</strong>: 元の関数は内部的に<code>*_result()</code>バージョンに委譲</li>
+<li><strong>型安全性</strong>: <code>isinstance(result, Failure)</code>を使用した型安全なエラーチェック</li>
+<li><strong>エラー情報の保持</strong>: すべてのエラー情報(StructuredError属性、Exception詳細)がFailureに保持</li>
+</ul>
+<h4 id="_14">タイムスタンプ付きログファイル名</h4>
+<ul>
+<li><strong>ログファイル名の変更</strong>: システムログは<code>data/logs/rdesys.log</code>ではなく<code>data/logs/rdesys_YYYYMMDD_HHMMSS.log</code>に書き込まれます</li>
+<li><strong>ログの検索</strong>: ワイルドカードパターンを使用してログを検索：<code>ls -t data/logs/rdesys_*.log | head -1</code>で最新のログを確認</li>
+<li><strong>スクリプトとツール</strong>: <code>rdesys.log</code>を直接参照するスクリプトや監視ツールを、<code>rdesys_*.log</code>のパターンマッチングを使用するように更新してください</li>
+<li><strong>ログ収集</strong>: 自動ログ収集システムは、単一の静的ファイルではなく、複数のタイムスタンプ付きファイルを処理するように更新が必要です</li>
+<li><strong>古いログファイル</strong>: 以前のバージョンからの既存の<code>rdesys.log</code>ファイルはそのまま残り、自動的には削除されません</li>
+<li><strong>設定不要</strong>: 新しい動作は自動的に適用され、設定変更は必要ありません</li>
+</ul>
+<h4 id="clityper">CLI（Typer移行と新コマンド）</h4>
+<ul>
+<li><strong>起動互換</strong>: <code>python -m rdetoolkit ...</code>の呼び出しは継続し、コマンド名/主要オプションも維持</li>
+<li><strong>依存関係</strong>: Click依存は削除。<code>rdetoolkit.cli</code>のClick依存オブジェクトを直接利用していた場合は見直しが必要</li>
+<li><strong>validateコマンド</strong>: <code>rdetoolkit validate</code>は終了コード0/1/2/3を返し、CI自動化に利用可能</li>
+</ul>
+<h4 id="init">initテンプレートパス</h4>
+<ul>
+<li><strong>設定への保存</strong>: 指定したテンプレートパスは<code>pyproject.toml</code>/<code>rdeconfig.yaml</code>に保存され、既存設定はそのまま利用可能</li>
+</ul>
+<h4 id="invoicejsonstructured">invoice.jsonのstructured保存</h4>
+<ul>
+<li><strong>オプション制</strong>: <code>system.save_invoice_to_structured</code>は<code>false</code>が既定。<code>true</code>にすると<code>structured/invoice.json</code>が生成されます</li>
+</ul>
+<h4 id="magic-variables">Magic Variables</h4>
+<ul>
+<li><strong>拡張パターン</strong>: <code>${invoice:basic:*}</code>、<code>${invoice:custom:*}</code>、<code>${invoice:sample:names:*}</code>、<code>${metadata:constant:*}</code>を追加</li>
+<li><strong>エラー/警告</strong>: 必須フィールド欠損はエラー、空要素は警告付きでスキップされ<code>__</code>連結を防止</li>
+</ul>
+<h4 id="mapping">Mapping型ヒント</h4>
+<ul>
+<li><strong>型のみ変更</strong>: <code>Mapping</code>/<code>MutableMapping</code>の採用で入力型が拡張されるが、実行時の挙動は維持</li>
+<li><strong>validate入力</strong>: <code>Validator.validate(obj=...)</code>は<code>Mapping</code>を<code>dict</code>へコピーして正規化</li>
+</ul>
+<h4 id="python-314">Python 3.14対応</h4>
+<ul>
+<li><strong>互換性</strong>: Python 3.14を公式サポートし、CI/配布設定を更新</li>
+</ul>
+<hr/>
+<h4 id="_15">既知の問題</h4>
+<ul>
+<li><code>invoice_mode_process</code>のみがResultベースバージョンを持ちます。他のモードプロセッサは将来のリリースで移行される予定です</li>
+</ul>
+<hr/>
 <h2 id="v143-2025-12-25">v1.4.3 (2025-12-25)</h2>
 <div class="admonition info">
 <p class="admonition-title">参照資料</p>
@@ -1736,12 +1932,12 @@
 <li>対応Issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/292">#292</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/310">#310</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/311">#311</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/302">#302</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/304">#304</a></li>
 </ul>
 </div>
-<h4 id="_3">ハイライト</h4>
+<h4 id="_16">ハイライト</h4>
 <ul>
 <li>SmartTable 分割処理で <code>sample.ownerId</code> と boolean 列が失われず、空欄が前行から継承されないよう修正し、行単位のデータ整合性を回復。</li>
 <li>csv2graph の HTML 出力を CSV 保存先（structured）にデフォルト固定し、<code>html_output_dir</code> で任意ディレクトリへ振り分け可能に。Plotly/Matplotlib の凡例表示とログ目盛を統一し再現性を向上。</li>
 </ul>
-<h4 id="_4">追加機能 / 改善</h4>
+<h4 id="_17">追加機能 / 改善</h4>
 <ul>
 <li>SmartTableInvoiceInitializer で元 invoice を一度だけ読み込み、各行処理に deepcopy を渡すことで分割後も <code>sample.ownerId</code> を保持。</li>
 <li>SmartTable 行の空欄セルを検出して既存値をクリアし、basic/custom/sample いずれも前行値を引き継がないようマッピングを整理。</li>
@@ -1750,7 +1946,7 @@
 <li>グラフレンダラーで Plotly 凡例をシリーズ名のみに統一し、ログ軸を 10 の累乗目盛・10^n 表記に固定（Plotly/Matplotlib 両方）。</li>
 <li>EP/BV 表付きの回帰テストを SmartTable・csv2graph・レンダラーに追加し、ownerId 継承、空欄クリア、boolean 変換、HTML 出力先、凡例/ログ目盛を網羅。</li>
 </ul>
-<h4 id="_5">不具合修正</h4>
+<h4 id="_18">不具合修正</h4>
 <ul>
 <li>SmartTable 分割時に 2 行目以降の <code>sample.ownerId</code> が消失する問題を解消。</li>
 <li>SmartTable の空欄セルが前行の basic/description や sample/composition などを引き継いでしまう問題を解消。</li>
@@ -1758,14 +1954,14 @@
 <li>csv2graph で <code>output_dir=other_image</code> を指定した際に HTML が構造化ディレクトリ外へ出力される問題を修正し、デフォルトで CSV 直下（structured）へ保存。</li>
 <li>Plotly 凡例にヘッダー全体（例: <code>total:intensity</code>）が表示される挙動と、ログ軸の 2・5 の補助目盛/非指数表記を修正。</li>
 </ul>
-<h4 id="_6">移行ガイド / 互換性</h4>
+<h4 id="_19">移行ガイド / 互換性</h4>
 <ul>
 <li>csv2graph の HTML 出力は既定で CSV 配下（通常は <code>data/structured</code>）に保存されます。別ディレクトリに出力したい場合は <code>html_output_dir</code>（API）または <code>--html-output-dir</code>（CLI）を指定してください。</li>
 <li>SmartTable で空欄セルが自動的に既存値を再利用する挙動は廃止されました。必要な値は各行に明示的に入力してください。</li>
 <li><code>"TRUE"</code> / <code>"FALSE"</code> の文字列は boolean 型に強制キャストされます。旧挙動（非空文字列は常に真）に依存したワークフローがある場合は見直しを推奨します。</li>
 <li>その他の後方互換性への影響はありません。</li>
 </ul>
-<h4 id="_7">既知の問題</h4>
+<h4 id="_20">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1777,34 +1973,34 @@
 <li>対応Issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/30">#30</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/36">#36</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/246">#246</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/293">#293</a></li>
 </ul>
 </div>
-<h4 id="_8">ハイライト</h4>
+<h4 id="_21">ハイライト</h4>
 <ul>
 <li><code>InvoiceFile.overwrite()</code> が辞書入力を受け付け、<code>InvoiceValidator</code> での検証と <code>invoice_path</code> へのフォールバック保存に対応。</li>
 <li>Excel インボイスの読み込みを <code>ExcelInvoiceFile</code> に集約し、<code>read_excelinvoice()</code> は v1.5.0 で削除予定の警告付き互換ラッパーへ移行。</li>
 <li>csv2graph が単一系列を自動検出し、CLI フラグの明示がない限り個別プロット生成を抑止して CLI / API のデフォルト動作を統一。</li>
 <li>MultiDataTile パイプラインが Excel のみ / 空ディレクトリでも実行され、必ずデータセット検証が発火。</li>
 </ul>
-<h4 id="_9">追加機能 / 改善</h4>
+<h4 id="_22">追加機能 / 改善</h4>
 <ul>
 <li><code>InvoiceFile.overwrite()</code> のシグネチャをマッピング受け取りに拡張し、<code>InvoiceValidator</code> によるスキーマ検証とインスタンス <code>invoice_path</code> へのデフォルト書き込みを追加。docstring と <code>docs/rdetoolkit/invoicefile.md</code> も更新。</li>
 <li><code>read_excelinvoice()</code> を警告付きラッパーとして <code>ExcelInvoiceFile.read()</code> に委譲し、<code>src/rdetoolkit/impl/input_controller.py</code> がクラス API を直接利用するよう変更。<code>df_general</code> / <code>df_specific</code> が <code>None</code> を取り得ることをドキュメントと型定義で明確化。</li>
 <li><code>Csv2GraphCommand</code> の <code>no_individual</code> を <code>bool | None</code> 型に改め、CLI では <code>ctx.get_parameter_source()</code> を用いて明示指定を検出。<code>docs/rdetoolkit/csv2graph.md</code> に新しい自動判定の仕様を追記。</li>
 <li><code>assert_optional_frame_equal</code> を追加し、csv2graph CLI/API・MultiFileChecker（Excelのみ/空/単体/複数ファイル）を網羅する新規テストで退行を防止。</li>
 </ul>
-<h4 id="_10">不具合修正</h4>
+<h4 id="_23">不具合修正</h4>
 <ul>
 <li>単一系列の自動検出により空の個別グラフ生成を回避し、CLI と Python API の出力整合性を確保。</li>
 <li><code>_process_invoice_sheet()</code> / <code>_process_general_term_sheet()</code> / <code>_process_specific_term_sheet()</code> が一貫して <code>pd.DataFrame</code> を返すように修正し、フレーム操作の前提崩壊を防止。</li>
 <li>入力ファイルが存在しない場合に <code>MultiFileChecker.parse()</code> が <code>[()]</code> を返すよう変更し、MultiDataTile でも空ディレクトリ時に検証が必ず実行されるよう統一。</li>
 </ul>
-<h4 id="_11">移行ガイド / 互換性</h4>
+<h4 id="_24">移行ガイド / 互換性</h4>
 <ul>
 <li><code>InvoiceFile.overwrite()</code> には辞書を直接渡せるようになった。出力先を省略した場合はインスタンスの <code>invoice_path</code> に書き込まれ、不正なスキーマは検証エラーとして通知される。</li>
 <li><code>read_excelinvoice()</code> は非推奨となり v1.5.0 で削除予定のため、<code>ExcelInvoiceFile().read()</code> への移行を推奨。</li>
 <li><code>csv2graph</code> は <code>--no-individual</code> を指定しない単一系列入力でオーバーレイのみを生成する。旧挙動を維持するには <code>--no-individual=false</code> を指定し、常に抑止したい場合は <code>--no-individual</code> を付与する。</li>
 <li>MultiDataTile では空ディレクトリでも処理と検証が走るため、これまで静かにスキップされていたケースでも不足ファイルのエラーが表に出る。</li>
 </ul>
-<h4 id="_12">既知の問題</h4>
+<h4 id="_25">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1816,33 +2012,33 @@
 <li>対応Issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/204">#204</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/272">#272</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/273">#273</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/278">#278</a></li>
 </ul>
 </div>
-<h4 id="_13">ハイライト</h4>
+<h4 id="_26">ハイライト</h4>
 <ul>
 <li>SmartTable 行CSVへの専用アクセサを追加し、<code>rawfiles[0]</code> 依存の既存コールバックとの互換性を維持。</li>
 <li>MultiDataTile ワークフローが必ずステータスを返し、失敗モード名付きで <code>StructuredError</code> を通知するよう改善。</li>
 <li>CSV パーサーがメタデータ行と空データに対応し、<code>ParserError</code> / <code>EmptyDataError</code> を防止。</li>
 <li>グラフ可視化ヘルパー（<code>csv2graph</code>, <code>plot_from_dataframe</code>）を <code>rdetoolkit.graph</code> 直下からインポート可能に。</li>
 </ul>
-<h4 id="_14">追加機能 / 改善</h4>
+<h4 id="_27">追加機能 / 改善</h4>
 <ul>
 <li><code>RdeOutputResourcePath</code> に <code>smarttable_rowfile</code> を追加し、<code>ProcessingContext.smarttable_rowfile</code> と <code>RdeDatasetPaths</code> から参照可能に。</li>
 <li>SmartTable 系処理で行CSVを自動設定し、フォールバックで <code>rawfiles[0]</code> を参照した場合は移行を促す <code>FutureWarning</code> を発行。</li>
 <li>SmartTable の開発者向けドキュメントを更新し、行CSVの取得方法を新アクセサ基準に整理。</li>
 <li><code>rdetoolkit.graph</code> パッケージで <code>csv2graph</code> / <code>plot_from_dataframe</code> を再エクスポートし、ドキュメントとサンプルのインポート例を統一。</li>
 </ul>
-<h4 id="_15">不具合修正</h4>
+<h4 id="_28">不具合修正</h4>
 <ul>
 <li>MultiDataTile モードが <code>WorkflowExecutionStatus</code> を必ず返し、応答がない場合は失敗したモード名付きで <code>StructuredError</code> を送出するよう修正。</li>
 <li><code>CSVParser._parse_meta_block()</code> / <code>_parse_no_header()</code> で <code>#</code> 始まりのメタデータ行を無視し、データが空のときは空の <code>DataFrame</code> を返すことで <code>ParserError</code> / <code>EmptyDataError</code> を解消。</li>
 </ul>
-<h4 id="_16">移行ガイド / 互換性</h4>
+<h4 id="_29">移行ガイド / 互換性</h4>
 <ul>
 <li><code>resource_paths.rawfiles[0]</code> を利用するコードは動作を継続するが、<code>smarttable_rowfile</code> へ移行しないと警告が表示される。</li>
 <li><code>rawfiles</code> タプル自体は引き続きユーザー投入ファイルの一覧として利用される。先頭要素が常に SmartTable 行CSVであるという前提のみ段階的に解消する方針。</li>
 <li>CSV 取り込み側での追加対応は不要。今回の改修は後方互換。</li>
 <li>推奨インポートは <code>from rdetoolkit.graph import csv2graph, plot_from_dataframe</code>。従来の <code>rdetoolkit.graph.api</code> パスは当面利用可能。</li>
 </ul>
-<h4 id="_17">既知の問題</h4>
+<h4 id="_30">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1854,14 +2050,14 @@
 <li>主なIssues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/188">#188</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/197">#197</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/205">#205</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/236">#236</a></li>
 </ul>
 </div>
-<h4 id="_18">ハイライト</h4>
+<h4 id="_31">ハイライト</h4>
 <ul>
 <li>SmartTableInvoice で <code>meta/</code> 列を <code>metadata.json</code> に自動書き込み</li>
 <li>LLM/AI 向けコンパクト・スタックトレース（デュプレックス出力）</li>
 <li>CSV 可視化ユーティリティ <code>csv2graph</code></li>
 <li>設定ファイル雛形生成コマンド <code>gen-config</code></li>
 </ul>
-<h4 id="_19">追加機能 / 改善</h4>
+<h4 id="_32">追加機能 / 改善</h4>
 <ul>
 <li><code>csv2graph</code> API を追加。複数CSVフォーマット、方向フィルタ、Plotly HTML 出力、220件超のテストを整備。</li>
 <li><code>gen-config</code> CLI を追加。テンプレート生成、日英対応対話モード、<code>--overwrite</code> オプションをサポート。</li>
@@ -1869,18 +2065,18 @@
 <li>例外処理で <code>compact</code> / <code>python</code> / <code>duplex</code> を選択可能なスタックトレース出力を導入し、センシティブ情報の自動マスキングを実装。</li>
 <li>RDE データセットコールバックを <code>RdeDatasetPaths</code> 単一引数に集約し、旧シグネチャには非推奨警告を追加。</li>
 </ul>
-<h4 id="_20">不具合修正</h4>
+<h4 id="_33">不具合修正</h4>
 <ul>
 <li>MultiDataTile モードで <code>ignore_errors=True</code> 時に <code>StructuredError</code> が停止しないバグを修正。</li>
 <li>SmartTable 周辺のエラーハンドリングと型注釈を整理し、処理失敗時の挙動を安定化。</li>
 </ul>
-<h4 id="_21">移行ガイド / 互換性</h4>
+<h4 id="_34">移行ガイド / 互換性</h4>
 <ul>
 <li>旧来の 2 引数コールバックは当面動作するが、<code>RdeDatasetPaths</code> 単一引数への移行を推奨。</li>
 <li>SmartTable の <code>meta/</code> 列自動書き込みを利用する場合は、各プロジェクトに <code>metadata-def.json</code> を配置する。</li>
 <li>スタックトレース形式の切り替えは任意。既存設定に影響はない。</li>
 </ul>
-<h4 id="_22">既知の問題</h4>
+<h4 id="_35">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1892,23 +2088,23 @@
 <li>主なIssue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/217">#217</a>（SmartTable/Invoice 検証の安定化）</li>
 </ul>
 </div>
-<h4 id="_23">ハイライト</h4>
+<h4 id="_36">ハイライト</h4>
 <ul>
 <li>SmartTable/Invoice の検証フローを安定化</li>
 </ul>
-<h4 id="_24">追加機能 / 改善</h4>
+<h4 id="_37">追加機能 / 改善</h4>
 <ul>
 <li>バリデーションと初期化フローを整理し、不要なフィールド混入と例外の出力形式を改善。</li>
 </ul>
-<h4 id="_25">不具合修正</h4>
+<h4 id="_38">不具合修正</h4>
 <ul>
 <li>SmartTableInvoice の検証で発生し得た例外伝播と型注釈の不整合を解消。</li>
 </ul>
-<h4 id="_26">移行ガイド / 互換性</h4>
+<h4 id="_39">移行ガイド / 互換性</h4>
 <ul>
 <li>互換性を損なう変更はありません。</li>
 </ul>
-<h4 id="_27">既知の問題</h4>
+<h4 id="_40">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1920,26 +2116,26 @@
 <li>主なIssue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/201">#201</a></li>
 </ul>
 </div>
-<h4 id="_28">ハイライト</h4>
+<h4 id="_41">ハイライト</h4>
 <ul>
 <li><code>ValidationError</code> 構築不備を修正し、Invoice パイプラインを安定化</li>
 <li>コピー再構造化向け <code>sampleWhenRestructured</code> スキーマパターンを追加</li>
 </ul>
-<h4 id="_29">追加機能 / 改善</h4>
+<h4 id="_42">追加機能 / 改善</h4>
 <ul>
 <li>スキーマに <code>sampleWhenRestructured</code> を追加し、再構造化ワークフローで <code>sampleId</code> のみが必須となるシナリオを正式サポート。</li>
 <li>すべてのサンプル検証パターンに包括的なテストを追加し、後方互換性を担保。</li>
 </ul>
-<h4 id="_30">不具合修正</h4>
+<h4 id="_43">不具合修正</h4>
 <ul>
 <li><code>_validate_required_fields_only</code> に起因する <code>ValidationError.__new__()</code> 例外を <code>SchemaValidationError</code> へ置き換えて解消。</li>
 <li><code>InvoiceSchemaJson</code> と <code>Properties</code> 生成時にオプションフィールドを明示し、mypy 型チェックエラーを修正。</li>
 </ul>
-<h4 id="_31">移行ガイド / 互換性</h4>
+<h4 id="_44">移行ガイド / 互換性</h4>
 <ul>
 <li>追加の設定変更は不要。既存の <code>invoice.json</code> も後方互換性が保たれる。</li>
 </ul>
-<h4 id="_32">既知の問題</h4>
+<h4 id="_45">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1951,24 +2147,24 @@
 <li>主なIssue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/193">#193</a></li>
 </ul>
 </div>
-<h4 id="_33">ハイライト</h4>
+<h4 id="_46">ハイライト</h4>
 <ul>
 <li>SmartTableInvoice の必須項目検証を強化</li>
 </ul>
-<h4 id="_34">追加機能 / 改善</h4>
+<h4 id="_47">追加機能 / 改善</h4>
 <ul>
 <li><code>invoice.json</code> 検証で必須項目のみを許容する仕組みを導入し、不要なフィールド混入を防止。</li>
 <li>早期終了（EarlyExit）時にもバリデーションが確実に実行されるよう統合。</li>
 </ul>
-<h4 id="_35">不具合修正</h4>
+<h4 id="_48">不具合修正</h4>
 <ul>
 <li>検証過程での例外伝播と型注釈の不具合を整理し、安定性を向上。</li>
 </ul>
-<h4 id="_36">移行ガイド / 互換性</h4>
+<h4 id="_49">移行ガイド / 互換性</h4>
 <ul>
 <li>後方互換。<code>invoice.json</code> に不要フィールドを付与している場合は除去を推奨。</li>
 </ul>
-<h4 id="_37">既知の問題</h4>
+<h4 id="_50">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -1980,12 +2176,12 @@
 <li>主なIssues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/161">#161</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/163">#163</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/168">#168</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/169">#169</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/173">#173</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/174">#174</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/177">#177</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/185">#185</a></li>
 </ul>
 </div>
-<h4 id="_38">ハイライト</h4>
+<h4 id="_51">ハイライト</h4>
 <ul>
 <li>Excel インボイス空シート生成の不具合を修正</li>
 <li><code>extended_mode</code> の厳密バリデーションを導入</li>
 </ul>
-<h4 id="_39">追加機能 / 改善</h4>
+<h4 id="_52">追加機能 / 改善</h4>
 <ul>
 <li><code>invoice_schema.py</code> に <code>serialization_alias</code> を追加し、<code>invoice.schema.json</code> の <code>$schema</code> / <code>$id</code> を正しく出力。</li>
 <li><code>models/config.py</code> の <code>extended_mode</code> で許可値を限定し、検証を強化。</li>
@@ -1994,19 +2190,19 @@
 <li><code>models/rde2types.py</code> の型注釈を拡張し、DataFrame 警告を抑制。</li>
 <li>Rust 側の文字列整形・<code>build.rs</code>・CI ワークフローを整理し、品質と速度を向上。</li>
 </ul>
-<h4 id="_40">不具合修正</h4>
+<h4 id="_53">不具合修正</h4>
 <ul>
 <li>Raw ディレクトリ存在チェックを追加し、コピー時の例外を防止。</li>
 <li>Excel テンプレート生成で <code>generalTerm</code> / <code>specificTerm</code> シート欠落を修正し、変数名の誤りを解消。</li>
 <li><code>FixedHeaders</code> クラスで <code>orient</code> を明示し、将来の警告を抑制。</li>
 </ul>
-<h4 id="_41">移行ガイド / 互換性</h4>
+<h4 id="_54">移行ガイド / 互換性</h4>
 <ul>
 <li><code>extended_mode</code> に非許可値が設定されている場合はエラーとなるため、設定ファイルの見直しが必要。</li>
 <li>SmartTable モードで <code>save_table_file</code> のデフォルト挙動が変わる可能性があるため、必要に応じて設定を追加。</li>
 <li><code>tqdm</code> 依存を削除したため、外部スクリプトで利用している場合は対応を検討。</li>
 </ul>
-<h4 id="_42">既知の問題</h4>
+<h4 id="_55">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>
@@ -2018,26 +2214,26 @@
 <li>主なIssue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/157">#157</a></li>
 </ul>
 </div>
-<h4 id="_43">ハイライト</h4>
+<h4 id="_56">ハイライト</h4>
 <ul>
 <li>MinIO ストレージ対応</li>
 <li>成果物アーカイブ生成とレポート生成ワークフローを追加</li>
 </ul>
-<h4 id="_44">追加機能 / 改善</h4>
+<h4 id="_57">追加機能 / 改善</h4>
 <ul>
 <li><code>MinIOStorage</code> クラスを実装し、オブジェクトストレージ連携を公式サポート。</li>
 <li>成果物の圧縮（ZIP / tar.gz）およびレポート生成コマンドを追加。</li>
 <li>オブジェクトストレージ利用手順やレポート API を含むドキュメントを拡充。</li>
 </ul>
-<h4 id="_45">不具合修正</h4>
+<h4 id="_58">不具合修正</h4>
 <ul>
 <li>依存パッケージの更新と CI 設定の近代化を実施。</li>
 </ul>
-<h4 id="_46">移行ガイド / 互換性</h4>
+<h4 id="_59">移行ガイド / 互換性</h4>
 <ul>
 <li>後方互換。MinIO を利用する場合はオプション依存をインストールすること。</li>
 </ul>
-<h4 id="_47">既知の問題</h4>
+<h4 id="_60">既知の問題</h4>
 <ul>
 <li>現時点で報告されている既知の問題はありません。</li>
 </ul>

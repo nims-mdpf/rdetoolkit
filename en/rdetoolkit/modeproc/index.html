@@ -1621,6 +1621,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2909,7 +2917,7 @@ srcpaths <span style="color: #333">=</span> RdeInputDirPaths(
     tasksupport<span style="color: #333">=</span>Path(<span style="background-color: #FFF0F0">"data/tasksupport"</span>)
 )
 
-checker_result <span style="color: #333">=</span> selected_input_checker(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"Invoice"</span>)
+checker_result <span style="color: #333">=</span> selected_input_checker(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice"</span>)
 <span style="color: #080; font-weight: bold">if</span> checker_result:
     <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">"Input files are appropriate"</span>)
 <span style="color: #080; font-weight: bold">else</span>:

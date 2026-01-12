@@ -866,6 +866,13 @@
 <nav aria-label="5. Debug Using Logs" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
+<a class="md-nav__link" href="#understanding-log-file-names">
+<span class="md-ellipsis">
+      Understanding Log File Names
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#detailed-log-configuration">
 <span class="md-ellipsis">
       Detailed Log Configuration
@@ -1683,6 +1690,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1941,6 +1956,13 @@
 </a>
 <nav aria-label="5. Debug Using Logs" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#understanding-log-file-names">
+<span class="md-ellipsis">
+      Understanding Log File Names
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#detailed-log-configuration">
 <span class="md-ellipsis">
@@ -2245,6 +2267,37 @@ chmod<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bo
     <span style="color: #080; font-weight: bold">return</span> process_data()
 </code></pre></div></td></tr></table></div>
 <h3 id="5-debug-using-logs">5. Debug Using Logs</h3>
+<h4 id="understanding-log-file-names">Understanding Log File Names</h4>
+<p>RDEToolKit uses timestamped log filenames to distinguish between different workflow runs:</p>
+<ul>
+<li><strong>Format</strong>: <code>rdesys_YYYYMMDD_HHMMSS.log</code></li>
+<li><strong>Example</strong>: <code>rdesys_20260106_092845.log</code> (run started on January 6, 2026 at 09:28:45)</li>
+<li><strong>Location</strong>: <code>data/logs/</code> directory</li>
+</ul>
+<p><strong>Benefits of Timestamped Logs</strong>:</p>
+<ul>
+<li>Each workflow execution creates a separate log file</li>
+<li>No log collision between concurrent or successive runs</li>
+<li>Easy comparison of logs from different executions</li>
+<li>Simplified per-run log collection for auditing and debugging</li>
+</ul>
+<p><strong>Finding Your Logs</strong>:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">Finding the Latest Log File</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># List all log files by modification time (newest first)</span>
+ls<span style="color: #BBB"> </span>-lt<span style="color: #BBB"> </span>data/logs/rdesys_*.log
+
+<span style="color: #888"># View the most recent log file</span>
+ls<span style="color: #BBB"> </span>-t<span style="color: #BBB"> </span>data/logs/rdesys_*.log<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>head<span style="color: #BBB"> </span>-1<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>xargs<span style="color: #BBB"> </span>less
+
+<span style="color: #888"># Search all logs for specific errors</span>
+grep<span style="color: #BBB"> </span>-i<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"error"</span><span style="color: #BBB"> </span>data/logs/rdesys_*.log
+</code></pre></div></td></tr></table></div>
 <h4 id="detailed-log-configuration">Detailed Log Configuration</h4>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">Log Configuration</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
@@ -2332,21 +2385,27 @@ chmod<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bo
         <span style="color: #080; font-weight: bold">return</span> <span style="color: #080; font-weight: bold">True</span>
 </code></pre></div></td></tr></table></div>
 <h3 id="check-log-files">Check Log Files</h3>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">Log Check Commands</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Check latest log entries</span>
-tail<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">20</span><span style="color: #BBB"> </span>data/logs/rdesys.log
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">Log Check Commands</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Check latest log entries (find the most recent log file)</span>
+tail<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">20</span><span style="color: #BBB"> </span>data/logs/rdesys_*.log<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>tail<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">20</span>
 
-<span style="color: #888"># Search for error messages</span>
-grep<span style="color: #BBB"> </span>-i<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"error"</span><span style="color: #BBB"> </span>data/logs/rdesys.log
+<span style="color: #888"># Or find and check the latest log file specifically</span>
+ls<span style="color: #BBB"> </span>-t<span style="color: #BBB"> </span>data/logs/rdesys_*.log<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>head<span style="color: #BBB"> </span>-1<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>xargs<span style="color: #BBB"> </span>tail<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">20</span>
 
-<span style="color: #888"># Search for warning messages</span>
-grep<span style="color: #BBB"> </span>-i<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"warning"</span><span style="color: #BBB"> </span>data/logs/rdesys.log
+<span style="color: #888"># Search for error messages in the latest log</span>
+ls<span style="color: #BBB"> </span>-t<span style="color: #BBB"> </span>data/logs/rdesys_*.log<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>head<span style="color: #BBB"> </span>-1<span style="color: #BBB"> </span>|<span style="color: #BBB"> </span>xargs<span style="color: #BBB"> </span>grep<span style="color: #BBB"> </span>-i<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"error"</span>
+
+<span style="color: #888"># Search for warning messages in all logs</span>
+grep<span style="color: #BBB"> </span>-i<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"warning"</span><span style="color: #BBB"> </span>data/logs/rdesys_*.log
 </code></pre></div></td></tr></table></div>
 <h2 id="troubleshooting-checklist">Troubleshooting Checklist</h2>
 <h3 id="pre-execution-check">Pre-Execution Check</h3>

@@ -916,24 +916,31 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#core-concept">
+<a class="md-nav__link" href="#how-to-use-magic-variables">
 <span class="md-ellipsis">
-      Core Concept
+      How to Use Magic Variables
     </span>
 </a>
-<nav aria-label="Core Concept" class="md-nav">
+<nav aria-label="How to Use Magic Variables" class="md-nav">
 <ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#how-magic-variables-work">
-<span class="md-ellipsis">
-      How Magic Variables Work
-    </span>
-</a>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#supported-variables">
 <span class="md-ellipsis">
       Supported Variables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoice-driven-variables">
+<span class="md-ellipsis">
+      Invoice-Driven Variables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metadata-constants">
+<span class="md-ellipsis">
+      Metadata Constants
     </span>
 </a>
 </li>
@@ -1579,6 +1586,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1740,24 +1755,31 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#core-concept">
+<a class="md-nav__link" href="#how-to-use-magic-variables">
 <span class="md-ellipsis">
-      Core Concept
+      How to Use Magic Variables
     </span>
 </a>
-<nav aria-label="Core Concept" class="md-nav">
+<nav aria-label="How to Use Magic Variables" class="md-nav">
 <ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#how-magic-variables-work">
-<span class="md-ellipsis">
-      How Magic Variables Work
-    </span>
-</a>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#supported-variables">
 <span class="md-ellipsis">
       Supported Variables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#invoice-driven-variables">
+<span class="md-ellipsis">
+      Invoice-Driven Variables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metadata-constants">
+<span class="md-ellipsis">
+      Metadata Constants
     </span>
 </a>
 </li>
@@ -1829,15 +1851,9 @@
 <li><strong>Managing dynamic values</strong>: Handling dynamic values such as timestamps or calculated numbers became complex.</li>
 </ul>
 <p>The Magic Variable feature was created to solve these problems.</p>
-<h2 id="core-concept">Core Concept</h2>
-<h3 id="how-magic-variables-work">How Magic Variables Work</h3>
-<pre class="mermaid"><code>flowchart LR
-    A[JSON file] --&gt; B[${filename}]
-    C[Actual file name] --&gt; D[sample.csv]
-    B --&gt; E[Substitution process]
-    D --&gt; E
-    E --&gt; F[sample.csv]
-</code></pre>
+<h2 id="how-to-use-magic-variables">How to Use Magic Variables</h2>
+<p>When you include variables listed under <strong>Supported Variables</strong>, RDE structured processing automatically completes the dataset name according to the rules below. For local testing, set up Magic Variables inside <code>invoice.json</code> in advance (see the examples later).</p>
+<p>![docs/img/magic_filename.svg]</p>
 <h3 id="supported-variables">Supported Variables</h3>
 <table>
 <thead>
@@ -1850,11 +1866,43 @@
 <tbody>
 <tr>
 <td><code>${filename}</code></td>
-<td>File name without the extension</td>
-<td><code>sample.csv</code> → <code>sample</code></td>
+<td>Raw file name including the extension</td>
+<td><code>sample.csv</code> → <code>sample.csv</code></td>
+</tr>
+<tr>
+<td><code>${invoice:basic:&lt;field&gt;}</code></td>
+<td>Value copied from the <code>basic</code> node of the source invoice (<code>invoice_org</code>)</td>
+<td><code>${invoice:basic:experimentId}</code> → <code>EXP-42</code></td>
+</tr>
+<tr>
+<td><code>${invoice:custom:&lt;field&gt;}</code></td>
+<td>Value copied from the <code>custom</code> node of the source invoice</td>
+<td><code>${invoice:custom:batchId}</code> → <code>BATCH-001</code></td>
+</tr>
+<tr>
+<td><code>${invoice:sample:names}</code></td>
+<td>All non-empty entries under <code>sample.names</code> joined with <code>_</code></td>
+<td><code>["alpha", "", "beta"]</code> → <code>alpha_beta</code></td>
+</tr>
+<tr>
+<td><code>${metadata:constant:&lt;field&gt;}</code></td>
+<td>Constant value from <code>metadata.json</code> (<code>paths.meta / metadata.json</code>)</td>
+<td><code>${metadata:constant:project_code}</code> → <code>PJT-001</code></td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>Note:</strong> The <code>${metadata:variable:&lt;field&gt;}</code> pattern remains unsupported because runtime values can change between jobs.</p>
+</blockquote>
+<h3 id="invoice-driven-variables">Invoice-Driven Variables</h3>
+<p>Invoice lookups always read from <code>invoice_org</code> so the template can refer to original user input. Missing fields raise an error, while empty strings are skipped with a warning (and underscores are collapsed to avoid <code>__</code>).</p>
+<ul>
+<li><code>basic</code> fields cover properties such as <code>dataName</code>, <code>experimentId</code>, or <code>dateSubmitted</code>.</li>
+<li><code>custom</code> fields are copied verbatim according to the schema you defined in <code>invoice.schema.json</code>.</li>
+<li><code>sample.names</code> joins every non-empty string in the array. An empty array triggers an error to keep filenames meaningful.</li>
+</ul>
+<h3 id="metadata-constants">Metadata Constants</h3>
+<p><code>${metadata:constant:&lt;field&gt;}</code> pulls values from <code>metadata.json</code> located at <code>RdeDatasetPaths.meta / metadata.json</code>. The constant must exist and include a <code>value</code>. Failing to resolve a constant (missing file or key) raises a <code>StructuredError</code> so the workflow cannot silently proceed with bad data.</p>
 <h2 id="how-to-set-it-up">How to Set It Up</h2>
 <h3 id="1-enable-in-the-configuration-file">1. Enable in the Configuration File</h3>
 <p>Activate the Magic Variable feature in <code>rdeconfig.yaml</code>:</p>
@@ -1863,28 +1911,69 @@
 <span style="color: #BBB">  </span><span style="color: #070">magic_variable</span>:<span style="color: #BBB"> </span>true
 </code></pre></div></td></tr></table></div>
 <h3 id="2-use-in-json-files">2. Use in JSON Files</h3>
-<p>Insert the variable in metadata files or any other JSON files:</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">metadata.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
-<span style="color: #BBB">  </span><span style="color: #070">"data_name"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${filename}"</span>
+<p>Insert the variables inside <code>invoice.json</code> (or a SmartTable-generated invoice) by combining multiple sources:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">invoice.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"project_code"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"PRJ"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"sample"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"names"</span>:<span style="color: #BBB"> </span>[<span style="background-color: #FFF0F0">"alpha"</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"beta"</span>]
+<span style="color: #BBB">  </span>}
 }
 </code></pre></div></td></tr></table></div>
 <h3 id="3-verify-the-processing-result">3. Verify the Processing Result</h3>
-<p>When the Magic Variable feature is enabled, the substitution will look like this:</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">metadata after processing.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
-<span style="color: #BBB">  </span><span style="color: #070">"data_name"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"sample.csv"</span>
+<p>When the feature is enabled and <code>metadata.json</code> contains <code>{"constant": {"project_code": {"value": "PRJ01"}}}</code>, the substitution looks like this:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">invoice after processing.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42_PRJ01_alpha_beta_sample.csv"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"project_code"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"PRJ"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"sample"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"names"</span>:<span style="color: #BBB"> </span>[<span style="background-color: #FFF0F0">"alpha"</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"beta"</span>]
+<span style="color: #BBB">  </span>}
 }
 </code></pre></div></td></tr></table></div>
+<p>If a referenced field is missing the processor raises a <code>StructuredError</code>. Empty strings are skipped with a warning and surrounding underscores are collapsed automatically.</p>
 <h2 id="summary">Summary</h2>
 <p>Key benefits of the Magic Variable feature:</p>
 <ul>
 <li><strong>Automation</strong>: Automatic substitution of file names and timestamps.</li>
 <li><strong>Consistency</strong>: Guarantees consistent information across multiple entries.</li>
 <li><strong>Efficiency</strong>: Greatly reduces manual entry work.</li>
-<li><strong>Dynamic values</strong>: Enables dynamic generation of timestamps and dates.</li>
+<li><strong>Context awareness</strong>: Pulls identifiers from both the invoice (<code>basic</code>, <code>custom</code>, <code>sample.names</code>) and <code>metadata.json</code>.</li>
 </ul>
 <h2 id="next-steps">Next Steps</h2>
 <p>To make the most of the Magic Variable feature, refer to the following documents:</p>
@@ -1957,7 +2046,5 @@
 <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.expand"], "search": "../../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
 <script src="../../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
-<script>window.mermaidConfig = {default: {
-    startOnLoad: false
-}};</script></body>
+</body>
 </html>

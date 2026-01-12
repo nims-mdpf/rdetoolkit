@@ -915,24 +915,24 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_3">
-<span class="md-ellipsis">
-      主要コンセプト
-    </span>
-</a>
-<nav aria-label="主要コンセプト" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
 <a class="md-nav__link" href="#magic-variable_1">
 <span class="md-ellipsis">
-      Magic Variableの仕組み
+      Magic Variableの使い方
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_4">
+<a class="md-nav__link" href="#_3">
 <span class="md-ellipsis">
       サポートされる変数
+    </span>
+</a>
+<nav aria-label="サポートされる変数" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_4">
+<span class="md-ellipsis">
+      送り状定義の変数を指定する場合
     </span>
 </a>
 </li>
@@ -941,6 +941,13 @@
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_5">
+<span class="md-ellipsis">
+      メタデータ定数を指定する場合
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_6">
 <span class="md-ellipsis">
       設定方法
     </span>
@@ -972,14 +979,14 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_6">
+<a class="md-nav__link" href="#_7">
 <span class="md-ellipsis">
       まとめ
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_7">
+<a class="md-nav__link" href="#_8">
 <span class="md-ellipsis">
       次のステップ
     </span>
@@ -1578,6 +1585,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../rdetoolkit/cmd/validate/">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1739,24 +1754,24 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_3">
-<span class="md-ellipsis">
-      主要コンセプト
-    </span>
-</a>
-<nav aria-label="主要コンセプト" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
 <a class="md-nav__link" href="#magic-variable_1">
 <span class="md-ellipsis">
-      Magic Variableの仕組み
+      Magic Variableの使い方
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_4">
+<a class="md-nav__link" href="#_3">
 <span class="md-ellipsis">
       サポートされる変数
+    </span>
+</a>
+<nav aria-label="サポートされる変数" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_4">
+<span class="md-ellipsis">
+      送り状定義の変数を指定する場合
     </span>
 </a>
 </li>
@@ -1765,6 +1780,13 @@
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#_5">
+<span class="md-ellipsis">
+      メタデータ定数を指定する場合
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_6">
 <span class="md-ellipsis">
       設定方法
     </span>
@@ -1796,14 +1818,14 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_6">
+<a class="md-nav__link" href="#_7">
 <span class="md-ellipsis">
       まとめ
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#_7">
+<a class="md-nav__link" href="#_8">
 <span class="md-ellipsis">
       次のステップ
     </span>
@@ -1828,16 +1850,11 @@
 <li><strong>動的値の管理</strong>: タイムスタンプや計算値などの動的な値の管理が複雑</li>
 </ul>
 <p>これらの課題を解決するために、Magic Variable機能が開発されました。</p>
-<h2 id="_3">主要コンセプト</h2>
-<h3 id="magic-variable_1">Magic Variableの仕組み</h3>
-<pre class="mermaid"><code>flowchart LR
-    A[JSONファイル] --&gt; B[${filename}]
-    C[実際のファイル名] --&gt; D[sample.csv]
-    B --&gt; E[置換処理]
-    D --&gt; E
-    E --&gt; F[sample.csv]
-</code></pre>
-<h3 id="_4">サポートされる変数</h3>
+<h2 id="magic-variable_1">Magic Variableの使い方</h2>
+<p>RDEデータ登録時に、<code>サポートされる変数</code>記載の変数を指定すると、ルールに従ってRDE構造化処理内でデータセット名が自動補完されます。</p>
+<p>ローカルでテストする際は、invoice.jsonに事前にMagic Variableを設定してください。(後述)</p>
+<p>![docs/img/magic_filename.svg]</p>
+<h2 id="_3">サポートされる変数</h2>
 <table>
 <thead>
 <tr>
@@ -1849,12 +1866,44 @@
 <tbody>
 <tr>
 <td><code>${filename}</code></td>
-<td>拡張子を除いたファイル名</td>
-<td><code>sample.csv</code> → <code>sample</code></td>
+<td>拡張子を含んだ元ファイル名</td>
+<td><code>sample.csv</code> → <code>sample.csv</code></td>
+</tr>
+<tr>
+<td><code>${invoice:basic:&lt;field&gt;}</code></td>
+<td><code>invoice_org</code> の <code>basic</code> 配下の値</td>
+<td><code>${invoice:basic:experimentId}</code> → <code>EXP-42</code></td>
+</tr>
+<tr>
+<td><code>${invoice:custom:&lt;field&gt;}</code></td>
+<td><code>invoice_org</code> の <code>custom</code> 配下の値</td>
+<td><code>${invoice:custom:batch}</code> → <code>B-9</code></td>
+</tr>
+<tr>
+<td><code>${invoice:sample:names}</code></td>
+<td><code>sample.names</code> に含まれる空でない文字列を <code>_</code> で連結</td>
+<td><code>["alpha", "", "beta"]</code> → <code>alpha_beta</code></td>
+</tr>
+<tr>
+<td><code>${metadata:constant:&lt;field&gt;}</code></td>
+<td><code>metadata.json</code> (<code>paths.meta / metadata.json</code>) の <code>constant.&lt;field&gt;.value</code> の値</td>
+<td><code>${metadata:constant:project_code}</code> → <code>PRJ01</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="_5">設定方法</h2>
+<blockquote>
+<p><strong>注意:</strong> <code>metadata:variable:&lt;field&gt;</code> は実行時に値が変化するため、Magic Variableではサポートしません。</p>
+</blockquote>
+<h3 id="_4">送り状定義の変数を指定する場合</h3>
+<p>Invoice関連の参照は常に <code>invoice_org</code> を対象にし、ユーザーが入力した値をそのまま利用します。存在しないフィールドを参照すると <code>StructuredError</code> が発生し、値が空文字のときは警告を記録した上で置換をスキップし、連続した <code>_</code> が出ないよう自動調整します。</p>
+<ul>
+<li><code>basic</code> 配下では <code>experimentId</code> や <code>dateSubmitted</code> などを再利用できます。</li>
+<li><code>custom</code> 配下では <code>invoice.schema.json</code> で定義した任意のキーが対象です。</li>
+<li><code>sample.names</code> は空でない要素だけを <code>_</code> で連結します。配列が空の場合はエラーになります。</li>
+</ul>
+<h2 id="_5">メタデータ定数を指定する場合</h2>
+<p><code>${metadata:constant:&lt;field&gt;}</code> は <code>RdeDatasetPaths.meta / metadata.json</code> に保存された <code>constant</code> の値を参照します。ファイルやキーが存在しない場合は <code>StructuredError</code> が発生し、ワークフローは中断されます。</p>
+<h2 id="_6">設定方法</h2>
 <h3 id="1">1. 設定ファイルでの有効化</h3>
 <p><code>rdeconfig.yaml</code>でMagic Variable機能を有効にします：</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">rdeconfig.yaml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
@@ -1862,30 +1911,67 @@
 <span style="color: #BBB">  </span><span style="color: #070">magic_variable</span>:<span style="color: #BBB"> </span>true
 </code></pre></div></td></tr></table></div>
 <h3 id="2-json">2. JSONファイルでの使用</h3>
-<p>メタデータファイルやその他のJSONファイルで変数を使用します：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">metadata.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
-<span style="color: #BBB">  </span><span style="color: #070">"data_name"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${filename}"</span>,
+<p>メタデータファイルや送り状で複数の変数を組み合わせます：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">invoice.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"${invoice:basic:experimentId}_${metadata:constant:project_code}_${invoice:sample:names}_${filename}"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"sample"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"names"</span>:<span style="color: #BBB"> </span>[<span style="background-color: #FFF0F0">"alpha"</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"beta"</span>]
+<span style="color: #BBB">  </span>}
 }
 </code></pre></div></td></tr></table></div>
 <h3 id="3">3. 処理結果の確認</h3>
-<p>Magic Variable機能が有効な場合、以下のように置換されます：</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">処理後のmetadata.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
-<span style="color: #BBB">  </span><span style="color: #070">"data_name"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"sample.csv"</span>,
+<p><code>metadata.json</code> に <code>{"constant": {"project_code": {"value": "PRJ01"}}}</code> が含まれている場合、以下のように置換されます：</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><th class="filename" colspan="2"><span class="filename">処理後のinvoice.json</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #BBB">  </span><span style="color: #070">"basic"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"experimentId"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42"</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"dataName"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"EXP-42_PRJ01_alpha_beta_sample.csv"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"custom"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"batch"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"B-9"</span>
+<span style="color: #BBB">  </span>},
+<span style="color: #BBB">  </span><span style="color: #070">"sample"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"names"</span>:<span style="color: #BBB"> </span>[<span style="background-color: #FFF0F0">"alpha"</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">""</span>,<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"beta"</span>]
+<span style="color: #BBB">  </span>}
 }
 </code></pre></div></td></tr></table></div>
-<h2 id="_6">まとめ</h2>
+<p>存在しないフィールドを参照した場合は例外が発生し、値が空文字のときは警告が出力されて置換はスキップされます（<code>__</code> のような連続したアンダースコアは自動的に抑制されます）。</p>
+<h2 id="_7">まとめ</h2>
 <p>Magic Variable機能の主要な特徴：</p>
 <ul>
 <li><strong>自動化</strong>: ファイル名やタイムスタンプの自動置換</li>
 <li><strong>一貫性</strong>: 複数エントリでの情報の一貫性確保</li>
 <li><strong>効率性</strong>: 手動入力作業の大幅削減</li>
-<li><strong>動的値</strong>: タイムスタンプや日付の動的生成</li>
+<li><strong>コンテキスト活用</strong>: Invoiceの <code>basic/custom/sample.names</code> や <code>metadata.json</code> の値を動的に組み合わせ可能</li>
 </ul>
-<h2 id="_7">次のステップ</h2>
+<h2 id="_8">次のステップ</h2>
 <p>Magic Variable機能をさらに活用するために、以下のドキュメントを参照してください：</p>
 <ul>
 <li><a href="../config/">設定ファイル</a>で詳細な設定方法を学ぶ</li>
@@ -1956,7 +2042,5 @@
 <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.expand"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}, "version": null}</script>
 <script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
 <script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
-<script>window.mermaidConfig = {default: {
-    startOnLoad: false
-}};</script></body>
+</body>
 </html>

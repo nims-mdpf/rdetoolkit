@@ -1657,6 +1657,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -2236,6 +2244,94 @@ It checks if the file exists and then uses a validator to validate the file agai
 <code class="highlight language-python">__get_data(path, obj)</code>
 </h3>
 <div class="doc doc-contents">
+<p>Get validation data from path or object.</p>
+<p><span class="doc-section-title">引数：</span></p>
+<table>
+<thead>
+<tr>
+<th>名前</th>
+<th>タイプ</th>
+<th>デスクリプション</th>
+<th>デフォルト</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>path</code>
+</td>
+<td>
+<code><span title="str">str</span> | <span title="pathlib.Path">Path</span> | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Path to JSON file</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>obj</code>
+</td>
+<td>
+<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Mapping object to validate (will be normalized to dict)</p>
+</div>
+</td>
+<td>
+<em>必須</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">戻り値：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>dict[str, Any]: Data to validate (always a concrete dict)</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">発生：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="ValueError">ValueError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If neither path nor obj provided, or if both are provided</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -2301,11 +2397,14 @@ This allows the schema to validate invoice.json using invoice.schema.json.</p>
 <code>obj</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+<code><span title="Optional">Optional</span>[<span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>The JSON object to validate.</p>
+<p>The mapping object to validate.
+The mapping will be copied to a dict, enabling read-only intent
+while maintaining internal dict behavior. Accepts any Mapping type
+including dict, MappingProxyType, ChainMap, etc.</p>
 </div>
 </td>
 <td>
@@ -2343,6 +2442,16 @@ This allows the schema to validate invoice.json using invoice.schema.json.</p>
 </div>
 </td>
 </tr>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.InvoiceSchemaValidationError">InvoiceSchemaValidationError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If validation fails against the schema.</p>
+</div>
+</td>
+</tr>
 </tbody>
 </table>
 <p><span class="doc-section-title">戻り値：</span></p>
@@ -2360,7 +2469,7 @@ This allows the schema to validate invoice.json using invoice.schema.json.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>None</p>
+<p>dict[str, Any]: The validated data as a concrete dict.</p>
 </div>
 </td>
 </tr>

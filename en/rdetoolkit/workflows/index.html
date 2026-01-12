@@ -1579,6 +1579,14 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/validate/">
+<span class="md-ellipsis">
+    Validation
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1941,6 +1949,37 @@ check_files(srcpaths, fmt_flags<span style="color: #333">=</span>format_flags)
 invoice: /data/inputdata/<registered_files>
 excelinvoice: /data/temp/<registered_files></registered_files></registered_files></p>
 </details>
+<p><span class="doc-section-title">発生：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>When file classification fails</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code><span title="Exception">Exception</span></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Propagates unexpected exceptions from input checker</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -2354,7 +2393,7 @@ srcpaths <span style="color: #333">=</span> RdeInputDirPaths(
 )
 
 <span style="color: #888"># Execute file classification</span>
-raw_files, excel_invoice <span style="color: #333">=</span> check_files(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"Invoice"</span>)
+raw_files, excel_invoice <span style="color: #333">=</span> check_files(srcpaths, mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice"</span>)
 
 <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Classified files: </span><span style="background-color: #EEE">{</span>raw_files<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
 <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Excel invoice: </span><span style="background-color: #EEE">{</span>excel_invoice<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)

@@ -1,0 +1,2838 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="https://nims-mdpf.github.io/rdetoolkit/rdetoolkit/cmd/validate/" rel="canonical"/>
+<link href="../gen_excelinvoice/" rel="prev"/>
+<link href="../../storage/minio/" rel="next"/>
+<link href="../../../img/2585322.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.6.22" name="generator"/>
+<title>バリデーション - RDEToolKit Documentation</title>
+<link href="../../../assets/stylesheets/main.84d31ad4.min.css" rel="stylesheet"/>
+<link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Noto Sans JP";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+<!-- Dify Chatbot Configuration -->
+<script>
+ window.difyChatbotConfig = {
+  token: 'miUabi3XxqUrpE7E',
+  baseUrl: 'https://dify.escidoc.jp',
+  systemVariables: {
+    // user_id: 'YOU CAN DEFINE USER ID HERE',
+    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+  },
+  userVariables: {
+    // avatar_url: 'YOU CAN DEFINE USER AVATAR URL HERE',
+    // name: 'YOU CAN DEFINE USER NAME HERE',
+  },
+ }
+</script>
+<!-- チャットボットのサイズ固定とスタイル設定 -->
+<style>
+  /* ========== チャットボタンのスタイル ========== */
+  #dify-chatbot-bubble-button {
+    background-color: #1C64F2 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    /* ボタンサイズの固定 */
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    /* サイズ変更の防止 */
+    resize: none !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+  }
+
+  /* ========== チャットウィンドウのサイズ固定 ========== */
+  #dify-chatbot-bubble-window {
+    /* 固定サイズ設定 */
+    width: 384px !important;  /* 24rem = 384px (16px基準) */
+    height: 640px !important; /* 40rem = 640px (16px基準) */
+    min-width: 384px !important;
+    min-height: 640px !important;
+    max-width: 384px !important;
+    max-height: 640px !important;
+
+    /* 位置の固定 */
+    position: fixed !important;
+    bottom: 90px !important;  /* ボタンの上に配置 */
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+
+    /* その他の固定設定 */
+    z-index: 9998 !important;
+    resize: none !important;
+    overflow: hidden !important;
+
+    /* フレックスボックスの制御 */
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    flex-basis: auto !important;
+
+    /* ボックスサイジング */
+    box-sizing: border-box !important;
+
+    /* 境界線とシャドウ */
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* チャットウィンドウ内部のサイズ制御 */
+  #dify-chatbot-bubble-window > * {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* iframe がある場合のサイズ固定 */
+  #dify-chatbot-bubble-window iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border: none !important;
+  }
+
+  /* ========== 展開ボタンのみ非表示（閉じるボタンは維持） ========== */
+  /* 展開・フルスクリーンボタンの特定と非表示 */
+  #dify-chatbot-bubble-window button[aria-label*="expand" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="fullscreen" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[aria-label*="maximize" i]:not([aria-label*="close" i]):not([aria-label*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="expand" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="fullscreen" i]:not([title*="close" i]):not([title*="minimize" i]),
+  #dify-chatbot-bubble-window button[title*="maximize" i]:not([title*="close" i]):not([title*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* クラス名による展開ボタンの非表示（閉じるボタンクラスは除外） */
+  #dify-chatbot-bubble-window [class*="expand" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="fullscreen" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="maximize" i]:not([class*="close" i]):not([class*="minimize" i]),
+  #dify-chatbot-bubble-window [class*="enlarge" i]:not([class*="close" i]):not([class*="minimize" i]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* ========== レスポンシブ対応（モバイルでのサイズ調整） ========== */
+  @media (max-width: 768px) {
+    #dify-chatbot-bubble-window {
+      /* タブレットサイズでも固定 */
+      width: 350px !important;
+      height: 500px !important;
+      min-width: 350px !important;
+      min-height: 500px !important;
+      max-width: 350px !important;
+      max-height: 500px !important;
+      right: 10px !important;
+      bottom: 80px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 15px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #dify-chatbot-bubble-window {
+      /* スマートフォンサイズでの固定 */
+      width: calc(100vw - 20px) !important;
+      height: calc(100vh - 100px) !important;
+      min-width: 320px !important;
+      min-height: 400px !important;
+      max-width: calc(100vw - 20px) !important;
+      max-height: calc(100vh - 100px) !important;
+      right: 10px !important;
+      bottom: 70px !important;
+    }
+
+    #dify-chatbot-bubble-button {
+      width: 50px !important;
+      height: 50px !important;
+      min-width: 50px !important;
+      min-height: 50px !important;
+      max-width: 50px !important;
+      max-height: 50px !important;
+      right: 10px !important;
+      bottom: 10px !important;
+    }
+  }
+
+  /* ========== フルスクリーンモードの無効化（サイズは固定） ========== */
+  #dify-chatbot-bubble-window.fullscreen,
+  #dify-chatbot-bubble-window.expanded,
+  #dify-chatbot-bubble-window[data-fullscreen="true"],
+  #dify-chatbot-bubble-window[data-expanded="true"] {
+    width: 384px !important;
+    height: 640px !important;
+    position: fixed !important;
+    bottom: 90px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+  }
+
+  /* transformアニメーションは維持（開閉用） */
+  #dify-chatbot-bubble-window {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+  }
+</style>
+<!-- サイズ固定と展開ボタン削除（開閉機能は維持） -->
+<script>
+(function() {
+  'use strict';
+
+  // 展開ボタンのみを削除する関数（閉じるボタンは維持）
+  function removeExpandButtonsOnly() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // すべてのボタンをチェック
+    const buttons = chatWindow.querySelectorAll('button, [role="button"]');
+    buttons.forEach(button => {
+      // ボタンの情報を取得
+      const ariaLabel = (button.getAttribute('aria-label') || '').toLowerCase();
+      const title = (button.getAttribute('title') || '').toLowerCase();
+      const className = (button.className || '').toLowerCase();
+      const innerHTML = button.innerHTML.toLowerCase();
+      const textContent = (button.textContent || '').toLowerCase();
+
+      // 展開関連のキーワード
+      const expandKeywords = ['expand', 'fullscreen', 'maximize', 'enlarge', 'full-screen'];
+      // 閉じる関連のキーワード（これらは維持）
+      const closeKeywords = ['close', 'minimize', 'hide', '×', 'x', '关闭', '閉じる'];
+
+      // 展開ボタンかどうか判定
+      const isExpandButton = expandKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 閉じるボタンかどうか判定
+      const isCloseButton = closeKeywords.some(keyword =>
+        ariaLabel.includes(keyword) ||
+        title.includes(keyword) ||
+        className.includes(keyword) ||
+        innerHTML.includes(keyword) ||
+        textContent.includes(keyword)
+      );
+
+      // 展開ボタンで、かつ閉じるボタンでない場合のみ削除
+      if (isExpandButton && !isCloseButton) {
+        button.style.display = 'none';
+        button.style.visibility = 'hidden';
+        button.style.pointerEvents = 'none';
+        button.disabled = true;
+        // 完全に削除を試みる
+        try {
+          button.remove();
+        } catch(e) {
+          // removeが失敗した場合は非表示のまま
+        }
+      }
+    });
+
+    // SVGアイコンによる判定（展開アイコンのみ削除）
+    const svgs = chatWindow.querySelectorAll('svg');
+    svgs.forEach(svg => {
+      const parentButton = svg.closest('button, [role="button"]');
+      if (!parentButton) return;
+
+      // 親ボタンが既に処理されている場合はスキップ
+      if (parentButton.style.display === 'none') return;
+
+      // SVGのパスを確認（一般的な展開アイコンのパターン）
+      const svgHTML = svg.innerHTML.toLowerCase();
+      const viewBox = svg.getAttribute('viewBox');
+
+      // 展開アイコンの特徴（四隅への矢印など）
+      const isExpandIcon = (
+        svgHTML.includes('m7 14h-2v5h5v-2h-3v-3') || // 一般的な展開アイコン
+        svgHTML.includes('m14 10v-3h3v3h2v-5h-5') || // 一般的な展開アイコン
+        (viewBox === '0 0 24 24' && svgHTML.includes('path') && svgHTML.includes('m'))
+      );
+
+      // 閉じるアイコンの特徴（×マークなど）
+      const isCloseIcon = (
+        svgHTML.includes('m18 6l-12 12') || // ×アイコン
+        svgHTML.includes('m6 18l12-12') || // ×アイコン
+        svgHTML.includes('close') ||
+        svgHTML.includes('×')
+      );
+
+      // 展開アイコンで、かつ閉じるアイコンでない場合のみ削除
+      if (isExpandIcon && !isCloseIcon) {
+        parentButton.style.display = 'none';
+        parentButton.disabled = true;
+        try {
+          parentButton.remove();
+        } catch(e) {}
+      }
+    });
+  }
+
+  // サイズを固定する関数（表示状態は変更しない）
+  function enforceFixedSize() {
+    const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+    if (!chatWindow) return;
+
+    // 現在の表示状態を保持
+    const currentDisplay = window.getComputedStyle(chatWindow).display;
+    const isVisible = currentDisplay !== 'none';
+
+    // サイズのみを固定（displayは変更しない）
+    if (isVisible) {
+      // サイズ関連のスタイルのみ設定
+      Object.assign(chatWindow.style, {
+        width: '384px',
+        height: '640px',
+        minWidth: '384px',
+        minHeight: '640px',
+        maxWidth: '384px',
+        maxHeight: '640px',
+        position: 'fixed',
+        bottom: '90px',
+        right: '20px',
+        left: 'auto',
+        top: 'auto',
+        resize: 'none'
+      });
+    }
+
+    // フルスクリーン関連の属性を削除
+    chatWindow.removeAttribute('data-fullscreen');
+    chatWindow.removeAttribute('data-expanded');
+    chatWindow.classList.remove('fullscreen', 'expanded', 'maximized');
+  }
+
+  // 初期化関数
+  function initialize() {
+    removeExpandButtonsOnly();
+    enforceFixedSize();
+  }
+
+  // 複数のタイミングで実行
+  document.addEventListener('DOMContentLoaded', initialize);
+  window.addEventListener('load', initialize);
+
+  // 遅延実行
+  setTimeout(initialize, 100);
+  setTimeout(initialize, 500);
+  setTimeout(initialize, 1000);
+  setTimeout(initialize, 2000);
+
+  // 定期的にチェック（展開ボタンの削除のみ）
+  setInterval(removeExpandButtonsOnly, 2000);
+
+  // DOM変更を監視（展開ボタンが追加されたら削除）
+  const observer = new MutationObserver(function(mutations) {
+    // 新しい要素が追加された場合のみチェック
+    const hasNewNodes = mutations.some(mutation => mutation.addedNodes.length > 0);
+    if (hasNewNodes) {
+      setTimeout(removeExpandButtonsOnly, 50);
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // ResizeObserverでサイズ変更を監視
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target.id === 'dify-chatbot-bubble-window') {
+          // サイズが変更されたら固定サイズに戻す
+          const chatWindow = entry.target;
+          const currentDisplay = window.getComputedStyle(chatWindow).display;
+          if (currentDisplay !== 'none') {
+            enforceFixedSize();
+          }
+        }
+      }
+    });
+
+    setTimeout(() => {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow) {
+        resizeObserver.observe(chatWindow);
+      }
+    }, 1000);
+  }
+
+  // フルスクリーンイベントを阻止
+  document.addEventListener('fullscreenchange', function(e) {
+    if (document.fullscreenElement) {
+      const chatWindow = document.getElementById('dify-chatbot-bubble-window');
+      if (chatWindow && chatWindow.contains(document.fullscreenElement)) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+    enforceFixedSize();
+  });
+})();
+</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#validate-command">
+          コンテンツにスキップ
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="ヘッダー" class="md-header__inner md-grid">
+<a aria-label="RDEToolKit Documentation" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
+<img alt="logo" src="../../../img/2585322.png"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            RDEToolKit Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              バリデーション
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="言語切り替え" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="ja">
+              日本語
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../../en/rdetoolkit/cmd/validate/" hreflang="en">
+              English
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="検索" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="検索" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="検索" class="md-search__options">
+<button aria-label="クリア" class="md-search__icon md-icon" tabindex="-1" title="クリア" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            検索を初期化
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-mdpf/rdetoolkit" title="リポジトリへ">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-mdpf/rdetoolkit
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="タブ" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../README_ja/">
+          
+  
+  
+  はじめに
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../user-guide/">
+          
+  
+  
+  ユーザーガイド
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../../../api/">
+          
+  
+  
+  API リファレンス
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../releases/">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../development/">
+          
+  
+  
+  コントリビューション
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="ナビゲーション" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="RDEToolKit Documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="RDEToolKit Documentation">
+<img alt="logo" src="../../../img/2585322.png"/>
+</a>
+    RDEToolKit Documentation
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/nims-mdpf/rdetoolkit" title="リポジトリへ">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    nims-mdpf/rdetoolkit
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+<span class="md-ellipsis">
+    はじめに
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_1">
+<span class="md-nav__icon md-icon"></span>
+            はじめに
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../README_ja/">
+<span class="md-ellipsis">
+    プロジェクト概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    はじめに
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../installation/">
+<span class="md-ellipsis">
+    インストール
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../quick-start/">
+<span class="md-ellipsis">
+    クイックスタート
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-ellipsis">
+    ユーザーガイド
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            ユーザーガイド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../user-guide/">
+<span class="md-ellipsis">
+    ガイド概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../user-guide/config/">
+<span class="md-ellipsis">
+    設定ガイド
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../user-guide/structured-processing/">
+<span class="md-ellipsis">
+    構造化処理ガイド
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    構造化処理開発
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            構造化処理開発
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/structured/">
+<span class="md-ellipsis">
+    構造化プロセスの構築
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/development_guide/">
+<span class="md-ellipsis">
+    構造化処理開発ガイド
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/directory/">
+<span class="md-ellipsis">
+    対応ディレクトリ
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/rdepath/">
+<span class="md-ellipsis">
+    ディレクトリパスアクセス
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/errorhandling/">
+<span class="md-ellipsis">
+    エラーハンドリング
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/logging/">
+<span class="md-ellipsis">
+    ログ出力
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/traceback/">
+<span class="md-ellipsis">
+    LLM/AI向けトレースバック
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/feature_description/">
+<span class="md-ellipsis">
+    データタイル説明欄の自動転記
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/csv2graph/">
+<span class="md-ellipsis">
+    csvをグラフ化する
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/structured_process/csv2graph_samples/">
+<span class="md-ellipsis">
+    csv2graphサンプル集
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+<span class="md-ellipsis">
+    データ登録モード
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_5">
+<span class="md-nav__icon md-icon"></span>
+            データ登録モード
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/mode/mode/">
+<span class="md-ellipsis">
+    利用可能なデータ登録モード
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/mode/mode_invoice/">
+<span class="md-ellipsis">
+    invoiceモード
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/mode/mode_excelinvoice/">
+<span class="md-ellipsis">
+    ExcelInvoiceモード
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/mode/mode_smarttableinvoice/">
+<span class="md-ellipsis">
+    SmartTableInvoiceモード
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/mode/mode_multidatatile/">
+<span class="md-ellipsis">
+    MultiDataTileモード
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/mode/mode_rdeformat/">
+<span class="md-ellipsis">
+    RDEFormatモード
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+<span class="md-ellipsis">
+    設定ファイルとCLI
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_6">
+<span class="md-nav__icon md-icon"></span>
+            設定ファイルとCLI
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/config/">
+<span class="md-ellipsis">
+    設定ファイル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/file_folder_mode/">
+<span class="md-ellipsis">
+    ファイル/フォルダモード
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/config/magic_variable/">
+<span class="md-ellipsis">
+    マジック変数
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/cli/">
+<span class="md-ellipsis">
+    コマンドライン操作
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+<span class="md-ellipsis">
+    テンプレートファイルと検証
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_7">
+<span class="md-nav__icon md-icon"></span>
+            テンプレートファイルと検証
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/metadata_definition_file/">
+<span class="md-ellipsis">
+    テンプレートファイル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/validation/">
+<span class="md-ellipsis">
+    データ検証
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+<span class="md-ellipsis">
+    統合
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_8">
+<span class="md-nav__icon md-icon"></span>
+            統合
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/object_storage/">
+<span class="md-ellipsis">
+    オブジェクトストレージ (MinIO)
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/docker/">
+<span class="md-ellipsis">
+    Docker の使用
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-ellipsis">
+    API リファレンス
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            API リファレンス
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../api/">
+<span class="md-ellipsis">
+    APIガイド
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../">
+<span class="md-ellipsis">
+    概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+<span class="md-ellipsis">
+    コアモジュール
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_3">
+<span class="md-nav__icon md-icon"></span>
+            コアモジュール
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../config/">
+<span class="md-ellipsis">
+    設定
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../core/">
+<span class="md-ellipsis">
+    コア機能
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../workflows/">
+<span class="md-ellipsis">
+    ワークフロー
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../modeproc/">
+<span class="md-ellipsis">
+    モード処理
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../invoicefile/">
+<span class="md-ellipsis">
+    Invoiceファイル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rde2util/">
+<span class="md-ellipsis">
+    ユーティリティ
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../rdelogger/">
+<span class="md-ellipsis">
+    ロギング
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../img2thumb/">
+<span class="md-ellipsis">
+    代表画像操作
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../csv2graph/">
+<span class="md-ellipsis">
+    CSVグラフ化
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../validation/">
+<span class="md-ellipsis">
+    検証
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../exceptions/">
+<span class="md-ellipsis">
+    例外
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../errors/">
+<span class="md-ellipsis">
+    エラーハンドリング
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../fileops/">
+<span class="md-ellipsis">
+    ファイル操作
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    処理パイプライン
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_4">
+<span class="md-nav__icon md-icon"></span>
+            処理パイプライン
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/">
+<span class="md-ellipsis">
+    概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/context/">
+<span class="md-ellipsis">
+    コンテキスト
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/factories/">
+<span class="md-ellipsis">
+    ファクトリ
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/pipeline/">
+<span class="md-ellipsis">
+    パイプライン
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_4_5" id="__nav_3_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    プロセッサ
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_4_5_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_4_5">
+<span class="md-nav__icon md-icon"></span>
+            プロセッサ
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/">
+<span class="md-ellipsis">
+    概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/datasets/">
+<span class="md-ellipsis">
+    データセット
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/descriptions/">
+<span class="md-ellipsis">
+    説明
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/files/">
+<span class="md-ellipsis">
+    ファイル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/invoice/">
+<span class="md-ellipsis">
+    送り状
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/thumbnails/">
+<span class="md-ellipsis">
+    サムネイル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/validation/">
+<span class="md-ellipsis">
+    検証
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../processing/processors/variables/">
+<span class="md-ellipsis">
+    変数
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    トレースバック
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_5">
+<span class="md-nav__icon md-icon"></span>
+            トレースバック
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../traceback/">
+<span class="md-ellipsis">
+    概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../traceback/formatter/">
+<span class="md-ellipsis">
+    フォーマッター
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../traceback/masking/">
+<span class="md-ellipsis">
+    マスキング
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+<span class="md-ellipsis">
+    データモデル
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_6">
+<span class="md-nav__icon md-icon"></span>
+            データモデル
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/config/">
+<span class="md-ellipsis">
+    設定モデル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/invoice/">
+<span class="md-ellipsis">
+    Invoiceモデル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/invoice_schema/">
+<span class="md-ellipsis">
+    Invoiceスキーマ
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/metadata/">
+<span class="md-ellipsis">
+    メタデータモデル
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/rde2types/">
+<span class="md-ellipsis">
+    タイプ定義
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/result/">
+<span class="md-ellipsis">
+    結果出力
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../models/report/">
+<span class="md-ellipsis">
+    レポートモデル
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+<span class="md-ellipsis">
+    実装
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_7">
+<span class="md-nav__icon md-icon"></span>
+            実装
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/compressed_controller/">
+<span class="md-ellipsis">
+    圧縮
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../impl/input_controller/">
+<span class="md-ellipsis">
+    入力ファイル
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    インターフェース
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            インターフェース
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../interface/filechecker/">
+<span class="md-ellipsis">
+    ファイルチェック
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+<span class="md-ellipsis">
+    コマンド
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_9">
+<span class="md-nav__icon md-icon"></span>
+            コマンド
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../command/">
+<span class="md-ellipsis">
+    ベースコマンド
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../archive/">
+<span class="md-ellipsis">
+    アーカイブ生成
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../gen_config/">
+<span class="md-ellipsis">
+    設定ファイル生成
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../gen_excelinvoice/">
+<span class="md-ellipsis">
+    Excel形式Invoice生成
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    バリデーション
+    
+  </span>
+</a>
+<nav aria-label="目次" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-commands">
+<span class="md-ellipsis">
+      Validation Commands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#output-formats">
+<span class="md-ellipsis">
+      Output Formats
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#exit-codes">
+<span class="md-ellipsis">
+      Exit Codes
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#commands">
+<span class="md-ellipsis">
+      Commands
+    </span>
+</a>
+<nav aria-label="Commands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-invoice-schema">
+<span class="md-ellipsis">
+      validate invoice-schema
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-invoice">
+<span class="md-ellipsis">
+      validate invoice
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-metadata-def">
+<span class="md-ellipsis">
+      validate metadata-def
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-metadata">
+<span class="md-ellipsis">
+      validate metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-all">
+<span class="md-ellipsis">
+      validate all
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#output-formats_1">
+<span class="md-ellipsis">
+      Output Formats
+    </span>
+</a>
+<nav aria-label="Output Formats" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#text-output-default">
+<span class="md-ellipsis">
+      Text Output (Default)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#json-output">
+<span class="md-ellipsis">
+      JSON Output
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#use-cases">
+<span class="md-ellipsis">
+      Use Cases
+    </span>
+</a>
+<nav aria-label="Use Cases" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-basic-validation-workflow">
+<span class="md-ellipsis">
+      1. Basic Validation Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-cicd-integration">
+<span class="md-ellipsis">
+      2. CI/CD Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-json-output-parsing">
+<span class="md-ellipsis">
+      3. JSON Output Parsing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-pre-commit-hook">
+<span class="md-ellipsis">
+      4. Pre-commit Hook
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-batch-project-validation">
+<span class="md-ellipsis">
+      5. Batch Project Validation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-error-messages">
+<span class="md-ellipsis">
+      Common Error Messages
+    </span>
+</a>
+<nav aria-label="Common Error Messages" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#schema-validation-errors">
+<span class="md-ellipsis">
+      Schema Validation Errors
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-validation-errors">
+<span class="md-ellipsis">
+      Data Validation Errors
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-not-found-errors">
+<span class="md-ellipsis">
+      File Not Found Errors
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-passes-locally-but-fails-in-ci">
+<span class="md-ellipsis">
+      Validation Passes Locally but Fails in CI
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#json-output-not-parseable">
+<span class="md-ellipsis">
+      JSON Output Not Parseable
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#exit-code-not-as-expected">
+<span class="md-ellipsis">
+      Exit Code Not as Expected
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-commands">
+<span class="md-ellipsis">
+      Related Commands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    ストレージ
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            ストレージ
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../storage/minio/">
+<span class="md-ellipsis">
+    MinIO 統合
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    アーティファクト
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            アーティファクト
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../artifact/report/">
+<span class="md-ellipsis">
+    レポート生成
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../releases/">
+<span class="md-ellipsis">
+    Changelog
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+<span class="md-ellipsis">
+    コントリビューション
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            コントリビューション
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/">
+<span class="md-ellipsis">
+    概要
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/docs/">
+<span class="md-ellipsis">
+    ドキュメントへの貢献
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../development/contributing/">
+<span class="md-ellipsis">
+    ソースコードへの貢献
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contribute/documents_contributing/">
+<span class="md-ellipsis">
+    ドキュメントワークフロー
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contribute/home/">
+<span class="md-ellipsis">
+    コントリビューションガイド
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contribute/sourcecode_contributing/">
+<span class="md-ellipsis">
+    ソースコードワークフロー
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="目次" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-features">
+<span class="md-ellipsis">
+      Key Features
+    </span>
+</a>
+<nav aria-label="Key Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-commands">
+<span class="md-ellipsis">
+      Validation Commands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#output-formats">
+<span class="md-ellipsis">
+      Output Formats
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#exit-codes">
+<span class="md-ellipsis">
+      Exit Codes
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#commands">
+<span class="md-ellipsis">
+      Commands
+    </span>
+</a>
+<nav aria-label="Commands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-invoice-schema">
+<span class="md-ellipsis">
+      validate invoice-schema
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-invoice">
+<span class="md-ellipsis">
+      validate invoice
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-metadata-def">
+<span class="md-ellipsis">
+      validate metadata-def
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-metadata">
+<span class="md-ellipsis">
+      validate metadata
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validate-all">
+<span class="md-ellipsis">
+      validate all
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#output-formats_1">
+<span class="md-ellipsis">
+      Output Formats
+    </span>
+</a>
+<nav aria-label="Output Formats" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#text-output-default">
+<span class="md-ellipsis">
+      Text Output (Default)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#json-output">
+<span class="md-ellipsis">
+      JSON Output
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#use-cases">
+<span class="md-ellipsis">
+      Use Cases
+    </span>
+</a>
+<nav aria-label="Use Cases" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-basic-validation-workflow">
+<span class="md-ellipsis">
+      1. Basic Validation Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-cicd-integration">
+<span class="md-ellipsis">
+      2. CI/CD Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-json-output-parsing">
+<span class="md-ellipsis">
+      3. JSON Output Parsing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-pre-commit-hook">
+<span class="md-ellipsis">
+      4. Pre-commit Hook
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-batch-project-validation">
+<span class="md-ellipsis">
+      5. Batch Project Validation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-error-messages">
+<span class="md-ellipsis">
+      Common Error Messages
+    </span>
+</a>
+<nav aria-label="Common Error Messages" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#schema-validation-errors">
+<span class="md-ellipsis">
+      Schema Validation Errors
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-validation-errors">
+<span class="md-ellipsis">
+      Data Validation Errors
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-not-found-errors">
+<span class="md-ellipsis">
+      File Not Found Errors
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-passes-locally-but-fails-in-ci">
+<span class="md-ellipsis">
+      Validation Passes Locally but Fails in CI
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#json-output-not-parseable">
+<span class="md-ellipsis">
+      JSON Output Not Parseable
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#exit-code-not-as-expected">
+<span class="md-ellipsis">
+      Exit Code Not as Expected
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-commands">
+<span class="md-ellipsis">
+      Related Commands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="validate-command">Validate Command</h1>
+<h2 id="purpose">Purpose</h2>
+<p>The <code>validate</code> command group provides CLI tools for validating RDE project files including invoice schemas, invoice data, metadata definitions, and metadata data. These commands help catch configuration errors early in the development workflow and integrate seamlessly with CI/CD pipelines.</p>
+<h2 id="key-features">Key Features</h2>
+<h3 id="validation-commands">Validation Commands</h3>
+<ul>
+<li>Validate invoice schema structure</li>
+<li>Validate invoice data against schema</li>
+<li>Validate metadata definition files</li>
+<li>Validate metadata data against definitions</li>
+<li>Batch validation of entire projects</li>
+</ul>
+<h3 id="output-formats">Output Formats</h3>
+<ul>
+<li><strong>Text</strong>: Human-readable validation results (default)</li>
+<li><strong>JSON</strong>: Machine-readable output for CI/CD integration</li>
+</ul>
+<h3 id="exit-codes">Exit Codes</h3>
+<ul>
+<li><strong>0</strong>: All validations passed successfully</li>
+<li><strong>1</strong>: Validation failures detected</li>
+<li><strong>2</strong>: Invalid command usage or arguments</li>
+<li><strong>3</strong>: Internal errors or unexpected exceptions</li>
+</ul>
+<hr/>
+<h2 id="commands">Commands</h2>
+<h3 id="validate-invoice-schema">validate invoice-schema</h3>
+<p>Validates the structure of an invoice schema file.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice-schema<span style="color: #BBB"> </span>&lt;path&gt;
+</code></pre></div></td></tr></table></div>
+<p><strong>Arguments:</strong>
+- <code>path</code>: Path to the invoice schema JSON file</p>
+<p><strong>Options:</strong>
+- <code>--format [text|json]</code>: Output format (default: text)
+- <code>--quiet</code>: Only show errors, suppress informational messages</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Validate invoice schema with text output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice-schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json
+
+<span style="color: #888"># Validate with JSON output for CI</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice-schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h3 id="validate-invoice">validate invoice</h3>
+<p>Validates invoice data against an invoice schema.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice<span style="color: #BBB"> </span>&lt;invoice_path&gt;<span style="color: #BBB"> </span>--schema<span style="color: #BBB"> </span>&lt;schema_path&gt;
+</code></pre></div></td></tr></table></div>
+<p><strong>Arguments:</strong>
+- <code>invoice_path</code>: Path to the invoice JSON file to validate</p>
+<p><strong>Options:</strong>
+- <code>--schema</code>: Path to the invoice schema file (required)
+- <code>--format [text|json]</code>: Output format (default: text)
+- <code>--quiet</code>: Only show errors, suppress informational messages</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Validate invoice against schema</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice<span style="color: #BBB"> </span>data/invoice/invoice.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json
+
+<span style="color: #888"># Validate with JSON output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice<span style="color: #BBB"> </span>data/invoice/invoice.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--format<span style="color: #BBB"> </span>json
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h3 id="validate-metadata-def">validate metadata-def</h3>
+<p>Validates the structure of a metadata definition file.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata-def<span style="color: #BBB"> </span>&lt;path&gt;
+</code></pre></div></td></tr></table></div>
+<p><strong>Arguments:</strong>
+- <code>path</code>: Path to the metadata definition JSON file</p>
+<p><strong>Options:</strong>
+- <code>--format [text|json]</code>: Output format (default: text)
+- <code>--quiet</code>: Only show errors, suppress informational messages</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Validate metadata definition</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata-def<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json
+
+<span style="color: #888"># Validate with JSON output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata-def<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h3 id="validate-metadata">validate metadata</h3>
+<p>Validates metadata data against a metadata definition schema.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata<span style="color: #BBB"> </span>&lt;metadata_path&gt;<span style="color: #BBB"> </span>--schema<span style="color: #BBB"> </span>&lt;schema_path&gt;
+</code></pre></div></td></tr></table></div>
+<p><strong>Arguments:</strong>
+- <code>metadata_path</code>: Path to the metadata JSON file to validate</p>
+<p><strong>Options:</strong>
+- <code>--schema</code>: Path to the metadata definition schema file (required)
+- <code>--format [text|json]</code>: Output format (default: text)
+- <code>--quiet</code>: Only show errors, suppress informational messages</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Validate metadata against definition</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata<span style="color: #BBB"> </span>data/metadata.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json
+
+<span style="color: #888"># Validate with JSON output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata<span style="color: #BBB"> </span>data/metadata.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--format<span style="color: #BBB"> </span>json
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h3 id="validate-all">validate all</h3>
+<p>Performs batch validation of all standard files in an RDE project directory.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span><span style="color: #333">[</span>project_dir<span style="color: #333">]</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Arguments:</strong>
+- <code>project_dir</code>: Path to the RDE project directory (default: current directory)</p>
+<p><strong>Discovery Rules:</strong>
+The command automatically discovers and validates files in the standard RDE project layout:
+- <code>data/tasksupport/invoice.schema.json</code> (invoice schema)
+- <code>data/invoice/invoice.json</code> (invoice data)
+- <code>data/tasksupport/metadata-def.json</code> (metadata definition)</p>
+<p><strong>Options:</strong>
+- <code>--format [text|json]</code>: Output format (default: text)
+- <code>--strict/--no-strict</code>: Treat warnings as failures (default: no-strict)
+- <code>--quiet</code>: Only show errors and summary</p>
+<p><strong>Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Validate all files in current directory</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all
+
+<span style="color: #888"># Validate all files in specific project</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>/path/to/project
+
+<span style="color: #888"># Strict validation with JSON output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--strict<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json
+
+<span style="color: #888"># Quiet mode (errors only)</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--quiet
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h2 id="output-formats_1">Output Formats</h2>
+<h3 id="text-output-default">Text Output (Default)</h3>
+<p>Human-readable format suitable for terminal display:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✓ Invoice schema validation passed
+✓ Invoice data validation passed
+✓ Metadata definition validation passed
+
+All validations passed (3/3)
+</code></pre></div></td></tr></table></div>
+<p><strong>Error Example:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✗ Invoice validation failed:
+  - Missing required field: 'basic_info'
+  - Invalid format for 'timestamp': expected ISO8601
+
+1 validation failed, 2 passed (1/3)
+</code></pre></div></td></tr></table></div></p>
+<h3 id="json-output">JSON Output</h3>
+<p>Machine-readable format suitable for CI/CD pipelines:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>{
+<span style="color: #BBB">  </span><span style="color: #070">"results"</span>:<span style="color: #BBB"> </span>[
+<span style="color: #BBB">    </span>{
+<span style="color: #BBB">      </span><span style="color: #070">"target"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"data/tasksupport/invoice.schema.json"</span>,
+<span style="color: #BBB">      </span><span style="color: #070">"type"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"invoice-schema"</span>,
+<span style="color: #BBB">      </span><span style="color: #070">"status"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"passed"</span>,
+<span style="color: #BBB">      </span><span style="color: #070">"errors"</span>:<span style="color: #BBB"> </span>[]
+<span style="color: #BBB">    </span>},
+<span style="color: #BBB">    </span>{
+<span style="color: #BBB">      </span><span style="color: #070">"target"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"data/invoice/invoice.json"</span>,
+<span style="color: #BBB">      </span><span style="color: #070">"type"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"invoice"</span>,
+<span style="color: #BBB">      </span><span style="color: #070">"status"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"failed"</span>,
+<span style="color: #BBB">      </span><span style="color: #070">"errors"</span>:<span style="color: #BBB"> </span>[
+<span style="color: #BBB">        </span>{
+<span style="color: #BBB">          </span><span style="color: #070">"message"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Missing required field: 'basic_info'"</span>,
+<span style="color: #BBB">          </span><span style="color: #070">"path"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"$.basic_info"</span>
+<span style="color: #BBB">        </span>},
+<span style="color: #BBB">        </span>{
+<span style="color: #BBB">          </span><span style="color: #070">"message"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Invalid format for 'timestamp': expected ISO8601"</span>,
+<span style="color: #BBB">          </span><span style="color: #070">"path"</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"$.timestamp"</span>
+<span style="color: #BBB">        </span>}
+<span style="color: #BBB">      </span>]
+<span style="color: #BBB">    </span>}
+<span style="color: #BBB">  </span>],
+<span style="color: #BBB">  </span><span style="color: #070">"summary"</span>:<span style="color: #BBB"> </span>{
+<span style="color: #BBB">    </span><span style="color: #070">"total"</span>:<span style="color: #BBB"> </span><span style="color: #00D; font-weight: bold">3</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"passed"</span>:<span style="color: #BBB"> </span><span style="color: #00D; font-weight: bold">2</span>,
+<span style="color: #BBB">    </span><span style="color: #070">"failed"</span>:<span style="color: #BBB"> </span><span style="color: #00D; font-weight: bold">1</span>
+<span style="color: #BBB">  </span>}
+}
+</code></pre></div></td></tr></table></div>
+<hr/>
+<h2 id="use-cases">Use Cases</h2>
+<h3 id="1-basic-validation-workflow">1. Basic Validation Workflow</h3>
+<p>Validate individual files during development:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Step 1: Validate schema structure</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice-schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json
+
+<span style="color: #888"># Step 2: Validate invoice data against schema</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>invoice<span style="color: #BBB"> </span>data/invoice/invoice.json<span style="color: #BBB"> </span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\</span>
+<span style="color: #BBB">  </span>--schema<span style="color: #BBB"> </span>data/tasksupport/invoice.schema.json
+
+<span style="color: #888"># Step 3: Validate metadata definition</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>metadata-def<span style="color: #BBB"> </span>data/tasksupport/metadata-def.json
+</code></pre></div></td></tr></table></div>
+<h3 id="2-cicd-integration">2. CI/CD Integration</h3>
+<p>Integrate validation into continuous integration pipelines:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># .github/workflows/validate.yml</span>
+<span style="color: #070">name</span>:<span style="color: #BBB"> </span>Validate RDE Files
+
+<span style="color: #070">on</span>:<span style="color: #BBB"> </span>[<span style="color: #963">push</span>,<span style="color: #BBB"> </span><span style="color: #963">pull_request</span>]
+
+<span style="color: #070">jobs</span>:
+<span style="color: #BBB">  </span><span style="color: #070">validate</span>:
+<span style="color: #BBB">    </span><span style="color: #070">runs-on</span>:<span style="color: #BBB"> </span>ubuntu-latest
+<span style="color: #BBB">    </span><span style="color: #070">steps</span>:
+<span style="color: #BBB">      </span>-<span style="color: #BBB"> </span><span style="color: #070">uses</span>:<span style="color: #BBB"> </span>actions/checkout@v3
+<span style="color: #BBB">      </span>-<span style="color: #BBB"> </span><span style="color: #070">uses</span>:<span style="color: #BBB"> </span>actions/setup-python@v4
+<span style="color: #BBB">        </span><span style="color: #070">with</span>:
+<span style="color: #BBB">          </span><span style="color: #070">python-version</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">'3.12'</span>
+<span style="color: #BBB">      </span>-<span style="color: #BBB"> </span><span style="color: #070">name</span>:<span style="color: #BBB"> </span>Install RDEToolKit
+<span style="color: #BBB">        </span><span style="color: #070">run</span>:<span style="color: #BBB"> </span>pip install rdetoolkit
+<span style="color: #BBB">      </span>-<span style="color: #BBB"> </span><span style="color: #070">name</span>:<span style="color: #BBB"> </span>Validate all RDE files
+<span style="color: #BBB">        </span><span style="color: #070">run</span>:<span style="color: #BBB"> </span>|
+<span style="color: #BBB">          </span><span style="color: #036; font-weight: bold">rdetoolkit validate all --format json --strict &gt; validation-results.json</span>
+<span style="color: #BBB">          </span><span style="color: #036; font-weight: bold">cat validation-results.json</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Exit Code Handling in CI:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888">#!/bin/bash</span>
+<span style="color: #888"># ci-validate.sh</span>
+
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json
+<span style="color: #963">EXIT_CODE</span><span style="color: #333">=</span><span style="color: #963">$?</span>
+
+<span style="color: #080; font-weight: bold">case</span><span style="color: #BBB"> </span><span style="color: #963">$EXIT_CODE</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">in</span>
+<span style="color: #BBB">  </span><span style="color: #60E; font-weight: bold">0</span><span style="color: #333">)</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✓ All validations passed"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">0</span>
+<span style="color: #BBB">    </span>;;
+<span style="color: #BBB">  </span><span style="color: #60E; font-weight: bold">1</span><span style="color: #333">)</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✗ Validation failures detected"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">1</span>
+<span style="color: #BBB">    </span>;;
+<span style="color: #BBB">  </span><span style="color: #60E; font-weight: bold">2</span><span style="color: #333">)</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✗ Invalid command usage"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">2</span>
+<span style="color: #BBB">    </span>;;
+<span style="color: #BBB">  </span><span style="color: #60E; font-weight: bold">3</span><span style="color: #333">)</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✗ Internal error occurred"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">3</span>
+<span style="color: #BBB">    </span>;;
+<span style="color: #080; font-weight: bold">esac</span>
+</code></pre></div></td></tr></table></div></p>
+<h3 id="3-json-output-parsing">3. JSON Output Parsing</h3>
+<p>Parse JSON output for custom processing:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># parse_validation.py</span>
+<span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">json</span>
+<span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">sys</span>
+<span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">subprocess</span>
+
+result <span style="color: #333">=</span> subprocess<span style="color: #333">.</span>run(
+    [<span style="background-color: #FFF0F0">"rdetoolkit"</span>, <span style="background-color: #FFF0F0">"validate"</span>, <span style="background-color: #FFF0F0">"all"</span>, <span style="background-color: #FFF0F0">"--format"</span>, <span style="background-color: #FFF0F0">"json"</span>],
+    capture_output<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+    text<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>
+)
+
+data <span style="color: #333">=</span> json<span style="color: #333">.</span>loads(result<span style="color: #333">.</span>stdout)
+
+<span style="color: #888"># Check for failures</span>
+<span style="color: #080; font-weight: bold">if</span> data[<span style="background-color: #FFF0F0">"summary"</span>][<span style="background-color: #FFF0F0">"failed"</span>] <span style="color: #333">&gt;</span> <span style="color: #00D; font-weight: bold">0</span>:
+    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"Validation failures detected: </span><span style="background-color: #EEE">{</span>data[<span style="background-color: #FFF0F0">'summary'</span>][<span style="background-color: #FFF0F0">'failed'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+
+    <span style="color: #888"># Print detailed errors</span>
+    <span style="color: #080; font-weight: bold">for</span> item <span style="color: #000; font-weight: bold">in</span> data[<span style="background-color: #FFF0F0">"results"</span>]:
+        <span style="color: #080; font-weight: bold">if</span> item[<span style="background-color: #FFF0F0">"status"</span>] <span style="color: #333">==</span> <span style="background-color: #FFF0F0">"failed"</span>:
+            <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"</span><span style="color: #666; font-weight: bold; background-color: #FFF0F0">\n</span><span style="background-color: #FFF0F0">Failed: </span><span style="background-color: #EEE">{</span>item[<span style="background-color: #FFF0F0">'target'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0"> (</span><span style="background-color: #EEE">{</span>item[<span style="background-color: #FFF0F0">'type'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">)"</span>)
+            <span style="color: #080; font-weight: bold">for</span> error <span style="color: #000; font-weight: bold">in</span> item[<span style="background-color: #FFF0F0">"errors"</span>]:
+                <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"  - </span><span style="background-color: #EEE">{</span>error[<span style="background-color: #FFF0F0">'message'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+                <span style="color: #080; font-weight: bold">if</span> <span style="background-color: #FFF0F0">"path"</span> <span style="color: #000; font-weight: bold">in</span> error:
+                    <span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"    Path: </span><span style="background-color: #EEE">{</span>error[<span style="background-color: #FFF0F0">'path'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>)
+
+    sys<span style="color: #333">.</span>exit(<span style="color: #00D; font-weight: bold">1</span>)
+
+<span style="color: #007020">print</span>(<span style="background-color: #FFF0F0">f"✓ All validations passed (</span><span style="background-color: #EEE">{</span>data[<span style="background-color: #FFF0F0">'summary'</span>][<span style="background-color: #FFF0F0">'total'</span>]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">)"</span>)
+sys<span style="color: #333">.</span>exit(<span style="color: #00D; font-weight: bold">0</span>)
+</code></pre></div></td></tr></table></div>
+<h3 id="4-pre-commit-hook">4. Pre-commit Hook</h3>
+<p>Add validation as a Git pre-commit hook:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># .git/hooks/pre-commit</span>
+<span style="color: #888">#!/bin/bash</span>
+
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Running RDE validation..."</span>
+
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--quiet
+
+<span style="color: #080; font-weight: bold">if</span><span style="color: #BBB"> </span><span style="color: #333">[</span><span style="color: #BBB"> </span><span style="color: #963">$?</span><span style="color: #BBB"> </span>-ne<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">0</span><span style="color: #BBB"> </span><span style="color: #333">]</span>;<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">then</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"❌ RDE validation failed. Commit aborted."</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Run 'rdetoolkit validate all' for details."</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">1</span>
+<span style="color: #080; font-weight: bold">fi</span>
+
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✅ RDE validation passed"</span>
+<span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">0</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="5-batch-project-validation">5. Batch Project Validation</h3>
+<p>Validate multiple projects in a batch:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888">#!/bin/bash</span>
+<span style="color: #888"># validate-projects.sh</span>
+
+<span style="color: #963">PROJECTS_DIR</span><span style="color: #333">=</span><span style="background-color: #FFF0F0">"./rde-projects"</span>
+<span style="color: #963">FAILED_PROJECTS</span><span style="color: #333">=()</span>
+
+<span style="color: #080; font-weight: bold">for</span><span style="color: #BBB"> </span>project<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">in</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"</span><span style="color: #963">$PROJECTS_DIR</span><span style="background-color: #FFF0F0">"</span>/*;<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">do</span>
+<span style="color: #BBB">    </span><span style="color: #080; font-weight: bold">if</span><span style="color: #BBB"> </span><span style="color: #333">[</span><span style="color: #BBB"> </span>-d<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"</span><span style="color: #963">$project</span><span style="background-color: #FFF0F0">"</span><span style="color: #BBB"> </span><span style="color: #333">]</span>;<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">then</span>
+<span style="color: #BBB">        </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Validating: </span><span style="color: #080; font-weight: bold">$(</span>basename<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"</span><span style="color: #963">$project</span><span style="background-color: #FFF0F0">"</span><span style="color: #080; font-weight: bold">)</span><span style="background-color: #FFF0F0">"</span>
+
+<span style="color: #BBB">        </span>rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"</span><span style="color: #963">$project</span><span style="background-color: #FFF0F0">"</span><span style="color: #BBB"> </span>--quiet
+
+<span style="color: #BBB">        </span><span style="color: #080; font-weight: bold">if</span><span style="color: #BBB"> </span><span style="color: #333">[</span><span style="color: #BBB"> </span><span style="color: #963">$?</span><span style="color: #BBB"> </span>-ne<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">0</span><span style="color: #BBB"> </span><span style="color: #333">]</span>;<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">then</span>
+<span style="color: #BBB">            </span><span style="color: #963">FAILED_PROJECTS</span><span style="color: #333">+=(</span><span style="background-color: #FFF0F0">"</span><span style="color: #080; font-weight: bold">$(</span>basename<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"</span><span style="color: #963">$project</span><span style="background-color: #FFF0F0">"</span><span style="color: #080; font-weight: bold">)</span><span style="background-color: #FFF0F0">"</span><span style="color: #333">)</span>
+<span style="color: #BBB">        </span><span style="color: #080; font-weight: bold">fi</span>
+<span style="color: #BBB">    </span><span style="color: #080; font-weight: bold">fi</span>
+<span style="color: #080; font-weight: bold">done</span>
+
+<span style="color: #080; font-weight: bold">if</span><span style="color: #BBB"> </span><span style="color: #333">[</span><span style="color: #BBB"> </span><span style="background-color: #EEE">${#</span><span style="color: #963">FAILED_PROJECTS</span>[@]<span style="background-color: #EEE">}</span><span style="color: #BBB"> </span>-eq<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">0</span><span style="color: #BBB"> </span><span style="color: #333">]</span>;<span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">then</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✓ All projects validated successfully"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">0</span>
+<span style="color: #080; font-weight: bold">else</span>
+<span style="color: #BBB">    </span><span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"✗ Validation failed for projects:"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">printf</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">'  - %s\n'</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"</span><span style="background-color: #EEE">${</span><span style="color: #963">FAILED_PROJECTS</span>[@]<span style="background-color: #EEE">}</span><span style="background-color: #FFF0F0">"</span>
+<span style="color: #BBB">    </span><span style="color: #007020">exit</span><span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">1</span>
+<span style="color: #080; font-weight: bold">fi</span>
+</code></pre></div></td></tr></table></div>
+<hr/>
+<h2 id="common-error-messages">Common Error Messages</h2>
+<h3 id="schema-validation-errors">Schema Validation Errors</h3>
+<p><strong>Invalid JSON syntax:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✗ Invoice schema validation failed:
+  - Invalid JSON: Unexpected token at line 15, column 3
+  - Suggestion: Check for missing commas, brackets, or quotes
+</code></pre></div></td></tr></table></div></p>
+<p><strong>Missing required schema fields:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✗ Invoice schema validation failed:
+  - Missing required field: '$schema'
+  - Missing required field: 'properties'
+</code></pre></div></td></tr></table></div></p>
+<h3 id="data-validation-errors">Data Validation Errors</h3>
+<p><strong>Schema mismatch:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✗ Invoice validation failed:
+  - Data does not conform to schema
+  - Missing required property: 'basic_info'
+  - Additional property not allowed: 'extra_field'
+</code></pre></div></td></tr></table></div></p>
+<p><strong>Type mismatch:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✗ Metadata validation failed:
+  - Type mismatch at '$.timestamp': expected string, got integer
+  - Type mismatch at '$.values': expected array, got object
+</code></pre></div></td></tr></table></div></p>
+<h3 id="file-not-found-errors">File Not Found Errors</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>✗ Validation failed:
+  - File not found: data/invoice/invoice.json
+  - Suggestion: Ensure the file exists and path is correct
+</code></pre></div></td></tr></table></div>
+<hr/>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Validate Early</strong>: Run validation commands before committing changes</li>
+<li><strong>Use in CI</strong>: Integrate with CI/CD pipelines for automated validation</li>
+<li><strong>JSON Format for Automation</strong>: Use <code>--format json</code> for scripts and CI</li>
+<li><strong>Quiet Mode in Scripts</strong>: Use <code>--quiet</code> to reduce noise in automated workflows</li>
+<li><strong>Strict Mode for Production</strong>: Use <code>--strict</code> in production pipelines</li>
+<li><strong>Version Control Schemas</strong>: Keep schema files under version control</li>
+<li><strong>Document Custom Schemas</strong>: Add comments to schema files explaining validation rules</li>
+</ol>
+<hr/>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="validation-passes-locally-but-fails-in-ci">Validation Passes Locally but Fails in CI</h3>
+<p><strong>Possible causes:</strong>
+- Different file paths between environments
+- Missing files not tracked in version control
+- Line ending differences (CRLF vs LF)</p>
+<p><strong>Solution:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Use absolute paths or project-relative paths</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>/path/to/project
+
+<span style="color: #888"># Ensure all required files are committed</span>
+git<span style="color: #BBB"> </span>status
+
+<span style="color: #888"># Normalize line endings</span>
+git<span style="color: #BBB"> </span>config<span style="color: #BBB"> </span>core.autocrlf<span style="color: #BBB"> </span>input
+</code></pre></div></td></tr></table></div></p>
+<h3 id="json-output-not-parseable">JSON Output Not Parseable</h3>
+<p><strong>Possible causes:</strong>
+- Mixed output (logs + JSON)
+- Unexpected error messages</p>
+<p><strong>Solution:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Use quiet mode to suppress non-JSON output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json<span style="color: #BBB"> </span>--quiet<span style="color: #BBB"> </span>&gt;<span style="color: #BBB"> </span>results.json
+
+<span style="color: #888"># Redirect stderr separately</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>json<span style="color: #BBB"> </span><span style="color: #60E; font-weight: bold">2</span>&gt;errors.log<span style="color: #BBB"> </span>&gt;results.json
+</code></pre></div></td></tr></table></div></p>
+<h3 id="exit-code-not-as-expected">Exit Code Not as Expected</h3>
+<p><strong>Debugging:</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Capture and display exit code</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all
+<span style="color: #007020">echo</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"Exit code: </span><span style="color: #963">$?</span><span style="background-color: #FFF0F0">"</span>
+
+<span style="color: #888"># Run with verbose output</span>
+rdetoolkit<span style="color: #BBB"> </span>validate<span style="color: #BBB"> </span>all<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>text
+
+<span style="color: #888"># Check for file permission issues</span>
+ls<span style="color: #BBB"> </span>-la<span style="color: #BBB"> </span>data/tasksupport/
+</code></pre></div></td></tr></table></div></p>
+<hr/>
+<h2 id="related-commands">Related Commands</h2>
+<ul>
+<li><code>rdetoolkit init</code>: Initialize RDE project structure</li>
+<li><code>rdetoolkit gen-excelinvoice</code>: Generate Excel invoice template</li>
+<li><code>rdetoolkit archive</code>: Create deployment archive</li>
+</ul>
+<hr/>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../../validation/">Validation Module API</a></li>
+<li><a href="../../models/invoice_schema/">Invoice Schema Documentation</a></li>
+<li><a href="../../models/metadata/">Metadata Definition Documentation</a></li>
+<li><a href="../command/">Command API</a></li>
+</ul>
+<!-- Dify Chatbot Script -->
+<script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
+</script>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  ページトップへ戻る
+</button>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/nims-dpfc/rdetoolkit" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-consent" data-md-component="consent" hidden="" id="__consent">
+<div class="md-consent__overlay"></div>
+<aside class="md-consent__inner">
+<form class="md-consent__form md-grid md-typeset" name="consent">
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" id="__settings" type="checkbox"/>
+<div class="md-consent__settings">
+<ul class="task-list">
+<li class="task-list-item">
+<label class="task-list-control">
+<input checked="" name="github" type="checkbox"/>
+<span class="task-list-indicator"></span>
+      GitHub
+    </label>
+</li>
+</ul>
+</div>
+<div class="md-consent__controls">
+<button class="md-button md-button--primary">同意</button>
+<label class="md-button" for="__settings">サイトの設定</label>
+</div>
+</form>
+</aside>
+</div>
+<script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.expand"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}, "version": null}</script>
+<script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+<script src="https://unpkg.com/mermaid@10.9.0/dist/mermaid.min.js"></script>
+</body>
+</html>
