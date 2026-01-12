@@ -8,8 +8,8 @@
 
 - **名前 (`name`)**: ロガーを識別する名前。通常は `__name__` を渡し、モジュール単位でロガーを分けます。
 - **ログレベル (`level`)**: 既定値は `logging.DEBUG`。INFO や WARNING など任意のレベルを指定できます。
-- **出力先 (`file_path`)**: `RdeFsPath` もしくは文字列でログファイルのパスを渡すと、`LazyFileHandler` が必要になったタイミングでファイルとディレクトリを自動生成します。
-- **ハンドラーの重複防止**: 同じ `name` と `file_path` の組み合わせで複数回 `get_logger` を呼び出しても、同じファイルハンドラーが二重に登録されないように保護されています。
+- **出力先 (`file_path`)**: `RdeFsPath` もしくは文字列でログファイルのパスを渡すと、`get_logger` がディレクトリを即時に作成し、`logging.FileHandler(delay=True)` によって初回出力時にログファイルを作成します。
+- **ハンドラーの重複防止**: `get_logger` を繰り返し呼び出すと、RDEToolKit が追加したファイルハンドラーを一度削除してから再登録するため、ハンドラーの蓄積を防止できます。
 - **ファイルパスなしの挙動**: `file_path=None` の場合はハンドラーが追加されません。標準出力などへの出力は、別途 `logging.basicConfig()` や任意のハンドラー設定が必要です。
 
 ログフォーマットは既定で `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s` です。タイムスタンプとモジュール名、レベルが一目で分かります。
@@ -32,7 +32,7 @@ logger.info("構造化処理を開始しました")
 logger.warning("入力ファイルが不足しています")
 ```
 
-実行すると、初回のログ出力時に `data/logs/structured_process.log` が作成され、次のような行が追記されます。
+実行すると、`logging.FileHandler(delay=True)` によって初回のログ出力時に `data/logs/structured_process.log` が作成され、次のような行が追記されます。
 
 ```
 2024-06-14 10:21:35,147 - [my_module](INFO) - 構造化処理を開始しました
@@ -62,7 +62,7 @@ def run(context: dict) -> int:
 ```
 
 - `logger.exception()` は例外情報を自動的に付加するため、原因追跡が容易になります。
-- `LazyFileHandler` によって `data/logs/dataset.log` は必要になるまで作成されません。
+- `logging.FileHandler(delay=True)` により `data/logs/dataset.log` は必要になるまで作成されません。
 
 ## 3. ログレベルと運用上のヒント
 
@@ -95,10 +95,10 @@ logger.info("コンソールにログを出力します")
 ## 5. よくある質問
 
 **Q. 同じロガーを複数回初期化すると二重に出力されませんか？**
-A. `get_logger` は同一ファイルを指す `LazyFileHandler` が既に登録されているか確認してから追加するため、重複出力は発生しません。
+A. `get_logger` は RDEToolKit が追加したファイルハンドラーを削除してから再登録するため、重複出力は発生しません。
 
 **Q. `file_path` にディレクトリが存在しないときはどうなりますか？**
-A. `LazyFileHandler` がディレクトリを自動で作成し、初回ログ出力時にファイルを生成します。
+A. `get_logger` がディレクトリを作成し、`logging.FileHandler(delay=True)` により初回ログ出力時にファイルが生成されます。
 
 **Q. `RdeFsPath` 型をどう使えばよいですか？**
 A. `Path` または文字列からラップできます。RDEToolKit では `RdeFsPath` を利用することで、プロジェクト内のパス表現を統一しています。
