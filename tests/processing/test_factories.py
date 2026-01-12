@@ -61,7 +61,7 @@ class TestPipelineBuilders:
         pipeline = builder.build()
 
         assert isinstance(pipeline, Pipeline)
-        assert pipeline.get_processor_count() == 8
+        assert pipeline.get_processor_count() == 9
 
         expected_processors = [
             "StandardInvoiceInitializer",
@@ -69,6 +69,7 @@ class TestPipelineBuilders:
             "DatasetRunner",
             "VariableApplier",
             "ThumbnailGenerator",
+            "StructuredInvoiceSaver",
             "DescriptionUpdater",
             "MetadataValidator",
             "InvoiceValidator"
@@ -83,7 +84,7 @@ class TestPipelineBuilders:
         pipeline = builder.build()
 
         assert isinstance(pipeline, Pipeline)
-        assert pipeline.get_processor_count() == 8
+        assert pipeline.get_processor_count() == 9
 
         expected_processors = [
             "ExcelInvoiceInitializer",
@@ -91,6 +92,7 @@ class TestPipelineBuilders:
             "DatasetRunner",
             "VariableApplier",
             "ThumbnailGenerator",
+            "StructuredInvoiceSaver",
             "DescriptionUpdater",
             "MetadataValidator",
             "InvoiceValidator"
@@ -105,12 +107,13 @@ class TestPipelineBuilders:
         pipeline = builder.build()
 
         assert isinstance(pipeline, Pipeline)
-        assert pipeline.get_processor_count() == 7
+        assert pipeline.get_processor_count() == 8
 
         expected_processors = [
             "FileCopier",
             "DatasetRunner",
             "ThumbnailGenerator",
+            "StructuredInvoiceSaver",
             "VariableApplier",
             "DescriptionUpdater",
             "MetadataValidator",
@@ -196,7 +199,7 @@ class TestPipelineFactory:
         pipeline = PipelineFactory.create_multifile_pipeline()
 
         assert isinstance(pipeline, Pipeline)
-        assert pipeline.get_processor_count() == 8
+        assert pipeline.get_processor_count() == 9
 
         expected_processors = [
             "StandardInvoiceInitializer",
@@ -204,6 +207,7 @@ class TestPipelineFactory:
             "DatasetRunner",
             "VariableApplier",
             "ThumbnailGenerator",
+            "StructuredInvoiceSaver",
             "DescriptionUpdater",
             "MetadataValidator",
             "InvoiceValidator"
@@ -217,7 +221,7 @@ class TestPipelineFactory:
         pipeline = PipelineFactory.create_excel_pipeline()
 
         assert isinstance(pipeline, Pipeline)
-        assert pipeline.get_processor_count() == 8
+        assert pipeline.get_processor_count() == 9
 
         expected_processors = [
             "ExcelInvoiceInitializer",
@@ -225,6 +229,7 @@ class TestPipelineFactory:
             "DatasetRunner",
             "VariableApplier",
             "ThumbnailGenerator",
+            "StructuredInvoiceSaver",
             "DescriptionUpdater",
             "MetadataValidator",
             "InvoiceValidator"
@@ -238,12 +243,13 @@ class TestPipelineFactory:
         pipeline = PipelineFactory.create_invoice_pipeline()
 
         assert isinstance(pipeline, Pipeline)
-        assert pipeline.get_processor_count() == 7
+        assert pipeline.get_processor_count() == 8
 
         expected_processors = [
             "FileCopier",
             "DatasetRunner",
             "ThumbnailGenerator",
+            "StructuredInvoiceSaver",
             "VariableApplier",
             "DescriptionUpdater",
             "MetadataValidator",
@@ -289,6 +295,7 @@ class TestPipelineFactory:
         dataset_idx = processors.index("DatasetRunner")
         variable_idx = processors.index("VariableApplier")
         thumbnail_idx = processors.index("ThumbnailGenerator")
+        structured_idx = processors.index("StructuredInvoiceSaver")
         description_idx = processors.index("DescriptionUpdater")
         metadata_val_idx = processors.index("MetadataValidator")
         invoice_val_idx = processors.index("InvoiceValidator")
@@ -299,8 +306,13 @@ class TestPipelineFactory:
         # File copying should come before dataset processing
         assert file_copier_idx < dataset_idx
 
-        # Variable application should come after dataset processing
+        # Structured invoice saving should come after thumbnail generation and before description updates
+        assert structured_idx > thumbnail_idx
+        assert description_idx > structured_idx
+
+        # Variable application should occur after dataset processing but before structured save
         assert variable_idx > dataset_idx
+        assert variable_idx < structured_idx
 
         # Validation should come last
         assert metadata_val_idx > description_idx
@@ -318,6 +330,7 @@ class TestPipelineFactory:
         dataset_idx = processors.index("DatasetRunner")
         variable_idx = processors.index("VariableApplier")
         thumbnail_idx = processors.index("ThumbnailGenerator")
+        structured_idx = processors.index("StructuredInvoiceSaver")
         description_idx = processors.index("DescriptionUpdater")
         metadata_val_idx = processors.index("MetadataValidator")
         invoice_val_idx = processors.index("InvoiceValidator")
@@ -328,8 +341,13 @@ class TestPipelineFactory:
         # File copying should come before dataset processing
         assert file_copier_idx < dataset_idx
 
-        # Variable application should come after dataset processing
+        # Structured invoice saving should come after thumbnail generation and before description updates
+        assert structured_idx > thumbnail_idx
+        assert description_idx > structured_idx
+
+        # Variable application should occur after dataset processing but before structured save
         assert variable_idx > dataset_idx
+        assert variable_idx < structured_idx
 
         # Validation should come last
         assert metadata_val_idx > description_idx
@@ -345,6 +363,7 @@ class TestPipelineFactory:
         file_copier_idx = processors.index("FileCopier")
         dataset_idx = processors.index("DatasetRunner")
         thumbnail_idx = processors.index("ThumbnailGenerator")
+        structured_idx = processors.index("StructuredInvoiceSaver")
         variable_idx = processors.index("VariableApplier")
         description_idx = processors.index("DescriptionUpdater")
         metadata_val_idx = processors.index("MetadataValidator")
@@ -356,8 +375,12 @@ class TestPipelineFactory:
         # Dataset processing should come after file copying
         assert dataset_idx > file_copier_idx
 
-        # Variable application should come after thumbnail generation
-        assert variable_idx > thumbnail_idx
+        # Structured invoice saving should come after thumbnail generation and before description updates
+        assert structured_idx > thumbnail_idx
+        assert description_idx > structured_idx
+
+        # Variable application should come after structured invoice saving
+        assert variable_idx > structured_idx
 
         # Validation should come last
         assert metadata_val_idx > description_idx
@@ -380,6 +403,7 @@ class TestPipelineFactory:
         assert "RDEFormatFileCopier" not in multi_processors
         assert "ExcelInvoiceInitializer" not in multi_processors
         assert "VariableApplier" in multi_processors
+        assert "StructuredInvoiceSaver" in multi_processors
 
         # Test Excel pipeline
         excel_pipeline = PipelineFactory.create_excel_pipeline()
@@ -388,6 +412,7 @@ class TestPipelineFactory:
         assert "StandardInvoiceInitializer" not in excel_processors
         assert "FileCopier" in excel_processors
         assert "VariableApplier" in excel_processors
+        assert "StructuredInvoiceSaver" in excel_processors
 
         # Test Invoice pipeline
         invoice_pipeline = PipelineFactory.create_invoice_pipeline()
@@ -396,6 +421,7 @@ class TestPipelineFactory:
         assert "StandardInvoiceInitializer" not in invoice_processors
         assert "ExcelInvoiceInitializer" not in invoice_processors
         assert "VariableApplier" in invoice_processors
+        assert "StructuredInvoiceSaver" in invoice_processors
 
     def test_factory_methods_return_new_instances(self):
         """Test that factory methods return new pipeline instances."""
@@ -411,9 +437,9 @@ class TestPipelineFactory:
 
     @pytest.mark.parametrize("factory_method,expected_count", [
         ("create_rdeformat_pipeline", 7),
-        ("create_multifile_pipeline", 8),
-        ("create_excel_pipeline", 8),
-        ("create_invoice_pipeline", 7),
+        ("create_multifile_pipeline", 9),
+        ("create_excel_pipeline", 9),
+        ("create_invoice_pipeline", 8),
     ])
     def test_pipeline_processor_counts(self, factory_method, expected_count):
         """Test that pipelines have the expected number of processors."""

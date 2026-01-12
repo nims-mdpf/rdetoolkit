@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
 | v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1  | 2025-11-05   | SmartTable rowfile accessor / legacy fallback warnings | [v1.4.1](#v141-2025-11-05) |
@@ -15,6 +16,178 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.5.0 (2026-01-09)
+
+!!! info "References"
+    - Key issues: [#3](https://github.com/nims-mdpf/rdetoolkit/issues/3), [#247](https://github.com/nims-mdpf/rdetoolkit/issues/247), [#249](https://github.com/nims-mdpf/rdetoolkit/issues/249), [#262](https://github.com/nims-mdpf/rdetoolkit/issues/262), [#301](https://github.com/nims-mdpf/rdetoolkit/issues/301), [#323](https://github.com/nims-mdpf/rdetoolkit/issues/323), [#324](https://github.com/nims-mdpf/rdetoolkit/issues/324), [#325](https://github.com/nims-mdpf/rdetoolkit/issues/325), [#326](https://github.com/nims-mdpf/rdetoolkit/issues/326), [#327](https://github.com/nims-mdpf/rdetoolkit/issues/327), [#328](https://github.com/nims-mdpf/rdetoolkit/issues/328), [#329](https://github.com/nims-mdpf/rdetoolkit/issues/329), [#330](https://github.com/nims-mdpf/rdetoolkit/issues/330), [#333](https://github.com/nims-mdpf/rdetoolkit/issues/333), [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334), [#335](https://github.com/nims-mdpf/rdetoolkit/issues/335), [#336](https://github.com/nims-mdpf/rdetoolkit/issues/336), [#337](https://github.com/nims-mdpf/rdetoolkit/issues/337), [#338](https://github.com/nims-mdpf/rdetoolkit/issues/338), [#341](https://github.com/nims-mdpf/rdetoolkit/issues/341)
+
+#### Highlights
+- Introduced Result type pattern (`Result[T, E]`) for explicit, type-safe error handling without exceptions
+- System logs now use timestamped filenames (`rdesys_YYYYMMDD_HHMMSS.log`) instead of static `rdesys.log`, enabling per-run log management and preventing log collision in concurrent or successive executions
+- CLI modernized with Typer, adding `validate` subcommands, `rdetoolkit run`, and init template path options while preserving `python -m rdetoolkit` compatibility
+- Lazy imports across core, workflow, CLI, and graph stacks reduce startup overhead and defer heavy dependencies until needed
+- Added optional structured `invoice.json` export, expanded Magic Variables, and official Python 3.14 support
+
+---
+
+### Result Type Pattern (Issue #334)
+
+#### Enhancements
+- **New Result Module** (`rdetoolkit.result`):
+  - `Success[T]`: Immutable frozen dataclass for successful results with value
+  - `Failure[E]`: Immutable frozen dataclass for failed results with error
+  - `Result[T, E]`: Type alias for `Success[T] | Failure[E]`
+  - `try_result` decorator: Converts exception-based functions to Result-returning functions
+  - Full generic type support with `TypeVar` and `ParamSpec` for type safety
+  - Functional methods: `is_success()`, `map()`, `unwrap()`
+- **Result-based Workflow Functions**:
+  - `check_files_result()`: File classification with explicit Result type
+  - Returns `Result[tuple[RawFiles, Path | None, Path | None], StructuredError]`
+- **Result-based Mode Processing Functions**:
+  - `invoice_mode_process_result()`: Invoice processing with Result type
+  - Returns `Result[WorkflowExecutionStatus, Exception]`
+- **Type Stubs**: Complete `.pyi` files for IDE autocomplete and type checking
+- **Documentation**: Comprehensive API docs in English and Japanese (`docs/api/result.en.md`, `docs/api/result.ja.md`)
+- **Public API**: Result types exported from `rdetoolkit.__init__.py` for easy import
+- **100% Test Coverage**: 40 comprehensive unit tests for Result module
+
+#### Usage Examples
+
+**Result-based error handling:**
+```python
+from rdetoolkit.workflows import check_files_result
+
+result = check_files_result(srcpaths, mode="invoice")
+if result.is_success():
+    raw_files, excel_path, smarttable_path = result.unwrap()
+    # Process files
+else:
+    error = result.error
+    print(f"Error {error.ecode}: {error.emsg}")
+```
+
+**Traditional exception-based (still works):**
+```python
+from rdetoolkit.workflows import check_files
+
+try:
+    raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="invoice")
+except StructuredError as e:
+    print(f"Error {e.ecode}: {e.emsg}")
+```
+
+---
+
+### Timestamped Log Filenames (Issue #341)
+
+#### Enhancements
+- Added `generate_log_timestamp()` utility function to create filesystem-safe timestamp strings
+- Modified `workflows.run()` to generate unique timestamped log files for each workflow execution
+- Fixed P2 bug: Handler accumulation when `run()` called multiple times in the same process
+  - Root cause: Logger singleton retained old LazyFileHandlers with different filenames
+  - Solution: Clear existing LazyFileHandlers before adding new ones
+  - Impact: Ensures 1 execution = 1 log file, preventing log cross-contamination
+- Replaced custom `LazyFileHandler` with standard `logging.FileHandler(delay=True)` for better maintainability
+- Updated all documentation to reference the new timestamped log filename pattern
+
+#### Benefits
+- **Per-run isolation**: Each workflow execution creates a separate log file, preventing log mixing
+- **Concurrent execution**: No log collision when running multiple workflows simultaneously
+- **Easy comparison**: Compare logs from different runs without manual separation
+- **Simplified auditing**: Collect and archive logs per execution for debugging and compliance
+- **Better maintainability**: Standard library FileHandler is well-tested and widely understood
+
+---
+
+### CLI Modernization and Validation (Issues #247, #262, #337, #338)
+
+#### Enhancements
+- Migrated CLI to Typer with lazy imports; preserved `python -m rdetoolkit` invocation and command names (`init`, `version`, `gen-config`, `make-excelinvoice`, `artifact`, `csv2graph`)
+- Added `rdetoolkit run <module_or_file::attr>` to load a function dynamically, reject classes/callables, and ensure the function accepts two positional arguments
+- Added `rdetoolkit validate` commands (`invoice-schema`, `invoice`, `metadata-def`, `metadata`, `all`) with `--format text|json`, `--quiet`, `--strict/--no-strict`, and CI-friendly exit codes (0/1/2/3)
+- Added init template path options (`--entry-point`, `--modules`, `--tasksupport`, `--inputdata`, `--other`) and persist them to `pyproject.toml` / `rdeconfig.yaml`
+
+---
+
+### Startup Performance Improvements (Issues #323-330)
+
+#### Enhancements
+- Implemented lazy exports in `rdetoolkit` and `rdetoolkit.graph` to avoid importing heavy submodules until needed
+- Deferred heavy dependencies in invoice/validation/encoding, core utilities, workflows, CLI commands, and graph renderers
+- Updated Ruff per-file ignores to allow intentional `PLC0415` in lazy-import modules
+
+---
+
+### Type Safety and Refactors (Issues #333, #335, #336)
+
+#### Enhancements
+- Replaced `models.rde2types` aliases with NewType definitions and validated path classes; added `FileGroup` / `ProcessedFileGroup` for safer file grouping
+- Broadened read-only inputs to `Mapping` and mutable inputs to `MutableMapping`, including `Validator.validate()` accepting `Mapping` and normalizing to `dict`
+- Replaced if/elif chains with dispatch tables for `rde2util.castval`, invoice sheet processing, and archive format selection, preserving behavior with new tests
+
+---
+
+### Workflow and Config Enhancements (Issues #3, #301)
+
+#### Enhancements
+- Added `system.save_invoice_to_structured` (default `false`) and `StructuredInvoiceSaver` to optionally copy `invoice.json` into the `structured` directory after thumbnail generation
+- Expanded Magic Variable patterns: `${invoice:basic:*}`, `${invoice:custom:*}`, `${invoice:sample:names:*}`, `${metadata:constant:*}`, with warnings on skipped values and strict validation for missing fields
+
+---
+
+### Tooling and Platform Support (Issue #249)
+
+#### Enhancements
+- Added official Python 3.14 support across classifiers, tox environments, and CI build/test matrices
+
+---
+
+### Migration / Compatibility
+
+#### Result Type Pattern
+- **Backward Compatible**: All original exception-based functions remain unchanged
+- **Gradual Migration**: Both patterns (exception-based and Result-based) can coexist
+- **Delegation Pattern**: Original functions delegate to `*_result()` versions internally
+- **Type Safety**: Use `isinstance(result, Failure)` for type-safe error checking
+- **Error Preservation**: All error information (StructuredError attributes, Exception details) preserved in Failure
+
+#### Timestamped Log Filenames
+- **Log file naming change**: System logs are now written to `data/logs/rdesys_YYYYMMDD_HHMMSS.log` instead of `data/logs/rdesys.log`
+- **Finding logs**: Use wildcard patterns to find logs: `ls -t data/logs/rdesys_*.log | head -1` for the latest log
+- **Scripts and tools**: Update any scripts or monitoring tools that directly reference `rdesys.log` to use pattern matching with `rdesys_*.log`
+- **Log collection**: Automated log collection systems should be updated to handle multiple timestamped files instead of a single static file
+- **Old log files**: Existing `rdesys.log` files from previous versions will remain in place and are not automatically removed
+- **No configuration needed**: The new behavior is automatic; no configuration changes are required
+
+#### CLI (Typer Migration and New Commands)
+- **Invocation unchanged**: `python -m rdetoolkit ...` continues to work; command names and options are preserved
+- **Dependency update**: Click is removed in favor of Typer; avoid importing Click-specific objects from `rdetoolkit.cli`
+- **Validation commands**: New `rdetoolkit validate` subcommands return exit codes 0/1/2/3 for CI automation
+
+#### Init Template Paths
+- **Config persistence**: Template paths are stored in `pyproject.toml` / `rdeconfig.yaml` when provided; existing configs remain valid
+
+#### Structured Invoice Export
+- **Opt-in behavior**: `system.save_invoice_to_structured` defaults to `false`; enabling it creates `structured/invoice.json` after thumbnail generation
+
+#### Magic Variables
+- **Expanded patterns**: `${invoice:basic:*}`, `${invoice:custom:*}`, `${invoice:sample:names:*}`, `${metadata:constant:*}` are now supported
+- **Error handling**: Missing required fields raise errors; empty segments are skipped with warnings to avoid double underscores
+
+#### Mapping Type Hints
+- **Type-only change**: `Mapping` / `MutableMapping` widen input types without changing runtime behavior
+- **Validation inputs**: `Validator.validate(obj=...)` now copies mappings into a `dict` at the boundary
+
+#### Python 3.14 Support
+- **Compatibility**: Python 3.14 is now a supported runtime with CI and packaging updates
+
+---
+
+#### Known Issues
+- Only `invoice_mode_process` has Result-based version; other mode processors will be migrated in future releases
+
+---
 
 ## v1.4.3 (2025-12-25)
 

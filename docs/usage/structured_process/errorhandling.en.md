@@ -156,6 +156,34 @@ def dataset_with_decorator(srcpaths, resource_paths):
 
 ### 5. Debug Using Logs
 
+#### Understanding Log File Names
+
+RDEToolKit uses timestamped log filenames to distinguish between different workflow runs:
+
+- **Format**: `rdesys_YYYYMMDD_HHMMSS.log`
+- **Example**: `rdesys_20260106_092845.log` (run started on January 6, 2026 at 09:28:45)
+- **Location**: `data/logs/` directory
+
+**Benefits of Timestamped Logs**:
+
+- Each workflow execution creates a separate log file
+- No log collision between concurrent or successive runs
+- Easy comparison of logs from different executions
+- Simplified per-run log collection for auditing and debugging
+
+**Finding Your Logs**:
+
+```shell title="Finding the Latest Log File"
+# List all log files by modification time (newest first)
+ls -lt data/logs/rdesys_*.log
+
+# View the most recent log file
+ls -t data/logs/rdesys_*.log | head -1 | xargs less
+
+# Search all logs for specific errors
+grep -i "error" data/logs/rdesys_*.log
+```
+
 #### Detailed Log Configuration
 
 ```python title="Log Configuration"
@@ -214,14 +242,17 @@ def check_error_file():
 ### Check Log Files
 
 ```shell title="Log Check Commands"
-# Check latest log entries
-tail -n 20 data/logs/rdesys.log
+# Check latest log entries (find the most recent log file)
+tail -n 20 data/logs/rdesys_*.log | tail -n 20
 
-# Search for error messages
-grep -i "error" data/logs/rdesys.log
+# Or find and check the latest log file specifically
+ls -t data/logs/rdesys_*.log | head -1 | xargs tail -n 20
 
-# Search for warning messages
-grep -i "warning" data/logs/rdesys.log
+# Search for error messages in the latest log
+ls -t data/logs/rdesys_*.log | head -1 | xargs grep -i "error"
+
+# Search for warning messages in all logs
+grep -i "warning" data/logs/rdesys_*.log
 ```
 
 ## Troubleshooting Checklist

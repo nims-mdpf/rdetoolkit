@@ -812,7 +812,7 @@ container/data
 
 ### When Errors Occur
 
-Logs are output to `rdesys.log` under `container/data/logs`. If errors occur, error messages are recorded here.
+Logs are output to timestamped files (e.g., `rdesys_20260106_092845.log`) under `container/data/logs`. If errors occur, error messages are recorded in the latest log file. Use `ls -t container/data/logs/rdesys_*.log | head -1` to find the most recent log.
 
 ## Submit Structuring Processing to RDE
 

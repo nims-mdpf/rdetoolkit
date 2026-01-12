@@ -22,7 +22,7 @@ class CompactTraceFormatter:
     """
 
     def __init__(self, config: TracebackSettings | None = None):
-        self.config = config or TracebackSettings()  # type: ignore[call-arg]
+        self.config = config or TracebackSettings()
         self._cwd = os.getcwd()
         self.masker = SecretsSanitizer(custom_patterns=self.config.sensitive_patterns)
 

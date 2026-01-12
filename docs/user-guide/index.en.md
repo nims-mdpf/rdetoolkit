@@ -27,7 +27,7 @@ This section explains detailed usage methods and advanced features of RDEToolKit
 
 ### Practical Usage
 
-- [CLI Tools](../usage/cli.en.md) - Detailed command-line operations
+- [CLI Tools](../usage/cli.en.md) - Detailed command-line operations and shell completion
 - [Structuring Processing Development Guide (Hands-on)](../usage/structured_process/development_guide.en.md) - Build with real datasets step by step
 - [Validation](../usage/validation.en.md) - Data quality verification methods
 

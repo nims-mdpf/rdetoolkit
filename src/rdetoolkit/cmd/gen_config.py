@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
-import click
+import typer
 
 from rdetoolkit.rdelogger import get_logger
 
@@ -26,6 +26,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "traceback: # custom traceback settings\n"
         "  enabled: false\n"
@@ -36,6 +37,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "multidata_tile:\n"
         "  ignore_errors: false\n\n"
@@ -48,6 +50,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: \"MultiDataTile\"\n\n"
         "multidata_tile:\n"
         "  ignore_errors: false\n\n"
@@ -60,6 +63,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: \"rdeformat\"\n\n"
         "traceback: # custom traceback settings\n"
         "  enabled: false\n"
@@ -70,6 +74,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_nonshared_raw: true\n"
         "  magic_variable: false\n"
         "  save_thumbnail_image: true\n"
+        "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "smarttable:\n"
         "  save_table_file: true\n\n"
@@ -84,6 +89,7 @@ PROMPTS: dict[str, dict[str, str]] = {
         "save_nonshared_raw": "Save data to nonshared_raw directory?",
         "magic_variable": "Enable magic_variable expansion?",
         "save_thumbnail_image": "Save thumbnail images automatically?",
+        "save_invoice_to_structured": "Store invoice.json inside structured directory?",
         "extended_mode": "Select extended mode",
         "multidata_tile_ignore_errors": "Ignore errors during MultiDataTile processing?",
         "smarttable_save_table_file": "Save SmartTable source files?",
@@ -94,6 +100,7 @@ PROMPTS: dict[str, dict[str, str]] = {
         "save_nonshared_raw": "データをnonshared_rawディレクトリに保存しますか?",
         "magic_variable": "magic_variable機能を有効にしますか?",
         "save_thumbnail_image": "サムネイル画像を自動保存しますか?",
+        "save_invoice_to_structured": "structuredフォルダにinvoice.jsonを保存しますか?",
         "extended_mode": "extended_modeを選択してください",
         "multidata_tile_ignore_errors": "MultiDataTile処理でエラーを無視しますか?",
         "smarttable_save_table_file": "SmartTableの元ファイルを保存しますか?",
@@ -130,8 +137,8 @@ class GenerateConfigCommand:
 
         Ensures the output directory exists, optionally prompts before overwriting an
         existing file, renders the configuration template, writes it to disk, and logs
-        the operation. Raises a `click.ClickException` if the directory creation or
-        file write fails, and raises `click.Abort` if the user declines to overwrite.
+        the operation. Raises a `typer.BadParameter` if the directory creation or
+        file write fails, and raises `typer.Abort` if the user declines to overwrite.
         """
         output_dir = self.output_dir.resolve()
         output_path = output_dir / CONFIG_FILE_NAME
@@ -140,14 +147,14 @@ class GenerateConfigCommand:
             output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             emsg = f"Failed to create output directory: {output_dir}"
-            raise click.ClickException(emsg) from exc
+            raise typer.BadParameter(emsg) from exc
 
         if (
             output_path.exists()
             and not self.overwrite
             and not self._confirm_overwrite(output_path)
         ):
-            raise click.Abort
+            raise typer.Abort
 
         content = self._render_template()
 
@@ -155,17 +162,17 @@ class GenerateConfigCommand:
             output_path.write_text(content, encoding="utf-8")
         except OSError as exc:
             emsg = f"Failed to write config file: {output_path}"
-            raise click.ClickException(emsg) from exc
+            raise typer.BadParameter(emsg) from exc
 
         self.logger.info("Generated rdeconfig.yaml at %s", output_path)
         if self.logger.isEnabledFor(logging.INFO):
-            click.echo(
-                click.style(f"Generated rdeconfig.yaml at {output_path}", fg="green"),
+            typer.echo(
+                typer.style(f"Generated rdeconfig.yaml at {output_path}", fg=typer.colors.GREEN),
             )
 
     def _confirm_overwrite(self, output_path: Path) -> bool:
         prompt = f"{output_path.resolve()} exists. Overwrite?"
-        return click.confirm(prompt, default=False, show_default=True)
+        return typer.confirm(prompt, default=False, show_default=True)
 
     def _render_template(self) -> str:
         if self.template == "interactive":
@@ -173,49 +180,53 @@ class GenerateConfigCommand:
         template = STATIC_TEMPLATES.get(self.template)
         if template is None:
             msg = f"Unknown template: {self.template}"
-            raise click.ClickException(msg)
+            raise typer.BadParameter(msg)
         return template
 
     def _render_interactive(self) -> str:
         prompts = PROMPTS[self.lang]
-        save_raw = click.confirm(
+        save_raw = typer.confirm(
             prompts["save_raw"], default=False, show_default=True,
         )
-        save_nonshared_raw = click.confirm(
+        save_nonshared_raw = typer.confirm(
             prompts["save_nonshared_raw"], default=True, show_default=True,
         )
-        magic_variable = click.confirm(
+        magic_variable = typer.confirm(
             prompts["magic_variable"], default=False, show_default=True,
         )
-        save_thumbnail_image = click.confirm(
+        save_thumbnail_image = typer.confirm(
             prompts["save_thumbnail_image"], default=True, show_default=True,
         )
-        extended_mode_choice = click.prompt(
+        save_invoice_to_structured = typer.confirm(
+            prompts["save_invoice_to_structured"], default=False, show_default=True,
+        )
+        extended_mode_choice = typer.prompt(
             prompts["extended_mode"],
-            type=click.Choice(
-                ["none", "MultiDataTile", "rdeformat"],
-                case_sensitive=False,
-            ),
+            type=str,
             default="none",
             show_default=True,
-            show_choices=True,
         )
+        # Validate the choice
+        valid_choices = ["none", "MultiDataTile", "rdeformat"]
+        if extended_mode_choice not in valid_choices:
+            msg = f"Invalid choice: {extended_mode_choice}. Choose from: {', '.join(valid_choices)}"
+            raise typer.BadParameter(msg)
         extended_mode = (
             None
             if extended_mode_choice.lower() == "none"
             else extended_mode_choice
         )
-        ignore_errors = click.confirm(
+        ignore_errors = typer.confirm(
             prompts["multidata_tile_ignore_errors"],
             default=False,
             show_default=True,
         )
-        save_table_file = click.confirm(
+        save_table_file = typer.confirm(
             prompts["smarttable_save_table_file"],
             default=False,
             show_default=True,
         )
-        traceback_enabled = click.confirm(
+        traceback_enabled = typer.confirm(
             prompts["traceback_enabled"],
             default=False,
             show_default=True,
@@ -227,6 +238,7 @@ class GenerateConfigCommand:
             f"  save_nonshared_raw: {self._bool_to_yaml(save_nonshared_raw)}",
             f"  magic_variable: {self._bool_to_yaml(magic_variable)}",
             f"  save_thumbnail_image: {self._bool_to_yaml(save_thumbnail_image)}",
+            f"  save_invoice_to_structured: {self._bool_to_yaml(save_invoice_to_structured)}",
             f"  extended_mode: {self._extended_mode_to_yaml(extended_mode)}",
         ]
 
@@ -262,7 +274,7 @@ class GenerateConfigCommand:
         return "true" if value else "false"
 
     @staticmethod
-    def _extended_mode_to_yaml(value: str | None) -> str:
+    def _extended_mode_to_yaml(value: Optional[str]) -> str:
         if value is None:
             return "null"
         return f'"{value}"'

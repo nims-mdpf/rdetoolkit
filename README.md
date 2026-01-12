@@ -1,5 +1,5 @@
 ![GitHub Release](https://img.shields.io/github/v/release/nims-dpfc/rdetoolkit)
-[![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11%7C3.12%7C3.13-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
+[![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11%7C3.12%7C3.13%7C3.14-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-dpfc/rdetoolkit/blob/main/LICENSE)
 [![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-dpfc/rdetoolkit/issues)
 ![workflow](https://github.com/nims-dpfc/rdetoolkit/actions/workflows/main.yml/badge.svg)
@@ -149,3 +149,50 @@ container/
         ├── metadata-def.json
         └── invoice.schema.json
 ```
+
+### Validating RDE Files
+
+RDEToolKit provides validation commands to verify the structure and correctness of your RDE project files. These commands help catch configuration errors early and can be integrated into CI/CD pipelines.
+
+#### Validate Invoice Schema
+
+```bash
+rdetoolkit validate invoice-schema data/tasksupport/invoice.schema.json
+```
+
+#### Validate Invoice Data
+
+```bash
+rdetoolkit validate invoice data/invoice/invoice.json \
+  --schema data/tasksupport/invoice.schema.json
+```
+
+#### Validate Metadata Definition
+
+```bash
+rdetoolkit validate metadata-def data/tasksupport/metadata-def.json
+```
+
+#### Validate Metadata Data
+
+```bash
+rdetoolkit validate metadata data/metadata.json \
+  --schema data/tasksupport/metadata-def.json
+```
+
+#### Batch Validation
+
+Validate all standard files in your project at once:
+
+```bash
+# Validate all files in current directory
+rdetoolkit validate all
+
+# Validate all files in specific project
+rdetoolkit validate all /path/to/project
+
+# Use JSON output for CI/CD integration
+rdetoolkit validate all --format json
+```
+
+For more details, see the [validation documentation](https://nims-mdpf.github.io/rdetoolkit/rdetoolkit/cmd/validate/).

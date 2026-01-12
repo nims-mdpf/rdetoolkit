@@ -192,6 +192,6 @@ local/
 launch.json
 .serena
 .claude
-CLAUDE.md
 .mcp.json
 .rdetoolkit-issue-agent
+claudedocs

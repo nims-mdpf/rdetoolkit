@@ -25,10 +25,10 @@ from pathlib import Path
 import textwrap
 
 import click
-from click.testing import CliRunner
+from typer.testing import CliRunner
 import pytest
 
-from rdetoolkit.cli import gen_config
+from rdetoolkit.cli.app import app
 from rdetoolkit.cmd.gen_config import CONFIG_FILE_NAME, STATIC_TEMPLATES
 
 
@@ -43,7 +43,7 @@ def test_gen_config_minimal_template(cli_runner: CliRunner, tmp_path: Path) -> N
     # Given: a clean output directory with no config file
     output_dir = tmp_path / "minimal"
     # When: running gen-config with default (minimal) template
-    result = cli_runner.invoke(gen_config, [str(output_dir)])
+    result = cli_runner.invoke(app, ["gen-config", str(output_dir)])
     # Then: command succeeds and writes the minimal template
     assert result.exit_code == 0
     config_path = output_dir / CONFIG_FILE_NAME
@@ -51,7 +51,7 @@ def test_gen_config_minimal_template(cli_runner: CliRunner, tmp_path: Path) -> N
     assert config_path.read_text(encoding="utf-8") == STATIC_TEMPLATES["minimal"]
 
     # When: invoking again without --overwrite and confirming overwrite
-    second_result = cli_runner.invoke(gen_config, [str(output_dir)], input="y\n")
+    second_result = cli_runner.invoke(app, ["gen-config", str(output_dir)], input="y\n")
     # Then: overwrite prompt appears and file regenerated
     assert second_result.exit_code == 0
     prompt_fragment = f"{config_path.resolve()} exists. Overwrite? [y/N]:"
@@ -64,7 +64,7 @@ def test_gen_config_full_template(cli_runner: CliRunner, tmp_path: Path) -> None
     # Given: a clean output directory and explicit template selection
     output_dir = tmp_path / "full"
     # When: generating the full template
-    result = cli_runner.invoke(gen_config, [str(output_dir), "--template", "full"])
+    result = cli_runner.invoke(app, ["gen-config", str(output_dir), "--template", "full"])
     # Then: command succeeds with full template content
     assert result.exit_code == 0
     config_path = output_dir / CONFIG_FILE_NAME
@@ -84,6 +84,7 @@ def test_gen_config_interactive_overwrite_and_lang(cli_runner: CliRunner, tmp_pa
         "n",  # save_nonshared_raw
         "y",  # magic_variable
         "n",  # save_thumbnail_image
+        "y",  # save_invoice_to_structured
         "MultiDataTile",  # extended_mode
         "y",  # multidata ignore_errors
         "y",  # smarttable save_table_file
@@ -92,8 +93,9 @@ def test_gen_config_interactive_overwrite_and_lang(cli_runner: CliRunner, tmp_pa
     ])
     # When: running the interactive template with Japanese prompts
     result = cli_runner.invoke(
-        gen_config,
+        app,
         [
+            "gen-config",
             str(output_dir),
             "--template",
             "interactive",
@@ -113,6 +115,7 @@ def test_gen_config_interactive_overwrite_and_lang(cli_runner: CliRunner, tmp_pa
           save_nonshared_raw: false
           magic_variable: true
           save_thumbnail_image: false
+          save_invoice_to_structured: true
           extended_mode: "MultiDataTile"
 
         multidata_tile:
@@ -136,7 +139,7 @@ def test_gen_config_overwrite_denied(cli_runner: CliRunner, tmp_path: Path) -> N
     output_dir.mkdir(parents=True)
     config_path.write_text("keep", encoding="utf-8")
     # When: user denies the overwrite confirmation
-    result = cli_runner.invoke(gen_config, [str(output_dir)], input="n\n")
+    result = cli_runner.invoke(app, ["gen-config", str(output_dir)], input="n\n")
     # Then: command aborts without modifying the file
     assert result.exit_code == 1
     assert isinstance(result.exception, SystemExit)
@@ -160,7 +163,7 @@ def test_gen_config_missing_write_permission(
 
     monkeypatch.setattr("rdetoolkit.cmd.gen_config.Path.write_text", fake_write_text)
     # When: invoking gen-config which attempts to write the file
-    result = cli_runner.invoke(gen_config, [str(output_dir)])
+    result = cli_runner.invoke(app, ["gen-config", str(output_dir)])
 
     # Then: command surfaces a ClickException about the write failure
     assert result.exit_code != 0
@@ -173,8 +176,9 @@ def test_gen_config_invalid_lang_combination(cli_runner: CliRunner, tmp_path: Pa
     # Given: a non-interactive invocation that incorrectly supplies --lang ja
     output_dir = tmp_path / "lang"
     # When: running gen-config with invalid option combination
-    result = cli_runner.invoke(gen_config, [str(output_dir), "--lang", "ja"])
+    result = cli_runner.invoke(app, ["gen-config", str(output_dir), "--lang", "ja"])
     # Then: Click rejects the arguments with a parameter error
     assert result.exit_code == 2
     assert isinstance(result.exception, SystemExit)
-    assert "--lang is only available" in result.output
+    output = click.termui.strip_ansi(result.output)
+    assert "--lang is only available" in output

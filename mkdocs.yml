@@ -127,6 +127,7 @@ plugins:
                     - アーカイブ生成: rdetoolkit/cmd/archive.md
                     - 設定ファイル生成: rdetoolkit/cmd/gen_config.md
                     - Excel形式Invoice生成: rdetoolkit/cmd/gen_excelinvoice.md
+                    - バリデーション: rdetoolkit/cmd/validate.md
                 - ストレージ:
                     - MinIO 統合: rdetoolkit/storage/minio.md
                 - アーティファクト:
@@ -234,6 +235,7 @@ plugins:
                     - Archive Generation: rdetoolkit/cmd/archive.md
                     - Config Generation: rdetoolkit/cmd/gen_config.md
                     - Excel Invoice Generation: rdetoolkit/cmd/gen_excelinvoice.md
+                    - Validation: rdetoolkit/cmd/validate.en.md
                 - Storage:
                     - MinIO Integration: rdetoolkit/storage/minio.md
                 - Artifacts:
