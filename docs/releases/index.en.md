@@ -108,6 +108,61 @@ except StructuredError as e:
 - Added `rdetoolkit validate` commands (`invoice-schema`, `invoice`, `metadata-def`, `metadata`, `all`) with `--format text|json`, `--quiet`, `--strict/--no-strict`, and CI-friendly exit codes (0/1/2/3)
 - Added init template path options (`--entry-point`, `--modules`, `--tasksupport`, `--inputdata`, `--other`) and persist them to `pyproject.toml` / `rdeconfig.yaml`
 
+#### Init Template Path Options Details (Issue #262)
+
+Added template path options to `rdetoolkit init` command, enabling project initialization from custom templates.
+
+**Use Cases**:
+
+- Initialize with commonly used utility files pre-placed in `modules/` folder
+- Customize `main.py` to preferred format
+- Include frequently used config files as templates
+- Specify custom object-oriented script templates
+
+**Added Options**:
+
+- `--entry-point`: Place entry point (.py file) in container/ directory
+- `--modules`: Place modules in container/modules/ directory (folder specification includes subdirectories)
+- `--tasksupport`: Place config files in tasksupport/ directory (folder specification includes subdirectories)
+- `--inputdata`: Place input data in container/data/inputdata/ directory (folder specification includes subdirectories)
+- `--other`: Place other files in container/ directory (folder specification includes subdirectories)
+
+**Config Persistence**:
+
+- CLI-specified paths are automatically saved to `pyproject.toml` or `rdeconfig.yaml(yml)`
+- Auto-generates `pyproject.toml` if no config file exists
+- Overwrites existing settings when present
+
+**Safety Measures**:
+
+- Self-copy (same path) detection and skip
+- Invalid path and empty string validation with error reporting
+
+**Config File Example** (`pyproject.toml`):
+```toml
+[tool.rdetoolkit.init]
+entry_point = "path/to/your/template/main.py"
+modules = "path/to/your/template/modules/"
+tasksupport = "path/to/your/template/config/"
+inputdata = "path/to/your/template/inputdata/"
+other = [
+    "path/to/your/template/file1.txt",
+    "path/to/your/template/dir2/"
+]
+```
+
+**Config File Example** (`rdeconfig.yaml`):
+```yaml
+init:
+  entry_point: "path/to/your/template/main.py"
+  modules: "path/to/your/template/modules/"
+  tasksupport: "path/to/your/template/config/"
+  inputdata: "path/to/your/template/inputdata/"
+  other:
+    - "path/to/your/template/file1.txt"
+    - "path/to/your/template/dir2/"
+```
+
 ---
 
 ### Startup Performance Improvements (Issues #323-330)

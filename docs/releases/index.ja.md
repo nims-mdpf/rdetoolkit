@@ -108,6 +108,61 @@ except StructuredError as e:
 - `rdetoolkit validate`コマンド（`invoice-schema`/`invoice`/`metadata-def`/`metadata`/`all`）を追加し、`--format text|json`、`--quiet`、`--strict/--no-strict`、終了コード（0/1/2/3）を提供
 - `init`テンプレートパスオプション（`--entry-point`/`--modules`/`--tasksupport`/`--inputdata`/`--other`）を追加し、`pyproject.toml`/`rdeconfig.yaml`に保存
 
+#### Initテンプレートパスオプション詳細 (Issue #262)
+
+`rdetoolkit init`コマンドにテンプレートパスオプションを追加し、カスタムテンプレートからプロジェクトを初期化できるようになりました。
+
+**想定用途**:
+
+- よく使う機能をまとめたファイル群を`modules/`フォルダに配置した状態で初期化
+- `main.py`を好みの形式でカスタマイズ
+- いつも使う設定ファイルをテンプレートとして初期化
+- 独自のオブジェクト指向スクリプトのひな形を指定
+
+**追加されたオプション**:
+
+- `--entry-point`: container/ディレクトリにエントリーポイント（.pyファイル）を配置
+- `--modules`: container/modules/ディレクトリにモジュールを配置（フォルダ指定でサブディレクトリ含む）
+- `--tasksupport`: tasksupport/ディレクトリに設定ファイルを配置（フォルダ指定でサブディレクトリ含む）
+- `--inputdata`: container/data/inputdata/ディレクトリに入力データを配置（フォルダ指定でサブディレクトリ含む）
+- `--other`: container/ディレクトリにその他のファイルを配置（フォルダ指定でサブディレクトリ含む）
+
+**設定の永続化**:
+
+- CLI指定されたパスは`pyproject.toml`または`rdeconfig.yaml(yml)`に自動保存
+- 設定ファイルが存在しない場合は`pyproject.toml`を自動生成
+- 既存の設定がある場合は上書き
+
+**安全対策**:
+
+- 自己コピー（同一パス）の検知とスキップ
+- 不正パスや空文字のバリデーションとエラー報告
+
+**設定ファイル例** (`pyproject.toml`):
+```toml
+[tool.rdetoolkit.init]
+entry_point = "path/to/your/template/main.py"
+modules = "path/to/your/template/modules/"
+tasksupport = "path/to/your/template/config/"
+inputdata = "path/to/your/template/inputdata/"
+other = [
+    "path/to/your/template/file1.txt",
+    "path/to/your/template/dir2/"
+]
+```
+
+**設定ファイル例** (`rdeconfig.yaml`):
+```yaml
+init:
+  entry_point: "path/to/your/template/main.py"
+  modules: "path/to/your/template/modules/"
+  tasksupport: "path/to/your/template/config/"
+  inputdata: "path/to/your/template/inputdata/"
+  other:
+    - "path/to/your/template/file1.txt"
+    - "path/to/your/template/dir2/"
+```
+
 ---
 
 ### 起動パフォーマンス改善 (Issue #323-330)
