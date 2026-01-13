@@ -1844,6 +1844,70 @@ result <span style="color: #333">=</span> check_files_result(srcpaths, mode<span
 <li>Added <code>rdetoolkit validate</code> commands (<code>invoice-schema</code>, <code>invoice</code>, <code>metadata-def</code>, <code>metadata</code>, <code>all</code>) with <code>--format text|json</code>, <code>--quiet</code>, <code>--strict/--no-strict</code>, and CI-friendly exit codes (0/1/2/3)</li>
 <li>Added init template path options (<code>--entry-point</code>, <code>--modules</code>, <code>--tasksupport</code>, <code>--inputdata</code>, <code>--other</code>) and persist them to <code>pyproject.toml</code> / <code>rdeconfig.yaml</code></li>
 </ul>
+<h4 id="init-template-path-options-details-issue-262">Init Template Path Options Details (Issue #262)</h4>
+<p>Added template path options to <code>rdetoolkit init</code> command, enabling project initialization from custom templates.</p>
+<p><strong>Use Cases</strong>:</p>
+<ul>
+<li>Initialize with commonly used utility files pre-placed in <code>modules/</code> folder</li>
+<li>Customize <code>main.py</code> to preferred format</li>
+<li>Include frequently used config files as templates</li>
+<li>Specify custom object-oriented script templates</li>
+</ul>
+<p><strong>Added Options</strong>:</p>
+<ul>
+<li><code>--entry-point</code>: Place entry point (.py file) in container/ directory</li>
+<li><code>--modules</code>: Place modules in container/modules/ directory (folder specification includes subdirectories)</li>
+<li><code>--tasksupport</code>: Place config files in tasksupport/ directory (folder specification includes subdirectories)</li>
+<li><code>--inputdata</code>: Place input data in container/data/inputdata/ directory (folder specification includes subdirectories)</li>
+<li><code>--other</code>: Place other files in container/ directory (folder specification includes subdirectories)</li>
+</ul>
+<p><strong>Config Persistence</strong>:</p>
+<ul>
+<li>CLI-specified paths are automatically saved to <code>pyproject.toml</code> or <code>rdeconfig.yaml(yml)</code></li>
+<li>Auto-generates <code>pyproject.toml</code> if no config file exists</li>
+<li>Overwrites existing settings when present</li>
+</ul>
+<p><strong>Safety Measures</strong>:</p>
+<ul>
+<li>Self-copy (same path) detection and skip</li>
+<li>Invalid path and empty string validation with error reporting</li>
+</ul>
+<p><strong>Config File Example</strong> (<code>pyproject.toml</code>):
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">[tool.rdetoolkit.init]</span>
+entry_point<span style="color: #BBB"> </span><span style="color: #333">=</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/main.py"</span>
+modules<span style="color: #BBB"> </span><span style="color: #333">=</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/modules/"</span>
+tasksupport<span style="color: #BBB"> </span><span style="color: #333">=</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/config/"</span>
+inputdata<span style="color: #BBB"> </span><span style="color: #333">=</span><span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/inputdata/"</span>
+other<span style="color: #BBB"> </span><span style="color: #333">=</span><span style="color: #BBB"> </span>[
+<span style="color: #BBB">    </span><span style="background-color: #FFF0F0">"path/to/your/template/file1.txt"</span>,
+<span style="color: #BBB">    </span><span style="background-color: #FFF0F0">"path/to/your/template/dir2/"</span>
+]
+</code></pre></div></td></tr></table></div></p>
+<p><strong>Config File Example</strong> (<code>rdeconfig.yaml</code>):
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #070">init</span>:
+<span style="color: #BBB">  </span><span style="color: #070">entry_point</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/main.py"</span>
+<span style="color: #BBB">  </span><span style="color: #070">modules</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/modules/"</span>
+<span style="color: #BBB">  </span><span style="color: #070">tasksupport</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/config/"</span>
+<span style="color: #BBB">  </span><span style="color: #070">inputdata</span>:<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/inputdata/"</span>
+<span style="color: #BBB">  </span><span style="color: #070">other</span>:
+<span style="color: #BBB">    </span>-<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/file1.txt"</span>
+<span style="color: #BBB">    </span>-<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"path/to/your/template/dir2/"</span>
+</code></pre></div></td></tr></table></div></p>
 <hr/>
 <h3 id="startup-performance-improvements-issues-323-330">Startup Performance Improvements (Issues #323-330)</h3>
 <h4 id="enhancements_3">Enhancements</h4>
