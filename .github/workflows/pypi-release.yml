@@ -202,7 +202,7 @@ jobs:
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
@@ -223,7 +223,7 @@ jobs:
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
@@ -248,7 +248,7 @@ jobs:
     needs:
       [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
@@ -276,7 +276,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Download all the dists
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: dist/
       - name: Sign the distribution 📦 with Sigstore
