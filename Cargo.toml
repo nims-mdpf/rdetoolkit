@@ -11,11 +11,11 @@ path = "rdetoolkit-core/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pyo3 = { version = "0.27.1", features = ["extension-module"] }
+pyo3 = { version = "0.27.2", features = ["extension-module"] }
 image = "0.25.9"
 chardetng = "0.1.17"
 encoding_rs = "0.8.35"
-tempfile = "3.23.0"
+tempfile = "3.24.0"
 
 [features]
 default = ["extension-module"]

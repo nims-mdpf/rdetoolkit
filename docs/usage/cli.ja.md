@@ -18,13 +18,13 @@ RDE構造化処理のスタートアッププロジェクトを作成します�
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit init
+    python3 -m rdetoolkit init [PATHオプション]
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit init
+    py -m rdetoolkit init [PATHオプション]
     ```
 
 以下のディレクトリとファイル群が生成されます。
@@ -54,6 +54,79 @@ container
 
 !!! tip "ファイル上書きについて"
     すでに存在するファイルは上書きや生成がスキップされます。
+
+#### テンプレートを用いた初期化
+
+`--template <path>` を付けると独自のスタータープロジェクトを流用できます。指定できるのは以下のいずれかです。
+
+- `pyproject.toml` または `rdeconfig.yaml` / `rdeconfig.yml` そのもの
+- 上記ファイルが格納されたディレクトリ（`--template .` ならカレントディレクトリ内の `pyproject.toml` を優先）
+
+設定ファイルには `[tool.rdetoolkit.init]`（pyproject）または `init`（rdeconfig）セクションを追加し、コピー元を記述します。
+
+```toml
+[tool.rdetoolkit.init]
+entry_point = "templates/main.py"
+modules = "templates/modules"
+tasksupport = "templates/tasksupport"
+inputdata = "templates/inputdata"
+```
+
+キーの意味:
+
+- `entry_point`: `container/main.py` としてコピーされるファイル。
+- `modules`: `container/modules/` 配下に展開されるファイルまたはディレクトリ。
+- `tasksupport`: `container/data/tasksupport/` と `templates/tasksupport/` の両方へ複製されるファイル/ディレクトリ。
+- `inputdata`: `container/data/inputdata/` と `input/inputdata/` に展開されるディレクトリ。
+
+相対パスは設定ファイルが置かれたディレクトリから解決されるため、テンプレート用リポジトリを別環境でも共有できます。
+
+#### PATHオプションで直接コピー元を指定する
+
+設定ファイルにパスを書きたくない場合は、`--template` なしで次のPATHオプションを渡せます（複数併用可）。指定したパスは初期化に使われ、存在する `pyproject.toml` / `rdeconfig.yaml(yml)` があれば上書き追記されます（無ければ `pyproject.toml` を新規作成）。
+
+| オプション        | 役割・コピー先                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| `--entry-point`   | `container/main.py` としてコピー（ファイル限定）                                            |
+| `--modules`       | `container/modules/` 以下にコピー（ファイル/ディレクトリ対応）                              |
+| `--tasksupport`   | `container/data/tasksupport/` と `templates/tasksupport/` の両方にコピー（ファイル/ディレクトリ対応） |
+| `--inputdata`     | `container/data/inputdata/` と `input/inputdata/` にコピー（ディレクトリ推奨）              |
+| `--other` (複数可) | `container/` 以下に任意のファイル/ディレクトリをコピー                                      |
+
+相対パスはカレントディレクトリ基準で保存されます。CLIオプションで渡したパスが設定ファイルより優先されます。
+
+##### CLI出力例（PATHオプション使用時）
+
+以下のように `tpl/` 配下にテンプレートを置き、PATHオプションを付けて実行した場合の出力例です。
+
+```shell
+python3 -m rdetoolkit init \
+  --entry-point tpl/custom_main.py \
+  --modules tpl/modules \
+  --tasksupport tpl/tasksupport \
+  --inputdata tpl/inputdata \
+  --other tpl/extra.txt --other tpl/extras
+```
+
+出力（パスは実行環境に依存します）:
+
+```
+Ready to develop a structured program for RDE.
+Created from template: /private/tmp/rdt-init-check/container/main.py
+Created: /private/tmp/rdt-init-check/container/requirements.txt
+Created: /private/tmp/rdt-init-check/container/Dockerfile
+Populated /private/tmp/rdt-init-check/container/modules from template directory: /private/tmp/rdt-init-check/tpl/modules
+Created: /private/tmp/rdt-init-check/container/data/invoice/invoice.json
+Populated /private/tmp/rdt-init-check/container/data/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
+Populated /private/tmp/rdt-init-check/templates/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
+Populated /private/tmp/rdt-init-check/container/data/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
+Populated /private/tmp/rdt-init-check/input/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
+Copied template file /private/tmp/rdt-init-check/tpl/extra.txt into /private/tmp/rdt-init-check/container
+Populated /private/tmp/rdt-init-check/container/extras from template directory: /private/tmp/rdt-init-check/tpl/extras
+Created: /private/tmp/rdt-init-check/input/invoice/invoice.json
+```
+
+処理後、`pyproject.toml`（または既存の`rdeconfig.yaml`）に `[tool.rdetoolkit.init]` が追記され、渡したパスが相対パスで保存されます。
 
 ### make-excelinvoice: ExcelInvoiceの生成
 
@@ -212,6 +285,86 @@ def insecure():
 !!! tip "オプション詳細"
     - `--output-archive`を指定しない場合、デフォルトのファイル名でアーカイブが作成されます。
     - `--exclude`オプションは複数回指定することができます（例：`--exclude venv --exclude .git`）。
+
+## シェル補完機能
+
+コマンドやオプションの入力を補完するシェル補完機能を利用できます。Tabキーを押すことでコマンド名やオプション名の候補を表示できます。
+
+### 対応シェル
+
+- Bash
+- Zsh
+- Fish
+- PowerShell
+
+### インストール方法
+
+`--install-completion` オプションを使用して、現在使用中のシェルに補完機能をインストールできます：
+
+```bash
+python -m rdetoolkit --install-completion
+```
+
+実行後、シェルを再起動することで補完機能が有効になります。
+
+```bash
+# シェルの再起動
+exec $SHELL
+```
+
+### 手動インストール
+
+補完スクリプトの内容を確認してから手動でインストールする場合は、`--show-completion` オプションを使用します：
+
+```bash
+python -m rdetoolkit --show-completion
+```
+
+表示されたスクリプトを、シェルの設定ファイルに追加してください。
+
+#### Bashの場合
+
+```bash
+python -m rdetoolkit --show-completion >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### Zshの場合
+
+```bash
+python -m rdetoolkit --show-completion >> ~/.zshrc
+source ~/.zshrc
+```
+
+### 使用例
+
+補完機能をインストールした後、Tabキーを押すことで候補を表示できます。
+
+```bash
+# コマンド名の補完
+python -m rdetoolkit <Tab>
+# → init, version, gen-config などが表示される
+
+# オプション名の補完
+python -m rdetoolkit gen-config --<Tab>
+# → --template, --overwrite, --lang などが表示される
+
+# オプション値の補完
+python -m rdetoolkit gen-config --template <Tab>
+# → static, interactive が表示される
+```
+
+### アンインストール
+
+補完機能を削除する場合は、シェルの設定ファイルから該当する行を削除してください。
+
+Bashの場合は `~/.bashrc` から、Zshの場合は `~/.zshrc` から以下のような行を削除します：
+
+```bash
+eval "$(_RDETOOLKIT_COMPLETE=bash_source python -m rdetoolkit)"
+```
+
+削除後、シェルを再起動してください。
 
 ## 次のステップ
 

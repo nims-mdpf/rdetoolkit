@@ -5,11 +5,13 @@ import os
 from pathlib import Path
 from typing import Any
 from datetime import datetime, timedelta
+from collections.abc import Mapping
 
 import urllib3
 from urllib3 import ProxyManager, PoolManager
+
 try:
-    from urllib3.response import BaseHTTPResponse  # type: ignore[attr-defined]
+    from urllib3.response import BaseHTTPResponse
 except ImportError:
     from urllib3.response import HTTPResponse as BaseHTTPResponse
 
@@ -18,6 +20,7 @@ try:
     from minio.sse import SseCustomerKey
     from minio.commonconfig import Tags
     from minio.retention import Retention
+
     HAS_MINIO = True
 except ImportError:
     HAS_MINIO = False
@@ -84,12 +87,7 @@ class MinIOStorage:
         Returns:
             ProxyManager | PoolManager: Configured client for communicating with MinIO.
         """
-        proxy_url = (
-            os.environ.get("HTTP_PROXY")
-            or os.environ.get("HTTPS_PROXY")
-            or os.environ.get("http_proxy")
-            or os.environ.get("https_proxy")
-        )
+        proxy_url = os.environ.get("HTTP_PROXY") or os.environ.get("HTTPS_PROXY") or os.environ.get("http_proxy") or os.environ.get("https_proxy")
 
         if proxy_url:
             return ProxyManager(
@@ -148,7 +146,7 @@ class MinIOStorage:
             retries=retries,
         )
 
-    def make_bucket(self, backet_name: str, location: str = 'us-east-1', object_lock: bool = False) -> None:
+    def make_bucket(self, backet_name: str, location: str = "us-east-1", object_lock: bool = False) -> None:
         """Creates a new bucket in MinIO.
 
         Args:
@@ -207,7 +205,7 @@ class MinIOStorage:
         length: int,
         *,
         content_type: str = "application/octet-stream",
-        metadata: dict[str, Any] | None = None,
+        metadata: Mapping[str, Any] | None = None,
     ) -> Any:
         """Uploads data as an object to a bucket.
 
@@ -217,7 +215,7 @@ class MinIOStorage:
             data (bytes | str): Data to upload.
             length (int): Size of the data.
             content_type (str): MIME type of the object.
-            metadata (dict[str, Any] | None): Additional metadata.
+            metadata (Mapping[str, Any] | None): Additional metadata.
 
         Returns:
             Any: Information about the upload result.
@@ -236,7 +234,7 @@ class MinIOStorage:
             data=_data,
             length=length,
             content_type=content_type,
-            metadata=metadata,
+            metadata=dict(metadata) if metadata is not None else None,
         )
 
     def fput_object(
@@ -245,7 +243,7 @@ class MinIOStorage:
         object_name: str,
         file_path: str | Path,
         content_type: str = "application/octet-stream",
-        metadata: dict[str, Any] | None = None,
+        metadata: Mapping[str, Any] | None = None,
         sse: SseCustomerKey | None = None,
         part_size: int = 0,
         num_parallel_uploads: int = 3,
@@ -260,7 +258,7 @@ class MinIOStorage:
             object_name (str): Object name in the bucket.
             file_path (str | Path): Path to source file.
             content_type (str): MIME type of the file.
-            metadata (dict[str, Any] | None): Additional metadata.
+            metadata (Mapping[str, Any] | None): Additional metadata.
             sse (SseCustomerKey | None): Server-side encryption.
             part_size (int): Part size for multipart upload.
             num_parallel_uploads (int): Number of parallel uploads.
@@ -277,7 +275,7 @@ class MinIOStorage:
             object_name=object_name,
             file_path=_file_path,
             content_type=content_type,
-            metadata=metadata,
+            metadata=dict(metadata) if metadata is not None else None,
             sse=sse,
             part_size=part_size,
             num_parallel_uploads=num_parallel_uploads,
@@ -294,7 +292,7 @@ class MinIOStorage:
         length: int = 0,
         ssec: SseCustomerKey | None = None,
         version_id: str | None = None,
-        extra_query_params: dict[str, Any] | None = None,
+        extra_query_params: Mapping[str, Any] | None = None,
     ) -> BaseHTTPResponse:
         """Retrieves an object from a bucket.
 
@@ -305,7 +303,7 @@ class MinIOStorage:
             length (int): Number of bytes to read.
             ssec (SseCustomerKey | None): Server-side encryption key.
             version_id (str | None): Specific version of the object.
-            extra_query_params (Any): Extra query parameters.
+            extra_query_params (Mapping[str, Any] | None): Extra query parameters.
 
         Returns:
             BaseHTTPResponse: The retrieved object data response.
@@ -317,7 +315,7 @@ class MinIOStorage:
             length=length,
             ssec=ssec,
             version_id=version_id,
-            extra_query_params=extra_query_params,
+            extra_query_params=dict(extra_query_params) if extra_query_params is not None else None,
         )
 
     def fget_object(
@@ -325,10 +323,10 @@ class MinIOStorage:
         bucket_name: str,
         object_name: str,
         file_path: str,
-        request_headers: dict[str, Any] | None = None,
+        request_headers: Mapping[str, Any] | None = None,
         ssec: SseCustomerKey | None = None,
         version_id: str | None = None,
-        extra_query_params: dict[str, Any] | None = None,
+        extra_query_params: Mapping[str, Any] | None = None,
         tmp_file_path: str | None = None,
     ) -> BaseHTTPResponse:
         """Downloads an object to a file.
@@ -337,10 +335,10 @@ class MinIOStorage:
             bucket_name (str): Name of the bucket.
             object_name (str): Object name in the bucket.
             file_path (str): Destination path for the downloaded file.
-            request_headers (dict[str, Any] | None): Extra request headers.
+            request_headers (Mapping[str, Any] | None): Extra request headers.
             ssec (SseCustomerKey | None): Encryption key.
             version_id (str | None): Specific version of the object.
-            extra_query_params (dict[str, Any] | None): Extra query parameters.
+            extra_query_params (Mapping[str, Any] | None): Extra query parameters.
             tmp_file_path (str | None): Temporary file path.
 
         Returns:
@@ -350,10 +348,10 @@ class MinIOStorage:
             bucket_name=bucket_name,
             object_name=object_name,
             file_path=file_path,
-            request_headers=request_headers,
+            request_headers=dict(request_headers) if request_headers is not None else None,
             ssec=ssec,
             version_id=version_id,
-            extra_query_params=extra_query_params,
+            extra_query_params=dict(extra_query_params) if extra_query_params is not None else None,
             tmp_file_path=tmp_file_path,
         )
 
@@ -363,7 +361,7 @@ class MinIOStorage:
         object_name: str,
         ssec: SseCustomerKey | None = None,
         version_id: str | None = None,
-        extra_headers: dict[str, Any] | None = None,
+        extra_headers: Mapping[str, Any] | None = None,
     ) -> Any:
         """Fetches metadata of an object in a bucket.
 
@@ -372,7 +370,7 @@ class MinIOStorage:
             object_name (str): Object name in the bucket.
             ssec (SseCustomerKey | None): Encryption key.
             version_id (str | None): Specific version of the object.
-            extra_headers (dict[str, Any] | None): Additional headers.
+            extra_headers (Mapping[str, Any] | None): Additional headers.
 
         Returns:
             Any: Metadata of the requested object.
@@ -382,7 +380,7 @@ class MinIOStorage:
             object_name,
             ssec=ssec,
             version_id=version_id,
-            extra_headers=extra_headers,
+            extra_headers=dict(extra_headers) if extra_headers is not None else None,
         )
 
     def remove_object(self, bucket_name: str, object_name: str, version_id: str | None = None) -> None:
@@ -400,10 +398,10 @@ class MinIOStorage:
         bucket_name: str,
         object_name: str,
         expires: timedelta = timedelta(days=7),
-        response_headers: dict[str, Any] | None = None,
+        response_headers: Mapping[str, Any] | None = None,
         request_date: datetime | None = None,
         version_id: str | None = None,
-        extra_query_params: dict[str, Any] | None = None,
+        extra_query_params: Mapping[str, Any] | None = None,
     ) -> str:
         """Generates a presigned GET URL.
 
@@ -411,10 +409,10 @@ class MinIOStorage:
             bucket_name (str): Name of the bucket.
             object_name (str): Object name in the bucket.
             expires (timedelta): URL expiration time.
-            response_headers (dict[str, Any] | None): Custom response headers.
+            response_headers (Mapping[str, Any] | None): Custom response headers.
             request_date (datetime | None): A specific request date.
             version_id (str | None): Specific version of the object.
-            extra_query_params (dict[str, Any] | None): Extra parameters.
+            extra_query_params (Mapping[str, Any] | None): Extra parameters.
 
         Returns:
             str: The presigned URL.
@@ -423,10 +421,10 @@ class MinIOStorage:
             bucket_name,
             object_name,
             expires=expires,
-            response_headers=response_headers,
+            response_headers=dict(response_headers) if response_headers is not None else None,
             request_date=request_date,
             version_id=version_id,
-            extra_query_params=extra_query_params,
+            extra_query_params=dict(extra_query_params) if extra_query_params is not None else None,
         )
 
     def presigned_put_object(

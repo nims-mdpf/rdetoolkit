@@ -7,9 +7,9 @@ from typing import Any
 import pandas as pd
 
 try:
-    import plotly.graph_objs as go  # type: ignore[import]
+    import plotly.graph_objs as go
 except ImportError:  # pragma: no cover - exercised in environments without plotly
-    go = None  # type: ignore[assignment]
+    go = None
     _PLOTLY_IMPORT_ERROR = (
         "Plotly is required for HTML output but is not installed. "
         "Install it with: pip install plotly"
@@ -18,7 +18,7 @@ else:
     _PLOTLY_IMPORT_ERROR = ""
 
 from rdetoolkit.graph.models import Direction, PlotConfig
-from rdetoolkit.graph.textutils import titleize
+from rdetoolkit.graph.textutils import parse_header, titleize
 
 DEFAULT_PLOTLY_COLORS = [
     "#1f77b4",
@@ -190,10 +190,17 @@ class PlotlyRenderer:
         y_col_idx: int | str,
         config: PlotConfig,
     ) -> str:
-        series_name = str(df.columns[y_col_idx])
-        if config.humanize:
-            series_name = titleize(series_name)
-        return series_name
+        raw_series_name = str(df.columns[y_col_idx])
+        series_name, label_name, _ = parse_header(
+            raw_series_name,
+            humanize=config.humanize,
+        )
+        resolved_name = series_name or label_name or raw_series_name
+
+        if config.humanize and resolved_name == raw_series_name:
+            resolved_name = titleize(resolved_name)
+
+        return resolved_name
 
     def _build_series_traces(
         self,
@@ -308,17 +315,24 @@ class PlotlyRenderer:
         title = config.title if config.title else default_title
         return go.Layout(
             title=title,
-            xaxis={
-                "title": config.x_axis.label or "X",
-                "type": config.x_axis.scale,
-            },
-            yaxis={
-                "title": config.y_axis.label or "Y",
-                "type": config.y_axis.scale,
-            },
+            xaxis=self._build_axis_layout(config.x_axis, default_label="X"),
+            yaxis=self._build_axis_layout(config.y_axis, default_label="Y"),
             showlegend=True,
             updatemenus=self._build_update_menus(config),
         )
+
+    def _build_axis_layout(self, axis_config: Any, *, default_label: str) -> dict[str, Any]:
+        axis_layout = {
+            "title": axis_config.label or default_label,
+            "type": axis_config.scale,
+        }
+        if axis_config.scale == "log":
+            axis_layout.update({
+                "dtick": 1,
+                "exponentformat": "power",
+                "showexponent": "all",
+            })
+        return axis_layout
 
     def _build_update_menus(self, config: PlotConfig) -> list[dict[str, Any]]:
         return [

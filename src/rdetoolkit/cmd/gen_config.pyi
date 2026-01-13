@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional, Union
 
 from logging import Logger
 
@@ -35,4 +35,4 @@ class GenerateConfigCommand:
     def _bool_to_yaml(value: bool) -> str: ...
 
     @staticmethod
-    def _extended_mode_to_yaml(value: str | None) -> str: ...
+    def _extended_mode_to_yaml(value: Optional[str]) -> str: ...

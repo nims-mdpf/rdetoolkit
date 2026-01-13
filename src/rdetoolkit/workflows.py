@@ -1,28 +1,95 @@
 from __future__ import annotations
 
 import contextlib
+import traceback
 from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-from rdetoolkit.config import load_config
-from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error, skip_exception_context
+
+if TYPE_CHECKING:
+    from rdetoolkit.models.config import Config
+    from rdetoolkit.models.rde2types import DatasetCallback, RawFiles, RdeInputDirPaths, RdeOutputResourcePath
+    from rdetoolkit.models.result import WorkflowExecutionStatus
+    from rdetoolkit.result import Result
+
+
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.invoicefile import backup_invoice_json_files
-from rdetoolkit.models.config import Config
-from rdetoolkit.models.rde2types import DatasetCallback, RawFiles, RdeInputDirPaths, RdeOutputResourcePath
-from rdetoolkit.models.result import WorkflowExecutionStatus, WorkflowResultManager
-from rdetoolkit.modeproc import (
-    excel_invoice_mode_process,
-    invoice_mode_process,
-    multifile_mode_process,
-    rdeformat_mode_process,
-    selected_input_checker,
-    smarttable_invoice_mode_process,
-)
-from rdetoolkit.rde2util import StorageDir
-from rdetoolkit.rdelogger import get_logger
-from rdetoolkit.core import DirectoryOps
-from typing import Any
+
+
+def excel_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the Excel invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
+    from rdetoolkit.modeproc import excel_invoice_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
+    from rdetoolkit.modeproc import invoice_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def multifile_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the multifile workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
+    from rdetoolkit.modeproc import multifile_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def rdeformat_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the RDE format workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
+    from rdetoolkit.modeproc import rdeformat_mode_process as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def smarttable_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
+    """Run the smart table invoice workflow.
+
+    Args:
+        *args: Positional arguments forwarded to the mode processor.
+        **kwargs: Keyword arguments forwarded to the mode processor.
+
+    Returns:
+        WorkflowExecutionStatus: Execution status for the workflow.
+    """
+    from rdetoolkit.modeproc import smarttable_invoice_mode_process as _impl
+
+    return _impl(*args, **kwargs)
 
 
 def _create_error_status(
@@ -32,6 +99,8 @@ def _create_error_status(
     mode: str,
 ) -> WorkflowExecutionStatus:
     """Create error status from error information."""
+    from rdetoolkit.models.result import WorkflowExecutionStatus
+
     _code = error_info.get("code")
     code = 999
     if isinstance(_code, int):
@@ -50,6 +119,61 @@ def _create_error_status(
         stacktrace=error_info.get("stacktrace"),
         target=",".join(str(file) for file in rdeoutput_resource.rawfiles),
     )
+
+
+def check_files_result(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> Result[tuple[RawFiles, Path | None, Path | None], StructuredError]:
+    """Classify input files with explicit Result type error handling.
+
+    Returns Result type instead of raising exceptions, enabling type-safe error handling.
+
+    Args:
+        srcpaths: Input directory paths
+        mode: Processing mode (invoice, excelinvoice, etc.)
+        config: Optional configuration object
+
+    Returns:
+        Result containing:
+            Success: tuple of (RawFiles, excel_invoice_path, smarttable_path)
+            Failure: StructuredError with error details
+
+    Example:
+        >>> result = check_files_result(srcpaths, mode="invoice")
+        >>> if result.is_success():
+        ...     rawfiles, excel_invoice, smarttable = result.unwrap()
+        ... else:
+        ...     error = result.error
+        ...     print(f"Error: {error.emsg}")
+    """
+    from rdetoolkit.modeproc import selected_input_checker
+    from rdetoolkit.rde2util import StorageDir
+    from rdetoolkit.result import Success, Failure
+
+    try:
+        out_dir_temp = StorageDir.get_specific_outputdir(True, "temp")
+        if mode is None:
+            mode = ""
+
+        input_checker = selected_input_checker(srcpaths, out_dir_temp, mode, config)
+        rawfiles, special_file = input_checker.parse(srcpaths.inputdata)
+
+        # Use checker_type property to distinguish between different checkers
+        if input_checker.checker_type == "smarttable":
+            return Success((rawfiles, None, special_file))  # excelinvoice=None, smarttable_file=Path
+        if input_checker.checker_type == "excel_invoice":
+            return Success((rawfiles, special_file, None))  # excelinvoice=Path, smarttable_file=None
+        return Success((rawfiles, None, None))  # InvoiceMode
+    except StructuredError as e:
+        return Failure(e)
+    except Exception as e:
+        # Wrap unexpected exceptions in StructuredError
+        emsg = f"Unexpected error in check_files: {e}"
+        error = StructuredError(
+            emsg,
+            999,
+            eobj=e,
+            traceback_info=traceback.format_exc(),
+        )
+        return Failure(error)
 
 
 def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> tuple[RawFiles, Path | None, Path | None]:
@@ -101,20 +225,20 @@ def check_files(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config 
         The destination paths for reading input files are different for the shipping label and ExcelInvoice.
         invoice: /data/inputdata/<registered_files>
         excelinvoice: /data/temp/<registered_files>
+
+    Raises:
+        StructuredError: When file classification fails
+        Exception: Propagates unexpected exceptions from input checker
     """
-    out_dir_temp = StorageDir.get_specific_outputdir(True, "temp")
-    if mode is None:
-        mode = ""
+    from rdetoolkit.result import Failure
 
-    input_checker = selected_input_checker(srcpaths, out_dir_temp, mode, config)
-    rawfiles, special_file = input_checker.parse(srcpaths.inputdata)
-
-    # Use checker_type property to distinguish between different checkers
-    if input_checker.checker_type == "smarttable":
-        return rawfiles, None, special_file  # excelinvoice=None, smarttable_file=Path
-    if input_checker.checker_type == "excel_invoice":
-        return rawfiles, special_file, None  # excelinvoice=Path, smarttable_file=None
-    return rawfiles, None, None  # InvoiceMode
+    result = check_files_result(srcpaths, mode=mode, config=config)
+    if isinstance(result, Failure):
+        error = result.error
+        if isinstance(error, StructuredError) and isinstance(error.eobj, Exception):
+            raise error.eobj
+        raise error
+    return result.unwrap()
 
 
 def generate_folder_paths_iterator(
@@ -150,6 +274,9 @@ def generate_folder_paths_iterator(
         create_folders(raw_files_group, excel_invoice_files)
         ```
     """
+    from rdetoolkit.core import DirectoryOps
+    from rdetoolkit.models.rde2types import RdeOutputResourcePath
+
     dir_ops = DirectoryOps("data")
     for idx, raw_files in enumerate(raw_files_group):
         smarttable_rowfile = None
@@ -217,6 +344,8 @@ def _process_mode(  # noqa: C901 PLR0912
     Returns:
         tuple[WorkflowExecutionStatus, dict | None, str]: Status, error info if any, and mode
     """
+    from rdetoolkit.errors import skip_exception_context
+
     error_info = None
     status: WorkflowExecutionStatus | None = None
 
@@ -254,7 +383,7 @@ def _process_mode(  # noqa: C901 PLR0912
             raise StructuredError(emsg)
 
         if status.status == "failed":
-            if hasattr(status, 'exception_object'):
+            if hasattr(status, "exception_object"):
                 if isinstance(status.exception_object, StructuredError):
                     raise status.exception_object
                 logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
@@ -327,9 +456,23 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
         workflow.run(custom_dataset_function=custom_dataset, config=cfg) # Execute structuring process
         ```
     """
-    logger = get_logger(__name__, file_path=StorageDir.get_specific_outputdir(True, "logs").joinpath("rdesys.log"))
+    from rdetoolkit.config import load_config
+    from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error
+    from rdetoolkit.invoicefile import backup_invoice_json_files
+    from rdetoolkit.models.result import WorkflowResultManager
+    from rdetoolkit.models.rde2types import RdeInputDirPaths
+    from rdetoolkit.rde2util import StorageDir
+    from rdetoolkit.rdelogger import get_logger, generate_log_timestamp
+
+    log_timestamp = generate_log_timestamp()
+    log_filename = f"rdesys_{log_timestamp}.log"
+    log_path = StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
+    get_logger("rdetoolkit", file_path=log_path)
+    logger = get_logger(__name__)
+
     wf_manager = WorkflowResultManager()
     error_info = None
+    __config: Config | None = None
 
     try:
         # Enabling mode flag and validating input file
@@ -348,10 +491,15 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
             mode=__config.system.extended_mode,
             config=__config,
         )
+        if smarttable_file is not None:
+            from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
+
+            SmartTableInvoiceInitializer.clear_base_invoice_cache()
 
         # Backup of invoice.json
         invoice_org_filepath = backup_invoice_json_files(
-            excel_invoice_files, __config.system.extended_mode,
+            excel_invoice_files,
+            __config.system.extended_mode,
         )
         invoice_schema_filepath = srcpaths.tasksupport.joinpath("invoice.schema.json")
 
@@ -366,9 +514,14 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
 
         for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
             status, error_info, mode = _process_mode(
-                idx, srcpaths, rdeoutput_resource, __config,
-                excel_invoice_files, smarttable_file,
-                custom_dataset_function, logger,
+                idx,
+                srcpaths,
+                rdeoutput_resource,
+                __config,
+                excel_invoice_files,
+                smarttable_file,
+                custom_dataset_function,
+                logger,
             )
             if error_info and any(value is not None for value in error_info.values()):
                 status = _create_error_status(idx, error_info, rdeoutput_resource, mode)

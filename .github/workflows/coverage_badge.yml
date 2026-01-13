@@ -16,13 +16,13 @@ jobs:
     if: ${{ !(startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') ||
       startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup uv (Python 3.11)
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.11"
       - name: Cache uv
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ~/.cache/uv
           key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}

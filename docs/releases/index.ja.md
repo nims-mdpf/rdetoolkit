@@ -4,6 +4,8 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.5.0     | 2026-01-09 | Result型 / Typer CLI+validate / タイムスタンプログ / 遅延import / Python 3.14対応 | [v1.5.0](#v150-2026-01-09) |
+| v1.4.3     | 2025-12-25 | SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整 | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2     | 2025-12-18 | Invoice overwrite検証 / Excelインボイス統合 / csv2graph単一系列自動判定 / MultiDataTile空入力実行 | [v1.4.2](#v142-2025-12-18) |
 | v1.4.1     | 2025-11-05 | SmartTable行CSVアクセサ / 旧`rawfiles`フォールバック警告 | [v1.4.1](#v141-2025-11-05) |
 | v1.4.0     | 2025-10-24 | SmartTableの`metadata.json`自動生成 / LLM向けスタックトレース / CSV可視化ユーティリティ / `gen-config` | [v1.4.0](#v140-2025-10-24) |
@@ -14,6 +16,268 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.5.0 (2026-01-09)
+
+!!! info "参照"
+    - 主な課題: [#3](https://github.com/nims-mdpf/rdetoolkit/issues/3), [#247](https://github.com/nims-mdpf/rdetoolkit/issues/247), [#249](https://github.com/nims-mdpf/rdetoolkit/issues/249), [#262](https://github.com/nims-mdpf/rdetoolkit/issues/262), [#301](https://github.com/nims-mdpf/rdetoolkit/issues/301), [#323](https://github.com/nims-mdpf/rdetoolkit/issues/323), [#324](https://github.com/nims-mdpf/rdetoolkit/issues/324), [#325](https://github.com/nims-mdpf/rdetoolkit/issues/325), [#326](https://github.com/nims-mdpf/rdetoolkit/issues/326), [#327](https://github.com/nims-mdpf/rdetoolkit/issues/327), [#328](https://github.com/nims-mdpf/rdetoolkit/issues/328), [#329](https://github.com/nims-mdpf/rdetoolkit/issues/329), [#330](https://github.com/nims-mdpf/rdetoolkit/issues/330), [#333](https://github.com/nims-mdpf/rdetoolkit/issues/333), [#334](https://github.com/nims-mdpf/rdetoolkit/issues/334), [#335](https://github.com/nims-mdpf/rdetoolkit/issues/335), [#336](https://github.com/nims-mdpf/rdetoolkit/issues/336), [#337](https://github.com/nims-mdpf/rdetoolkit/issues/337), [#338](https://github.com/nims-mdpf/rdetoolkit/issues/338), [#341](https://github.com/nims-mdpf/rdetoolkit/issues/341)
+
+#### ハイライト
+- 例外を使用しない明示的で型安全なエラーハンドリングのためのResult型パターン(`Result[T, E]`)を導入
+- システムログファイル名が静的な`rdesys.log`からタイムスタンプ付き(`rdesys_YYYYMMDD_HHMMSS.log`)に変更され、実行ごとのログ管理が可能になり、並行実行や連続実行時のログ衝突を防止
+- CLIをTyperに刷新し、`validate`サブコマンド、`rdetoolkit run`、`init`のテンプレートパス指定を追加しつつ`python -m rdetoolkit`互換を維持
+- コア/ワークフロー/CLI/グラフの遅延import化で起動負荷を軽減し、重い依存を必要時にのみロード
+- `structured`への`invoice.json`保存（任意）とMagic Variable拡張、Python 3.14公式対応を追加
+
+---
+
+### Result型パターン (Issue #334)
+
+#### 機能強化
+- **新しいResultモジュール** (`rdetoolkit.result`):
+  - `Success[T]`: 値を持つ成功結果のためのイミュータブルなfrozen dataclass
+  - `Failure[E]`: エラーを持つ失敗結果のためのイミュータブルなfrozen dataclass
+  - `Result[T, E]`: `Success[T] | Failure[E]`の型エイリアス
+  - `try_result`デコレータ: 例外ベースの関数をResult返却関数に変換
+  - `TypeVar`と`ParamSpec`による完全なジェネリック型サポートで型安全性を実現
+  - 関数型メソッド: `is_success()`, `map()`, `unwrap()`
+- **Resultベースのワークフロー関数**:
+  - `check_files_result()`: 明示的なResult型によるファイル分類
+  - `Result[tuple[RawFiles, Path | None, Path | None], StructuredError]`を返却
+- **Resultベースのモード処理関数**:
+  - `invoice_mode_process_result()`: Result型によるインボイス処理
+  - `Result[WorkflowExecutionStatus, Exception]`を返却
+- **型スタブ**: IDE自動補完と型チェックのための完全な`.pyi`ファイル
+- **ドキュメント**: 英語と日本語の包括的なAPIドキュメント(`docs/api/result.en.md`, `docs/api/result.ja.md`)
+- **公開API**: `rdetoolkit.__init__.py`からResult型をエクスポートし、簡単にインポート可能
+- **100%テストカバレッジ**: Resultモジュールの包括的な40ユニットテスト
+
+#### 使用例
+
+**Resultベースのエラーハンドリング:**
+```python
+from rdetoolkit.workflows import check_files_result
+
+result = check_files_result(srcpaths, mode="invoice")
+if result.is_success():
+    raw_files, excel_path, smarttable_path = result.unwrap()
+    # ファイル処理
+else:
+    error = result.error
+    print(f"Error {error.ecode}: {error.emsg}")
+```
+
+**従来の例外ベース (引き続き動作):**
+```python
+from rdetoolkit.workflows import check_files
+
+try:
+    raw_files, excel_path, smarttable_path = check_files(srcpaths, mode="invoice")
+except StructuredError as e:
+    print(f"Error {e.ecode}: {e.emsg}")
+```
+
+---
+
+### タイムスタンプ付きログファイル名 (Issue #341)
+
+#### 機能強化
+- ファイルシステムセーフなタイムスタンプ文字列を生成する`generate_log_timestamp()`ユーティリティ関数を追加
+- 各ワークフロー実行でユニークなタイムスタンプ付きログファイルを生成するように`workflows.run()`を変更
+- P2バグを修正: 同一プロセス内で`run()`を複数回呼び出した際のハンドラ蓄積問題
+  - 根本原因: Loggerシングルトンが異なるファイル名の古いLazyFileHandlerを保持
+  - 解決策: 新しいハンドラを追加する前に既存のLazyFileHandlerをクリア
+  - 影響: 1実行=1ログファイルを保証し、ログのクロスコンタミネーションを防止
+- 保守性向上のためカスタム`LazyFileHandler`を標準の`logging.FileHandler(delay=True)`に置き換え
+- 新しいタイムスタンプ付きログファイル名パターンを参照するようにすべてのドキュメントを更新
+
+#### 利点
+- **実行ごとの分離**: 各ワークフロー実行が個別のログファイルを作成し、ログの混在を防止
+- **並行実行**: 複数のワークフローを同時実行してもログが衝突しない
+- **比較が容易**: 手動で分離することなく、異なる実行のログを比較可能
+- **監査の簡素化**: デバッグやコンプライアンスのために実行ごとのログを収集・アーカイブ
+- **保守性の向上**: 標準ライブラリのFileHandlerは十分にテストされ、広く理解されている
+
+---
+
+### CLI刷新とバリデーション (Issue #247, #262, #337, #338)
+
+#### 機能強化
+- CLIをTyperへ移行し遅延import化。`python -m rdetoolkit`の起動とコマンド名（`init`/`version`/`gen-config`/`make-excelinvoice`/`artifact`/`csv2graph`）を維持
+- `rdetoolkit run <module_or_file::attr>`を追加し、動的関数ロード、クラス/呼び出し可能オブジェクトの除外、2引数受け取り可否の検証を実装
+- `rdetoolkit validate`コマンド（`invoice-schema`/`invoice`/`metadata-def`/`metadata`/`all`）を追加し、`--format text|json`、`--quiet`、`--strict/--no-strict`、終了コード（0/1/2/3）を提供
+- `init`テンプレートパスオプション（`--entry-point`/`--modules`/`--tasksupport`/`--inputdata`/`--other`）を追加し、`pyproject.toml`/`rdeconfig.yaml`に保存
+
+#### Initテンプレートパスオプション詳細 (Issue #262)
+
+`rdetoolkit init`コマンドにテンプレートパスオプションを追加し、カスタムテンプレートからプロジェクトを初期化できるようになりました。
+
+**想定用途**:
+
+- よく使う機能をまとめたファイル群を`modules/`フォルダに配置した状態で初期化
+- `main.py`を好みの形式でカスタマイズ
+- いつも使う設定ファイルをテンプレートとして初期化
+- 独自のオブジェクト指向スクリプトのひな形を指定
+
+**追加されたオプション**:
+
+- `--entry-point`: container/ディレクトリにエントリーポイント（.pyファイル）を配置
+- `--modules`: container/modules/ディレクトリにモジュールを配置（フォルダ指定でサブディレクトリ含む）
+- `--tasksupport`: tasksupport/ディレクトリに設定ファイルを配置（フォルダ指定でサブディレクトリ含む）
+- `--inputdata`: container/data/inputdata/ディレクトリに入力データを配置（フォルダ指定でサブディレクトリ含む）
+- `--other`: container/ディレクトリにその他のファイルを配置（フォルダ指定でサブディレクトリ含む）
+
+**設定の永続化**:
+
+- CLI指定されたパスは`pyproject.toml`または`rdeconfig.yaml(yml)`に自動保存
+- 設定ファイルが存在しない場合は`pyproject.toml`を自動生成
+- 既存の設定がある場合は上書き
+
+**安全対策**:
+
+- 自己コピー（同一パス）の検知とスキップ
+- 不正パスや空文字のバリデーションとエラー報告
+
+**設定ファイル例** (`pyproject.toml`):
+```toml
+[tool.rdetoolkit.init]
+entry_point = "path/to/your/template/main.py"
+modules = "path/to/your/template/modules/"
+tasksupport = "path/to/your/template/config/"
+inputdata = "path/to/your/template/inputdata/"
+other = [
+    "path/to/your/template/file1.txt",
+    "path/to/your/template/dir2/"
+]
+```
+
+**設定ファイル例** (`rdeconfig.yaml`):
+```yaml
+init:
+  entry_point: "path/to/your/template/main.py"
+  modules: "path/to/your/template/modules/"
+  tasksupport: "path/to/your/template/config/"
+  inputdata: "path/to/your/template/inputdata/"
+  other:
+    - "path/to/your/template/file1.txt"
+    - "path/to/your/template/dir2/"
+```
+
+---
+
+### 起動パフォーマンス改善 (Issue #323-330)
+
+#### 機能強化
+- `rdetoolkit`および`rdetoolkit.graph`で遅延エクスポートを導入し、未使用時の重いサブモジュール読み込みを回避
+- インボイス/検証/エンコード、コアユーティリティ、ワークフロー、CLI、グラフレンダラーの重い依存を必要時のみロード
+- 遅延importを行う対象ファイルで`PLC0415`を許可するRuffのper-file ignoreを追加
+
+---
+
+### 型安全性とリファクタ (Issue #333, #335, #336)
+
+#### 機能強化
+- `models.rde2types`の型エイリアスをNewType定義と検証付きパス型に刷新し、`FileGroup`/`ProcessedFileGroup`を追加
+- 読み取り専用の入力を`Mapping`、変更を伴う入力を`MutableMapping`へ拡張し、`Validator.validate()`は`Mapping`を受け取り`dict`へ正規化
+- `rde2util.castval`、インボイスシート処理、アーカイブ形式判定のif/elif連鎖をディスパッチテーブルへ置換し、互換性テストで挙動を維持
+
+---
+
+### ワークフロー/設定の拡張 (Issue #3, #301)
+
+#### 機能強化
+- `system.save_invoice_to_structured`（デフォルト`false`）と`StructuredInvoiceSaver`を追加し、サムネイル生成後に`structured`へ`invoice.json`を任意でコピー
+- Magic Variableパターンを拡張：`${invoice:basic:*}`、`${invoice:custom:*}`、`${invoice:sample:names:*}`、`${metadata:constant:*}`。欠損時の警告と厳密な検証を追加
+
+---
+
+### ツール/プラットフォーム対応 (Issue #249)
+
+#### 機能強化
+- Python 3.14を公式サポートし、classifier/`tox`/CIのビルド・テストマトリクスを更新
+
+---
+
+### 移行 / 互換性
+
+#### Result型パターン
+- **後方互換性**: すべての元の例外ベース関数は変更なし
+- **段階的な移行**: 両方のパターン(例外ベースとResultベース)が共存可能
+- **委譲パターン**: 元の関数は内部的に`*_result()`バージョンに委譲
+- **型安全性**: `isinstance(result, Failure)`を使用した型安全なエラーチェック
+- **エラー情報の保持**: すべてのエラー情報(StructuredError属性、Exception詳細)がFailureに保持
+
+#### タイムスタンプ付きログファイル名
+- **ログファイル名の変更**: システムログは`data/logs/rdesys.log`ではなく`data/logs/rdesys_YYYYMMDD_HHMMSS.log`に書き込まれます
+- **ログの検索**: ワイルドカードパターンを使用してログを検索：`ls -t data/logs/rdesys_*.log | head -1`で最新のログを確認
+- **スクリプトとツール**: `rdesys.log`を直接参照するスクリプトや監視ツールを、`rdesys_*.log`のパターンマッチングを使用するように更新してください
+- **ログ収集**: 自動ログ収集システムは、単一の静的ファイルではなく、複数のタイムスタンプ付きファイルを処理するように更新が必要です
+- **古いログファイル**: 以前のバージョンからの既存の`rdesys.log`ファイルはそのまま残り、自動的には削除されません
+- **設定不要**: 新しい動作は自動的に適用され、設定変更は必要ありません
+
+#### CLI（Typer移行と新コマンド）
+- **起動互換**: `python -m rdetoolkit ...`の呼び出しは継続し、コマンド名/主要オプションも維持
+- **依存関係**: Click依存は削除。`rdetoolkit.cli`のClick依存オブジェクトを直接利用していた場合は見直しが必要
+- **validateコマンド**: `rdetoolkit validate`は終了コード0/1/2/3を返し、CI自動化に利用可能
+
+#### initテンプレートパス
+- **設定への保存**: 指定したテンプレートパスは`pyproject.toml`/`rdeconfig.yaml`に保存され、既存設定はそのまま利用可能
+
+#### invoice.jsonのstructured保存
+- **オプション制**: `system.save_invoice_to_structured`は`false`が既定。`true`にすると`structured/invoice.json`が生成されます
+
+#### Magic Variables
+- **拡張パターン**: `${invoice:basic:*}`、`${invoice:custom:*}`、`${invoice:sample:names:*}`、`${metadata:constant:*}`を追加
+- **エラー/警告**: 必須フィールド欠損はエラー、空要素は警告付きでスキップされ`__`連結を防止
+
+#### Mapping型ヒント
+- **型のみ変更**: `Mapping`/`MutableMapping`の採用で入力型が拡張されるが、実行時の挙動は維持
+- **validate入力**: `Validator.validate(obj=...)`は`Mapping`を`dict`へコピーして正規化
+
+#### Python 3.14対応
+- **互換性**: Python 3.14を公式サポートし、CI/配布設定を更新
+
+---
+
+#### 既知の問題
+- `invoice_mode_process`のみがResultベースバージョンを持ちます。他のモードプロセッサは将来のリリースで移行される予定です
+
+---
+
+## v1.4.3 (2025-12-25)
+
+!!! info "参照資料"
+    - 対応Issue: [#292](https://github.com/nims-mdpf/rdetoolkit/issues/292), [#310](https://github.com/nims-mdpf/rdetoolkit/issues/310), [#311](https://github.com/nims-mdpf/rdetoolkit/issues/311), [#302](https://github.com/nims-mdpf/rdetoolkit/issues/302), [#304](https://github.com/nims-mdpf/rdetoolkit/issues/304)
+
+#### ハイライト
+- SmartTable 分割処理で `sample.ownerId` と boolean 列が失われず、空欄が前行から継承されないよう修正し、行単位のデータ整合性を回復。
+- csv2graph の HTML 出力を CSV 保存先（structured）にデフォルト固定し、`html_output_dir` で任意ディレクトリへ振り分け可能に。Plotly/Matplotlib の凡例表示とログ目盛を統一し再現性を向上。
+
+#### 追加機能 / 改善
+- SmartTableInvoiceInitializer で元 invoice を一度だけ読み込み、各行処理に deepcopy を渡すことで分割後も `sample.ownerId` を保持。
+- SmartTable 行の空欄セルを検出して既存値をクリアし、basic/custom/sample いずれも前行値を引き継がないようマッピングを整理。
+- SmartTable boolean 変換で `"TRUE"` / `"FALSE"`（大文字小文字無視）をスキーマの boolean 型に従って確定し、Excel 由来の文字列を正しく反映。
+- csv2graph に `html_output_dir` / `--html-output-dir` を追加し、HTML を CSV と同じディレクトリへ保存するデフォルトを導入。ドキュメントとサンプル（英/日）も更新。
+- グラフレンダラーで Plotly 凡例をシリーズ名のみに統一し、ログ軸を 10 の累乗目盛・10^n 表記に固定（Plotly/Matplotlib 両方）。
+- EP/BV 表付きの回帰テストを SmartTable・csv2graph・レンダラーに追加し、ownerId 継承、空欄クリア、boolean 変換、HTML 出力先、凡例/ログ目盛を網羅。
+
+#### 不具合修正
+- SmartTable 分割時に 2 行目以降の `sample.ownerId` が消失する問題を解消。
+- SmartTable の空欄セルが前行の basic/description や sample/composition などを引き継いでしまう問題を解消。
+- `"FALSE"` が真と解釈される boolean 変換の不具合を修正し、スキーマ型に基づいたキャストを強制。
+- csv2graph で `output_dir=other_image` を指定した際に HTML が構造化ディレクトリ外へ出力される問題を修正し、デフォルトで CSV 直下（structured）へ保存。
+- Plotly 凡例にヘッダー全体（例: `total:intensity`）が表示される挙動と、ログ軸の 2・5 の補助目盛/非指数表記を修正。
+
+#### 移行ガイド / 互換性
+- csv2graph の HTML 出力は既定で CSV 配下（通常は `data/structured`）に保存されます。別ディレクトリに出力したい場合は `html_output_dir`（API）または `--html-output-dir`（CLI）を指定してください。
+- SmartTable で空欄セルが自動的に既存値を再利用する挙動は廃止されました。必要な値は各行に明示的に入力してください。
+- `"TRUE"` / `"FALSE"` の文字列は boolean 型に強制キャストされます。旧挙動（非空文字列は常に真）に依存したワークフローがある場合は見直しを推奨します。
+- その他の後方互換性への影響はありません。
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
 
 ## v1.4.2 (2025-12-18)
 

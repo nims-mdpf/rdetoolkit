@@ -29,13 +29,9 @@ from unittest.mock import patch
 
 import click
 import pytest
-from click.testing import CliRunner
-from rdetoolkit.cli import (
-    init,
-    version,
-    make_excelinvoice,
-    csv2graph,
-)
+from typer.testing import CliRunner
+from rdetoolkit import __version__
+from rdetoolkit.cli.app import app
 from rdetoolkit.cmd.command import (
     DockerfileGenerator,
     MainScriptGenerator,
@@ -103,7 +99,7 @@ def test_make_requirements_txt():
     with open(test_path, encoding="utf-8") as f:
         content = f.read()
 
-    expected_content = """# ----------------------------------------------------
+    expected_content = f"""# ----------------------------------------------------
 # Please add the desired packages and install the libraries after that.
 # Then, run
 #
@@ -114,7 +110,7 @@ def test_make_requirements_txt():
 # ex.
 # pandas==2.0.3
 # numpy
-rdetoolkit==1.4.2
+rdetoolkit=={__version__}
 """
     assert content == expected_content
     test_path.unlink()
@@ -184,10 +180,60 @@ def test_make_metadata_def_json():
         shutil.rmtree("container")
 
 
+def test_help_command():
+    """Test that --help works without importing heavy modules."""
+    runner = CliRunner()
+    result = runner.invoke(app, ['--help'])
+
+    assert result.exit_code == 0
+    assert 'init' in result.output
+    assert 'version' in result.output
+    assert 'gen-config' in result.output
+    assert 'make-excelinvoice' in result.output
+    assert 'artifact' in result.output
+    assert 'csv2graph' in result.output
+
+
+def test_init_help():
+    """Test init command help."""
+    runner = CliRunner()
+    result = runner.invoke(app, ['init', '--help'])
+
+    assert result.exit_code == 0
+    assert 'Output files needed' in result.output or 'init' in result.output
+
+
+def test_version_help():
+    """Test version command help."""
+    runner = CliRunner()
+    result = runner.invoke(app, ['version', '--help'])
+
+    assert result.exit_code == 0
+    assert 'version' in result.output
+
+
+def test_gen_config_help():
+    """Test gen-config command help."""
+    runner = CliRunner()
+    result = runner.invoke(app, ['gen-config', '--help'])
+
+    assert result.exit_code == 0
+    assert 'template' in result.output or 'rdeconfig' in result.output
+
+
+def test_artifact_help():
+    """Test artifact command help."""
+    runner = CliRunner()
+    result = runner.invoke(app, ['artifact', '--help'])
+
+    assert result.exit_code == 0
+    assert 'source-dir' in result.output or 'source' in result.output
+
+
 def test_init_creation():
     runner = CliRunner()
 
-    result = runner.invoke(init)
+    result = runner.invoke(app, ["init"])
 
     # 出力メッセージのテスト
     assert "Ready to develop a structured program for RDE." in result.output
@@ -236,12 +282,12 @@ def test_init_no_overwrite():
     runner = CliRunner()
 
     with runner.isolated_filesystem():
-        runner.invoke(init)
+        runner.invoke(app, ["init"])
 
         with open(Path("container/main.py"), "a", encoding="utf-8") as f:
             f.write("# Sample test message")
 
-        runner.invoke(init)
+        runner.invoke(app, ["init"])
 
         with open(Path("container/main.py"), encoding="utf-8") as f:
             content = f.read()
@@ -280,7 +326,7 @@ def test_version(get_version_from_pyprojecttoml_py39_py310, get_version_from_pyp
 
     runner = CliRunner()
 
-    result = runner.invoke(version)
+    result = runner.invoke(app, ["version"])
 
     assert v == result.output
 
@@ -305,8 +351,9 @@ def test_make_excelinvoice_file_mode_success(ivnoice_schema_json_with_full_sampl
     """'file' モードでの正常な実行をテスト"""
     runner = CliRunner()
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(ivnoice_schema_json_with_full_sample_info),
             '-o',
             str(temp_output_path),
@@ -326,8 +373,9 @@ def test_make_excelinvoice_folder_mode_success(ivnoice_schema_json_with_full_sam
     """'file' モードでの正常な実行をテスト"""
     runner = CliRunner()
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(ivnoice_schema_json_with_full_sample_info),
             '-o',
             str(temp_output_path),
@@ -349,8 +397,9 @@ def test_generate_excelinvoice_command_schema_error(invalid_ivnoice_schema_json,
     """スキーマエラーテスト"""
     runner = CliRunner()
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(invalid_ivnoice_schema_json),
             '-o',
             str(temp_output_path),
@@ -370,8 +419,9 @@ def test_generate_excelinvoice_command_unexpected_error(ivnoice_schema_json_with
         mock_generate.side_effect = Exception("Unexpected test error")
         runner = CliRunner()
         result = runner.invoke(
-            make_excelinvoice,
+            app,
             [
+                "make-excelinvoice",
                 str(ivnoice_schema_json_with_full_sample_info),
                 '-o',
                 str(temp_output_path),
@@ -390,8 +440,9 @@ def test_generate_excelinvoice_command_unexpected_output_format(ivnoice_schema_j
     """ファイルの拡張子テスト"""
     runner = CliRunner()
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(ivnoice_schema_json_with_full_sample_info),
             '-o',
             str(temp_invalid_output_path),
@@ -409,14 +460,13 @@ def test_generate_excelinvoice_command_unexpected_output_format(ivnoice_schema_j
 def test_make_excelinvoice_help():
     """make-excelinvoiceコマンドのヘルプメッセージをテストする"""
     runner = CliRunner()
-    result = runner.invoke(make_excelinvoice, ['--help'])
+    result = runner.invoke(app, ['make-excelinvoice', '--help'])
 
     assert result.exit_code == 0
-    assert "Usage: make-excelinvoice [OPTIONS] <invoice.schema.json file path>" in result.output
-    assert "Generate an Excel invoice based on the provided schema and save it to the\n  specified output path." in result.output
-    assert "-o, --output" in result.output
-    assert "-m, --mode" in result.output
-    assert "select the registration mode" in result.output
+    assert "make-excelinvoice" in result.output
+    assert "Generate an Excel invoice" in result.output
+    assert "-o" in result.output or "--output" in result.output
+    assert "-m" in result.output or "--mode" in result.output
 
 
 def test_json_file_validation(tmp_path, ivnoice_schema_json_with_full_sample_info):
@@ -425,8 +475,9 @@ def test_json_file_validation(tmp_path, ivnoice_schema_json_with_full_sample_inf
     invalid_ext_file = tmp_path / "invalid_file.txt"
     invalid_ext_file.write_text("{}")
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(invalid_ext_file),
             '-o',
             str(tmp_path / "output_excel_invoice.xlsx"),
@@ -438,8 +489,9 @@ def test_json_file_validation(tmp_path, ivnoice_schema_json_with_full_sample_inf
     invalid_json_file = tmp_path / "invalid_json.json"
     invalid_json_file.write_text("Invalid JSON content")
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(invalid_json_file),
             '-o',
             str(tmp_path / "output_excel_invoice.xlsx"),
@@ -450,8 +502,9 @@ def test_json_file_validation(tmp_path, ivnoice_schema_json_with_full_sample_inf
 
     valid_json_file = ivnoice_schema_json_with_full_sample_info
     result = runner.invoke(
-        make_excelinvoice,
+        app,
         [
+            "make-excelinvoice",
             str(valid_json_file),
             '-o',
             str(tmp_path / "output_excel_invoice.xlsx"),
@@ -618,8 +671,9 @@ def test_csv2graph_cli_auto_suppresses_single_series__tc_ep_cli_001(single_serie
     # Given: a single-series CSV without explicit flags
     # When: invoking csv2graph in overlay mode
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(single_series_csv_file),
             "--output-dir", str(csv_output_dir),
         ],
@@ -640,8 +694,9 @@ def test_csv2graph_cli_individual_flag_restores_output__tc_ep_cli_002(single_ser
     # Given: a single-series CSV
     # When: invoking csv2graph with --individual
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(single_series_csv_file),
             "--output-dir", str(csv_output_dir),
             "--individual",
@@ -663,8 +718,9 @@ def test_csv2graph_cli_multiple_series_keeps_individuals__tc_ep_cli_003(sample_c
     # Given: a CSV with multiple Y columns
     # When: invoking csv2graph without overriding flags
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(csv_output_dir),
         ],
@@ -685,8 +741,9 @@ def test_csv2graph_cli_explicit_no_individual_skips_outputs__tc_ep_cli_004(sampl
     # Given: a multi-series CSV
     # When: invoking csv2graph with --no-individual
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(csv_output_dir),
             "--no-individual",
@@ -717,8 +774,9 @@ def test_csv2graph_cli_series_count_boundary__tc_bv_cli_001(
     # Given: a single-series CSV without overrides
     # When: invoking csv2graph
     result_single = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(single_series_csv_file),
             "--output-dir", str(single_output),
         ],
@@ -732,8 +790,9 @@ def test_csv2graph_cli_series_count_boundary__tc_bv_cli_001(
     # Given: a multi-series CSV without overrides
     # When: invoking csv2graph
     result_multi = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(multi_output),
         ],
@@ -757,8 +816,9 @@ def test_csv2graph_cli_mode_boundary__tc_bv_cli_002(sample_csv_file: Path, tmp_p
     # Given: overlay mode on a multi-series CSV
     # When: invoking csv2graph
     overlay_result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(overlay_output),
         ],
@@ -772,8 +832,9 @@ def test_csv2graph_cli_mode_boundary__tc_bv_cli_002(sample_csv_file: Path, tmp_p
     # Given: individual mode on the same CSV
     # When: invoking csv2graph with --mode individual
     individual_result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(individual_output),
             "--mode", "individual",
@@ -790,8 +851,9 @@ def test_csv2graph_basic_success(sample_csv_file, csv_output_dir):
     """Test basic csv2graph command execution with minimal options."""
     runner = CliRunner()
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(csv_output_dir),
         ],
@@ -813,8 +875,9 @@ def test_csv2graph_with_options(sample_csv_file, csv_output_dir):
     """Test csv2graph command with various options."""
     runner = CliRunner()
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(csv_output_dir),
             "--title", "Test Plot",
@@ -833,8 +896,9 @@ def test_csv2graph_individual_mode(sample_csv_file, csv_output_dir):
     """Test csv2graph command in individual plotting mode."""
     runner = CliRunner()
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(csv_output_dir),
             "--mode", "individual",
@@ -856,8 +920,9 @@ def test_csv2graph_main_image_dir(sample_csv_file, csv_output_dir, tmp_path: Pat
 
     runner = CliRunner()
     result = runner.invoke(
-        csv2graph,
+        app,
         [
+            "csv2graph",
             str(sample_csv_file),
             "--output-dir", str(csv_output_dir),
             "--main-image-dir", str(main_image_dir),
@@ -881,8 +946,8 @@ def test_csv2graph_file_not_found():
     non_existent = Path("/tmp/non_existent_file.csv")
 
     result = runner.invoke(
-        csv2graph,
-        [str(non_existent)],
+        app,
+        ["csv2graph", str(non_existent)],
     )
 
     assert result.exit_code != 0
@@ -892,12 +957,13 @@ def test_csv2graph_file_not_found():
 def test_csv2graph_help():
     """Test csv2graph command help message."""
     runner = CliRunner()
-    result = runner.invoke(csv2graph, ["--help"])
+    result = runner.invoke(app, ["csv2graph", "--help"])
 
     assert result.exit_code == 0
-    assert "Usage: csv2graph [OPTIONS] CSV_PATH" in result.output
-    assert "Generate graphs from CSV files." in result.output
-    assert "--output-dir" in result.output
-    assert "--main-image-dir" in result.output
-    assert "--mode" in result.output
-    assert "--title" in result.output
+    output = click.termui.strip_ansi(result.output)
+    assert "csv2graph" in output
+    assert "Generate graphs from CSV" in output
+    assert "--output-dir" in output or "-o" in output
+    assert "--main-image-dir" in output
+    assert "--mode" in output
+    assert "--title" in output

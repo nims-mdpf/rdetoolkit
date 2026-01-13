@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.4.2"
+version = "1.5.0"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -14,6 +14,7 @@ classifiers = [
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Programming Language :: Rust',
     'License :: OSI Approved :: MIT License',
     'Operating System :: POSIX :: Linux',
@@ -27,17 +28,19 @@ dependencies = [
     "openpyxl>=3.1.2",
     "pandas>=2.2.3",
     "build>=1.0.3",
-    "click>=8.1.7",
+    "typer>=0.9.0",
     "toml>=0.10.2",
     "pydantic>=2.8.3",
     "jsonschema>=4.21.1",
     "tomlkit>=0.12.4",
     "PyYAML>=6.0.1",
     "eval_type_backport>=0.2.0",
+    "typing-extensions>=4.12.2; python_version < '3.11'",
     "numpy>=1.26.4",
     "polars>=1.9.0",
     "pyarrow>=19.0.0",
     "pip>=24.3.1",
+    "rpds-py>=0.26",
     "markdown>=3.7",
     "types-pytz>=2025.2.0.20250326",
     "matplotlib>=3.9.4",
@@ -54,7 +57,7 @@ package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
 
 
 [project.scripts]
-rdetoolkit = "rdetoolkit.cli:cli"
+rdetoolkit = "rdetoolkit.cli.app:app"
 
 [project.urls]
 "Homepage" = "https://github.com/nims-dpfc/rdetoolkit"
@@ -106,6 +109,7 @@ features = ["pyo3/extension-module"]
 [tool.ruff]
 line-length = 250
 indent-width = 4
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
@@ -154,6 +158,8 @@ ignore = [
     "ANN003",
     "ANN401",
     "BLE001",
+    "UP007",
+    "UP045",
 ]
 exclude = [
     "bzr",
@@ -199,19 +205,88 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 # Unused imports are allowed in __init__.py.
-"__init__.py" = ["F401", "F403"]
+"__init__.py" = ["F401", "F403", "PLC0415"]
+"src/rdetoolkit/cli.py" = ["PLC0415"]
+"src/rdetoolkit/errors.py" = ["PLC0415"]
+"src/rdetoolkit/fileops.py" = ["PLC0415"]
+"src/rdetoolkit/graph/__init__.py" = ["PLC0415"]
+"src/rdetoolkit/graph/api/csv2graph.py" = ["PLC0415"]
+"src/rdetoolkit/invoicefile.py" = ["PLC0415"]
+"src/rdetoolkit/rde2util.py" = ["PLC0415"]
+"src/rdetoolkit/validation.py" = ["PLC0415"]
+"src/rdetoolkit/workflows.py" = ["PLC0415"]
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
+# CLI commands use lazy imports for performance
+"src/rdetoolkit/cli/*.py" = ["PLC0415"]
+"src/rdetoolkit/cli/app.py" = ["FA100"]
+
+# Type Checking Configuration
+#
+# Enhanced type safety through NewType and ValidatedPath classes
+# introduced in Issue #335. Configuration balances strictness with
+# gradual migration path for existing code.
+#
+# Key features:
+# - NewType creates distinct type identities for compile-time checking
+# - ValidatedPath hierarchy provides runtime validation
+# - Per-module overrides enable stricter checking for new code
+# - Existing modules maintain current checking level for compatibility
+#
+# NewType Checking Behavior:
+#
+# ZipFilePath = NewType('ZipFilePath', Path)
+#
+# At type checking time:
+# - ZipFilePath is distinct from Path and other NewTypes
+# - Assignments between incompatible NewTypes are errors
+# - Must use constructor: zip_path = ZipFilePath(Path("file.zip"))
+#
+# At runtime:
+# - ZipFilePath(x) is just the identity function returning x
+# - No performance overhead, purely for type checking
+# - isinstance(zip_path, ZipFilePath) is False (it's a Path)
 
 [tool.mypy]
+# Display options
 show_error_context = true
 show_column_numbers = true
-strict_optional = true
-ignore_missing_imports = true
-no_implicit_optional = true
 show_error_codes = true
+
+# Import handling
+ignore_missing_imports = true
+
+# Type checking strictness
+strict_optional = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+# NewType and type alias handling
+# Ensure NewType creates distinct types at type checking time
+disallow_any_generics = false  # Allow for gradual migration
+
+# Path exclusions
 exclude = ["tests", "src/rdetoolkit/stubs", '.*\.pyi$']
+
+# Mypy Plugins (currently not required)
+# plugins = []
+#
+# Future considerations:
+# - Custom plugin for advanced ValidatedPath validation
+# - Plugin for FileGroup type narrowing
+# - Integration with pydantic if needed
+
+# Per-module overrides for gradual adoption
+[[tool.mypy.overrides]]
+module = "rdetoolkit.models.rde2types"
+# Enable stricter checking for the module with new types
+disallow_untyped_defs = true
+disallow_any_explicit = false  # Allow explicit Any during migration
+warn_return_any = true
+warn_unreachable = true
+check_untyped_defs = true
 
 [tool.coverage.run]
 omit = ["tests/*", "interfaces/*", "local/*"]

@@ -19,13 +19,13 @@ jobs:
       startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup uv (Python 3.12)
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
       - name: Cache uv
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ~/.cache/uv
           key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}
@@ -44,7 +44,7 @@ jobs:
           source .venv/bin/activate
           python -m pytest --junitxml=pytest.xml --cov-report=term-missing --cov=src tests/ | tee pytest-coverage.txt
       - name: Pytest coverage comment
-        uses: MishaKav/pytest-coverage-comment@v1.1.57
+        uses: MishaKav/pytest-coverage-comment@v1.2.0
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml

@@ -20,10 +20,10 @@ jobs:
       (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/')))) }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         tox-env: [module, ruff, mypy]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
@@ -46,10 +46,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         rust: [stable]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -89,9 +89,9 @@ jobs:
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/')) }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
@@ -109,7 +109,7 @@ jobs:
     if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
       (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/')))) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup up Python 3.11
         uses: actions/setup-python@v6
         with:

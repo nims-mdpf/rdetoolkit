@@ -94,7 +94,7 @@ srcpaths = RdeInputDirPaths(
 )
 
 # Execute file classification
-raw_files, excel_invoice = check_files(srcpaths, mode="Invoice")
+raw_files, excel_invoice = check_files(srcpaths, mode="invoice")
 
 print(f"Classified files: {raw_files}")
 print(f"Excel invoice: {excel_invoice}")

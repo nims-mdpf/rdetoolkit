@@ -8,8 +8,8 @@ This page explains how to persist logs from your RDEToolKit workflows by using `
 
 - **Name (`name`)**: Identifier for the logger. Pass `__name__` to keep one logger per module.
 - **Log level (`level`)**: Defaults to `logging.DEBUG`, but you can set `INFO`, `WARNING`, and other levels as needed.
-- **Destination (`file_path`)**: Accepts an `RdeFsPath` or a string path. When provided, `LazyFileHandler` creates parent directories and the log file only when the first log record arrives.
-- **Handler deduplication**: Repeated calls with the same `name` and `file_path` do not register duplicate handlers, preventing duplicated log lines and file handles.
+- **Destination (`file_path`)**: Accepts an `RdeFsPath` or a string path. When provided, `get_logger` creates parent directories immediately and uses `logging.FileHandler(delay=True)` so the log file is created on the first write.
+- **Handler replacement**: Repeated calls clear any RDEToolKit-managed file handlers before adding a new one, preventing handler accumulation and duplicated log lines.
 - **When `file_path` is omitted**: The function returns a logger without handlers. Configure handlers separately with `logging.basicConfig()` or custom logging setup to emit records elsewhere.
 
 The default log format is `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s`, which keeps timestamps, module names, and severities visible at a glance.
@@ -32,7 +32,7 @@ logger.info("Structured processing started")
 logger.warning("Input files are missing")
 ```
 
-When this code runs, `LazyFileHandler` creates `data/logs/structured_process.log` on the first write and appends entries similar to:
+When this code runs, `get_logger` uses `logging.FileHandler(delay=True)`, so `data/logs/structured_process.log` is created on the first write and appends entries similar to:
 
 ```
 2024-06-14 10:21:35,147 - [my_module](INFO) - Structured processing started
@@ -62,7 +62,7 @@ def run(context: dict) -> int:
 ```
 
 - `logger.exception()` appends the stack trace automatically, which speeds up root cause analysis.
-- Thanks to `LazyFileHandler`, `data/logs/dataset.log` is created only when the first record arrives.
+- Thanks to `logging.FileHandler(delay=True)`, `data/logs/dataset.log` is created only when the first record arrives.
 
 ## 3. Choosing log levels
 
@@ -95,10 +95,10 @@ This approach plays nicely with applications that already define their own loggi
 ## 5. Frequently asked questions
 
 **Q. Will repeated initialization cause duplicate log lines?**  
-A. No. `get_logger` checks for an existing `LazyFileHandler` targeting the same file before adding a new one.
+A. No. `get_logger` clears any RDEToolKit-managed file handlers before adding a new one, so handlers do not accumulate.
 
 **Q. What if the target directory does not exist yet?**  
-A. `LazyFileHandler` creates the directory tree and log file during the first write.
+A. `get_logger` creates the directory tree immediately and uses `logging.FileHandler(delay=True)` so the log file is created on the first write.
 
 **Q. How should I construct an `RdeFsPath`?**  
 A. Wrap a `Path` or string. RDEToolKit uses `RdeFsPath` to keep path handling consistent across the project.

@@ -10,7 +10,7 @@ from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.processing.pipeline import Processor
 from rdetoolkit.rdelogger import get_logger
 
-logger = get_logger(__name__, file_path="data/logs/rdesys.log")
+logger = get_logger(__name__)
 
 
 class FileCopier(Processor):

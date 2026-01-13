@@ -3,9 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
-
-import pandas as pd
+from typing import TYPE_CHECKING, Any, Literal
 
 from rdetoolkit.graph.config import PlotConfigBuilder
 from rdetoolkit.graph.io.file_writer import FileWriter
@@ -20,11 +18,12 @@ from rdetoolkit.graph.models import (
     RenderResult,
 )
 from rdetoolkit.graph.normalizers import validate_column_specs
-from rdetoolkit.graph.parsers.parser_factory import ParserFactory
-from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
 from rdetoolkit.graph.strategies.all_graphs import OverlayStrategy
 from rdetoolkit.graph.strategies.individual import IndividualStrategy
 from rdetoolkit.graph.textutils import parse_header
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @dataclass(frozen=True)
@@ -316,6 +315,8 @@ def _collect_render_results(
     plot_mode: PlotMode,
 ) -> RenderCollections:
     """Render graphs according to the selected strategy."""
+    from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
+
     renderer = MatplotlibRenderer()
     overlay_results: list[RenderResult] = []
     individual_results: list[RenderResult] = []
@@ -360,6 +361,7 @@ def _save_render_results(
     collections: RenderCollections,
     output_dir_path: Path,
     main_image_dir_path: Path | None,
+    html_output_dir_path: Path | None = None,
 ) -> None:
     """Persist rendered results to disk."""
     if not collections.overlay and not collections.individual:
@@ -368,16 +370,20 @@ def _save_render_results(
     writer = FileWriter()
     validator = PathValidator()
     output_path = validator.ensure_directory(output_dir_path)
+    html_output_path = (
+        output_path
+        if html_output_dir_path is None
+        else validator.ensure_directory(html_output_dir_path)
+    )
     main_image_path: Path | None = None
     if main_image_dir_path is not None:
         main_image_path = validator.ensure_directory(main_image_dir_path)
 
     for result in collections.overlay:
         target_dir = output_path
-        if (
-            main_image_path is not None
-            and result.format.lower() != "html"
-        ):
+        if result.format.lower() == "html":
+            target_dir = html_output_path
+        elif main_image_path is not None:
             target_dir = main_image_path
         writer.save_figure(
             result.figure,
@@ -399,6 +405,7 @@ def csv2graph(
     csv_path: str | Path,
     output_dir: str | Path | None = None,
     main_image_dir: str | Path | None = None,
+    html_output_dir: str | Path | None = None,
     csv_format: Literal["standard", "transpose", "noheader"] = "standard",
     logy: bool = False,
     logx: bool = False,
@@ -429,6 +436,7 @@ def csv2graph(
         output_dir: Output directory for plots (default: same as CSV)
         main_image_dir: Directory for combined plot outputs
                         (overrides output_dir for non-HTML overlay artifacts)
+        html_output_dir: Directory for HTML outputs (default: CSV directory)
         csv_format: CSV format type ("standard", "transpose", "noheader")
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
@@ -459,19 +467,26 @@ def csv2graph(
         ...     grid=True,
         ... )
     """
+    from rdetoolkit.graph.parsers.parser_factory import ParserFactory
+
     csv_path = Path(csv_path)
     parser = ParserFactory.create(csv_format)
     df = parser.parse(csv_path)
 
+    if html_output_dir is not None and not isinstance(html_output_dir, (str, Path)):
+        msg = "html_output_dir must be a str, Path, or None"
+        raise TypeError(msg)
     output_dir = csv_path.parent if output_dir is None else Path(output_dir)
     if main_image_dir is not None:
         main_image_dir = Path(main_image_dir)
+    html_output_dir = csv_path.parent if html_output_dir is None else Path(html_output_dir)
     title = csv_path.stem if title is None else title
 
     plot_from_dataframe(
         df=df,
         output_dir=output_dir,
         main_image_dir=main_image_dir,
+        html_output_dir=html_output_dir,
         logy=logy,
         logx=logx,
         html=html,
@@ -499,6 +514,7 @@ def plot_from_dataframe(
     df: pd.DataFrame,
     output_dir: str | Path,
     main_image_dir: str | Path | None = None,
+    html_output_dir: str | Path | None = None,
     logy: bool = False,
     logx: bool = False,
     html: bool = False,
@@ -532,6 +548,7 @@ def plot_from_dataframe(
         df: Input DataFrame
         output_dir: Output directory for plots
         main_image_dir: Directory where main rendered images are stored
+        html_output_dir: Directory for HTML artifacts (defaults to output_dir)
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
         html: Generate interactive HTML output with Plotly
@@ -574,9 +591,15 @@ def plot_from_dataframe(
     if no_individual is not None and not isinstance(no_individual, bool):
         msg = "no_individual must be True, False, or None"
         raise TypeError(msg)
+    if html_output_dir is not None and not isinstance(html_output_dir, (str, Path)):
+        msg = "html_output_dir must be a str, Path, or None"
+        raise TypeError(msg)
 
     output_dir_path = Path(output_dir)
     main_image_dir_path = Path(main_image_dir) if main_image_dir is not None else None
+    html_output_dir_path = (
+        Path(html_output_dir) if html_output_dir is not None else output_dir_path
+    )
 
     normalized_columns = _normalize_columns(
         df,
@@ -629,5 +652,10 @@ def plot_from_dataframe(
     if return_fig:
         return _build_matplotlib_artifacts(collections)
 
-    _save_render_results(collections, output_dir_path, main_image_dir_path)
+    _save_render_results(
+        collections,
+        output_dir_path,
+        main_image_dir_path,
+        html_output_dir_path,
+    )
     return None

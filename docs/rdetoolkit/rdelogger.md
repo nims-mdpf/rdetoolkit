@@ -8,17 +8,13 @@ This module handles collection and management of execution logs in RDEToolKit's 
 
 ### Log Management
 - Collection of structured processing execution logs
-- Efficient log output through lazy file handlers
+- Efficient log output with delayed file creation
 - Custom log configuration and decorators
 
 ### Output Control
 - Switching between file output and console output
 - Log handler management
 - Detailed control of debug information
-
----
-
-::: src.rdetoolkit.rdelogger.LazyFileHandler
 
 ---
 
@@ -58,17 +54,12 @@ print("Log configuration completed")
 
 ```python title="custom_logging.py"
 from rdetoolkit.rdelogger import CustomLog
-from pathlib import Path
 
-# Configure custom log
-log_file = Path("logs/experiment.log")
-log_file.parent.mkdir(parents=True, exist_ok=True)
-
-custom_log = CustomLog()
-logger = custom_log.get_logger("custom_logger", str(log_file))
+# Configure user log (writes to data/logs/rdeuser.log)
+logger = CustomLog().get_logger()
 
 # Record logs
-logger.info("Started custom logging")
+logger.info("Started user logging")
 logger.info("Starting experimental data processing")
 
 # Processing simulation
@@ -76,18 +67,18 @@ for i in range(5):
     logger.debug(f"Executing processing step {i+1}/5")
     
 logger.info("Experimental data processing completed")
-print(f"Recorded to log file: {log_file}")
+print("Recorded to log file: data/logs/rdeuser.log")
 ```
 
 ### Using Log Decorator
 
 ```python title="log_decorator_usage.py"
-from rdetoolkit.rdelogger import log_decorator, get_logger
+from rdetoolkit.rdelogger import CustomLog, log_decorator
 
-# Configure logger
-logger = get_logger("decorated_functions")
+# Configure logger for error reporting
+logger = CustomLog().get_logger()
 
-@log_decorator(logger)
+@log_decorator()
 def process_data(data_file):
     """Data processing function (with log decorator)"""
     if not data_file.exists():
@@ -101,7 +92,7 @@ def process_data(data_file):
     
     return {"status": "success", "size": len(content)}
 
-@log_decorator(logger)
+@log_decorator()
 def analyze_results(results):
     """Result analysis function (with log decorator)"""
     if not results:
@@ -129,40 +120,19 @@ try:
     analysis = analyze_results(test_results)
     print(f"Analysis result: {analysis}")
     
-except Exception as e:
-    logger.error(f"Error occurred during processing: {e}")
+except Exception as exc:
+    logger.error(f"Error occurred during processing: {exc}")
 ```
 
-### Utilizing Lazy File Handler
+### Delayed file creation with `get_logger`
 
-```python title="lazy_file_handler.py"
-from rdetoolkit.rdelogger import LazyFileHandler, get_logger
-import logging
+```python title="delayed_file_creation.py"
+from rdetoolkit.rdelogger import get_logger
 from pathlib import Path
-
-def setup_lazy_logging(log_file_path: Path):
-    """Log configuration using lazy file handler"""
-    
-    # Create lazy file handler
-    lazy_handler = LazyFileHandler(str(log_file_path))
-    lazy_handler.setLevel(logging.INFO)
-    
-    # Configure formatter
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    lazy_handler.setFormatter(formatter)
-    
-    # Configure logger
-    logger = get_logger("lazy_logger")
-    logger.addHandler(lazy_handler)
-    logger.setLevel(logging.INFO)
-    
-    return logger
 
 # Usage example
 log_path = Path("logs/lazy_experiment.log")
-logger = setup_lazy_logging(log_path)
+logger = get_logger("lazy_logger", file_path=log_path)
 
 # Record logs (file is not created until actually written to)
 logger.info("Started lazy log system")

@@ -36,6 +36,7 @@ RDEToolKitのAPIドキュメントは、ハイブリッド方式で構成され�
 
 ### エラー処理とログ
 
+- [result](result.ja.md) - Result型による型安全なエラーハンドリング
 - [rdelogger](../rdetoolkit/rdelogger.md) - ロギング機能
 - [errors](../rdetoolkit/errors.md) - エラーハンドリング
 - [exceptions](../rdetoolkit/exceptions.md) - 例外処理

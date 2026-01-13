@@ -1,7 +1,7 @@
 import pathlib
 from _typeshed import Incomplete
 from rdetoolkit.rdelogger import get_logger as get_logger
-from typing import Literal
+from typing import Literal, Optional, Union
 
 logger: Incomplete
 
@@ -9,6 +9,7 @@ class Csv2GraphCommand:
     csv_path: Incomplete
     output_dir: Incomplete
     main_image_dir: Incomplete
+    html_output_dir: Incomplete
     csv_format: Incomplete
     logy: Incomplete
     logx: Incomplete
@@ -29,5 +30,5 @@ class Csv2GraphCommand:
     invert_y: Incomplete
     no_individual: Incomplete
     max_legend_items: Incomplete
-    def __init__(self, csv_path: pathlib.Path, output_dir: pathlib.Path | None = None, main_image_dir: pathlib.Path | None = None, csv_format: Literal['standard', 'transpose', 'noheader'] = 'standard', logy: bool = False, logx: bool = False, html: bool = False, mode: Literal['overlay', 'individual'] = 'overlay', x_col: list[int | str] | None = None, y_cols: list[int | str] | None = None, direction_cols: list[int | str] | None = None, direction_filter: list[str] | None = None, direction_colors: dict[str, str] | None = None, title: str | None = None, legend_info: str | None = None, legend_loc: str | None = None, xlim: tuple[float, float] | None = None, ylim: tuple[float, float] | None = None, grid: bool = False, invert_x: bool = False, invert_y: bool = False, no_individual: bool = False, max_legend_items: int | None = None) -> None: ...
+    def __init__(self, csv_path: pathlib.Path, output_dir: pathlib.Optional[Path] = None, main_image_dir: pathlib.Optional[Path] = None, html_output_dir: pathlib.Optional[Path] = None, csv_format: Literal['standard', 'transpose', 'noheader'] = 'standard', logy: bool = False, logx: bool = False, html: bool = False, mode: Literal['overlay', 'individual'] = 'overlay', x_col: Optional[list[Union[int, str]]] = None, y_cols: Optional[list[Union[int, str]]] = None, direction_cols: Optional[list[Union[int, str]]] = None, direction_filter: Optional[list[str]] = None, direction_colors: Optional[dict[str, str]] = None, title: Optional[str] = None, legend_info: Optional[str] = None, legend_loc: Optional[str] = None, xlim: Optional[tuple[float, float]] = None, ylim: Optional[tuple[float, float]] = None, grid: bool = False, invert_x: bool = False, invert_y: bool = False, no_individual: Optional[bool] = None, max_legend_items: Optional[int] = None) -> None: ...
     def invoke(self) -> None: ...
