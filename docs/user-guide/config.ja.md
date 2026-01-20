@@ -256,5 +256,5 @@ thumbnail_name = safe_get_custom_config(
 
 設定ファイルの詳細な仕様については：
 
-- [Magic Variables](#magic-variable機能) - 動的メタデータ置換機能の詳細
+- [Magic Variables](../usage/config/magic_variable.ja.md) - 動的メタデータ置換機能の詳細
 - [API リファレンス](../api/index.ja.md) - 設定関連のAPI仕様

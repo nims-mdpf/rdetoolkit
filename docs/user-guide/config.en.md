@@ -256,5 +256,5 @@ thumbnail_name = safe_get_custom_config(
 
 For detailed configuration file specifications:
 
-- [Magic Variables](#magic-variables) - Dynamic metadata replacement functionality (see Magic Variables section above)
+- [Magic Variables](../usage/config/magic_variable.en.md) - Dynamic metadata replacement functionality
 - [API Reference](../api/index.en.md) - Configuration-related API specifications
