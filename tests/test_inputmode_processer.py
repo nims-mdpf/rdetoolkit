@@ -187,20 +187,20 @@ def test_invoice_mode_process_calls_functions(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
+    # Check whether invoice backup ran
     assert os.path.exists(os.path.join("data", "invoice", "invoice.json"))
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
-    # rawへのコピーが実行されないことを確認
+    # Verify copy to raw is not performed
     assert len(list(Path("data", "raw").glob("*"))) == 0
-    # nonshared_rawへのコピーが実行されたかどうかをチェック
+    # Check whether copy to nonshared_raw was performed
     assert len(list(Path("data", "nonshared_raw").glob("*"))) == 1
 
 
@@ -255,14 +255,14 @@ def test_invoice_mode_save_raw(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # rawへのコピーが実行されないことを確認
+    # Verify copy to raw is not performed
     assert len(list(Path("data", "raw").glob("*"))) == 1
-    # nonshared_rawへのコピーが実行されたかどうかをチェック
+    # Check whether copy to nonshared_raw was performed
     assert len(list(Path("data", "nonshared_raw").glob("*"))) == 0
 
 
@@ -319,14 +319,14 @@ def test_invoice_mode_process_calls_functions_none_metadata_json(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
+    # Check whether invoice backup ran
     assert os.path.exists(os.path.join("data", "invoice", "invoice.json"))
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
@@ -386,14 +386,14 @@ def test_invoice_mode_process_calls_functions_with_magic_variable(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     invoice_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
+    # Check whether invoice backup ran
     assert os.path.exists(os.path.join("data", "invoice", "invoice.json"))
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["dataName"] == "test_single.txt"
@@ -419,7 +419,7 @@ def test_excel_invoice_mode_process_calls_functions(
     - nonshared_rawフォルダへのコピー(defualt)
     - rawへのコピーが実行されないことを確認(defualt)
     """
-    # 事前準備: フィクスチャ
+    # Setup: fixtures
     Path("data", "raw").mkdir(parents=True, exist_ok=True)
     Path("data", "nonshared_raw").mkdir(parents=True, exist_ok=True)
     Path("data", "main_image").mkdir(parents=True, exist_ok=True)
@@ -462,28 +462,28 @@ def test_excel_invoice_mode_process_calls_functions(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # 関数のモック
+    # Mock the function
     mock_datasets_process_function = mocker.Mock()
 
-    # テスト対象の関数を実行
+    # Run the target function
     excel_invoice_mode_process(srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice, 0, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
-    # rawへのコピーが実行されないことを確認
+    # Verify copy to raw is not performed
     assert len(list(Path("data", "raw").glob("*"))) == 0
-    # nonshared_rawへのコピーが実行されたかどうかをチェック
+    # Check whether copy to nonshared_raw was performed
     assert len(list(Path("data", "nonshared_raw").glob("*"))) >= 1
 
 
@@ -507,7 +507,7 @@ def test_excel_invoice_save_raw(
     - nonshared_rawフォルダへのコピーされない
     - rawへのコピーが実行
     """
-    # 事前準備: フィクスチャ
+    # Setup: fixtures
     Path("data", "raw").mkdir(parents=True, exist_ok=True)
     Path("data", "nonshared_raw").mkdir(parents=True, exist_ok=True)
     Path("data", "main_image").mkdir(parents=True, exist_ok=True)
@@ -550,28 +550,28 @@ def test_excel_invoice_save_raw(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # 関数のモック
+    # Mock the function
     mock_datasets_process_function = mocker.Mock()
 
-    # テスト対象の関数を実行
+    # Run the target function
     excel_invoice_mode_process(srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice, 0, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
-    # rawへのコピーが実行されることを確認
+    # Verify copy to raw is performed
     assert len(list(Path("data", "raw").glob("*"))) >= 1
-    # nonshared_rawへのコピーが実行されないことを確認
+    # Verify copy to nonshared_raw is not performed
     assert len(list(Path("data", "nonshared_raw").glob("*"))) == 0
 
 
@@ -593,7 +593,7 @@ def test_excel_invoice_mode_process_calls_functions_none_metadatajson(
     - 各種バリデーションチェック
         - metadata.jsonが存在しない
     """
-    # 事前準備: フィクスチャ
+    # Setup: fixtures
     Path("data", "raw").mkdir(parents=True, exist_ok=True)
     Path("data", "nonshared_raw").mkdir(parents=True, exist_ok=True)
     Path("data", "main_image").mkdir(parents=True, exist_ok=True)
@@ -636,22 +636,22 @@ def test_excel_invoice_mode_process_calls_functions_none_metadatajson(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # 関数のモック
+    # Mock the function
     mock_datasets_process_function = mocker.Mock()
 
-    # テスト対象の関数を実行
+    # Run the target function
     excel_invoice_mode_process(srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice, 0, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
@@ -675,7 +675,7 @@ def test_excel_invoice_mode_process_calls_functions_replace_magic_variable(
         - ファイルモードのとき、${filename}の書き換えが実行されるか
     - 各種バリデーションチェック
     """
-    # 事前準備: フィクスチャ
+    # Setup: fixtures
     Path("data", "raw").mkdir(parents=True, exist_ok=True)
     Path("data", "main_image").mkdir(parents=True, exist_ok=True)
     Path("data", "other_image").mkdir(parents=True, exist_ok=True)
@@ -716,24 +716,24 @@ def test_excel_invoice_mode_process_calls_functions_replace_magic_variable(
         invoice_schema_json=Path(ivnoice_schema_json_none_sample),
         nonshared_raw=Path("data", "nonshared_raw"),
     )
-    # 関数のモック
+    # Mock the function
     mock_datasets_process_function = mocker.Mock()
 
-    # テスト対象の関数を実行
+    # Run the target function
     excel_invoice_mode_process(
         srcpaths, resource_paths, inputfile_single_dummy_header_excelinvoice_with_magic_variable, 0, mock_datasets_process_function,
     )
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["dataName"] == "test_child1.txt"
@@ -795,31 +795,31 @@ def test_multifile_mode_process_calls_functions(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
 
-    # rawfileのバックアップが実行されたかチェック
+    # Check whether rawfile backup ran
     for file in resource_paths.rawfiles:
         assert os.path.exists(file)
 
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
-    # rawへのコピーが実行されないことを確認
+    # Verify copy to raw is not performed
     assert len(list(Path("data", "raw").glob("*"))) == 0
-    # nonshared_rawへのコピーが実行されたか確認
+    # Verify copy to nonshared_raw was performed
     assert len(list(Path("data", "nonshared_raw").glob("*"))) >= 1
 
 
@@ -879,31 +879,31 @@ def test_multifile_save_raw(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
 
-    # rawfileのバックアップが実行されたかチェック
+    # Check whether rawfile backup ran
     for file in resource_paths.rawfiles:
         assert os.path.exists(file)
 
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
-    # rawへのコピーが実行されないことを確認
+    # Verify copy to raw is not performed
     assert len(list(Path("data", "raw").glob("*"))) >= 1
-    # nonshared_rawへのコピーが実行されたか確認
+    # Verify copy to nonshared_raw was performed
     assert len(list(Path("data", "nonshared_raw").glob("*"))) == 0
 
 
@@ -961,25 +961,25 @@ def test_multifile_mode_process_calls_functions_none_metadata_json(
         nonshared_raw=Path("data", "nonshared_raw"),
     )
 
-    # テスト対象の処理を実行
+    # Run the target process
     multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
-    # invoiceのバックアップが実行されたかチェック
-    # descriptionがバックアップ後に実行されるため内容が一致しない。
+    # Check whether invoice backup ran
+    # Description is processed after backup, so the contents do not match.
     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
         contents_backup = json.load(f)
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         contents_origin = json.load(f)
     assert contents_backup != contents_origin
 
-    # rawfileのバックアップが実行されたかチェック
+    # Check whether rawfile backup ran
     for file in resource_paths.rawfiles:
         assert os.path.exists(file)
 
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
@@ -992,15 +992,15 @@ def test_multifile_mode_process_calls_functions_none_metadata_json(
 #     tasksupport_skip_multi_setting,
 #     metadata_def_json_with_feature,
 #     ivnoice_schema_json,
-#     caplog,  # warningを検出
+#     caplog,  # capture warnings
 # ):
-#     """multifile mode processテスト
-#     テスト対象: 以下の処理が実行されるかテスト
-#     - invoice上書き
-#     - データセット処理(例外が発生しても処理が継続されるかテスト)
-#     - 特徴量書き込み処理
-#     - 各種バリデーションチェック(metadata.jsonが存在しない)
-#     metadata.jsonが存在しない場合、特徴量の書き込み処理は実行されない
+#     """multifile mode process test
+#     Target: verify the following processing runs
+#     - overwrite invoice
+#     - dataset processing (verify processing continues even if an exception occurs)
+#     - feature write processing
+#     - validation checks (metadata.json does not exist)
+#     When metadata.json does not exist, feature writing is not performed.
 #     """
 #     Path("data", "raw").mkdir(parents=True, exist_ok=True)
 #     Path("data", "main_image").mkdir(parents=True, exist_ok=True)
@@ -1040,27 +1040,27 @@ def test_multifile_mode_process_calls_functions_none_metadata_json(
 #     def custom_dataset_process(srcpaths, resource_paths):
 #         raise Exception("test exception")
 
-#     # テスト対象の処理を実行
+#     # Run the target process
 #     with caplog.at_level(logging.WARNING):
 #         multifile_mode_process(srcpaths, resource_paths, custom_dataset_process)
 
-#     # エラースキップフラグがTrueの場合、Warningを検知できるかテスト
+#     # Verify warnings are detected when error-skip flag is True
 #     warnings = [record for record in caplog.records if record.levelname == "WARNING"]
 #     assert len(warnings) > 0
 
-#     # invoiceのバックアップが実行されたかチェック
-#     # descriptionがバックアップ後に実行されるため内容が一致しない。
+#     # Check whether invoice backup ran
+#     # Description is processed after backup, so the contents do not match.
 #     with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
 #         contents_backup = json.load(f)
 #     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
 #         contents_origin = json.load(f)
 #     assert contents_backup != contents_origin
 
-#     # rawfileのバックアップが実行されたかチェック
+#     # Check whether rawfile backup ran
 #     for file in resource_paths.rawfiles:
 #         assert os.path.exists(file)
 
-#     # descriptionのチェック
+#     # Check description
 #     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
 #         content = json.load(f)
 #     assert content["basic"]["description"] == expected_description
@@ -1159,7 +1159,7 @@ def test_multifile_mode_process_calls_functions_replace_magic_filename(
 
     mock_datasets_process_function = mocker.Mock()
 
-    # テスト対象の処理を実行
+    # Run the target process
     for idx in range(2):
         if idx == 0:
             resource_paths = resource_paths1
@@ -1172,29 +1172,29 @@ def test_multifile_mode_process_calls_functions_replace_magic_filename(
 
         multifile_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-        # 関数が呼び出されたかどうかをチェック
+        # Check whether the function was called
         _assert_dataset_callback_called_with(mock_datasets_process_function, srcpaths, resource_paths, idx)
 
-        # invoiceのバックアップが実行されたかチェック
-        # descriptionがバックアップ後に実行されるため内容が一致しない。
+        # Check whether invoice backup ran
+        # Description is processed after backup, so the contents do not match.
         with open(os.path.join("data", "temp", "invoice_org.json"), encoding="utf-8") as f:
             contents_backup = json.load(f)
         with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
             contents_origin = json.load(f)
         assert contents_backup != contents_origin
 
-        # rawfileのバックアップが実行されたかチェック
+        # Check whether rawfile backup ran
         for file in resource_paths.rawfiles:
             assert os.path.exists(file)
 
         with open(invoice, encoding="utf-8") as f:
             content = json.load(f)
-        # ${filename}の書き換えの実行
+        # Rewrite ${filename}
         assert content["basic"]["dataName"] == expected_filename
 
-        # rawへのコピーが実行されないことを確認
+        # Verify copy to raw is not performed
         assert len(list(resource_paths.raw.glob("*"))) == 0
-        # nonshared_rawへのコピーが実行されたか確認
+        # Verify copy to nonshared_raw was performed
         assert len(list(resource_paths.nonshared_raw.glob("*"))) >= 1
 
 
@@ -1258,21 +1258,21 @@ def test_rdeformat_mode_process_alls_functions(
         invoice_schema_json=invoice_shcema_json_full,
         nonshared_raw=Path("data", "nonshared_raw"),
     )
-    # テスト対象の処理を実行
+    # Run the target process
     rdeformat_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
 
-    # rawフォルダにコピーされたかチェック
+    # Check whether copied to raw folder
     assert len(list(Path("data", "raw").glob("*"))) == 1
 
-    # thumbnailフォルダにコピーされたかチェック
+    # Check whether copied to thumbnail folder
     assert len(list(Path("data", "thumbnail").glob("*"))) == 1
 
 
@@ -1334,21 +1334,21 @@ def test_rdeformat_mode_process_alls_functions_none_metadata_json(
         invoice_schema_json=invoice_shcema_json_full,
         nonshared_raw=Path("data", "nonshared_raw"),
     )
-    # テスト対象の処理を実行
+    # Run the target process
     rdeformat_mode_process("1", srcpaths, resource_paths, mock_datasets_process_function)
 
-    # 関数が呼び出されたかどうかをチェック
+    # Check whether the function was called
     _assert_dataset_callback_called_once(mock_datasets_process_function, srcpaths, resource_paths)
 
-    # descriptionのチェック
+    # Check description
     with open(os.path.join("data", "invoice", "invoice.json"), encoding="utf-8") as f:
         content = json.load(f)
     assert content["basic"]["description"] == expected_description
 
-    # rawフォルダにコピーされたかチェック
+    # Check whether copied to raw folder
     assert len(list(Path("data", "raw").glob("*"))) == 1
 
-    # thumbnailフォルダにコピーされたかチェック
+    # Check whether copied to thumbnail folder
     assert len(list(Path("data", "thumbnail").glob("*"))) == 1
 
 

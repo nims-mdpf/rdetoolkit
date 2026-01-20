@@ -163,3 +163,63 @@ def metadata_json_missing_value() -> Generator[str, None, None]:
     # teardown
     if os.path.exists("data"):
         shutil.rmtree("data")
+
+
+@pytest.fixture()
+def metadata_json_multiple_variable_features() -> Generator[str, None, None]:
+    """test用のmetadata.json - variable配列に複数のfeatureがある場合."""
+    tasksupport_dir = pathlib.Path("data", "meta")
+    invoice_json_path = pathlib.Path(str(tasksupport_dir), "metadata.json")
+    data = {
+        "constant": {"test_feature_meta1": {"value": "test-value1"}},
+        "variable": [
+            {
+                "test_feature_meta2": {"value": "A", "unit": "V"},
+                "test_feature_meta3": {"value": "X", "unit": "V"},
+            },
+            {
+                "test_feature_meta2": {"value": "B", "unit": "V"},
+                "test_feature_meta3": {"value": "Y", "unit": "V"},
+            },
+            {
+                "test_feature_meta2": {"value": "C", "unit": "V"},
+                "test_feature_meta3": {"value": "Z", "unit": "V"},
+            },
+        ],
+    }
+
+    # setup
+    tasksupport_dir.mkdir(parents=True, exist_ok=True)
+    with open(invoice_json_path, mode="w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+    yield str(invoice_json_path)
+
+    # teardown
+    if os.path.exists("data"):
+        shutil.rmtree("data")
+
+
+@pytest.fixture()
+def metadata_json_constant_and_variable_same_key() -> Generator[str, None, None]:
+    """test用のmetadata.json - constantとvariableに同じキーがある場合（constant優先確認用）."""
+    tasksupport_dir = pathlib.Path("data", "meta")
+    invoice_json_path = pathlib.Path(str(tasksupport_dir), "metadata.json")
+    data = {
+        "constant": {"test_feature_meta2": {"value": "CONSTANT_VALUE", "unit": "V"}},
+        "variable": [
+            {"test_feature_meta2": {"value": "A", "unit": "V"}},
+            {"test_feature_meta2": {"value": "B", "unit": "V"}},
+        ],
+    }
+
+    # setup
+    tasksupport_dir.mkdir(parents=True, exist_ok=True)
+    with open(invoice_json_path, mode="w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+    yield str(invoice_json_path)
+
+    # teardown
+    if os.path.exists("data"):
+        shutil.rmtree("data")

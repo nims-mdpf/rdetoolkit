@@ -514,7 +514,7 @@ def invalid_ivnoice_schema_json() -> Generator[str, None, None]:
     """ダミー用invoice.schema.json"""
     tasksupport_dir = pathlib.Path("data", "tasksupport")
     invoice_json_path = pathlib.Path(str(tasksupport_dir), "invoice.schema.json")
-    # "requireds"が正しくは、"required"
+    # "requireds" should be "required"
     data = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",

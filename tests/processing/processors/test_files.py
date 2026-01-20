@@ -208,20 +208,20 @@ class TestRDEFormatFileCopier:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            # テスト用のソースファイルを作成
+            # Create source files for testing
             source_dir = temp_path / "source" / dir_name
             source_dir.mkdir(parents=True)
             test_file = source_dir / "test.txt"
             test_file.write_text("test content")
 
-            # コンテキストを設定
+            # Set context
             context = test_processing_context_mapping
             context.resource_paths.rawfiles = (test_file,)
 
-            # プロセッサを実行
+            # Run the processor
             processor.process(context)
 
-            # 期待される出力先にファイルが存在することを確認
+            # Confirm file exists at expected output path
             expected_dest = getattr(context.resource_paths, expected_attr)
             expected_file = expected_dest / "test.txt"
 

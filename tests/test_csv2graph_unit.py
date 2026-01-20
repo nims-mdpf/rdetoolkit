@@ -30,7 +30,7 @@ import pandas as pd
 import pytest
 from matplotlib import pyplot as plt
 
-# CI / GitHub Actions では実行しない
+# Do not run in CI / GitHub Actions
 if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
     pytest.skip("Skipping csv2graph unit tests on CI.", allow_module_level=True)
 
@@ -142,7 +142,7 @@ def test_csv_parser_meta_block_header_mismatch(tmp_path: Path) -> None:
 
     df, metadata = CSVParser.parse(csv_path)
 
-    # 足りないデータ列は安全にトリムされる
+    # Missing data columns are safely trimmed
     assert metadata["legends"] == ["Series A"]
     assert list(df.columns) == ["Time (s)", "Series A (mA)"]
 
