@@ -18,7 +18,7 @@ import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, NewType, Protocol, TypedDict, Union, overload
+from typing import TYPE_CHECKING, Any, NewType, Protocol, TypedDict, Union, overload
 
 if TYPE_CHECKING:
     from rdetoolkit.models.config import Config
@@ -694,6 +694,7 @@ class RdeOutputResourcePath:
         invoice_schema_json (Path): Path for the invoice.schema.json file.
         invoice_org (Path): Path for storing the backup of invoice.json.
         smarttable_rowfile (Optional[Path]): Path for the SmartTable-generated row CSV file.
+        smarttable_row_data (Optional[dict[str, Any]]): Parsed row data from SmartTable CSV file.
         temp (Optional[Path]): Path for storing temporary files.
         invoice_patch (Optional[Path]): Path for storing modified invoice files.
         attachment (Optional[Path]): Path for storing attachment files.
@@ -712,6 +713,7 @@ class RdeOutputResourcePath:
     invoice_schema_json: Path
     invoice_org: Path
     smarttable_rowfile: Path | None = None
+    smarttable_row_data: dict[str, Any] | None = None
     temp: Path | None = None
     invoice_patch: Path | None = None
     attachment: Path | None = None
@@ -788,6 +790,23 @@ class RdeDatasetPaths:
                 )
                 return candidate
         return None
+
+    @property
+    def smarttable_row_data(self) -> dict[str, Any] | None:
+        """Return parsed SmartTable row data as dictionary.
+
+        Returns:
+            Dictionary containing the row data with column names as keys,
+            or None if not in SmartTable mode or data not available.
+
+        Example:
+            >>> paths = RdeDatasetPaths(input_paths, output_paths)
+            >>> row_data = paths.smarttable_row_data
+            >>> if row_data:
+            ...     sample_name = row_data.get("sample/name", "")
+            ...     data_name = row_data.get("basic/dataName", "")
+        """
+        return self.output_paths.smarttable_row_data
 
     @property
     def rawfiles(self) -> tuple[Path, ...]:

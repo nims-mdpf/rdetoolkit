@@ -7,15 +7,20 @@ and FileGroup collection types introduced in Issue #335.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import (
     CsvFile,
     ExcelFile,
     FileGroup,
     JsonFile,
     ProcessedFileGroup,
+    RdeDatasetPaths,
+    RdeInputDirPaths,
+    RdeOutputResourcePath,
     ValidatedDirectory,
     ValidatedPath,
     ZipFile,
@@ -350,3 +355,111 @@ class TestIntegration:
 
         assert processed.has_excel_invoice
         assert processed.total_file_count == 2
+
+
+class TestRdeDatasetPaths:
+    """Test RdeDatasetPaths class (Issue #207)."""
+
+    def test_smarttable_row_data_property_none(self, tmp_path: Path) -> None:
+        """Test smarttable_row_data property returns None when not set."""
+        input_paths = RdeInputDirPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "tasksupport",
+        )
+
+        output_paths = RdeOutputResourcePath(
+            raw=tmp_path / "raw",
+            nonshared_raw=tmp_path / "nonshared_raw",
+            rawfiles=(),
+            struct=tmp_path / "struct",
+            main_image=tmp_path / "main_image",
+            other_image=tmp_path / "other_image",
+            meta=tmp_path / "meta",
+            thumbnail=tmp_path / "thumbnail",
+            logs=tmp_path / "logs",
+            invoice=tmp_path / "invoice",
+            invoice_schema_json=tmp_path / "schema.json",
+            invoice_org=tmp_path / "invoice_org",
+            smarttable_row_data=None,
+        )
+
+        dataset_paths = RdeDatasetPaths(input_paths, output_paths)
+        assert dataset_paths.smarttable_row_data is None
+
+    def test_smarttable_row_data_property_with_data(self, tmp_path: Path) -> None:
+        """Test smarttable_row_data property returns data from output_paths."""
+        input_paths = RdeInputDirPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "tasksupport",
+        )
+
+        row_data: dict[str, Any] = {
+            "basic/dataName": "test_data",
+            "sample/name": "sample_001",
+            "measurement/temperature": "25.5",
+        }
+
+        output_paths = RdeOutputResourcePath(
+            raw=tmp_path / "raw",
+            nonshared_raw=tmp_path / "nonshared_raw",
+            rawfiles=(),
+            struct=tmp_path / "struct",
+            main_image=tmp_path / "main_image",
+            other_image=tmp_path / "other_image",
+            meta=tmp_path / "meta",
+            thumbnail=tmp_path / "thumbnail",
+            logs=tmp_path / "logs",
+            invoice=tmp_path / "invoice",
+            invoice_schema_json=tmp_path / "schema.json",
+            invoice_org=tmp_path / "invoice_org",
+            smarttable_row_data=row_data,
+        )
+
+        dataset_paths = RdeDatasetPaths(input_paths, output_paths)
+
+        # Test that the property returns the same data
+        assert dataset_paths.smarttable_row_data == row_data
+        assert dataset_paths.smarttable_row_data is not None
+
+        # Test accessing specific fields
+        assert dataset_paths.smarttable_row_data["basic/dataName"] == "test_data"
+        assert dataset_paths.smarttable_row_data["sample/name"] == "sample_001"
+        assert dataset_paths.smarttable_row_data["measurement/temperature"] == "25.5"
+
+    def test_smarttable_row_data_property_dict_get_pattern(self, tmp_path: Path) -> None:
+        """Test using .get() pattern for safe access to row data."""
+        input_paths = RdeInputDirPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "tasksupport",
+        )
+
+        row_data: dict[str, Any] = {"basic/dataName": "test"}
+
+        output_paths = RdeOutputResourcePath(
+            raw=tmp_path / "raw",
+            nonshared_raw=tmp_path / "nonshared_raw",
+            rawfiles=(),
+            struct=tmp_path / "struct",
+            main_image=tmp_path / "main_image",
+            other_image=tmp_path / "other_image",
+            meta=tmp_path / "meta",
+            thumbnail=tmp_path / "thumbnail",
+            logs=tmp_path / "logs",
+            invoice=tmp_path / "invoice",
+            invoice_schema_json=tmp_path / "schema.json",
+            invoice_org=tmp_path / "invoice_org",
+            smarttable_row_data=row_data,
+        )
+
+        dataset_paths = RdeDatasetPaths(input_paths, output_paths)
+
+        # Test safe access pattern from docstring example
+        if dataset_paths.smarttable_row_data:
+            sample_name = dataset_paths.smarttable_row_data.get("sample/name", "")
+            data_name = dataset_paths.smarttable_row_data.get("basic/dataName", "")
+
+            assert sample_name == ""  # Not in row_data
+            assert data_name == "test"

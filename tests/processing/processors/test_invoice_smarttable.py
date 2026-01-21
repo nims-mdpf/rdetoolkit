@@ -248,10 +248,12 @@ class TestSmartTableInvoiceInitializerIntegration:
         processor = SmartTableInvoiceInitializer()
         context = smarttable_processing_context
 
-        # Create an invalid CSV file
+        # Make the CSV file path point to a non-existent file to trigger a read error
         csv_path = context.smarttable_rowfile
         assert csv_path is not None
-        csv_path.write_text("This is not valid CSV content\x00\x01\x02")
+        # Delete the file if it exists to ensure FileNotFoundError
+        if csv_path.exists():
+            csv_path.unlink()
 
         with pytest.raises(StructuredError) as exc_info:
             processor.process(context)
@@ -383,6 +385,54 @@ class TestSmartTableInvoiceInitializerIntegration:
         """Test processor name."""
         processor = SmartTableInvoiceInitializer()
         assert processor.get_name() == "SmartTableInvoiceInitializer"
+
+    def test_process_stores_row_data_in_context(self, smarttable_processing_context):
+        """Test that SmartTableInvoiceInitializer stores row data in context.resource_paths."""
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+
+        # Create CSV with test data
+        csv_data = pd.DataFrame({
+            'basic/dataName': ['Test Data'],
+            'sample/names': ['Sample001'],
+            'custom/temperature': ['25.5'],
+        })
+
+        # Write CSV to actual file
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        # Process
+        processor.process(context)
+
+        # Verify row data was stored in context
+        assert context.resource_paths.smarttable_row_data is not None
+        row_data = context.resource_paths.smarttable_row_data
+
+        # Verify all expected columns are present
+        assert 'basic/dataName' in row_data
+        assert row_data['basic/dataName'] == 'Test Data'
+        assert 'sample/names' in row_data
+        assert row_data['sample/names'] == 'Sample001'
+        assert 'custom/temperature' in row_data
+        assert row_data['custom/temperature'] == '25.5'
+
+    def test_process_handles_empty_csv_gracefully(self, smarttable_processing_context):
+        """Test handling of empty SmartTable CSV (headers only, no data rows)."""
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+
+        # Create CSV with only headers, no data rows
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_path.write_text("basic/dataName,sample/names,custom/temperature\n")
+
+        # Process - should handle gracefully and set smarttable_row_data to None
+        processor.process(context)
+
+        # Verify that smarttable_row_data is None for empty CSV
+        assert context.resource_paths.smarttable_row_data is None
 
 
 class TestSmartTableEarlyExitProcessorIntegration:
