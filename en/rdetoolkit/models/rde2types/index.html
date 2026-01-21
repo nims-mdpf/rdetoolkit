@@ -2016,6 +2016,13 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeDatasetPaths.smarttable_row_data">
+<span class="md-ellipsis">
+      smarttable_row_data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeDatasetPaths.smarttable_rowfile">
 <span class="md-ellipsis">
       smarttable_rowfile
@@ -2227,6 +2234,13 @@
 <a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath.rawfiles">
 <span class="md-ellipsis">
       rawfiles
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_row_data">
+<span class="md-ellipsis">
+      smarttable_row_data
     </span>
 </a>
 </li>
@@ -3404,6 +3418,13 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeDatasetPaths.smarttable_row_data">
+<span class="md-ellipsis">
+      smarttable_row_data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeDatasetPaths.smarttable_rowfile">
 <span class="md-ellipsis">
       smarttable_rowfile
@@ -3615,6 +3636,13 @@
 <a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath.rawfiles">
 <span class="md-ellipsis">
       rawfiles
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_row_data">
+<span class="md-ellipsis">
+      smarttable_row_data
     </span>
 </a>
 </li>
@@ -5475,7 +5503,7 @@ single-argument style receive an instance of this class.</p>
       instance-attribute
    (src.rdetoolkit.models.rde2types.RdeDatasetPaths.output_paths)">output_paths</a></code></td>
 <td>
-<code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath" title="RdeOutputResourcePath(raw, nonshared_raw, rawfiles, struct, main_image, other_image, meta, thumbnail, logs, invoice, invoice_schema_json, invoice_org, smarttable_rowfile=..., temp=..., invoice_patch=..., attachment=...)
+<code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath" title="RdeOutputResourcePath(raw, nonshared_raw, rawfiles, struct, main_image, other_image, meta, thumbnail, logs, invoice, invoice_schema_json, invoice_org, smarttable_rowfile=..., smarttable_row_data=..., temp=..., invoice_patch=..., attachment=...)
 
   
       dataclass
@@ -5684,6 +5712,62 @@ single-argument style receive an instance of this class.</p>
 </h4>
 <div class="doc doc-contents">
 <p>Return the tuple of raw input files for the dataset.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.RdeDatasetPaths.smarttable_row_data">
+<code class="highlight language-python">smarttable_row_data</code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-property"><code>property</code></small>
+</span>
+</h4>
+<div class="doc doc-contents">
+<p>Return parsed SmartTable row data as dictionary.</p>
+<p><span class="doc-section-title">戻り値：</span></p>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>デスクリプション</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Dictionary containing the row data with column names as keys,</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>or None if not in SmartTable mode or data not available.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="example" open="">
+<summary>Example</summary>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>paths = RdeDatasetPaths(input_paths, output_paths)
+row_data = paths.smarttable_row_data
+if row_data:
+...     sample_name = row_data.get("sample/name", "")
+...     data_name = row_data.get("basic/dataName", "")</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
 </div>
 </div>
 <div class="doc doc-object doc-attribute">
@@ -6053,7 +6137,7 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </div>
 <div class="doc doc-object doc-class">
 <h3 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.RdeOutputResourcePath">
-<code class="highlight language-python">RdeOutputResourcePath(raw, nonshared_raw, rawfiles, struct, main_image, other_image, meta, thumbnail, logs, invoice, invoice_schema_json, invoice_org, smarttable_rowfile<span style="color: #333">=...</span>, temp<span style="color: #333">=...</span>, invoice_patch<span style="color: #333">=...</span>, attachment<span style="color: #333">=...</span>)</code>
+<code class="highlight language-python">RdeOutputResourcePath(raw, nonshared_raw, rawfiles, struct, main_image, other_image, meta, thumbnail, logs, invoice, invoice_schema_json, invoice_org, smarttable_rowfile<span style="color: #333">=...</span>, smarttable_row_data<span style="color: #333">=...</span>, temp<span style="color: #333">=...</span>, invoice_patch<span style="color: #333">=...</span>, attachment<span style="color: #333">=...</span>)</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
 </span>
@@ -6269,6 +6353,22 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_row_data" title="smarttable_row_data = None
+
+  
+      class-attribute
+      instance-attribute
+   (src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_row_data)">smarttable_row_data</a></code></td>
+<td>
+<code><span title="Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Parsed row data from SmartTable CSV file.</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
 <td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.rde2types.RdeOutputResourcePath.temp" title="temp = None
 
   
@@ -6435,6 +6535,17 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 <h4 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.RdeOutputResourcePath.rawfiles">
 <code class="highlight language-python">rawfiles</code>
 <span class="doc doc-labels">
+<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+</span>
+</h4>
+<div class="doc doc-contents">
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_row_data">
+<code class="highlight language-python">smarttable_row_data <span style="color: #333">=</span> <span style="color: #080; font-weight: bold">None</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
 </h4>
