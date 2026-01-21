@@ -34,7 +34,7 @@ def check_stubfile(module_name: str):
     if spec is None:
         raise ImportError(f"Modules: {module_name} not found")
 
-    # 余計な手動ロードをやめ標準インポート
+    # Use standard import instead of extra manual loading
     module = importlib.import_module(module_name)
     if module.__name__ == "src.rdetoolkit.models.rde2types":
         return
@@ -43,7 +43,7 @@ def check_stubfile(module_name: str):
     if module_file_path is None:
         return
 
-    # 単純化
+    # Simplify
     stub_file_path = module_file_path[:-3] + ".pyi"
 
     if not os.path.exists(stub_file_path):

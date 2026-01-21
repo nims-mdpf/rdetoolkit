@@ -182,21 +182,21 @@ def test_cwd_pyproject_toml():
 
 @pytest.fixture
 def test_cwd_pyproject_toml_rename():
-    # 一時的にpyproject.tomlをリネームして、テストの対象ファイルから外す。teardownで元に戻す。
+    # Temporarily rename pyproject.toml to exclude it from the test target, then restore it in teardown.
     test_file = "pyproject.toml"
     backup_path = Path(test_file).with_suffix(Path(test_file).suffix + ".bak")
 
     if Path(test_file).exists():
         # backup
         shutil.copy(Path(test_file), backup_path)
-        Path(test_file).unlink()  # 元のファイルを削除
+        Path(test_file).unlink()  # Delete the original file
 
     yield
 
-    # teardown: 元に戻す
+    # Teardown: restore it
     if backup_path.exists():
         shutil.copy(backup_path, Path(test_file))
-        backup_path.unlink()  # バックアップファイルを削除
+        backup_path.unlink()  # Delete the backup file
 
 
 def test_parse_config_file(config_yaml):
@@ -254,7 +254,7 @@ def test_sucess_get_config_yaml(config_yaml):
 
 
 def test_sucess_get_config_yaml_none_multitile_setting(config_yml_none_multiconfig):
-    # 入力ではmultidata_tileはNoneだが、デフォルト値が格納されることをテスト
+    # Test that multidata_tile is None in input but gets the default value
     system = SystemSettings(extended_mode="rdeformat", save_raw=True, save_nonshared_raw=False, save_thumbnail_image=True, magic_variable=False)
     multi = MultiDataTileSettings(ignore_errors=False)
     expected_text = Config(system=system, multidata_tile=multi)
@@ -560,3 +560,23 @@ def test_parse_pyproject_toml_with_traceback(pyproject_toml_with_traceback):
      assert config.traceback.format == "duplex"
      assert config.traceback.include_context is True
      assert config.traceback.max_locals_size == 2048
+
+
+def test_system_settings_feature_description_default():
+    """Test that feature_description defaults to True."""
+    settings = SystemSettings()
+    assert settings.feature_description is True
+
+
+def test_system_settings_feature_description_false():
+    """Test that feature_description can be set to False."""
+    settings = SystemSettings(feature_description=False)
+    assert settings.feature_description is False
+
+
+def test_config_with_feature_description_disabled():
+    """Test Config with feature_description set to False."""
+    config = Config(
+        system=SystemSettings(feature_description=False),
+    )
+    assert config.system.feature_description is False

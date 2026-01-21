@@ -182,5 +182,5 @@ def test_writef_json_invalid_path(tmp_path):
     with pytest.raises(FileNotFoundError):
         writef_json(file_path, test_data)
 
-    # ファイルが作成されていないことを確認
+    # Verify the file was not created
     assert not file_path.exists()

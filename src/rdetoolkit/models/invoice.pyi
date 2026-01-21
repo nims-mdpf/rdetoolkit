@@ -45,10 +45,10 @@ class HeaderRow4(BaseModel):
     M4: str
 
 class FixedHeaders(BaseModel):
-    row1: HeaderRow1
-    row2: HeaderRow2
-    row3: HeaderRow3
-    row4: HeaderRow4
+    row1: HeaderRow1 = HeaderRow1()
+    row2: HeaderRow2 = HeaderRow2()
+    row3: HeaderRow3 = HeaderRow3()
+    row4: HeaderRow4 = HeaderRow4()
     def to_template_dataframe(self) -> pl.DataFrame: ...
 
 @dataclass

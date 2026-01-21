@@ -24,10 +24,10 @@ def test_structured_error_initialization():
     error_object = {"key": "value"}
     traceback_info = "Traceback (most recent call last): ..."
 
-    # StructuredErrorインスタンスを作成
+    # Create StructuredError instance
     error = StructuredError(emsg=error_message, ecode=error_code, eobj=error_object, traceback_info=traceback_info)
 
-    # プロパティの確認
+    # Verify properties
     assert error.emsg == error_message
     assert error.ecode == error_code
     assert error.eobj == error_object
@@ -46,10 +46,10 @@ def test_structured_error_default_initialization():
     2. Assert that the instance properties match the expected default values.
     3. Verify that the string representation of the instance is an empty string.
     """
-    # デフォルト値でStructuredErrorインスタンスを作成
+    # Create StructuredError instance with default values
     error = StructuredError()
 
-    # デフォルトプロパティの確認
+    # Verify default properties
     assert error.emsg == ""
     assert error.ecode == 1
     assert error.eobj is None
@@ -588,7 +588,7 @@ def test_skip_exception_context_enabled():
     exception_message = "Test exception"
 
     with skip_exception_context(CustomException, logger=logger, enabled=True) as error_info:
-        # コンテキスト内で例外を発生させる
+        # Raise an exception within the context
         raise CustomException(exception_code, exception_message)
     assert error_info["code"] == exception_code, "Error codeが正しく設定されていません。"
     assert error_info["message"] == f"Error: {exception_message}", "Error messageが正しく設定されていません。"

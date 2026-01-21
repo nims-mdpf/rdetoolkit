@@ -3,20 +3,20 @@
 # Equivalence Partitioning Table
 # | API                                 | Input/State Partition                               | Rationale                                   | Expected Outcome                                             | Test ID     |
 # | ----------------------------------- | ---------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------- | ----------- |
-# | `SmartTableInvoiceInitializer.process` | 定義済み meta 列                                     | 正常に metadata.json へ書き込めることを確認 | metadata.json の constant に型変換済み値が出力される          | `TC-EP-001` |
-# | `SmartTableInvoiceInitializer.process` | 既存 metadata.json に同一キーが存在                  | 上書き時に他の項目を保持できるかを確認       | 対象キーのみ上書きされ、他キーと variable は保持される       | `TC-EP-002` |
-# | `SmartTableInvoiceInitializer.process` | metadata-def.json が存在しない                       | 後方互換性としてスキップされるかを確認       | metadata.json は生成されず処理は継続される                   | `TC-EP-003` |
-# | `SmartTableInvoiceInitializer.process` | meta 値が空文字/NaN                                  | 無効値の境界動作を確認                       | metadata.json は生成されず値がスキップされる                 | `TC-EP-004` |
-# | `SmartTableInvoiceInitializer.process` | metadata-def に定義が無いキー                        | スキーマ不一致の異常系                       | `StructuredError` が送出される                               | `TC-EP-005` |
-# | `SmartTableInvoiceInitializer.process` | 型変換できない値                                     | 型バリデーションの異常系                     | `StructuredError` が送出される                               | `TC-EP-006` |
-# | `SmartTableInvoiceInitializer.process` | `variable` フラグ付き定義                            | 非対応オプションの異常系                     | `StructuredError` が送出される                               | `TC-EP-007` |
-# | `SmartTableInvoiceInitializer.process` | metadata-def がオブジェクト以外                      | ファイル形式異常の検証                       | `StructuredError` が送出される                               | `TC-EP-008` |
+# | `SmartTableInvoiceInitializer.process` | predefined meta column                               | verify it can write to metadata.json | converted values are written to metadata.json constant | `TC-EP-001` |
+# | `SmartTableInvoiceInitializer.process` | existing metadata.json has the same key              | verify other fields are preserved on overwrite | only target key is overwritten; other keys and variable are preserved | `TC-EP-002` |
+# | `SmartTableInvoiceInitializer.process` | metadata-def.json is missing                         | verify it is skipped for backward compatibility | metadata.json is not created and processing continues | `TC-EP-003` |
+# | `SmartTableInvoiceInitializer.process` | meta value is empty/NaN                              | verify boundary behavior for invalid values | metadata.json is not created and the value is skipped | `TC-EP-004` |
+# | `SmartTableInvoiceInitializer.process` | key not defined in metadata-def                       | schema mismatch negative case | `StructuredError` is raised | `TC-EP-005` |
+# | `SmartTableInvoiceInitializer.process` | value cannot be converted                             | type validation negative case | `StructuredError` is raised | `TC-EP-006` |
+# | `SmartTableInvoiceInitializer.process` | definition with `variable` flag                        | unsupported option negative case | `StructuredError` is raised | `TC-EP-007` |
+# | `SmartTableInvoiceInitializer.process` | metadata-def is not an object                          | file format invalid case | `StructuredError` is raised | `TC-EP-008` |
 
 # Boundary Value Table
 # | API                                 | Boundary                          | Rationale                      | Expected Outcome                                   | Test ID     |
 # | ----------------------------------- | --------------------------------- | ------------------------------ | --------------------------------------------------- | ----------- |
-# | `SmartTableInvoiceInitializer.process` | 値が空文字/NaN の最小入力境界     | 書き込み条件の下限を確認       | metadata.json が生成されず値がスキップされる       | `TC-BV-001` |
-# | `SmartTableInvoiceInitializer.process` | 既存定義の上書き境界              | 上書き時の保持動作を確認       | 対象キーのみ上書きされ他の項目は保持される        | `TC-BV-002` |
+# | `SmartTableInvoiceInitializer.process` | minimum input boundary for empty/NaN value | verify lower bound for write condition | metadata.json is not created and the value is skipped | `TC-BV-001` |
+# | `SmartTableInvoiceInitializer.process` | overwrite boundary for existing definition | verify retention behavior on overwrite | only target key is overwritten and other fields are preserved | `TC-BV-002` |
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def test_process_meta_columns_writes_metadata(smarttable_processing_context) -> 
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: metadata-def と meta 列付き SmartTable 行
+    # Given: SmartTable row with metadata-def and meta column
     _remove_metadata_files(context)
     _write_metadata_def(
         context,
@@ -80,10 +80,10 @@ def test_process_meta_columns_writes_metadata(smarttable_processing_context) -> 
         ["Smart memo", "42.5", "dataset"],
     )
 
-    # When: SmartTable 行を処理
+    # When: processing the SmartTable row
     processor.process(context)
 
-    # Then: metadata.json に型変換・単位付きで記録される
+    # Then: recorded in metadata.json with type conversion and units
     metadata = _read_metadata(context)
     assert metadata["constant"]["comment"] == {"value": "Smart memo"}
     assert metadata["constant"]["temperature"] == {"value": 42.5, "unit": "C"}
@@ -96,7 +96,7 @@ def test_process_metadata_overwrites_existing_value(smarttable_processing_contex
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: 既存 metadata.json と更新対象の meta 列
+    # Given: existing metadata.json and target meta column
     context.metadata_path.parent.mkdir(parents=True, exist_ok=True)
     with open(context.metadata_path, "w", encoding="utf-8") as handle:
         json.dump(
@@ -125,10 +125,10 @@ def test_process_metadata_overwrites_existing_value(smarttable_processing_contex
         ["new comment", "dataset"],
     )
 
-    # When: SmartTable 行を処理
+    # When: processing the SmartTable row
     processor.process(context)
 
-    # Then: 対象キーのみ更新され他の項目は保持される
+    # Then: only the target key is updated and other fields are preserved
     metadata = _read_metadata(context)
     assert metadata["constant"]["comment"] == {
         "value": "new comment",
@@ -144,7 +144,7 @@ def test_process_metadata_def_missing_skips_without_error(smarttable_processing_
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: metadata-def が存在せず meta 列のみ設定
+    # Given: metadata-def missing with only meta column set
     _remove_metadata_files(context)
     if context.metadata_def_path.exists():
         context.metadata_def_path.unlink()
@@ -154,10 +154,10 @@ def test_process_metadata_def_missing_skips_without_error(smarttable_processing_
         ["note", "dataset"],
     )
 
-    # When: SmartTable 行を処理
+    # When: processing the SmartTable row
     processor.process(context)
 
-    # Then: metadata.json は生成されず処理は完了する
+    # Then: metadata.json is not created and processing completes
     assert not context.metadata_path.exists()
 
 
@@ -167,7 +167,7 @@ def test_process_metadata_skips_empty_values(smarttable_processing_context) -> N
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: 空文字の meta 値と定義済み metadata-def
+    # Given: empty meta value with predefined metadata-def
     _remove_metadata_files(context)
     _write_metadata_def(
         context,
@@ -184,10 +184,10 @@ def test_process_metadata_skips_empty_values(smarttable_processing_context) -> N
         ["", "dataset"],
     )
 
-    # When: SmartTable 行を処理
+    # When: processing the SmartTable row
     processor.process(context)
 
-    # Then: metadata.json は生成されない
+    # Then: metadata.json is not created
     assert not context.metadata_path.exists()
 
 
@@ -197,7 +197,7 @@ def test_process_metadata_key_missing_definition_raises(smarttable_processing_co
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: metadata-def に存在しない meta キー
+    # Given: meta key not present in metadata-def
     _remove_metadata_files(context)
     _write_metadata_def(
         context,
@@ -214,7 +214,7 @@ def test_process_metadata_key_missing_definition_raises(smarttable_processing_co
         ["value", "dataset"],
     )
 
-    # When/Then: 未定義キーのため StructuredError が送出される
+    # When/Then: StructuredError is raised for undefined key
     with pytest.raises(StructuredError, match="Metadata definition not found for key: missing"):
         processor.process(context)
 
@@ -225,7 +225,7 @@ def test_process_metadata_type_cast_failure_raises(smarttable_processing_context
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: 整数型定義に非数値を指定
+    # Given: non-numeric value for integer definition
     _remove_metadata_files(context)
     _write_metadata_def(
         context,
@@ -242,7 +242,7 @@ def test_process_metadata_type_cast_failure_raises(smarttable_processing_context
         ["invalid", "dataset"],
     )
 
-    # When/Then: 型変換失敗で StructuredError が送出される
+    # When/Then: StructuredError is raised due to type conversion failure
     with pytest.raises(StructuredError, match="Failed to cast metadata value for key: count"):
         processor.process(context)
 
@@ -253,7 +253,7 @@ def test_process_metadata_variable_definition_raises(smarttable_processing_conte
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: variable フラグ付き metadata-def
+    # Given: metadata-def with variable flag
     _remove_metadata_files(context)
     _write_metadata_def(
         context,
@@ -271,7 +271,7 @@ def test_process_metadata_variable_definition_raises(smarttable_processing_conte
         ["note", "dataset"],
     )
 
-    # When/Then: variable 定義のため StructuredError が送出される
+    # When/Then: StructuredError is raised for variable definition
     with pytest.raises(StructuredError, match="Variable metadata is not supported for SmartTable meta mapping: comment"):
         processor.process(context)
 
@@ -282,7 +282,7 @@ def test_process_metadata_invalid_definition_format_raises(smarttable_processing
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
 
-    # Given: 最上位がリストの metadata-def
+    # Given: metadata-def with a list at top level
     context.metadata_def_path.parent.mkdir(parents=True, exist_ok=True)
     with open(context.metadata_def_path, "w", encoding="utf-8") as handle:
         json.dump([{"comment": "invalid"}], handle)
@@ -292,7 +292,7 @@ def test_process_metadata_invalid_definition_format_raises(smarttable_processing
         ["note", "dataset"],
     )
 
-    # When/Then: 不正形式のため StructuredError が送出される
+    # When/Then: StructuredError is raised for invalid format
     with pytest.raises(StructuredError, match="metadata-def.json must contain an object at the top level"):
         processor.process(context)
 

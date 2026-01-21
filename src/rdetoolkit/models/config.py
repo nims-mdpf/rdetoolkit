@@ -13,6 +13,7 @@ class SystemSettings(BaseModel):
         save_thumbnail_image (bool): Indicates whether to automatically save the main image to the thumbnail directory. Default is False.
         magic_variable (bool): A feature where specifying '${filename}' as the data name results in the filename being transcribed as the data name. Default is False.
         save_invoice_to_structured (bool): Indicates whether to store invoice.json under the structured directory. Default is False.
+        feature_description (bool): Automatically transfer metadata fields marked with '_feature' to the invoice description. Default is True.
     """
 
     extended_mode: str | None = Field(default=None, description="The mode to run the RDEtoolkit in. select: rdeformat, MultiDataTile")
@@ -26,6 +27,10 @@ class SystemSettings(BaseModel):
     save_invoice_to_structured: bool = Field(
         default=False,
         description="Store invoice.json inside the structured directory after processing.",
+    )
+    feature_description: bool = Field(
+        default=True,
+        description="Automatically transfer metadata fields marked with '_feature' to the invoice description.",
     )
 
     @field_validator('extended_mode')
