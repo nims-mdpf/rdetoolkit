@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.5.1     | 2026-01-21 | SmartTable行データ直接アクセス / variable配列のfeature説明欄転記 | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0     | 2026-01-09 | Result型 / Typer CLI+validate / タイムスタンプログ / 遅延import / Python 3.14対応 | [v1.5.0](#v150-2026-01-09) |
 | v1.4.3     | 2025-12-25 | SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整 | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2     | 2025-12-18 | Invoice overwrite検証 / Excelインボイス統合 / csv2graph単一系列自動判定 / MultiDataTile空入力実行 | [v1.4.2](#v142-2025-12-18) |
@@ -16,6 +17,97 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.5.1 (2026-01-21)
+
+!!! info "参照"
+    - 主な課題: [#207](https://github.com/nims-mdpf/rdetoolkit/issues/207), [#210](https://github.com/nims-mdpf/rdetoolkit/issues/210)
+
+#### ハイライト
+- SmartTableモードで行データに直接アクセスできる`smarttable_row_data`プロパティを`RdeDatasetPaths`に追加。ユーザーがCSVファイルを手動で読み込み・解析する必要がなくなりました
+- `metadata.json`の`variable`配列内にある`_feature`フラグ付き項目を配列形式（`[A,B,C]`）で説明欄に転記する機能を追加
+- 説明欄への自動転記を制御する`feature_description`設定フラグを追加
+
+---
+
+### SmartTable行データ直接アクセス (Issue #207)
+
+#### 機能強化
+- **新属性**: `RdeOutputResourcePath`データクラスに`smarttable_row_data: dict[str, Any] | None`を追加
+- **新プロパティ**: ユーザーコールバックからアクセスできる`smarttable_row_data`プロパティを`RdeDatasetPaths`に追加
+- **プロセッサ更新**: `SmartTableInvoiceInitializer`でCSVを解析し、行データをcontextに保存するよう変更
+- **型スタブ**: IDE自動補完のための`.pyi`ファイルを更新
+- **包括的テスト**: 新旧シグネチャをカバーするユニットテストと統合テストを追加
+
+#### 使用例
+
+**Before（既存の方法も引き続き動作）:**
+```python
+def custom_dataset(paths: RdeDatasetPaths):
+    csv_path = paths.smarttable_rowfile
+    if csv_path:
+        df = pd.read_csv(csv_path)
+        sample_name = df.iloc[0]["sample/name"]
+```
+
+**After（新しい改善されたAPI）:**
+```python
+def custom_dataset(paths: RdeDatasetPaths):
+    row_data = paths.smarttable_row_data  # dict[str, Any] | None
+    if row_data:
+        sample_name = row_data.get("sample/name")
+```
+
+---
+
+### variable配列のfeature説明欄転記対応 (Issue #210)
+
+#### 機能強化
+- **新ヘルパー関数**: `__collect_values_from_variable`で`variable`配列から指定キーの全値を収集
+- **新ヘルパー関数**: `__format_description_entry`でフォーマット処理を共通化（DRY原則）
+- **関数拡張**: `update_description_with_features`がvariable配列の検索に対応
+  - `constant`の値が`variable`より優先（後方互換）
+  - 複数値: `[A,B,C]`形式、単一値: 従来形式
+- **新設定フラグ**: `SystemSettings`に`feature_description`ブール値を追加
+  - デフォルト: `True`（後方互換）
+  - 説明欄への自動転記を制御
+  - `rdeconfig.yaml`または`pyproject.toml`で設定可能
+
+#### 設定例
+
+**rdeconfig.yaml:**
+```yaml
+system:
+  feature_description: false  # 自動転記を無効化
+```
+
+**pyproject.toml:**
+```toml
+[tool.rdetoolkit.system]
+feature_description = false
+```
+
+---
+
+### 移行 / 互換性
+
+#### SmartTable行データアクセス
+- **後方互換**: 既存の`smarttable_rowfile`パスアクセスは引き続き動作
+- **段階的移行**: 旧方式（ファイルパス）と新方式（dict）の両方が共存可能
+- **非SmartTableモード**: SmartTableモード以外では`smarttable_row_data`は`None`を返す
+
+#### variable配列のfeature対応
+- **後方互換**: 既存のconstantのみのfeature動作は変更なし
+- **優先規則**: `constant`の値は常に`variable`より優先
+- **設定デフォルト**: `feature_description`は`True`がデフォルトで、既存の動作を維持
+- **オプトアウト可能**: `feature_description: false`で自動転記を無効化
+
+---
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
 
 ## v1.5.0 (2026-01-09)
 

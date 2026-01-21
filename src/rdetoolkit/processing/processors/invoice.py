@@ -183,6 +183,16 @@ class SmartTableInvoiceInitializer(Processor):
 
             csv_data = pd.read_csv(csv_file, dtype=str)
 
+            # Convert DataFrame row to dictionary for user callback access
+            # SmartTable CSVs should contain exactly one row of data
+            if len(csv_data) > 0:
+                row_dict = csv_data.iloc[0].to_dict()
+                context.resource_paths.smarttable_row_data = row_dict
+                logger.debug(f"Stored SmartTable row data with {len(row_dict)} columns")
+            else:
+                logger.warning(f"SmartTable CSV {csv_file} contains no data rows")
+                context.resource_paths.smarttable_row_data = None
+
             # Load original invoice.json to inherit existing values (cached for multi-row processing)
             invoice_data = self._get_base_invoice_data(context)
 
@@ -401,6 +411,11 @@ class SmartTableInvoiceInitializer(Processor):
         """Apply SmartTable row data to invoice and collect metadata updates."""
         metadata_updates: dict[str, dict[str, Any]] = {}
         metadata_def: dict[str, Any] | None = None
+
+        # Handle empty CSV (no data rows)
+        if len(csv_data) == 0:
+            logger.debug("CSV contains no data rows; skipping SmartTable row application")
+            return metadata_updates
 
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]

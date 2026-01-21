@@ -86,8 +86,8 @@ def test_check_files_invoice_non_file(tasksupport, invoice_json_with_sample_info
     assert smarttable_files is None
 
 
-# テストスイート(No. 2-xx)
-# エクセルインボイスからのデータ登録についてテスト
+# Test suite (No. 2-xx)
+# Test data registration from Excel invoice
 def test_check_files_excelinvoice_zip_with_file(
     tasksupport,
     invoice_json_with_sample_info,

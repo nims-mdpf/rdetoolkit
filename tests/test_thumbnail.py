@@ -52,7 +52,7 @@ def dummy_out_dir_other():
 
 def test_copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main, dummy_out_dir_other):
     """Main画像フォルダにあるファイル1つがサムネイルフォルダにファイルがコピーされるかテスト"""
-    # ダミー画像ファイルを作成
+    # Create dummy image file
     with open(dummy_out_dir_main.joinpath("dummy_main_img.png"), "w") as f:
         f.write("dummy")
     with open(dummy_out_dir_other.joinpath("dummy_other_img.png"), "w") as f:
@@ -61,7 +61,7 @@ def test_copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main, dummy
         f.write("dummy")
     with open(dummy_out_dir_other.joinpath("dummy_other_img3.png"), "w") as f:
         f.write("dummy")
-    # 関数を実行
+    # Run the function
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
 
     assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
@@ -71,7 +71,7 @@ def test_only_one_representative_image_exists(dummy_out_dir_thumb, dummy_out_dir
     """thumbnailフォルダにファイル名!_とついたファイル数が0かチェックするテスト
     RDE v5に伴う仕様の変更により、!_をファイルの先頭に付与する必要がなくなったため
     """
-    # ダミー画像ファイルを作成
+    # Create dummy image file
     with open(dummy_out_dir_main.joinpath("dummy_main_img.png"), "w") as f:
         f.write("dummy")
     with open(dummy_out_dir_other.joinpath("dummy_other_img.png"), "w") as f:
@@ -80,7 +80,7 @@ def test_only_one_representative_image_exists(dummy_out_dir_thumb, dummy_out_dir
         f.write("dummy")
     with open(dummy_out_dir_other.joinpath("dummy_other_img3.png"), "w") as f:
         f.write("dummy")
-    # 関数を実行
+    # Run the function
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
 
     representative_imgs = list(dummy_out_dir_thumb.glob("!_*"))
@@ -89,14 +89,14 @@ def test_only_one_representative_image_exists(dummy_out_dir_thumb, dummy_out_dir
 
 def test_specifying_a_file(dummy_out_dir_thumb, dummy_out_dir_main, dummy_out_dir_other):
     """main_imageに存在する指定したファイル名の画像が代表画像にコピーされるかテスト"""
-    # ダミー画像ファイルを作成
+    # Create dummy image file
     with open(dummy_out_dir_main.joinpath("dummy_main_img1.png"), "w") as f:
         f.write("dummy")
     with open(dummy_out_dir_main.joinpath("dummy_main_img2.png"), "w") as f:
         f.write("dummy")
     with open(dummy_out_dir_main.joinpath("dummy_main_img3.png"), "w") as f:
         f.write("dummy")
-    # 関数を実行
+    # Run the function
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main, target_image_name="dummy_main_img3.png")
 
     assert dummy_out_dir_thumb.joinpath("dummy_main_img3.png").exists()
@@ -104,10 +104,10 @@ def test_specifying_a_file(dummy_out_dir_thumb, dummy_out_dir_main, dummy_out_di
 
 def test_copy_images_to_thumbnail_mismatch_extension(dummy_out_dir_thumb, dummy_out_dir_main):
     """拡張子が指定と違った場合、ファイルがコピーされないことを確認するテスト"""
-    # ダミー画像ファイルを作成
+    # Create dummy image file
     with open(dummy_out_dir_main.joinpath("dummy_main_img.jpg"), "w") as f:
         f.write("dummy")
-    # 関数を実行
+    # Run the function
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
 
     assert not os.path.isfile(dummy_out_dir_thumb.joinpath("!_dummy_main_img.png"))
@@ -121,7 +121,7 @@ def test_resize_image():
     height = 300
 
     with patch("rdetoolkit.img2thumb.resize_image_aspect_ratio") as mock_resize_image_aspect_ratio:
-        mock_resize_image_aspect_ratio.return_value = None  # モックの戻り値を設定
+        mock_resize_image_aspect_ratio.return_value = None  # Set mock return value
 
         result = resize_image(image_path, width, height, output_path)
 

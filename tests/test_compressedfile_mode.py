@@ -53,7 +53,7 @@ class TestCompressedFolderParser:
         assert {f.name for f in files} == {"test_child2.txt", "test_child1.txt"}
 
     def test_mac_specific_file_unpacked(self, inputfile_mac_zip_with_folder, temp_dir):
-        # mac特有のファイルを除外できるかテスト
+        # Test excluding mac-specific files
         xlsx_invoice = pd.DataFrame()
         parser = CompressedFolderParser(xlsx_invoice)
         files = parser._unpacked(inputfile_mac_zip_with_folder, temp_dir)
@@ -61,7 +61,7 @@ class TestCompressedFolderParser:
         assert {f.name for f in files} == {"test_child1.txt"}
 
     def test_microsoft_temp_file_unpacked(self, inputfile_microsoft_tempfile_zip_with_folder, temp_dir):
-        # Microfsoft特有のファイルを除外できるかテスト
+        # Test excluding Microsoft-specific files
         xlsx_invoice = pd.DataFrame()
         parser = CompressedFolderParser(xlsx_invoice)
         files = parser._unpacked(inputfile_microsoft_tempfile_zip_with_folder, temp_dir)
@@ -69,7 +69,7 @@ class TestCompressedFolderParser:
         assert {f.name for f in files} == {"test_child1.txt"}
 
     def test_japanese_temp_file_unpacked(self, inputfile_japanese_tempfile_zip_with_folder, temp_dir):
-        # 日本語名を含むzipファイルを解凍できるかテスト
+        # Test extracting a zip file with Japanese names
         xlsx_invoice = pd.DataFrame()
         parser = CompressedFolderParser(xlsx_invoice)
         files = parser._unpacked(inputfile_japanese_tempfile_zip_with_folder, temp_dir)
@@ -179,7 +179,7 @@ def sample_dir(temp_dir):
     jp_dir.mkdir()
     (jp_dir / "日本語ファイル.txt").write_text("日本語コンテンツ")
 
-    # 除外されるべきファイル
+    # Files to be excluded
     mac_dir = source_dir / "__MACOSX"
     mac_dir.mkdir()
     (mac_dir / "some_file.txt").write_text("Should be excluded")

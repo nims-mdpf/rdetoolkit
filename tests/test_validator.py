@@ -264,23 +264,23 @@ def test_invalid_filepath_invoice_json():
 @pytest.mark.parametrize(
     "input_data, expected",
     [
-        # シンプルな辞書
+        # Simple dict
         ({"a": 1, "b": None, "c": 3}, {"a": 1, "c": 3}),
-        # ネストされた辞書
+        # Nested dict
         ({"a": {"b": None, "c": 3}, "d": None}, {"a": {"c": 3}}),
-        # リストの中に辞書
+        # Dict inside list
         ({"a": [1, None, 3, {"b": None, "c": 4}]}, {"a": [1, 3, {"c": 4}]}),
-        # リスト
+        # List
         ([1, None, 3, {"a": None, "b": 2}], [1, 3, {"b": 2}]),
-        # 辞書の中にリスト
+        # List inside dict
         ({"a": [None, 2, None], "b": None, "c": [1, 2, 3]}, {"a": [2], "c": [1, 2, 3]}),
-        # 完全にNoneの辞書
+        # Dict of all None
         ({"a": None, "b": None}, {}),
-        # 完全にNoneのリスト
+        # List of all None
         ([None, None, None], []),
-        # Noneのない辞書
+        # Dict with no None
         ({"a": 1, "b": 2, "c": 3}, {"a": 1, "b": 2, "c": 3}),
-        # Noneのないリスト
+        # List with no None
         ([1, 2, 3], [1, 2, 3]),
     ],
 )
@@ -298,7 +298,7 @@ def test_allow_invoice_json():
     assert data["custom"]["sample1"] == "2023-01-01"
     assert data["custom"]["sample2"] == 1.0
     assert data["custom"]["sample7"] == "#h1"
-    # Noneの値は削除されているため、存在しない
+    # None values are removed, so it is absent
     assert not data["custom"].get("sample3")
 
 

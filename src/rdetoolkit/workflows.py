@@ -349,7 +349,7 @@ def _process_mode(  # noqa: C901 PLR0912
     error_info = None
     status: WorkflowExecutionStatus | None = None
 
-    # 処理実行
+    # Execute processing
     try:
         if smarttable_file is not None:
             mode = "SmartTableInvoice"
@@ -364,7 +364,7 @@ def _process_mode(  # noqa: C901 PLR0912
             mode = "MultiDataTile"
             ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
             if ignore_error:
-                # ignore_errorが有効な場合のみ例外をキャッチ
+                # Catch exceptions only when ignore_error is enabled
                 with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
                     status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
                 if status is None:
