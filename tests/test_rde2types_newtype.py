@@ -11,7 +11,6 @@ from typing import Any
 
 import pytest
 
-from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import (
     CsvFile,
     ExcelFile,
