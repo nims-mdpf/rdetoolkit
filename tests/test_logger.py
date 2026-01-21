@@ -143,7 +143,7 @@ def cleanup_logger():
 
     yield
 
-    # テスト後のクリーンアップ
+    # Cleanup after test
     logger.handlers.clear()
 
 

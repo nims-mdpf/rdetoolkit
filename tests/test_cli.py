@@ -235,7 +235,7 @@ def test_init_creation():
 
     result = runner.invoke(app, ["init"])
 
-    # 出力メッセージのテスト
+    # Test output message
     assert "Ready to develop a structured program for RDE." in result.output
     assert "Done!" in result.output
 

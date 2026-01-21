@@ -17,6 +17,10 @@ class DescriptionUpdater(Processor):
 
     def process(self, context: ProcessingContext) -> None:
         """Update descriptions with features, ignoring any errors."""
+        if not context.srcpaths.config.system.feature_description:
+            logger.debug("Feature description transfer disabled, skipping")
+            return
+
         try:
             logger.debug("Updating descriptions with features")
 

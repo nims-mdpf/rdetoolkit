@@ -944,6 +944,44 @@ def backup_invoice_json_files(excel_invoice_file: Path | None, mode: str | None)
     return invoice_org_filepath
 
 
+def __collect_values_from_variable(key: str, metadata_json_obj: Mapping[str, Any]) -> list[Any]:
+    """Collect all values for a given key from variable array.
+
+    This function iterates through the variable array in metadata.json
+    and collects all values associated with the specified key.
+
+    Args:
+        key (str): The key to search for in the variable array
+        metadata_json_obj (Mapping[str, Any]): Metadata object containing constant/variable sections
+
+    Returns:
+        list[Any]: List of values found in variable array. Returns empty list if:
+            - 'variable' key doesn't exist
+            - variable array is empty
+            - specified key is not found in any variable array element
+
+    Example:
+        >>> metadata = {
+        ...     "constant": {},
+        ...     "variable": [
+        ...         {"chemical_name": {"value": "A"}},
+        ...         {"chemical_name": {"value": "B"}}
+        ...     ]
+        ... }
+        >>> __collect_values_from_variable("chemical_name", metadata)
+        ['A', 'B']
+    """
+    if not metadata_json_obj.get("variable"):
+        return []
+
+    values = []
+    for var_item in metadata_json_obj["variable"]:
+        if key in var_item and "value" in var_item[key]:
+            values.append(var_item[key]["value"])
+
+    return values
+
+
 def __serch_key_from_constant_variable_obj(key: str, metadata_json_obj: Mapping[str, Any]) -> dict | None:
     if key in metadata_json_obj["constant"]:
         return metadata_json_obj["constant"]
@@ -953,6 +991,37 @@ def __serch_key_from_constant_variable_obj(key: str, metadata_json_obj: Mapping[
             return metadata_json_obj["variable"][0]
         return None
     return None
+
+
+def __format_description_entry(name_ja: str, header_value: Any, unit: str | None = None) -> str:
+    r"""Format a description entry with optional unit.
+
+    This function formats metadata entries for the invoice description field.
+    It handles both constant values (single) and variable array values (formatted as [A,B,C]).
+    When a unit is provided, it is appended to the name in parentheses.
+
+    Args:
+        name_ja (str): Japanese name of the metadata field from metadata-def.json.
+        header_value (Any): Value to be included in the description. Can be a single value
+            or an array-formatted string like "[A,B,C]" for variable array values.
+        unit (str | None): Optional unit string from metadata-def.json. Defaults to None.
+
+    Returns:
+        str: Formatted description entry string with newline prefix.
+            Format: "\n{name_ja}({unit}):{value}" if unit exists,
+            otherwise "\n{name_ja}:{value}".
+
+    Example:
+        >>> __format_description_entry("温度", 25, "°C")
+        '\n温度(°C):25'
+        >>> __format_description_entry("化学名", "[A,B,C]", "V")
+        '\n化学名(V):[A,B,C]'
+        >>> __format_description_entry("化学名", "[A,B]")
+        '\n化学名:[A,B]'
+    """
+    if unit:
+        return f"\n{name_ja}({unit}):{header_value}"
+    return f"\n{name_ja}:{header_value}"
 
 
 def update_description_with_features(
@@ -996,29 +1065,31 @@ def update_description_with_features(
         metadata_json_obj = json.load(f)
 
     description = invoice_obj["basic"]["description"] if invoice_obj["basic"]["description"] else ""
+    feature_added = False
     for key, value in metadata_def_obj.items():
         if not value.get("_feature"):
             continue
 
-        dscheader = __serch_key_from_constant_variable_obj(key, metadata_json_obj)
-        if dscheader is None:
-            continue
-        if dscheader.get(key) is None:
-            continue
-
         metadata_details = value
-        header_entry = dscheader[key]
         name_ja = metadata_details["name"]["ja"]
-        header_value = header_entry["value"]
+        unit = metadata_details.get("unit")
+        header_value = None
 
-        if metadata_details.get("unit"):
-            unit = metadata_details["unit"]
-            description += f"\n{name_ja}({unit}):{header_value}"
+        if key in metadata_json_obj["constant"]:
+            header_entry = metadata_json_obj["constant"][key]
+            header_value = header_entry["value"]
         else:
-            description += f"\n{name_ja}:{header_value}"
+            variable_values = __collect_values_from_variable(key, metadata_json_obj)
+            if variable_values:
+                header_value = variable_values[0] if len(variable_values) == 1 else f"[{','.join(str(v) for v in variable_values)}]"
 
-        if description.startswith("\n"):
-            description = description[1:]
+        if header_value is not None:
+            description += __format_description_entry(name_ja, header_value, unit)
+            feature_added = True
+
+    # Only trim leading newline if feature was actually added
+    if feature_added and description.startswith("\n"):
+        description = description[1:]
 
     _assign_invoice_val(invoice_obj, "basic", "description", description, invoice_schema_obj)
     writef_json(dst_invoice_json, invoice_obj)

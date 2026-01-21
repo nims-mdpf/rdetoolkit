@@ -19,7 +19,7 @@ class TestDescriptionUpdater:
         processor = DescriptionUpdater()
         context = basic_processing_context
 
-        # プロセッサを実行
+        # Run the processor
         processor.process(context)
 
         # Verify that update_description_with_features was called with correct arguments
@@ -57,3 +57,34 @@ class TestDescriptionUpdater:
         # Verify that log messages were recorded
         mock_logger.debug.assert_any_call("Updating descriptions with features")
         mock_logger.debug.assert_any_call("Description update completed (errors suppressed)")
+
+    @patch('rdetoolkit.processing.processors.descriptions.update_description_with_features')
+    def test_process_skipped_when_feature_description_disabled(self, mock_update_func, basic_processing_context):
+        """Test that description update is skipped when feature_description is False."""
+        processor = DescriptionUpdater()
+        context = basic_processing_context
+
+        # Disable feature_description
+        context.srcpaths.config.system.feature_description = False
+
+        # Run the processor
+        processor.process(context)
+
+        # Verify that update_description_with_features was NOT called
+        mock_update_func.assert_not_called()
+
+    @patch('rdetoolkit.processing.processors.descriptions.update_description_with_features')
+    @patch('rdetoolkit.processing.processors.descriptions.logger')
+    def test_process_logs_skip_message_when_disabled(self, mock_logger, mock_update_func, basic_processing_context):
+        """Test that skip message is logged when feature_description is disabled."""
+        processor = DescriptionUpdater()
+        context = basic_processing_context
+
+        # Disable feature_description
+        context.srcpaths.config.system.feature_description = False
+
+        # Run the processor
+        processor.process(context)
+
+        # Verify skip message was logged
+        mock_logger.debug.assert_called_with("Feature description transfer disabled, skipping")

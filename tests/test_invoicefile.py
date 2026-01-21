@@ -415,10 +415,10 @@ def test_update_description_with_features(
     """テストケース: descriptionへの書き出しがパスするかテスト"""
     expect_message = "desc1\n特徴量1:test-value1\n特徴量2(V):test-value2\n特徴量3(V):test-value3"
 
-    # 検証
+    # Verify
     update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
 
-    # 書き込み結果を比較
+    # Compare write results
     with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
         result_contents = json.load(f)
 
@@ -438,10 +438,10 @@ def test_update_description_with_features_missing_target_key(
     """
     expect_message = "desc1\n特徴量1:test-value1\n特徴量3(V):test-value3"
 
-    # 検証
+    # Verify
     update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
 
-    # 書き込み結果を比較
+    # Compare write results
     with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
         result_contents = json.load(f)
 
@@ -461,10 +461,10 @@ def test_update_description_with_features_missing_target_key_none_result_metadat
     """
     expect_message = "desc1\n特徴量1:test-value1\n特徴量3(V):test-value3"
 
-    # 検証
+    # Verify
     update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
 
-    # 書き込み結果を比較
+    # Compare write results
     with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
         result_contents = json.load(f)
 
@@ -483,10 +483,10 @@ def test_update_description_with_features_none_variable(
     """
     expect_message = "desc1\n特徴量1:test-value1\n特徴量2(V):test-value2\n特徴量3(V):test-value3"
 
-    # 検証
+    # Verify
     update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
 
-    # 書き込み結果を比較
+    # Compare write results
     with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
         result_contents = json.load(f)
 
@@ -505,10 +505,10 @@ def test_update_description_with_features_none_constant(
     """
     expect_message = "desc1\n特徴量1:test-value1\n特徴量2(V):test-value2\n特徴量3(V):test-value3"
 
-    # 検証
+    # Verify
     update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
 
-    # 書き込み結果を比較
+    # Compare write results
     with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
         result_contents = json.load(f)
 
@@ -527,9 +527,100 @@ def test_update_description_none_features_none_variable(
     """
     expect_message = "desc1"
 
-    # 検証
+    # Verify
     update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_none_feature)
-    # 書き込み結果を比較
+    # Compare write results
+    with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
+        result_contents = json.load(f)
+
+    assert result_contents["basic"]["description"] == expect_message
+
+
+def test_update_description_with_features_multiple_variable_values(
+    rde_resource,
+    ivnoice_schema_json,
+    metadata_def_json_with_feature,
+    ivnoice_json_none_sample_info,
+    metadata_json_multiple_variable_features,
+):
+    """テストケース: variable配列に複数の値がある場合、配列形式でdescriptionに転記される."""
+    # Expected: test_feature_meta1 uses constant, test_feature_meta2 and test_feature_meta3 use variable array
+    expect_message = "desc1\n特徴量1:test-value1\n特徴量2(V):[A,B,C]\n特徴量3(V):[X,Y,Z]"
+
+    # Verify
+    update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
+
+    # Compare write results
+    with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
+        result_contents = json.load(f)
+
+    assert result_contents["basic"]["description"] == expect_message
+
+
+def test_update_description_with_features_constant_priority_over_variable(
+    rde_resource,
+    ivnoice_schema_json,
+    metadata_def_json_with_feature,
+    ivnoice_json_none_sample_info,
+    metadata_json_constant_and_variable_same_key,
+):
+    """テストケース: constantとvariable両方に同じキーがある場合、constantが優先される."""
+    # Expected: use constant value
+    expect_message = "desc1\n特徴量2(V):CONSTANT_VALUE"
+
+    # Verify
+    update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
+
+    # Compare write results
+    with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
+        result_contents = json.load(f)
+
+    assert result_contents["basic"]["description"] == expect_message
+
+
+def test_update_description_with_features_variable_missing_key(
+    rde_resource,
+    ivnoice_schema_json,
+    metadata_def_json_with_feature,
+    ivnoice_json_none_sample_info,
+    metadata_json_non_variable,
+):
+    """テストケース: variableに該当キーが存在しない場合、descriptionに追記されない."""
+    # metadata_json_non_variable has data only in constant; variable is an empty array
+    expect_message = "desc1\n特徴量1:test-value1\n特徴量2(V):test-value2\n特徴量3(V):test-value3"
+
+    # Verify
+    update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_with_feature)
+
+    # Compare write results
+    with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
+        result_contents = json.load(f)
+
+    assert result_contents["basic"]["description"] == expect_message
+
+
+def test_update_description_with_features_preserves_leading_newline_when_no_feature_added(
+    rde_resource,
+    ivnoice_schema_json,
+    metadata_def_json_none_feature,
+    ivnoice_json_none_sample_info,
+    metadata_json,
+):
+    """テストケース: featureが追加されない場合、既存の先頭改行が保持される."""
+    # Set description with leading newline
+    with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
+        invoice_obj = json.load(f)
+    invoice_obj["basic"]["description"] = "\nユーザー入力の複数行テキスト"
+    with open(ivnoice_json_none_sample_info, mode="w", encoding="utf-8") as f:
+        json.dump(invoice_obj, f)
+
+    # metadata_def_json_none_feature has no _feature, so nothing is appended
+    expect_message = "\nユーザー入力の複数行テキスト"
+
+    # Verify
+    update_description_with_features(rde_resource, ivnoice_json_none_sample_info, metadata_def_json_none_feature)
+
+    # Compare write results - leading newline is preserved
     with open(ivnoice_json_none_sample_info, encoding="utf-8") as f:
         result_contents = json.load(f)
 
@@ -644,7 +735,7 @@ def test_check_exist_rawfiles(inputfile_multi_excelinvoice):
     """
     expect_rtn = [Path("test_child1.txt"), Path("test_child2.txt")]
 
-    # テスト用エクセルインボイス前処理
+    # Preprocess test Excel invoice
     df_excelinvoice = pd.read_excel(inputfile_multi_excelinvoice, sheet_name="invoice_form", dtype=str, header=None, index_col=None)
     df = df_excelinvoice.dropna(axis=0, how="all").dropna(axis=1, how="all")
     hd1 = list(df.iloc[1, :].fillna(""))
@@ -669,7 +760,7 @@ def test_error_check_exist_rawfiles(inputfile_multi_excelinvoice):
 
     inputfile_multi_excelinvoiceには、テスト用のエクセルインボイスのパスが格納
     """
-    # テスト用エクセルインボイス前処理
+    # Preprocess test Excel invoice
     df_excelinvoice = pd.read_excel(inputfile_multi_excelinvoice, sheet_name="invoice_form", dtype=str, header=None, index_col=None)
     df = df_excelinvoice.dropna(axis=0, how="all").dropna(axis=1, how="all")
     hd1 = list(df.iloc[1, :].fillna(""))
@@ -677,7 +768,7 @@ def test_error_check_exist_rawfiles(inputfile_multi_excelinvoice):
     df.columns = [f"{s1}/{s2}" if s1 else s2 for s1, s2 in zip(hd1, hd2)]
     df_excelinvoice = df.iloc[4:, :].reset_index(drop=True).copy()
 
-    # テスト用rawファイル群
+    # Test raw files
     test_excel_raw_files = [Path("test_child1.txt")]
 
     with pytest.raises(StructuredError) as e:
@@ -906,7 +997,7 @@ def test_save_border_settings(template_config_mode_file, ivnoice_schema_json_wit
         assert cell.border.top.style == "thick"
         assert cell.border.bottom.style == "double"
 
-    # グリッド罫線チェック
+    # Check grid borders
     for row in range(5, 41):
         for col in range(1, expected_df.shape[1] + 1):
             cell = ws.cell(row=row, column=col)

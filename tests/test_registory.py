@@ -8,7 +8,7 @@ from src.rdetoolkit.models.invoice import GeneralTermRegistry, SpecificTermRegis
 
 @pytest.fixture
 def sample_csv(tmp_path):
-    # サンプルデータを含む一時的なCSVファイルを作成
+    # Create a temporary CSV file with sample data
     data = """sample_class_id,term_id,key_name,ja,en
 1,101,KeyA,日本語A,EnglishA
 2,102,KeyB,日本語B,EnglishB
@@ -71,7 +71,7 @@ class TestSpecificTermRegistry:
                 out_cols=["sample_class_id", "term_id", "key_name", "ja"],
             )
 
-        # エラーメッセージの部分一致で検証
+        # Verify by partial match of the error message
         error_message = str(excinfo.value)
         assert any([
             "unable to find column" in error_message,
@@ -109,7 +109,7 @@ class TestSpecificTermRegistry:
         assert len(results) == 0
 
     def test_by_key_name_multiple_results(self, tmp_path):
-        # CSVに複数の同じkey_nameを含める
+        # Include multiple identical key_name values in the CSV
         data = """sample_class_id,term_id,key_name,ja,en
 1,101,KeyA,日本語A,EnglishA
 2,102,KeyA,日本語B,EnglishB
@@ -126,7 +126,7 @@ class TestSpecificTermRegistry:
 
 @pytest.fixture
 def sample_general_term_csv(tmp_path):
-    # サンプルデータを含む一時的なCSVファイルを作成
+    # Create a temporary CSV file with sample data
     data = """term_id,key_name,ja,en
 101,KeyA,日本語A,EnglishA
 102,KeyB,日本語B,EnglishB
@@ -226,7 +226,7 @@ class TestGeneralTermRegistry:
         assert len(results) == 0
 
     def test_multiple_results_search(self, tmp_path):
-        # CSVに複数の同じterm_idを含める
+        # Include multiple identical term_id values in the CSV
         data = """term_id,key_name,ja,en
 101,KeyA,日本語A,EnglishA
 101,KeyB,日本語B,EnglishB

@@ -170,7 +170,7 @@ def inputfile_microsoft_tempfile_zip_with_folder() -> Generator[str, None, None]
 
 
 def create_zip_with_multiple_filenames(zip_path, files):
-    # zipファイルを作成
+    # Create a zip file
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for filename, content in files.items():
             zipf.writestr(filename, content)

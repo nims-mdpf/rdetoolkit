@@ -116,7 +116,7 @@ def test_plotly_renderer_creates_traces_with_colors() -> None:
     names = {trace.name for trace in fig.data}
     assert names == {"Y1", "Y2"}
     colors = {trace.line["color"] for trace in fig.data}
-    assert len(colors) == 2  # 異なる色が割り当てられる
+    assert len(colors) == 2  # Different colors are assigned
 
 
 def test_plotly_renderer_applies_log_scale_and_updatemenus() -> None:
