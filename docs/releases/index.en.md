@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
 | v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
 | v1.4.2  | 2025-12-18   | Invoice overwrite validation / Excel invoice consolidation / csv2graph auto single-series / MultiDataTile empty input | [v1.4.2](#v142-2025-12-18) |
@@ -16,6 +17,97 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.5.1 (2026-01-21)
+
+!!! info "References"
+    - Key issues: [#207](https://github.com/nims-mdpf/rdetoolkit/issues/207), [#210](https://github.com/nims-mdpf/rdetoolkit/issues/210)
+
+#### Highlights
+- Added `smarttable_row_data` property to `RdeDatasetPaths` for direct row data access in SmartTable mode, eliminating the need for users to manually read and parse CSV files
+- Feature-flagged items from `variable` array in `metadata.json` are now transcribed to description in array format (`[A,B,C]`)
+- Added `feature_description` configuration flag to enable/disable automatic feature transcription to description
+
+---
+
+### SmartTable Row Data Direct Access (Issue #207)
+
+#### Enhancements
+- **New Attribute**: Added `smarttable_row_data: dict[str, Any] | None` to `RdeOutputResourcePath` dataclass
+- **New Property**: Added `smarttable_row_data` property to `RdeDatasetPaths` for user callback access
+- **Processor Update**: Modified `SmartTableInvoiceInitializer` to parse CSV and store row data in context
+- **Type Stubs**: Updated `.pyi` files for IDE autocomplete support
+- **Comprehensive Tests**: Added unit tests and integration tests covering new and legacy signatures
+
+#### Usage Examples
+
+**Before (existing method still works):**
+```python
+def custom_dataset(paths: RdeDatasetPaths):
+    csv_path = paths.smarttable_rowfile
+    if csv_path:
+        df = pd.read_csv(csv_path)
+        sample_name = df.iloc[0]["sample/name"]
+```
+
+**After (new improved API):**
+```python
+def custom_dataset(paths: RdeDatasetPaths):
+    row_data = paths.smarttable_row_data  # dict[str, Any] | None
+    if row_data:
+        sample_name = row_data.get("sample/name")
+```
+
+---
+
+### Variable Array Feature Support in Description (Issue #210)
+
+#### Enhancements
+- **New Helper Function**: `__collect_values_from_variable` collects all values for a specified key from the `variable` array
+- **New Helper Function**: `__format_description_entry` centralizes formatting logic (DRY principle)
+- **Extended Function**: `update_description_with_features` now supports variable array lookup
+  - `constant` values take priority over `variable` values (backward compatible)
+  - Multiple values formatted as `[A,B,C]`, single value remains unchanged
+- **New Config Flag**: Added `feature_description` boolean to `SystemSettings`
+  - Default: `True` (backward compatible)
+  - Controls automatic feature transcription to description
+  - Configurable via `rdeconfig.yaml` or `pyproject.toml`
+
+#### Configuration Examples
+
+**rdeconfig.yaml:**
+```yaml
+system:
+  feature_description: false  # Disable auto-transfer to description
+```
+
+**pyproject.toml:**
+```toml
+[tool.rdetoolkit.system]
+feature_description = false
+```
+
+---
+
+### Migration / Compatibility
+
+#### SmartTable Row Data Access
+- **Backward Compatible**: Existing `smarttable_rowfile` path access continues to work
+- **Gradual Migration**: Both old (file path) and new (dict) approaches can coexist
+- **Non-SmartTable Modes**: `smarttable_row_data` returns `None` in non-SmartTable modes
+
+#### Variable Array Feature Support
+- **Backward Compatible**: Existing constant-only feature behavior unchanged
+- **Priority Rules**: `constant` values always take precedence over `variable` values
+- **Config Default**: `feature_description` defaults to `True`, preserving existing behavior
+- **Opt-out Available**: Set `feature_description: false` to disable automatic transcription
+
+---
+
+#### Known Issues
+- None reported at this time.
+
+---
 
 ## v1.5.0 (2026-01-09)
 
