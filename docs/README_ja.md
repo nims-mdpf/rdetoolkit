@@ -87,20 +87,20 @@ def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
-今回の例では、`modules` 以下に `display_messsage()` というダミー処理を定義し、独自の構造化処理を実装します。`modules/modules.py` というファイルを作成します。
+今回の例では、`modules` 以下に `display_message()` というダミー処理を定義し、独自の構造化処理を実装します。`modules/modules.py` というファイルを作成します。
 
 ```python
 # modules/modules.py
 from rdetoolkit.models.rde2types import RdeDatasetPaths
 
 
-def display_messsage(path):
+def display_message(path):
     print(f"Test Message!: {path}")
 
 
 def dataset(paths: RdeDatasetPaths) -> None:
-    display_messsage(paths.inputdata)
-    display_messsage(paths.struct)
+    display_message(paths.inputdata)
+    display_message(paths.struct)
 ```
 
 ### 起動処理について
