@@ -3530,7 +3530,6 @@ dependencies = [
     { name = "toml" },
     { name = "tomlkit" },
     { name = "typer" },
-    { name = "types-pytz" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 
@@ -3576,6 +3575,7 @@ dev = [
     { name = "tox-uv", version = "1.28.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "tox-uv", version = "1.29.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "types-python-dateutil" },
+    { name = "types-pytz" },
     { name = "types-pyyaml" },
 ]
 
@@ -3603,7 +3603,6 @@ requires-dist = [
     { name = "toml", specifier = ">=0.10.2" },
     { name = "tomlkit", specifier = ">=0.12.4" },
     { name = "typer", specifier = ">=0.9.0" },
-    { name = "types-pytz", specifier = ">=2025.2.0.20250326" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.12.2" },
 ]
 provides-extras = ["minio", "plotly"]
@@ -3636,6 +3635,7 @@ dev = [
     { name = "tox", specifier = ">=4.6.4" },
     { name = "tox-uv", specifier = ">=1.28.0" },
     { name = "types-python-dateutil", specifier = ">=2.8.19.14" },
+    { name = "types-pytz", specifier = ">=2025.2.0.20250326" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20240311" },
 ]
 
