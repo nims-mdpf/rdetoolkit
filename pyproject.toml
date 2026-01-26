@@ -43,6 +43,7 @@ dependencies = [
     "rpds-py>=0.26",
     "markdown>=3.7",
     "types-pytz>=2025.2.0.20250326",
+    "pytz>=2024.1",
     "matplotlib>=3.9.4",
 ]
 readme = "README.md"
