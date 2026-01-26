@@ -90,20 +90,20 @@ def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
-In this example, we define a dummy function `display_messsage()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
+In this example, we define a dummy function `display_message()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
 
 ```python
 # modules/modules.py
 from rdetoolkit.models.rde2types import RdeDatasetPaths
 
 
-def display_messsage(path):
+def display_message(path):
     print(f"Test Message!: {path}")
 
 
 def dataset(paths: RdeDatasetPaths) -> None:
-    display_messsage(paths.inputdata)
-    display_messsage(paths.struct)
+    display_message(paths.inputdata)
+    display_message(paths.struct)
 ```
 
 ### About the Entry Point
