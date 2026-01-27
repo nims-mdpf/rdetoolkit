@@ -15,28 +15,26 @@ from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettin
 from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.models.result import WorkflowExecutionStatus
 
-"""
-| Equivalence Partitioning |
-| API                 | Input/State Partition                              | Rationale                                  | Expected Outcome                                        | Test ID      |
-| ------------------- | -------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------- | ------------ |
-| _process_mode       | smarttable file present                            | SmartTable branch has highest precedence   | SmartTableInvoice mode executes                         | TC-EP-001    |
-| _process_mode       | excel invoice present, extended_mode also set      | Excelinvoice should precede extended_mode  | Excelinvoice mode executes                              | TC-EP-002    |
-| _process_mode       | extended_mode="rdeformat"                          | Valid extended_mode value                  | rdeformat mode executes                                 | TC-EP-003    |
-| _process_mode       | extended_mode=\"MultiDataTile\", ignore_errors=False | Multidata tile failure should bubble       | StructuredError is raised                               | TC-EP-004    |
-| _process_mode       | downstream handler returns None                    | Guard against missing status               | StructuredError is raised                               | TC-EP-005    |
-| _process_mode       | downstream handler returns status.failed           | Failures must raise StructuredError        | StructuredError with error_code propagates              | TC-EP-006    |
-| _process_mode       | downstream handler raises generic Exception        | Unexpected errors are wrapped              | StructuredError is raised with wrapped message          | TC-EP-007    |
-
-| Boundary Value |
-| API           | Boundary Scenario                                        | Rationale                                        | Expected Outcome                         | Test ID      |
-| ------------- | -------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------- | ------------ |
-| _process_mode | smarttable vs excel inputs present                       | Confirms first-branch priority boundary          | SmartTableInvoice chosen (not Excelinvoice) | TC-EP-001    |
-| _process_mode | excel present while extended_mode also configured        | Confirms second/third priority boundary          | Excelinvoice chosen (not extended_mode)  | TC-EP-002    |
-| _process_mode | extended_mode set to allowed value                    | Boundary between valid extended_mode and default | rdeformat branch executes                | TC-EP-003    |
-| _process_mode | MultiDataTile ignore_errors=False                        | Boundary between handled/unhandled exceptions    | StructuredError raised                   | TC-EP-004    |
-| _process_mode | handler returns None vs valid WorkflowExecutionStatus    | Boundary between valid/invalid status responses  | StructuredError raised on None           | TC-EP-005    |
-| _process_mode | handler returns status.failed                            | Boundary between success and explicit failure    | StructuredError raised                   | TC-EP-006    |
-"""
+# Equivalence Partitioning Table
+# | API           | Input/State Partition                              | Rationale                                  | Expected Outcome                             | Test ID   |
+# | ------------- | -------------------------------------------------- | ------------------------------------------ | -------------------------------------------- | --------- |
+# | _process_mode | smarttable file present                            | SmartTable branch has highest precedence   | SmartTableInvoice mode executes              | TC-EP-001 |
+# | _process_mode | excel invoice present, extended_mode also set      | Excelinvoice should precede extended_mode  | Excelinvoice mode executes                   | TC-EP-002 |
+# | _process_mode | extended_mode="rdeformat"                          | Valid extended_mode value                  | rdeformat mode executes                      | TC-EP-003 |
+# | _process_mode | extended_mode="MultiDataTile", ignore_errors=False | Multidata tile failure should bubble       | StructuredError is raised                    | TC-EP-004 |
+# | _process_mode | downstream handler returns None                    | Guard against missing status               | StructuredError is raised                    | TC-EP-005 |
+# | _process_mode | downstream handler returns status.failed           | Failures must raise StructuredError        | StructuredError with error_code propagates   | TC-EP-006 |
+# | _process_mode | downstream handler raises generic Exception        | Unexpected errors are wrapped              | StructuredError is raised with wrapped msg   | TC-EP-007 |
+#
+# Boundary Value Table
+# | API           | Boundary Scenario                                     | Rationale                                        | Expected Outcome                            | Test ID   |
+# | ------------- | ----------------------------------------------------- | ------------------------------------------------ | ------------------------------------------- | --------- |
+# | _process_mode | smarttable vs excel inputs present                    | Confirms first-branch priority boundary          | SmartTableInvoice chosen (not Excelinvoice) | TC-EP-001 |
+# | _process_mode | excel present while extended_mode also configured     | Confirms second/third priority boundary          | Excelinvoice chosen (not extended_mode)     | TC-EP-002 |
+# | _process_mode | extended_mode set to allowed value                    | Boundary between valid extended_mode and default | rdeformat branch executes                   | TC-EP-003 |
+# | _process_mode | MultiDataTile ignore_errors=False                     | Boundary between handled/unhandled exceptions    | StructuredError raised                      | TC-EP-004 |
+# | _process_mode | handler returns None vs valid WorkflowExecutionStatus | Boundary between valid/invalid status responses  | StructuredError raised on None              | TC-EP-005 |
+# | _process_mode | handler returns status.failed                         | Boundary between success and explicit failure    | StructuredError raised                      | TC-EP-006 |
 
 
 @pytest.fixture
@@ -792,13 +790,13 @@ def test_process_mode_uses_extended_mode_value__tc_ep_003(tmp_path, monkeypatch)
     )
 
     # Then
-    assert called, "rdeformat branch should execute when extended_mode equals rdeformat (case-insensitive)"
+    assert called, "rdeformat branch should execute when extended_mode equals 'rdeformat'"
     assert mode == "rdeformat"
     assert status.status == "success"
     assert error_info is None
 
 
-def test_process_mode_multidatatitle_propagates_structured_error__tc_ep_004(tmp_path, monkeypatch):
+def test_process_mode_multidatatile_propagates_structured_error__tc_ep_004(tmp_path, monkeypatch):
     """Given MultiDataTile without ignore_errors, when handler raises StructuredError, then it propagates."""
     srcpaths, rdeoutput_resource, config = _make_paths(tmp_path, extended_mode="MultiDataTile", ignore_errors=False)
 

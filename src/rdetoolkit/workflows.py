@@ -423,7 +423,7 @@ def run(*, custom_dataset_function: DatasetCallback | None = None, config: Confi
 
         1. SmartTable CSV is present (`smarttable_file` is not None) -> `SmartTableInvoice` mode.
         2. Excel invoice bundle is provided (`excel_invoice_files` is not None) -> `Excelinvoice` mode.
-        3. `extended_mode` equals `rdeformat` or `MultiDataTile` (exact match) -> the corresponding extended mode.
+        3. `extended_mode` matches (case-insensitive) `rdeformat` or `MultiDataTile` -> the corresponding extended mode.
         4. Otherwise -> `Invoice` mode.
 
         The mode name recorded in logs/results matches the branch that executed. No `excelinvoice` value is accepted in `extended_mode`.
