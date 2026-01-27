@@ -57,3 +57,24 @@ class NoResultsFoundError(Exception):
 class InvalidSearchParametersError(Exception):
     message: Incomplete
     def __init__(self, message: str = 'Invalid search term') -> None: ...
+
+class ConfigError(Exception):
+    message: str
+    file_path: str | None
+    error_type: str
+    line_number: int | None
+    column_number: int | None
+    field_name: str | None
+    doc_url: str
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        file_path: str | None = None,
+        error_type: str = 'unknown',
+        line_number: int | None = None,
+        column_number: int | None = None,
+        field_name: str | None = None,
+        doc_url: str = 'https://nims-mdpf.github.io/rdetoolkit/usage/config/config/',
+    ) -> None: ...

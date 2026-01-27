@@ -319,6 +319,193 @@ except Exception as e:
     print(f"ワークフロー実行エラー（バリデーション含む）: {e}")
 ```
 
+## CLIバリデーションコマンド
+
+RDEToolKitは、CI/CD統合のための標準化された終了コードを持つコマンドラインバリデーションツールを提供します。
+
+### 利用可能なバリデーションコマンド
+
+`validate`コマンドは、包括的なバリデーションのための5つのサブコマンドを提供します：
+
+- `invoice-schema` - インボイススキーマJSONの構造を検証
+- `metadata-def` - メタデータ定義JSONの構造を検証
+- `invoice` - invoice.jsonをスキーマに対して検証
+- `metadata` - metadata.jsonをmetadata-def.jsonに対して検証
+- `all` - プロジェクト内のすべての標準RDEファイルを検出して検証
+
+### 終了コード
+
+すべてのバリデーションコマンドは、CI/CDパイプラインおよび自動化スクリプトとの統合を可能にする標準化された終了コードを使用します：
+
+| 終了コード | ステータス | 説明 |
+|-----------|--------|-------------|
+| 0 | 成功 | すべてのバリデーションが正常に完了 |
+| 1 | バリデーション失敗 | データまたはスキーマの問題により1つ以上のバリデーションが失敗 |
+| 2 | 使用エラー | 無効なコマンド引数、ファイル不足、または設定エラー |
+
+### CI/CDパイプラインでの使用
+
+終了コードにより、シェルスクリプトおよびCI/CDパイプラインで堅牢なエラーハンドリングが可能になります：
+
+```bash title="CI/CDバリデーションスクリプトの例"
+#!/bin/bash
+# CI/CDバリデーションスクリプトの例
+
+rdetoolkit validate all ./rde-project
+
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+    echo "✓ バリデーション成功 - デプロイを続行します"
+    exit 0
+elif [ $EXIT_CODE -eq 1 ]; then
+    echo "✗ バリデーション失敗 - データ/スキーマのエラーを確認してください"
+    exit 1
+elif [ $EXIT_CODE -eq 2 ]; then
+    echo "✗ 設定エラー - コマンド引数とファイルパスを確認してください"
+    exit 2
+else
+    echo "✗ 予期しない終了コード: $EXIT_CODE"
+    exit $EXIT_CODE
+fi
+```
+
+### CLI使用例
+
+#### インボイススキーマの検証（成功 - 終了コード0）
+
+```bash
+$ rdetoolkit validate invoice-schema tasksupport/invoice.schema.json
+✓ VALID: tasksupport/invoice.schema.json
+
+$ echo $?
+0
+```
+
+#### インボイスデータの検証（バリデーション失敗 - 終了コード1）
+
+```bash
+$ rdetoolkit validate invoice raw/invoice.json --schema tasksupport/invoice.schema.json
+✗ INVALID: raw/invoice.json
+
+Errors:
+  1. Field: basic.dataOwnerId
+     Type: pattern
+     Message: String does not match pattern ^[a-zA-Z0-9]{56}$
+
+$ echo $?
+1
+```
+
+#### ファイル不足（使用エラー - 終了コード2）
+
+```bash
+$ rdetoolkit validate invoice-schema /nonexistent/schema.json
+Error: Schema file not found: /nonexistent/schema.json
+
+$ echo $?
+2
+```
+
+#### プロジェクト内のすべてのファイルを検証
+
+```bash
+$ rdetoolkit validate all ./rde-project
+✓ Validating invoice schema...
+✓ Validating metadata definition...
+✓ Validating invoice data...
+✓ Validating metadata...
+✓ All validations passed
+
+$ echo $?
+0
+```
+
+### CI/CD統合の例
+
+#### GitHub Actionsの例
+
+```yaml title="GitHub Actionsワークフロー"
+name: RDE Validation
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Pythonのセットアップ
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: rdetoolkitのインストール
+        run: pip install rdetoolkit
+
+      - name: RDEプロジェクトの検証
+        run: |
+          rdetoolkit validate all ./rde-project
+          if [ $? -eq 1 ]; then
+            echo "::error::RDEバリデーション失敗 - データとスキーマを確認してください"
+            exit 1
+          elif [ $? -eq 2 ]; then
+            echo "::error::RDEバリデーション設定エラー"
+            exit 2
+          fi
+```
+
+#### GitLab CIの例
+
+```yaml title="GitLab CI設定"
+validate:
+  stage: test
+  image: python:3.12
+  script:
+    - pip install rdetoolkit
+    - rdetoolkit validate all ./rde-project
+  allow_failure: false
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+```
+
+#### シェルスクリプトの例
+
+```bash title="スタンドアロンバリデーションスクリプト"
+#!/bin/bash
+set -e
+
+validate_rde_project() {
+    local project_dir="$1"
+
+    echo "RDEプロジェクトを検証中: $project_dir"
+    rdetoolkit validate all "$project_dir"
+
+    local exit_code=$?
+    case $exit_code in
+        0)
+            echo "✓ バリデーション成功"
+            return 0
+            ;;
+        1)
+            echo "✗ バリデーション失敗 - データまたはスキーマのエラー"
+            return 1
+            ;;
+        2)
+            echo "✗ 設定エラー - 引数とファイルを確認してください"
+            return 2
+            ;;
+        *)
+            echo "✗ 予期しない終了コード: $exit_code"
+            return $exit_code
+            ;;
+    esac
+}
+
+validate_rde_project "./rde-project"
+```
+
 ## ベストプラクティス
 
 ### 開発時のバリデーション戦略
@@ -329,11 +516,12 @@ except Exception as e:
 
 2. **継続的チェック**
    - ファイル変更時に自動バリデーション
-   - CI/CDパイプラインでのバリデーション
+   - 終了コードを使用したCI/CDパイプラインでのバリデーション
 
 3. **エラーハンドリング**
    - 詳細なエラーメッセージの活用
    - 段階的なエラー修正
+   - バリデーション失敗（終了コード1）と設定エラー（終了コード2）の区別
 
 ### トラブルシューティング
 

@@ -181,8 +181,7 @@ def determine_exit_code(result: ValidationResult, strict: bool = False) -> int:
     Exit codes:
     - 0: Validation passed
     - 1: Validation failed (errors or warnings in strict mode)
-    - 2: Usage/argument errors (handled by Typer)
-    - 3: Internal errors (handled by exception handlers)
+    - 2: Usage/argument errors (handled by CLI layer)
 
     Args:
         result: Validation result
