@@ -1,0 +1,49 @@
+"""Common Hypothesis strategies for RDEToolKit property-based tests.
+
+This module provides reusable strategies for generating test data
+across different modules.
+"""
+
+from hypothesis import strategies as st
+
+
+# File path strategies
+safe_filename_chars = st.text(
+    alphabet=st.characters(
+        whitelist_categories=("Lu", "Ll", "Nd"),
+        blacklist_characters="\\/:*?\"<>|",
+    ),
+    min_size=1,
+    max_size=255,
+)
+
+# Text strategies
+ascii_text = st.text(
+    alphabet=st.characters(min_codepoint=32, max_codepoint=126),
+    min_size=0,
+    max_size=1000,
+)
+
+unicode_text = st.text(
+    alphabet=st.characters(blacklist_categories=["Cs"]),  # Exclude surrogates
+    min_size=0,
+    max_size=1000,
+)
+
+# Numeric strategies
+finite_floats = st.floats(
+    allow_nan=False,
+    allow_infinity=False,
+    min_value=-1e308,
+    max_value=1e308,
+)
+
+# Column name strategies
+valid_column_names = st.text(
+    alphabet=st.characters(
+        whitelist_categories=("Lu", "Ll", "Nd"),
+        whitelist_characters="_-",
+    ),
+    min_size=1,
+    max_size=100,
+)

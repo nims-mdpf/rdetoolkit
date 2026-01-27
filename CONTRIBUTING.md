@@ -181,6 +181,38 @@ RDEToolKitでは、`Ruff`と`mypy`を使用してフォーマット、リンタ�
 tox
 ```
 
+#### テストの種類
+
+RDEToolKitは2種類のテストアプローチを使用しています:
+
+1. **Example-Based Testing**: 特定の入力/出力例を使用した従来のテスト
+   - 場所: `tests/` ディレクトリ
+   - 同値分割および境界値分析に従う
+   - 100%のブランチカバレッジを提供
+
+2. **Property-Based Testing (PBT)**: 自動生成された入力を使用したテスト
+   - 場所: `tests/property/` ディレクトリ
+   - Hypothesisライブラリを使用してエッジケースを発見
+   - 常に成り立つべき不変条件や性質をテスト
+   - `@pytest.mark.property` でマーク
+
+#### テスト実行コマンド
+
+```bash
+# 全テストを実行 (example-based + property-based)
+tox -e py312-module
+
+# Property-basedテストのみ実行
+pytest tests/property/ -v -m property
+
+# CIプロファイルで実行 (高速、少ない例)
+HYPOTHESIS_PROFILE=ci pytest tests/property/ -v -m property
+```
+
+#### Property-Based Testingについて
+
+Property-Based Testingの詳細は `CLAUDE.md` のPBTセクションを参照してください。
+
 ### コミットとプッシュ
 
 変更をコミットし、リモートリポジトリにプッシュします。

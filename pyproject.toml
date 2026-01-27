@@ -96,6 +96,7 @@ dev = [
     "minio>=7.2.15",
     "superclaude>=4.1.5",
     "tox-uv>=1.28.0",
+    "hypothesis>=6.102.0",
 ]
 # requires = ["hatchling"]
 # build-backend = "hatchling.build"
@@ -308,6 +309,7 @@ testpaths = ["tests"]
 markers = [
     "graph_outputs: marks tests that generate graph outputs (deselect with '-m \"not graph_outputs\"')",
     "legacy: marks legacy compatibility tests (deselected by default)",
+    "property: marks property-based tests using Hypothesis (deselect with '-m \"not property\"')",
 ]
 
 
