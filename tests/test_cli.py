@@ -1052,6 +1052,29 @@ def valid_metadata_def_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def valid_metadata_data_file(tmp_path: Path) -> Path:
+    """Create a valid metadata data file (metadata.json) for testing.
+
+    Test ID: TC-INT-FIXTURE-003b
+
+    Note: metadata.json uses MetadataItem model (constant/variable),
+    which is different from metadata-def.json (MetadataDefinition).
+    This fixture is used for `validate metadata <data>` command.
+    """
+    metadata = {
+        "constant": {
+            "author": {"value": "Test Author"},
+        },
+        "variable": [
+            {"temperature": {"value": 300, "unit": "K"}},
+        ],
+    }
+    metadata_path = tmp_path / "metadata.json"
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    return metadata_path
+
+
+@pytest.fixture
 def invalid_invoice_schema_file(tmp_path: Path) -> Path:
     """Create an invalid invoice schema file (missing required 'properties' field).
 
@@ -1175,23 +1198,26 @@ def test_validate_invoice_success_returns_exit_0(
 
 
 def test_validate_metadata_success_returns_exit_0(
+    valid_metadata_data_file: Path,
     valid_metadata_def_file: Path,
 ) -> None:
     """Test that validate metadata returns exit code 0 on success.
 
-    Given: Valid metadata data and definition files
+    Given: Valid metadata data file (metadata.json) and definition file (metadata-def.json)
     When: Running 'rdetoolkit validate metadata <data> --schema <def>'
     Then: Exit code is 0
 
     Test ID: TC-INT-004
+
+    Note: metadata.json (data) uses MetadataItem model (constant/variable),
+    metadata-def.json (schema) uses MetadataDefinition model (dict[str, MetadataDefEntry]).
     """
-    # Use same file for both data and definition in success case
     result = subprocess.run(
         [
             "rdetoolkit",
             "validate",
             "metadata",
-            str(valid_metadata_def_file),
+            str(valid_metadata_data_file),
             "--schema",
             str(valid_metadata_def_file),
         ],
