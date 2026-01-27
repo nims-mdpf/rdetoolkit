@@ -1043,16 +1043,21 @@ def valid_metadata_def_file(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def invalid_invoice_schema_file(tmp_path: Path) -> Path:
-    """Create an invalid invoice schema file (missing required fields).
+    """Create an invalid invoice schema file (missing required 'properties' field).
 
     Test ID: TC-INT-FIXTURE-004
+
+    Note: The file MUST be named 'invoice.schema.json' because InvoiceValidator's
+    __pre_validate() only validates files with this exact name. Files with other
+    names will skip pydantic validation and always pass.
     """
     schema = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        # Missing required fields like $id, description, properties
+        "$id": "https://example.com/test.schema.json",
         "type": "object",
+        # Missing required 'properties' field - this will cause pydantic validation to fail
     }
-    schema_path = tmp_path / "invalid_schema.json"
+    schema_path = tmp_path / "invoice.schema.json"  # Must be this exact name for validation
     schema_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
     return schema_path
 
