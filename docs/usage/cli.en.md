@@ -209,6 +209,63 @@ Check the version of rdetoolkit.
     py -m rdetoolkit version
     ```
 
+### validate: Validate RDE Files
+
+Validate RDE-related files with standardized exit codes for CI/CD integration.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit validate <subcommand> [OPTIONS]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit validate <subcommand> [OPTIONS]
+    ```
+
+#### Available Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `invoice-schema` | Validate invoice schema JSON structure |
+| `metadata-def` | Validate metadata definition JSON structure |
+| `invoice` | Validate invoice.json against its schema |
+| `metadata` | Validate metadata.json against metadata-def.json |
+| `all` | Discover and validate all standard RDE files in a project |
+
+#### Exit Codes
+
+All validate subcommands return standardized exit codes:
+
+| Exit Code | Status | Description |
+|-----------|--------|-------------|
+| 0 | Success | All validations passed |
+| 1 | Validation Failure | Data or schema errors found |
+| 2 | Usage Error | Invalid arguments or missing files |
+
+#### Usage Examples
+
+```bash title="Validate invoice schema"
+python3 -m rdetoolkit validate invoice-schema tasksupport/invoice.schema.json
+```
+
+```bash title="Validate all files in a project"
+python3 -m rdetoolkit validate all ./rde-project
+```
+
+```bash title="CI/CD integration example"
+python3 -m rdetoolkit validate all ./rde-project
+if [ $? -ne 0 ]; then
+    echo "Validation failed"
+    exit 1
+fi
+```
+
+!!! tip "Detailed Documentation"
+    For comprehensive validation documentation including CI/CD integration examples, see [Validation Features](validation.en.md).
+
 ### artifact: Create RDE Submission Archive
 
 Creates an archive (.zip) for submission to RDE. Compresses the specified source directory and excludes files or directories that match exclusion patterns.
