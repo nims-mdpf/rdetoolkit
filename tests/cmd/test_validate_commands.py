@@ -312,29 +312,6 @@ def valid_metadata_data(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def valid_metadata_def_old_format(tmp_path: Path) -> Path:
-    """Create a valid metadata definition file in old format (for MetadataCommand tests).
-
-    This fixture provides the old metadata.json format for tests that use
-    MetadataCommand, which still uses the old MetadataValidator.
-
-    Args:
-        tmp_path: Pytest temporary directory fixture
-
-    Returns:
-        Path to valid metadata definition file (old format)
-    """
-    # Given: Old format metadata definition (metadata.json structure)
-    metadata_def = {
-        "constant": {"author": {"value": "Test Author"}},
-        "variable": [{"temperature": {"value": 300, "unit": "K"}}],
-    }
-    metadata_path = tmp_path / "metadata-def-old.json"
-    metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
-    return metadata_path
-
-
-@pytest.fixture
 def empty_json_file(tmp_path: Path) -> Path:
     """Create an empty JSON file.
 
@@ -790,21 +767,21 @@ def test_metadata_def_wrong_field_type(invalid_metadata_def_wrong_type: Path) ->
 
 
 def test_metadata_valid_data__tc_ep_014(
-    valid_metadata_data: Path, valid_metadata_def_old_format: Path,
+    valid_metadata_data: Path, valid_metadata_def: Path,
 ) -> None:
     """Test validation of valid metadata data.
 
-    Given: Valid metadata data and definition (old format)
+    Given: Valid metadata data (metadata.json) and definition (metadata-def.json)
     When: Executing MetadataCommand
     Then: Validation passes with no errors
 
     Test ID: TC-EP-014
 
-    Note: This test uses old format metadata-def because MetadataCommand
-    still uses the old MetadataValidator (not yet updated to new format).
+    Note: MetadataCommand uses MetadataDefinitionValidator for schema_path
+    and MetadataValidator for metadata_path (Issue #382 fix).
     """
     # Arrange
-    command = MetadataCommand(valid_metadata_data, valid_metadata_def_old_format)
+    command = MetadataCommand(valid_metadata_data, valid_metadata_def)
 
     # Act
     result = command.execute()
@@ -815,7 +792,7 @@ def test_metadata_valid_data__tc_ep_014(
 
 
 def test_metadata_file_not_found__tc_ep_016(
-    tmp_path: Path, valid_metadata_def_old_format: Path,
+    tmp_path: Path, valid_metadata_def: Path,
 ) -> None:
     """Test validation with non-existent metadata file.
 
@@ -827,7 +804,7 @@ def test_metadata_file_not_found__tc_ep_016(
     """
     # Arrange
     non_existent = tmp_path / "nonexistent.json"
-    command = MetadataCommand(non_existent, valid_metadata_def_old_format)
+    command = MetadataCommand(non_existent, valid_metadata_def)
 
     # Act & Assert
     with pytest.raises(FileNotFoundError, match="Metadata file not found"):
