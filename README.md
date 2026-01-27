@@ -1,8 +1,8 @@
-![GitHub Release](https://img.shields.io/github/v/release/nims-dpfc/rdetoolkit)
+![GitHub Release](https://img.shields.io/github/v/release/nims-mdpf/rdetoolkit)
 [![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11%7C3.12%7C3.13%7C3.14-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
-[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-dpfc/rdetoolkit/blob/main/LICENSE)
-[![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-dpfc/rdetoolkit/issues)
-![workflow](https://github.com/nims-dpfc/rdetoolkit/actions/workflows/main.yml/badge.svg)
+[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-mdpf/rdetoolkit/blob/main/LICENSE)
+[![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-mdpf/rdetoolkit/issues)
+![workflow](https://github.com/nims-mdpf/rdetoolkit/actions/workflows/main.yml/badge.svg)
 ![coverage](docs/img/coverage.svg)
 
 > [日本語ドキュメント](docs/README_ja.md)
@@ -90,20 +90,20 @@ def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
-In this example, we define a dummy function `display_messsage()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
+In this example, we define a dummy function `display_message()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
 
 ```python
 # modules/modules.py
 from rdetoolkit.models.rde2types import RdeDatasetPaths
 
 
-def display_messsage(path):
+def display_message(path):
     print(f"Test Message!: {path}")
 
 
 def dataset(paths: RdeDatasetPaths) -> None:
-    display_messsage(paths.inputdata)
-    display_messsage(paths.struct)
+    display_message(paths.inputdata)
+    display_message(paths.struct)
 ```
 
 ### About the Entry Point
