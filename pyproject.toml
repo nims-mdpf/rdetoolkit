@@ -43,6 +43,7 @@ dependencies = [
     "rpds-py>=0.26",
     "markdown>=3.7",
     "pytz>=2024.1",
+    "types-pytz>=2025.2.0.20250326",
     "matplotlib>=3.9.4",
 ]
 readme = "README.md"
@@ -210,6 +211,8 @@ convention = "google"
 "src/rdetoolkit/cli.py" = ["PLC0415"]
 "src/rdetoolkit/errors.py" = ["PLC0415"]
 "src/rdetoolkit/fileops.py" = ["PLC0415"]
+# TODO: Refactor parse_config_file to reduce complexity (Issue #361)
+"src/rdetoolkit/config.py" = ["C901", "PLR0912"]
 "src/rdetoolkit/graph/__init__.py" = ["PLC0415"]
 "src/rdetoolkit/graph/api/csv2graph.py" = ["PLC0415"]
 "src/rdetoolkit/invoicefile.py" = ["PLC0415"]
