@@ -176,3 +176,97 @@ class InvalidSearchParametersError(Exception):
     def __init__(self, message: str = "Invalid search term") -> None:
         self.message = message
         super().__init__(self.message)
+
+
+class ConfigError(Exception):
+    """Exception raised for configuration file loading errors.
+
+    This exception provides structured, informative error messages for configuration
+    file failures, including file paths, error types, line/column information for
+    parse errors, and documentation links.
+
+    Attributes:
+        message: The error message describing what went wrong.
+        file_path: Path to the configuration file that failed to load.
+        error_type: Type of error (e.g., 'file_not_found', 'parse_error', 'validation_error').
+        line_number: Line number where error occurred (for parse errors).
+        column_number: Column number where error occurred (for parse errors).
+        field_name: Field name that failed validation (for validation errors).
+        doc_url: Documentation URL for help and troubleshooting.
+
+    Examples:
+        File not found error:
+        >>> raise ConfigError(
+        ...     "Configuration file not found",
+        ...     file_path="config.yaml",
+        ...     error_type="file_not_found"
+        ... )
+
+        Parse error with line information:
+        >>> raise ConfigError(
+        ...     "Invalid YAML syntax: expected <block end>",
+        ...     file_path="config.yaml",
+        ...     error_type="parse_error",
+        ...     line_number=10,
+        ...     column_number=5
+        ... )
+
+        Validation error with field information:
+        >>> raise ConfigError(
+        ...     "Invalid value for field",
+        ...     file_path="config.yaml",
+        ...     error_type="validation_error",
+        ...     field_name="system.extended_mode"
+        ... )
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        file_path: str | None = None,
+        error_type: str = "unknown",
+        line_number: int | None = None,
+        column_number: int | None = None,
+        field_name: str | None = None,
+        doc_url: str = "https://nims-mdpf.github.io/rdetoolkit/usage/config/config/",
+    ) -> None:
+        """Initialize ConfigError with detailed information.
+
+        Args:
+            message: The error message describing what went wrong.
+            file_path: Path to the configuration file that failed.
+            error_type: Type of error (e.g., 'file_not_found', 'parse_error', 'validation_error').
+            line_number: Line number where error occurred (for parse errors).
+            column_number: Column number where error occurred (for parse errors).
+            field_name: Field name that failed validation (for validation errors).
+            doc_url: Documentation URL for help and troubleshooting.
+        """
+        self.message = message
+        self.file_path = file_path
+        self.error_type = error_type
+        self.line_number = line_number
+        self.column_number = column_number
+        self.field_name = field_name
+        self.doc_url = doc_url
+
+        # Build comprehensive error message
+        parts = []
+        if file_path:
+            parts.append(f"Configuration file: '{file_path}'")
+
+        parts.append(message)
+
+        if line_number is not None:
+            location = f"line {line_number}"
+            if column_number is not None:
+                location += f", column {column_number}"
+            parts.append(f"Location: {location}")
+
+        if field_name:
+            parts.append(f"Field: {field_name}")
+
+        parts.append(f"See: {doc_url}")
+
+        full_message = "\n".join(parts)
+        super().__init__(full_message)
