@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Python 3.9 Support**: Python 3.9 support is now deprecated and will be removed in rdetoolkit v2.0. Users are encouraged to upgrade to Python 3.10 or later. A `DeprecationWarning` is now issued when rdetoolkit is imported under Python 3.9. (#360)
   - **Timeline**: Python 3.9 reaches End of Life in October 2025
   - **Action Required**: Plan to upgrade to Python 3.10+ before rdetoolkit v2.0 release
-  - **Migration Path**: Python 3.10, 3.11, 3.12, and 3.13 are fully supported
+  - **Migration Path**: Python 3.10, 3.11, 3.12, 3.13, and 3.14 are fully supported
 
 ## [1.5.2] - 2026-01-26
 
