@@ -1031,10 +1031,20 @@ def valid_metadata_def_file(tmp_path: Path) -> Path:
     """Create a valid metadata definition file for testing.
 
     Test ID: TC-INT-FIXTURE-003
+
+    Note: metadata-def.json uses MetadataDefinition model (dict[str, MetadataDefEntry]),
+    not MetadataItem (constant/variable). See Issue #382.
     """
     metadata_def = {
-        "constant": {"author": {"value": "Test Author"}},
-        "variable": [{"temperature": {"value": 300, "unit": "K"}}],
+        "author": {
+            "name": {"ja": "著者", "en": "Author"},
+            "schema": {"type": "string"},
+        },
+        "temperature": {
+            "name": {"ja": "温度", "en": "Temperature"},
+            "schema": {"type": "number"},
+            "unit": "K",
+        },
     }
     metadata_path = tmp_path / "metadata-def.json"
     metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
@@ -1087,8 +1097,11 @@ def invalid_metadata_def_file(tmp_path: Path) -> Path:
     """Create an invalid metadata definition (wrong structure).
 
     Test ID: TC-INT-FIXTURE-006
+
+    Note: metadata-def.json uses MetadataDefinition model (dict[str, MetadataDefEntry]).
+    This fixture creates an invalid structure (array instead of dict). See Issue #382.
     """
-    metadata_def = []  # Invalid: should be object with constant/variable
+    metadata_def = []  # Invalid: should be dict[str, MetadataDefEntry]
     metadata_path = tmp_path / "invalid_metadata.json"
     metadata_path.write_text(json.dumps(metadata_def), encoding="utf-8")
     return metadata_path
