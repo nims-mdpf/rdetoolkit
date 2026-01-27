@@ -1,7 +1,7 @@
 # Issue #361 Overview: Configuration File Error Message Improvement
 
 ## Input Source
-- **File**: `/Users/sonokawa/github/rdetoolkit-worktrees/develop-v152_361/local/develop/issue_361.md`
+- **File**: `local/develop/issue_361.md`
 - **Issue**: #361
 - **Created**: 2026-01-26
 

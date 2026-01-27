@@ -105,10 +105,14 @@ def parse_config_file(*, path: str | None = None) -> Config:
         - "pyproject.toml"
 
     Note:
-        - If the specified configuration file does not exist or is not in the correct format, an empty Config object will be returned.
+        - If the specified file is not a recognized config file name (not in CONFIG_FILES),
+          an empty Config object will be returned.
+        - If the specified file does not exist, ConfigError is raised.
+        - If the file contains invalid YAML/TOML syntax, ConfigError is raised with line/column info.
+        - If the configuration fails validation, ConfigError is raised with field details.
 
     Example:
-        parse_config_file(path="config.yaml")
+        parse_config_file(path="rdeconfig.yaml")
 
     """
     config_data: dict[str, Any] = {
@@ -187,6 +191,16 @@ def parse_config_file(*, path: str | None = None) -> Config:
         msg = f"Configuration validation failed: {str(e)}"
         raise ConfigError(
             msg,
+            error_type="validation_error",
+        ) from e
+    except TypeError as e:
+        # This occurs when config_data is not a mapping (e.g., list or string),
+        # which makes Config(**config_data) invalid. Normalize it to ConfigError.
+        base_msg = "Configuration data must be a mapping (key-value structure)"
+        msg = f"{base_msg} in file '{path}'" if path else base_msg
+        raise ConfigError(
+            msg,
+            file_path=path,
             error_type="validation_error",
         ) from e
 
@@ -331,21 +345,15 @@ def get_config(target_dir_path: RdeFsPath) -> Config | None:
             error_type="directory_not_found",
         )
     for cfg_file in find_config_files(target_dir_path):
-        try:
-            __config = parse_config_file(path=cfg_file)
-        except ValidationError as e:
-            # Use helper to format validation error with file path
-            raise _format_validation_error(e, cfg_file) from e
+        # parse_config_file now converts ValidationError to ConfigError internally
+        __config = parse_config_file(path=cfg_file)
         if __config is not None:
             return __config
 
     pyproject_toml_path = get_pyproject_toml()
     if pyproject_toml_path is not None:
-        try:
-            __config = parse_config_file(path=str(pyproject_toml_path))
-        except ValidationError as e:
-            # Use helper for pyproject.toml validation errors
-            raise _format_validation_error(e, str(pyproject_toml_path)) from e
+        # parse_config_file now converts ValidationError to ConfigError internally
+        __config = parse_config_file(path=str(pyproject_toml_path))
         if __config is not None:
             return __config
     return None
@@ -369,9 +377,13 @@ def load_config(tasksupport_path: RdeFsPath, *, config: Config | None = None) ->
         try:
             __rtn_config = get_config(tasksupport_path)
             __config = Config() if __rtn_config is None else __rtn_config
-        except ConfigError:
-            # If directory doesn't exist, return default Config for backward compatibility
-            __config = Config()
+        except ConfigError as e:
+            # Only swallow directory_not_found errors for backward compatibility
+            # Re-raise other ConfigError types (parse_error, validation_error, etc.)
+            if getattr(e, "error_type", None) == "directory_not_found":
+                __config = Config()
+            else:
+                raise
     return __config
 
 

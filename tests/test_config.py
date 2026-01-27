@@ -677,11 +677,9 @@ def test_read_pyproject_toml_not_found():
 
 
 @pytest.fixture()
-def invalid_yaml_syntax():
-    """Create a YAML file with syntax error."""
-    dirname = Path("tasksupport")
-    dirname.mkdir(exist_ok=True)
-    test_yaml_path = dirname.joinpath("rdeconfig.yaml")
+def invalid_yaml_syntax(tmp_path):
+    """Create a YAML file with syntax error using tmp_path for isolation."""
+    test_yaml_path = tmp_path / "rdeconfig.yaml"
 
     # Invalid YAML: unclosed bracket, tabs instead of spaces, etc.
     invalid_content = """system:
@@ -692,23 +690,15 @@ def invalid_yaml_syntax():
 multidata_tile:
   ignore_errors: false
 """
-    with open(test_yaml_path, mode="w", encoding="utf-8") as f:
-        f.write(invalid_content)
+    test_yaml_path.write_text(invalid_content, encoding="utf-8")
 
-    yield test_yaml_path
-
-    if test_yaml_path.exists():
-        test_yaml_path.unlink()
-    # Don't remove directory as other tests may be using it
-    # Directory cleanup is handled by test environment
+    return test_yaml_path
 
 
 @pytest.fixture()
-def invalid_toml_syntax():
-    """Create a TOML file with syntax error."""
-    dirname = Path("tasksupport")
-    dirname.mkdir(exist_ok=True)
-    test_toml_path = dirname.joinpath("pyproject.toml")
+def invalid_toml_syntax(tmp_path):
+    """Create a TOML file with syntax error using tmp_path for isolation."""
+    test_toml_path = tmp_path / "pyproject.toml"
 
     # Invalid TOML: missing closing quote, invalid table definition
     invalid_content = """[tool.rdetoolkit]
@@ -716,15 +706,9 @@ def invalid_toml_syntax():
 extended_mode = "rdeformat
 save_raw = true
 """
-    with open(test_toml_path, mode="w", encoding="utf-8") as f:
-        f.write(invalid_content)
+    test_toml_path.write_text(invalid_content, encoding="utf-8")
 
-    yield test_toml_path
-
-    if test_toml_path.exists():
-        test_toml_path.unlink()
-    # Don't remove directory as other tests may be using it
-    # Directory cleanup is handled by test environment
+    return test_toml_path
 
 
 def test_parse_config_yaml_syntax_error(invalid_yaml_syntax):
@@ -799,49 +783,35 @@ def test_parse_config_yaml_io_error(tmp_path):
 
 
 @pytest.fixture()
-def config_yaml_invalid_extended_mode():
-    """Create YAML with invalid extended_mode value."""
-    dirname = Path("tasksupport")
-    dirname.mkdir(exist_ok=True)
+def config_yaml_invalid_extended_mode(tmp_path):
+    """Create YAML with invalid extended_mode value using tmp_path for isolation."""
     system_data = {
         "extended_mode": "invalid_mode",  # Invalid value
         "save_raw": True,
     }
     data = {"system": system_data}
-    test_yaml_path = dirname.joinpath("rdeconfig.yaml")
+    test_yaml_path = tmp_path / "rdeconfig.yaml"
 
     with open(test_yaml_path, mode="w", encoding="utf-8") as f:
         yaml.dump(data, f)
 
-    yield test_yaml_path
-
-    if test_yaml_path.exists():
-        test_yaml_path.unlink()
-    if dirname.exists():
-        dirname.rmdir()
+    return test_yaml_path
 
 
 @pytest.fixture()
-def config_yaml_invalid_field_type():
-    """Create YAML with invalid field type."""
-    dirname = Path("tasksupport")
-    dirname.mkdir(exist_ok=True)
+def config_yaml_invalid_field_type(tmp_path):
+    """Create YAML with invalid field type using tmp_path for isolation."""
     system_data = {
         "extended_mode": "rdeformat",
         "save_raw": "not_a_boolean",  # Should be bool, not string
     }
     data = {"system": system_data}
-    test_yaml_path = dirname.joinpath("rdeconfig.yaml")
+    test_yaml_path = tmp_path / "rdeconfig.yaml"
 
     with open(test_yaml_path, mode="w", encoding="utf-8") as f:
         yaml.dump(data, f)
 
-    yield test_yaml_path
-
-    if test_yaml_path.exists():
-        test_yaml_path.unlink()
-    if dirname.exists():
-        dirname.rmdir()
+    return test_yaml_path
 
 
 def test_validation_error_invalid_extended_mode(config_yaml_invalid_extended_mode):
@@ -888,13 +858,13 @@ def test_validation_error_invalid_field_type(config_yaml_invalid_field_type):
     assert "https://nims-mdpf.github.io/rdetoolkit/" in str(error)
 
 
-def test_get_config_validation_error(config_yaml_invalid_extended_mode):
+def test_get_config_validation_error(config_yaml_invalid_extended_mode, tmp_path):
     """Test get_config raises ConfigError for validation failures.
 
     Test ID: TC-VAL-GETCONF-001
     """
-    # Given: directory with invalid config file
-    config_dir = Path("tasksupport")
+    # Given: directory with invalid config file (use tmp_path from fixture's parent)
+    config_dir = config_yaml_invalid_extended_mode.parent
 
     # When: attempting to get config from directory
     # Then: ConfigError is raised with field details
@@ -953,6 +923,47 @@ def test_validation_error_multiple_fields():
     errors = exc_info.value.errors()
     # Should have multiple validation errors
     assert len(errors) >= 2
+
+
+def test_parse_config_non_mapping_data(tmp_path):
+    """Test ConfigError when YAML content is not a mapping (e.g., list or string).
+
+    Test ID: TC-VAL-TYPE-002
+    This tests the TypeError handling added per Copilot review suggestion.
+    """
+    # Given: YAML file with non-mapping content (list instead of dict)
+    yaml_file = tmp_path / "rdeconfig.yaml"
+    yaml_file.write_text("- item1\n- item2\n- item3\n", encoding="utf-8")
+
+    # When: attempting to parse the file
+    # Then: ConfigError is raised with appropriate message
+    with pytest.raises(ConfigError) as exc_info:
+        parse_config_file(path=str(yaml_file))
+
+    error = exc_info.value
+    assert error.error_type == "validation_error"
+    assert "mapping" in str(error).lower() or "key-value" in str(error).lower()
+    assert str(yaml_file) in (error.file_path or "")
+
+
+def test_load_config_propagates_validation_errors(tmp_path):
+    """Test load_config propagates validation errors instead of silently returning defaults.
+
+    Test ID: TC-LOAD-VAL-001
+    This tests the fix per Copilot review: only directory_not_found should be swallowed.
+    """
+    # Given: directory with invalid config file
+    config_file = tmp_path / "rdeconfig.yaml"
+    config_file.write_text("system:\n  extended_mode: invalid_value\n", encoding="utf-8")
+
+    # When: attempting to load config
+    # Then: ConfigError is raised (not silently returning defaults)
+    with pytest.raises(ConfigError) as exc_info:
+        from rdetoolkit.config import load_config
+        load_config(tmp_path)
+
+    error = exc_info.value
+    assert error.error_type == "validation_error"
 
 
 # ============================================================================
