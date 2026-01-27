@@ -20,19 +20,19 @@ cd rdetoolkit
 
 ### パッケージ管理ツールのインストール
 
-rdetoolkitでは、`rye`を利用しています。ryeは、Flaskの作者が作成した、Pythonのパッケージ関係管理ツールです。内部実装はRustのため、非常に高速です。poetryを選択せずryeを採用した理由は、動作速度の観点と、`pyenv`を別途利用する必要があるためです。ryeは、`pyenv+poetry`のように、インタプリタの管理とパッケージの管理が統合されているため、メンテナンスの観点からもryeの方が優れているため、こちらを採用しています。
+rdetoolkitでは、`uv`を利用しています。uvは、Astral社が開発した、Pythonのパッケージ管理ツールです。内部実装はRustのため、非常に高速です。poetryを選択せずuvを採用した理由は、動作速度の観点と、`pyenv`を別途利用する必要があるためです。uvは、`pyenv+poetry`のように、インタプリタの管理とパッケージの管理が統合されているため、メンテナンスの観点からもuvの方が優れているため、こちらを採用しています。
 
-ryeは以下の公式ドキュメントを参考にインストールしてください。
+uvは以下の公式ドキュメントを参考にインストールしてください。
 
-> [Installation - Rye](https://rye-up.com/guide/installation/)
+> [Installation - uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ### 開発環境のセットアップ
 
-ryeをインストール後、以下の手順で開発環境をセットアップしてください。`rye sync`で仮想環境が作成され、必要なパッケージが仮想環境にインストールされます。
+uvをインストール後、以下の手順で開発環境をセットアップしてください。`uv sync`で仮想環境が作成され、必要なパッケージが仮想環境にインストールされます。
 
 ```shell
 cd <rdetoolkitのローカルリポジトリ>
-rye sync
+uv sync
 ```
 
 仮想環境を起動します。

@@ -31,7 +31,7 @@
 
 - **Python**: 3.9以上
 - **Git**: バージョン管理
-- **Rye**: パッケージ管理ツール
+- **uv**: パッケージ管理ツール
 
 ### セットアップ手順
 
@@ -41,15 +41,14 @@
    cd rdetoolkit
    ```
 
-2. **Ryeのインストール**
+2. **uvのインストール**
    ```bash title="terminal"
-   curl -sSf https://rye-up.com/get | bash
-   source ~/.rye/env
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 3. **依存関係のインストール**
    ```bash title="terminal"
-   rye sync
+   uv sync
    ```
 
 4. **開発環境の有効化**
@@ -86,13 +85,13 @@
    ```bash title="terminal"
    # コードの変更
    # テストの実行
-   rye test
+   uv run pytest
 
    # リントチェック
-   rye lint
+   uv run ruff check src/
 
    # フォーマット
-   rye fmt
+   uv run ruff format src/
    ```
 
 4. **コミットとプッシュ**

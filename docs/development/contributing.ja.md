@@ -150,9 +150,9 @@ class TestValidateInputFiles:
 
 ```bash title="terminal"
 # 全てのチェックを実行
-rye test
-rye lint
-rye fmt
+uv run pytest
+uv run ruff check src/
+uv run ruff format src/
 
 # 個別チェック
 pytest tests/test_contribution.py -v
