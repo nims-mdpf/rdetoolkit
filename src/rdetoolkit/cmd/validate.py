@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
 
-from rdetoolkit.validation import InvoiceValidator, MetadataValidator
+from rdetoolkit.validation import InvoiceValidator, MetadataDefinitionValidator, MetadataValidator
 
 
 @dataclass
@@ -427,7 +427,11 @@ class MetadataDefCommand(_ValidationErrorParser):
     """Command to validate metadata definition JSON files.
 
     This command validates metadata definition files using the
-    MetadataValidator's schema (MetadataItem pydantic model).
+    MetadataDefinitionValidator (for metadata-def.json structure).
+
+    Note:
+        This is separate from MetadataCommand which validates metadata.json
+        data files against metadata definition schemas.
     """
 
     def __init__(self, metadata_def_path: str | Path) -> None:
@@ -459,7 +463,8 @@ class MetadataDefCommand(_ValidationErrorParser):
         warnings: list[ValidationWarning] = []
 
         try:
-            validator = MetadataValidator()
+            # Use MetadataDefinitionValidator for metadata-def.json
+            validator = MetadataDefinitionValidator()
             # validate() with path parameter validates the file
             _ = validator.validate(path=self.metadata_def_path)
 
@@ -519,16 +524,15 @@ class MetadataCommand(_ValidationErrorParser):
         warnings: list[ValidationWarning] = []
 
         try:
-            # First validate the schema/definition itself
-            validator = MetadataValidator()
-            _ = validator.validate(path=self.schema_path)
+            # First validate the schema/definition file (metadata-def.json)
+            # Uses MetadataDefinitionValidator for dict[str, MetadataDefEntry] structure
+            def_validator = MetadataDefinitionValidator()
+            _ = def_validator.validate(path=self.schema_path)
 
-            # Then validate the metadata data against the schema
-            # Note: Current MetadataValidator validates individual items,
-            # not data against a separate schema. This is a structural difference
-            # from invoice validation. We validate that the metadata file
-            # conforms to MetadataItem structure.
-            _ = validator.validate(path=self.metadata_path)
+            # Then validate the metadata data file (metadata.json)
+            # Uses MetadataValidator for MetadataItem structure (constant/variable)
+            data_validator = MetadataValidator()
+            _ = data_validator.validate(path=self.metadata_path)
 
         except Exception as e:
             # Parse validation errors from exception message

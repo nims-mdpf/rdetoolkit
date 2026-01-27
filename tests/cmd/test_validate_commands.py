@@ -70,7 +70,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -199,7 +198,7 @@ def invalid_invoice_data(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def valid_metadata_def(tmp_path: Path) -> Path:
-    """Create a valid metadata definition file.
+    """Create a valid metadata definition file (metadata-def.json).
 
     Args:
         tmp_path: Pytest temporary directory fixture
@@ -207,10 +206,19 @@ def valid_metadata_def(tmp_path: Path) -> Path:
     Returns:
         Path to valid metadata definition file
     """
-    # Given: A minimal valid metadata definition
+    # Given: A valid metadata-def.json following MetadataDefinition model
     metadata_def = {
-        "constant": {"author": {"value": "Test Author"}},
-        "variable": [{"temperature": {"value": 300, "unit": "K"}}],
+        "key": {
+            "name": {"ja": "key", "en": "key"},
+            "schema": {"type": "string"},
+        },
+        "temperature": {
+            "name": {"ja": "温度", "en": "Temperature"},
+            "schema": {"type": "number", "format": "date-time"},
+            "unit": "K",
+            "description": "測定温度",
+            "order": 1,
+        },
     }
     metadata_path = tmp_path / "metadata-def.json"
     metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
@@ -230,6 +238,76 @@ def invalid_metadata_def_malformed(tmp_path: Path) -> Path:
     # Given: A malformed JSON file
     metadata_path = tmp_path / "invalid_metadata.json"
     metadata_path.write_text("[{invalid json}", encoding="utf-8")
+    return metadata_path
+
+
+@pytest.fixture
+def invalid_metadata_def_missing_required(tmp_path: Path) -> Path:
+    """Create metadata-def.json with missing required fields.
+
+    Args:
+        tmp_path: Pytest temporary directory fixture
+
+    Returns:
+        Path to invalid metadata definition file
+    """
+    # Given: Missing required fields (name.en, schema.type)
+    metadata_def = {
+        "key": {
+            "name": {
+                "ja": "key",
+                # "en" is missing (required)
+            },
+            "schema": {
+                # "type" is missing (required)
+                "format": "date-time",
+            },
+        },
+    }
+    metadata_path = tmp_path / "invalid_metadata_def.json"
+    metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
+    return metadata_path
+
+
+@pytest.fixture
+def invalid_metadata_def_wrong_type(tmp_path: Path) -> Path:
+    """Create metadata-def.json with wrong type values.
+
+    Args:
+        tmp_path: Pytest temporary directory fixture
+
+    Returns:
+        Path to invalid metadata definition file
+    """
+    # Given: Wrong type for name field (should be object, not string)
+    metadata_def = {
+        "key": {
+            "name": "wrong_type",  # Should be {"ja": "...", "en": "..."}
+            "schema": {"type": "string"},
+        },
+    }
+    metadata_path = tmp_path / "invalid_metadata_def_type.json"
+    metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
+    return metadata_path
+
+
+@pytest.fixture
+def valid_metadata_data(tmp_path: Path) -> Path:
+    """Create a valid metadata.json file (actual metadata, not definition).
+
+    Args:
+        tmp_path: Pytest temporary directory fixture
+
+    Returns:
+        Path to valid metadata.json file
+    """
+    # Given: A valid metadata.json with constant and variable sections
+    metadata = {
+        "constant": {"author": {"value": "Test Author"}},
+        "variable": [{"temperature": {"value": 300, "unit": "K"}}],
+    }
+    metadata_path = tmp_path / "metadata.json"
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return metadata_path
 
 
@@ -282,12 +360,14 @@ def rde_project_structure(tmp_path: Path) -> Path:
                         "required": [],
                     },
                 },
-            }
+            },
         ),
         encoding="utf-8",
     )
     (container_tasksupport / "metadata-def.json").write_text(
-        json.dumps({"constant": {}, "variable": []}),
+        json.dumps(
+            {"key": {"name": {"ja": "key", "en": "key"}, "schema": {"type": "string"}}},
+        ),
         encoding="utf-8",
     )
 
@@ -304,7 +384,7 @@ def rde_project_structure(tmp_path: Path) -> Path:
                 },
                 "datasetId": "test-001",
                 "custom": {},
-            }
+            },
         ),
         encoding="utf-8",
     )
@@ -581,7 +661,7 @@ def test_metadata_def_minimal_valid__tc_bv_004(tmp_path: Path) -> None:
     # Arrange
     minimal_metadata = tmp_path / "minimal_metadata.json"
     minimal_metadata.write_text(
-        json.dumps({"constant": {"test": {"value": "value"}}, "variable": []}),
+        json.dumps({"test": {"name": {"ja": "テスト", "en": "test"}, "schema": {"type": "string"}}}),
         encoding="utf-8",
     )
     command = MetadataDefCommand(minimal_metadata)
@@ -593,19 +673,85 @@ def test_metadata_def_minimal_valid__tc_bv_004(tmp_path: Path) -> None:
     assert result.is_valid is True
 
 
-def test_metadata_def_empty_array__tc_bv_005(tmp_path: Path) -> None:
-    """Test validation of empty metadata array.
+def test_metadata_def_empty_object__tc_bv_005(tmp_path: Path) -> None:
+    """Test validation of empty metadata definition object.
 
-    Given: An empty metadata array []
+    Given: An empty metadata definition {}
     When: Executing MetadataDefCommand
-    Then: Validation fails with errors
+    Then: Validation passes (empty dict is valid)
 
     Test ID: TC-BV-005
     """
     # Arrange
     empty_metadata = tmp_path / "empty_metadata.json"
-    empty_metadata.write_text(json.dumps([]), encoding="utf-8")
+    empty_metadata.write_text(json.dumps({}), encoding="utf-8")
     command = MetadataDefCommand(empty_metadata)
+
+    # Act
+    result = command.execute()
+
+    # Assert
+    # Empty dict is valid for MetadataDefinition (dict[str, MetadataDefEntry])
+    assert result.is_valid is True
+
+
+def test_metadata_def_issue_382_case(tmp_path: Path) -> None:
+    """Test validation with Issue #382 example metadata-def.json.
+
+    Given: The exact metadata-def.json from Issue #382
+    When: Executing MetadataDefCommand
+    Then: Validation passes (no constant/variable required error)
+
+    Test ID: TC-ISSUE-382
+    """
+    # Arrange
+    issue_metadata = tmp_path / "issue_382_metadata.json"
+    issue_metadata.write_text(
+        json.dumps({"key": {"name": {"ja": "key", "en": "key"}, "schema": {"type": "string"}}}),
+        encoding="utf-8",
+    )
+    command = MetadataDefCommand(issue_metadata)
+
+    # Act
+    result = command.execute()
+
+    # Assert
+    assert result.is_valid is True, "Issue #382 example should be valid"
+    assert len(result.errors) == 0
+
+
+def test_metadata_def_missing_required_fields(invalid_metadata_def_missing_required: Path) -> None:
+    """Test validation fails when required fields are missing.
+
+    Given: metadata-def.json with missing name.en and schema.type
+    When: Executing MetadataDefCommand
+    Then: Validation fails with appropriate errors
+
+    Test ID: TC-EP-011-EXTENDED
+    """
+    # Arrange
+    command = MetadataDefCommand(invalid_metadata_def_missing_required)
+
+    # Act
+    result = command.execute()
+
+    # Assert
+    assert result.is_valid is False
+    assert len(result.errors) > 0
+    # Should contain errors about missing 'en' and 'type'
+
+
+def test_metadata_def_wrong_field_type(invalid_metadata_def_wrong_type: Path) -> None:
+    """Test validation fails when field types are incorrect.
+
+    Given: metadata-def.json with wrong type for name field
+    When: Executing MetadataDefCommand
+    Then: Validation fails with type error
+
+    Test ID: TC-EP-011-TYPE
+    """
+    # Arrange
+    command = MetadataDefCommand(invalid_metadata_def_wrong_type)
 
     # Act
     result = command.execute()
@@ -620,18 +766,22 @@ def test_metadata_def_empty_array__tc_bv_005(tmp_path: Path) -> None:
 # ============================================================================
 
 
-def test_metadata_valid_data__tc_ep_014(valid_metadata_def: Path) -> None:
+def test_metadata_valid_data__tc_ep_014(
+    valid_metadata_data: Path, valid_metadata_def: Path,
+) -> None:
     """Test validation of valid metadata data.
 
-    Given: Valid metadata data and definition
+    Given: Valid metadata data (metadata.json) and definition (metadata-def.json)
     When: Executing MetadataCommand
     Then: Validation passes with no errors
 
     Test ID: TC-EP-014
+
+    Note: MetadataCommand uses MetadataDefinitionValidator for schema_path
+    and MetadataValidator for metadata_path (Issue #382 fix).
     """
     # Arrange
-    # Use the same file for both data and definition in this test
-    command = MetadataCommand(valid_metadata_def, valid_metadata_def)
+    command = MetadataCommand(valid_metadata_data, valid_metadata_def)
 
     # Act
     result = command.execute()
@@ -641,7 +791,9 @@ def test_metadata_valid_data__tc_ep_014(valid_metadata_def: Path) -> None:
     assert len(result.errors) == 0
 
 
-def test_metadata_file_not_found__tc_ep_016(tmp_path: Path, valid_metadata_def: Path) -> None:
+def test_metadata_file_not_found__tc_ep_016(
+    tmp_path: Path, valid_metadata_def: Path,
+) -> None:
     """Test validation with non-existent metadata file.
 
     Given: A path to a non-existent metadata file
@@ -659,7 +811,7 @@ def test_metadata_file_not_found__tc_ep_016(tmp_path: Path, valid_metadata_def: 
         command.execute()
 
 
-def test_metadata_schema_not_found__tc_ep_017(valid_metadata_def: Path, tmp_path: Path) -> None:
+def test_metadata_schema_not_found__tc_ep_017(valid_metadata_data: Path, tmp_path: Path) -> None:
     """Test validation with non-existent schema file.
 
     Given: Valid metadata but non-existent definition
@@ -670,7 +822,7 @@ def test_metadata_schema_not_found__tc_ep_017(valid_metadata_def: Path, tmp_path
     """
     # Arrange
     non_existent_schema = tmp_path / "nonexistent_def.json"
-    command = MetadataCommand(valid_metadata_def, non_existent_schema)
+    command = MetadataCommand(valid_metadata_data, non_existent_schema)
 
     # Act & Assert
     with pytest.raises(FileNotFoundError, match="Metadata definition file not found"):
@@ -783,7 +935,7 @@ def test_validate_all_only_schema_files__tc_bv_007(tmp_path: Path) -> None:
                 "$schema": "http://json-schema.org/draft-07/schema#",
                 "type": "object",
                 "properties": {},
-            }
+            },
         ),
         encoding="utf-8",
     )
@@ -1210,7 +1362,7 @@ def test_invoice_schema_command_string_path() -> None:
     Test ID: TC-EP-034 (Additional)
     """
     # Arrange
-    path_str = "/tmp/test.json"
+    path_str = "/tmp/test.json"  # noqa: S108
     command = InvoiceSchemaCommand(path_str)
 
     # Assert
@@ -1227,8 +1379,8 @@ def test_invoice_command_string_paths() -> None:
     Test ID: TC-EP-035 (Additional)
     """
     # Arrange
-    invoice_str = "/tmp/invoice.json"
-    schema_str = "/tmp/schema.json"
+    invoice_str = "/tmp/invoice.json"  # noqa: S108
+    schema_str = "/tmp/schema.json"  # noqa: S108
     command = InvoiceCommand(invoice_str, schema_str)
 
     # Assert
@@ -1246,7 +1398,7 @@ def test_metadata_def_command_string_path() -> None:
     Test ID: TC-EP-036 (Additional)
     """
     # Arrange
-    path_str = "/tmp/metadata.json"
+    path_str = "/tmp/metadata.json"  # noqa: S108
     command = MetadataDefCommand(path_str)
 
     # Assert
@@ -1263,8 +1415,8 @@ def test_metadata_command_string_paths() -> None:
     Test ID: TC-EP-037 (Additional)
     """
     # Arrange
-    metadata_str = "/tmp/metadata.json"
-    schema_str = "/tmp/schema.json"
+    metadata_str = "/tmp/metadata.json"  # noqa: S108
+    schema_str = "/tmp/schema.json"  # noqa: S108
     command = MetadataCommand(metadata_str, schema_str)
 
     # Assert
@@ -1298,7 +1450,7 @@ def test_validate_all_command_string_path() -> None:
     Test ID: TC-EP-039 (Additional)
     """
     # Arrange
-    path_str = "/tmp/project"
+    path_str = "/tmp/project"  # noqa: S108
     command = ValidateAllCommand(project_dir=path_str)
 
     # Assert

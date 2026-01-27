@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from pydantic import BaseModel, RootModel, field_validator
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 MAX_VALUE_SIZE: Final[int] = 1024
 
@@ -71,7 +71,7 @@ class ValidableItems(RootModel):
 
 
 class MetadataItem(BaseModel):
-    """metadata-def.json class.
+    """metadata.json class.
 
     Stores metadata extracted by the data structuring process.
 
@@ -82,3 +82,98 @@ class MetadataItem(BaseModel):
 
     constant: dict[str, MetaValue]
     variable: ValidableItems
+
+
+class NameField(BaseModel):
+    """Multilingual name field for metadata definition.
+
+    Attributes:
+        ja: Japanese name
+        en: English name
+    """
+
+    ja: str
+    en: str
+
+
+class SchemaField(BaseModel):
+    """Schema field for metadata definition.
+
+    Attributes:
+        type: Type of the metadata value. One of "array", "boolean", "integer", "number", "string"
+        format: Optional format specifier. One of "date-time" or "duration"
+    """
+
+    type: str  # "array", "boolean", "integer", "number", "string"
+    format: str | None = None  # "date-time", "duration"
+
+
+class MetadataDefEntry(BaseModel):
+    """Single metadata definition entry in metadata-def.json.
+
+    Represents one metadata item definition. This is used for metadata-def.json,
+    not for metadata.json (which uses MetadataItem instead).
+
+    Attributes:
+        name: Multilingual name (ja/en required)
+        schema_field: Type and format definition (type required, serialized as "schema")
+        unit: Optional unit for the metadata value
+        description: Optional description
+        uri: Optional URI/URL for the metadata key
+        mode: Optional measurement mode
+        order: Optional display order
+        original_name: Optional original name (serialized as "originalName")
+
+    Example:
+        ```json
+        {
+            "temperature": {
+                "name": {"ja": "温度", "en": "Temperature"},
+                "schema": {"type": "number"},
+                "unit": "K"
+            }
+        }
+        ```
+    """
+
+    name: NameField
+    schema_field: SchemaField = Field(alias="schema")
+    unit: str | None = None
+    description: str | None = None
+    uri: AnyUrl | None = None
+    mode: str | None = None
+    order: int | None = None
+    original_name: str | None = Field(default=None, alias="originalName")
+
+    model_config = ConfigDict(
+        # Allow undefined fields (e.g., "variable" field is ignored per docs)
+        extra="allow",
+        # Enable alias for JSON parsing and serialization
+        populate_by_name=True,
+    )
+
+
+class MetadataDefinition(RootModel):
+    """metadata-def.json root model.
+
+    Represents the entire metadata definition file as a dictionary
+    mapping metadata keys to their definitions. This is used for
+    metadata-def.json, not for metadata.json (which uses MetadataItem instead).
+
+    Example:
+        ```json
+        {
+            "temperature": {
+                "name": {"ja": "温度", "en": "Temperature"},
+                "schema": {"type": "number"},
+                "unit": "K"
+            },
+            "operator": {
+                "name": {"ja": "測定者", "en": "Operator"},
+                "schema": {"type": "string"}
+            }
+        }
+        ```
+    """
+
+    root: dict[str, MetadataDefEntry]
