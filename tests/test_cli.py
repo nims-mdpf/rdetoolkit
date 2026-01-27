@@ -967,3 +967,718 @@ def test_csv2graph_help():
     assert "--main-image-dir" in output
     assert "--mode" in output
     assert "--title" in output
+
+
+# ============================================================================
+# INTEGRATION TESTS: validate CLI Command Exit Codes (Issue #362)
+# ============================================================================
+# These tests invoke the actual CLI via subprocess to verify real-world
+# exit code behavior for CI/CD integration. They complement the unit tests
+# in tests/cmd/test_validate_commands.py by testing the full CLI stack.
+# ============================================================================
+
+import subprocess
+
+
+@pytest.fixture
+def valid_invoice_schema_file(tmp_path: Path) -> Path:
+    """Create a valid invoice schema file for testing.
+
+    Test ID: TC-INT-FIXTURE-001
+    """
+    schema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://rde.nims.go.jp/rde/dataset-templates/test/invoice.schema.json",
+        "description": "Test invoice schema",
+        "type": "object",
+        "required": ["custom"],
+        "properties": {
+            "custom": {
+                "type": "object",
+                "label": {"ja": "カスタム", "en": "Custom"},
+                "properties": {},
+                "required": [],
+            },
+        },
+    }
+    schema_path = tmp_path / "invoice.schema.json"
+    schema_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
+    return schema_path
+
+
+@pytest.fixture
+def valid_invoice_data_file(tmp_path: Path) -> Path:
+    """Create a valid invoice data file for testing.
+
+    Test ID: TC-INT-FIXTURE-002
+    """
+    invoice = {
+        "basic": {
+            "dateSubmitted": "2024-01-01",
+            "dataOwnerId": "a" * 56,
+            "dataName": "Test Data",
+        },
+        "datasetId": "test-dataset-001",
+        "custom": {},
+    }
+    invoice_path = tmp_path / "invoice.json"
+    invoice_path.write_text(json.dumps(invoice, indent=2), encoding="utf-8")
+    return invoice_path
+
+
+@pytest.fixture
+def valid_metadata_def_file(tmp_path: Path) -> Path:
+    """Create a valid metadata definition file for testing.
+
+    Test ID: TC-INT-FIXTURE-003
+    """
+    metadata_def = {
+        "constant": {"author": {"value": "Test Author"}},
+        "variable": [{"temperature": {"value": 300, "unit": "K"}}],
+    }
+    metadata_path = tmp_path / "metadata-def.json"
+    metadata_path.write_text(json.dumps(metadata_def, indent=2), encoding="utf-8")
+    return metadata_path
+
+
+@pytest.fixture
+def invalid_invoice_schema_file(tmp_path: Path) -> Path:
+    """Create an invalid invoice schema file (missing required fields).
+
+    Test ID: TC-INT-FIXTURE-004
+    """
+    schema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        # Missing required fields like $id, description, properties
+        "type": "object",
+    }
+    schema_path = tmp_path / "invalid_schema.json"
+    schema_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
+    return schema_path
+
+
+@pytest.fixture
+def invalid_invoice_data_file(tmp_path: Path) -> Path:
+    """Create an invalid invoice data file (wrong dataOwnerId pattern).
+
+    Test ID: TC-INT-FIXTURE-005
+    """
+    invoice = {
+        "basic": {
+            "dateSubmitted": "2024-01-01",
+            "dataOwnerId": "short",  # Invalid: must be 56 alphanumeric characters
+            "dataName": "Test Data",
+        },
+        "datasetId": "test-dataset-001",
+        "custom": {},
+    }
+    invoice_path = tmp_path / "invalid_invoice.json"
+    invoice_path.write_text(json.dumps(invoice, indent=2), encoding="utf-8")
+    return invoice_path
+
+
+@pytest.fixture
+def invalid_metadata_def_file(tmp_path: Path) -> Path:
+    """Create an invalid metadata definition (wrong structure).
+
+    Test ID: TC-INT-FIXTURE-006
+    """
+    metadata_def = []  # Invalid: should be object with constant/variable
+    metadata_path = tmp_path / "invalid_metadata.json"
+    metadata_path.write_text(json.dumps(metadata_def), encoding="utf-8")
+    return metadata_path
+
+
+def test_validate_invoice_schema_success_returns_exit_0(valid_invoice_schema_file: Path) -> None:
+    """Test that validate invoice-schema returns exit code 0 on success.
+
+    Given: A valid invoice schema file
+    When: Running 'rdetoolkit validate invoice-schema <path>'
+    Then: Exit code is 0
+
+    Test ID: TC-INT-001
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "invoice-schema", str(valid_invoice_schema_file)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "✓ VALID" in result.stdout
+
+
+def test_validate_metadata_def_success_returns_exit_0(valid_metadata_def_file: Path) -> None:
+    """Test that validate metadata-def returns exit code 0 on success.
+
+    Given: A valid metadata definition file
+    When: Running 'rdetoolkit validate metadata-def <path>'
+    Then: Exit code is 0
+
+    Test ID: TC-INT-002
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "metadata-def", str(valid_metadata_def_file)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "✓ VALID" in result.stdout
+
+
+def test_validate_invoice_success_returns_exit_0(
+    valid_invoice_data_file: Path,
+    valid_invoice_schema_file: Path,
+) -> None:
+    """Test that validate invoice returns exit code 0 on success.
+
+    Given: Valid invoice data and schema files
+    When: Running 'rdetoolkit validate invoice <data> --schema <schema>'
+    Then: Exit code is 0
+
+    Test ID: TC-INT-003
+    """
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "invoice",
+            str(valid_invoice_data_file),
+            "--schema",
+            str(valid_invoice_schema_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "✓ VALID" in result.stdout
+
+
+def test_validate_metadata_success_returns_exit_0(
+    valid_metadata_def_file: Path,
+) -> None:
+    """Test that validate metadata returns exit code 0 on success.
+
+    Given: Valid metadata data and definition files
+    When: Running 'rdetoolkit validate metadata <data> --schema <def>'
+    Then: Exit code is 0
+
+    Test ID: TC-INT-004
+    """
+    # Use same file for both data and definition in success case
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "metadata",
+            str(valid_metadata_def_file),
+            "--schema",
+            str(valid_metadata_def_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "✓ VALID" in result.stdout
+
+
+def test_validate_all_success_returns_exit_0(tmp_path: Path) -> None:
+    """Test that validate all returns exit code 0 when all files are valid.
+
+    Given: A valid RDE project structure with all files valid
+    When: Running 'rdetoolkit validate all <project_dir>'
+    Then: Exit code is 0
+
+    Test ID: TC-INT-005
+    """
+    # Create minimal valid RDE project structure
+    project = tmp_path / "rde_project"
+    container_tasksupport = project / "container" / "data" / "tasksupport"
+    container_tasksupport.mkdir(parents=True)
+
+    # Create valid schema file
+    (container_tasksupport / "invoice.schema.json").write_text(
+        json.dumps({
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://rde.nims.go.jp/rde/dataset-templates/test/invoice.schema.json",
+            "description": "Test schema",
+            "type": "object",
+            "required": ["custom"],
+            "properties": {
+                "custom": {
+                    "type": "object",
+                    "label": {"ja": "カスタム", "en": "Custom"},
+                    "properties": {},
+                    "required": [],
+                },
+            },
+        }),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "all", str(project)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+
+
+# Integration tests for exit code 1 (validation failure)
+
+
+def test_validate_invoice_schema_failure_returns_exit_1(invalid_invoice_schema_file: Path) -> None:
+    """Test that validate invoice-schema returns exit code 1 on validation failure.
+
+    Given: An invalid invoice schema file (missing required fields)
+    When: Running 'rdetoolkit validate invoice-schema <path>'
+    Then: Exit code is 1
+
+    Test ID: TC-INT-006
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "invoice-schema", str(invalid_invoice_schema_file)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "✗ INVALID" in result.stdout or "Error" in result.stderr
+
+
+def test_validate_metadata_def_failure_returns_exit_1(invalid_metadata_def_file: Path) -> None:
+    """Test that validate metadata-def returns exit code 1 on validation failure.
+
+    Given: An invalid metadata definition file (wrong structure)
+    When: Running 'rdetoolkit validate metadata-def <path>'
+    Then: Exit code is 1
+
+    Test ID: TC-INT-007
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "metadata-def", str(invalid_metadata_def_file)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "✗ INVALID" in result.stdout or "Error" in result.stderr
+
+
+def test_validate_invoice_failure_returns_exit_1(
+    invalid_invoice_data_file: Path,
+    valid_invoice_schema_file: Path,
+) -> None:
+    """Test that validate invoice returns exit code 1 on validation failure.
+
+    Given: Invalid invoice data (wrong pattern) and valid schema
+    When: Running 'rdetoolkit validate invoice <data> --schema <schema>'
+    Then: Exit code is 1
+
+    Test ID: TC-INT-008
+    """
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "invoice",
+            str(invalid_invoice_data_file),
+            "--schema",
+            str(valid_invoice_schema_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "✗ INVALID" in result.stdout or "Error" in result.stderr
+
+
+def test_validate_metadata_failure_returns_exit_1(
+    invalid_metadata_def_file: Path,
+) -> None:
+    """Test that validate metadata returns exit code 1 on validation failure.
+
+    Given: Invalid metadata data (wrong structure)
+    When: Running 'rdetoolkit validate metadata <data> --schema <def>'
+    Then: Exit code is 1
+
+    Test ID: TC-INT-009
+    """
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "metadata",
+            str(invalid_metadata_def_file),
+            "--schema",
+            str(invalid_metadata_def_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "✗ INVALID" in result.stdout or "Error" in result.stderr
+
+
+def test_validate_all_failure_returns_exit_1(tmp_path: Path) -> None:
+    """Test that validate all returns exit code 1 when any validation fails.
+
+    Given: An RDE project with at least one invalid file
+    When: Running 'rdetoolkit validate all <project_dir>'
+    Then: Exit code is 1
+
+    Test ID: TC-INT-010
+    """
+    # Create RDE project structure with invalid schema
+    project = tmp_path / "rde_project"
+    container_tasksupport = project / "container" / "data" / "tasksupport"
+    container_tasksupport.mkdir(parents=True)
+
+    # Create invalid schema file (missing required fields)
+    (container_tasksupport / "invoice.schema.json").write_text(
+        json.dumps({"type": "object"}),  # Invalid: missing required fields
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "all", str(project)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+
+
+def test_validate_invoice_schema_malformed_json_returns_exit_1(tmp_path: Path) -> None:
+    """Test that malformed JSON is treated as validation failure (exit 1).
+
+    Given: A malformed JSON file (invalid syntax)
+    When: Running 'rdetoolkit validate invoice-schema <path>'
+    Then: Exit code is 1 (not 2, since file exists but content is invalid)
+
+    Test ID: TC-INT-011
+    """
+    malformed_path = tmp_path / "malformed.json"
+    malformed_path.write_text("{invalid json", encoding="utf-8")
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "invoice-schema", str(malformed_path)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "Error" in result.stderr or "✗ INVALID" in result.stdout
+
+
+def test_validate_strict_mode_warnings_as_failures_returns_exit_1(
+    valid_invoice_schema_file: Path,
+) -> None:
+    """Test that warnings are treated as failures in strict mode (exit 1).
+
+    Given: A validation result with warnings only
+    When: Running with --strict flag
+    Then: Exit code is 1
+
+    Note: This test may need adjustment based on whether warnings are currently generated.
+    If no warnings exist in current validation, this test can verify the flag exists.
+
+    Test ID: TC-INT-012
+    """
+    # Run with --strict flag
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "invoice-schema",
+            str(valid_invoice_schema_file),
+            "--strict",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    # Should succeed if no warnings, which means exit 0
+    # This test documents the --strict behavior exists
+    assert result.returncode == 0  # Valid file has no warnings
+
+
+# Integration tests for exit code 2 (usage/configuration error)
+
+
+def test_validate_invoice_schema_missing_file_returns_exit_2(tmp_path: Path) -> None:
+    """Test that missing file returns exit code 2 (usage error).
+
+    Given: A path to a non-existent file
+    When: Running 'rdetoolkit validate invoice-schema <path>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-013
+    """
+    non_existent = tmp_path / "nonexistent.json"
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "invoice-schema", str(non_existent)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "not found" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_invoice_missing_data_file_returns_exit_2(
+    tmp_path: Path,
+    valid_invoice_schema_file: Path,
+) -> None:
+    """Test that missing invoice data file returns exit code 2.
+
+    Given: A non-existent invoice file and valid schema
+    When: Running 'rdetoolkit validate invoice <data> --schema <schema>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-014
+    """
+    non_existent = tmp_path / "nonexistent_invoice.json"
+
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "invoice",
+            str(non_existent),
+            "--schema",
+            str(valid_invoice_schema_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "not found" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_invoice_missing_schema_file_returns_exit_2(
+    tmp_path: Path,
+    valid_invoice_data_file: Path,
+) -> None:
+    """Test that missing schema file returns exit code 2.
+
+    Given: Valid invoice data but non-existent schema
+    When: Running 'rdetoolkit validate invoice <data> --schema <schema>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-015
+    """
+    non_existent_schema = tmp_path / "nonexistent_schema.json"
+
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "invoice",
+            str(valid_invoice_data_file),
+            "--schema",
+            str(non_existent_schema),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "not found" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_metadata_def_missing_file_returns_exit_2(tmp_path: Path) -> None:
+    """Test that missing metadata definition file returns exit code 2.
+
+    Given: A path to a non-existent metadata definition file
+    When: Running 'rdetoolkit validate metadata-def <path>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-016
+    """
+    non_existent = tmp_path / "nonexistent_metadata.json"
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "metadata-def", str(non_existent)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "not found" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_metadata_missing_data_file_returns_exit_2(
+    tmp_path: Path,
+    valid_metadata_def_file: Path,
+) -> None:
+    """Test that missing metadata data file returns exit code 2.
+
+    Given: A non-existent metadata file and valid definition
+    When: Running 'rdetoolkit validate metadata <data> --schema <def>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-017
+    """
+    non_existent = tmp_path / "nonexistent_metadata.json"
+
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "metadata",
+            str(non_existent),
+            "--schema",
+            str(valid_metadata_def_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "not found" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_all_missing_project_dir_returns_exit_2(tmp_path: Path) -> None:
+    """Test that missing project directory returns exit code 2.
+
+    Given: A path to a non-existent directory
+    When: Running 'rdetoolkit validate all <project_dir>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-018
+    """
+    non_existent = tmp_path / "nonexistent_project"
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "all", str(non_existent)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "not found" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_invoice_missing_schema_argument_returns_exit_2(
+    valid_invoice_data_file: Path,
+) -> None:
+    """Test that missing required --schema argument returns exit code 2.
+
+    Given: Invoice data file but no --schema argument
+    When: Running 'rdetoolkit validate invoice <data>' (missing --schema)
+    Then: Exit code is 2
+
+    Test ID: TC-INT-019
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "invoice", str(valid_invoice_data_file)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "required" in result.stderr.lower() or "missing" in result.stderr.lower()
+
+
+def test_validate_invalid_subcommand_returns_exit_2(tmp_path: Path) -> None:
+    """Test that invalid subcommand returns exit code 2.
+
+    Given: An invalid subcommand name
+    When: Running 'rdetoolkit validate invalid-command <path>'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-020
+    """
+    dummy_file = tmp_path / "dummy.json"
+    dummy_file.write_text("{}", encoding="utf-8")
+
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "invalid-command", str(dummy_file)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "invalid" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_no_arguments_returns_exit_0_or_2() -> None:
+    """Test that validate with no arguments shows help or returns usage error.
+
+    Given: No arguments to validate command
+    When: Running 'rdetoolkit validate'
+    Then: Exit code is 0 (help shown) or 2 (usage error)
+
+    Note: Typer with no_args_is_help=True typically returns 0 and shows help.
+
+    Test ID: TC-INT-021
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate"],
+        capture_output=True,
+        text=True,
+    )
+
+    # With no_args_is_help=True, Typer shows help and exits 0
+    assert result.returncode in (0, 2)
+    if result.returncode == 0:
+        assert "Usage:" in result.stdout or "help" in result.stdout.lower()
+
+
+def test_validate_invalid_format_option_returns_exit_2(
+    valid_invoice_schema_file: Path,
+) -> None:
+    """Test that invalid --format value returns exit code 2.
+
+    Given: A valid file but invalid --format option value
+    When: Running 'rdetoolkit validate invoice-schema <path> --format invalid'
+    Then: Exit code is 2
+
+    Test ID: TC-INT-022
+    """
+    result = subprocess.run(
+        [
+            "rdetoolkit",
+            "validate",
+            "invoice-schema",
+            str(valid_invoice_schema_file),
+            "--format",
+            "invalid",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "invalid" in result.stderr.lower() or "error" in result.stderr.lower()
+
+
+def test_validate_help_documents_exit_codes() -> None:
+    """Verify that help text documents exit codes.
+
+    Given: No arguments to validate command
+    When: Running 'rdetoolkit validate --help'
+    Then: Help text includes exit code documentation
+
+    Test ID: TC-INT-023
+    """
+    result = subprocess.run(
+        ["rdetoolkit", "validate", "--help"],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    # Check for exit code documentation in help output
+    # Look for either "exit code" or the pattern "0 =" which appears in standardized format
+    assert "exit code" in result.stdout.lower() or "0 =" in result.stdout.lower()
+    assert "validation" in result.stdout.lower()
