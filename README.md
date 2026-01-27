@@ -23,6 +23,13 @@ If you wish to make changes, please read the following document first:
 
 - [CONTRIBUTING.md](https://github.com/nims-mdpf/rdetoolkit/blob/main/CONTRIBUTING.md)
 
+## Requirements
+
+- **Python**: 3.9 or higher (Python 3.9 support will be removed in v2.0; upgrade to Python 3.10+ recommended)
+
+!!! warning "Python 3.9 Deprecation"
+    Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0. While Python 3.9 continues to work in rdetoolkit 1.x, users will see a `DeprecationWarning` on import. Please plan to upgrade to Python 3.10 or later before the v2.0 release.
+
 ## Install
 
 To install, run the following command:
