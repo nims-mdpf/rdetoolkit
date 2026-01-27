@@ -7,6 +7,8 @@ and edge cases.
 from __future__ import annotations
 
 import pytest
+
+hypothesis = pytest.importorskip("hypothesis")
 from hypothesis import assume, given, strategies as st
 
 from rdetoolkit.graph.textutils import (

@@ -6,7 +6,9 @@ Tests type casting functions with various input types and edge cases.
 from __future__ import annotations
 
 import pytest
-from hypothesis import given, strategies as st, assume
+
+hypothesis = pytest.importorskip("hypothesis")
+from hypothesis import assume, given, strategies as st
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.rde2util import castval

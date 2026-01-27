@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+
+hypothesis = pytest.importorskip("hypothesis")
 from hypothesis import assume, given, strategies as st
 
 from rdetoolkit.graph.exceptions import ColumnNotFoundError

@@ -4,6 +4,8 @@ This test verifies that the property-based testing setup is working correctly.
 """
 
 import pytest
+
+hypothesis = pytest.importorskip("hypothesis")
 from hypothesis import given
 
 from tests.property.strategies import ascii_text, finite_floats, safe_filename_chars

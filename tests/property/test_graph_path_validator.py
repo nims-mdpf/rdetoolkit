@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
+hypothesis = pytest.importorskip("hypothesis")
 from hypothesis import assume, given
 from hypothesis import strategies as st
 
