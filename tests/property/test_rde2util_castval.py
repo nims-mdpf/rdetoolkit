@@ -19,38 +19,51 @@ from tests.property.strategies import finite_floats
 @st.composite
 def numeric_string(draw: st.DrawFn) -> str:
     """Generate string representations of numbers."""
-    num = draw(st.one_of(
-        st.integers(min_value=-10**10, max_value=10**10),
-        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e10, max_value=1e10),
-    ))
+    num = draw(
+        st.one_of(
+            st.integers(min_value=-(10**10), max_value=10**10),
+            st.floats(allow_nan=False, allow_infinity=False, min_value=-1e10, max_value=1e10),
+        )
+    )
     return str(num)
 
 
 @st.composite
 def boolean_string(draw: st.DrawFn) -> str:
     """Generate string representations of booleans."""
-    return draw(st.sampled_from([
-        'true', 'True', 'TRUE', 'false', 'False', 'FALSE',
-    ]))
+    return draw(
+        st.sampled_from(
+            [
+                "true",
+                "True",
+                "TRUE",
+                "false",
+                "False",
+                "FALSE",
+            ]
+        )
+    )
 
 
 @st.composite
 def mixed_type_value(draw: st.DrawFn) -> int | float | str | bool | None:
     """Generate values of various types."""
-    return draw(st.one_of(
-        st.integers(min_value=-10**10, max_value=10**10),
-        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e10, max_value=1e10),
-        st.text(max_size=100),
-        st.booleans(),
-        st.none(),
-    ))
+    return draw(
+        st.one_of(
+            st.integers(min_value=-(10**10), max_value=10**10),
+            st.floats(allow_nan=False, allow_infinity=False, min_value=-1e10, max_value=1e10),
+            st.text(max_size=100),
+            st.booleans(),
+            st.none(),
+        )
+    )
 
 
 @pytest.mark.property
 class TestCastValToIntegerProperties:
     """Property-based tests for casting to integer."""
 
-    @given(value=st.integers(min_value=-10**10, max_value=10**10))
+    @given(value=st.integers(min_value=-(10**10), max_value=10**10))
     def test_int_to_integer_identity(self, value: int) -> None:
         """Property: Casting int to integer is identity."""
         # Given: Integer value
@@ -61,7 +74,7 @@ class TestCastValToIntegerProperties:
         assert result == value
         assert isinstance(result, int)
 
-    @given(value=st.integers(min_value=-10**10, max_value=10**10))
+    @given(value=st.integers(min_value=-(10**10), max_value=10**10))
     def test_integer_string_to_integer(self, value: int) -> None:
         """Property: Integer string representations can be cast to integer."""
         # Given: String representation of integer (not float format)
@@ -101,7 +114,7 @@ class TestCastValToNumberProperties:
         assert result == value
         assert isinstance(result, (int, float))
 
-    @given(value=st.integers(min_value=-10**10, max_value=10**10))
+    @given(value=st.integers(min_value=-(10**10), max_value=10**10))
     def test_int_to_number(self, value: int) -> None:
         """Property: Int to number conversion preserves value."""
         # Given: Integer value
@@ -142,7 +155,7 @@ class TestCastValToStringProperties:
     """Property-based tests for casting to string."""
 
     @given(value=mixed_type_value())
-    def test_any_to_string_without_format(self, value: float | str | bool | None) -> None:
+    def test_any_to_string_without_format(self, value: int | float | str | bool | None) -> None:
         """Property: Any value can be cast to string without format."""
         # Given: Any value
         # When: Casting to string without format
@@ -178,7 +191,7 @@ class TestCastValToBooleanProperties:
         assert result == value
         assert isinstance(result, bool)
 
-    @given(value=st.integers(min_value=-10**10, max_value=10**10))
+    @given(value=st.integers(min_value=-(10**10), max_value=10**10))
     def test_int_to_boolean_zero_false(self, value: int) -> None:
         """Property: 0 is False, non-zero is True."""
         # Given: Integer value
@@ -211,14 +224,14 @@ class TestCastValUnknownTypeProperties:
     @given(
         value=mixed_type_value(),
         invalid_type=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll")),
+            alphabet=st.characters(categories=("Lu", "Ll")),
             min_size=1,
             max_size=20,
         ).filter(lambda x: x not in ["boolean", "integer", "number", "string"]),
     )
     def test_unknown_type_raises_structured_error(
         self,
-        value: float | str | bool | None,
+        value: int | float | str | bool | None,
         invalid_type: str,
     ) -> None:
         """Property: Unknown outtype always raises StructuredError."""
@@ -228,7 +241,7 @@ class TestCastValUnknownTypeProperties:
             castval(value, invalid_type, None)
 
     @given(value=mixed_type_value())
-    def test_none_type_raises_structured_error(self, value: float | str | bool | None) -> None:
+    def test_none_type_raises_structured_error(self, value: int | float | str | bool | None) -> None:
         """Property: None as outtype raises StructuredError."""
         # Given: Any value
         # When/Then: Casting with None type raises StructuredError
@@ -246,7 +259,7 @@ class TestCastValTypePreservationProperties:
     )
     def test_result_type_matches_target(
         self,
-        value: float | str | bool | None,
+        value: int | float | str | bool | None,
         target_type: str,
     ) -> None:
         """Property: Result type matches target type (or raises exception)."""
@@ -268,7 +281,7 @@ class TestCastValTypePreservationProperties:
             # Incompatible types should raise StructuredError
             pass
 
-    @given(value=st.one_of(st.integers(min_value=-10**10, max_value=10**10), finite_floats))
+    @given(value=st.one_of(st.integers(min_value=-(10**10), max_value=10**10), finite_floats))
     def test_numeric_cast_idempotent(self, value: float) -> None:
         """Property: Casting numeric type twice gives same result."""
         # Given: Numeric value

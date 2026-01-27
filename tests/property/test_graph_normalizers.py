@@ -30,10 +30,7 @@ def dataframe_with_columns(draw, columns: list[str]) -> pd.DataFrame:
         DataFrame with specified columns containing finite float values
     """
     n_rows = draw(st.integers(min_value=1, max_value=100))
-    data = {
-        col: draw(st.lists(finite_floats, min_size=n_rows, max_size=n_rows))
-        for col in columns
-    }
+    data = {col: draw(st.lists(finite_floats, min_size=n_rows, max_size=n_rows)) for col in columns}
     return pd.DataFrame(data)
 
 
@@ -560,9 +557,7 @@ class TestValidateColumnSpecsProperties:
         y_cols = cols[1 : len(direction_specs) + 1]
 
         # Filter valid indices
-        valid_direction_specs = [
-            d if d is None or d < len(cols) else None for d in direction_specs
-        ]
+        valid_direction_specs = [d if d is None or d < len(cols) else None for d in direction_specs]
 
         # When: Validating column specs
         result = validate_column_specs(

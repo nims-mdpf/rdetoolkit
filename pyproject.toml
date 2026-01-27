@@ -224,7 +224,7 @@ convention = "google"
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
 # Property tests use pytest.importorskip which requires imports after the skip
-"tests/property/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004", "E402"]
+"tests/property/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004", "E402", "PYI041"]
 # CLI commands use lazy imports for performance
 "src/rdetoolkit/cli/*.py" = ["PLC0415"]
 "src/rdetoolkit/cli/app.py" = ["FA100"]

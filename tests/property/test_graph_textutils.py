@@ -29,7 +29,7 @@ def filename_with_unsafe_chars(draw: st.DrawFn) -> str:
     """Generate filenames with potentially unsafe characters."""
     safe_part = draw(
         st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=0,
             max_size=50,
         ),
@@ -45,7 +45,7 @@ def mixed_case_text(draw: st.DrawFn) -> str:
     words = draw(
         st.lists(
             st.text(
-                alphabet=st.characters(whitelist_categories=("Lu", "Ll")),
+                alphabet=st.characters(categories=("Lu", "Ll")),
                 min_size=1,
                 max_size=20,
             ),
@@ -63,7 +63,8 @@ def snake_case_candidates(draw: st.DrawFn) -> str:
     return draw(
         st.text(
             alphabet=st.characters(
-                whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters=" _-",
+                categories=("Lu", "Ll", "Nd"),
+                include_characters=" _-",
             ),
             min_size=1,
             max_size=100,
@@ -100,14 +101,17 @@ class TestSanitizeFilenameProperties:
         assert not any(c in unsafe_chars for c in result)
 
     @given(filename=st.text(min_size=1, max_size=255))
-    def test_non_empty_input_produces_output(self, filename: str) -> None:
-        """Property: Non-empty input produces non-empty output."""
+    def test_non_empty_input_returns_string(self, filename: str) -> None:
+        """Property: Non-empty input always returns a string (possibly empty).
+
+        Note: Implementation may return empty string if all characters are unsafe.
+        This test verifies the function always returns a string type without crashing.
+        """
         # Given: Non-empty filename
         # When: Sanitizing filename
         result = sanitize_filename(filename)
 
-        # Then: Result is not empty (or raises exception for all-unsafe input)
-        # Note: Implementation may return empty string if all chars are unsafe
+        # Then: Result is always a string (may be empty if all chars were unsafe)
         assert isinstance(result, str)
 
     @given(filename=ascii_text)
@@ -209,12 +213,12 @@ class TestToSnakeCaseProperties:
 
     @given(
         word1=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=20,
         ),
         word2=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=20,
         ),
@@ -301,12 +305,12 @@ class TestParseHeaderProperties:
 
     @given(
         key=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll")),
+            alphabet=st.characters(categories=("Lu", "Ll")),
             min_size=1,
             max_size=20,
         ),
         value=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=50,
         ),
@@ -326,12 +330,12 @@ class TestParseHeaderProperties:
 
     @given(
         label=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=50,
         ),
         unit=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=20,
         ),

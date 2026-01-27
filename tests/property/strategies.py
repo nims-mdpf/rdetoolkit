@@ -13,8 +13,8 @@ try:
     # File path strategies
     safe_filename_chars = st.text(
         alphabet=st.characters(
-            whitelist_categories=("Lu", "Ll", "Nd"),
-            blacklist_characters="\\/:*?\"<>|",
+            categories=("Lu", "Ll", "Nd"),
+            exclude_characters='\\/:*?"<>|',
         ),
         min_size=1,
         max_size=255,
@@ -28,7 +28,7 @@ try:
     )
 
     unicode_text = st.text(
-        alphabet=st.characters(blacklist_categories=["Cs"]),  # Exclude surrogates
+        alphabet=st.characters(exclude_categories=["Cs"]),  # Exclude surrogates
         min_size=0,
         max_size=1000,
     )
@@ -44,8 +44,8 @@ try:
     # Column name strategies
     valid_column_names = st.text(
         alphabet=st.characters(
-            whitelist_categories=("Lu", "Ll", "Nd"),
-            whitelist_characters="_-",
+            categories=("Lu", "Ll", "Nd"),
+            include_characters="_-",
         ),
         min_size=1,
         max_size=100,

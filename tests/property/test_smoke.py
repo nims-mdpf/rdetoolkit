@@ -58,6 +58,6 @@ def test_safe_filename_strategy(filename: str) -> None:
     assert len(filename) <= 255
 
     # Should not contain filesystem-unsafe characters
-    unsafe_chars = "\\/:*?\"<>|"
+    unsafe_chars = '\\/:*?"<>|'
     for char in unsafe_chars:
         assert char not in filename

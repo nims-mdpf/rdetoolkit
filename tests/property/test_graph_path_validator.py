@@ -33,8 +33,8 @@ def safe_filename_strategy(draw: st.DrawFn) -> str:
     # Use alphanumeric, underscore, hyphen, dot (but not "..")
     # Exclude path separators and ".." sequence
     base_chars = st.characters(
-        whitelist_categories=("Lu", "Ll", "Nd"),
-        whitelist_characters="_-.",
+        categories=("Lu", "Ll", "Nd"),
+        include_characters="_-.",
     )
 
     filename = draw(st.text(alphabet=base_chars, min_size=1, max_size=100))
@@ -274,7 +274,7 @@ class TestPathValidatorEnsureDirectoryProperties:
 
     @given(
         dirname=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=50,
         ),
@@ -301,7 +301,7 @@ class TestPathValidatorEnsureDirectoryProperties:
 
     @given(
         dirname=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=50,
         ),
@@ -330,7 +330,7 @@ class TestPathValidatorEnsureDirectoryProperties:
     @given(
         components=st.lists(
             st.text(
-                alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+                alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
                 min_size=1,
                 max_size=20,
             ),
@@ -369,7 +369,7 @@ class TestPathValidatorEnsureDirectoryProperties:
 
     @given(
         dirname=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=50,
         ),
@@ -394,7 +394,7 @@ class TestPathValidatorEnsureDirectoryProperties:
 
     @given(
         dirname=st.text(
-            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+            alphabet=st.characters(categories=("Lu", "Ll", "Nd")),
             min_size=1,
             max_size=50,
         ),
