@@ -97,6 +97,7 @@ dev = [
     "minio>=7.2.15",
     "superclaude>=4.1.5",
     "tox-uv>=1.28.0",
+    "hypothesis>=6.102.0",
     "types-pytz>=2025.2.0.20250326",
 ]
 # requires = ["hatchling"]
@@ -222,6 +223,8 @@ convention = "google"
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
+# Property tests use pytest.importorskip which requires imports after the skip
+"tests/property/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004", "E402", "PYI041"]
 # CLI commands use lazy imports for performance
 "src/rdetoolkit/cli/*.py" = ["PLC0415"]
 "src/rdetoolkit/cli/app.py" = ["FA100"]
@@ -312,6 +315,7 @@ testpaths = ["tests"]
 markers = [
     "graph_outputs: marks tests that generate graph outputs (deselect with '-m \"not graph_outputs\"')",
     "legacy: marks legacy compatibility tests (deselected by default)",
+    "property: marks property-based tests using Hypothesis (deselect with '-m \"not property\"')",
 ]
 
 
