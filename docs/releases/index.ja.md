@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.5.2     | 2026-01-27 | CLI validate終了コード標準化 / metadata-def検証修正 / 設定エラーメッセージ改善 / Python 3.9非推奨警告 / PBTインフラ導入 | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1     | 2026-01-21 | SmartTable行データ直接アクセス / variable配列のfeature説明欄転記 | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0     | 2026-01-09 | Result型 / Typer CLI+validate / タイムスタンプログ / 遅延import / Python 3.14対応 | [v1.5.0](#v150-2026-01-09) |
 | v1.4.3     | 2025-12-25 | SmartTable行データの整合性修復 / csv2graph HTML出力先と凡例・対数軸調整 | [v1.4.3](#v143-2025-12-25) |
@@ -17,6 +18,189 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.5.2 (2026-01-27)
+
+!!! info "参照"
+    - 主な課題: [#358](https://github.com/nims-mdpf/rdetoolkit/issues/358), [#359](https://github.com/nims-mdpf/rdetoolkit/issues/359), [#360](https://github.com/nims-mdpf/rdetoolkit/issues/360), [#361](https://github.com/nims-mdpf/rdetoolkit/issues/361), [#362](https://github.com/nims-mdpf/rdetoolkit/issues/362), [#370](https://github.com/nims-mdpf/rdetoolkit/issues/370), [#372](https://github.com/nims-mdpf/rdetoolkit/issues/372), [#373](https://github.com/nims-mdpf/rdetoolkit/issues/373), [#381](https://github.com/nims-mdpf/rdetoolkit/issues/381), [#382](https://github.com/nims-mdpf/rdetoolkit/issues/382)
+
+#### ハイライト
+- CI/CDパイプライン統合のためのCLI `validate`コマンド終了コード（0/1/2）の標準化
+- `metadata-def.json`検証で正しいPydanticモデル（`MetadataDefinitionValidator`）を使用するよう修正
+- 設定エラーメッセージの改善（ファイルパス、行/列情報、ドキュメントリンクを含む詳細なコンテキスト）
+- v2.0での削除タイムラインを明記したPython 3.9非推奨警告の追加
+- 5モジュールにわたる75テストを含むHypothesis Property-Based Testing（PBT）インフラの導入
+
+---
+
+### CLI Validate終了コード標準化 (Issue #362, #381)
+
+#### 機能強化
+- **終了コード標準化**: CI/CD統合のための一貫した終了コードを実装：
+  - 終了コード 0: すべての検証に成功
+  - 終了コード 1: 検証失敗（データ/スキーマの問題）
+  - 終了コード 2: 使用/設定エラー（無効な引数、ファイル未検出など）
+- **バグ修正**: `typer.Exit`が`except Exception`ハンドラで誤ってキャッチされ、「Internal error during validation:」という誤ったメッセージが表示される問題を修正
+- **CLIヘルプ更新**: すべてのvalidateサブコマンドのdocstringに終了コードドキュメントを追加
+- **ユーザードキュメント**: GitHub Actions、GitLab CI、シェルスクリプト向けのCI/CD統合例を追加
+
+#### 使用例
+
+```bash
+# CI/CDパイプライン例
+rdetoolkit validate --all ./data
+
+if [ $? -eq 0 ]; then
+    echo "検証成功"
+elif [ $? -eq 1 ]; then
+    echo "検証失敗 - 出力を確認してください"
+    exit 1
+elif [ $? -eq 2 ]; then
+    echo "コマンドエラー - 引数を確認してください"
+    exit 2
+fi
+```
+
+---
+
+### メタデータ定義検証の修正 (Issue #382)
+
+#### 機能強化
+- **新Pydanticモデル**: `metadata-def.json`スキーマ検証用の`MetadataDefEntry`と`MetadataDefinition`モデルを追加
+  - 必須フィールド: `name.ja`, `name.en`, `schema.type`
+  - オプションフィールド: `unit`, `description`, `uri`, `mode`, `order`, `originalName`
+  - `extra="allow"`で未定義フィールド（例: `variable`）を無視
+- **新バリデータ**: メタデータ定義ファイル検証用の`MetadataDefinitionValidator`クラスを追加
+- **CLI修正**: `MetadataDefCommand`が誤った`MetadataValidator`ではなく`MetadataDefinitionValidator`を使用するよう更新
+
+---
+
+### 設定エラーメッセージの改善 (Issue #361)
+
+#### 機能強化
+- **ConfigError例外**: 包括的なエラー情報を含む新しいカスタム例外クラス：
+  - 読み込みに失敗したファイルパス
+  - パースエラー時の行/列情報（利用可能な場合）
+  - スキーマエラー時のフィールド名と検証理由
+  - 解決ガイダンスのためのドキュメントリンク
+- **ファイル未検出**: `gen-config`コマンドのガイダンスを含む明確なエラーメッセージ
+- **パースエラー**: YAML/TOML構文エラーに行/列情報を含む
+- **検証エラー**: Pydantic検証エラーで特定のフィールド名と有効な値を表示
+
+#### エラーメッセージ例
+
+```python
+# ファイル未検出
+ConfigError: 設定ファイルが見つかりません: '/path/to/rdeconfig.yaml'
+設定ファイルを作成するか、'rdetoolkit gen-config'で生成してください。
+参照: https://nims-mdpf.github.io/rdetoolkit/usage/config/config/
+
+# 行情報付きパースエラー
+ConfigError: '/path/to/rdeconfig.yaml'のパースに失敗しました: 15行目でYAML構文エラー
+
+# スキーマ検証エラー
+ConfigError: '/path/to/rdeconfig.yaml'の設定が無効です:
+'extended_mode'は['MultiDataTile', 'RDEFormat']のいずれかである必要があります。
+```
+
+---
+
+### Python 3.9非推奨警告 (Issue #360)
+
+#### 機能強化
+- **DeprecationWarning**: Python 3.9環境でrdetoolkitをインポートした際に警告を表示
+- **明確なタイムライン**: 警告メッセージでv2.0での削除を明記
+- **セッション安全**: ノイズを避けるためセッションごとに1回のみ警告を表示
+- **ドキュメント**: README、CHANGELOG、インストールドキュメント（英語/日本語）に非推奨通知を追加
+
+#### 警告メッセージ
+
+```
+DeprecationWarning: Python 3.9のサポートは非推奨であり、rdetoolkit v2.0で削除されます。
+Python 3.10以降にアップグレードしてください。
+```
+
+---
+
+### Property-Based Testingインフラ導入 (Issue #372)
+
+#### 機能強化
+- **Hypothesisライブラリ**: 開発依存に`hypothesis>=6.102.0`を追加
+- **テストディレクトリ**: 共有ストラテジーとプロファイル設定を含む`tests/property/`を作成
+- **75のPBTテスト**（5モジュール）：
+  - `graph.normalizers`（14テスト）: 列の正規化と検証
+  - `graph.textutils`（20テスト）: ファイル名サニタイズ、テキスト変換
+  - `graph.io.path_validator`（13テスト）: パス安全性検証
+  - `rde2util.castval`（15テスト）: 型キャストとエラー処理
+  - `validation`（10テスト）: インボイス検証の不変条件
+- **CI統合**: 最適化されたCI実行のための`HYPOTHESIS_PROFILE: ci`環境変数を追加
+- **Tox統合**: すべてのtox環境に`passenv = HYPOTHESIS_PROFILE`を追加
+
+#### PBTテストの実行
+
+```bash
+# すべてのテストを実行（例ベース + プロパティベース）
+tox -e py312-module
+
+# プロパティベーステストのみ実行
+pytest tests/property/ -v -m property
+
+# CIプロファイルで実行（高速、例数削減）
+HYPOTHESIS_PROFILE=ci pytest tests/property/ -v -m property
+```
+
+---
+
+### ワークフロードキュメントの整合性修正 (Issue #370)
+
+#### 機能強化
+- **Docstring更新**: `workflows.run`のNoteセクションを実際の実装に合わせて更新
+- **モード選択**: 実際のモード優先順位と許可される`extended_mode`値をドキュメント化
+- **新テスト**: 優先順位と失敗処理をカバーする`_process_mode`のEP/BVテーブルとユニットテストを追加
+
+---
+
+### ドキュメント修正 (Issue #358, #359)
+
+#### 修正
+- **バッジURL**: READMEのバッジ（リリース、ライセンス、イシュートラッキング、ワークフロー）を`nims-dpfc`から`nims-mdpf`組織に更新
+- **タイポ修正**: READMEと日本語ドキュメントの`display_messsage`を`display_message`に修正
+
+---
+
+### 依存関係の修正 (Issue #373)
+
+#### 修正
+- **pytz依存関係**: CI失敗を修正するためランタイム依存に`pytz>=2024.1`を追加
+  - 根本原因: pandas 2.2がpytz依存を削除したが、`archive.py`とテストは依然としてpytzを直接インポート
+  - 解決策: `pyproject.toml`に明示的なpytz依存を追加し、ロックファイルを再生成
+
+---
+
+### 移行 / 互換性
+
+#### CLI Validate終了コード
+- **終了コードの変更**: 内部エラーは一貫性のため終了コード2を返すようになりました（以前は3）
+- **CIスクリプト**: 終了コード3をチェックしているスクリプトは終了コード2をチェックするよう更新が必要
+
+#### メタデータ定義検証
+- **後方互換**: 既存の有効な`metadata-def.json`ファイルは正しく検証されるようになります
+- **エラーメッセージ**: 無効なメタデータ定義に対してより正確なエラーメッセージを表示
+
+#### Python 3.9
+- **非推奨のみ**: Python 3.9は引き続き動作しますが、非推奨警告が表示されます
+- **必要なアクション**: rdetoolkit v2.0までにPython 3.10+へのアップグレードを計画してください
+
+#### 設定エラー
+- **後方互換**: ConfigErrorは新しい例外タイプですが、既存のエラー処理は引き続き動作します
+- **デバッグ強化**: 設定に関する問題に対してより有益なエラーメッセージを提供
+
+---
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
 
 ## v1.5.1 (2026-01-21)
 
