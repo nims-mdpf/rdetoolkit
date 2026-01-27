@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
 
-from rdetoolkit.validation import InvoiceValidator, MetadataValidator
+from rdetoolkit.validation import InvoiceValidator, MetadataDefinitionValidator, MetadataValidator
 
 
 @dataclass
@@ -428,7 +428,11 @@ class MetadataDefCommand(_ValidationErrorParser):
     """Command to validate metadata definition JSON files.
 
     This command validates metadata definition files using the
-    MetadataValidator's schema (MetadataItem pydantic model).
+    MetadataDefinitionValidator (for metadata-def.json structure).
+
+    Note:
+        This is separate from MetadataCommand which validates metadata.json
+        data files against metadata definition schemas.
     """
 
     def __init__(self, metadata_def_path: str | Path) -> None:
@@ -460,7 +464,8 @@ class MetadataDefCommand(_ValidationErrorParser):
         warnings: list[ValidationWarning] = []
 
         try:
-            validator = MetadataValidator()
+            # Use MetadataDefinitionValidator for metadata-def.json
+            validator = MetadataDefinitionValidator()
             # validate() with path parameter validates the file
             _ = validator.validate(path=self.metadata_def_path)
 
