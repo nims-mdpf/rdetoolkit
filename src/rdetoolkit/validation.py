@@ -29,7 +29,19 @@ def _pydantic_validation_error() -> type[PydanticValidationError]:
 
 
 class MetadataValidator:
+    """Validator for metadata files (metadata.json).
+
+    This validator checks metadata.json files against the
+    MetadataItem Pydantic model, ensuring proper structure
+    for actual metadata data.
+
+    Note:
+        This is separate from MetadataDefinitionValidator which validates
+        metadata-def.json files (metadata definitions).
+    """
+
     def __init__(self) -> None:
+        """Initialize metadata validator with schema."""
         from rdetoolkit.models.metadata import MetadataItem
 
         self.schema = MetadataItem
@@ -59,28 +71,102 @@ class MetadataValidator:
 
         if path is not None:
             __data = readf_json(path)
-        elif json_obj is not None:
-            __data = json_obj
         else:
-            emsg = "Unexpected validation error"
-            raise ValueError(emsg)
+            __data = json_obj
 
         self.schema(**__data)
+        return __data
+
+
+class MetadataDefinitionValidator:
+    """Validator for metadata definition files (metadata-def.json).
+
+    This validator checks metadata-def.json files against the
+    MetadataDefinition Pydantic model, ensuring proper structure
+    for metadata definitions.
+
+    Note:
+        This is separate from MetadataValidator which validates
+        metadata.json files (actual metadata data).
+    """
+
+    def __init__(self) -> None:
+        """Initialize metadata definition validator with schema."""
+        from rdetoolkit.models.metadata import MetadataDefinition
+
+        self.schema = MetadataDefinition
+
+    def validate(
+        self,
+        *,
+        path: str | Path | None = None,
+        json_obj: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Validate metadata definition JSON against schema.
+
+        Args:
+            path: Path to metadata-def.json file to validate
+            json_obj: JSON object to validate (alternative to path)
+
+        Returns:
+            Validated JSON data as dict
+
+        Raises:
+            ValueError: If neither path nor json_obj provided, or both provided
+            MetadataValidationError: If validation fails with detailed error info
+
+        Examples:
+            >>> validator = MetadataDefinitionValidator()
+            >>> data = validator.validate(path="metadata-def.json")
+        """
+        # Input validation
+        if path is None and json_obj is None:
+            emsg = "At least one of 'path' or 'json_obj' must be provided"
+            raise ValueError(emsg)
+        if path is not None and json_obj is not None:
+            emsg = "Both 'path' and 'json_obj' cannot be provided at the same time"
+            raise ValueError(emsg)
+
+        # Load data
+        if path is not None:
+            __data = readf_json(path)
+        else:
+            __data = json_obj
+
+        # Validate with Pydantic model
+        try:
+            self.schema(__data)
+        except _pydantic_validation_error() as validation_error:
+            # Format error message for metadata-def.json
+            emsg = "Validation Errors in metadata-def.json. Please correct the following fields\n"
+            for idx, error in enumerate(validation_error.errors(), start=1):
+                # Extract field path (e.g., ['key', 'name', 'ja'])
+                field_path = ".".join([str(e) for e in error["loc"]])
+                emsg += f"{idx}. Field: {field_path}\n"
+                emsg += f"   Type: {error['type']}\n"
+                emsg += f"   Context: {error['msg']}\n"
+            raise MetadataValidationError(emsg) from validation_error
+
         return __data
 
 
 def metadata_validate(path: str | Path) -> None:
     """Validate metadata.json file.
 
-    This function validates the metadata definition file specified by the given path.
-    It checks if the file exists and then uses a validator to validate the file against a schema.
+    This function validates the metadata.json file (actual metadata data)
+    specified by the given path. It checks if the file exists and then uses
+    MetadataValidator to validate the file against the MetadataItem schema.
+
+    Note:
+        This function is for metadata.json files. For metadata-def.json
+        files, use MetadataDefinitionValidator instead.
 
     Args:
-        path (Union[str, Path]): The path to the metadata definition file.
+        path (Union[str, Path]): The path to the metadata.json file.
 
     Raises:
         FileNotFoundError: If the schema and path do not exist.
-        MetadataValidationError: If there is an error in validating the metadata definition file.
+        MetadataValidationError: If there is an error in validating the metadata file.
     """
     if isinstance(path, str):
         path = Path(path)

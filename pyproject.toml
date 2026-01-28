@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.5.1"
+version = "1.5.2"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -42,6 +42,7 @@ dependencies = [
     "pip>=24.3.1",
     "rpds-py>=0.26",
     "markdown>=3.7",
+    "pytz>=2024.1",
     "types-pytz>=2025.2.0.20250326",
     "matplotlib>=3.9.4",
 ]
@@ -96,6 +97,8 @@ dev = [
     "minio>=7.2.15",
     "superclaude>=4.1.5",
     "tox-uv>=1.28.0",
+    "hypothesis>=6.102.0",
+    "types-pytz>=2025.2.0.20250326",
 ]
 # requires = ["hatchling"]
 # build-backend = "hatchling.build"
@@ -209,6 +212,8 @@ convention = "google"
 "src/rdetoolkit/cli.py" = ["PLC0415"]
 "src/rdetoolkit/errors.py" = ["PLC0415"]
 "src/rdetoolkit/fileops.py" = ["PLC0415"]
+# TODO: Refactor parse_config_file to reduce complexity (Issue #361)
+"src/rdetoolkit/config.py" = ["C901", "PLR0912"]
 "src/rdetoolkit/graph/__init__.py" = ["PLC0415"]
 "src/rdetoolkit/graph/api/csv2graph.py" = ["PLC0415"]
 "src/rdetoolkit/invoicefile.py" = ["PLC0415"]
@@ -218,6 +223,8 @@ convention = "google"
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
 "tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
+# Property tests use pytest.importorskip which requires imports after the skip
+"tests/property/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004", "E402", "PYI041"]
 # CLI commands use lazy imports for performance
 "src/rdetoolkit/cli/*.py" = ["PLC0415"]
 "src/rdetoolkit/cli/app.py" = ["FA100"]
@@ -308,6 +315,7 @@ testpaths = ["tests"]
 markers = [
     "graph_outputs: marks tests that generate graph outputs (deselect with '-m \"not graph_outputs\"')",
     "legacy: marks legacy compatibility tests (deselected by default)",
+    "property: marks property-based tests using Hypothesis (deselect with '-m \"not property\"')",
 ]
 
 

@@ -208,6 +208,63 @@ rdetoolkitのバージョンを確認します。
     py -m rdetoolkit version
     ```
 
+### validate: RDEファイルの検証
+
+CI/CD統合のための標準化された終了コードを使用して、RDE関連ファイルを検証します。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit validate <サブコマンド> [OPTIONS]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit validate <サブコマンド> [OPTIONS]
+    ```
+
+#### 利用可能なサブコマンド
+
+| サブコマンド | 説明 |
+|------------|-------------|
+| `invoice-schema` | インボイススキーマJSONの構造を検証 |
+| `metadata-def` | メタデータ定義JSONの構造を検証 |
+| `invoice` | invoice.jsonをスキーマに対して検証 |
+| `metadata` | metadata.jsonをmetadata-def.jsonに対して検証 |
+| `all` | プロジェクト内のすべての標準RDEファイルを検出して検証 |
+
+#### 終了コード
+
+すべてのvalidateサブコマンドは標準化された終了コードを返します：
+
+| 終了コード | ステータス | 説明 |
+|-----------|--------|-------------|
+| 0 | 成功 | すべてのバリデーションが成功 |
+| 1 | バリデーション失敗 | データまたはスキーマのエラーが見つかった |
+| 2 | 使用エラー | 無効な引数またはファイル不足 |
+
+#### 使用例
+
+```bash title="インボイススキーマの検証"
+python3 -m rdetoolkit validate invoice-schema tasksupport/invoice.schema.json
+```
+
+```bash title="プロジェクト内のすべてのファイルを検証"
+python3 -m rdetoolkit validate all ./rde-project
+```
+
+```bash title="CI/CD統合の例"
+python3 -m rdetoolkit validate all ./rde-project
+if [ $? -ne 0 ]; then
+    echo "バリデーション失敗"
+    exit 1
+fi
+```
+
+!!! tip "詳細なドキュメント"
+    CI/CD統合例を含む包括的なバリデーションドキュメントについては、[バリデーション機能](validation.ja.md)を参照してください。
+
 ### artifact: RDE提出用アーカイブの作成
 
 RDEに提出するためのアーカイブ（.zip）を作成します。指定したソースディレクトリを圧縮し、除外パターンに一致するファイルやディレクトリを除外します。

@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
 | v1.4.3  | 2025-12-25   | SmartTable data integrity fixes / csv2graph HTML destination + legend/log-scale tweaks | [v1.4.3](#v143-2025-12-25) |
@@ -17,6 +18,189 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.5.2 (2026-01-27)
+
+!!! info "References"
+    - Key issues: [#358](https://github.com/nims-mdpf/rdetoolkit/issues/358), [#359](https://github.com/nims-mdpf/rdetoolkit/issues/359), [#360](https://github.com/nims-mdpf/rdetoolkit/issues/360), [#361](https://github.com/nims-mdpf/rdetoolkit/issues/361), [#362](https://github.com/nims-mdpf/rdetoolkit/issues/362), [#370](https://github.com/nims-mdpf/rdetoolkit/issues/370), [#372](https://github.com/nims-mdpf/rdetoolkit/issues/372), [#373](https://github.com/nims-mdpf/rdetoolkit/issues/373), [#381](https://github.com/nims-mdpf/rdetoolkit/issues/381), [#382](https://github.com/nims-mdpf/rdetoolkit/issues/382)
+
+#### Highlights
+- Standardized CLI `validate` command exit codes (0/1/2) for CI/CD pipeline integration
+- Fixed `metadata-def.json` validation to use correct Pydantic model (`MetadataDefinitionValidator`)
+- Improved configuration error messages with detailed context (file path, line/column info, documentation links)
+- Added Python 3.9 deprecation warning with v2.0 removal timeline
+- Introduced Hypothesis Property-Based Testing (PBT) infrastructure with 75 tests across 5 modules
+
+---
+
+### CLI Validate Exit Code Standardization (Issue #362, #381)
+
+#### Enhancements
+- **Standardized Exit Codes**: Implemented consistent exit codes for CI/CD integration:
+  - Exit code 0: All validations passed (success)
+  - Exit code 1: Validation failures (data/schema issues)
+  - Exit code 2: Usage/configuration errors (invalid arguments, missing files)
+- **Bug Fix**: Fixed `typer.Exit` being incorrectly caught by generic `except Exception` handler, which caused spurious "Internal error during validation:" messages
+- **CLI Help Update**: Added exit code documentation to all validate subcommand docstrings
+- **User Documentation**: Added CI/CD integration examples for GitHub Actions, GitLab CI, and shell scripts
+
+#### Usage Examples
+
+```bash
+# CI/CD pipeline example
+rdetoolkit validate --all ./data
+
+if [ $? -eq 0 ]; then
+    echo "Validation passed"
+elif [ $? -eq 1 ]; then
+    echo "Validation failed - check output for details"
+    exit 1
+elif [ $? -eq 2 ]; then
+    echo "Command error - check arguments"
+    exit 2
+fi
+```
+
+---
+
+### Metadata Definition Validation Fix (Issue #382)
+
+#### Enhancements
+- **New Pydantic Models**: Added `MetadataDefEntry` and `MetadataDefinition` models for proper `metadata-def.json` schema validation
+  - Required fields: `name.ja`, `name.en`, `schema.type`
+  - Optional fields: `unit`, `description`, `uri`, `mode`, `order`, `originalName`
+  - `extra="allow"` to ignore undefined fields (e.g., `variable`)
+- **New Validator**: Added `MetadataDefinitionValidator` class for metadata definition file validation
+- **CLI Fix**: Updated `MetadataDefCommand` to use `MetadataDefinitionValidator` instead of the incorrect `MetadataValidator`
+
+---
+
+### Configuration Error Message Improvements (Issue #361)
+
+#### Enhancements
+- **ConfigError Exception**: New custom exception class with comprehensive error information:
+  - File path that failed to load
+  - Line/column information for parse errors (when available)
+  - Field name and validation reason for schema errors
+  - Documentation link for resolution guidance
+- **File Not Found**: Clear error messages with `gen-config` command guidance
+- **Parse Errors**: YAML/TOML syntax errors now include line/column information
+- **Validation Errors**: Pydantic validation errors show specific field names and valid values
+
+#### Example Error Messages
+
+```python
+# File not found
+ConfigError: Configuration file not found: '/path/to/rdeconfig.yaml'.
+Create a configuration file or use 'rdetoolkit gen-config' to generate one.
+See: https://nims-mdpf.github.io/rdetoolkit/usage/config/config/
+
+# Parse error with line info
+ConfigError: Failed to parse '/path/to/rdeconfig.yaml': invalid YAML syntax at line 15.
+
+# Schema validation error
+ConfigError: Invalid configuration in '/path/to/rdeconfig.yaml':
+'extended_mode' must be one of ['MultiDataTile', 'RDEFormat'].
+```
+
+---
+
+### Python 3.9 Deprecation Warning (Issue #360)
+
+#### Enhancements
+- **DeprecationWarning**: Added warning when rdetoolkit is imported under Python 3.9
+- **Clear Timeline**: Warning message indicates support removal in v2.0
+- **Session-Safe**: Warning appears only once per session to avoid noise
+- **Documentation**: Updated README, CHANGELOG, and installation docs (English/Japanese) with deprecation notices
+
+#### Warning Message
+
+```
+DeprecationWarning: Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0.
+Please upgrade to Python 3.10 or later.
+```
+
+---
+
+### Property-Based Testing Infrastructure (Issue #372)
+
+#### Enhancements
+- **Hypothesis Library**: Added `hypothesis>=6.102.0` to dev dependencies
+- **Test Directory**: Created `tests/property/` with shared strategies and profile configuration
+- **75 PBT Tests** across 5 modules:
+  - `graph.normalizers` (14 tests): Column normalization and validation
+  - `graph.textutils` (20 tests): Filename sanitization, text transformations
+  - `graph.io.path_validator` (13 tests): Path safety validation
+  - `rde2util.castval` (15 tests): Type casting and error handling
+  - `validation` (10 tests): Invoice validation invariants
+- **CI Integration**: Added `HYPOTHESIS_PROFILE: ci` environment variable for optimized CI execution
+- **Tox Integration**: Added `passenv = HYPOTHESIS_PROFILE` to all tox environments
+
+#### Running PBT Tests
+
+```bash
+# Run all tests (example-based + property-based)
+tox -e py312-module
+
+# Run only property-based tests
+pytest tests/property/ -v -m property
+
+# Run with CI profile (faster, fewer examples)
+HYPOTHESIS_PROFILE=ci pytest tests/property/ -v -m property
+```
+
+---
+
+### Workflow Documentation Alignment (Issue #370)
+
+#### Enhancements
+- **Docstring Update**: Aligned `workflows.run` Note section with actual implementation
+- **Mode Selection**: Documented real mode precedence and allowed `extended_mode` values
+- **New Tests**: Added EP/BV tables and unit tests for `_process_mode` covering priority order and failure handling
+
+---
+
+### Documentation Fixes (Issue #358, #359)
+
+#### Fixes
+- **Badge URLs**: Updated README badges (release, license, issue tracking, workflow) from `nims-dpfc` to `nims-mdpf` organization
+- **Typo Fix**: Corrected `display_messsage` to `display_message` in README and Japanese documentation
+
+---
+
+### Dependency Fix (Issue #373)
+
+#### Fixes
+- **pytz Dependency**: Added `pytz>=2024.1` to runtime dependencies to fix CI failures
+  - Root cause: pandas 2.2 removed its pytz dependency, but `archive.py` and tests still import pytz directly
+  - Resolution: Explicit pytz dependency in `pyproject.toml` and regenerated lock files
+
+---
+
+### Migration / Compatibility
+
+#### CLI Validate Exit Codes
+- **Exit code change**: Internal errors now return exit code 2 (was 3) for consistency
+- **CI scripts**: Update any scripts checking for exit code 3 to check for exit code 2
+
+#### Metadata Definition Validation
+- **Backward Compatible**: Existing valid `metadata-def.json` files will now validate correctly
+- **Error messages**: More accurate error messages for invalid metadata definitions
+
+#### Python 3.9
+- **Deprecation only**: Python 3.9 continues to work but shows deprecation warning
+- **Action required**: Plan upgrade to Python 3.10+ before rdetoolkit v2.0
+
+#### Configuration Errors
+- **Backward Compatible**: ConfigError is a new exception type; existing error handling continues to work
+- **Enhanced debugging**: More informative error messages for configuration issues
+
+---
+
+#### Known Issues
+- None reported at this time.
+
+---
 
 ## v1.5.1 (2026-01-21)
 

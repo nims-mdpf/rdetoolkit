@@ -319,6 +319,193 @@ except Exception as e:
     print(f"Workflow execution error (including validation): {e}")
 ```
 
+## CLI Validation Commands
+
+RDEToolKit provides command-line validation tools with standardized exit codes for CI/CD integration.
+
+### Available Validation Commands
+
+The `validate` command provides five subcommands for comprehensive validation:
+
+- `invoice-schema` - Validate invoice schema JSON structure
+- `metadata-def` - Validate metadata definition JSON structure
+- `invoice` - Validate invoice.json against its schema
+- `metadata` - Validate metadata.json against metadata-def.json
+- `all` - Discover and validate all standard RDE files in a project
+
+### Exit Codes
+
+All validation commands use standardized exit codes to enable integration with CI/CD pipelines and automation scripts:
+
+| Exit Code | Status | Description |
+|-----------|--------|-------------|
+| 0 | Success | All validations passed successfully |
+| 1 | Validation Failure | One or more validations failed due to data or schema issues |
+| 2 | Usage Error | Invalid command arguments, missing files, or configuration errors |
+
+### Usage in CI/CD Pipelines
+
+The exit codes enable robust error handling in shell scripts and CI/CD pipelines:
+
+```bash title="CI/CD Validation Script Example"
+#!/bin/bash
+# Example CI/CD validation script
+
+rdetoolkit validate all ./rde-project
+
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+    echo "✓ Validation passed - proceeding with deployment"
+    exit 0
+elif [ $EXIT_CODE -eq 1 ]; then
+    echo "✗ Validation failed - check data/schema for errors"
+    exit 1
+elif [ $EXIT_CODE -eq 2 ]; then
+    echo "✗ Configuration error - check command arguments and file paths"
+    exit 2
+else
+    echo "✗ Unexpected exit code: $EXIT_CODE"
+    exit $EXIT_CODE
+fi
+```
+
+### CLI Usage Examples
+
+#### Validate Invoice Schema (Success - Exit Code 0)
+
+```bash
+$ rdetoolkit validate invoice-schema tasksupport/invoice.schema.json
+✓ VALID: tasksupport/invoice.schema.json
+
+$ echo $?
+0
+```
+
+#### Validate Invoice Data (Validation Failure - Exit Code 1)
+
+```bash
+$ rdetoolkit validate invoice raw/invoice.json --schema tasksupport/invoice.schema.json
+✗ INVALID: raw/invoice.json
+
+Errors:
+  1. Field: basic.dataOwnerId
+     Type: pattern
+     Message: String does not match pattern ^[a-zA-Z0-9]{56}$
+
+$ echo $?
+1
+```
+
+#### Missing File (Usage Error - Exit Code 2)
+
+```bash
+$ rdetoolkit validate invoice-schema /nonexistent/schema.json
+Error: Schema file not found: /nonexistent/schema.json
+
+$ echo $?
+2
+```
+
+#### Validate All Files in Project
+
+```bash
+$ rdetoolkit validate all ./rde-project
+✓ Validating invoice schema...
+✓ Validating metadata definition...
+✓ Validating invoice data...
+✓ Validating metadata...
+✓ All validations passed
+
+$ echo $?
+0
+```
+
+### CI/CD Integration Examples
+
+#### GitHub Actions Example
+
+```yaml title="GitHub Actions Workflow"
+name: RDE Validation
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install rdetoolkit
+        run: pip install rdetoolkit
+
+      - name: Validate RDE Project
+        run: |
+          rdetoolkit validate all ./rde-project
+          if [ $? -eq 1 ]; then
+            echo "::error::RDE validation failed - check data and schema"
+            exit 1
+          elif [ $? -eq 2 ]; then
+            echo "::error::RDE validation configuration error"
+            exit 2
+          fi
+```
+
+#### GitLab CI Example
+
+```yaml title="GitLab CI Configuration"
+validate:
+  stage: test
+  image: python:3.12
+  script:
+    - pip install rdetoolkit
+    - rdetoolkit validate all ./rde-project
+  allow_failure: false
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+```
+
+#### Shell Script Example
+
+```bash title="Standalone Validation Script"
+#!/bin/bash
+set -e
+
+validate_rde_project() {
+    local project_dir="$1"
+
+    echo "Validating RDE project: $project_dir"
+    rdetoolkit validate all "$project_dir"
+
+    local exit_code=$?
+    case $exit_code in
+        0)
+            echo "✓ Validation successful"
+            return 0
+            ;;
+        1)
+            echo "✗ Validation failed - data or schema errors"
+            return 1
+            ;;
+        2)
+            echo "✗ Configuration error - check arguments and files"
+            return 2
+            ;;
+        *)
+            echo "✗ Unexpected exit code: $exit_code"
+            return $exit_code
+            ;;
+    esac
+}
+
+validate_rde_project "./rde-project"
+```
+
 ## Best Practices
 
 ### Validation Strategy During Development
@@ -329,11 +516,12 @@ except Exception as e:
 
 2. **Continuous Checking**
    - Automatic validation on file changes
-   - Validation in CI/CD pipelines
+   - Validation in CI/CD pipelines using exit codes
 
 3. **Error Handling**
    - Utilize detailed error messages
    - Gradual error correction
+   - Distinguish between validation failures (exit 1) and configuration errors (exit 2)
 
 ### Troubleshooting
 

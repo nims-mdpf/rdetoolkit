@@ -31,7 +31,7 @@ This section explains how to contribute to the RDEToolKit project and set up a d
 
 - **Python**: 3.9 or higher
 - **Git**: Version control
-- **Rye**: Package management tool
+- **uv**: Package management tool
 
 ### Setup Steps
 
@@ -41,15 +41,14 @@ This section explains how to contribute to the RDEToolKit project and set up a d
    cd rdetoolkit
    ```
 
-2. **Install Rye**
+2. **Install uv**
    ```bash title="terminal"
-   curl -sSf https://rye-up.com/get | bash
-   source ~/.rye/env
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 3. **Install Dependencies**
    ```bash title="terminal"
-   rye sync
+   uv sync
    ```
 
 4. **Activate Development Environment**
@@ -86,13 +85,13 @@ This section explains how to contribute to the RDEToolKit project and set up a d
    ```bash title="terminal"
    # Make code changes
    # Run tests
-   rye test
+   uv run pytest
 
    # Lint check
-   rye lint
+   uv run ruff check src/
 
    # Format
-   rye fmt
+   uv run ruff format src/
    ```
 
 4. **Commit and Push**

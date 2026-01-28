@@ -248,7 +248,90 @@ config = Config(
 - **Core**: pandas, polars, pydantic, jsonschema, openpyxl, PyYAML
 - **Optional**: minio (for S3-compatible storage)
 - **Build**: maturin (Rust/Python bridge), build
-- **Dev**: pytest, ruff, mypy, tox, mkdocs
+- **Dev**: pytest, ruff, mypy, tox, mkdocs, hypothesis (property-based testing)
+
+## Property-Based Testing (PBT)
+
+### Overview
+
+RDEToolKit uses the Hypothesis library for Property-Based Testing. PBT automatically tests boundary values and data combinations, discovering bugs that example-based tests might miss. PBT tests complement traditional example-based tests to achieve comprehensive coverage.
+
+### When to Use PBT
+
+- **Data transformation/normalization functions**: `graph.normalizers`, `rde2util.castval`
+- **String processing**: `graph.textutils`
+- **Validation logic**: `validation`, `graph.io.path_validator`
+- **Invariant testing**: Properties that should always hold regardless of input
+
+### PBT Test Location
+
+- **Directory**: `tests/property/`
+- **Marker**: All PBT tests must use `@pytest.mark.property`
+- **Naming**: `test_<module>_*.py` (e.g., `test_graph_normalizers.py`)
+
+### Writing PBT Tests
+
+1. **Define Hypothesis strategies** in `tests/property/strategies.py` or test module
+2. **Use `@given` decorator** with appropriate strategies
+3. **Test properties (invariants)**, not specific examples:
+   - Idempotence: `f(f(x)) == f(x)`
+   - Round-trip: `decode(encode(x)) == x`
+   - Preservation: output preserves certain properties of input
+   - Consistency: same input always produces same output
+4. **Use `assume()`** to filter invalid inputs
+5. **Follow Given/When/Then** comment structure
+
+### Example
+
+```python
+from hypothesis import given, strategies as st
+import pytest
+
+@pytest.mark.property
+class TestNormalizeProperties:
+    @given(data=st.lists(st.floats(allow_nan=False)))
+    def test_normalize_preserves_length(self, data):
+        """Property: Normalization preserves data length."""
+        # Given: List of floats
+        # When: Normalizing data
+        result = normalize(data)
+        # Then: Length is preserved
+        assert len(result) == len(data)
+```
+
+### Hypothesis Settings
+
+- **Dev profile** (default): `max_examples=100`, no deadline
+- **CI profile**: `max_examples=50`, `deadline=5000ms`
+- **Switch profile**: `HYPOTHESIS_PROFILE=ci pytest ...`
+
+### Coverage Requirements
+
+- PBT tests **must not reduce** existing 100% branch coverage
+- PBT tests are **complementary** to example-based tests
+- Both test types run together in CI
+
+### Running PBT Tests
+
+```bash
+# Run all tests (example-based + property-based)
+tox -e py312-module
+
+# Run only property-based tests
+pytest tests/property/ -v -m property
+
+# Run with CI profile (faster, fewer examples)
+HYPOTHESIS_PROFILE=ci pytest tests/property/ -v -m property
+```
+
+### Agent Guidance
+
+When implementing new data processing functions:
+
+1. Write example-based tests first (EP/BV tables)
+2. Add PBT tests for invariants and edge cases
+3. Ensure both test types pass
+4. Verify coverage remains 100%
 
 ## Additional Resources
 

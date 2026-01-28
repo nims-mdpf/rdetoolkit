@@ -54,14 +54,14 @@ git push origin <対象のブランチ名>
 
 ドキュメントをWebで確認する場合、以下の手順でドキュメントサーバーを起動して確認してください。
 
-#### ryeをインストールしている場合
+#### uvをインストールしている場合
 
 ```shell
-rye sync
+uv sync
 mkdocs serve
 ```
 
-#### ryeをインストールしていない場合
+#### uvをインストールしていない場合
 
 ```shell
 pip install -r requirements.lock

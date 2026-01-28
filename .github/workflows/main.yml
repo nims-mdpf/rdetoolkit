@@ -35,6 +35,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
       - name: Test with tox
+        env:
+          HYPOTHESIS_PROFILE: ci
         run: tox -e py${{ matrix.python-version }}-${{ matrix.tox-env }}
 
   test_rs:
@@ -119,6 +121,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
       - name: Test with tox
+        env:
+          HYPOTHESIS_PROFILE: ci
         run: tox -e py311-module
       - name: Upload coverage report
         uses: codecov/codecov-action@v5

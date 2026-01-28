@@ -13,7 +13,13 @@ if TYPE_CHECKING:
 
 app = typer.Typer(
     name="validate",
-    help="Validate RDE schema and data files",
+    help="""Validate RDE schema and data files.
+
+All validate commands use standardized exit codes:
+  0 = Success (validation passed)
+  1 = Validation failure (data/schema issues)
+  2 = Usage error (invalid arguments, missing files)
+""",
     no_args_is_help=True,
 )
 
@@ -87,10 +93,11 @@ def handle_validation_error(error: Exception, error_type: str) -> None:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from error
 
-    # Unknown errors get exit code 3 (internal error)
-    msg = f"Internal error during {error_type}: {error}"
+    # All other errors (including internal errors) map to exit code 2
+    # This includes unexpected exceptions that indicate configuration or usage issues
+    msg = f"Error during {error_type}: {error}"
     typer.echo(msg, err=True)
-    raise typer.Exit(code=3) from error
+    raise typer.Exit(code=2) from error
 
 
 # Common options for validation commands
@@ -141,6 +148,11 @@ def invoice_schema(
     Validates that the invoice schema file conforms to the expected structure
     and contains valid field definitions.
 
+    Exit Codes:
+        0: Success - validation passed
+        1: Validation failure - schema structure issues found
+        2: Usage error - file not found or invalid arguments
+
     Examples:
         rdetoolkit validate invoice-schema tasksupport/invoice.schema.json
         rdetoolkit validate invoice-schema schema.json --format json
@@ -151,6 +163,9 @@ def invoice_schema(
         command = InvoiceSchemaCommand(schema_path)
         result = command.execute()
         handle_validation_result(result, format_type, strict, quiet)
+    except typer.Exit:
+        # Re-raise typer.Exit to let Typer handle it properly
+        raise
     except FileNotFoundError:
         handle_file_not_found(schema_path, "Schema")
     except Exception as e:
@@ -177,6 +192,11 @@ def metadata_def(
     Validates that the metadata definition file conforms to the expected
     structure defined by the MetadataItem schema.
 
+    Exit Codes:
+        0: Success - validation passed
+        1: Validation failure - definition structure issues found
+        2: Usage error - file not found or invalid arguments
+
     Examples:
         rdetoolkit validate metadata-def tasksupport/metadata_def.json
         rdetoolkit validate metadata-def metadata_def.json --format json
@@ -187,6 +207,9 @@ def metadata_def(
         command = MetadataDefCommand(metadata_def_path)
         result = command.execute()
         handle_validation_result(result, format_type, strict, quiet)
+    except typer.Exit:
+        # Re-raise typer.Exit to let Typer handle it properly
+        raise
     except FileNotFoundError:
         handle_file_not_found(metadata_def_path, "Metadata definition")
     except Exception as e:
@@ -195,26 +218,22 @@ def metadata_def(
 
 @app.command("invoice")
 def invoice(
-    invoice_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to invoice.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    schema_path: Annotated[
-        Path,
-        typer.Option(
-            "--schema",
-            "-s",
-            help="Path to invoice.schema.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
+    invoice_path: Path = typer.Argument(
+        ...,
+        help="Path to invoice.json file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    schema_path: Path = typer.Option(
+        ...,
+        "--schema",
+        "-s",
+        help="Path to invoice.schema.json file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
@@ -223,6 +242,11 @@ def invoice(
 
     Validates that the invoice.json file conforms to the structure and
     constraints defined in the invoice.schema.json file.
+
+    Exit Codes:
+        0: Success - validation passed
+        1: Validation failure - data violates schema constraints
+        2: Usage error - files not found or invalid arguments
 
     Examples:
         rdetoolkit validate invoice raw/invoice.json --schema tasksupport/invoice.schema.json
@@ -251,26 +275,22 @@ def invoice(
 
 @app.command("metadata")
 def metadata(
-    metadata_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to metadata.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    schema_path: Annotated[
-        Path,
-        typer.Option(
-            "--schema",
-            "-s",
-            help="Path to metadata definition JSON file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
+    metadata_path: Path = typer.Argument(
+        ...,
+        help="Path to metadata.json file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    schema_path: Path = typer.Option(
+        ...,
+        "--schema",
+        "-s",
+        help="Path to metadata definition JSON file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
@@ -279,6 +299,11 @@ def metadata(
 
     Validates that the metadata.json file conforms to the structure
     defined in the metadata definition file.
+
+    Exit Codes:
+        0: Success - validation passed
+        1: Validation failure - data violates definition constraints
+        2: Usage error - files not found or invalid arguments
 
     Examples:
         rdetoolkit validate metadata raw/metadata.json --schema tasksupport/metadata_def.json
@@ -290,6 +315,9 @@ def metadata(
         command = MetadataCommand(metadata_path, schema_path)
         result = command.execute()
         handle_validation_result(result, format_type, strict, quiet)
+    except typer.Exit:
+        # Re-raise typer.Exit to let Typer handle it properly
+        raise
     except FileNotFoundError:
         # Determine which file is missing
         if not metadata_path.exists():
@@ -304,16 +332,14 @@ def metadata(
 
 @app.command("all")
 def validate_all(
-    project_dir: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="Root directory of RDE project (defaults to current directory)",
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            resolve_path=True,
-        ),
-    ] = None,
+    project_dir: Optional[Path] = typer.Argument(
+        None,
+        help="Root directory of RDE project (defaults to current directory)",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
@@ -329,7 +355,10 @@ def validate_all(
     - input/invoice/invoice.json (with schema)
     - input/metadata/metadata.json (if exists, with schema)
 
-    Exit code 0 only if ALL validations pass.
+    Exit Codes:
+        0: Success - all validations passed
+        1: Validation failure - one or more validations failed
+        2: Usage error - project directory not found or invalid arguments
 
     Examples:
         rdetoolkit validate all

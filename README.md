@@ -1,8 +1,8 @@
-![GitHub Release](https://img.shields.io/github/v/release/nims-dpfc/rdetoolkit)
+![GitHub Release](https://img.shields.io/github/v/release/nims-mdpf/rdetoolkit)
 [![python.org](https://img.shields.io/badge/Python-3.9%7C3.10%7C3.11%7C3.12%7C3.13%7C3.14-%233776AB?logo=python)](https://www.python.org/downloads/release/python-3917/)
-[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-dpfc/rdetoolkit/blob/main/LICENSE)
-[![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-dpfc/rdetoolkit/issues)
-![workflow](https://github.com/nims-dpfc/rdetoolkit/actions/workflows/main.yml/badge.svg)
+[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/nims-mdpf/rdetoolkit/blob/main/LICENSE)
+[![Issue](https://img.shields.io/badge/issue_tracking-github-orange)](https://github.com/nims-mdpf/rdetoolkit/issues)
+![workflow](https://github.com/nims-mdpf/rdetoolkit/actions/workflows/main.yml/badge.svg)
 ![coverage](docs/img/coverage.svg)
 
 > [日本語ドキュメント](docs/README_ja.md)
@@ -22,6 +22,13 @@ See the [documentation](https://nims-mdpf.github.io/rdetoolkit/) for more detail
 If you wish to make changes, please read the following document first:
 
 - [CONTRIBUTING.md](https://github.com/nims-mdpf/rdetoolkit/blob/main/CONTRIBUTING.md)
+
+## Requirements
+
+- **Python**: 3.9 or higher (Python 3.9 support will be removed in v2.0; upgrade to Python 3.10+ recommended)
+
+!!! warning "Python 3.9 Deprecation"
+    Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0. While Python 3.9 continues to work in rdetoolkit 1.x, users will see a `DeprecationWarning` on import. Please plan to upgrade to Python 3.10 or later before the v2.0 release.
 
 ## Install
 
@@ -90,20 +97,20 @@ def dataset(paths: RdeDatasetPaths) -> None:
     ...
 ```
 
-In this example, we define a dummy function `display_messsage()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
+In this example, we define a dummy function `display_message()` under `modules` to demonstrate how to implement custom structuring processing. Create a file named `modules/modules.py` as follows:
 
 ```python
 # modules/modules.py
 from rdetoolkit.models.rde2types import RdeDatasetPaths
 
 
-def display_messsage(path):
+def display_message(path):
     print(f"Test Message!: {path}")
 
 
 def dataset(paths: RdeDatasetPaths) -> None:
-    display_messsage(paths.inputdata)
-    display_messsage(paths.struct)
+    display_message(paths.inputdata)
+    display_message(paths.struct)
 ```
 
 ### About the Entry Point

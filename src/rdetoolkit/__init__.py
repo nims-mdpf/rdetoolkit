@@ -1,9 +1,21 @@
 from __future__ import annotations
 
+import sys
+import warnings
+
+# Python 3.9 deprecation warning (Issue #360)
+if sys.version_info < (3, 10):
+    warnings.warn(
+        "Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0. "
+        "Please upgrade to Python 3.10 or later.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
 from importlib import import_module
 from typing import Any
 
-__version__ = "1.5.1"
+__version__ = "1.5.2"
 
 _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "DirectoryOps": ("rdetoolkit.core", "DirectoryOps"),
@@ -26,6 +38,9 @@ _LAZY_MODULES: dict[str, str] = {
     "rde2util": "rdetoolkit.rde2util",
     "rdelogger": "rdetoolkit.rdelogger",
     "workflows": "rdetoolkit.workflows",
+    "processing": "rdetoolkit.processing",
+    "storage": "rdetoolkit.storage",
+    "traceback": "rdetoolkit.traceback",
     "config": "rdetoolkit.models.config",
     "invoice": "rdetoolkit.models.invoice",
     "invoice_schema": "rdetoolkit.models.invoice_schema",
@@ -55,6 +70,9 @@ __all__ = [
     "rde2util",
     "rdelogger",
     "workflows",
+    "processing",
+    "storage",
+    "traceback",
     "config",
     "invoice",
     "invoice_schema",

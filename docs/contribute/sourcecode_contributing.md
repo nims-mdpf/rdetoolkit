@@ -33,7 +33,7 @@ git checkout -b develop-v<x.y.z>-<任意の機能名など> origin/develop-v<x.y
 ### 必要なツール
 
 - `Python` (推奨バージョン: 3.9以上)
-- [rye](https://rye-up.com/) or [Poetry](https://python-poetry.org/docs/)(プロジェクト管理ツール)
+- [uv](https://docs.astral.sh/uv/) or [Poetry](https://python-poetry.org/docs/)(プロジェクト管理ツール)
 - `git` (バージョン管理)
 
 ## コードのスタイルと要件
