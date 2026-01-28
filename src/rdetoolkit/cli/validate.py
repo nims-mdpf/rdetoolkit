@@ -218,26 +218,22 @@ def metadata_def(
 
 @app.command("invoice")
 def invoice(
-    invoice_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to invoice.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    schema_path: Annotated[
-        Path,
-        typer.Option(
-            "--schema",
-            "-s",
-            help="Path to invoice.schema.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
+    invoice_path: Path = typer.Argument(
+        ...,
+        help="Path to invoice.json file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    schema_path: Path = typer.Option(
+        ...,
+        "--schema",
+        "-s",
+        help="Path to invoice.schema.json file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
@@ -279,26 +275,22 @@ def invoice(
 
 @app.command("metadata")
 def metadata(
-    metadata_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to metadata.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    schema_path: Annotated[
-        Path,
-        typer.Option(
-            "--schema",
-            "-s",
-            help="Path to metadata definition JSON file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
+    metadata_path: Path = typer.Argument(
+        ...,
+        help="Path to metadata.json file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    schema_path: Path = typer.Option(
+        ...,
+        "--schema",
+        "-s",
+        help="Path to metadata definition JSON file",
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
@@ -340,16 +332,14 @@ def metadata(
 
 @app.command("all")
 def validate_all(
-    project_dir: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="Root directory of RDE project (defaults to current directory)",
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            resolve_path=True,
-        ),
-    ] = None,
+    project_dir: Optional[Path] = typer.Argument(
+        None,
+        help="Root directory of RDE project (defaults to current directory)",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
