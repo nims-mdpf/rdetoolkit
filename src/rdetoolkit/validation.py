@@ -71,11 +71,8 @@ class MetadataValidator:
 
         if path is not None:
             __data = readf_json(path)
-        elif json_obj is not None:
-            __data = json_obj
         else:
-            emsg = "Unexpected validation error"
-            raise ValueError(emsg)
+            __data = json_obj
 
         self.schema(**__data)
         return __data
@@ -133,11 +130,8 @@ class MetadataDefinitionValidator:
         # Load data
         if path is not None:
             __data = readf_json(path)
-        elif json_obj is not None:
-            __data = json_obj
         else:
-            emsg = "Unexpected validation error"
-            raise ValueError(emsg)
+            __data = json_obj
 
         # Validate with Pydantic model
         try:
