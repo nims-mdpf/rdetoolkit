@@ -6,15 +6,12 @@ enabling explicit representation of success and failure cases in function signat
 
 from __future__ import annotations
 
-import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Generic, TypeVar, Union
+from typing import Any, Generic, Never, ParamSpec, TypeAlias, TypeVar, Union
 
-if sys.version_info >= (3, 11):
-    from typing import Never, ParamSpec, TypeAlias, dataclass_transform
-else:  # pragma: no cover - fallback for Python < 3.11
-    from typing_extensions import Never, ParamSpec, TypeAlias, dataclass_transform
+from typing_extensions import dataclass_transform
 
 T = TypeVar("T")
 E = TypeVar("E")
@@ -25,9 +22,7 @@ C = TypeVar("C")
 
 @dataclass_transform(frozen_default=True)
 def _frozen_dataclass(cls: type[C]) -> type[C]:
-    if sys.version_info >= (3, 10):
-        return dataclass(frozen=True, slots=True)(cls)
-    return dataclass(frozen=True)(cls)
+    return dataclass(frozen=True, slots=True)(cls)
 
 
 @_frozen_dataclass
@@ -44,9 +39,6 @@ class Success(Generic[T]):
         >>> result.is_success()
         True
     """
-
-    if sys.version_info < (3, 10):
-        __slots__ = ("value",)
 
     value: T
 
@@ -108,9 +100,6 @@ class Failure(Generic[E]):
         >>> result.is_success()
         False
     """
-
-    if sys.version_info < (3, 10):
-        __slots__ = ("error",)
 
     error: E
 

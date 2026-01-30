@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.6.0  | 2026-01-30   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) | [v1.6.0](#v160-2026-01-30) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
@@ -18,6 +19,94 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.6.0 (2026-01-30)
+
+!!! warning "Breaking Changes"
+    This release drops Python 3.9 support. Minimum Python version is now **3.10+**.
+
+!!! info "References"
+    - Key issue: [#351](https://github.com/nims-mdpf/rdetoolkit/issues/351)
+
+### Breaking Changes: Python 3.9 Support Dropped
+
+#### Overview
+Python 3.9 support has been removed from rdetoolkit v1.6.0. The minimum supported Python version is now **3.10**.
+
+#### Rationale
+- **End of Life**: Python 3.9 reached end-of-life on **October 31, 2025**
+- **Security**: Continuing support increases maintenance and security risks
+- **Modernization**: Python 3.10+ provides improved typing features, better performance, and language enhancements
+
+#### Impact
+- **Users on Python 3.9**: `pip install rdetoolkit` will automatically resolve to the last compatible version (**v1.5.2**)
+- **CI/CD Pipelines**: GitHub Actions and tox configurations no longer test Python 3.9
+- **PyPI Metadata**: Python 3.9 classifier removed from package metadata
+
+#### Migration Options
+
+**Option 1: Upgrade Python (Recommended)**
+```bash
+# Install Python 3.10 or higher
+# Then reinstall rdetoolkit
+pip install --upgrade rdetoolkit
+```
+
+Supported versions: Python 3.10, 3.11, 3.12, 3.13, 3.14
+
+**Option 2: Pin to Last Compatible Version**
+```bash
+# Stay on Python 3.9 with rdetoolkit v1.5.2
+pip install "rdetoolkit<1.6.0"
+```
+
+!!! warning
+    Pinning to v1.5.2 means you will not receive new features, bug fixes, or security updates from v1.6.0+.
+
+For more information on Python version support lifecycle, see: [https://endoflife.date/python](https://endoflife.date/python)
+
+---
+
+### Technical Changes
+
+#### Package Metadata
+- Updated `requires-python` to `>=3.10` in `pyproject.toml`
+- Removed `Programming Language :: Python :: 3.9` classifier
+- Updated ruff configuration to target Python 3.10 (`target-version = "py310"`)
+
+#### CI/CD Pipelines
+- Removed Python 3.9 from GitHub Actions workflows (`pypi-release.yml`, `docs-ci.yml`)
+- Updated tox configuration to test only Python 3.10-3.14 environments
+- Removed all `py39-*` test environment sections from `tox.ini`
+
+#### Code Cleanup
+- Removed Python 3.9 compatibility code and version branches:
+  - `sys.version_info` checks in `__init__.py`, `result.py`, `command.py`
+  - Version-specific dataclass parameter handling (`_DATACLASS_KWARGS`)
+  - Conditional `slots=True` logic (now always enabled)
+- Optimized typing imports to use Python 3.10+ built-ins:
+  - `Never`, `ParamSpec`, `TypeAlias` from `typing` module (instead of `typing_extensions`)
+  - Simplified type annotations using native union syntax (`X | Y`)
+
+#### Documentation
+- Updated installation documentation (English and Japanese) to reflect Python 3.10+ requirement
+- Updated usage documentation (CLI, quickstart, validation, object storage) to specify Python 3.10+
+- Updated development documentation to remove Python 3.9 references
+- Adjusted deprecation notices in README.md to reflect v1.6.0 removal
+
+#### Dependencies
+- Regenerated lock files (`uv.lock`, `requirements.lock`, `requirements-dev.lock`) with Python 3.10+ constraints
+- Removed 2,986 lines of Python 3.9-specific package wheels and markers
+
+---
+
+### Testing
+All core tests pass successfully under Python 3.10-3.14:
+- **Unit tests**: 1,603 passed
+- **Quality checks**: ruff, mypy, pytest all pass
+- **Integration tests**: All workflows validated
+
+---
 
 ## v1.5.2 (2026-01-27)
 

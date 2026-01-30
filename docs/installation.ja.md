@@ -8,19 +8,9 @@
 
 RDEToolKitをインストールする前に、以下の要件を満たしていることを確認してください：
 
-- **Python**: バージョン 3.9 以上 (Python 3.10以降を推奨)
+- **Python**: バージョン 3.10 以上
 - **pip**: 最新版を推奨
 - **インターネット接続**: PyPIからのパッケージダウンロードに必要
-
-!!! warning "Python 3.9非推奨のお知らせ"
-    **重要**: Python 3.9のサポートは非推奨となり、rdetoolkit v2.0 (2025年Q4以降を予定) で削除されます。Python 3.9はrdetoolkit 1.x系では引き続き動作しますが、インポート時に`DeprecationWarning`が表示されます。
-
-    **推奨アクション**: 将来のrdetoolkitリリースとの互換性を確保するため、Python 3.10以降へのアップグレードを計画してください。
-
-    **サポート状況**:
-
-    - Python 3.9: 非推奨 (警告が表示されます)
-    - Python 3.10以降: 完全サポート
 
 !!! tip "Python環境の確認"
     現在のPython環境を確認するには、以下のコマンドを実行してください：
@@ -110,7 +100,7 @@ Plotlyは、Pythonなどでインタラクティブなグラフやダッシュ�
 === "conda使用"
     ```bash title="terminal"
     # 新しい環境を作成
-    conda create -n rde_env python=3.9
+    conda create -n rde_env python=3.10
 
     # 環境を有効化
     conda activate rde_env

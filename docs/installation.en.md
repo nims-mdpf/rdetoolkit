@@ -8,18 +8,18 @@ This guide explains the procedures for installing RDEToolKit in your Python envi
 
 Before installing RDEToolKit, confirm the following:
 
-- **Python**: Version 3.9 or higher (Python 3.10+ recommended)
+- **Python**: Version 3.10 or higher
 - **pip**: Latest version recommended
 - **Internet Connection**: Needed to download packages from PyPI
 
-!!! warning "Python 3.9 Deprecation Notice"
-    **Important**: Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0 (targeted for 2025 Q4 or later). While Python 3.9 continues to work in rdetoolkit 1.x, users will see a `DeprecationWarning` on import.
+!!! warning "Python 3.9 Support Removed"
+    **Important**: Python 3.9 support was removed in rdetoolkit v1.6.0. Users on Python 3.9 should use rdetoolkit v1.5.x or earlier.
 
-    **Recommended Action**: Upgrade to Python 3.10 or later to ensure compatibility with future rdetoolkit releases.
+    **Required Action**: Upgrade to Python 3.10 or later to use rdetoolkit v1.6.0+.
 
     **Supported Versions**:
 
-    - Python 3.9: Deprecated (warning issued)
+    - Python 3.9: Not supported (use v1.5.x or earlier)
     - Python 3.10+: Fully supported
 
 !!! tip "Checking Your Python Environment"
@@ -110,7 +110,7 @@ Create an isolated environment per project.
 === "Using conda"
     ```bash title="terminal"
     # Create new environment
-    conda create -n rde_env python=3.9
+    conda create -n rde_env python=3.10
 
     # Activate
     conda activate rde_env

@@ -5,11 +5,10 @@ import json
 import os
 import re
 import shutil
-import sys
 import warnings
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Protocol, Union
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeAlias
 
 from rdetoolkit import __version__
 from rdetoolkit.exceptions import InvoiceSchemaValidationError, StructuredError
@@ -421,10 +420,7 @@ class TemplateGenerator(Protocol):
 
 
 if TYPE_CHECKING:
-    if sys.version_info >= (3, 10):
-        AttributeConfig = GeneralAttributeConfig | SpecificAttributeConfig
-    else:
-        AttributeConfig = Union[GeneralAttributeConfig, SpecificAttributeConfig]
+    AttributeConfig: TypeAlias = GeneralAttributeConfig | SpecificAttributeConfig
 else:
     # Runtime imports are required for isinstance checks in _add_sample_field.
     from rdetoolkit.models.invoice import (

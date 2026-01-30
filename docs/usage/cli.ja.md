@@ -6,7 +6,7 @@ RDEToolKitは、RDE構造化処理の開発と実行を支援する包括的な�
 
 ## 前提条件
 
-- Python 3.9以上
+- Python 3.10以上
 - rdetoolkitパッケージのインストール
 
 ## 利用可能なコマンド

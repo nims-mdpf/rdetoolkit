@@ -7,12 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Deprecated
+## [1.6.0] - 2026-01-30
 
-- **Python 3.9 Support**: Python 3.9 support is now deprecated and will be removed in rdetoolkit v2.0. Users are encouraged to upgrade to Python 3.10 or later. A `DeprecationWarning` is now issued when rdetoolkit is imported under Python 3.9. (#360)
-  - **Timeline**: Python 3.9 reaches End of Life in October 2025
-  - **Action Required**: Plan to upgrade to Python 3.10+ before rdetoolkit v2.0 release
-  - **Migration Path**: Python 3.10, 3.11, 3.12, 3.13, and 3.14 are fully supported
+### Breaking Changes
+
+- **Python 3.9 support dropped**: Minimum Python version is now 3.10 (#351)
+  - Python 3.9 reached end-of-life on October 31, 2025
+  - Users on Python 3.9 should use rdetoolkit v1.5.x or earlier
+  - `pip install rdetoolkit` on Python 3.9 will automatically resolve to the last compatible version (v1.5.2)
+
+### Changed
+
+- Updated `requires-python` to `>=3.10` in package metadata
+- Removed Python 3.9 from CI/CD pipelines and test matrices (GitHub Actions, tox)
+- Removed Python 3.9 classifier from PyPI metadata
+- Cleaned up Python 3.9 compatibility code and version branches
+  - Removed `sys.version_info` checks in `__init__.py`, `result.py`, `command.py`
+  - Simplified dataclass definitions to use `slots=True` directly
+  - Optimized typing imports to use Python 3.10+ built-ins (`Never`, `ParamSpec`, `TypeAlias`)
+- Updated documentation to reflect Python 3.10+ requirement (installation, usage, development)
+- Regenerated lock files (`uv.lock`, `requirements*.lock`) for Python 3.10+ dependencies
+
+### Migration Guide
+
+If you are using Python 3.9:
+
+1. **Option 1 (Recommended)**: Upgrade to Python 3.10 or higher
+   - Python 3.10, 3.11, 3.12, 3.13, and 3.14 are fully supported
+   - See [Python Downloads](https://www.python.org/downloads/) for installation
+
+2. **Option 2**: Pin rdetoolkit to the last 3.9-compatible version:
+   ```bash
+   pip install "rdetoolkit<1.6.0"
+   ```
+   Note: This will limit you to rdetoolkit v1.5.2 and earlier, which will not receive new features or bug fixes.
+
+For more information on Python version support lifecycle, see: https://endoflife.date/python
 
 ## [1.5.2] - 2026-01-26
 
@@ -143,7 +173,8 @@ For detailed release notes, see [docs/releases/index.en.md](docs/releases/index.
 - Archive generation utilities
 - Report tooling
 
-[Unreleased]: https://github.com/nims-mdpf/rdetoolkit/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/nims-mdpf/rdetoolkit/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/nims-mdpf/rdetoolkit/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/nims-mdpf/rdetoolkit/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/nims-mdpf/rdetoolkit/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/nims-mdpf/rdetoolkit/compare/v1.4.3...v1.5.0
