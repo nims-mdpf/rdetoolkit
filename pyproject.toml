@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.5.2"
+version = "1.5.3"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
