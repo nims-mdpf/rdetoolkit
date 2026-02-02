@@ -777,6 +777,34 @@ def test_error_check_exist_rawfiles(inputfile_multi_excelinvoice):
     assert str(e.value) == "ERROR: raw file not found: test_child2.txt"
 
 
+def test_error_check_exist_rawfiles_multiple_missing(inputfile_multi_excelinvoice):
+    """Test that check_exist_rawfiles reports ALL missing files when multiple files are absent.
+
+    This test verifies that all missing files are reported in a single error message,
+    listed in alphabetical order, and separated by ", " for clarity.
+    """
+    # Preprocess test Excel invoice
+    df_excelinvoice = pd.read_excel(inputfile_multi_excelinvoice, sheet_name="invoice_form", dtype=str, header=None, index_col=None)
+    df = df_excelinvoice.dropna(axis=0, how="all").dropna(axis=1, how="all")
+    hd1 = list(df.iloc[1, :].fillna(""))
+    hd2 = list(df.iloc[2, :].fillna(""))
+    df.columns = [f"{s1}/{s2}" if s1 else s2 for s1, s2 in zip(hd1, hd2)]
+    df_excelinvoice = df.iloc[4:, :].reset_index(drop=True).copy()
+
+    # Test raw files - missing both test_child1.txt and test_child2.txt
+    test_excel_raw_files = [
+        Path("test_child3.txt"),
+        Path("test_child9.txt"),
+        Path("test_child10.txt"),
+    ]
+
+    with pytest.raises(StructuredError) as e:
+        _ = check_exist_rawfiles(df_excelinvoice, test_excel_raw_files)
+
+    # Expected: Both missing files listed in alphabetical order, separated by ", "
+    assert str(e.value) == "ERROR: raw file not found: test_child1.txt, test_child2.txt"
+
+
 def test_apply_magic_variable_inputfile_check(ivnoice_json_magic_filename_variable):
     """${filename}が置換できるかテスト
 

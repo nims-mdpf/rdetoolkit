@@ -168,7 +168,9 @@ def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path
     file_set_group = {f.name for f in excel_rawfiles}
     file_set_invoice = set(dfexcelinvoice["data_file_names/name"])
     if file_set_invoice - file_set_group:
-        emsg = f"ERROR: raw file not found: {(file_set_invoice-file_set_group).pop()}"
+        missing = sorted(file_set_invoice - file_set_group)
+        missing_display = (str(name) for name in missing)
+        emsg = f"ERROR: raw file not found: {', '.join(missing_display)}"
         raise StructuredError(emsg)
     # Sort excel_rawfiles in the order they appear in the invoice
     _tmp = {f.name: f for f in excel_rawfiles}
