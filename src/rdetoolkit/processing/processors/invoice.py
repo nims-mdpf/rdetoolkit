@@ -411,6 +411,7 @@ class SmartTableInvoiceInitializer(Processor):
         """Apply SmartTable row data to invoice and collect metadata updates."""
         metadata_updates: dict[str, dict[str, Any]] = {}
         metadata_def: dict[str, Any] | None = None
+        csv_has_sample_owner_id = False
 
         # Handle empty CSV (no data rows)
         if len(csv_data) == 0:
@@ -435,10 +436,14 @@ class SmartTableInvoiceInitializer(Processor):
                 meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
                 metadata_updates[meta_key] = meta_entry
                 continue
+            # Track if sample/ownerId is explicitly specified in CSV
+            if col == "sample/ownerId":
+                csv_has_sample_owner_id = True
             self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
 
-        # Set sample.ownerId to basic.dataOwnerId for SmartTable processing
-        self._set_sample_owner_id(invoice_data)
+        # Set sample.ownerId to basic.dataOwnerId only if not specified in CSV
+        if not csv_has_sample_owner_id:
+            self._set_sample_owner_id(invoice_data)
 
         return metadata_updates
 

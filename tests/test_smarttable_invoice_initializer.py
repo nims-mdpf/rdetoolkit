@@ -6,7 +6,7 @@ Equivalence Partitioning:
 | `SmartTableInvoiceInitializer.process` | Multiple SmartTable rows with fresh processors per row    | Pipelines re-instantiate processors for each row              | sample.ownerId is set to basic.dataOwnerId            | `TC-EP-001`   |
 | `SmartTableInvoiceInitializer.process` | Missing SmartTable row CSV in SmartTable mode              | Invalid SmartTable input should be rejected                    | Raises `StructuredError`                              | `TC-EP-002`   |
 | `SmartTableInvoiceInitializer.process` | basic.dataOwnerId is missing in original invoice           | Defensive handling when required field is absent              | Logs warning, preserves original sample.ownerId       | `TC-EP-003`   |
-| `SmartTableInvoiceInitializer.process` | SmartTable CSV contains sample/ownerId column              | basic.dataOwnerId should take precedence over CSV value       | sample.ownerId is set to basic.dataOwnerId            | `TC-EP-004`   |
+| `SmartTableInvoiceInitializer.process` | SmartTable CSV contains sample/ownerId column              | CSV value should take precedence when explicitly specified    | sample.ownerId uses CSV value, not basic.dataOwnerId  | `TC-EP-004`   |
 
 Boundary Value:
 | API                                   | Boundary                                      | Rationale                                                    | Expected Outcome                                      | Test ID       |
@@ -366,12 +366,12 @@ def test_smarttable_invoice_initializer_warns_when_data_owner_id_empty__tc_bv_00
     assert output_invoice["sample"]["ownerId"] == original_sample_owner_id
 
 
-def test_smarttable_invoice_initializer_overrides_csv_owner_id_with_data_owner__tc_ep_004(tmp_path: Path) -> None:
-    """TC-EP-004: SmartTable CSV sample/ownerId is overridden by basic.dataOwnerId."""
-    # Given: SmartTable row with sample/ownerId column
+def test_smarttable_invoice_initializer_uses_csv_owner_id_when_specified__tc_ep_004(tmp_path: Path) -> None:
+    """TC-EP-004: SmartTable CSV sample/ownerId takes precedence over basic.dataOwnerId."""
+    # Given: SmartTable row with sample/ownerId column explicitly specified
     invoice_org, schema_path = _copy_sample_invoice_files(tmp_path)
     original_invoice = json.loads(invoice_org.read_text())
-    expected_owner_id = original_invoice["basic"]["dataOwnerId"]
+    data_owner_id = original_invoice["basic"]["dataOwnerId"]
 
     smarttable_file = tmp_path / "inputdata" / "smarttable_sample.xlsx"
     smarttable_file.parent.mkdir(parents=True, exist_ok=True)
@@ -409,6 +409,6 @@ def test_smarttable_invoice_initializer_overrides_csv_owner_id_with_data_owner__
     initializer.process(context)
     output_invoice = json.loads((invoice_org.parent / "invoice.json").read_text())
 
-    # Then: basic.dataOwnerId takes precedence over CSV value
-    assert output_invoice["sample"]["ownerId"] == expected_owner_id
-    assert output_invoice["sample"]["ownerId"] != csv_owner_id
+    # Then: CSV value takes precedence over basic.dataOwnerId
+    assert output_invoice["sample"]["ownerId"] == csv_owner_id
+    assert output_invoice["sample"]["ownerId"] != data_owner_id
