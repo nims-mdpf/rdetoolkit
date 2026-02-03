@@ -160,7 +160,7 @@ def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path
         excel_rawfiles (list[Path]): A list of Path objects representing file paths.
 
     Raises:
-        tructuredError: If any file name in dfexcelinvoice is not found in excel_rawfiles.
+        StructuredError: If any file name in dfexcelinvoice is not found in excel_rawfiles.
 
     Returns:
         list[Path]: A list of Path objects corresponding to the file names in dfexcelinvoice, ordered as they appear in the DataFrame.
@@ -168,7 +168,9 @@ def check_exist_rawfiles(dfexcelinvoice: pd.DataFrame, excel_rawfiles: list[Path
     file_set_group = {f.name for f in excel_rawfiles}
     file_set_invoice = set(dfexcelinvoice["data_file_names/name"])
     if file_set_invoice - file_set_group:
-        emsg = f"ERROR: raw file not found: {(file_set_invoice-file_set_group).pop()}"
+        missing = sorted(file_set_invoice - file_set_group)
+        missing_display = (str(name) for name in missing)
+        emsg = f"ERROR: raw file not found: {', '.join(missing_display)}"
         raise StructuredError(emsg)
     # Sort excel_rawfiles in the order they appear in the invoice
     _tmp = {f.name: f for f in excel_rawfiles}
@@ -1152,7 +1154,8 @@ class RuleBasedReplacer:
         Args:
             replacements (Mapping[str, Any]): The object containing mapping rules (read-only).
             source_json_obj (MutableMapping[str, Any] | None): Objects of key and value to which you want to apply the rule (performs nested assignments).
-            mapping_rules (Mapping[str, str] | None, optional): Rules for mapping key and value (read-only). Defaults to None.
+            mapping_rules (Mapping[str, str] | None, optional): Rules for mapping key and value (read-only).
+                If None, uses self.rules. Defaults to None.
 
         Returns:
             dict[str, Any]: dictionary type data after conversion
@@ -1173,13 +1176,12 @@ class RuleBasedReplacer:
             result = replacer.apply_rules(replacement_rule, save_file_path, mapping_rules = rule)
             print(result)
         """
-        # [TODO] Correction of type definitions in version 0.1.6
         if mapping_rules is None:
             mapping_rules = self.rules
         if source_json_obj is None:
             source_json_obj = {}
 
-        for key, value in self.rules.items():
+        for key, value in mapping_rules.items():
             keys = key.split(".")
             replace_value = replacements.get(value, "")
             current_obj: MutableMapping[str, Any] = source_json_obj

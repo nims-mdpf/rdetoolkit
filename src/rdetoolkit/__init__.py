@@ -15,7 +15,7 @@ if sys.version_info < (3, 10):
 from importlib import import_module
 from typing import Any
 
-__version__ = "1.5.2"
+__version__ = "1.5.3"
 
 _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "DirectoryOps": ("rdetoolkit.core", "DirectoryOps"),
