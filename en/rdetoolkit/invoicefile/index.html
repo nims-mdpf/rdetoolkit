@@ -3292,7 +3292,7 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 <tbody>
 <tr class="doc-section-item">
 <td>
-<code><span title="tructuredError">tructuredError</span></code>
+<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -5086,7 +5086,8 @@ rule file, sets rules, and performs file name transformations and replacements b
 </td>
 <td>
 <div class="doc-md-description">
-<p>Rules for mapping key and value (read-only). Defaults to None.</p>
+<p>Rules for mapping key and value (read-only).
+If None, uses self.rules. Defaults to None.</p>
 </div>
 </td>
 <td>
