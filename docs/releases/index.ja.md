@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.5.3     | 2026-02-03 | SmartTable sample.ownerId自動設定 / 欠損rawfileエラー改善 / invoicefile.pyバグ修正 | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2     | 2026-01-27 | CLI validate終了コード標準化 / metadata-def検証修正 / 設定エラーメッセージ改善 / Python 3.9非推奨警告 / PBTインフラ導入 | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1     | 2026-01-21 | SmartTable行データ直接アクセス / variable配列のfeature説明欄転記 | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0     | 2026-01-09 | Result型 / Typer CLI+validate / タイムスタンプログ / 遅延import / Python 3.14対応 | [v1.5.0](#v150-2026-01-09) |
@@ -18,6 +19,93 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.5.3 (2026-02-03)
+
+!!! info "参照"
+    - 主な課題: [#389](https://github.com/nims-mdpf/rdetoolkit/issues/389), [#398](https://github.com/nims-mdpf/rdetoolkit/issues/398), [#399](https://github.com/nims-mdpf/rdetoolkit/issues/399)
+
+#### ハイライト
+- SmartTableモードでの試料登録時に`sample.ownerId`が`basic.dataOwnerId`に自動設定されるよう修正。CSVで明示的に指定された場合はその値を優先
+- `check_exist_rawfiles`のエラーメッセージを改善し、欠損しているすべてのrawファイルをアルファベット順で報告
+- `invoicefile.py`の古いTODOコメント削除、`mapping_rules`パラメータが無視されていたバグ修正、docstringのタイポ修正
+
+---
+
+### SmartTable sample.ownerId自動設定 (Issue #389)
+
+#### 不具合修正
+- **問題**: SmartTableモードで試料を新規登録する際、`sample.ownerId`が送状画面で選択した仮試料の試料管理者IDのままとなり、データ登録者のIDに更新されませんでした。これにより：
+  - 新規登録の試料管理者がデータ登録者ではない状況が発生
+  - 試料管理者が研究チームに所属していない場合、登録時にエラーが発生
+
+- **解決策**: `SmartTableInvoiceInitializer._apply_smarttable_row`メソッドに`sample.ownerId`の自動設定機能を追加
+
+#### 優先順位ルール
+
+| ケース | 動作 |
+|-------|------|
+| SmartTableに`sample/ownerId`が**指定あり** | CSVの値を使用（ユーザー意図を尊重） |
+| SmartTableに`sample/ownerId`が**指定なし/空** | `basic.dataOwnerId`を使用 |
+| `basic.dataOwnerId`も欠損 | 警告ログを出力し、元の値を保持 |
+
+#### 実装内容
+- `_set_sample_owner_id`ヘルパーメソッドを追加
+- CSVで`sample/ownerId`が明示的に指定されているかを追跡する`csv_has_sample_owner_id`フラグを追加
+- 新規テストケースを追加（エッジケース、優先順位検証を含む）
+
+---
+
+### check_exist_rawfilesエラーメッセージ改善 (Issue #398)
+
+#### 不具合修正
+- **問題**: `check_exist_rawfiles`関数は`.pop()`を使用して欠損ファイルを1つだけ報告していました。このため：
+  - 複数のrawファイルが欠損している場合、ユーザーは繰り返し実行しないとすべての欠損ファイル名を知ることができませんでした
+  - setの順序に依存するためエラーメッセージが実行ごとに変わり、ログ比較やスナップショットテストが不安定になりました
+
+- **解決策**: `.pop()`から`sorted()`と`', '.join()`に変更し、すべての欠損ファイルをアルファベット順で報告するよう改善
+
+#### エラーメッセージ例
+
+```
+# 以前: 1ファイルのみ報告（非決定的）
+ERROR: raw file not found: file_b.dat
+
+# 現在: すべてのファイルをアルファベット順で報告
+ERROR: raw file not found: file_a.dat, file_b.dat, file_c.dat
+```
+
+---
+
+### invoicefile.pyの品質改善 (Issue #399)
+
+#### 不具合修正
+- **古いTODOコメントの削除**: v0.1.6時代の`# [TODO] Correction of type definitions in version 0.1.6`を削除
+- **mapping_rulesパラメータのバグ修正**: `get_apply_rules_obj`メソッドで`mapping_rules`パラメータが無視され、常に`self.rules`が使用されていた問題を修正
+- **docstringタイポ修正**: `check_exist_rawfiles`関数のRaisesセクションで`tructuredError`を`StructuredError`に修正
+
+---
+
+### 移行 / 互換性
+
+#### SmartTable sample.ownerId
+- **後方互換**: CSVで`sample/ownerId`を指定していないワークフローは自動的に`basic.dataOwnerId`が使用されます
+- **明示的な指定**: CSVで`sample/ownerId`を指定していた場合、その値が引き続き優先されます
+- **リンク登録**: `sample.ownerId`は設定されますが、リンク登録では使用されません（安全策として常に設定）
+
+#### エラーメッセージ
+- **エラー文字列の変更**: `check_exist_rawfiles`のエラーメッセージ形式が変更されました。文字列比較テストを行っている場合は更新が必要です
+- **機能的な互換性**: 動作は後方互換です
+
+#### invoicefile.py
+- **後方互換**: 変更は内部的な品質改善であり、APIの互換性に影響はありません
+
+---
+
+#### 既知の問題
+- 現時点で報告されている既知の問題はありません。
+
+---
 
 ## v1.5.2 (2026-01-27)
 

@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.5.3  | 2026-02-03   | SmartTable sample.ownerId auto-assignment / Missing rawfile error improvement / invoicefile.py bug fixes | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
@@ -18,6 +19,93 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.5.3 (2026-02-03)
+
+!!! info "References"
+    - Key issues: [#389](https://github.com/nims-mdpf/rdetoolkit/issues/389), [#398](https://github.com/nims-mdpf/rdetoolkit/issues/398), [#399](https://github.com/nims-mdpf/rdetoolkit/issues/399)
+
+#### Highlights
+- Fixed SmartTable sample registration to automatically set `sample.ownerId` to `basic.dataOwnerId`. CSV-specified values take precedence when explicitly provided
+- Improved `check_exist_rawfiles` error message to report all missing raw files in alphabetical order
+- Quality improvements to `invoicefile.py`: removed stale TODO comment, fixed `mapping_rules` parameter being ignored, fixed docstring typo
+
+---
+
+### SmartTable sample.ownerId Auto-Assignment (Issue #389)
+
+#### Bug Fix
+- **Problem**: When registering samples in SmartTable mode, `sample.ownerId` retained the sample owner ID from the temporary sample selected in the invoice screen instead of being updated to the data registrant's ID. This caused:
+  - The sample owner to be different from the data registrant for new sample registration
+  - Registration errors when the sample owner was not a member of the research team
+
+- **Solution**: Added automatic `sample.ownerId` assignment in `SmartTableInvoiceInitializer._apply_smarttable_row` method
+
+#### Priority Rules
+
+| Case | Behavior |
+|------|----------|
+| SmartTable CSV specifies `sample/ownerId` | Use CSV value (respect user intent) |
+| SmartTable CSV does not specify `sample/ownerId` | Use `basic.dataOwnerId` |
+| `basic.dataOwnerId` is missing/empty | Log warning, preserve original value |
+
+#### Implementation Details
+- Added `_set_sample_owner_id` helper method
+- Added `csv_has_sample_owner_id` flag to track explicit CSV specification
+- Added new test cases (edge cases and precedence verification)
+
+---
+
+### check_exist_rawfiles Error Message Improvement (Issue #398)
+
+#### Bug Fix
+- **Problem**: The `check_exist_rawfiles` function used `.pop()` to report only one missing file. This caused:
+  - When multiple raw files were missing, users had to run repeatedly to discover all missing file names
+  - Error messages varied between runs due to set order dependency, making log comparison and snapshot tests unreliable
+
+- **Solution**: Changed from `.pop()` to `sorted()` + `', '.join()` to report all missing files in alphabetical order
+
+#### Error Message Example
+
+```
+# Before: Reports only one file (non-deterministic)
+ERROR: raw file not found: file_b.dat
+
+# After: Reports all files in alphabetical order
+ERROR: raw file not found: file_a.dat, file_b.dat, file_c.dat
+```
+
+---
+
+### invoicefile.py Quality Improvements (Issue #399)
+
+#### Bug Fixes
+- **Stale TODO Comment Removal**: Removed obsolete `# [TODO] Correction of type definitions in version 0.1.6` comment from v0.1.6 era
+- **mapping_rules Parameter Bug Fix**: Fixed bug in `get_apply_rules_obj` method where `mapping_rules` parameter was ignored and `self.rules` was always used instead
+- **Docstring Typo Fix**: Corrected `tructuredError` to `StructuredError` in `check_exist_rawfiles` function's Raises section
+
+---
+
+### Migration / Compatibility
+
+#### SmartTable sample.ownerId
+- **Backward Compatible**: Workflows not specifying `sample/ownerId` in CSV will automatically use `basic.dataOwnerId`
+- **Explicit Specification**: If CSV specified `sample/ownerId`, that value continues to take precedence
+- **Link Registration**: `sample.ownerId` is set but not used for link registration (set as a safe default)
+
+#### Error Messages
+- **Error String Change**: The `check_exist_rawfiles` error message format has changed. Update any string comparison tests accordingly
+- **Functional Compatibility**: Behavior is backward compatible
+
+#### invoicefile.py
+- **Backward Compatible**: Changes are internal quality improvements with no API compatibility impact
+
+---
+
+#### Known Issues
+- None reported at this time.
+
+---
 
 ## v1.5.2 (2026-01-27)
 
