@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import sys
-import warnings
 
-# Python 3.9 deprecation warning (Issue #360)
-if sys.version_info < (3, 10):
-    warnings.warn(
-        "Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0. "
-        "Please upgrade to Python 3.10 or later.",
-        DeprecationWarning,
-        stacklevel=2,
+# Enforce Python 3.10+ requirement (Issue #351)
+if sys.version_info < (3, 10):  # noqa: UP036
+    msg = (
+        "Python 3.10 or higher is required. "
+        "Python 3.9 support was removed in rdetoolkit 1.6.0. "
+        "Please use rdetoolkit 1.5.x or upgrade Python."
     )
+    raise RuntimeError(msg)
 
 from importlib import import_module
 from typing import Any

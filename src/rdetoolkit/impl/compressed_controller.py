@@ -6,7 +6,8 @@ import shutil
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Callable, Final
+from typing import Final
+from collections.abc import Callable
 
 import charset_normalizer
 import pandas as pd

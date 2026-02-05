@@ -69,10 +69,7 @@ class MetadataValidator:
             emsg = "Both 'path' and 'json_obj' cannot be provided at the same time"
             raise ValueError(emsg)
 
-        if path is not None:
-            __data = readf_json(path)
-        else:
-            __data = json_obj
+        __data: dict[str, Any] = readf_json(path) if path is not None else cast(dict[str, Any], json_obj)
 
         self.schema(**__data)
         return __data
@@ -128,10 +125,7 @@ class MetadataDefinitionValidator:
             raise ValueError(emsg)
 
         # Load data
-        if path is not None:
-            __data = readf_json(path)
-        else:
-            __data = json_obj
+        __data: dict[str, Any] = readf_json(path) if path is not None else cast(dict[str, Any], json_obj)
 
         # Validate with Pydantic model
         try:

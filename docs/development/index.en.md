@@ -29,7 +29,7 @@ This section explains how to contribute to the RDEToolKit project and set up a d
 
 ### Prerequisites
 
-- **Python**: 3.9 or higher
+- **Python**: 3.10 or higher
 - **Git**: Version control
 - **uv**: Package management tool
 
