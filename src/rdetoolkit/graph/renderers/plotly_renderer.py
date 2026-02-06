@@ -166,7 +166,7 @@ class PlotlyRenderer:
         use_custom_direction_colors: bool,
     ) -> list[Any]:
         traces: list[Any] = []
-        for x_col_idx, y_col_idx, dir_col_idx in zip(x_cols, y_cols, direction_cols):
+        for x_col_idx, y_col_idx, dir_col_idx in zip(x_cols, y_cols, direction_cols, strict=True):
             series_name = self._resolve_series_name(df, y_col_idx, config)
             base_color = color_context.color_for(series_name)
             traces.extend(

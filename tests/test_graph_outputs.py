@@ -32,7 +32,7 @@ for case in GRAPH_CASES:
                 baseline_dir=str(baseline_directory()),
                 filename=output.baseline.name,
                 style="default",
-                tol=18.5,
+                tolerance=18.5,
             ),
             id=f"{case.name}::{output.artifact}",
         )

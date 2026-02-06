@@ -415,3 +415,107 @@ def apply_matplotlib_config(
     params = DEFAULT_PLOT_PARAMS if matplotlib_params is None else matplotlib_params
     for key, value in params.items():
         plt.rcParams[key] = value
+
+
+def determine_titles(
+    *, title: str | None, name: str | None,
+) -> tuple[str | None, str]:
+    """Resolve display title and base filename for outputs.
+
+    Determines the title shown in plots and the base filename for saved outputs
+    based on user-provided title and name parameters. The function follows
+    a specific precedence: title takes precedence for display, name for filename.
+
+    Args:
+        title: Desired plot title (also used for filename if name is None)
+        name: Desired base filename (takes precedence over title for filename)
+
+    Returns:
+        A tuple containing:
+            - display_title: Title to show in plot (title if provided, else name)
+            - base_filename: Base name for output files (name if provided,
+                            else title, else "plot")
+
+    Example:
+        >>> determine_titles(title="My Plot", name="output")
+        ('My Plot', 'output')
+        >>> determine_titles(title="My Plot", name=None)
+        ('My Plot', 'My Plot')
+        >>> determine_titles(title=None, name="output")
+        ('output', 'output')
+        >>> determine_titles(title=None, name=None)
+        (None, 'plot')
+    """
+    display_title = title if title is not None else name
+    base_filename = name or title or "plot"
+    return display_title, base_filename
+
+
+def determine_formats(html: bool, return_fig: bool) -> list[str]:
+    """Compute output formats based on execution mode.
+
+    Determines which file formats to generate based on whether HTML output
+    is requested and whether the function will return figure objects directly.
+
+    Args:
+        html: If True, request HTML (Plotly) output in addition to PNG
+        return_fig: If True, figures will be returned in memory (not saved to disk)
+
+    Returns:
+        List of format strings to generate. Always includes "png".
+        Adds "html" only when html=True and return_fig=False.
+
+    Note:
+        When return_fig=True, HTML format is excluded because figures are
+        returned as Matplotlib objects (not compatible with HTML/Plotly).
+
+    Example:
+        >>> determine_formats(html=False, return_fig=False)
+        ['png']
+        >>> determine_formats(html=True, return_fig=False)
+        ['png', 'html']
+        >>> determine_formats(html=True, return_fig=True)
+        ['png']
+    """
+    formats = ["png"]
+    if html and not return_fig:
+        formats.append("html")
+    return formats
+
+
+def normalize_axis_limits(
+    limits: tuple[float | None, float | None] | None,
+) -> tuple[float, float] | None:
+    """Return axis limits only when both bounds are specified.
+
+    Validates and normalizes axis limit specifications. Returns None unless
+    both start and end bounds are explicitly provided as non-None values.
+
+    Args:
+        limits: Axis limit specification as (start, end) tuple,
+                where each bound can be None to indicate auto-scaling
+
+    Returns:
+        Tuple of (start, end) floats if both are specified, otherwise None
+
+    Note:
+        Matplotlib requires both bounds to be specified for manual limits.
+        Partial specifications (e.g., (0, None) or (None, 10)) are treated
+        as auto-scaling and return None.
+
+    Example:
+        >>> normalize_axis_limits((0.0, 10.0))
+        (0.0, 10.0)
+        >>> normalize_axis_limits((None, 10.0))
+        None
+        >>> normalize_axis_limits((0.0, None))
+        None
+        >>> normalize_axis_limits(None)
+        None
+    """
+    if not limits:
+        return None
+    start, end = limits
+    if start is None or end is None:
+        return None
+    return (start, end)

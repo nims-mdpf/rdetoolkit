@@ -180,7 +180,7 @@ class MatplotlibRenderer:
         legend_labels: list[str] = []
 
         for index, (x_idx, y_idx, direction_idx) in enumerate(
-            zip(x_cols, y_cols, direction_cols)):
+            zip(x_cols, y_cols, direction_cols, strict=True)):
             x_data = df.iloc[:, x_idx]
             y_data = df.iloc[:, y_idx]
             raw_series_name = df.columns[y_idx]
@@ -281,7 +281,7 @@ class MatplotlibRenderer:
         filtered_labels: list[str] = []
         seen_labels: set[str] = set()
 
-        for handle, label in zip(handles, labels):
+        for handle, label in zip(handles, labels, strict=True):
             if not label or label == "_nolegend_":
                 continue
             if label in seen_labels:
