@@ -23,7 +23,9 @@ from pathlib import Path
 import pytest
 
 csv2graph_module = importlib.import_module("rdetoolkit.graph.api.csv2graph")
-from rdetoolkit.graph.api.csv2graph import RenderCollections, RenderResult, csv2graph
+render_coordinator_module = importlib.import_module("rdetoolkit.graph.strategies.render_coordinator")
+from rdetoolkit.graph.api.csv2graph import csv2graph
+from rdetoolkit.graph.models import RenderCollections, RenderResult
 
 
 def _write_csv(csv_path: Path) -> None:
@@ -43,8 +45,8 @@ def test_csv2graph_defaults_html_dir_to_csv_parent__tc_ep_html_001(
     captured: dict[str, Path | None] = {}
 
     monkeypatch.setattr(
-        csv2graph_module,
-        "_collect_render_results",
+        render_coordinator_module,
+        "collect_render_results",
         lambda _df, _config, _plot_mode: RenderCollections(overlay=[], individual=[]),
     )
 
@@ -88,8 +90,8 @@ def test_csv2graph_respects_explicit_html_output_dir__tc_ep_html_002(
     captured: dict[str, Path | None] = {}
 
     monkeypatch.setattr(
-        csv2graph_module,
-        "_collect_render_results",
+        render_coordinator_module,
+        "collect_render_results",
         lambda _df, _config, _plot_mode: RenderCollections(overlay=[], individual=[]),
     )
 
@@ -170,7 +172,7 @@ def test_csv2graph_raises_when_html_output_dir_is_file__tc_bv_html_001(
             individual=[],
         )
 
-    monkeypatch.setattr(csv2graph_module, "_collect_render_results", fake_collect)
+    monkeypatch.setattr(render_coordinator_module, "collect_render_results", fake_collect)
 
     # When: invoking csv2graph with html_output_dir targeting a file
     # Then: saving fails because the path is not a directory

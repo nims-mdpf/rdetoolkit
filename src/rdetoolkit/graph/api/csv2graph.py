@@ -1,79 +1,38 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-from rdetoolkit.graph.config import PlotConfigBuilder
+from rdetoolkit.graph.config import (
+    PlotConfigBuilder,
+    determine_formats,
+    determine_titles,
+    normalize_axis_limits,
+)
 from rdetoolkit.graph.io.file_writer import FileWriter
 from rdetoolkit.graph.io.path_validator import PathValidator
 from rdetoolkit.graph.models import (
     AxisConfig,
     DirectionConfig,
     LegendConfig,
+    NormalizedColumns,
     OutputConfig,
     PlotConfig,
     PlotMode,
-    RenderResult,
+    RenderCollections,
+    build_direction_config,
+    normalize_direction_filter,
 )
-from rdetoolkit.graph.normalizers import validate_column_specs
-from rdetoolkit.graph.strategies.all_graphs import OverlayStrategy
-from rdetoolkit.graph.strategies.individual import IndividualStrategy
+from rdetoolkit.graph.normalizers import resolve_column_index, validate_column_specs
+from rdetoolkit.graph.strategies.render_coordinator import (
+    build_matplotlib_artifacts,
+    collect_render_results,
+)
 from rdetoolkit.graph.textutils import parse_header
 
 if TYPE_CHECKING:
     import pandas as pd
-
-
-@dataclass(frozen=True)
-class MatplotlibArtifact:
-    """Rendered matplotlib artifact with its target filename."""
-
-    filename: str
-    figure: Any
-    metadata: dict[str, Any] | None = None
-
-
-@dataclass(frozen=True)
-class NormalizedColumns:
-    """Normalized column specifications ready for PlotConfig consumption."""
-
-    x_col: int | list[int]
-    y_cols: list[int]
-    direction_cols: list[int | str | None]
-    derived_x_label: str
-    derived_y_label: str
-
-
-@dataclass(frozen=True)
-class RenderCollections:
-    """Rendered results from overlay and individual strategies."""
-
-    overlay: list[RenderResult]
-    individual: list[RenderResult]
-
-    def all_results(self) -> list[RenderResult]:
-        """Return combined results preserving order."""
-        return [*self.overlay, *self.individual]
-
-
-def _resolve_column_index(df: pd.DataFrame, column: int | str) -> int:
-    """Resolve a column specifier into a DataFrame index."""
-    if isinstance(column, int):
-        return column
-
-    loc = df.columns.get_loc(column)
-    if isinstance(loc, slice):
-        emsg = f"Column specification '{column}' resolved to a slice"
-        raise ValueError(emsg)
-    if isinstance(loc, Iterable) and not isinstance(loc, str):
-        emsg = (
-            "Column specification "
-            f"'{column}' resolved to multiple columns: {list(loc)}"
-        )
-        raise ValueError(emsg)
-    return int(loc)
 
 
 def _parse_headers(df: pd.DataFrame) -> list[tuple[str | None, str, str | None]]:
@@ -125,10 +84,10 @@ def _normalize_columns(
         raise ValueError(msg)
 
     pair_x_indices = [
-        _resolve_column_index(df, x_name) for x_name, _ in column_specs["pairs"]
+        resolve_column_index(df, x_name) for x_name, _ in column_specs["pairs"]
     ]
     pair_y_indices = [
-        _resolve_column_index(df, y_name) for _, y_name in column_specs["pairs"]
+        resolve_column_index(df, y_name) for _, y_name in column_specs["pairs"]
     ]
 
     config_x_col: int | list[int]
@@ -159,71 +118,11 @@ def _normalize_columns(
     )
 
 
-def _normalize_direction_filter(
-    direction_filter: list[str | Any] | str | None,
-) -> list[str]:
-    """Normalize direction filter values into strings."""
-    if not direction_filter:
-        return []
-
-    candidates = (
-        [direction_filter]
-        if isinstance(direction_filter, str)
-        else [value for value in direction_filter if value is not None]
-    )
-
-    normalized: list[str] = []
-    for value in candidates:
-        if hasattr(value, "value"):
-            normalized.append(str(value.value))
-        else:
-            normalized.append(str(value))
-    return normalized
-
-
-def _build_direction_config(
-    *, filters: list[str], direction_colors: dict[str, str] | None,
-) -> DirectionConfig:
-    """Create DirectionConfig from filters and optional color overrides."""
-    direction_config = DirectionConfig(filters=filters)
-    if direction_colors:
-        direction_config.colors.update(direction_colors)
-        direction_config.use_custom_colors = True
-    return direction_config
-
-
-def _determine_titles(
-    *, title: str | None, name: str | None,
-) -> tuple[str | None, str]:
-    """Resolve display title and base filename for outputs."""
-    display_title = title if title is not None else name
-    base_filename = name or title or "plot"
-    return display_title, base_filename
-
-
-def _determine_formats(html: bool, return_fig: bool) -> list[str]:
-    """Compute output formats based on execution mode."""
-    formats = ["png"]
-    if html and not return_fig:
-        formats.append("html")
-    return formats
 
 
 def _resolve_plot_mode(mode: Literal["overlay", "individual"]) -> PlotMode:
     """Convert user-facing mode flag into PlotMode enum."""
     return PlotMode.OVERLAY if mode == "overlay" else PlotMode.INDIVIDUAL
-
-
-def _normalize_axis_limits(
-    limits: tuple[float | None, float | None] | None,
-) -> tuple[float, float] | None:
-    """Return axis limits only when both bounds are specified."""
-    if not limits:
-        return None
-    start, end = limits
-    if start is None or end is None:
-        return None
-    return (start, end)
 
 
 def _resolve_no_individual_flag(
@@ -275,7 +174,7 @@ def _build_plot_config(
         AxisConfig(
             label=x_label or normalized.derived_x_label,
             scale="log" if logx else "linear",
-            lim=_normalize_axis_limits(xlim),
+            lim=normalize_axis_limits(xlim),
             grid=grid,
             invert=invert_x,
         ),
@@ -284,7 +183,7 @@ def _build_plot_config(
         AxisConfig(
             label=y_label or normalized.derived_y_label,
             scale="log" if logy else "linear",
-            lim=_normalize_axis_limits(ylim),
+            lim=normalize_axis_limits(ylim),
             grid=grid,
             invert=invert_y,
         ),
@@ -307,54 +206,6 @@ def _build_plot_config(
         ),
     )
     return builder.build()
-
-
-def _collect_render_results(
-    df: pd.DataFrame,
-    config: PlotConfig,
-    plot_mode: PlotMode,
-) -> RenderCollections:
-    """Render graphs according to the selected strategy."""
-    from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
-
-    renderer = MatplotlibRenderer()
-    overlay_results: list[RenderResult] = []
-    individual_results: list[RenderResult] = []
-
-    if plot_mode == PlotMode.OVERLAY:
-        overlay_results = OverlayStrategy(renderer).render(df, config)
-        if not config.output.no_individual:
-            individual_output = IndividualStrategy(renderer).render(df, config)
-            if individual_output is not None:
-                individual_results = individual_output
-    else:
-        individual_output = IndividualStrategy(renderer).render(df, config)
-        if individual_output is not None:
-            individual_results = individual_output
-
-    return RenderCollections(
-        overlay=overlay_results,
-        individual=individual_results,
-    )
-
-
-def _build_matplotlib_artifacts(
-    collections: RenderCollections,
-) -> list[MatplotlibArtifact]:
-    """Convert render results into in-memory artifacts."""
-    artifacts: list[MatplotlibArtifact] = []
-    for result in collections.all_results():
-        if result.format.lower() == "html":
-            continue
-        metadata = {"format": result.format}
-        artifacts.append(
-            MatplotlibArtifact(
-                filename=result.filename,
-                figure=result.figure,
-                metadata=metadata,
-            ),
-        )
-    return artifacts
 
 
 def _save_render_results(
@@ -608,8 +459,8 @@ def plot_from_dataframe(
         direction_cols=direction_cols,
     )
 
-    direction_filters = _normalize_direction_filter(direction_filter)
-    direction_config = _build_direction_config(
+    direction_filters = normalize_direction_filter(direction_filter)
+    direction_config = build_direction_config(
         filters=direction_filters,
         direction_colors=direction_colors,
     )
@@ -620,8 +471,8 @@ def plot_from_dataframe(
         plot_mode=plot_mode,
         normalized=normalized_columns,
     )
-    display_title, base_filename = _determine_titles(title=title, name=name)
-    formats = _determine_formats(html=html, return_fig=return_fig)
+    display_title, base_filename = determine_titles(title=title, name=name)
+    formats = determine_formats(html=html, return_fig=return_fig)
 
     config = _build_plot_config(
         plot_mode=plot_mode,
@@ -647,10 +498,10 @@ def plot_from_dataframe(
         main_image_dir_path=main_image_dir_path,
     )
 
-    collections = _collect_render_results(df, config, plot_mode)
+    collections = collect_render_results(df, config, plot_mode)
 
     if return_fig:
-        return _build_matplotlib_artifacts(collections)
+        return build_matplotlib_artifacts(collections)
 
     _save_render_results(
         collections,

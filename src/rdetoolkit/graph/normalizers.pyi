@@ -3,6 +3,8 @@ from _typeshed import Incomplete as Incomplete
 from collections.abc import Sequence
 from typing import Any
 
+def resolve_column_index(df: pd.DataFrame, column: int | str) -> int: ...
+
 class ColumnNormalizer:
     df: Incomplete
     def __init__(self, df: pd.DataFrame) -> None: ...
