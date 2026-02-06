@@ -480,3 +480,248 @@ def test_try_result_return_type_annotation():
     result: Result[int, Exception] = get_int()
     assert isinstance(result, Success)
     assert isinstance(result.unwrap(), int)
+
+
+# =============================================================================
+# unwrap_or_else Method Tests
+# =============================================================================
+#
+# EP Table: TC-EP-001~009, BV Table: TC-BV-001~005, Type Safety: TC-TYPE-001~003
+# See docs/develop/issue_363_test_design.md for full test design tables.
+
+
+# --- Success.unwrap_or_else Tests ---
+
+
+def test_success_unwrap_or_else_returns_value__tc_ep_001():
+    """TC-EP-001: Success.unwrap_or_else returns value without calling default_fn."""
+    # Given: Success instance with int value
+    result = Success(42)
+
+    # When: calling unwrap_or_else with a default function
+    value = result.unwrap_or_else(lambda e: 0)
+
+    # Then: returns the Success value
+    assert value == 42
+
+
+def test_success_unwrap_or_else_with_none__tc_ep_002():
+    """TC-EP-002: Success.unwrap_or_else with None value."""
+    # Given: Success instance with None value
+    result = Success(None)
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: "default")
+
+    # Then: returns None
+    assert value is None
+
+
+def test_success_unwrap_or_else_complex_type__tc_ep_003():
+    """TC-EP-003: Success.unwrap_or_else with complex type (dict)."""
+    # Given: Success instance with dict value
+    data = {"key": "value", "nested": [1, 2, 3]}
+    result = Success(data)
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: {})
+
+    # Then: returns the dict value
+    assert value == data
+
+
+def test_success_unwrap_or_else_default_fn_not_called__tc_ep_004():
+    """TC-EP-004: Success.unwrap_or_else does NOT call default_fn (side-effect test)."""
+    # Given: Success instance and a tracked callable
+    result = Success(42)
+    received_success = []
+
+    def tracked_fn(e) -> int:
+        received_success.append(e)
+        return 0
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(tracked_fn)
+
+    # Then: default_fn is NOT invoked
+    assert value == 42
+    assert len(received_success) == 0
+
+
+# --- Failure.unwrap_or_else Tests ---
+
+
+def test_failure_unwrap_or_else_with_exception__tc_ep_005():
+    """TC-EP-005: Failure.unwrap_or_else calls default_fn with error."""
+    # Given: Failure instance with Exception
+    error = ValueError("test error")
+    result = Failure(error)
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: 99)
+
+    # Then: returns default_fn result
+    assert value == 99
+
+
+def test_failure_unwrap_or_else_with_string_error__tc_ep_006():
+    """TC-EP-006: Failure.unwrap_or_else with non-Exception error."""
+    # Given: Failure instance with string error
+    result = Failure("error message")
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: "default")
+
+    # Then: returns default_fn result
+    assert value == "default"
+
+
+def test_failure_unwrap_or_else_type_transformation__tc_ep_007():
+    """TC-EP-007: Failure.unwrap_or_else transforms error type to value type."""
+    # Given: Failure with string error
+    result = Failure("not found")
+
+    # When: calling unwrap_or_else to transform to int
+    value = result.unwrap_or_else(lambda e: len(e))
+
+    # Then: correctly transforms string length to int
+    assert value == 9
+    assert isinstance(value, int)
+
+
+def test_failure_unwrap_or_else_default_fn_called__tc_ep_008():
+    """TC-EP-008: Failure.unwrap_or_else calls default_fn with error (side-effect test)."""
+    # Given: Failure instance and a tracked callable
+    error = ValueError("test")
+    result = Failure(error)
+    received_errors: list[Exception] = []
+
+    def tracked_fn(e: Exception) -> int:
+        received_errors.append(e)
+        return 0
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(tracked_fn)
+
+    # Then: default_fn IS invoked with the error
+    assert value == 0
+    assert received_errors == [error]
+
+
+def test_failure_unwrap_or_else_exception_propagation__tc_ep_009():
+    """TC-EP-009: Failure.unwrap_or_else propagates exceptions from default_fn."""
+    # Given: Failure instance and default_fn that raises
+    result = Failure("error")
+
+    def raising_fn(e: str) -> int:
+        msg = "default_fn failed"
+        raise RuntimeError(msg)
+
+    # When/Then: calling unwrap_or_else propagates the exception
+    with pytest.raises(RuntimeError, match="default_fn failed"):
+        result.unwrap_or_else(raising_fn)
+
+
+# --- Boundary Value Tests ---
+
+
+def test_success_unwrap_or_else_empty_string__tc_bv_001():
+    """TC-BV-001: Success.unwrap_or_else with empty string value."""
+    # Given: Success with empty string
+    result = Success("")
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: "default")
+
+    # Then: returns empty string
+    assert value == ""
+
+
+def test_success_unwrap_or_else_zero_value__tc_bv_002():
+    """TC-BV-002: Success.unwrap_or_else with zero value."""
+    # Given: Success with zero
+    result = Success(0)
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: -1)
+
+    # Then: returns zero
+    assert value == 0
+
+
+def test_success_unwrap_or_else_empty_list__tc_bv_003():
+    """TC-BV-003: Success.unwrap_or_else with empty list."""
+    # Given: Success with empty list
+    result = Success([])
+
+    # When: calling unwrap_or_else
+    value = result.unwrap_or_else(lambda e: [1, 2, 3])
+
+    # Then: returns empty list
+    assert value == []
+
+
+def test_failure_unwrap_or_else_returns_none__tc_bv_004():
+    """TC-BV-004: Failure.unwrap_or_else with default_fn returning None."""
+    # Given: Failure instance
+    result = Failure("error")
+
+    # When: calling unwrap_or_else that returns None
+    value = result.unwrap_or_else(lambda e: None)
+
+    # Then: returns None
+    assert value is None
+
+
+def test_failure_unwrap_or_else_ignores_error__tc_bv_005():
+    """TC-BV-005: Failure.unwrap_or_else with default_fn ignoring error."""
+    # Given: Failure instance
+    result = Failure("some error")
+
+    # When: calling unwrap_or_else with lambda that ignores error
+    value = result.unwrap_or_else(lambda _: 42)
+
+    # Then: returns value regardless of error content
+    assert value == 42
+
+
+# --- Type Safety Tests ---
+
+
+def test_unwrap_or_else_type_preservation__tc_type_001():
+    """TC-TYPE-001: unwrap_or_else preserves type (int -> int)."""
+    # Given: Success[int]
+    success: Success[int] = Success(42)
+
+    # When: calling unwrap_or_else
+    value: int = success.unwrap_or_else(lambda e: 0)
+
+    # Then: type is preserved
+    assert isinstance(value, int)
+    assert value == 42
+
+
+def test_unwrap_or_else_type_conversion__tc_type_002():
+    """TC-TYPE-002: unwrap_or_else type conversion (str error -> int value)."""
+    # Given: Failure[str]
+    failure: Failure[str] = Failure("error")
+
+    # When: calling unwrap_or_else to convert to int
+    value: int = failure.unwrap_or_else(lambda e: len(e))
+
+    # Then: type conversion works
+    assert isinstance(value, int)
+    assert value == 5
+
+
+def test_unwrap_or_else_complex_generic__tc_type_003():
+    """TC-TYPE-003: unwrap_or_else with complex generic type (list[int])."""
+    # Given: Success[list[int]]
+    success: Success[list[int]] = Success([1, 2, 3])
+
+    # When: calling unwrap_or_else
+    value: list[int] = success.unwrap_or_else(lambda e: [])
+
+    # Then: generic type is preserved
+    assert isinstance(value, list)
+    assert value == [1, 2, 3]
