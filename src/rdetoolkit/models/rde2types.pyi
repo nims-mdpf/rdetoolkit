@@ -37,7 +37,7 @@ def create_input_data_dir(path: Path | str) -> InputDataDir: ...
 def create_output_dir(path: Path | str) -> OutputDir: ...
 
 # Validated path types with runtime validation
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ValidatedPath:
     path: Path
     def __post_init__(self) -> None: ...
@@ -48,29 +48,29 @@ class ValidatedPath:
     @classmethod
     def from_parts(cls, *parts: str) -> ValidatedPath: ...
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ZipFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ExcelFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CsvFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class JsonFile(ValidatedPath):
     def __post_init__(self) -> None: ...
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ValidatedDirectory(ValidatedPath):
     must_exist: bool
     def __post_init__(self) -> None: ...
 
 # Collection types for file groups
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FileGroup:
     raw_files: tuple[Path, ...]
     zip_files: tuple[ZipFile, ...]
@@ -90,7 +90,7 @@ class FileGroup:
     @classmethod
     def empty(cls) -> FileGroup: ...
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ProcessedFileGroup:
     unzipped_files: tuple[Path, ...]
     excel_invoice: ExcelFile | None
@@ -104,7 +104,7 @@ class ProcessedFileGroup:
     @property
     def total_file_count(self) -> int: ...
 
-@dataclass
+@dataclass(slots=True)
 class RdeFormatFlags:
     def __init__(self) -> None: ...
     def __post_init__(self) -> None: ...
@@ -118,7 +118,7 @@ class RdeFormatFlags:
     def is_multifile_enabled(self, value: bool) -> None: ...
 
 def create_default_config() -> Config: ...
-@dataclass
+@dataclass(slots=True)
 class RdeInputDirPaths:
     inputdata: Path
     invoice: Path
@@ -128,7 +128,7 @@ class RdeInputDirPaths:
     def default_csv(self) -> Path: ...
     def __init__(self, inputdata: Path, invoice: Path, tasksupport: Path, config: Config = ...) -> None: ...
 
-@dataclass
+@dataclass(slots=True)
 class RdeOutputResourcePath:
     raw: Path
     nonshared_raw: Path
@@ -149,7 +149,7 @@ class RdeOutputResourcePath:
     attachment: Path | None = ...
     def __init__(self, raw: Path, nonshared_raw: Path, rawfiles: tuple[Path, ...], struct: Path, main_image: Path, other_image: Path, meta: Path, thumbnail: Path, logs: Path, invoice: Path, invoice_schema_json: Path, invoice_org: Path, smarttable_rowfile: Path | None = ..., smarttable_row_data: dict[str, Any] | None = ..., temp: Path | None = ..., invoice_patch: Path | None = ..., attachment: Path | None = ...) -> None: ...
 
-@dataclass
+@dataclass(slots=True)
 class RdeDatasetPaths:
     input_paths: RdeInputDirPaths
     output_paths: RdeOutputResourcePath
@@ -227,7 +227,7 @@ class MetadataDefJson(TypedDict):
     valiable: int
     action: str
 
-@dataclass
+@dataclass(slots=True)
 class ValueUnitPair:
     value: str
     unit: str
