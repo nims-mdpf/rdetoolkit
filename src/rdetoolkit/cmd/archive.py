@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import os
 import pathlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-import pytz
 import typer
 
 from rdetoolkit.artifact.report import TemplateMarkdownReportGenerator, get_scanner
@@ -25,7 +24,7 @@ class CreateArtifactCommand:
     def __init__(self, source_dir: pathlib.Path, *, output_archive_path: Optional[pathlib.Path] = None, exclude_patterns: Optional[list[str]] = None) -> None:
         self.source_dir = source_dir
         if output_archive_path is None:
-            default_zip_filename = f"{datetime.now(tz=pytz.UTC).strftime('%Y%m%d')}_{uuid4().hex}_rde_artifact.zip"
+            default_zip_filename = f"{datetime.now(tz=timezone.utc).strftime('%Y%m%d')}_{uuid4().hex}_rde_artifact.zip"
             self.output_archive_path = source_dir.parent / default_zip_filename
         else:
             self.output_archive_path = output_archive_path
@@ -47,7 +46,7 @@ class CreateArtifactCommand:
         result_dirs = self._archive_target_dir(fmt)
 
         item = ReportItem(
-            exec_date=datetime.now(tz=pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+            exec_date=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             dockerfile_path=dockerfile_path,
             requirements_path=requirements_path,
             include_dirs=[self._safe_relative(pathlib.Path(d)) for d in result_dirs] if result_dirs else [],
