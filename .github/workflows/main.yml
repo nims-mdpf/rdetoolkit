@@ -37,7 +37,7 @@ jobs:
       - name: Test with tox
         env:
           HYPOTHESIS_PROFILE: ci
-        run: tox -e py${{ matrix.python-version }}-${{ matrix.tox-env }}
+        run: tox -e py${{ replace(matrix.python-version, '.', '') }}-${{ matrix.tox-env }}
 
   test_rs:
     name: Test on ${{ matrix.os }}
