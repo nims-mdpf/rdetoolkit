@@ -120,7 +120,7 @@ def create_output_dir(path: Path | str) -> OutputDir:
 # These provide both compile-time type safety and runtime validation
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ValidatedPath:
     """Base class for validated path types.
 
@@ -190,7 +190,7 @@ class ValidatedPath:
         return cls(Path(*parts))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ZipFile(ValidatedPath):
     """ZIP file path with validation.
 
@@ -213,7 +213,7 @@ class ZipFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ExcelFile(ValidatedPath):
     """Excel file path with validation.
 
@@ -237,7 +237,7 @@ class ExcelFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CsvFile(ValidatedPath):
     """CSV file path with validation.
 
@@ -260,7 +260,7 @@ class CsvFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class JsonFile(ValidatedPath):
     """JSON file path with validation.
 
@@ -283,7 +283,7 @@ class JsonFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ValidatedDirectory(ValidatedPath):
     """Base class for validated directory paths.
 
@@ -308,7 +308,7 @@ class ValidatedDirectory(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FileGroup:
     """Typed collection of files for RDE processing.
 
@@ -471,7 +471,7 @@ class FileGroup:
         return cls(raw_files=())
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ProcessedFileGroup:
     """Collection of files after processing (unzipping, parsing, etc.).
 
@@ -533,7 +533,7 @@ class ProcessedFileGroup:
         return count
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeFormatFlags:  # pragma: no cover
     """Class for managing flags used in RDE.
 
@@ -636,7 +636,7 @@ def create_default_config() -> Config:
     )
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeInputDirPaths:
     """A data class that holds folder paths used for input in the RDE.
 
@@ -673,7 +673,7 @@ class RdeInputDirPaths:
         return tasksupport.joinpath("default_value.csv")
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeOutputResourcePath:
     """A data class that holds folder paths used as output destinations for RDE.
 
@@ -719,7 +719,7 @@ class RdeOutputResourcePath:
     attachment: Path | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeDatasetPaths:
     """Unified view over input and output paths used by dataset callbacks.
 
@@ -965,7 +965,7 @@ class MetadataDefJson(TypedDict):
     action: str
 
 
-@dataclass
+@dataclass(slots=True)
 class ValueUnitPair:
     """Dataclass representing a pair of value and unit.
 
