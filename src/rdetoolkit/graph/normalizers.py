@@ -1,11 +1,48 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import pandas as pd
 
 from rdetoolkit.graph.exceptions import ColumnNotFoundError
+
+
+def resolve_column_index(df: pd.DataFrame, column: int | str) -> int:
+    """Resolve a column specifier into a DataFrame index.
+
+    Args:
+        df: Input DataFrame
+        column: Column specification (int index or str name)
+
+    Returns:
+        Column index as int
+
+    Raises:
+        ValueError: If column specification is invalid or ambiguous
+        TypeError: If column type is not int or str
+
+    Example:
+        >>> df = pd.DataFrame({"time": [1, 2], "value": [3, 4]})
+        >>> resolve_column_index(df, "value")
+        1
+        >>> resolve_column_index(df, 0)
+        0
+    """
+    if isinstance(column, int):
+        return column
+
+    loc = df.columns.get_loc(column)
+    if isinstance(loc, slice):
+        emsg = f"Column specification '{column}' resolved to a slice"
+        raise ValueError(emsg)
+    if isinstance(loc, Iterable) and not isinstance(loc, str):
+        emsg = (
+            "Column specification "
+            f"'{column}' resolved to multiple columns: {list(loc)}"
+        )
+        raise ValueError(emsg)
+    return int(loc)
 
 
 class ColumnNormalizer:
@@ -187,7 +224,7 @@ class ColumnNormalizer:
         if len(x_names) == 1:
             return [(x_names[0], y_name) for y_name in y_names]
         if len(x_names) == len(y_names):
-            return list(zip(x_names, y_names))
+            return list(zip(x_names, y_names, strict=True))
 
         emsg = (
             f"x_col length ({len(x_names)}) and y_cols length ({len(y_names)}) "

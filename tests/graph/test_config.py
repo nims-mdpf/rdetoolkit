@@ -763,7 +763,7 @@ class TestPlotConfigBuilderDocstringExamples:
         """Example from set_matplotlib_params() docstring works."""
         builder = PlotConfigBuilder()
         builder.set_matplotlib_params(
-            font_size=18, xtick_labelsize=16, grid_alpha=0.5
+            font_size=18, xtick_labelsize=16, grid_alpha=0.5,
         )
 
         params = builder.matplotlib_params
