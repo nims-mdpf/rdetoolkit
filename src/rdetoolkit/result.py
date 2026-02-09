@@ -85,7 +85,7 @@ class Success(Generic[T]):
         """
         return self.value
 
-    def unwrap_or_else(self, default_fn: Callable[[Any], T]) -> T:
+    def unwrap_or_else(self, default_fn: Callable[[E], T]) -> T:
         """Returns the contained success value, ignoring the default function.
 
         For Success instances, returns the wrapped value without calling default_fn.

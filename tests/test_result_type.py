@@ -582,7 +582,7 @@ def test_failure_unwrap_or_else_type_transformation__tc_ep_007():
     result = Failure("not found")
 
     # When: calling unwrap_or_else to transform to int
-    value = result.unwrap_or_else(lambda e: len(e))
+    value = result.unwrap_or_else(len)
 
     # Then: correctly transforms string length to int
     assert value == 9
@@ -707,7 +707,7 @@ def test_unwrap_or_else_type_conversion__tc_type_002():
     failure: Failure[str] = Failure("error")
 
     # When: calling unwrap_or_else to convert to int
-    value: int = failure.unwrap_or_else(lambda e: len(e))
+    value: int = failure.unwrap_or_else(len)
 
     # Then: type conversion works
     assert isinstance(value, int)
