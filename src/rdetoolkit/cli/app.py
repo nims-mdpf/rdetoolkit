@@ -389,8 +389,7 @@ def artifact(
     cmd.invoke()
 
 
-@app.command("make-excelinvoice")
-def make_excelinvoice(
+def _run_make_excelinvoice(
     invoice_schema_json_path: Annotated[
         Path,
         typer.Argument(
@@ -446,6 +445,186 @@ def make_excelinvoice(
         cast(Literal["file", "folder"], mode.lower()),
     )
     cmd.invoke()
+
+
+@app.command("make-excelinvoice")
+def make_excelinvoice(
+    invoice_schema_json_path: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to invoice.schema.json file",
+            exists=True,
+            dir_okay=False,
+            resolve_path=True,
+        ),
+    ],
+    output_path: Annotated[
+        Path | None,
+        typer.Option(
+            "-o",
+            "--output",
+            help=f"Path to ExcelInvoice file output (default: ./{DEFAULT_EXCEL_INVOICE_TEMPLATE})",
+            exists=False,
+            dir_okay=False,
+            resolve_path=True,
+        ),
+    ] = None,
+    mode: Annotated[
+        str,
+        typer.Option(
+            "-m",
+            "--mode",
+            help="Select the registration mode: 'file' or 'folder' (default: file)",
+            case_sensitive=False,
+        ),
+    ] = "file",
+) -> None:
+    """Generate an Excel invoice based on the provided schema and save it to the specified output path."""
+    _run_make_excelinvoice(
+        invoice_schema_json_path=invoice_schema_json_path,
+        output_path=output_path,
+        mode=mode,
+    )
+
+
+def _run_generate_invoice(
+    schema_path: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to invoice.schema.json file",
+            exists=True,
+            dir_okay=False,
+            resolve_path=True,
+        ),
+    ],
+    output_path: Annotated[
+        Path | None,
+        typer.Option(
+            "-o",
+            "--output",
+            help="Path to output invoice.json file (default: ./invoice.json)",
+            exists=False,
+            dir_okay=False,
+            resolve_path=True,
+        ),
+    ] = None,
+    fill_defaults: Annotated[
+        bool,
+        typer.Option(
+            "--fill-defaults/--no-fill-defaults",
+            help="Fill type-based default values (default: enabled)",
+        ),
+    ] = True,
+    required_only: Annotated[
+        bool,
+        typer.Option(
+            "--required-only",
+            help="Include only required fields (default: disabled)",
+        ),
+    ] = False,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            help="Output JSON format: 'pretty' or 'compact' (default: pretty)",
+            case_sensitive=False,
+        ),
+    ] = "pretty",
+) -> None:
+    """Generate invoice.json from invoice.schema.json.
+
+    Creates a valid invoice.json file based on the structure and requirements
+    defined in the provided invoice.schema.json file.
+
+    Examples:
+        rdetoolkit gen-invoice invoice.schema.json
+
+        rdetoolkit gen-invoice invoice.schema.json -o output/invoice.json
+
+        rdetoolkit gen-invoice invoice.schema.json --required-only --no-fill-defaults
+
+        rdetoolkit gen-invoice invoice.schema.json --format compact
+    """
+    # Lazy imports
+    from typing import Literal, cast
+    from rdetoolkit.cmd.gen_invoice import GenerateInvoiceCommand
+
+    # Set default output path
+    final_output_path = output_path if output_path is not None else Path.cwd() / "invoice.json"
+
+    # Validate JSON file
+    validated_schema_path = validate_json_file(schema_path)
+
+    # Validate format
+    format_lower = output_format.lower()
+    if format_lower not in ["pretty", "compact"]:
+        msg = "Format must be 'pretty' or 'compact'"
+        raise typer.BadParameter(msg, param_hint="--format")
+
+    # Create and invoke command
+    cmd = GenerateInvoiceCommand(
+        schema_path=validated_schema_path,
+        output_path=final_output_path,
+        fill_defaults=fill_defaults,
+        required_only=required_only,
+        output_format=cast(Literal["pretty", "compact"], format_lower),
+    )
+    cmd.invoke()
+
+
+@app.command("gen-invoice", help="Generate invoice.json from invoice.schema.json.")
+def gen_invoice(
+    schema_path: Annotated[
+        Path,
+        typer.Argument(
+            help="Path to invoice.schema.json file",
+            exists=True,
+            dir_okay=False,
+            resolve_path=True,
+        ),
+    ],
+    output_path: Annotated[
+        Path | None,
+        typer.Option(
+            "-o",
+            "--output",
+            help="Path to output invoice.json file (default: ./invoice.json)",
+            exists=False,
+            dir_okay=False,
+            resolve_path=True,
+        ),
+    ] = None,
+    fill_defaults: Annotated[
+        bool,
+        typer.Option(
+            "--fill-defaults/--no-fill-defaults",
+            help="Fill type-based default values (default: enabled)",
+        ),
+    ] = True,
+    required_only: Annotated[
+        bool,
+        typer.Option(
+            "--required-only",
+            help="Include only required fields (default: disabled)",
+        ),
+    ] = False,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            help="Output JSON format: 'pretty' or 'compact' (default: pretty)",
+            case_sensitive=False,
+        ),
+    ] = "pretty",
+) -> None:
+    """Generate invoice.json from invoice.schema.json."""
+    _run_generate_invoice(
+        schema_path=schema_path,
+        output_path=output_path,
+        fill_defaults=fill_defaults,
+        required_only=required_only,
+        output_format=output_format,
+    )
 
 
 @app.command()

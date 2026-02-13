@@ -189,7 +189,13 @@ class InvoiceValidator:
         self.schema = self.__pre_validate()
         self.__temporarily_modify_json_schema()
 
-    def validate(self, *, path: str | Path | None = None, obj: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    def validate(
+        self,
+        *,
+        path: str | Path | None = None,
+        obj: Mapping[str, Any] | None = None,
+        preserve_none_values: bool = False,
+    ) -> dict[str, Any]:
         """Validate the provided JSON data against the schema.
 
         Args:
@@ -198,6 +204,9 @@ class InvoiceValidator:
                 The mapping will be copied to a dict, enabling read-only intent
                 while maintaining internal dict behavior. Accepts any Mapping type
                 including dict, MappingProxyType, ChainMap, etc.
+            preserve_none_values (bool): If True, returns original data with None
+                values preserved after successful validation. Validation itself is
+                always performed against a cleaned copy without None values.
 
         Raises:
             ValueError: If neither 'path' nor 'obj' is provided.
@@ -208,6 +217,7 @@ class InvoiceValidator:
             dict[str, Any]: The validated data as a concrete dict.
         """
         data = self.__get_data(path, obj)
+        data_for_return = copy.deepcopy(data)
 
         # Remove None values from the data
         # Although invoice.schema.json does not allow None, the invoice.json generated from the system is written in a format that allows None. Therefore, as a temporary measure, we remove the None values from invoice.json.
@@ -247,6 +257,9 @@ class InvoiceValidator:
             emsg += f"   Context: {error.message}\n"
         if errors:
             raise InvoiceSchemaValidationError(emsg)
+
+        if preserve_none_values:
+            return cast(dict[str, Any], data_for_return)
 
         return data
 
