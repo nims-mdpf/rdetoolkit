@@ -745,7 +745,7 @@ class TestGenerateInvoiceFromSchema:
     |-----------|-------------|-------------|---------------|---------------|-----------------|
     | EP-001    | valid       | None        | True          | False         | dict with all fields + defaults |
     | EP-002    | valid       | valid path  | True          | False         | file created + dict returned |
-    | EP-003    | valid       | None        | False         | False         | dict with all fields, no fill |
+    | EP-003    | valid       | None        | False         | False         | dict with all fields and preserved `None` |
     | EP-004    | valid       | None        | True          | True          | dict with required fields only |
     | BV-001    | non-existent| None        | True          | False         | FileNotFoundError |
     | BV-002    | invalid     | None        | True          | False         | ValueError |
@@ -838,9 +838,10 @@ class TestGenerateInvoiceFromSchema:
                 "custom": {
                     "type": "object",
                     "label": {"ja": "固有情報", "en": "Custom"},
-                    "required": ["field1"],
+                    "required": [],
                     "properties": {
                         "field1": {"label": {"ja": "フィールド１", "en": "field1"}, "type": "string"},
+                        "field2": {"label": {"ja": "フィールド２", "en": "field2"}, "type": "string", "default": "x"},
                     },
                 },
             },
@@ -849,25 +850,14 @@ class TestGenerateInvoiceFromSchema:
             json.dump(schema_data, f)
 
         # When: Generate with fill_defaults=False
-        # Note: This will fail validation because dataOwnerId pattern requires 56 characters
-        # We skip validation in this test to check the generation logic
-        # Use a custom test that doesn't call validation
-        from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
+        result = generate_invoice_from_schema(schema_path, fill_defaults=False, required_only=False)
 
-        schema = InvoiceSchemaJson(**schema_data)
-        from rdetoolkit.invoice_generator import _generate_basic_section, _process_custom_field
-
-        basic = _generate_basic_section(fill_defaults=False)
-        custom = _process_custom_field(
-            schema.properties.custom,
-            fill_defaults=False,
-            required_only=False,
-            required_fields=schema.properties.custom.required,
-        )
-
-        # Then: Check that fields have None values
-        assert basic["dataOwnerId"] == ""  # Empty when fill_defaults=False
-        assert custom["field1"] is None
+        # Then: System-required ID stays valid and custom keys are preserved
+        assert result["basic"]["dataOwnerId"] == "0" * 56
+        assert "field1" in result["custom"]
+        assert "field2" in result["custom"]
+        assert result["custom"]["field1"] is None
+        assert result["custom"]["field2"] == "x"
 
     def test_ep004_generate_required_only(self, tmp_path):
         """Given: Valid schema with required and optional fields (custom required, sample optional)."""

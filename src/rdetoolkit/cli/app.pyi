@@ -33,10 +33,10 @@ def artifact(
 ) -> None: ...
 def gen_invoice(
     schema_path: pathlib.Path,
-    output: pathlib.Optional[Path] = None,
+    output_path: pathlib.Optional[Path] = None,
     fill_defaults: bool = True,
     required_only: bool = False,
-    format: Literal["pretty", "compact"] = "pretty",
+    output_format: Literal["pretty", "compact"] = "pretty",
 ) -> None: ...
 def make_excelinvoice(
     invoice_schema_json_path: pathlib.Path,

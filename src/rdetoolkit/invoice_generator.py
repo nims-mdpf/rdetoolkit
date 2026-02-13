@@ -95,7 +95,11 @@ def generate_invoice_from_schema(
         )
 
     # Validate generated invoice
-    invoice_data = _validate_generated_invoice(invoice_data, schema_path_obj)
+    invoice_data = _validate_generated_invoice(
+        invoice_data,
+        schema_path_obj,
+        preserve_none_values=not fill_defaults,
+    )
 
     # Write to file if output_path provided
     if output_path is not None:
@@ -210,7 +214,8 @@ def _process_sample_field(
     """
     # Sample section has fixed structure based on INVOICE_JSON reference
     # Note: ownerId requires 56 alphanumeric characters pattern: ^([0-9a-zA-Z]{56})$
-    placeholder_owner_id = "0" * 56 if fill_defaults else ""
+    # Keep system-required ownerId valid even when defaults are disabled.
+    placeholder_owner_id = "0" * 56
 
     sample_data: dict[str, Any] = {
         "sampleId": "",
@@ -274,7 +279,8 @@ def _generate_basic_section(fill_defaults: bool) -> dict[str, Any]:
     # Basic section structure from INVOICE_JSON reference
     # Note: dataOwnerId requires 56 alphanumeric characters pattern: ^([0-9a-zA-Z]{56})$
     # Generate valid placeholder value
-    placeholder_owner_id = "0" * 56 if fill_defaults else ""
+    # Keep system-required dataOwnerId valid even when defaults are disabled.
+    placeholder_owner_id = "0" * 56
 
     basic_data: dict[str, Any] = {
         "dateSubmitted": "",
@@ -328,12 +334,16 @@ def _load_and_validate_schema(schema_path: Path) -> Any:  # Returns InvoiceSchem
 def _validate_generated_invoice(
     invoice_data: dict[str, Any],
     schema_path: Path,
+    *,
+    preserve_none_values: bool = False,
 ) -> dict[str, Any]:
     """Validate generated invoice against schema.
 
     Args:
         invoice_data: Generated invoice data.
         schema_path: Path to schema for validation.
+        preserve_none_values: Whether to return validated data with None values.
+            Validation is still performed against a cleaned copy that excludes None.
 
     Returns:
         Validated invoice data (may be modified by validator).
@@ -344,4 +354,4 @@ def _validate_generated_invoice(
     from rdetoolkit.validation import InvoiceValidator  # noqa: PLC0415
 
     validator = InvoiceValidator(schema_path)
-    return validator.validate(obj=invoice_data)
+    return validator.validate(obj=invoice_data, preserve_none_values=preserve_none_values)
