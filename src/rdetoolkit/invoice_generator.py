@@ -76,7 +76,7 @@ def generate_invoice_from_schema(
     invoice_data["datasetId"] = ""
 
     # Always include basic section (system-required)
-    invoice_data["basic"] = _generate_basic_section(fill_defaults)
+    invoice_data["basic"] = _generate_basic_section()
 
     # Process custom field if present and (not required_only mode or in required list)
     if schema.properties.custom is not None and (not required_only or "custom" in schema_required):
@@ -267,11 +267,12 @@ def _process_sample_field(
     return sample_data
 
 
-def _generate_basic_section(fill_defaults: bool) -> dict[str, Any]:
+def _generate_basic_section() -> dict[str, Any]:
     """Generate basic section with system-required fields.
 
-    Args:
-        fill_defaults: Whether to populate default values.
+    The basic section always has the same structure regardless of fill_defaults
+    because all fields are system-required and must maintain valid placeholder
+    values to pass validation (e.g., dataOwnerId requires 56 alphanumeric chars).
 
     Returns:
         Dictionary with basic section data.

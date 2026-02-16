@@ -217,7 +217,9 @@ class InvoiceValidator:
             dict[str, Any]: The validated data as a concrete dict.
         """
         data = self.__get_data(path, obj)
-        data_for_return = copy.deepcopy(data)
+
+        # Only create deep copy when preserve_none_values is True (optimization)
+        data_for_return = copy.deepcopy(data) if preserve_none_values else None
 
         # Remove None values from the data
         # Although invoice.schema.json does not allow None, the invoice.json generated from the system is written in a format that allows None. Therefore, as a temporary measure, we remove the None values from invoice.json.
@@ -258,8 +260,8 @@ class InvoiceValidator:
         if errors:
             raise InvoiceSchemaValidationError(emsg)
 
-        if preserve_none_values:
-            return cast(dict[str, Any], data_for_return)
+        if preserve_none_values and data_for_return is not None:
+            return data_for_return
 
         return data
 

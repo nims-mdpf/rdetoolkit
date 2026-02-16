@@ -1,3 +1,20 @@
+"""Test suite for invoice_generator module.
+
+This module tests both public and private functions of the invoice generator.
+
+Note on Private Function Testing:
+---------------------------------
+Private functions (prefixed with underscore) are tested directly because:
+1. They contain complex logic (default value strategy, schema parsing) that
+   requires isolated unit tests for comprehensive coverage.
+2. Testing through public API alone would require many edge case test fixtures.
+3. The invoice generation logic has strict requirements (56-char IDs, specific
+   JSON structures) that benefit from granular validation.
+
+This trade-off between encapsulation and test coverage is intentional for this
+module given the complexity of JSON schema processing.
+"""
+
 from __future__ import annotations
 
 import json
@@ -179,12 +196,17 @@ class TestGenerateBasicSection:
     | EP-002    | False         | All basic fields with defaults |
     """
 
-    def test_ep001_with_fill_defaults_true(self):
-        """Given: fill_defaults=True.
+    def test_basic_section_structure(self):
+        """Given: Basic section generator is called.
 
         When: Generating basic section.
+        Then: Returns dict with all system-required fields and valid placeholders.
+
+        Note: Basic section always returns the same structure because all fields
+        are system-required and must maintain valid placeholder values to pass
+        validation (e.g., dataOwnerId requires exactly 56 alphanumeric chars).
         """
-        result = _generate_basic_section(fill_defaults=True)
+        result = _generate_basic_section()
         # Then: Returns dict with all basic fields
         assert isinstance(result, dict)
         assert "dateSubmitted" in result
@@ -199,19 +221,6 @@ class TestGenerateBasicSection:
         assert result["instrumentId"] is None
         assert result["experimentId"] is None
         assert result["description"] is None
-
-    def test_ep002_with_fill_defaults_false(self):
-        """Given: fill_defaults=False.
-
-        When: Generating basic section.
-        """
-        result = _generate_basic_section(fill_defaults=False)
-        # Then: Returns same structure (basic section always has same fields)
-        assert isinstance(result, dict)
-        assert "dateSubmitted" in result
-        assert "dataOwnerId" in result
-        assert "dataName" in result
-        assert result["instrumentId"] is None
 
 
 class TestLoadAndValidateSchema:

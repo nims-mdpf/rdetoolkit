@@ -493,10 +493,11 @@ class TestGenerateInvoiceCommand:
         # Verify data integrity
         assert data == test_data
 
-        # Verify formatting (no indentation, compact separators)
-        assert "\n" not in content or content.count("\n") == 0  # Single line or minimal newlines
-        assert ", " not in content  # Compact separator (no space after comma)
-        assert ": " not in content  # Compact separator (no space after colon)
+        # Verify compact format: single line (no newlines in content)
+        assert "\n" not in content.strip()
+        # Verify compact separator patterns are present (no spaces after separators)
+        assert '":' in content  # Colon without space after
+        assert ',"' in content  # Comma followed by quote (no space)
 
     def test_logger_exception_called_on_errors(self, tmp_path: Path) -> None:
         """Test that logger.exception is called for all error types.

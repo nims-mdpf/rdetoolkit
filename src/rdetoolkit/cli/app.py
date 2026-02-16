@@ -389,64 +389,6 @@ def artifact(
     cmd.invoke()
 
 
-def _run_make_excelinvoice(
-    invoice_schema_json_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to invoice.schema.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    output_path: Annotated[
-        Path | None,
-        typer.Option(
-            "-o",
-            "--output",
-            help=f"Path to ExcelInvoice file output (default: ./{DEFAULT_EXCEL_INVOICE_TEMPLATE})",
-            exists=False,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ] = None,
-    mode: Annotated[
-        str,
-        typer.Option(
-            "-m",
-            "--mode",
-            help="Select the registration mode: 'file' or 'folder' (default: file)",
-            case_sensitive=False,
-        ),
-    ] = "file",
-) -> None:
-    """Generate an Excel invoice based on the provided schema and save it to the specified output path."""
-    # Lazy imports
-    from typing import Literal, cast
-    from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
-
-    # Validate JSON file
-    validated_path = validate_json_file(invoice_schema_json_path)
-
-    # Set default output path if not provided
-    final_output_path = output_path if output_path is not None else Path.cwd() / DEFAULT_EXCEL_INVOICE_TEMPLATE
-
-    # Validate mode
-    if mode.lower() not in ["file", "folder"]:
-        msg = "Mode must be 'file' or 'folder'"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--mode",
-        )
-
-    cmd = GenerateExcelInvoiceCommand(
-        validated_path,
-        final_output_path,
-        cast(Literal["file", "folder"], mode.lower()),
-    )
-    cmd.invoke()
-
-
 @app.command("make-excelinvoice")
 def make_excelinvoice(
     invoice_schema_json_path: Annotated[
@@ -480,11 +422,31 @@ def make_excelinvoice(
     ] = "file",
 ) -> None:
     """Generate an Excel invoice based on the provided schema and save it to the specified output path."""
-    _run_make_excelinvoice(
-        invoice_schema_json_path=invoice_schema_json_path,
-        output_path=output_path,
-        mode=mode,
+    # Lazy imports
+    from typing import Literal, cast
+
+    from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
+
+    # Validate JSON file
+    validated_path = validate_json_file(invoice_schema_json_path)
+
+    # Set default output path if not provided
+    final_output_path = output_path if output_path is not None else Path.cwd() / DEFAULT_EXCEL_INVOICE_TEMPLATE
+
+    # Validate mode
+    if mode.lower() not in ["file", "folder"]:
+        msg = "Mode must be 'file' or 'folder'"
+        raise typer.BadParameter(
+            msg,
+            param_hint="--mode",
+        )
+
+    cmd = GenerateExcelInvoiceCommand(
+        validated_path,
+        final_output_path,
+        cast(Literal["file", "folder"], mode.lower()),
     )
+    cmd.invoke()
 
 
 def _run_generate_invoice(

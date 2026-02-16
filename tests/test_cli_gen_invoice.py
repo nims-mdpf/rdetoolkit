@@ -148,9 +148,15 @@ class TestGenInvoiceCommandEP:
         invoice_path = tmp_path / "invoice.json"
         assert invoice_path.exists()
 
-        # Verify pretty format (has indentation)
-        content = invoice_path.read_text()
-        assert "    " in content  # Has 4-space indentation
+        # Verify pretty format: valid JSON, multi-line, with indentation
+        content = invoice_path.read_text(encoding="utf-8")
+        parsed = json.loads(content)
+        assert isinstance(parsed, dict)
+        lines = content.splitlines()
+        # Pretty-printed JSON should span multiple lines
+        assert len(lines) > 1
+        # And have at least one indented line (4 spaces at line start)
+        assert any(line.startswith("    ") for line in lines[1:])
 
     def test_ep002_custom_output_path(
         self,
@@ -258,9 +264,13 @@ class TestGenInvoiceCommandEP:
         assert result.exit_code == 0, f"Command failed: {result.output}"
         assert output_path.exists()
 
-        # Verify compact format (no 4-space indentation)
-        content = output_path.read_text()
-        assert "    " not in content  # No 4-space indentation
+        # Verify compact format: single line, no spaces after separators
+        content = output_path.read_text(encoding="utf-8")
+        # Compact format should be a single line (no newlines in content)
+        assert "\n" not in content.strip()
+        # Verify it's valid JSON
+        parsed = json.loads(content)
+        assert isinstance(parsed, dict)
 
 
 class TestGenInvoiceCommandBV:
