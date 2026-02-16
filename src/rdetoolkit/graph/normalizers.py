@@ -187,7 +187,7 @@ class ColumnNormalizer:
         if len(x_names) == 1:
             return [(x_names[0], y_name) for y_name in y_names]
         if len(x_names) == len(y_names):
-            return list(zip(x_names, y_names))
+            return list(zip(x_names, y_names, strict=False))
 
         emsg = (
             f"x_col length ({len(x_names)}) and y_cols length ({len(y_names)}) "

@@ -6,12 +6,18 @@ enabling explicit representation of success and failure cases in function signat
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Generic, Never, ParamSpec, TypeAlias, TypeVar, Union
+from typing import Any, Generic, ParamSpec, TypeAlias, TypeVar, Union
 
 from typing_extensions import dataclass_transform
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
 
 T = TypeVar("T")
 E = TypeVar("E")

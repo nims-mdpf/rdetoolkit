@@ -1,0 +1,6 @@
+from pathlib import Path
+from rdetoolkit.fileops import writef_json as writef_json
+from rdetoolkit.models.rde2types import RdeOutputResourcePath as RdeOutputResourcePath
+
+def backup_invoice_json_files(excel_invoice_file: Path | None, mode: str | None) -> Path: ...
+def update_description_with_features(rde_resource: RdeOutputResourcePath, dst_invoice_json: Path, metadata_def_json: Path) -> None: ...
