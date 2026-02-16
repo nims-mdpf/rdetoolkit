@@ -83,6 +83,7 @@ plugins:
                     - ワークフロー: rdetoolkit/workflows.md
                     - モード処理: rdetoolkit/modeproc.md
                     - Invoiceファイル: rdetoolkit/invoicefile.md
+                    - Invoice生成: rdetoolkit/invoice_generator.md
                     - ユーティリティ: rdetoolkit/rde2util.md
                     - ロギング: rdetoolkit/rdelogger.md
                     - 代表画像操作: rdetoolkit/img2thumb.md
@@ -127,6 +128,7 @@ plugins:
                     - アーカイブ生成: rdetoolkit/cmd/archive.md
                     - 設定ファイル生成: rdetoolkit/cmd/gen_config.md
                     - Excel形式Invoice生成: rdetoolkit/cmd/gen_excelinvoice.md
+                    - Invoice生成: rdetoolkit/cmd/gen_invoice.md
                     - バリデーション: rdetoolkit/cmd/validate.md
                 - ストレージ:
                     - MinIO 統合: rdetoolkit/storage/minio.md
@@ -191,6 +193,7 @@ plugins:
                     - Workflows: rdetoolkit/workflows.md
                     - Mode Processing: rdetoolkit/modeproc.md
                     - Invoice Files: rdetoolkit/invoicefile.md
+                    - Invoice Generator: rdetoolkit/invoice_generator.md
                     - Utilities: rdetoolkit/rde2util.md
                     - Logging: rdetoolkit/rdelogger.md
                     - Image Processing: rdetoolkit/img2thumb.md
@@ -235,6 +238,7 @@ plugins:
                     - Archive Generation: rdetoolkit/cmd/archive.md
                     - Config Generation: rdetoolkit/cmd/gen_config.md
                     - Excel Invoice Generation: rdetoolkit/cmd/gen_excelinvoice.md
+                    - Invoice Generation: rdetoolkit/cmd/gen_invoice.en.md
                     - Validation: rdetoolkit/cmd/validate.en.md
                 - Storage:
                     - MinIO Integration: rdetoolkit/storage/minio.md

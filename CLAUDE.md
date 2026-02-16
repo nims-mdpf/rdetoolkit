@@ -46,6 +46,7 @@ The Rust code is compiled into a Python extension module (`core.cpython-*.so`) v
 
 4. **CLI Commands** (`cli.py`, `cmd/`):
    - `init`: Generate RDE project template
+   - `gen-invoice`: Generate invoice.json from invoice.schema.json
    - `gen-excelinvoice`: Generate Excel invoice from schema
    - `archive`: Create deployment artifacts
 
@@ -181,6 +182,67 @@ For RDEToolKit development, agents should be aware of:
 - **`fileops.py`**: File operations and utilities
 - **`rde2util.py`**: RDE format utilities
 - **`static/`**: Static resources (invoice schema, CSV templates)
+
+## Invoice Generation from Schema
+
+RDEToolKit provides both API and CLI methods to generate `invoice.json` files directly from `invoice.schema.json` definitions.
+
+### API Usage
+
+```python
+from pathlib import Path
+from rdetoolkit.invoice_generator import generate_invoice_from_schema
+
+# Generate with all fields and defaults, write to file
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    output_path="invoice/invoice.json",
+    fill_defaults=True,
+    required_only=False,
+)
+
+# Generate required fields only, return dict without file
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    fill_defaults=False,
+    required_only=True,
+)
+```
+
+### CLI Usage
+
+```bash
+# Basic usage - generates invoice.json in current directory
+rdetoolkit gen-invoice tasksupport/invoice.schema.json
+
+# Specify output path
+rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+
+# Generate required fields only
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only
+
+# Generate without default values
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --no-fill-defaults
+
+# Generate with compact formatting
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --format compact
+```
+
+### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-o, --output` | Output path for invoice.json | ./invoice.json |
+| `--fill-defaults/--no-fill-defaults` | Populate type-based default values | True |
+| `--required-only` | Include only required fields | False |
+| `--format [pretty\|compact]` | Output JSON format | pretty |
+
+### Default Value Strategy
+
+When `fill_defaults=True`, values are determined in this priority:
+1. Schema `default` field
+2. First item from schema `examples`
+3. Type-based defaults: string→"", number→0.0, integer→0, boolean→false
 
 ## RDE Execution Modes
 
