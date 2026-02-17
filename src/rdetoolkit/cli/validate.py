@@ -169,7 +169,6 @@ MetadataSchemaPathOpt = Annotated[
 ProjectDirArg = Annotated[
     Optional[Path],
     typer.Argument(
-        None,
         help="Root directory of RDE project (defaults to current directory)",
         exists=True,
         file_okay=False,
