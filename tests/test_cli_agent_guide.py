@@ -1,5 +1,6 @@
 """Tests for agent-guide CLI command."""
 
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -10,6 +11,12 @@ from typer.testing import CliRunner
 from rdetoolkit.cli.app import app
 
 runner = CliRunner()
+
+
+def strip_ansi(text: str) -> str:
+    """Remove ANSI escape sequences from text."""
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+    return ansi_escape.sub("", text)
 
 
 class TestAgentGuideCLISuccess:
@@ -66,10 +73,11 @@ class TestAgentGuideCLISuccess:
         # Then: Should succeed
         assert result.exit_code == 0
 
-        # And: Should display help text
-        assert "Display agent guide for AI coding assistants" in result.stdout
-        assert "--detailed" in result.stdout
-        assert "advanced patterns" in result.stdout.lower()
+        # And: Should display help text (strip ANSI codes for CI compatibility)
+        output = strip_ansi(result.stdout)
+        assert "Display agent guide for AI coding assistants" in output
+        assert "--detailed" in output
+        assert "advanced patterns" in output.lower()
 
 
 class TestAgentGuideCLIFailures:
