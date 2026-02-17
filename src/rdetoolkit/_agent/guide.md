@@ -15,7 +15,7 @@ Processors: Validation → Files → Invoice → Thumbnails → Description → 
 ## Path Objects
 
 ### RdeInputDirPaths
-- `inputdata: Path` - container/data/raw
+- `inputdata: Path` - container/data/inputdata
 - `invoice: Path` - container/data/invoice
 - `tasksupport: Path` - container/data/tasksupport
 - `config: Config` - Configuration

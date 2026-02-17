@@ -39,7 +39,7 @@ project/
 │   └── invoice.json          # Invoice data (or .xlsx for excelinvoice)
 ├── container/
 │   └── data/
-│       ├── raw/              # Input data
+│       ├── inputdata/        # Input data files (CSV, images, etc.)
 │       └── invoice/          # Output resources
 └── process.py                # Your processing script
 ```
@@ -50,14 +50,15 @@ project/
 from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
 
 def custom_dataset(
-    srcpaths: RdeInputDirPaths,      # Input paths (container/data/raw)
+    srcpaths: RdeInputDirPaths,      # Input paths (container/data/inputdata)
     resource_paths: RdeOutputResourcePath  # Output paths (container/data/invoice)
 ) -> None:
     """Process input data and save outputs.
 
     Args:
-        srcpaths: Object with .raw_dir and .asset_dir attributes
-        resource_paths: Object with .data_tiles and .figures attributes
+        srcpaths: RdeInputDirPaths object with .inputdata, .invoice, .tasksupport, .config
+        resource_paths: RdeOutputResourcePath object with .struct, .main_image, .other_image,
+            .meta, .raw, .nonshared_raw, .rawfiles, .thumbnail, .logs, .invoice
     """
     # Your processing logic here
     pass
@@ -82,7 +83,7 @@ Solution: Create config.toml or use default configuration
 
 ### 2. Invalid Directory Structure
 ```
-Error: Required directory not found: container/data/raw
+Error: Required directory not found: container/data/inputdata
 Solution: Ensure proper directory structure as shown above
 ```
 

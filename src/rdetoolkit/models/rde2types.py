@@ -713,7 +713,7 @@ class RdeInputDirPaths:
 
     The typical directory structure is:
         container/data/
-            raw/              # Raw input data files (CSV, images, etc.)
+            inputdata/        # Raw input data files (CSV, images, etc.)
             invoice/          # Invoice configuration (invoice.json)
             tasksupport/      # Task support files (config, schemas, templates)
 
