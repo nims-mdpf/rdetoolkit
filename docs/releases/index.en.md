@@ -4,7 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
-| v1.6.0  | 2026-01-30   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed | [v1.6.0](#v160-2026-01-30) |
+| v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded | [v1.6.0](#v160-2026-02-18) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
@@ -20,13 +20,13 @@
 
 # Release Details
 
-## v1.6.0 (2026-01-30)
+## v1.6.0 (2026-02-18)
 
 !!! warning "Breaking Changes"
     This release drops Python 3.9 support. Minimum Python version is now **3.10+**.
 
 !!! info "References"
-    - Key issue: [#351](https://github.com/nims-mdpf/rdetoolkit/issues/351)
+    - Key issues: [#351](https://github.com/nims-mdpf/rdetoolkit/issues/351), [#363](https://github.com/nims-mdpf/rdetoolkit/issues/363), [#371](https://github.com/nims-mdpf/rdetoolkit/issues/371), [#380](https://github.com/nims-mdpf/rdetoolkit/issues/380)
 
 ### Breaking Changes: Python 3.9 Support Dropped
 
@@ -98,6 +98,114 @@ For more information on Python version support lifecycle, see: [https://endoflif
 - Regenerated lock files (`uv.lock`, `requirements.lock`, `requirements-dev.lock`) with Python 3.10+ constraints
 - Removed 2,986 lines of Python 3.9-specific package wheels and markers
 - Removed direct `pytz` and `types-pytz` dependencies from `rdetoolkit`; migrated all timezone handling to `datetime.timezone.utc` ([#375](https://github.com/nims-mdpf/rdetoolkit/issues/375))
+
+---
+
+### New Features
+
+#### invoice.json Generation Feature (Issue #371)
+
+Added API and CLI functionality to generate invoice.json directly from invoice.schema.json definitions.
+
+**API Usage**
+```python
+from rdetoolkit.invoice_generator import generate_invoice_from_schema
+
+# Generate with all fields and defaults, write to file
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    output_path="invoice/invoice.json",
+    fill_defaults=True,
+    required_only=False,
+)
+
+# Generate required fields only, return dict without file
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    fill_defaults=False,
+    required_only=True,
+)
+```
+
+**CLI Usage**
+```bash
+# Basic usage - generates invoice.json in current directory
+rdetoolkit gen-invoice tasksupport/invoice.schema.json
+
+# Specify output path
+rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+
+# Generate required fields only
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only
+
+# Generate with compact formatting
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --format compact
+```
+
+**Default Value Priority**
+1. Schema `default` field
+2. First item from schema `examples`
+3. Type-based defaults: string→"", number→0.0, integer→0, boolean→false
+
+---
+
+#### Result Type Extension: unwrap_or_else Method (Issue #363)
+
+Added `unwrap_or_else` method to the Result type. On failure, it calls a default value generator function that receives the error as an argument.
+
+```python
+from rdetoolkit.result import Success, Failure
+
+# Success: returns the value directly (default_fn is not called)
+result = Success(42)
+value = result.unwrap_or_else(lambda e: 0)  # 42
+
+# Failure: calls default_fn
+result = Failure(ValueError("error"))
+value = result.unwrap_or_else(lambda e: -1)  # -1
+```
+
+---
+
+#### AI Coding Assistant Agent Guide (Issue #380)
+
+Added embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
+
+**Features**
+- `rdetoolkit.agent_guide()`: Function to retrieve guide text
+- `rdetoolkit agent-guide`: CLI command to display the guide
+
+**Usage Examples**
+```python
+import rdetoolkit
+
+# Get the agent guide
+guide = rdetoolkit.agent_guide()
+print(guide)
+```
+
+```bash
+# Display guide from CLI
+rdetoolkit agent-guide
+```
+
+---
+
+#### csv2graph Module Refactoring
+
+Significantly refactored the csv2graph module for improved modularity and testability.
+
+- Extracted dataclasses (`MatplotlibArtifact`, `NormalizedColumns`, `RenderCollections`) to `models.py`
+- Moved internal helper functions to appropriate modules (`config.py`, `normalizers.py`, etc.)
+- Created `strategies/render_coordinator.py` as rendering coordination layer
+- Reduced csv2graph.py from 662 to 512 lines (22.7% reduction)
+- Maintained 100% API backward compatibility
+
+---
+
+#### Dataclass Memory Efficiency Improvements
+
+With Python 3.9 support dropped, enabled `slots=True` on all 13 dataclasses in `rde2types.py`. This reduces memory usage per instance and improves attribute access performance.
 
 ---
 

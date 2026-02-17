@@ -208,6 +208,82 @@ rdetoolkitのバージョンを確認します。
     py -m rdetoolkit version
     ```
 
+### gen-invoice: invoice.jsonの生成
+
+`invoice.schema.json`から`invoice.json`を自動生成します。スキーマ定義に基づいてデフォルト値を設定し、生成後に自動検証を行います。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit gen-invoice <invoice.schema.json path> [OPTIONS]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit gen-invoice <invoice.schema.json path> [OPTIONS]
+    ```
+
+#### オプション
+
+| オプション | 説明 | 必須 |
+| ---------- | ---- | ---- |
+| -o(--output) | 出力ファイルパス。省略時はカレントディレクトリに`invoice.json`を作成 | - |
+| --fill-defaults/--no-fill-defaults | デフォルト値を埋めるかどうか（デフォルト: 有効） | - |
+| --required-only | 必須フィールドのみを含める | - |
+| --format | 出力フォーマット（`pretty`または`compact`）。デフォルト: `pretty` | - |
+
+#### 使用例
+
+```bash title="基本的な使用"
+python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json
+```
+
+```bash title="出力先を指定"
+python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+```
+
+```bash title="必須フィールドのみ、コンパクトフォーマット"
+python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only --format compact
+```
+
+#### デフォルト値の優先順位
+
+1. スキーマの`default`フィールド
+2. スキーマの`examples`配列の最初の値
+3. 型ベースのデフォルト値: string→`""`、number→`0.0`、integer→`0`、boolean→`false`
+
+!!! tip "詳細なAPIドキュメント"
+    プログラムからの使用方法については、[Invoice Generator API](../rdetoolkit/cmd/gen_invoice.md)を参照してください。
+
+### agent-guide: AIエージェントガイドの表示
+
+AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor等）向けの組み込みガイドを表示します。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit agent-guide
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit agent-guide
+    ```
+
+このコマンドはrdetoolkitの使用方法、アーキテクチャ、ベストプラクティスに関するガイドテキストを出力します。AIアシスタントのコンテキストに追加して、rdetoolkitを使用したコード生成の精度を向上させることができます。
+
+#### Pythonからの使用
+
+```python
+import rdetoolkit
+
+# エージェントガイドを取得
+guide = rdetoolkit.agent_guide()
+print(guide)
+```
+
 ### validate: RDEファイルの検証
 
 CI/CD統合のための標準化された終了コードを使用して、RDE関連ファイルを検証します。

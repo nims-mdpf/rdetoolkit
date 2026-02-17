@@ -6,7 +6,7 @@ RDEToolKit provides a comprehensive command-line interface to support the develo
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - rdetoolkit package installation
 
 ## Available Commands
@@ -208,6 +208,82 @@ Check the version of rdetoolkit.
     ```powershell
     py -m rdetoolkit version
     ```
+
+### gen-invoice: Generate invoice.json
+
+Automatically generates `invoice.json` from `invoice.schema.json`. Sets default values based on schema definitions and performs automatic validation after generation.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit gen-invoice <invoice.schema.json path> [OPTIONS]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit gen-invoice <invoice.schema.json path> [OPTIONS]
+    ```
+
+#### Options
+
+| Option | Description | Required |
+| ------ | ----------- | -------- |
+| -o(--output) | Output file path. Creates `invoice.json` in current directory if omitted | - |
+| --fill-defaults/--no-fill-defaults | Whether to fill default values (default: enabled) | - |
+| --required-only | Include only required fields | - |
+| --format | Output format (`pretty` or `compact`). Default: `pretty` | - |
+
+#### Usage Examples
+
+```bash title="Basic usage"
+python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json
+```
+
+```bash title="Specify output path"
+python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+```
+
+```bash title="Required fields only, compact format"
+python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only --format compact
+```
+
+#### Default Value Priority
+
+1. Schema `default` field
+2. First value from schema `examples` array
+3. Type-based defaults: string→`""`, number→`0.0`, integer→`0`, boolean→`false`
+
+!!! tip "Detailed API Documentation"
+    For programmatic usage, see [Invoice Generator API](../rdetoolkit/cmd/gen_invoice.en.md).
+
+### agent-guide: Display AI Agent Guide
+
+Displays the embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit agent-guide
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit agent-guide
+    ```
+
+This command outputs guide text about rdetoolkit usage, architecture, and best practices. You can add it to your AI assistant's context to improve code generation accuracy when working with rdetoolkit.
+
+#### Usage from Python
+
+```python
+import rdetoolkit
+
+# Get the agent guide
+guide = rdetoolkit.agent_guide()
+print(guide)
+```
 
 ### validate: Validate RDE Files
 
