@@ -1,7 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import textwrap
 import pytest
-import pytz
 from rdetoolkit.artifact.report import (
     TemplateMarkdownReportGenerator,
     CodeSecurityScanner,
@@ -30,7 +29,7 @@ def test_get_scanner_unknown():
 def sample_report_item():
     """Generate a ReportItem with sample data"""
     return ReportItem(
-        exec_date=datetime.now(tz=pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+        exec_date=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
         dockerfile_path="Dockerfile",
         requirements_path="requirements.txt",
         include_dirs=["src", "tests"],

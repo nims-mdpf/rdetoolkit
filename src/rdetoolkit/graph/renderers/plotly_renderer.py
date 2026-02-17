@@ -170,7 +170,7 @@ class PlotlyRenderer:
             x_cols,
             y_cols,
             direction_cols,
-            strict=False,
+            strict=True,
         ):
             series_name = self._resolve_series_name(df, y_col_idx, config)
             base_color = color_context.color_for(series_name)
