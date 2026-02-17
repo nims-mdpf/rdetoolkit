@@ -26,6 +26,8 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "Success": ("rdetoolkit.result", "Success"),
     "Failure": ("rdetoolkit.result", "Failure"),
     "try_result": ("rdetoolkit.result", "try_result"),
+    # Agent guide for AI coding assistants
+    "get_agent_guide": ("rdetoolkit._agent", "get_guide"),
 }
 
 _LAZY_MODULES: dict[str, str] = {
@@ -63,6 +65,7 @@ __all__ = [
     "try_result",
     "errors",
     "exceptions",
+    "get_agent_guide",
     "img2thumb",
     "invoicefile",
     "modeproc",

@@ -400,67 +400,143 @@ def _process_mode(  # noqa: C901 PLR0912
 
 
 def run(*, custom_dataset_function: DatasetCallback | None = None, config: Config | None = None) -> str:  # pragma: no cover
-    """RDE Structuring Processing Function.
+    """Execute the RDE workflow pipeline with custom processing.
 
-    This function executes the structuring process for RDE data. If you want to implement custom processing for the input data,
-    you can pass a user-defined function as an argument. The recommended callback signature receives the unified data class
-    `RdeDatasetPaths`, which bundles the input (`RdeInputDirPaths`) and output (`RdeOutputResourcePath`) directory information.
-    For backward compatibility, callbacks accepting the two legacy arguments are still supported.
+    This is the main entry point for rdetoolkit. It orchestrates the entire RDE workflow:
+    processing input data, generating invoices, creating thumbnails, and executing custom
+    data transformations. The workflow supports multiple processing modes (Invoice,
+    Excelinvoice, MultiDataTile, SmartTable) configured via the Config object.
+
+    The workflow pipeline processes data in the following stages:
+    1. Validation: Verify directory structure and configuration
+    2. File Processing: Collect and organize input files
+    3. Invoice Generation: Create/process invoice metadata
+    4. Custom Processing: Execute user-defined transformations (custom_dataset_function)
+    5. Thumbnail Generation: Create image thumbnails if configured
+    6. Output Generation: Produce final RDE-structured output
 
     Args:
-        custom_dataset_function (Optional[DatasetCallback], optional): User-defined structuring function. Defaults to None.
-        config (Optional[Config], optional): Configuration class for the structuring process. If not specified, default values are loaded automatically. Defaults to None.
+        custom_dataset_function: Optional user-defined function for data processing.
+            Must have signature: (RdeDatasetPaths) -> None or (RdeInputDirPaths, RdeOutputResourcePath) -> None.
+            The recommended signature uses the unified `RdeDatasetPaths` class, which bundles
+            input (`RdeInputDirPaths`) and output (`RdeOutputResourcePath`) directory information.
+            For backward compatibility, callbacks accepting the two legacy arguments are still supported.
+            This function receives input paths (raw data) and output paths (processed data)
+            and should perform domain-specific data transformations.
+        config: Optional Config object with system settings. If None, config is loaded from
+            tasksupport/config.toml. The config controls processing mode (extended_mode),
+            output options (save_raw, save_thumbnail_image, save_main_image),
+            and mode-specific settings (multidata_tile, smarttable configurations)
 
     Returns:
-        str: The JSON representation of the workflow execution results.
+        str: JSON representation of workflow execution results containing a list of
+            WorkflowExecutionStatus objects (one per dataset). Each status includes:
+            - run_id: Dataset identifier
+            - title: Processing title
+            - status: "success" or "failed"
+            - mode: Processing mode used (Invoice, Excelinvoice, MultiDataTile, SmartTable)
+            - error_code: Error code if failed (None if success)
+            - error_message: Error message if failed (None if success)
+            - stacktrace: Stack trace if failed (None if success)
+            - target: Target files processed
 
     Raises:
-        StructuredError: If a structured error occurs during the process.
-        Exception: If a generic error occurs during the process.
+        StructuredError: For critical workflow errors:
+            - Configuration file not found or invalid
+            - Required directory structure missing
+            - Invoice schema validation failures
+            - Custom function execution errors
+        Exception: For unexpected errors during processing
 
-    Note:
-        Execution mode is selected in the following order:
+    Examples:
+        Basic usage with custom processing:
+            >>> from rdetoolkit.workflows import run
+            >>> from rdetoolkit.models.rde2types import RdeDatasetPaths
+            >>>
+            >>> def process_csv_data(paths: RdeDatasetPaths) -> None:
+            ...     import pandas as pd
+            ...     for csv_file in paths.inputdata.glob("*.csv"):
+            ...         df = pd.read_csv(csv_file)
+            ...         # Process dataframe
+            ...         result_path = paths.struct / f"processed_{csv_file.name}"
+            ...         df.to_csv(result_path, index=False)
+            >>>
+            >>> result_json = run(custom_dataset_function=process_csv_data)
+            >>> # Result is JSON string with execution statuses
 
-        1. SmartTable CSV is present (`smarttable_file` is not None) -> `SmartTableInvoice` mode.
-        2. Excel invoice bundle is provided (`excel_invoice_files` is not None) -> `Excelinvoice` mode.
-        3. `extended_mode` matches (case-insensitive) `rdeformat` or `MultiDataTile` -> the corresponding extended mode.
-        4. Otherwise -> `Invoice` mode.
+        With custom configuration:
+            >>> from rdetoolkit.models.config import Config, SystemSettings
+            >>>
+            >>> config = Config(
+            ...     system=SystemSettings(
+            ...         extended_mode="MultiDataTile",
+            ...         save_thumbnail_image=True
+            ...     )
+            ... )
+            >>> result_json = run(custom_dataset_function=process_csv_data, config=config)
 
-        The mode name recorded in logs/results matches the branch that executed. No `excelinvoice` value is accepted in `extended_mode`.
+        Legacy callback signature (backward compatibility):
+            >>> from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+            >>>
+            >>> def legacy_process(srcpaths: RdeInputDirPaths, output: RdeOutputResourcePath) -> None:
+            ...     # Process using separate input/output paths
+            ...     pass
+            >>>
+            >>> result_json = run(custom_dataset_function=legacy_process)
 
-    Example:
-        ```python
-        ### custom.py
-        from rdetoolkit.models.rde2types import RdeDatasetPaths
+        With MultiDataTile mode and error handling:
+            >>> from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
+            >>>
+            >>> config = Config(
+            ...     system=SystemSettings(
+            ...         extended_mode="MultiDataTile",
+            ...         save_raw=False,
+            ...         save_nonshared_raw=True,
+            ...         save_thumbnail_image=True
+            ...     ),
+            ...     multidata_tile=MultiDataTileSettings(ignore_errors=False)
+            ... )
+            >>> result_json = run(custom_dataset_function=process_csv_data, config=config)
 
-        def custom_dataset(paths: RdeDatasetPaths) -> None:
-            ...(original process using paths.inputdata, paths.struct, ...)...
+    Notes:
+        - Processing mode is selected in the following order:
+            1. SmartTable CSV is present (smarttable_file is not None) -> SmartTableInvoice mode
+            2. Excel invoice bundle is provided (excel_invoice_files is not None) -> Excelinvoice mode
+            3. extended_mode matches (case-insensitive) "rdeformat" or "MultiDataTile" -> corresponding extended mode
+            4. Otherwise -> Invoice mode
 
-        ### main.py
-        from rdetoolkit import workflow
-        from custom import custom_dataset  # User-defined structuring processing function
+        - Directory structure must follow RDE conventions:
+            tasksupport/
+                config.toml
+                invoice.schema.json
+                invoice.json (or invoice.xlsx)
+            container/data/
+                inputdata/        # Input data
+                invoice/          # Output resources
+                raw/              # Raw data copies
+                structured/       # Processed data
+                main_image/       # Main images
+                other_image/      # Other images
+                thumbnail/        # Thumbnails
+                meta/             # Metadata
+                logs/             # Log files
 
-        cfg = Config(save_raw=True, save_main_image=False, save_thumbnail_image=False, magic_variable=False)
-        workflow.run(custom_dataset_function=custom_dataset, config=cfg)  # Execute structuring process
-        ```
+        - The custom_dataset_function is called once per dataset in the invoice.
+          For MultiDataTile mode, it may be called multiple times per dataset.
 
-        Legacy callbacks that accept two arguments (`RdeInputDirPaths`, `RdeOutputResourcePath`) continue to work without
-        modification during the compatibility period.
+        - Thumbnail generation (if enabled) runs automatically for supported image formats
+          (PNG, JPG, JPEG, BMP, GIF, TIFF).
 
-        If options are specified (setting the mode to "RDEformat"):
+        - The workflow creates backups of invoice.json files before processing.
 
-        ```python
-        ### main.py
-        from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
-        from rdetoolkit import workflow
-        from custom import custom_dataset # User-defined structuring processing function
+        - Use get_agent_guide() or `rdetoolkit agent-guide` for comprehensive usage documentation.
 
-        cfg = Config(
-            system=SystemSettings(extended_mode="MultiDataTile", save_raw=False, save_nonshared_raw=True, save_thumbnail_image=True),
-            multidata_tile=MultiDataTileSettings(ignore_errors="False")
-        )
-        workflow.run(custom_dataset_function=custom_dataset, config=cfg) # Execute structuring process
-        ```
+    See Also:
+        - Config: Configuration schema and options
+        - RdeDatasetPaths: Unified input/output path structure
+        - RdeInputDirPaths: Input path structure (legacy)
+        - RdeOutputResourcePath: Output path structure (legacy)
+        - WorkflowExecutionStatus: Execution result details
     """
     from rdetoolkit.config import load_config
     from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error

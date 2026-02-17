@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### Agent Guide for AI Coding Assistants (#380)
+
+Added embedded documentation to enable AI coding agents (Claude Code, GitHub Copilot, Codex) to effectively use rdetoolkit without requiring users to write detailed instruction files.
+
+**New Features:**
+
+- **`get_agent_guide()` API function**: Programmatic access to agent documentation
+  - `get_agent_guide()`: Returns summary guide (~2KB, 1500-2000 tokens)
+  - `get_agent_guide(detailed=True)`: Returns detailed guide (~5KB, 3000-4000 tokens)
+  - Available at package level: `rdetoolkit.get_agent_guide()`
+
+- **`agent-guide` CLI command**: Command-line access to documentation
+  - `rdetoolkit agent-guide`: Display summary guide
+  - `rdetoolkit agent-guide --detailed`: Display detailed guide with advanced patterns
+  - `rdetoolkit agent-guide --help`: Show command usage
+
+- **Comprehensive agent documentation**:
+  - `_agent/AGENTS.md`: Summary guide with quick reference
+  - `_agent/guide.md`: Detailed guide with architecture, advanced patterns, and testing guidance
+  - Includes practical examples, error handling patterns, and processor development guide
+
+**Enhanced Documentation:**
+
+- Enhanced `workflows.run()` docstring with comprehensive examples and usage patterns
+- Enhanced `RdeInputDirPaths` and `RdeOutputResourcePath` docstrings with practical examples
+- Added module-level documentation for `rde2types.py`
+
+**Package Distribution:**
+
+- Guide files (`_agent/*.md`) included in wheel distribution
+- Accessible after package installation in any environment
+
+**Benefits:**
+
+- Reduces user burden of writing detailed agent instructions
+- Provides consistent, maintained documentation for AI assistants
+- Enables better code generation and assistance from AI tools
+- Improves discoverability through multiple access paths (API, CLI, docstrings)
+
+**Usage Examples:**
+
+```python
+# Programmatic access
+import rdetoolkit
+guide = rdetoolkit.get_agent_guide()
+detailed_guide = rdetoolkit.get_agent_guide(detailed=True)
+```
+
+```bash
+# CLI access
+rdetoolkit agent-guide
+rdetoolkit agent-guide --detailed
+```
+
+**Testing:**
+
+- Comprehensive test coverage for `get_agent_guide()` API
+- Comprehensive test coverage for `agent-guide` CLI command
+- Package distribution tests verify guide files included in wheel
+- 100% branch coverage for new code
+
 ## [1.6.0] - 2026-01-30
 
 ### Breaking Changes

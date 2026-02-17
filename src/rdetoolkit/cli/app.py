@@ -681,6 +681,42 @@ def csv2graph(
     cmd.invoke()
 
 
+@app.command()
+def agent_guide(
+    detailed: Annotated[
+        bool,
+        typer.Option(
+            "--detailed",
+            help="Show detailed guide with advanced patterns and full API reference.",
+        ),
+    ] = False,
+) -> None:
+    """Display agent guide for AI coding assistants.
+
+    Shows documentation designed for AI coding agents (Claude Code, GitHub Copilot, etc.)
+    to effectively use rdetoolkit. By default, displays a concise summary guide.
+    Use --detailed for comprehensive documentation.
+
+    Examples:
+        # Show summary guide
+        $ rdetoolkit agent-guide
+
+        # Show detailed guide with advanced patterns
+        $ rdetoolkit agent-guide --detailed
+    """
+    from rdetoolkit._agent import get_guide
+
+    try:
+        guide_content = get_guide(detailed=detailed)
+        typer.echo(guide_content)
+    except FileNotFoundError as e:
+        typer.secho(f"Error: Guide file not found: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from e
+    except OSError as e:
+        typer.secho(f"Error: Failed to read guide file: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from e
+
+
 # Import validate commands module at end to avoid circular imports
 def _register_validate_commands() -> typer.Typer:
     """Register validate subcommands."""
