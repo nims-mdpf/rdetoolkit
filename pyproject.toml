@@ -51,7 +51,7 @@ minio = ["minio>=7.2.15"]
 plotly = ["plotly>=6.3.1"]
 
 [tool.setuptools]
-package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
+package_data = { "rdetoolkit" = ["py.typed", "*.pyi", "_agent/*.md"] }
 
 
 [project.scripts]
@@ -223,7 +223,7 @@ convention = "google"
 "src/rdetoolkit/workflows.py" = ["PLC0415"]
 "**/*.pyi" = ["ALL"]
 # Test files can use assert statements and don't need full type annotations
-"tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004"]
+"tests/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004", "S603", "S607"]
 # Property tests use pytest.importorskip which requires imports after the skip
 "tests/property/**/*.py" = ["S101", "ANN", "SLF001", "PLC0415", "PLR2004", "E402", "PYI041"]
 # CLI commands use lazy imports for performance
@@ -317,6 +317,7 @@ markers = [
     "graph_outputs: marks tests that generate graph outputs (deselect with '-m \"not graph_outputs\"')",
     "legacy: marks legacy compatibility tests (deselected by default)",
     "property: marks property-based tests using Hypothesis (deselect with '-m \"not property\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 
 
