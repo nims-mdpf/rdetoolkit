@@ -22,7 +22,8 @@ from rdetoolkit.graph.models import (
 from rdetoolkit.graph.renderers import plotly_renderer as pr
 from rdetoolkit.graph.renderers.plotly_renderer import PlotlyRenderer
 from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
-from rdetoolkit.graph.api.csv2graph import RenderCollections, RenderResult, _save_render_results
+from rdetoolkit.graph.api.csv2graph import RenderCollections, _save_render_results
+from rdetoolkit.graph.strategies.render_coordinator import RenderResult
 
 
 

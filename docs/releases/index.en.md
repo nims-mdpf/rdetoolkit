@@ -4,7 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
-| v1.6.0  | 2026-01-30   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) | [v1.6.0](#v160-2026-01-30) |
+| v1.6.0  | 2026-01-30   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed | [v1.6.0](#v160-2026-01-30) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
 | v1.5.0  | 2026-01-09   | Result type / Typer CLI + validate / Timestamped logs / Lazy imports / Python 3.14 | [v1.5.0](#v150-2026-01-09) |
@@ -97,6 +97,7 @@ For more information on Python version support lifecycle, see: [https://endoflif
 #### Dependencies
 - Regenerated lock files (`uv.lock`, `requirements.lock`, `requirements-dev.lock`) with Python 3.10+ constraints
 - Removed 2,986 lines of Python 3.9-specific package wheels and markers
+- Removed direct `pytz` and `types-pytz` dependencies from `rdetoolkit`; migrated all timezone handling to `datetime.timezone.utc` ([#375](https://github.com/nims-mdpf/rdetoolkit/issues/375))
 
 ---
 
