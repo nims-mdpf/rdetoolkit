@@ -411,6 +411,7 @@ class SmartTableInvoiceInitializer(Processor):
         """Apply SmartTable row data to invoice and collect metadata updates."""
         metadata_updates: dict[str, dict[str, Any]] = {}
         metadata_def: dict[str, Any] | None = None
+        csv_has_sample_owner_id = False
 
         # Handle empty CSV (no data rows)
         if len(csv_data) == 0:
@@ -435,9 +436,49 @@ class SmartTableInvoiceInitializer(Processor):
                 meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
                 metadata_updates[meta_key] = meta_entry
                 continue
+            # Track if sample/ownerId is explicitly specified in CSV
+            if col == "sample/ownerId":
+                csv_has_sample_owner_id = True
             self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
 
+        # Set sample.ownerId to basic.dataOwnerId only if not specified in CSV
+        if not csv_has_sample_owner_id:
+            self._set_sample_owner_id(invoice_data)
+
         return metadata_updates
+
+    def _set_sample_owner_id(self, invoice_data: dict[str, Any]) -> None:
+        """Set sample.ownerId to basic.dataOwnerId for SmartTable processing.
+
+        This ensures that newly registered samples have the correct owner ID,
+        which should always be the data owner (registrant) rather than
+        any temporary sample owner selected in the invoice screen.
+
+        Args:
+            invoice_data: Invoice data dictionary to update.
+
+        Note:
+            - For new sample registration: Sets the correct owner ID
+            - For sample linking: The value is set but not used (safe to set)
+            - If basic.dataOwnerId is missing: Logs warning and preserves existing value
+        """
+        basic_section = invoice_data.get("basic", {})
+        data_owner_id = basic_section.get("dataOwnerId")
+
+        if data_owner_id is None or data_owner_id == "":
+            logger.warning(
+                "basic.dataOwnerId is missing or empty; sample.ownerId will not be updated. "
+                "This may cause incorrect sample owner assignment.",
+            )
+            return
+
+        sample_section = invoice_data.setdefault("sample", {})
+        sample_section["ownerId"] = data_owner_id
+
+        logger.debug(
+            "Set sample.ownerId to basic.dataOwnerId: %s",
+            data_owner_id,
+        )
 
     def _load_metadata_definition(self, metadata_def_path: Path) -> dict[str, Any]:
         """Load metadata definitions for SmartTable meta column processing.
