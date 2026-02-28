@@ -4,7 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
-| v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み | [v1.6.0](#v160-2026-02-18) |
+| v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み / Agent Skills追加 | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3     | 2026-02-03 | SmartTable sample.ownerId自動設定 / 欠損rawfileエラー改善 / invoicefile.pyバグ修正 | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2     | 2026-01-27 | CLI validate終了コード標準化 / metadata-def検証修正 / 設定エラーメッセージ改善 / Python 3.9非推奨警告 / PBTインフラ導入 | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1     | 2026-01-21 | SmartTable行データ直接アクセス / variable配列のfeature説明欄転記 | [v1.5.1](#v151-2026-01-21) |
@@ -189,6 +189,40 @@ print(guide)
 # CLIからガイドを表示
 rdetoolkit agent-guide
 ```
+
+---
+
+#### AIコーディングアシスタント向けAgent Skills
+
+AIコーディングアシスタント（Claude Code等）がRDE構造化プログラムの開発をcontextual guidanceとしてサポートする Agent Skills（`.agents/SKILL.md`）を追加しました。
+
+**既存のAgent Guide（`_agent/`）との違い**
+
+| 項目 | Agent Guide (`_agent/`) | Agent Skills (`.agents/`) |
+|------|-------------------------|---------------------------|
+| 配布方法 | パッケージ同梱（pip install後に利用可能） | ソースリポジトリ内（開発時に自動認識） |
+| アクセス方法 | `rdetoolkit.agent_guide()` API / CLI | Claude Codeが自動検出・適用 |
+| 用途 | 汎用的なエージェントガイド | 開発セッション中のcontextual guidance |
+
+**構成**
+
+```
+.agents/
+├── SKILL.md                    # エントリポイント（アクティベーショントリガー定義）
+└── references/
+    ├── preferred-apis.md       # fileops / csv2graph API詳細
+    ├── cli-workflow.md         # CLI実行順序ガイド
+    ├── config.md               # 設定ファイル仕様（YAML/TOML）
+    └── modes.md                # 5モード詳細リファレンス
+```
+
+**主要な機能**
+
+- エンコーディング安全なファイルI/O（`rdetoolkit.fileops`）の必須使用ガイダンス
+- 5つの処理モード（Invoice / ExcelInvoice / SmartTableInvoice / MultiDataTile / RDEFormat）の選択フローチャート
+- CLIテンプレート編集・バリデーションの正しい実行順序ガイド
+- `rdeconfig.yaml` / `pyproject.toml` 設定ファイル仕様リファレンス
+- よくある間違いと修正方法のトラブルシューティング表
 
 ---
 

@@ -30,6 +30,12 @@ Added embedded documentation to enable AI coding agents (Claude Code, GitHub Cop
   - `_agent/guide.md`: Detailed guide with architecture, advanced patterns, and testing guidance
   - Includes practical examples, error handling patterns, and processor development guide
 
+- **Agent Skills for AI coding assistants** (`.agents/SKILL.md`):
+  - Contextual development guidance auto-discovered by Claude Code
+  - Covers encoding-safe file I/O, 5 processing modes, CLI workflow, configuration specs
+  - Reference files for preferred APIs, mode selection, CLI workflow, and configuration
+  - Complements the programmatic Agent Guide (`_agent/`) with development-session guidance
+
 **Enhanced Documentation:**
 
 - Enhanced `workflows.run()` docstring with comprehensive examples and usage patterns

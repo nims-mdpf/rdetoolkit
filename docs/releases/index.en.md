@@ -4,7 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
-| v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded | [v1.6.0](#v160-2026-02-18) |
+| v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded / Agent Skills added | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3  | 2026-02-03   | SmartTable sample.ownerId auto-assignment / Missing rawfile error improvement / invoicefile.py bug fixes | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
@@ -189,6 +189,40 @@ print(guide)
 # Display guide from CLI
 rdetoolkit agent-guide
 ```
+
+---
+
+#### Agent Skills for AI Coding Assistants
+
+Added Agent Skills (`.agents/SKILL.md`) to provide contextual guidance for AI coding assistants (Claude Code, etc.) when developing RDE structured programs.
+
+**Difference from existing Agent Guide (`_agent/`)**
+
+| Aspect | Agent Guide (`_agent/`) | Agent Skills (`.agents/`) |
+|--------|-------------------------|---------------------------|
+| Distribution | Bundled in package (available after pip install) | In source repository (auto-detected during development) |
+| Access | `rdetoolkit.agent_guide()` API / CLI | Auto-discovered and applied by Claude Code |
+| Purpose | General-purpose agent guide | Contextual guidance during development sessions |
+
+**Structure**
+
+```
+.agents/
+├── SKILL.md                    # Entry point (activation trigger definitions)
+└── references/
+    ├── preferred-apis.md       # fileops / csv2graph API details
+    ├── cli-workflow.md         # CLI execution order guide
+    ├── config.md               # Configuration file spec (YAML/TOML)
+    └── modes.md                # 5-mode detailed reference
+```
+
+**Key Features**
+
+- Encoding-safe file I/O (`rdetoolkit.fileops`) mandatory usage guidance
+- Processing mode selection flowchart for 5 modes (Invoice / ExcelInvoice / SmartTableInvoice / MultiDataTile / RDEFormat)
+- Correct execution order guide for CLI template editing and validation
+- `rdeconfig.yaml` / `pyproject.toml` configuration file spec reference
+- Common mistakes and fixes troubleshooting table
 
 ---
 
