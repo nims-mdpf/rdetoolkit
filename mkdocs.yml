@@ -74,6 +74,7 @@ plugins:
                 - 統合:
                     - オブジェクトストレージ (MinIO): usage/object_storage.md
                     - Docker の使用: usage/docker.md
+                    - AIアシスタント向け Agent Skills: usage/agent_skills.md
             - API リファレンス:
                 - APIガイド: api/index.ja.md
                 - 概要: rdetoolkit/index.md
@@ -184,6 +185,7 @@ plugins:
                 - Integrations:
                     - Object Storage (MinIO): usage/object_storage.md
                     - Docker Usage: usage/docker.md
+                    - Agent Skills for AI Assistants: usage/agent_skills.md
             - API Reference:
                 - API Guide: api/index.en.md
                 - Overview: rdetoolkit/index.md

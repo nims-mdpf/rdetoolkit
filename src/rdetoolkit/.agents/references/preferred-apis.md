@@ -77,7 +77,7 @@ with open("data.csv", "rb") as f:
 
 ---
 
-## rdetoolkit.graph — CSV to Graph Generation
+## rdetoolkit.csv2graph — CSV to Graph Generation
 
 ### Overview
 
@@ -87,10 +87,10 @@ The csv2graph module generates XY-axis line graphs directly from CSV files. For 
 ### Basic usage
 
 ```python
-from rdetoolkit.graph import csv2graph
+from rdetoolkit.csv2graph import csv_to_graph
 
 # Generates an XY line graph and saves it as an image
-csv2graph(
+csv_to_graph(
     csv_path=paths.inputdata / "spectrum.csv",
     output_dir=paths.struct
 )
@@ -109,13 +109,13 @@ csv2graph(
 
 ```python
 from rdetoolkit.models.rde2types import RdeDatasetPaths
-from rdetoolkit.graph import csv2graph
+from rdetoolkit.csv2graph import csv_to_graph
 
 def dataset(paths: RdeDatasetPaths) -> None:
     # Process input data
     csv_files = list(paths.inputdata.glob("*.csv"))
     for csv_file in csv_files:
-        csv2graph(csv_file, paths.struct)
+        csv_to_graph(csv_file, paths.struct)
 ```
 
 ### Graph output location

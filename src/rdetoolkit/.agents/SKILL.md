@@ -114,19 +114,63 @@ with open(paths.meta / "metadata.json") as f:
     metadata = json.load(f)
 ```
 
-#### CSV-to-Graph (rdetoolkit.graph)
+#### CSV-to-Graph (rdetoolkit.csv2graph)
 
 For simple XY-axis graphs from CSV data, use csv2graph before writing matplotlib code.
 It generates publication-ready plots in one call.
 
 ```python
-from rdetoolkit.graph import csv2graph
+from rdetoolkit.csv2graph import csv_to_graph
 
 # Generates XY line graph from CSV and saves to output directory
-csv2graph(csv_path, output_dir)
+csv_to_graph(csv_path, output_dir)
 ```
 
 See [references/preferred-apis.md](references/preferred-apis.md) for full options and examples.
+
+### Metadata Writing (rdetoolkit.models.metadata.Meta)
+
+ALWAYS use the Meta class to write metadata.json. Do NOT write it manually with json.dump().
+
+```python
+from rdetoolkit.models.metadata import Meta
+
+def save_metadata(metadata: dict[str, str], metadata_def_json_path, save_path):
+    meta = Meta(metadata_def_json_path)
+    meta.assign_vals(metadata)       # All values MUST be strings
+    meta.writefile(str(save_path))
+```
+
+### Error Handling (Result Type — REQUIRED)
+
+All helper functions in structured processing MUST use the Result type for error handling.
+Do NOT wrap the entire dataset() function in a single try/except block.
+
+```python
+from rdetoolkit.models.result import Result
+
+def parse_data(filepath: Path) -> Result[pd.DataFrame, str]:
+    try:
+        # ... parsing logic ...
+        return Result.ok(df)
+    except Exception as e:
+        return Result.err(f"Failed to parse: {e}")
+
+def dataset(paths: RdeDatasetPaths) -> None:
+    result = parse_data(paths.inputdata / "data.csv")
+    if result.is_err():
+        raise RuntimeError(result.unwrap_err())
+    df = result.unwrap()
+```
+
+```python
+# ❌ WRONG: Giant try/except hides all errors
+def dataset(paths: RdeDatasetPaths) -> None:
+    try:
+        # ... 100 lines ...
+    except Exception as e:
+        print(f"Error: {e}")
+```
 
 ### Dataset Function Signature
 
@@ -171,7 +215,6 @@ Set it in `rdeconfig.yaml` under `system.extended_mode`.
 |------|-------------|-------------|
 | **Invoice** | _(default, no config needed)_ | Single data file, basic registration |
 | **ExcelInvoice** | `ExcelInvoice` | Batch registration with per-item metadata in Excel |
-| **SmartTableInvoice** | `SmartTableInvoice` | Batch registration with metadata in Excel/CSV/TSV, multiple files per registration |
 | **MultiDataTile** | `MultiDataTile` | Multiple files sharing the same metadata |
 | **RDEFormat** | `RDEFormat` | Pre-formatted RDE data, system integration |
 
@@ -182,8 +225,7 @@ How many files per registration?
 ├── One file → Invoice mode (default)
 └── Multiple files
     ├── Each file needs different metadata?
-    │   ├── Yes (Excel only) → ExcelInvoice mode
-    │   ├── Yes (Excel/CSV/TSV, multiple files per registration) → SmartTableInvoice mode
+    │   ├── Yes → ExcelInvoice mode
     │   └── No (shared metadata) → MultiDataTile mode
     └── Data already in RDE format? → RDEFormat mode
 ```
@@ -262,6 +304,31 @@ container/
 
 ---
 
+## Building Structured Processing Autonomously
+
+When asked to create a new RDE structured processing program, follow this sequence:
+
+1. **Analyze** the user's input data file format and identify extractable metadata
+2. **Create** `metadata-def.json` — define fields with bilingual names (ja/en) and types
+3. **Create** `invoice.schema.json` — define the registration form schema
+4. **Create** `invoice.json` — fill values conforming to the schema
+5. **Implement** `dataset()` function — parse data, save metadata via Meta class, create structured CSV, generate plots
+6. **Wire** `main.py` — `rdetoolkit.workflows.run(custom_dataset_function=dataset)`
+7. **Validate** — `rdetoolkit validate all`, then `python3 main.py`
+
+Each helper function in the dataset module MUST return a `Result` type.
+Metadata MUST be saved via the `Meta` class (not manual JSON writes).
+File I/O MUST use `rdetoolkit.fileops`.
+
+If the user specifies a directory structure or coding pattern, follow their instructions.
+Otherwise, use the default patterns described here.
+
+See [references/building-structured-processing.md](references/building-structured-processing.md)
+for the complete pattern with full code examples, directory specifications, metadata-def.json
+format, Meta class usage, Result-type error handling, and a submission checklist.
+
+---
+
 ## Common Mistakes and Fixes
 
 | Symptom | Cause | Fix |
@@ -270,7 +337,9 @@ container/
 | Validation error on `invoice.json` | Edited invoice before defining schema | Edit `invoice.schema.json` first, then `invoice.json` |
 | `extended_mode` not recognized | Typo in config value | Must be exactly `ExcelInvoice`, `MultiDataTile`, or `RDEFormat` |
 | Missing output files after run | Writing to wrong directory | Use `paths.struct` from `RdeDatasetPaths`, not hardcoded paths |
-| Graph not generated | Using matplotlib manually for simple XY | Try `rdetoolkit.graph.csv2graph()` first |
+| Graph not generated | Using matplotlib manually for simple XY | Try `rdetoolkit.csv2graph.csv_to_graph()` first |
+| metadata.json missing or malformed | Writing JSON manually | Use `Meta` class: `meta.assign_vals()` + `meta.writefile()` |
+| Errors silently swallowed | Giant try/except around dataset() | Use `Result` type in helpers, check `.is_err()` per step |
 
 ---
 
@@ -284,6 +353,7 @@ container/
 
 ### Reference files in this skill
 
+- [references/building-structured-processing.md](references/building-structured-processing.md) — **Complete guide for building structured processing from scratch** (dataset function pattern, metadata writing, Result-type error handling, directory specs, checklist)
 - [references/preferred-apis.md](references/preferred-apis.md) — Detailed fileops and csv2graph usage patterns
 - [references/modes.md](references/modes.md) — Deep dive into each processing mode
 - [references/cli-workflow.md](references/cli-workflow.md) — Complete CLI reference and CI/CD integration
