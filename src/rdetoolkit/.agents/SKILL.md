@@ -6,7 +6,7 @@ description: >
   Covers project scaffolding, dataset function implementation, processing mode
   selection (Invoice / ExcelInvoice / MultiDataTile / RDEFormat), template editing,
   schema & metadata validation via CLI, encoding-safe file I/O with rdetoolkit.fileops,
-  and CSV-to-graph generation with rdetoolkit.csv2graph.
+  and CSV-to-graph generation with rdetoolkit.graph.
   MUST be used whenever code imports rdetoolkit, calls workflows.run(), reads/writes
   JSON in research-data contexts, processes CSV for graphing, edits invoice.schema.json
   or metadata-def.json, or runs `rdetoolkit validate` or `rdetoolkit init` commands.
@@ -36,7 +36,7 @@ Repo: https://github.com/nims-mdpf/rdetoolkit
 
 ```bash
 pip install rdetoolkit
-python3 -m rdetoolkit init
+rdetoolkit init          # or: python3 -m rdetoolkit init
 ```
 
 This generates the standard layout:
@@ -114,16 +114,16 @@ with open(paths.meta / "metadata.json") as f:
     metadata = json.load(f)
 ```
 
-#### CSV-to-Graph (rdetoolkit.csv2graph)
+#### CSV-to-Graph (rdetoolkit.graph)
 
 For simple XY-axis graphs from CSV data, use csv2graph before writing matplotlib code.
 It generates publication-ready plots in one call.
 
 ```python
-from rdetoolkit.csv2graph import csv_to_graph
+from rdetoolkit.graph import csv2graph
 
 # Generates XY line graph from CSV and saves to output directory
-csv_to_graph(csv_path, output_dir)
+csv2graph(csv_path, output_dir)
 ```
 
 See [references/preferred-apis.md](references/preferred-apis.md) for full options and examples.
@@ -133,7 +133,7 @@ See [references/preferred-apis.md](references/preferred-apis.md) for full option
 ALWAYS use the Meta class to write metadata.json. Do NOT write it manually with json.dump().
 
 ```python
-from rdetoolkit.models.metadata import Meta
+from rdetoolkit.rde2util import Meta
 
 def save_metadata(metadata: dict[str, str], metadata_def_json_path, save_path):
     meta = Meta(metadata_def_json_path)
@@ -147,19 +147,19 @@ All helper functions in structured processing MUST use the Result type for error
 Do NOT wrap the entire dataset() function in a single try/except block.
 
 ```python
-from rdetoolkit.models.result import Result
+from rdetoolkit.result import Result, Success, Failure
 
 def parse_data(filepath: Path) -> Result[pd.DataFrame, str]:
     try:
         # ... parsing logic ...
-        return Result.ok(df)
+        return Success(df)
     except Exception as e:
-        return Result.err(f"Failed to parse: {e}")
+        return Failure(f"Failed to parse: {e}")
 
 def dataset(paths: RdeDatasetPaths) -> None:
     result = parse_data(paths.inputdata / "data.csv")
-    if result.is_err():
-        raise RuntimeError(result.unwrap_err())
+    if result.is_failure():
+        raise RuntimeError(result.error)
     df = result.unwrap()
 ```
 
@@ -337,9 +337,9 @@ format, Meta class usage, Result-type error handling, and a submission checklist
 | Validation error on `invoice.json` | Edited invoice before defining schema | Edit `invoice.schema.json` first, then `invoice.json` |
 | `extended_mode` not recognized | Typo in config value | Must be exactly `ExcelInvoice`, `MultiDataTile`, or `RDEFormat` |
 | Missing output files after run | Writing to wrong directory | Use `paths.struct` from `RdeDatasetPaths`, not hardcoded paths |
-| Graph not generated | Using matplotlib manually for simple XY | Try `rdetoolkit.csv2graph.csv_to_graph()` first |
+| Graph not generated | Using matplotlib manually for simple XY | Try `rdetoolkit.graph.csv2graph()` first |
 | metadata.json missing or malformed | Writing JSON manually | Use `Meta` class: `meta.assign_vals()` + `meta.writefile()` |
-| Errors silently swallowed | Giant try/except around dataset() | Use `Result` type in helpers, check `.is_err()` per step |
+| Errors silently swallowed | Giant try/except around dataset() | Use `Result` type in helpers, check `.is_failure()` per step |
 
 ---
 

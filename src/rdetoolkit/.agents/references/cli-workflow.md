@@ -4,7 +4,7 @@
 
 | Command | Purpose |
 |---------|---------|
-| `python3 -m rdetoolkit init` | Scaffold a new project |
+| `rdetoolkit init` | Scaffold a new project |
 | `rdetoolkit validate invoice-schema <path>` | Validate schema syntax |
 | `rdetoolkit validate invoice <path> --schema <schema>` | Validate invoice against schema |
 | `rdetoolkit validate metadata-def <path>` | Validate metadata definition |
@@ -22,7 +22,7 @@ This order is critical. Skipping steps or running out of sequence causes confusi
 
 ```bash
 # Create project skeleton
-python3 -m rdetoolkit init
+rdetoolkit init          # or: python3 -m rdetoolkit init
 
 # Install additional dependencies if needed
 pip install -r requirements.txt

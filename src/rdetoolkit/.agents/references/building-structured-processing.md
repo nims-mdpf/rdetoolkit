@@ -46,7 +46,7 @@ When the user does not specify a directory structure, use this standard layout:
 
 Initialize with:
 ```bash
-python3 -m rdetoolkit init
+rdetoolkit init          # or: python3 -m rdetoolkit init
 ```
 
 ---
@@ -173,7 +173,7 @@ Do NOT write metadata.json manually with json.dump().
 
 ```python
 from pathlib import Path
-from rdetoolkit.models.metadata import Meta
+from rdetoolkit.rde2util import Meta
 
 
 def save_metadata(
@@ -224,8 +224,8 @@ try/except blocks around the entire function.
 from pathlib import Path
 
 from rdetoolkit.models.rde2types import RdeDatasetPaths
-from rdetoolkit.models.metadata import Meta
-from rdetoolkit.models.result import Result
+from rdetoolkit.rde2util import Meta
+from rdetoolkit.result import Result, Success, Failure
 from rdetoolkit.fileops import read_from_json_file, write_to_json_file
 ```
 
@@ -240,8 +240,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from rdetoolkit.models.rde2types import RdeDatasetPaths
-from rdetoolkit.models.metadata import Meta
-from rdetoolkit.models.result import Result
+from rdetoolkit.rde2util import Meta
+from rdetoolkit.result import Result, Success, Failure
 from rdetoolkit.fileops import read_from_json_file, detect_encoding
 
 
@@ -271,15 +271,15 @@ def parse_ras_file(filepath: Path) -> Result[tuple[dict, pd.DataFrame], str]:
                     metadata[key.lstrip("*")] = value.strip('" ')
 
         if not data_lines:
-            return Result.err("No measurement data found in RAS file")
+            return Failure("No measurement data found in RAS file")
 
         rows = [line.split() for line in data_lines]
         df = pd.DataFrame(rows, columns=["angle", "intensity", "attenuation"])
         df = df.astype(float)
 
-        return Result.ok((metadata, df))
+        return Success((metadata, df))
     except Exception as e:
-        return Result.err(f"Failed to parse RAS file: {e}")
+        return Failure(f"Failed to parse RAS file: {e}")
 
 
 # ── Helper: Save metadata ───────────────────────────────────────────────
@@ -294,9 +294,9 @@ def save_metadata(
         meta = Meta(metadata_def_path)
         meta.assign_vals(metadata)
         meta.writefile(str(save_path))
-        return Result.ok(None)
+        return Success(None)
     except Exception as e:
-        return Result.err(f"Failed to save metadata: {e}")
+        return Failure(f"Failed to save metadata: {e}")
 
 
 # ── Helper: Create structured CSV ────────────────────────────────────────
@@ -308,9 +308,9 @@ def create_structured_csv(
     try:
         csv_path = output_path / "xrd_data.csv"
         df[["angle", "intensity"]].to_csv(csv_path, index=False)
-        return Result.ok(csv_path)
+        return Success(csv_path)
     except Exception as e:
-        return Result.err(f"Failed to create structured CSV: {e}")
+        return Failure(f"Failed to create structured CSV: {e}")
 
 
 # ── Helper: Create plot ──────────────────────────────────────────────────
@@ -329,9 +329,9 @@ def create_plot(
         image_path = output_path / "xrd_pattern.png"
         fig.savefig(image_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
-        return Result.ok(image_path)
+        return Success(image_path)
     except Exception as e:
-        return Result.err(f"Failed to create plot: {e}")
+        return Failure(f"Failed to create plot: {e}")
 
 
 # ── Main dataset function ────────────────────────────────────────────────
@@ -346,8 +346,8 @@ def dataset(paths: RdeDatasetPaths) -> None:
 
     # Step 2: Parse input data (using Result)
     parse_result = parse_ras_file(input_file)
-    if parse_result.is_err():
-        raise RuntimeError(parse_result.unwrap_err())
+    if parse_result.is_failure():
+        raise RuntimeError(parse_result.error)
     raw_metadata, df = parse_result.unwrap()
 
     # Step 3: Save metadata
@@ -364,27 +364,27 @@ def dataset(paths: RdeDatasetPaths) -> None:
         paths.tasksupport / "metadata-def.json",
         paths.meta / "metadata.json",
     )
-    if meta_result.is_err():
-        raise RuntimeError(meta_result.unwrap_err())
+    if meta_result.is_failure():
+        raise RuntimeError(meta_result.error)
 
     # Step 4: Create structured output
     csv_result = create_structured_csv(df, paths.struct)
-    if csv_result.is_err():
-        raise RuntimeError(csv_result.unwrap_err())
+    if csv_result.is_failure():
+        raise RuntimeError(csv_result.error)
 
     # Step 5: Create plot image
     plot_result = create_plot(df, paths.main_image)
-    if plot_result.is_err():
-        raise RuntimeError(plot_result.unwrap_err())
+    if plot_result.is_failure():
+        raise RuntimeError(plot_result.error)
 ```
 
 ### Error handling rules
 
 1. **ALWAYS use `Result` type** for helper functions that can fail
-2. **Each helper returns `Result[T, str]`** — Ok with the value, or Err with a message
-3. **In the main `dataset()` function**, check each result and raise if error
+2. **Each helper returns `Result[T, str]`** — `Success` with the value, or `Failure` with a message
+3. **In the main `dataset()` function**, check each result with `is_failure()` and raise if error
 4. **Do NOT wrap the entire dataset() in a single try/except** — this hides errors
-5. **Do NOT use bare `except Exception`** in helpers — convert to Result.err() with context
+5. **Do NOT use bare `except Exception`** in helpers — convert to `Failure()` with context
 
 ### Anti-pattern (DO NOT DO THIS)
 
