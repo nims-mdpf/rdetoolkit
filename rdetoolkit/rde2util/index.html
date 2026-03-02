@@ -6,7 +6,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="https://nims-mdpf.github.io/rdetoolkit/rdetoolkit/rde2util/" rel="canonical"/>
-<link href="../invoicefile/" rel="prev"/>
+<link href="../invoice_generator/" rel="prev"/>
 <link href="../rdelogger/" rel="next"/>
 <link href="./" hreflang="ja" rel="alternate"/>
 <link href="../../en/rdetoolkit/rde2util/" hreflang="en" rel="alternate"/>
@@ -1145,6 +1145,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    AIアシスタント向け Agent Skills
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1275,6 +1287,18 @@
     
   
     Invoiceファイル
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice生成
   
 
     
@@ -2357,6 +2381,18 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice生成
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../cmd/validate/">
 <span class="md-ellipsis">
     
@@ -3076,7 +3112,7 @@ to load existing metadata is not supported and will raise an error.</p>
 <code>metafilepath</code>
 </td>
 <td>
-<code><span title="typing.Optional">Optional</span>[<span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span>]</code>
+<code><span title="Optional">Optional</span>[<span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -3535,7 +3571,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>outtype</code>
 </td>
 <td>
-<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -3551,7 +3587,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>outfmt</code>
 </td>
 <td>
-<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -3567,7 +3603,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>orgtype</code>
 </td>
 <td>
-<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -3583,7 +3619,7 @@ When False, empty strings are skipped. Defaults to True.</p>
 <code>outunit</code>
 </td>
 <td>
-<code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+<code><span title="Optional">Optional</span>[<span title="str">str</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">
@@ -4675,7 +4711,7 @@ in the destination directory.</p>
 <code>tp</code>
 </td>
 <td>
-<code><span title="typing.Callable">Callable</span>[[<span title="str">str</span>], <span title="typing.Any">Any</span>]</code>
+<code><span title="collections.abc.Callable">Callable</span>[[<span title="str">str</span>], <span title="typing.Any">Any</span>]</code>
 </td>
 <td>
 <div class="doc-md-description">

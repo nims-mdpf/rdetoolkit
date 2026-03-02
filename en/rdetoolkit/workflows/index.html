@@ -1146,6 +1146,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    Agent Skills for AI Assistants
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1403,6 +1415,18 @@
     
   
     Invoice Files
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generator
   
 
     
@@ -2029,6 +2053,18 @@
     
   
     Excel Invoice Generation
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generation
   
 
     
@@ -2671,11 +2707,18 @@ create_folders(raw_files_group, excel_invoice_files)
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>workflows<span style="color: #333">.</span>run(<span style="color: #333">*</span>, custom_dataset_function<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, config<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>RDE Structuring Processing Function.</p>
-<p>This function executes the structuring process for RDE data. If you want to implement custom processing for the input data,
-you can pass a user-defined function as an argument. The recommended callback signature receives the unified data class
-<code>RdeDatasetPaths</code>, which bundles the input (<code>RdeInputDirPaths</code>) and output (<code>RdeOutputResourcePath</code>) directory information.
-For backward compatibility, callbacks accepting the two legacy arguments are still supported.</p>
+<p>Execute the RDE workflow pipeline with custom processing.</p>
+<p>This is the main entry point for rdetoolkit. It orchestrates the entire RDE workflow:
+processing input data, generating invoices, creating thumbnails, and executing custom
+data transformations. The workflow supports multiple processing modes (Invoice,
+Excelinvoice, MultiDataTile, SmartTable) configured via the Config object.</p>
+<p>The workflow pipeline processes data in the following stages:
+1. Validation: Verify directory structure and configuration
+2. File Processing: Collect and organize input files
+3. Invoice Generation: Create/process invoice metadata
+4. Custom Processing: Execute user-defined transformations (custom_dataset_function)
+5. Thumbnail Generation: Create image thumbnails if configured
+6. Output Generation: Produce final RDE-structured output</p>
 <p><span class="doc-section-title">引数：</span></p>
 <table>
 <thead>
@@ -2692,11 +2735,17 @@ For backward compatibility, callbacks accepting the two legacy arguments are sti
 <code>custom_dataset_function</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="rdetoolkit.models.rde2types.DatasetCallback">DatasetCallback</span>]</code>
+<code><span title="rdetoolkit.models.rde2types.DatasetCallback">DatasetCallback</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>User-defined structuring function. Defaults to None.</p>
+<p>Optional user-defined function for data processing.
+Must have signature: (RdeDatasetPaths) -&gt; None or (RdeInputDirPaths, RdeOutputResourcePath) -&gt; None.
+The recommended signature uses the unified <code>RdeDatasetPaths</code> class, which bundles
+input (<code>RdeInputDirPaths</code>) and output (<code>RdeOutputResourcePath</code>) directory information.
+For backward compatibility, callbacks accepting the two legacy arguments are still supported.
+This function receives input paths (raw data) and output paths (processed data)
+and should perform domain-specific data transformations.</p>
 </div>
 </td>
 <td>
@@ -2708,11 +2757,14 @@ For backward compatibility, callbacks accepting the two legacy arguments are sti
 <code>config</code>
 </td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="rdetoolkit.models.config.Config">Config</span>]</code>
+<code><span title="rdetoolkit.models.config.Config">Config</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Configuration class for the structuring process. If not specified, default values are loaded automatically. Defaults to None.</p>
+<p>Optional Config object with system settings. If None, config is loaded from
+tasksupport/config.toml. The config controls processing mode (extended_mode),
+output options (save_raw, save_thumbnail_image, save_main_image),
+and mode-specific settings (multidata_tile, smarttable configurations)</p>
 </div>
 </td>
 <td>
@@ -2736,7 +2788,16 @@ For backward compatibility, callbacks accepting the two legacy arguments are sti
 </td>
 <td>
 <div class="doc-md-description">
-<p>The JSON representation of the workflow execution results.</p>
+<p>JSON representation of workflow execution results containing a list of
+WorkflowExecutionStatus objects (one per dataset). Each status includes:
+- run_id: Dataset identifier
+- title: Processing title
+- status: "success" or "failed"
+- mode: Processing mode used (Invoice, Excelinvoice, MultiDataTile, SmartTable)
+- error_code: Error code if failed (None if success)
+- error_message: Error message if failed (None if success)
+- stacktrace: Stack trace if failed (None if success)
+- target: Target files processed</p>
 </div>
 </td>
 </tr>
@@ -2757,7 +2818,11 @@ For backward compatibility, callbacks accepting the two legacy arguments are sti
 </td>
 <td>
 <div class="doc-md-description">
-<p>If a structured error occurs during the process.</p>
+<p>For critical workflow errors:
+- Configuration file not found or invalid
+- Required directory structure missing
+- Invoice schema validation failures
+- Custom function execution errors</p>
 </div>
 </td>
 </tr>
@@ -2767,72 +2832,112 @@ For backward compatibility, callbacks accepting the two legacy arguments are sti
 </td>
 <td>
 <div class="doc-md-description">
-<p>If a generic error occurs during the process.</p>
+<p>For unexpected errors during processing</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>Execution mode is selected in the following order:</p>
+<p><span class="doc-section-title">例：</span></p>
+<p>Basic usage with custom processing:
+    &gt;&gt;&gt; from rdetoolkit.workflows import run
+    &gt;&gt;&gt; from rdetoolkit.models.rde2types import RdeDatasetPaths
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; def process_csv_data(paths: RdeDatasetPaths) -&gt; None:
+    ...     import pandas as pd
+    ...     for csv_file in paths.inputdata.glob("*.csv"):
+    ...         df = pd.read_csv(csv_file)
+    ...         # Process dataframe
+    ...         result_path = paths.struct / f"processed_{csv_file.name}"
+    ...         df.to_csv(result_path, index=False)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; result_json = run(custom_dataset_function=process_csv_data)
+    &gt;&gt;&gt; # Result is JSON string with execution statuses</p>
+<p>With custom configuration:
+    &gt;&gt;&gt; from rdetoolkit.models.config import Config, SystemSettings
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; config = Config(
+    ...     system=SystemSettings(
+    ...         extended_mode="MultiDataTile",
+    ...         save_thumbnail_image=True
+    ...     )
+    ... )
+    &gt;&gt;&gt; result_json = run(custom_dataset_function=process_csv_data, config=config)</p>
+<p>Legacy callback signature (backward compatibility):
+    &gt;&gt;&gt; from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; def legacy_process(srcpaths: RdeInputDirPaths, output: RdeOutputResourcePath) -&gt; None:
+    ...     # Process using separate input/output paths
+    ...     pass
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; result_json = run(custom_dataset_function=legacy_process)</p>
+<p>With MultiDataTile mode and error handling:
+    &gt;&gt;&gt; from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; config = Config(
+    ...     system=SystemSettings(
+    ...         extended_mode="MultiDataTile",
+    ...         save_raw=False,
+    ...         save_nonshared_raw=True,
+    ...         save_thumbnail_image=True
+    ...     ),
+    ...     multidata_tile=MultiDataTileSettings(ignore_errors=False)
+    ... )
+    &gt;&gt;&gt; result_json = run(custom_dataset_function=process_csv_data, config=config)</p>
+<details class="notes" open="">
+<summary>Notes</summary>
+<ul>
+<li>
+<p>Processing mode is selected in the following order:</p>
 <ol>
-<li>SmartTable CSV is present (<code>smarttable_file</code> is not None) -&gt; <code>SmartTableInvoice</code> mode.</li>
-<li>Excel invoice bundle is provided (<code>excel_invoice_files</code> is not None) -&gt; <code>Excelinvoice</code> mode.</li>
-<li><code>extended_mode</code> matches (case-insensitive) <code>rdeformat</code> or <code>MultiDataTile</code> -&gt; the corresponding extended mode.</li>
-<li>Otherwise -&gt; <code>Invoice</code> mode.</li>
+<li>SmartTable CSV is present (smarttable_file is not None) -&gt; SmartTableInvoice mode</li>
+<li>Excel invoice bundle is provided (excel_invoice_files is not None) -&gt; Excelinvoice mode</li>
+<li>extended_mode matches (case-insensitive) "rdeformat" or "MultiDataTile" -&gt; corresponding extended mode</li>
+<li>Otherwise -&gt; Invoice mode</li>
 </ol>
-<p>The mode name recorded in logs/results matches the branch that executed. No <code>excelinvoice</code> value is accepted in <code>extended_mode</code>.</p>
+</li>
+<li>
+<p>Directory structure must follow RDE conventions:
+    tasksupport/
+        config.toml
+        invoice.schema.json
+        invoice.json (or invoice.xlsx)
+    container/data/
+        inputdata/        # Input data
+        invoice/          # Output resources
+        raw/              # Raw data copies
+        structured/       # Processed data
+        main_image/       # Main images
+        other_image/      # Other images
+        thumbnail/        # Thumbnails
+        meta/             # Metadata
+        logs/             # Log files</p>
+</li>
+<li>
+<p>The custom_dataset_function is called once per dataset in the invoice.
+  For MultiDataTile mode, it may be called multiple times per dataset.</p>
+</li>
+<li>
+<p>Thumbnail generation (if enabled) runs automatically for supported image formats
+  (PNG, JPG, JPEG, BMP, GIF, TIFF).</p>
+</li>
+<li>
+<p>The workflow creates backups of invoice.json files before processing.</p>
+</li>
+<li>
+<p>Use get_agent_guide() or <code>rdetoolkit agent-guide</code> for comprehensive usage documentation.</p>
+</li>
+</ul>
 </details>
-<details class="example" open="">
-<summary>Example</summary>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888">### custom.py</span>
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.rde2types</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> RdeDatasetPaths
-
-<span style="color: #080; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #06B; font-weight: bold">custom_dataset</span>(paths: RdeDatasetPaths) <span style="color: #333">-&gt;</span> <span style="color: #080; font-weight: bold">None</span>:
-    <span style="color: #333">...</span>(original process using paths<span style="color: #333">.</span>inputdata, paths<span style="color: #333">.</span>struct, <span style="color: #333">...</span>)<span style="color: #333">...</span>
-
-<span style="color: #888">### main.py</span>
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> workflow
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">custom</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> custom_dataset  <span style="color: #888"># User-defined structuring processing function</span>
-
-cfg <span style="color: #333">=</span> Config(save_raw<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>, save_main_image<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, save_thumbnail_image<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, magic_variable<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)
-workflow<span style="color: #333">.</span>run(custom_dataset_function<span style="color: #333">=</span>custom_dataset, config<span style="color: #333">=</span>cfg)  <span style="color: #888"># Execute structuring process</span>
-</code></pre></div></td></tr></table></div>
-<p>Legacy callbacks that accept two arguments (<code>RdeInputDirPaths</code>, <code>RdeOutputResourcePath</code>) continue to work without
-modification during the compatibility period.</p>
-<p>If options are specified (setting the mode to "RDEformat"):</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888">### main.py</span>
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.models.config</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Config, MultiDataTileSettings, SystemSettings
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> workflow
-<span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">custom</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> custom_dataset <span style="color: #888"># User-defined structuring processing function</span>
-
-cfg <span style="color: #333">=</span> Config(
-    system<span style="color: #333">=</span>SystemSettings(extended_mode<span style="color: #333">=</span><span style="background-color: #FFF0F0">"MultiDataTile"</span>, save_raw<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, save_nonshared_raw<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>, save_thumbnail_image<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>),
-    multidata_tile<span style="color: #333">=</span>MultiDataTileSettings(ignore_errors<span style="color: #333">=</span><span style="background-color: #FFF0F0">"False"</span>)
-)
-workflow<span style="color: #333">.</span>run(custom_dataset_function<span style="color: #333">=</span>custom_dataset, config<span style="color: #333">=</span>cfg) <span style="color: #888"># Execute structuring process</span>
-</code></pre></div></td></tr></table></div>
+<details class="see-also" open="">
+<summary>See Also</summary>
+<ul>
+<li>Config: Configuration schema and options</li>
+<li>RdeDatasetPaths: Unified input/output path structure</li>
+<li>RdeInputDirPaths: Input path structure (legacy)</li>
+<li>RdeOutputResourcePath: Output path structure (legacy)</li>
+<li>WorkflowExecutionStatus: Execution result details</li>
+</ul>
 </details>
 </div>
 </div><hr/>

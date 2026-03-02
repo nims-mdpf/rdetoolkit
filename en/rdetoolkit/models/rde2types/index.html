@@ -1146,6 +1146,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    Agent Skills for AI Assistants
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1276,6 +1288,18 @@
     
   
     Invoice Files
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generator
   
 
     
@@ -3346,6 +3370,18 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../../cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generation
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../../cmd/validate/">
 <span class="md-ellipsis">
     
@@ -5009,16 +5045,123 @@
 <code>src.rdetoolkit.models.rde2types</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Type definitions for RDE toolkit.</p>
-<p>This module provides type definitions used throughout the RDE toolkit, including:
-- Legacy type aliases for backward compatibility
-- NewType definitions for improved type safety
-- Validated path types with runtime checks
-- Data classes for path and configuration management</p>
-<details class="newtype-definitions" open="">
-<summary>NewType Definitions</summary>
-<p>NewType provides compile-time type distinction without runtime overhead.
-Use the helper functions (create_*) to construct typed instances safely.</p>
+<p>RDE type definitions and path structures.</p>
+<p>This module defines the core types and data structures used throughout rdetoolkit
+for representing RDE (Research Data Express) workflows, paths, and callbacks.</p>
+<p>The module provides several categories of type definitions:</p>
+<ol>
+<li>Path Management Classes (Primary):</li>
+<li>RdeInputDirPaths: Input directory structure for reading source data</li>
+<li>RdeOutputResourcePath: Output directory structure for writing processed data</li>
+<li>
+<p>RdeDatasetPaths: Unified view combining input and output paths</p>
+</li>
+<li>
+<p>Callback Protocols:</p>
+</li>
+<li>
+<p>DatasetCallback: Type protocol for custom processing functions</p>
+</li>
+<li>
+<p>File Collection Types:</p>
+</li>
+<li>FileGroup: Typed collection of files grouped by type</li>
+<li>ProcessedFileGroup: Files after processing (unzipping, parsing)</li>
+<li>
+<p>RawFiles: Collection of raw input files</p>
+</li>
+<li>
+<p>Validated Path Types:</p>
+</li>
+<li>ValidatedPath: Base class for paths with runtime validation</li>
+<li>ZipFile, ExcelFile, CsvFile, JsonFile: File type-specific validated paths</li>
+<li>
+<p>ValidatedDirectory: Directory paths with existence validation</p>
+</li>
+<li>
+<p>NewType Definitions:</p>
+</li>
+<li>ZipFilePath, ExcelInvoicePath, SmartTablePath: Individual file path types</li>
+<li>
+<p>InputDataDir, OutputDir, TemporaryDir: Directory path types
+   (Use helper functions create_* to construct these safely)</p>
+</li>
+<li>
+<p>Legacy Type Aliases (Backward Compatibility):</p>
+</li>
+<li>
+<p>InputFilesGroup, PathTuple, MetaType, etc.
+   (Use newer types like FileGroup for new code)</p>
+</li>
+<li>
+<p>Type Dictionaries:</p>
+</li>
+<li>MetadataDefJson: Metadata definition structure</li>
+<li>
+<p>Name, Schema: Supporting structures for metadata</p>
+</li>
+<li>
+<p>Utility Types:</p>
+</li>
+<li>ValueUnitPair: Value with associated unit</li>
+<li>RdeFormatFlags: Legacy format flags (deprecated)</li>
+</ol>
+<details class="key-types-for-custom-processing-functions" open="">
+<summary>Key Types for Custom Processing Functions</summary>
+<p>These are the primary types users interact with when writing custom dataset
+processing functions:</p>
+<ul>
+<li>RdeInputDirPaths: Access input data, invoice, and configuration</li>
+<li>RdeOutputResourcePath: Write processed outputs to structured directories</li>
+<li>RdeDatasetPaths: Unified interface to both input and output paths</li>
+<li>DatasetCallback: Protocol for function signatures</li>
+</ul>
+</details>
+<details class="example" open="">
+<summary>Example</summary>
+<p>Custom processing function using the path types:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>&gt;&gt;&gt; from pathlib import Path
+&gt;&gt;&gt; import pandas as pd
+&gt;&gt;&gt; from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+&gt;&gt;&gt;
+&gt;&gt;&gt; def process_data(srcpaths: RdeInputDirPaths, output: RdeOutputResourcePath):
+...     # Read input data
+...     for csv_file in srcpaths.inputdata.glob("*.csv"):
+...         df = pd.read_csv(csv_file)
+...
+...     # Save processed output
+...     result_file = output.struct / "results.csv"
+...     df.to_csv(result_file, index=False)
+</code></pre></div></td></tr></table></div>
+</details>
+<details class="notes" open="">
+<summary>Notes</summary>
+<ul>
+<li>All Path objects use pathlib.Path</li>
+<li>Validated types perform runtime checks on construction</li>
+<li>NewType definitions provide compile-time type safety</li>
+<li>Legacy types maintained for backward compatibility</li>
+<li>Use RdeDatasetPaths for new code (single-argument callback style)</li>
+</ul>
+</details>
+<details class="see-also" open="">
+<summary>See Also</summary>
+<ul>
+<li>workflows.run: Main workflow entry point using these types</li>
+<li>models.config: Configuration types referenced by RdeInputDirPaths</li>
+<li>processing.pipeline: Processing pipeline using these path structures</li>
+</ul>
 </details>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
@@ -7069,8 +7212,17 @@ and sets the values of _is_rdeformat_enabled and _is_multifile_enabled according
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>A data class that holds folder paths used for input in the RDE.</p>
-<p>It manages the folder paths for input data necessary for the RDE.</p>
+<p>Input directory paths for RDE workflow processing.</p>
+<p>This class encapsulates the directory structure for input data in the RDE workflow.
+It provides access to raw data files, invoice configuration, and task support files
+that custom processing functions can read and utilize.</p>
+<details class="the-typical-directory-structure-is" open="">
+<summary>The typical directory structure is</summary>
+<p>container/data/
+    inputdata/        # Raw input data files (CSV, images, etc.)
+    invoice/          # Invoice configuration (invoice.json)
+    tasksupport/      # Task support files (config, schemas, templates)</p>
+</details>
 <p><span class="doc-section-title">属性：</span></p>
 <table>
 <thead>
@@ -7092,7 +7244,9 @@ and sets the values of _is_rdeformat_enabled and _is_multifile_enabled according
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path to the folder where input data is stored.</p>
+<p>Path to the input data directory containing unprocessed input files.
+This is the primary location where custom processing functions read data from.
+Common file types: CSV, Excel, images (PNG/JPG), text files, ZIP archives.</p>
 </div>
 </td>
 </tr>
@@ -7107,7 +7261,10 @@ and sets the values of _is_rdeformat_enabled and _is_multifile_enabled according
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path to the folder where invoice.json is stored.</p>
+<p>Path to the invoice directory containing invoice.json and related files.
+The invoice defines the dataset structure, metadata schema, and processing
+configuration. Custom functions typically read invoice.json for metadata
+definitions and validation rules.</p>
 </div>
 </td>
 </tr>
@@ -7122,7 +7279,9 @@ and sets the values of _is_rdeformat_enabled and _is_multifile_enabled according
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path to the folder where task support data is stored.</p>
+<p>Path to the task support directory containing auxiliary files
+such as configuration files (config.toml), schema definitions, CSV templates
+(default_value.csv), and metadata definitions (metadata-def.json).</p>
 </div>
 </td>
 </tr>
@@ -7138,7 +7297,10 @@ and sets the values of _is_rdeformat_enabled and _is_multifile_enabled according
 </td>
 <td>
 <div class="doc-md-description">
-<p>The configuration object.</p>
+<p>Configuration object controlling workflow behavior.
+Contains system settings (extended_mode, save_raw, etc.), MultiDataTile
+settings, and SmartTable configuration. Custom functions can access this
+to adjust processing based on the current execution mode.</p>
 </div>
 </td>
 </tr>
@@ -7146,9 +7308,63 @@ and sets the values of _is_rdeformat_enabled and _is_multifile_enabled according
 </table>
 <details class="properties" open="">
 <summary>Properties</summary>
-<p>default_csv (Path): Provides the path to the <code>default_value.csv</code> file.
-        If <code>tasksupport</code> is specified, it uses the path under it; otherwise,
-        it uses the default path under <code>data/tasksupport</code>.</p>
+<p>default_csv: Path to the 'default_value.csv' file in tasksupport directory.
+    This CSV file provides default values for metadata fields when not
+    explicitly specified in the input data.</p>
+</details>
+<p><span class="doc-section-title">例：</span></p>
+<p>Accessing input data files:
+    &gt;&gt;&gt; def process_data(srcpaths: RdeInputDirPaths, output):
+    ...     # Iterate over all files in inputdata directory
+    ...     for file_path in srcpaths.inputdata.glob("*.csv"):
+    ...         df = pd.read_csv(file_path)
+    ...         # Process dataframe
+    ...         pass</p>
+<p>Reading invoice configuration:
+    &gt;&gt;&gt; def process_data(srcpaths: RdeInputDirPaths, output):
+    ...     import json
+    ...     invoice_file = srcpaths.invoice / "invoice.json"
+    ...     with open(invoice_file) as f:
+    ...         invoice_data = json.load(f)
+    ...         # Use invoice metadata definitions
+    ...         metadata = invoice_data.get("metadata", [])</p>
+<p>Checking configuration mode:
+    &gt;&gt;&gt; def process_data(srcpaths: RdeInputDirPaths, output):
+    ...     if srcpaths.config.system.extended_mode == "MultiDataTile":
+    ...         # Process for MultiDataTile mode
+    ...         pass
+    ...     elif srcpaths.config.system.extended_mode == "SmartTable":
+    ...         # Process for SmartTable mode
+    ...         pass</p>
+<p>Using task support files:
+    &gt;&gt;&gt; def process_data(srcpaths: RdeInputDirPaths, output):
+    ...     # Read default values
+    ...     default_csv = srcpaths.default_csv
+    ...     if default_csv.exists():
+    ...         defaults = pd.read_csv(default_csv)
+    ...
+    ...     # Read metadata definitions
+    ...     metadata_def = srcpaths.tasksupport / "metadata-def.json"
+    ...     if metadata_def.exists():
+    ...         with open(metadata_def) as f:
+    ...             metadata_schema = json.load(f)</p>
+<details class="notes" open="">
+<summary>Notes</summary>
+<ul>
+<li>All Path objects are pathlib.Path instances</li>
+<li>Use Path.exists() to check file/directory existence before access</li>
+<li>Path.glob() and Path.rglob() enable pattern-based file discovery</li>
+<li>config.system.extended_mode determines execution mode (None, "MultiDataTile", "SmartTable")</li>
+<li>Invoice directory structure depends on execution mode</li>
+</ul>
+</details>
+<details class="see-also" open="">
+<summary>See Also</summary>
+<ul>
+<li>RdeOutputResourcePath: Output path structure for processed data</li>
+<li>RdeDatasetPaths: Unified view of input and output paths</li>
+<li>workflows.run: Main workflow function that provides these paths</li>
+</ul>
 </details>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
@@ -7237,8 +7453,22 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>A data class that holds folder paths used as output destinations for RDE.</p>
-<p>It maintains the paths for various files used in the structuring process.</p>
+<p>Output resource paths for RDE workflow processing.</p>
+<p>This class encapsulates the directory structure for output data in the RDE workflow.
+Custom processing functions write their results to these directories, which are then
+packaged into the final RDE dataset structure.</p>
+<details class="the-typical-directory-structure-is" open="">
+<summary>The typical directory structure is</summary>
+<p>container/data/invoice/
+    raw/              # Preserved raw input files
+    nonshared_raw/    # Non-shared raw input files
+    structured/       # Structured data outputs (CSV, Parquet, etc.)
+    main_image/       # Primary visualization images
+    other_image/      # Additional visualization images
+    meta/             # Metadata JSON files
+    thumbnail/        # Thumbnail preview images
+    logs/             # Processing log files</p>
+</details>
 <p><span class="doc-section-title">属性：</span></p>
 <table>
 <thead>
@@ -7260,7 +7490,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path where raw data is stored.</p>
+<p>Path to the raw data directory for preserving original input files.
+Files copied here are included in the final dataset package for reproducibility.
+Controlled by config.system.save_raw setting.</p>
 </div>
 </td>
 </tr>
@@ -7275,7 +7507,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path where nonshared raw data is stored.</p>
+<p>Path to the non-shared raw data directory.
+Similar to raw but for files that should not be shared externally.
+Controlled by config.system.save_nonshared_raw setting.</p>
 </div>
 </td>
 </tr>
@@ -7290,8 +7524,11 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Holds a tuple of input file paths,
-                        such as those unzipped, for a single tile of data.</p>
+<p>Tuple of input file paths being processed in the current iteration.
+In standard mode, contains all input files.
+In MultiDataTile mode, contains files for the current tile.
+In SmartTable mode, contains the current row's associated files.
+Use this to identify which files triggered the current processing.</p>
 </div>
 </td>
 </tr>
@@ -7306,7 +7543,10 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing structured data.</p>
+<p>Path to the structured data directory for processed outputs.
+Save tabular data, analysis results, or transformed data here.
+Common formats: CSV, JSON, Parquet, Arrow.
+Files here are registered in the dataset metadata automatically.</p>
 </div>
 </td>
 </tr>
@@ -7321,7 +7561,10 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing the main image file.</p>
+<p>Path to the main image directory for primary visualizations.
+Save the most important plots, graphs, or representative images here.
+Common formats: PNG, JPG, SVG, PDF.
+Typically used for dataset preview images.</p>
 </div>
 </td>
 </tr>
@@ -7336,7 +7579,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing other image files.</p>
+<p>Path to the other image directory for auxiliary visualizations.
+Save supplementary charts, diagnostic plots, or additional figures here.
+Same format support as main_image.</p>
 </div>
 </td>
 </tr>
@@ -7351,7 +7596,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing metadata files.</p>
+<p>Path to the metadata directory for JSON metadata files.
+Save extracted metadata, processing parameters, or analysis summaries here.
+Format: JSON only. Files here are merged into dataset metadata.</p>
 </div>
 </td>
 </tr>
@@ -7366,7 +7613,10 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing thumbnail image files.</p>
+<p>Path to the thumbnail directory for preview images.
+Thumbnail images are automatically generated for supported file types.
+Manual thumbnails can also be saved here for custom preview images.
+Controlled by config.system.save_thumbnail_image setting.</p>
 </div>
 </td>
 </tr>
@@ -7381,7 +7631,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing log files.</p>
+<p>Path to the logs directory for processing logs and diagnostics.
+Save execution logs, error reports, or debugging information here.
+Helps track processing history and troubleshoot issues.</p>
 </div>
 </td>
 </tr>
@@ -7396,7 +7648,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing invoice files.</p>
+<p>Path to the invoice directory for dataset configuration.
+Contains invoice.json (dataset metadata) and invoice.schema.json.
+Custom functions can read but typically should not modify these directly.</p>
 </div>
 </td>
 </tr>
@@ -7411,7 +7665,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for the invoice.schema.json file.</p>
+<p>Path to the invoice.schema.json file.
+Defines the JSON schema for validating invoice.json structure.
+Use this to understand expected metadata structure.</p>
 </div>
 </td>
 </tr>
@@ -7426,7 +7682,9 @@ If not set, the default path under 'data/tasksupport' is used.</p>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing the backup of invoice.json.</p>
+<p>Path to the original invoice.json backup.
+Preserved copy of the original invoice.json before processing.
+Useful for comparing changes or recovering original configuration.</p>
 </div>
 </td>
 </tr>
@@ -7438,11 +7696,13 @@ If not set, the default path under 'data/tasksupport' is used.</p>
       instance-attribute
    (src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_rowfile)">smarttable_rowfile</a></code></td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
+<code><span title="pathlib.Path">Path</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for the SmartTable-generated row CSV file.</p>
+<p>Optional path to the SmartTable-generated row CSV file.
+Available only in SmartTable mode. Contains the current row being processed.
+File name format: fsmarttable_<row_index>.csv</row_index></p>
 </div>
 </td>
 </tr>
@@ -7454,11 +7714,14 @@ If not set, the default path under 'data/tasksupport' is used.</p>
       instance-attribute
    (src.rdetoolkit.models.rde2types.RdeOutputResourcePath.smarttable_row_data)">smarttable_row_data</a></code></td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Parsed row data from SmartTable CSV file.</p>
+<p>Optional dictionary of parsed SmartTable row data.
+Available only in SmartTable mode. Contains column names as keys.
+Use this to access row-specific metadata like sample names, parameters, etc.
+Example: row_data.get("sample/name", "") or row_data.get("basic/dataName", "")</p>
 </div>
 </td>
 </tr>
@@ -7470,11 +7733,13 @@ If not set, the default path under 'data/tasksupport' is used.</p>
       instance-attribute
    (src.rdetoolkit.models.rde2types.RdeOutputResourcePath.temp)">temp</a></code></td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
+<code><span title="pathlib.Path">Path</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing temporary files.</p>
+<p>Optional path to the temporary directory for intermediate files.
+Use this for temporary processing files that should not be in the final dataset.
+Files here are typically cleaned up after processing.</p>
 </div>
 </td>
 </tr>
@@ -7486,11 +7751,13 @@ If not set, the default path under 'data/tasksupport' is used.</p>
       instance-attribute
    (src.rdetoolkit.models.rde2types.RdeOutputResourcePath.invoice_patch)">invoice_patch</a></code></td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
+<code><span title="pathlib.Path">Path</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing modified invoice files.</p>
+<p>Optional path to the invoice patch directory.
+Used for storing invoice modification fragments that are merged later.
+Advanced feature for dynamic metadata updates.</p>
 </div>
 </td>
 </tr>
@@ -7502,16 +7769,104 @@ If not set, the default path under 'data/tasksupport' is used.</p>
       instance-attribute
    (src.rdetoolkit.models.rde2types.RdeOutputResourcePath.attachment)">attachment</a></code></td>
 <td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
+<code><span title="pathlib.Path">Path</span> | None</code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path for storing attachment files.</p>
+<p>Optional path to the attachment directory.
+Used for storing additional files that should be attached to the dataset
+but don't fit into the standard output categories.</p>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
+<p><span class="doc-section-title">例：</span></p>
+<p>Saving processed data:
+    &gt;&gt;&gt; def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+    ...     import pandas as pd
+    ...
+    ...     # Process and save structured data
+    ...     result_df = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
+    ...     output_file = resource_paths.struct / "processed_results.csv"
+    ...     result_df.to_csv(output_file, index=False)
+    ...
+    ...     # Generate and save main visualization
+    ...     import matplotlib.pyplot as plt
+    ...     plt.figure()
+    ...     plt.plot([1, 2, 3], [4, 5, 6])
+    ...     figure_file = resource_paths.main_image / "plot.png"
+    ...     plt.savefig(figure_file)
+    ...     plt.close()</p>
+<p>Creating subdirectories:
+    &gt;&gt;&gt; def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+    ...     # Organize outputs into subdirectories
+    ...     analysis_dir = resource_paths.struct / "analysis"
+    ...     analysis_dir.mkdir(exist_ok=True)
+    ...
+    ...     summary_file = analysis_dir / "summary.json"
+    ...     with open(summary_file, "w") as f:
+    ...         json.dump({"status": "complete"}, f)</p>
+<p>Preserving raw files:
+    &gt;&gt;&gt; def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+    ...     # Copy specific input files to raw directory
+    ...     for raw_file in resource_paths.rawfiles:
+    ...         if raw_file.suffix == ".csv":
+    ...             import shutil
+    ...             dest = resource_paths.raw / raw_file.name
+    ...             shutil.copy2(raw_file, dest)</p>
+<p>Saving metadata:
+    &gt;&gt;&gt; def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+    ...     import json
+    ...
+    ...     # Save processing metadata
+    ...     metadata = {
+    ...         "processing_date": "2024-01-01",
+    ...         "algorithm": "custom_analysis",
+    ...         "parameters": {"threshold": 0.5}
+    ...     }
+    ...     meta_file = resource_paths.meta / "processing_info.json"
+    ...     with open(meta_file, "w") as f:
+    ...         json.dump(metadata, f, indent=2)</p>
+<p>Using SmartTable row data:
+    &gt;&gt;&gt; def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+    ...     # Access SmartTable row-specific data
+    ...     if resource_paths.smarttable_row_data:
+    ...         sample_name = resource_paths.smarttable_row_data.get("sample/name", "")
+    ...         data_name = resource_paths.smarttable_row_data.get("basic/dataName", "")
+    ...
+    ...         # Use row data for file naming
+    ...         output_file = resource_paths.struct / f"{sample_name}_results.csv"</p>
+<p>Saving structured data formats:
+    &gt;&gt;&gt; def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+    ...     import polars as pl
+    ...
+    ...     # Save as Parquet for efficient storage
+    ...     df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    ...     parquet_file = resource_paths.struct / "data.parquet"
+    ...     df.write_parquet(parquet_file)</p>
+<details class="notes" open="">
+<summary>Notes</summary>
+<ul>
+<li>All output directories are automatically created by the workflow</li>
+<li>Use pathlib.Path methods for file operations (write_text, write_bytes, etc.)</li>
+<li>Create subdirectories as needed with Path.mkdir(exist_ok=True)</li>
+<li>Ensure file names are valid across platforms (avoid special characters: / \ : * ? " &lt; &gt; |)</li>
+<li>Use appropriate file extensions for proper type detection (.csv, .json, .png, etc.)</li>
+<li>Files in struct/ and meta/ are automatically registered in dataset metadata</li>
+<li>SmartTable mode provides row-specific data via smarttable_row_data</li>
+<li>Check Path.exists() and handle None for optional paths (temp, invoice_patch, attachment)</li>
+</ul>
+</details>
+<details class="see-also" open="">
+<summary>See Also</summary>
+<ul>
+<li>RdeInputDirPaths: Input path structure for source data</li>
+<li>RdeDatasetPaths: Unified view of input and output paths</li>
+<li>workflows.run: Main workflow function that provides these paths</li>
+<li>Config: Configuration controlling save_raw, save_thumbnail_image, and extended_mode</li>
+</ul>
+</details>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
 <h4 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.RdeOutputResourcePath.attachment">
@@ -7769,7 +8124,7 @@ It extends TypedDict with <code>total=False</code> to allow partial dictionaries
 </div>
 <div class="doc doc-object doc-class">
 <h3 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.ValidatedDirectory">
-<code class="highlight language-python">ValidatedDirectory(path, must_exist<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
+<code class="highlight language-python">ValidatedDirectory(path, <span style="color: #333">*</span>, must_exist<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
 </span>
@@ -7808,7 +8163,7 @@ It extends TypedDict with <code>total=False</code> to allow partial dictionaries
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.rde2types.ValidatedDirectory.must_exist" title="must_exist = field(default=False)
+<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.models.rde2types.ValidatedDirectory.must_exist" title="must_exist = field(default=False, kw_only=True)
 
   
       class-attribute
@@ -7849,7 +8204,7 @@ It extends TypedDict with <code>total=False</code> to allow partial dictionaries
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
 <h4 class="doc doc-heading" id="src.rdetoolkit.models.rde2types.ValidatedDirectory.must_exist">
-<code class="highlight language-python">must_exist <span style="color: #333">=</span> field(default<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>)</code>
+<code class="highlight language-python">must_exist <span style="color: #333">=</span> field(default<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>, kw_only<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>)</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>

@@ -1146,6 +1146,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    Agent Skills for AI Assistants
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1276,6 +1288,18 @@
     
   
     Invoice Files
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generator
   
 
     
@@ -1909,6 +1933,18 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generation
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../rdetoolkit/cmd/validate/">
 <span class="md-ellipsis">
     
@@ -2184,6 +2220,12 @@
 </thead>
 <tbody>
 <tr>
+<td>v1.6.0</td>
+<td>2026-02-18</td>
+<td><strong>BREAKING</strong>: Python 3.9 support dropped (minimum 3.10+) / direct <code>pytz</code> dependency removed / <code>gen-invoice</code> command added / AI agent guide embedded / Agent Skills added</td>
+<td><a href="#v160-2026-02-18">v1.6.0</a></td>
+</tr>
+<tr>
 <td>v1.5.3</td>
 <td>2026-02-03</td>
 <td>SmartTable sample.ownerId auto-assignment / Missing rawfile error improvement / invoicefile.py bug fixes</td>
@@ -2264,6 +2306,267 @@
 </tbody>
 </table>
 <h1 id="release-details">Release Details</h1>
+<h2 id="v160-2026-02-18">v1.6.0 (2026-02-18)</h2>
+<div class="admonition warning">
+<p class="admonition-title">Breaking Changes</p>
+<p>This release drops Python 3.9 support. Minimum Python version is now <strong>3.10+</strong>.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">References</p>
+<ul>
+<li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/351">#351</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/363">#363</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/371">#371</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/380">#380</a></li>
+</ul>
+</div>
+<h3 id="breaking-changes-python-39-support-dropped">Breaking Changes: Python 3.9 Support Dropped</h3>
+<h4 id="overview">Overview</h4>
+<p>Python 3.9 support has been removed from rdetoolkit v1.6.0. The minimum supported Python version is now <strong>3.10</strong>.</p>
+<h4 id="rationale">Rationale</h4>
+<ul>
+<li><strong>End of Life</strong>: Python 3.9 reached end-of-life on <strong>October 31, 2025</strong></li>
+<li><strong>Security</strong>: Continuing support increases maintenance and security risks</li>
+<li><strong>Modernization</strong>: Python 3.10+ provides improved typing features, better performance, and language enhancements</li>
+</ul>
+<h4 id="impact">Impact</h4>
+<ul>
+<li><strong>Users on Python 3.9</strong>: <code>pip install rdetoolkit</code> will automatically resolve to the last compatible version (<strong>v1.5.2</strong>)</li>
+<li><strong>CI/CD Pipelines</strong>: GitHub Actions and tox configurations no longer test Python 3.9</li>
+<li><strong>PyPI Metadata</strong>: Python 3.9 classifier removed from package metadata</li>
+</ul>
+<h4 id="migration-options">Migration Options</h4>
+<p><strong>Option 1: Upgrade Python (Recommended)</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Install Python 3.10 or higher</span>
+<span style="color: #888"># Then reinstall rdetoolkit</span>
+pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>--upgrade<span style="color: #BBB"> </span>rdetoolkit
+</code></pre></div></td></tr></table></div></p>
+<p>Supported versions: Python 3.10, 3.11, 3.12, 3.13, 3.14</p>
+<p><strong>Option 2: Pin to Last Compatible Version</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Stay on Python 3.9 with rdetoolkit v1.5.2</span>
+pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"rdetoolkit&lt;1.6.0"</span>
+</code></pre></div></td></tr></table></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Pinning to v1.5.2 means you will not receive new features, bug fixes, or security updates from v1.6.0+.</p>
+</div>
+<p>For more information on Python version support lifecycle, see: <a href="https://endoflife.date/python">https://endoflife.date/python</a></p>
+<hr/>
+<h3 id="technical-changes">Technical Changes</h3>
+<h4 id="package-metadata">Package Metadata</h4>
+<ul>
+<li>Updated <code>requires-python</code> to <code>&gt;=3.10</code> in <code>pyproject.toml</code></li>
+<li>Removed <code>Programming Language :: Python :: 3.9</code> classifier</li>
+<li>Updated ruff configuration to target Python 3.10 (<code>target-version = "py310"</code>)</li>
+</ul>
+<h4 id="cicd-pipelines">CI/CD Pipelines</h4>
+<ul>
+<li>Removed Python 3.9 from GitHub Actions workflows (<code>pypi-release.yml</code>, <code>docs-ci.yml</code>)</li>
+<li>Updated tox configuration to test only Python 3.10-3.14 environments</li>
+<li>Removed all <code>py39-*</code> test environment sections from <code>tox.ini</code></li>
+</ul>
+<h4 id="code-cleanup">Code Cleanup</h4>
+<ul>
+<li>Removed Python 3.9 compatibility code and version branches:</li>
+<li><code>sys.version_info</code> checks in <code>__init__.py</code>, <code>result.py</code>, <code>command.py</code></li>
+<li>Version-specific dataclass parameter handling (<code>_DATACLASS_KWARGS</code>)</li>
+<li>Conditional <code>slots=True</code> logic (now always enabled)</li>
+<li>Optimized typing imports to use Python 3.10+ built-ins:</li>
+<li><code>Never</code>, <code>ParamSpec</code>, <code>TypeAlias</code> from <code>typing</code> module (instead of <code>typing_extensions</code>)</li>
+<li>Simplified type annotations using native union syntax (<code>X | Y</code>)</li>
+</ul>
+<h4 id="documentation">Documentation</h4>
+<ul>
+<li>Updated installation documentation (English and Japanese) to reflect Python 3.10+ requirement</li>
+<li>Updated usage documentation (CLI, quickstart, validation, object storage) to specify Python 3.10+</li>
+<li>Updated development documentation to remove Python 3.9 references</li>
+<li>Adjusted deprecation notices in README.md to reflect v1.6.0 removal</li>
+</ul>
+<h4 id="dependencies">Dependencies</h4>
+<ul>
+<li>Regenerated lock files (<code>uv.lock</code>, <code>requirements.lock</code>, <code>requirements-dev.lock</code>) with Python 3.10+ constraints</li>
+<li>Removed 2,986 lines of Python 3.9-specific package wheels and markers</li>
+<li>Removed direct <code>pytz</code> and <code>types-pytz</code> dependencies from <code>rdetoolkit</code>; migrated all timezone handling to <code>datetime.timezone.utc</code> (<a href="https://github.com/nims-mdpf/rdetoolkit/issues/375">#375</a>)</li>
+</ul>
+<hr/>
+<h3 id="new-features">New Features</h3>
+<h4 id="invoicejson-generation-feature-issue-371">invoice.json Generation Feature (Issue #371)</h4>
+<p>Added API and CLI functionality to generate invoice.json directly from invoice.schema.json definitions.</p>
+<p><strong>API Usage</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.invoice_generator</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> generate_invoice_from_schema
+
+<span style="color: #888"># Generate with all fields and defaults, write to file</span>
+invoice_data <span style="color: #333">=</span> generate_invoice_from_schema(
+    schema_path<span style="color: #333">=</span><span style="background-color: #FFF0F0">"tasksupport/invoice.schema.json"</span>,
+    output_path<span style="color: #333">=</span><span style="background-color: #FFF0F0">"invoice/invoice.json"</span>,
+    fill_defaults<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+    required_only<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,
+)
+
+<span style="color: #888"># Generate required fields only, return dict without file</span>
+invoice_data <span style="color: #333">=</span> generate_invoice_from_schema(
+    schema_path<span style="color: #333">=</span><span style="background-color: #FFF0F0">"tasksupport/invoice.schema.json"</span>,
+    fill_defaults<span style="color: #333">=</span><span style="color: #080; font-weight: bold">False</span>,
+    required_only<span style="color: #333">=</span><span style="color: #080; font-weight: bold">True</span>,
+)
+</code></pre></div></td></tr></table></div></p>
+<p><strong>CLI Usage</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Basic usage - generates invoice.json in current directory</span>
+rdetoolkit<span style="color: #BBB"> </span>gen-invoice<span style="color: #BBB"> </span>tasksupport/invoice.schema.json
+
+<span style="color: #888"># Specify output path</span>
+rdetoolkit<span style="color: #BBB"> </span>gen-invoice<span style="color: #BBB"> </span>tasksupport/invoice.schema.json<span style="color: #BBB"> </span>-o<span style="color: #BBB"> </span>container/data/invoice/invoice.json
+
+<span style="color: #888"># Generate required fields only</span>
+rdetoolkit<span style="color: #BBB"> </span>gen-invoice<span style="color: #BBB"> </span>tasksupport/invoice.schema.json<span style="color: #BBB"> </span>--required-only
+
+<span style="color: #888"># Generate with compact formatting</span>
+rdetoolkit<span style="color: #BBB"> </span>gen-invoice<span style="color: #BBB"> </span>tasksupport/invoice.schema.json<span style="color: #BBB"> </span>--format<span style="color: #BBB"> </span>compact
+</code></pre></div></td></tr></table></div></p>
+<p><strong>Default Value Priority</strong>
+1. Schema <code>default</code> field
+2. First item from schema <code>examples</code>
+3. Type-based defaults: string→"", number→0.0, integer→0, boolean→false</p>
+<hr/>
+<h4 id="result-type-extension-unwrap_or_else-method-issue-363">Result Type Extension: unwrap_or_else Method (Issue #363)</h4>
+<p>Added <code>unwrap_or_else</code> method to the Result type. On failure, it calls a default value generator function that receives the error as an argument.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">9</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit.result</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">import</span> Success, Failure
+
+<span style="color: #888"># Success: returns the value directly (default_fn is not called)</span>
+result <span style="color: #333">=</span> Success(<span style="color: #00D; font-weight: bold">42</span>)
+value <span style="color: #333">=</span> result<span style="color: #333">.</span>unwrap_or_else(<span style="color: #080; font-weight: bold">lambda</span> e: <span style="color: #00D; font-weight: bold">0</span>)  <span style="color: #888"># 42</span>
+
+<span style="color: #888"># Failure: calls default_fn</span>
+result <span style="color: #333">=</span> Failure(<span style="color: #F00; font-weight: bold">ValueError</span>(<span style="background-color: #FFF0F0">"error"</span>))
+value <span style="color: #333">=</span> result<span style="color: #333">.</span>unwrap_or_else(<span style="color: #080; font-weight: bold">lambda</span> e: <span style="color: #333">-</span><span style="color: #00D; font-weight: bold">1</span>)  <span style="color: #888"># -1</span>
+</code></pre></div></td></tr></table></div>
+<hr/>
+<h4 id="ai-coding-assistant-agent-guide-issue-380">AI Coding Assistant Agent Guide (Issue #380)</h4>
+<p>Added embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).</p>
+<p><strong>Features</strong>
+- <code>rdetoolkit.agent_guide()</code>: Function to retrieve guide text
+- <code>rdetoolkit agent-guide</code>: CLI command to display the guide</p>
+<p><strong>Usage Examples</strong>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #080; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #0E84B5; font-weight: bold">rdetoolkit</span>
+
+<span style="color: #888"># Get the agent guide</span>
+guide <span style="color: #333">=</span> rdetoolkit<span style="color: #333">.</span>agent_guide()
+<span style="color: #007020">print</span>(guide)
+</code></pre></div></td></tr></table></div></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Display guide from CLI</span>
+rdetoolkit<span style="color: #BBB"> </span>agent-guide
+</code></pre></div></td></tr></table></div>
+<hr/>
+<h4 id="agent-skills-for-ai-coding-assistants">Agent Skills for AI Coding Assistants</h4>
+<p>Added Agent Skills (<code>.agents/SKILL.md</code>) to provide contextual guidance for AI coding assistants (Claude Code, etc.) when developing RDE structured programs.</p>
+<p><strong>Difference from existing Agent Guide (<code>_agent/</code>)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Agent Guide (<code>_agent/</code>)</th>
+<th>Agent Skills (<code>.agents/</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Distribution</td>
+<td>Bundled in package (available after pip install)</td>
+<td>In source repository (auto-detected during development)</td>
+</tr>
+<tr>
+<td>Access</td>
+<td><code>rdetoolkit.agent_guide()</code> API / CLI</td>
+<td>Auto-discovered and applied by Claude Code</td>
+</tr>
+<tr>
+<td>Purpose</td>
+<td>General-purpose agent guide</td>
+<td>Contextual guidance during development sessions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Structure</strong></p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>.agents/
+├── SKILL.md                    # Entry point (activation trigger definitions)
+└── references/
+    ├── preferred-apis.md       # fileops / csv2graph API details
+    ├── cli-workflow.md         # CLI execution order guide
+    ├── config.md               # Configuration file spec (YAML/TOML)
+    └── modes.md                # 5-mode detailed reference
+</code></pre></div></td></tr></table></div>
+<p><strong>Key Features</strong></p>
+<ul>
+<li>Encoding-safe file I/O (<code>rdetoolkit.fileops</code>) mandatory usage guidance</li>
+<li>Processing mode selection flowchart for 5 modes (Invoice / ExcelInvoice / SmartTableInvoice / MultiDataTile / RDEFormat)</li>
+<li>Correct execution order guide for CLI template editing and validation</li>
+<li><code>rdeconfig.yaml</code> / <code>pyproject.toml</code> configuration file spec reference</li>
+<li>Common mistakes and fixes troubleshooting table</li>
+</ul>
+<hr/>
+<h4 id="csv2graph-module-refactoring">csv2graph Module Refactoring</h4>
+<p>Significantly refactored the csv2graph module for improved modularity and testability.</p>
+<ul>
+<li>Extracted dataclasses (<code>MatplotlibArtifact</code>, <code>NormalizedColumns</code>, <code>RenderCollections</code>) to <code>models.py</code></li>
+<li>Moved internal helper functions to appropriate modules (<code>config.py</code>, <code>normalizers.py</code>, etc.)</li>
+<li>Created <code>strategies/render_coordinator.py</code> as rendering coordination layer</li>
+<li>Reduced csv2graph.py from 662 to 512 lines (22.7% reduction)</li>
+<li>Maintained 100% API backward compatibility</li>
+</ul>
+<hr/>
+<h4 id="dataclass-memory-efficiency-improvements">Dataclass Memory Efficiency Improvements</h4>
+<p>With Python 3.9 support dropped, enabled <code>slots=True</code> on all 13 dataclasses in <code>rde2types.py</code>. This reduces memory usage per instance and improves attribute access performance.</p>
+<hr/>
+<h3 id="testing">Testing</h3>
+<p>All core tests pass successfully under Python 3.10-3.14:
+- <strong>Unit tests</strong>: 1,603 passed
+- <strong>Quality checks</strong>: ruff, mypy, pytest all pass
+- <strong>Integration tests</strong>: All workflows validated</p>
+<hr/>
 <h2 id="v153-2026-02-03">v1.5.3 (2026-02-03)</h2>
 <div class="admonition info">
 <p class="admonition-title">References</p>

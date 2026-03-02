@@ -1304,6 +1304,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    Agent Skills for AI Assistants
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1434,6 +1446,18 @@
     
   
     Invoice Files
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generator
   
 
     
@@ -2067,6 +2091,18 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generation
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../rdetoolkit/cmd/validate/">
 <span class="md-ellipsis">
     
@@ -2435,17 +2471,17 @@
 <h2 id="prerequisites">Prerequisites</h2>
 <p>Before installing RDEToolKit, confirm the following:</p>
 <ul>
-<li><strong>Python</strong>: Version 3.9 or higher (Python 3.10+ recommended)</li>
+<li><strong>Python</strong>: Version 3.10 or higher</li>
 <li><strong>pip</strong>: Latest version recommended</li>
 <li><strong>Internet Connection</strong>: Needed to download packages from PyPI</li>
 </ul>
 <div class="admonition warning">
-<p class="admonition-title">Python 3.9 Deprecation Notice</p>
-<p><strong>Important</strong>: Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0 (targeted for 2025 Q4 or later). While Python 3.9 continues to work in rdetoolkit 1.x, users will see a <code>DeprecationWarning</code> on import.</p>
-<p><strong>Recommended Action</strong>: Upgrade to Python 3.10 or later to ensure compatibility with future rdetoolkit releases.</p>
+<p class="admonition-title">Python 3.9 Support Removed</p>
+<p><strong>Important</strong>: Python 3.9 support was removed in rdetoolkit v1.6.0. Users on Python 3.9 should use rdetoolkit v1.5.x or earlier.</p>
+<p><strong>Required Action</strong>: Upgrade to Python 3.10 or later to use rdetoolkit v1.6.0+.</p>
 <p><strong>Supported Versions</strong>:</p>
 <ul>
-<li>Python 3.9: Deprecated (warning issued)</li>
+<li>Python 3.9: Not supported (use v1.5.x or earlier)</li>
 <li>Python 3.10+: Fully supported</li>
 </ul>
 </div>
@@ -2551,7 +2587,7 @@ pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>rd
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Create new environment</span>
-conda<span style="color: #BBB"> </span>create<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span>rde_env<span style="color: #BBB"> </span><span style="color: #963">python</span><span style="color: #333">=</span><span style="color: #60E; font-weight: bold">3</span>.9
+conda<span style="color: #BBB"> </span>create<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span>rde_env<span style="color: #BBB"> </span><span style="color: #963">python</span><span style="color: #333">=</span><span style="color: #60E; font-weight: bold">3</span>.10
 
 <span style="color: #888"># Activate</span>
 conda<span style="color: #BBB"> </span>activate<span style="color: #BBB"> </span>rde_env

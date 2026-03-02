@@ -7,7 +7,7 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="https://nims-mdpf.github.io/rdetoolkit/en/rdetoolkit/invoicefile/" rel="canonical"/>
 <link href="../modeproc/" rel="prev"/>
-<link href="../rde2util/" rel="next"/>
+<link href="../invoice_generator/" rel="next"/>
 <link href="../../../rdetoolkit/invoicefile/" hreflang="ja" rel="alternate"/>
 <link href="./" hreflang="en" rel="alternate"/>
 <link href="../../../img/2585322.png" rel="icon"/>
@@ -1146,6 +1146,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    Agent Skills for AI Assistants
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1386,15 +1398,6 @@
 <nav aria-label="InvoiceFile" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile--usage">
-<span class="md-ellipsis">
-      
-        Usage
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.invoice_obj">
 <span class="md-ellipsis">
       
@@ -1408,15 +1411,6 @@
 <span class="md-ellipsis">
       
         invoice_path
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.schema_path">
-<span class="md-ellipsis">
-      
-        schema_path
       
     </span>
 </a>
@@ -1529,15 +1523,6 @@
 <span class="md-ellipsis">
       
         template_generator
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.__is_empty_row">
-<span class="md-ellipsis">
-      
-        __is_empty_row
       
     </span>
 </a>
@@ -1711,19 +1696,6 @@
       
     </span>
 </a>
-<nav aria-label="get_apply_rules_obj" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.RuleBasedReplacer.get_apply_rules_obj--rulejson">
-<span class="md-ellipsis">
-      
-        rule.json
-      
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.RuleBasedReplacer.load_rules">
@@ -1824,6 +1796,18 @@
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generator
+  
+
+    
+  </span>
+</a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../rde2util/">
@@ -2452,6 +2436,18 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice Generation
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../cmd/validate/">
 <span class="md-ellipsis">
     
@@ -2756,15 +2752,6 @@
 <nav aria-label="InvoiceFile" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile--usage">
-<span class="md-ellipsis">
-      
-        Usage
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.invoice_obj">
 <span class="md-ellipsis">
       
@@ -2778,15 +2765,6 @@
 <span class="md-ellipsis">
       
         invoice_path
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.InvoiceFile.schema_path">
-<span class="md-ellipsis">
-      
-        schema_path
       
     </span>
 </a>
@@ -2899,15 +2877,6 @@
 <span class="md-ellipsis">
       
         template_generator
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.__is_empty_row">
-<span class="md-ellipsis">
-      
-        __is_empty_row
       
     </span>
 </a>
@@ -3081,19 +3050,6 @@
       
     </span>
 </a>
-<nav aria-label="get_apply_rules_obj" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#src.rdetoolkit.invoicefile.RuleBasedReplacer.get_apply_rules_obj--rulejson">
-<span class="md-ellipsis">
-      
-        rule.json
-      
-    </span>
-</a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#src.rdetoolkit.invoicefile.RuleBasedReplacer.load_rules">
@@ -3222,9 +3178,6 @@
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>read_excelinvoice(excelinvoice_filepath)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Deprecated wrapper around :class:<code>ExcelInvoiceFile</code>.</p>
-<p>This helper will be removed in version 1.5.0. Please instantiate <code>ExcelInvoiceFile</code> directly and use the
-<code>dfexcelinvoice</code>, <code>df_general</code>, and <code>df_specific</code> attributes.</p>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -3232,97 +3185,6 @@
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>check_exist_rawfiles(dfexcelinvoice, excel_rawfiles)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Checks for the existence of raw file paths listed in a DataFrame against a list of file Paths.</p>
-<p>This function compares a set of file names extracted from the <code>data_file_names/name</code> column of the provided DataFrame (dfexcelinvoice) with the names of files in the excel_rawfiles list.
-If there are file names in the DataFrame that are not present in the excel_rawfiles list, it raises a StructuredError with a message indicating the missing file.
-If all file names in the DataFrame are present in the excel_rawfiles list, it returns a list of Path objects from excel_rawfiles, sorted in the order they appear in the DataFrame.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dfexcelinvoice</code>
-</td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>A DataFrame containing file names in the 'data_file_names/name' column.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>excel_rawfiles</code>
-</td>
-<td>
-<code><span title="list">list</span>[<span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>A list of Path objects representing file paths.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If any file name in dfexcelinvoice is not found in excel_rawfiles.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="list">list</span>[<span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>list[Path]: A list of Path objects corresponding to the file names in dfexcelinvoice, ordered as they appear in the DataFrame.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -3431,225 +3293,13 @@ If all file names in the DataFrame are present in the excel_rawfiles list, it re
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>overwrite_invoicefile_for_dpfterm(invoiceobj, invoice_dst_filepath, invoiceschema_filepath, invoice_info)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>A function to overwrite DPF metadata into an invoice file.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>invoiceobj</code>
-</td>
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The object of invoice.json.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>invoice_dst_filepath</code>
-</td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file path for the destination invoice.json.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>invoiceschema_filepath</code>
-</td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeFsPath">RdeFsPath</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file path of invoice.schema.json.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>invoice_info</code>
-</td>
-<td>
-<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Information about the invoice file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-class">
 <h2 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile">
-<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>InvoiceFile(invoice_path, <span style="color: #333">*</span>, schema_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
+<code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>InvoiceFile(invoice_path)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Represents an invoice file and provides utilities to read and overwrite it.</p>
-<p><span class="doc-section-title">属性：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.InvoiceFile.invoice_path" title="invoice_path = Path(invoice_path)
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.InvoiceFile.invoice_path)">invoice_path</a></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the invoice file.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.InvoiceFile.schema_path" title="schema_path = Path(schema_path) if schema_path is not None else None
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.InvoiceFile.schema_path)">schema_path</a></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional path to the invoice schema file used for validation.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.InvoiceFile.invoice_obj" title="invoice_obj
-
-  
-      property
-      writable
-   (src.rdetoolkit.invoicefile.InvoiceFile.invoice_obj)">invoice_obj</a></code></td>
-<td>
-<code><span title="dict">dict</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dictionary representation of the invoice JSON file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>invoice_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the invoice file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>schema_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional path to the invoice schema for validation when overwriting.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="ValueError">ValueError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If <code>invoice_obj</code> is not a dictionary.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="example" open="">
-<summary>Example</summary>
-<h3 id="src.rdetoolkit.invoicefile.InvoiceFile--usage">Usage</h3>
-<p>invoice = InvoiceFile(Path("invoice.json"), schema_path=Path("invoice.schema.json"))
-invoice.invoice_obj["basic"]["dataName"] = "new_data_name"
-invoice.overwrite(Path("invoice_new.json"))
-invoice.invoice_obj["basic"]["dataName"] = "updated"
-invoice.overwrite(schema_path=Path("invoice.schema.json"))</p>
-</details>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.invoice_obj">
@@ -3660,22 +3310,11 @@ invoice.overwrite(schema_path=Path("invoice.schema.json"))</p>
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>Gets the invoice object.</p>
 </div>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.invoice_path">
-<code class="highlight language-python">invoice_path <span style="color: #333">=</span> Path(invoice_path)</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-attribute">
-<h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.schema_path">
-<code class="highlight language-python">schema_path <span style="color: #333">=</span> Path(schema_path) <span style="color: #080; font-weight: bold">if</span> schema_path <span style="color: #000; font-weight: bold">is</span> <span style="color: #000; font-weight: bold">not</span> <span style="color: #080; font-weight: bold">None</span> <span style="color: #080; font-weight: bold">else</span> <span style="color: #080; font-weight: bold">None</span></code>
+<code class="highlight language-python">invoice_path</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
@@ -3712,212 +3351,13 @@ invoice.overwrite(schema_path=Path("invoice.schema.json"))</p>
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>Copies the original invoice file from the source file path to the destination file path.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>src_file_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The source file path of the original invoice file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>dst_file_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The destination file path where the original invoice file will be copied to.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If the source file path does not exist.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>None</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.InvoiceFile.overwrite">
-<code class="highlight language-python">overwrite(dst_file_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, <span style="color: #333">*</span>, src_obj<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, schema_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
+<code class="highlight language-python">overwrite(dst_file_path, <span style="color: #333">*</span>, src_obj<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Persist invoice data to disk.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dst_file_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Destination file path. Defaults to <code>self.invoice_path</code> when omitted.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>src_obj</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Source invoice data. Accepts a dict to overwrite with explicit data or a path to a JSON file.
-Defaults to the current <code>invoice_obj</code>.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>schema_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Optional path to <code>invoice.schema.json</code> for validation. Falls back to the instance level
-<code>schema_path</code> when provided at construction time.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="TypeError">TypeError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If <code>src_obj</code> is not a dict or path-like object.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.InvoiceSchemaValidationError">InvoiceSchemaValidationError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>When validation fails against the provided schema.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If writing the file fails.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>When <code>dst_file_path</code> targets the instance's own <code>invoice_path</code>, the in-memory <code>invoice_obj</code> is updated with
-the sanitized data after a successful write to keep state in sync. Writing to a different destination leaves
-the instance state untouched.</p>
-</details>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -3925,58 +3365,6 @@ the instance state untouched.</p>
 <code class="highlight language-python">read(<span style="color: #333">*</span>, target_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Reads the content of the invoice file and returns it as a dictionary.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>target_path</code>
-</td>
-<td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the target invoice file. If not provided,
-uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th> <th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>dict</code></td> <td>
-<code><span title="dict">dict</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dictionary representation of the invoice JSON file.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>
@@ -3987,90 +3375,6 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>ExcelInvoiceFile(invoice_path)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Class representing an invoice file in Excel format. Provides utilities for reading and overwriting the invoice file.</p>
-<p><span class="doc-section-title">属性：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.invoice_path" title="invoice_path = invoice_path
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.invoice_path)">invoice_path</a></code></td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the excel invoice file (.xlsx).</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice" title="dfexcelinvoice
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.dfexcelinvoice)">dfexcelinvoice</a></code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dataframe of the invoice.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general" title="df_general
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general)">df_general</a></code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dataframe of general data (None if the sheet is absent).</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific" title="df_specific
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_specific)">df_specific</a></code></td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dataframe of specific data (None if the sheet is absent).</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><span title="src.rdetoolkit.invoicefile.ExcelInvoiceFile.self.template_generator">self.template_generator</span></code></td>
-<td>
-<code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator" title="src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator(fixed_header) (src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator)">ExcelInvoiceTemplateGenerator</a></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Template generator for the Excelinvoice.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.df_general">
@@ -4104,7 +3408,7 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.invoice_path">
-<code class="highlight language-python">invoice_path <span style="color: #333">=</span> invoice_path</code>
+<code class="highlight language-python">invoice_path</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
@@ -4114,20 +3418,9 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.template_generator">
-<code class="highlight language-python">template_generator <span style="color: #333">=</span> <span style="color: #080; font-weight: bold">None</span></code>
+<code class="highlight language-python">template_generator</code>
 <span class="doc doc-labels">
-<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-</span>
-</h3>
-<div class="doc doc-contents">
-</div>
-</div>
-<div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceFile.__is_empty_row">
-<code class="highlight language-python">__is_empty_row(row)</code>
-<span class="doc doc-labels">
-<small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
 </span>
 </h3>
 <div class="doc doc-contents">
@@ -4141,58 +3434,6 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>Function to detect if there are empty rows between data rows in the ExcelInvoice (in DataFrame format).</p>
-<p>If an empty row exists, an exception is raised.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>df</code>
-</td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Information of Sheet 1 of ExcelInvoice.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An exception is raised if an empty row exists.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -4203,92 +3444,6 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>Generates a template DataFrame based on the provided invoice schema and saves it to the specified path.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>invoice_schema_path</code>
-</td>
-<td>
-<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the invoice schema file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>save_path</code>
-</td>
-<td>
-<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path where the generated template will be saved.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>file_mode</code>
-</td>
-<td>
-<code><span title="typing.Literal">Literal</span>['file', 'folder']</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The mode indicating whether the input is a file or a folder. Defaults to "file".</p>
-</div>
-</td>
-<td>
-<code>'file'</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="tuple">tuple</span>[<span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-- A DataFrame representing the generated template.
-- A DataFrame containing references for general terms.
-- A DataFrame containing references for specific terms.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -4296,84 +3451,6 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 <code class="highlight language-python">overwrite(invoice_org, dist_path, invoice_schema_path, idx)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Overwrites the content of the original invoice file based on the data from the Excel invoice and saves it as a new file.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>invoice_org</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the original invoice file.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>dist_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to where the overwritten invoice file will be saved.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>invoice_schema_path</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the invoice schema.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>idx</code>
-</td>
-<td>
-<code><span title="int">int</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Index of the target row in the invoice dataframe.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -4381,80 +3458,6 @@ uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
 <code class="highlight language-python">read(<span style="color: #333">*</span>, target_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Reads the content of the Excel invoice file and returns it as three dataframes.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>target_path</code>
-</td>
-<td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the excelinvoice file(.xlsx) to be read. If not provided, uses the path from <code>self.invoice_path</code>. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="tuple">tuple</span>[<span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span> | None, <span title="pandas.DataFrame">DataFrame</span> | None]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[pd.DataFrame, pd.DataFrame | None, pd.DataFrame | None]:
-Three dataframes (dfexcelinvoice, df_general, df_specific). The general and specific sheets are <code>None</code>
-when the source workbook does not define the corresponding sheet.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If the invoice file is missing, if multiple invoice-list sheets exist, or if no</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -4462,121 +3465,6 @@ when the source workbook does not define the corresponding sheet.</p>
 <code class="highlight language-python">save(save_path, <span style="color: #333">*</span>, invoice<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, sheet_name<span style="color: #333">=</span><span style="background-color: #FFF0F0">'invoice_form'</span>, index<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, header<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Save the invoice DataFrame to an Excel file.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>save_path</code>
-</td>
-<td>
-<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path where the Excel file will be saved.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>invoice</code>
-</td>
-<td>
-<code><span title="pandas.DataFrame">DataFrame</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The DataFrame containing the invoice data. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>sheet_name</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The name of the sheet in the Excel file. Defaults to "invoice_form".</p>
-</div>
-</td>
-<td>
-<code>'invoice_form'</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>index</code>
-</td>
-<td>
-<code><span title="list">list</span>[<span title="str">str</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The list of index labels to use. If None, index will not be written. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>header</code>
-</td>
-<td>
-<code><span title="list">list</span>[<span title="str">str</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The list of column headers to use. If None, header will not be written. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>None</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>
@@ -4590,9 +3478,8 @@ when the source workbook does not define the corresponding sheet.</p>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator.CUSTOM_PREFIX">
-<code class="highlight language-python">CUSTOM_PREFIX <span style="color: #333">=</span> <span style="background-color: #FFF0F0">'custom'</span></code>
+<code class="highlight language-python">CUSTOM_PREFIX</code>
 <span class="doc doc-labels">
-<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
 </h3>
@@ -4601,9 +3488,8 @@ when the source workbook does not define the corresponding sheet.</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator.GENERAL_PREFIX">
-<code class="highlight language-python">GENERAL_PREFIX <span style="color: #333">=</span> <span style="background-color: #FFF0F0">'sample.general'</span></code>
+<code class="highlight language-python">GENERAL_PREFIX</code>
 <span class="doc doc-labels">
-<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
 </h3>
@@ -4612,9 +3498,8 @@ when the source workbook does not define the corresponding sheet.</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator.SPECIFIC_PREFIX">
-<code class="highlight language-python">SPECIFIC_PREFIX <span style="color: #333">=</span> <span style="background-color: #FFF0F0">'sample.specific'</span></code>
+<code class="highlight language-python">SPECIFIC_PREFIX</code>
 <span class="doc doc-labels">
-<small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
 </h3>
@@ -4623,7 +3508,7 @@ when the source workbook does not define the corresponding sheet.</p>
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.ExcelInvoiceTemplateGenerator.fixed_header">
-<code class="highlight language-python">fixed_header <span style="color: #333">=</span> fixed_header</code>
+<code class="highlight language-python">fixed_header</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
@@ -4636,61 +3521,6 @@ when the source workbook does not define the corresponding sheet.</p>
 <code class="highlight language-python">generate(config)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Generates a template based on the provided configuration.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>config</code>
-</td>
-<td>
-<code><span title="rdetoolkit.models.invoice.TemplateConfig">TemplateConfig</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The configuration object.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="tuple">tuple</span>[<span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-- A DataFrame representing the generated template.
-- A DataFrame containing references for general terms.
-- A DataFrame containing references for specific terms.
-- A DataFrame containing rdetoolkit version.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -4698,61 +3528,6 @@ when the source workbook does not define the corresponding sheet.</p>
 <code class="highlight language-python">save(dataframes, save_path)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Save the given DataFrame to an Excel file with specific formatting.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>dataframes</code>
-</td>
-<td>
-<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The DataFrame to be saved.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>save_path</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path where the Excel file will be saved.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="note" open="">
-<summary>Note</summary>
-<p>The method performs the following operations:
-- Writes the DataFrame to an Excel file starting from the 5th row without headers.
-- Sets the height of the 5th row to 40.
-- Adjusts the width of all columns to 20.
-- Applies a thin border to all cells in the range from row 5 to row 40.
-- Applies a thick top border and a double bottom border to the cells in the 5th row.</p>
-</details>
 </div>
 </div>
 </div>
@@ -4763,76 +3538,6 @@ when the source workbook does not define the corresponding sheet.</p>
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>backup_invoice_json_files(excel_invoice_file, mode)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Backs up invoice files and retrieves paths based on the mode specified in the input.</p>
-<p>For excelinvoice and rdeformat modes, it backs up invoice.json as the original file in the temp directory in MultiDataTile mode.
-For other modes, it treats the files in the invoice directory as the original files.
-After backing up, it returns the file paths for invoice_org.json and invoice.schema.json.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>excel_invoice_file</code>
-</td>
-<td>
-<code><span title="Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>File path for excelinvoice mode</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>mode</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>mode flags</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>tuple[Path, Path]: File paths for invoice.json and invoice.schema.json</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -4840,91 +3545,6 @@ After backing up, it returns the file paths for invoice_org.json and invoice.sch
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>update_description_with_features(rde_resource, dst_invoice_json, metadata_def_json)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Writes the provided features to the description field RDE.</p>
-<p>This function takes a dictionary of features and formats them to be written
-into the description field(to invoice.json)</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>rde_resource</code>
-</td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeOutputResourcePath">RdeOutputResourcePath</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path object containing resource paths needed for RDE processing.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>dst_invoice_json</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the invoice.json file where the features will be written.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>metadata_def_json</code>
-</td>
-<td>
-<code><span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the metadata list JSON file, which may include definitions or schema information.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th> <th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>None</code></td> <td>
-<code>None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The function does not return a value but writes the features to the invoice.json file in the description field.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-class">
@@ -4932,84 +3552,10 @@ into the description field(to invoice.json)</p>
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>RuleBasedReplacer(<span style="color: #333">*</span>, rule_file_path<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>A class for changing the rules of data naming.</p>
-<p>This class is used to manage and apply file name mapping rules. It reads rules from a JSON format
-rule file, sets rules, and performs file name transformations and replacements based on those rules.</p>
-<p><span class="doc-section-title">属性：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.RuleBasedReplacer.rules" title="rules = {}
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.RuleBasedReplacer.rules)">rules</a></code></td>
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dictionary holding the mapping rules.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" href="#src.rdetoolkit.invoicefile.RuleBasedReplacer.last_apply_result" title="last_apply_result = {}
-
-  
-      instance-attribute
-   (src.rdetoolkit.invoicefile.RuleBasedReplacer.last_apply_result)">last_apply_result</a></code></td>
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The result of the last applied rules.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>rule_file_path</code>
-</td>
-<td>
-<code><span title="Optional">Optional</span>[<span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Path to the rule file. If specified, rules are loaded from this path.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.RuleBasedReplacer.last_apply_result">
-<code class="highlight language-python">last_apply_result <span style="color: #333">=</span> {}</code>
+<code class="highlight language-python">last_apply_result</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
@@ -5019,7 +3565,7 @@ rule file, sets rules, and performs file name transformations and replacements b
 </div>
 <div class="doc doc-object doc-attribute">
 <h3 class="doc doc-heading" id="src.rdetoolkit.invoicefile.RuleBasedReplacer.rules">
-<code class="highlight language-python">rules <span style="color: #333">=</span> {}</code>
+<code class="highlight language-python">rules</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
 </span>
@@ -5032,108 +3578,6 @@ rule file, sets rules, and performs file name transformations and replacements b
 <code class="highlight language-python">get_apply_rules_obj(replacements, source_json_obj, <span style="color: #333">*</span>, mapping_rules<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Function to convert file mapping rules into a JSON format.</p>
-<p>This function takes string mappings separated by dots ('.') and converts them into a dictionary format, making it easier to handle within a target JsonObject.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>replacements</code>
-</td>
-<td>
-<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The object containing mapping rules (read-only).</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>source_json_obj</code>
-</td>
-<td>
-<code><span title="collections.abc.MutableMapping">MutableMapping</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Objects of key and value to which you want to apply the rule (performs nested assignments).</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>mapping_rules</code>
-</td>
-<td>
-<code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>] | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Rules for mapping key and value (read-only).
-If None, uses self.rules. Defaults to None.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Any]: dictionary type data after conversion</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="example" open="">
-<summary>Example</summary>
-<h4 id="src.rdetoolkit.invoicefile.RuleBasedReplacer.get_apply_rules_obj--rulejson">rule.json</h4>
-<p>rule = {
-    "filename_mapping": {
-        "invoice.basic.dataName": "${filename}",
-        "invoice.sample.names": ["${somedataname}"],
-    }
-}
-replacer = RuleBasedReplacer('rules.json')
-replacements = {
-    '${filename}': 'example.txt',
-    '${somedataname}': ['some data']
-}
-result = replacer.apply_rules(replacement_rule, save_file_path, mapping_rules = rule)
-print(result)</p>
-</details>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -5141,58 +3585,6 @@ print(result)</p>
 <code class="highlight language-python">load_rules(filepath)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Function to read file mapping rules.</p>
-<p>The file containing the mapping rules must be in JSON format.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>filepath</code>
-</td>
-<td>
-<code><span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file path of the JSON file containing the mapping rules.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An exception is raised if the file extension is not json.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -5200,59 +3592,6 @@ print(result)</p>
 <code class="highlight language-python">set_rule(path, variable)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Sets a new rule.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>path</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The path to the target location for replacement.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>variable</code>
-</td>
-<td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The rule after replacement.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="example" open="">
-<summary>Example</summary>
-<p>replacer = RuleBasedReplacer()
-replacer.set_rule('invoice.basic.dataName', 'filename')
-replacer.set_rule('invoice.sample.name', 'dataname')
-print(replacer.rules)</p>
-</details>
 </div>
 </div>
 <div class="doc doc-object doc-function">
@@ -5260,105 +3599,6 @@ print(replacer.rules)</p>
 <code class="highlight language-python">write_rule(replacements_rule, save_file_path)</code>
 </h3>
 <div class="doc doc-contents">
-<p>Function to write file mapping rules to a target JSON file.</p>
-<p>Writes the set mapping rules (in JSON format) to the target file</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>replacements_rule</code>
-</td>
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The object containing mapping rules.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>save_file_path</code>
-</td>
-<td>
-<code><span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file path for saving.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An exception error occurs if the extension of the save path is not .json.</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>An exception error occurs if values cannot be written to the json.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th> <th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td><code>str</code></td> <td>
-<code><span title="str">str</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The result of writing to the target JSON.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>
@@ -5369,78 +3609,6 @@ print(replacer.rules)</p>
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>apply_default_filename_mapping_rule(replacement_rule, save_file_path)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Applies a default filename mapping rule based on the basename of the save file path.</p>
-<p>This function creates an instance of RuleBasedReplacer and applies a default mapping rule. If the basename
-of the save file path is 'invoice', it sets a specific rule for 'basic.dataName'. After setting the rule,
-it writes the mapping rule to the specified file path and returns the result of the last applied rules.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>replacement_rule</code>
-</td>
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The replacement rules to be applied.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>save_file_path</code>
-</td>
-<td>
-<code><span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="pathlib.Path">Path</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>The file path where the replacement rules are saved.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Any]: The result of the last applied replacement rules.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p>The function assumes the existence of certain structures in the replacement rules and file paths, and it
-specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 </div>
 </div><hr/>
 <div class="doc doc-object doc-function">
@@ -5448,139 +3616,6 @@ specifically checks for a basename of 'invoice' to apply a predefined rule.</p>
 <code class="highlight language-python">src<span style="color: #333">.</span>rdetoolkit<span style="color: #333">.</span>invoicefile<span style="color: #333">.</span>apply_magic_variable(invoice_path, rawfile_path, <span style="color: #333">*</span>, save_filepath<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>, dataset_paths<span style="color: #333">=</span><span style="color: #080; font-weight: bold">None</span>)</code>
 </h2>
 <div class="doc doc-contents first">
-<p>Expand supported magic variables inside <code>invoice.json</code>.</p>
-<p>Magic variables can reference the input filename, invoice metadata sourced
-from <code>invoice_org</code> and constants defined in <code>metadata.json</code>.  Only
-<code>basic.dataName</code> currently supports substitution.</p>
-<p><span class="doc-section-title">引数：</span></p>
-<table>
-<thead>
-<tr>
-<th>名前</th>
-<th>タイプ</th>
-<th>デスクリプション</th>
-<th>デフォルト</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code>invoice_path</code>
-</td>
-<td>
-<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Target invoice file to update.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>rawfile_path</code>
-</td>
-<td>
-<code><span title="str">str</span> | <span title="pathlib.Path">Path</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Raw input file supplying <code>${filename}</code>.</p>
-</div>
-</td>
-<td>
-<em>必須</em>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>save_filepath</code>
-</td>
-<td>
-<code><span title="str">str</span> | <span title="pathlib.Path">Path</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Destination path for the updated invoice. Defaults to <code>invoice_path</code>.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code>dataset_paths</code>
-</td>
-<td>
-<code><span title="rdetoolkit.models.rde2types.RdeDatasetPaths">RdeDatasetPaths</span> | None</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>Dataset paths used to locate <code>invoice_org</code> and metadata files.</p>
-</div>
-</td>
-<td>
-<code>None</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">戻り値：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>dict[str, Any]: Updated invoice contents when substitutions occur. An empty dict is returned when</p>
-</div>
-</td>
-</tr>
-<tr class="doc-section-item">
-<td>
-<code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>no magic variables are present.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><span class="doc-section-title">発生：</span></p>
-<table>
-<thead>
-<tr>
-<th>タイプ</th>
-<th>デスクリプション</th>
-</tr>
-</thead>
-<tbody>
-<tr class="doc-section-item">
-<td>
-<code><span title="rdetoolkit.exceptions.StructuredError">StructuredError</span></code>
-</td>
-<td>
-<div class="doc-md-description">
-<p>If required fields or metadata are missing for a referenced magic variable.</p>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div><hr/>
 <h2 id="practical-usage">Practical Usage</h2>

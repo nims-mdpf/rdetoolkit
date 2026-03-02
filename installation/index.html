@@ -1303,6 +1303,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../usage/agent_skills/">
+<span class="md-ellipsis">
+    
+  
+    AIアシスタント向け Agent Skills
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1433,6 +1445,18 @@
     
   
     Invoiceファイル
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/invoice_generator/">
+<span class="md-ellipsis">
+    
+  
+    Invoice生成
   
 
     
@@ -2066,6 +2090,18 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="../rdetoolkit/cmd/gen_invoice/">
+<span class="md-ellipsis">
+    
+  
+    Invoice生成
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="../rdetoolkit/cmd/validate/">
 <span class="md-ellipsis">
     
@@ -2434,19 +2470,13 @@
 <h2 id="_2">前提条件</h2>
 <p>RDEToolKitをインストールする前に、以下の要件を満たしていることを確認してください：</p>
 <ul>
-<li><strong>Python</strong>: バージョン 3.9 以上 (Python 3.10以降を推奨)</li>
+<li><strong>Python</strong>: バージョン 3.10 以上</li>
 <li><strong>pip</strong>: 最新版を推奨</li>
 <li><strong>インターネット接続</strong>: PyPIからのパッケージダウンロードに必要</li>
 </ul>
 <div class="admonition warning">
-<p class="admonition-title">Python 3.9非推奨のお知らせ</p>
-<p><strong>重要</strong>: Python 3.9のサポートは非推奨となり、rdetoolkit v2.0 (2025年Q4以降を予定) で削除されます。Python 3.9はrdetoolkit 1.x系では引き続き動作しますが、インポート時に<code>DeprecationWarning</code>が表示されます。</p>
-<p><strong>推奨アクション</strong>: 将来のrdetoolkitリリースとの互換性を確保するため、Python 3.10以降へのアップグレードを計画してください。</p>
-<p><strong>サポート状況</strong>:</p>
-<ul>
-<li>Python 3.9: 非推奨 (警告が表示されます)</li>
-<li>Python 3.10以降: 完全サポート</li>
-</ul>
+<p class="admonition-title">Python 3.9 サポート終了のお知らせ</p>
+<p>RDEToolKit v1.6.0 からは Python 3.9 のサポートが削除されました。Python 3.9 をご利用の場合は、Python 3.10 以上へアップグレードするか、RDEToolKit v1.5.x 系を使用してください。</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Python環境の確認</p>
@@ -2550,7 +2580,7 @@ pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>rd
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># 新しい環境を作成</span>
-conda<span style="color: #BBB"> </span>create<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span>rde_env<span style="color: #BBB"> </span><span style="color: #963">python</span><span style="color: #333">=</span><span style="color: #60E; font-weight: bold">3</span>.9
+conda<span style="color: #BBB"> </span>create<span style="color: #BBB"> </span>-n<span style="color: #BBB"> </span>rde_env<span style="color: #BBB"> </span><span style="color: #963">python</span><span style="color: #333">=</span><span style="color: #60E; font-weight: bold">3</span>.10
 
 <span style="color: #888"># 環境を有効化</span>
 conda<span style="color: #BBB"> </span>activate<span style="color: #BBB"> </span>rde_env
