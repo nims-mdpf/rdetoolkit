@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み / Agent Skills追加 | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3     | 2026-02-03 | SmartTable sample.ownerId自動設定 / 欠損rawfileエラー改善 / invoicefile.pyバグ修正 | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2     | 2026-01-27 | CLI validate終了コード標準化 / metadata-def検証修正 / 設定エラーメッセージ改善 / Python 3.9非推奨警告 / PBTインフラ導入 | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1     | 2026-01-21 | SmartTable行データ直接アクセス / variable配列のfeature説明欄転記 | [v1.5.1](#v151-2026-01-21) |
@@ -19,6 +20,237 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.6.0 (2026-02-18)
+
+!!! warning "破壊的変更"
+    このリリースではPython 3.9のサポートが終了しました。最小Pythonバージョンは **3.10以上** です。
+
+!!! info "参照"
+    - 主な課題: [#351](https://github.com/nims-mdpf/rdetoolkit/issues/351), [#363](https://github.com/nims-mdpf/rdetoolkit/issues/363), [#371](https://github.com/nims-mdpf/rdetoolkit/issues/371), [#380](https://github.com/nims-mdpf/rdetoolkit/issues/380)
+
+### 破壊的変更: Python 3.9サポート終了
+
+#### 概要
+rdetoolkit v1.6.0からPython 3.9のサポートが削除されました。サポートされる最小Pythonバージョンは **3.10** です。
+
+#### 理由
+- **サポート終了**: Python 3.9は **2025年10月31日** にEnd of Lifeを迎えました
+- **セキュリティ**: サポート継続はメンテナンスとセキュリティのリスクを増大させます
+- **モダン化**: Python 3.10以降では、改善された型ヒント機能、より良いパフォーマンス、言語拡張が提供されます
+
+#### 影響
+- **Python 3.9ユーザー**: `pip install rdetoolkit`は自動的に最後の互換バージョン（**v1.5.2**）に解決されます
+- **CI/CDパイプライン**: GitHub ActionsとtoxはPython 3.9でのテストを行わなくなりました
+- **PyPIメタデータ**: パッケージメタデータからPython 3.9分類子が削除されました
+
+#### 移行オプション
+
+**オプション1: Pythonのアップグレード（推奨）**
+```bash
+# Python 3.10以上をインストール
+# その後、rdetoolkitを再インストール
+pip install --upgrade rdetoolkit
+```
+
+サポート対象バージョン: Python 3.10, 3.11, 3.12, 3.13, 3.14
+
+**オプション2: 最後の互換バージョンに固定**
+```bash
+# Python 3.9でrdetoolkit v1.5.2を使用
+pip install "rdetoolkit<1.6.0"
+```
+
+!!! warning
+    v1.5.2に固定すると、v1.6.0以降の新機能、バグ修正、セキュリティ更新を受け取れません。
+
+Pythonバージョンサポートのライフサイクルに関する詳細は、以下を参照してください: [https://endoflife.date/python](https://endoflife.date/python)
+
+---
+
+### 技術的な変更
+
+#### パッケージメタデータ
+- `pyproject.toml`の`requires-python`を`>=3.10`に更新
+- `Programming Language :: Python :: 3.9`分類子を削除
+- ruff設定をPython 3.10ターゲットに更新（`target-version = "py310"`）
+
+#### CI/CDパイプライン
+- GitHub Actionsワークフロー（`pypi-release.yml`、`docs-ci.yml`）からPython 3.9を削除
+- tox設定をPython 3.10-3.14環境のみをテストするように更新
+- `tox.ini`からすべての`py39-*`テスト環境セクションを削除
+
+#### コードクリーンアップ
+- Python 3.9互換性コードとバージョン分岐を削除:
+  - `__init__.py`、`result.py`、`command.py`の`sys.version_info`チェック
+  - バージョン固有のdataclassパラメータ処理（`_DATACLASS_KWARGS`）
+  - 条件付き`slots=True`ロジック（現在は常に有効）
+- Python 3.10以降の組み込み型ヒントを使用するように最適化:
+  - `typing`モジュールから`Never`、`ParamSpec`、`TypeAlias`（`typing_extensions`ではなく）
+  - ネイティブユニオン構文（`X | Y`）を使用した型注釈の簡素化
+
+#### ドキュメント
+- インストールドキュメント（英語版・日本語版）をPython 3.10以上の要件を反映するように更新
+- 使用ドキュメント（CLI、クイックスタート、検証、オブジェクトストレージ）をPython 3.10以上を指定するように更新
+- 開発ドキュメントからPython 3.9への言及を削除
+- README.mdの非推奨通知をv1.6.0での削除を反映するように調整
+
+#### 依存関係
+- Python 3.10以上の制約でロックファイル（`uv.lock`、`requirements.lock`、`requirements-dev.lock`）を再生成
+- Python 3.9固有のパッケージwheelとマーカーを2,986行削除
+- `rdetoolkit`から`pytz`および`types-pytz`の直接依存を削除し、全てのタイムゾーン処理を`datetime.timezone.utc`に移行 ([#375](https://github.com/nims-mdpf/rdetoolkit/issues/375))
+
+---
+
+### 新機能
+
+#### invoice.json生成機能 (Issue #371)
+
+invoice.schema.jsonから直接invoice.jsonを生成するAPI・CLI機能を追加しました。
+
+**API使用例**
+```python
+from rdetoolkit.invoice_generator import generate_invoice_from_schema
+
+# すべてのフィールドとデフォルト値を含めてファイル出力
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    output_path="invoice/invoice.json",
+    fill_defaults=True,
+    required_only=False,
+)
+
+# 必須フィールドのみ、ファイル出力なしで辞書を取得
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    fill_defaults=False,
+    required_only=True,
+)
+```
+
+**CLI使用例**
+```bash
+# 基本的な使用 - カレントディレクトリにinvoice.jsonを生成
+rdetoolkit gen-invoice tasksupport/invoice.schema.json
+
+# 出力先を指定
+rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+
+# 必須フィールドのみ
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only
+
+# コンパクトなフォーマット
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --format compact
+```
+
+**デフォルト値の優先順位**
+1. スキーマの`default`フィールド
+2. スキーマの`examples`の最初の項目
+3. 型に基づくデフォルト値: string→"", number→0.0, integer→0, boolean→false
+
+---
+
+#### Result型の拡張: unwrap_or_elseメソッド (Issue #363)
+
+Result型に`unwrap_or_else`メソッドを追加しました。失敗時にエラーを引数として受け取るデフォルト値生成関数を呼び出します。
+
+```python
+from rdetoolkit.result import Success, Failure
+
+# Success: 値をそのまま返す（default_fnは呼ばれない）
+result = Success(42)
+value = result.unwrap_or_else(lambda e: 0)  # 42
+
+# Failure: default_fnを呼び出す
+result = Failure(ValueError("error"))
+value = result.unwrap_or_else(lambda e: -1)  # -1
+```
+
+---
+
+#### AIコーディングアシスタント向けエージェントガイド (Issue #380)
+
+AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor等）向けの組み込みガイドを追加しました。
+
+**機能**
+- `rdetoolkit.agent_guide()`: ガイドテキストを取得する関数
+- `rdetoolkit agent-guide`: CLIコマンドでガイドを表示
+
+**使用例**
+```python
+import rdetoolkit
+
+# エージェントガイドを取得
+guide = rdetoolkit.agent_guide()
+print(guide)
+```
+
+```bash
+# CLIからガイドを表示
+rdetoolkit agent-guide
+```
+
+---
+
+#### AIコーディングアシスタント向けAgent Skills
+
+AIコーディングアシスタント（Claude Code等）がRDE構造化プログラムの開発をcontextual guidanceとしてサポートする Agent Skills（`.agents/SKILL.md`）を追加しました。
+
+**既存のAgent Guide（`_agent/`）との違い**
+
+| 項目 | Agent Guide (`_agent/`) | Agent Skills (`.agents/`) |
+|------|-------------------------|---------------------------|
+| 配布方法 | パッケージ同梱（pip install後に利用可能） | ソースリポジトリ内（開発時に自動認識） |
+| アクセス方法 | `rdetoolkit.agent_guide()` API / CLI | Claude Codeが自動検出・適用 |
+| 用途 | 汎用的なエージェントガイド | 開発セッション中のcontextual guidance |
+
+**構成**
+
+```
+.agents/
+├── SKILL.md                    # エントリポイント（アクティベーショントリガー定義）
+└── references/
+    ├── preferred-apis.md       # fileops / csv2graph API詳細
+    ├── cli-workflow.md         # CLI実行順序ガイド
+    ├── config.md               # 設定ファイル仕様（YAML/TOML）
+    └── modes.md                # 5モード詳細リファレンス
+```
+
+**主要な機能**
+
+- エンコーディング安全なファイルI/O（`rdetoolkit.fileops`）の必須使用ガイダンス
+- 5つの処理モード（Invoice / ExcelInvoice / SmartTableInvoice / MultiDataTile / RDEFormat）の選択フローチャート
+- CLIテンプレート編集・バリデーションの正しい実行順序ガイド
+- `rdeconfig.yaml` / `pyproject.toml` 設定ファイル仕様リファレンス
+- よくある間違いと修正方法のトラブルシューティング表
+
+---
+
+#### csv2graphモジュールのリファクタリング
+
+csv2graphモジュールをモジュール性とテスト可能性の観点から大幅にリファクタリングしました。
+
+- dataclass（`MatplotlibArtifact`、`NormalizedColumns`、`RenderCollections`）を`models.py`に抽出
+- 内部ヘルパー関数を適切なモジュールに分離（`config.py`、`normalizers.py`等）
+- レンダリング調整レイヤーとして`strategies/render_coordinator.py`を新設
+- csv2graph.pyを662行から512行に削減（22.7%削減）
+- 100%のAPI後方互換性を維持
+
+---
+
+#### dataclassのメモリ効率改善
+
+Python 3.9サポートの終了に伴い、`rde2types.py`の全13個のdataclassに`slots=True`を有効化しました。これによりインスタンスあたりのメモリ使用量が削減され、属性アクセスのパフォーマンスが向上します。
+
+---
+
+### テスト
+Python 3.10-3.14でのすべてのコアテストが正常に通過:
+- **ユニットテスト**: 1,603通過
+- **品質チェック**: ruff、mypy、pytestすべて通過
+- **統合テスト**: すべてのワークフローで検証済み
+
+---
 
 ## v1.5.3 (2026-02-03)
 

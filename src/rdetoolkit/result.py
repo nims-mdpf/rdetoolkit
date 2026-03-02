@@ -7,14 +7,17 @@ enabling explicit representation of success and failure cases in function signat
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Generic, TypeVar, Union
+from typing import Any, Generic, ParamSpec, TypeAlias, TypeVar, Union
+
+from typing_extensions import dataclass_transform
 
 if sys.version_info >= (3, 11):
-    from typing import Never, ParamSpec, TypeAlias, dataclass_transform
-else:  # pragma: no cover - fallback for Python < 3.11
-    from typing_extensions import Never, ParamSpec, TypeAlias, dataclass_transform
+    from typing import Never
+else:
+    from typing_extensions import Never
 
 T = TypeVar("T")
 E = TypeVar("E")
@@ -25,9 +28,7 @@ C = TypeVar("C")
 
 @dataclass_transform(frozen_default=True)
 def _frozen_dataclass(cls: type[C]) -> type[C]:
-    if sys.version_info >= (3, 10):
-        return dataclass(frozen=True, slots=True)(cls)
-    return dataclass(frozen=True)(cls)
+    return dataclass(frozen=True, slots=True)(cls)
 
 
 @_frozen_dataclass
@@ -44,9 +45,6 @@ class Success(Generic[T]):
         >>> result.is_success()
         True
     """
-
-    if sys.version_info < (3, 10):
-        __slots__ = ("value",)
 
     value: T
 
@@ -93,6 +91,31 @@ class Success(Generic[T]):
         """
         return self.value
 
+    def unwrap_or_else(self, default_fn: Callable[[E], T]) -> T:
+        """Returns the contained success value, ignoring the default function.
+
+        For Success instances, returns the wrapped value without calling default_fn.
+        This enables lazy evaluation of defaults - the default computation is
+        skipped entirely when the result is successful.
+
+        Args:
+            default_fn: A callable that would compute a default value from an error.
+                Not called for Success instances.
+
+        Returns:
+            The wrapped success value.
+
+        Example:
+            >>> result = Success(42)
+            >>> result.unwrap_or_else(lambda e: 0)
+            42
+
+            >>> result = Success("hello")
+            >>> result.unwrap_or_else(lambda e: "default")
+            'hello'
+        """
+        return self.value
+
 
 @_frozen_dataclass
 class Failure(Generic[E]):
@@ -108,9 +131,6 @@ class Failure(Generic[E]):
         >>> result.is_success()
         False
     """
-
-    if sys.version_info < (3, 10):
-        __slots__ = ("error",)
 
     error: E
 
@@ -159,11 +179,35 @@ class Failure(Generic[E]):
         """
         if isinstance(self.error, Exception):
             raise self.error
-        emsg = (
-            f"Failure error is not an Exception: {self.error!r} "
-            f"(type={type(self.error).__name__})"
-        )
+        emsg = f"Failure error is not an Exception: {self.error!r} (type={type(self.error).__name__})"
         raise ValueError(emsg)
+
+    def unwrap_or_else(self, default_fn: Callable[[E], T]) -> T:
+        """Computes a default value from the error using the provided function.
+
+        For Failure instances, calls default_fn with the contained error and
+        returns the result. This enables error-dependent default value computation.
+
+        Args:
+            default_fn: A callable that takes the error and returns a default value.
+
+        Returns:
+            The result of calling default_fn with the contained error.
+
+        Example:
+            >>> result: Result[int, str] = Failure("not found")
+            >>> result.unwrap_or_else(lambda e: len(e))
+            9
+
+            >>> result = Failure(ValueError("invalid"))
+            >>> result.unwrap_or_else(lambda e: 0)
+            0
+
+            >>> result = Failure("error")
+            >>> result.unwrap_or_else(lambda e: f"default: {e}")
+            'default: error'
+        """
+        return default_fn(self.error)
 
 
 # Type alias for Result type (Success or Failure)

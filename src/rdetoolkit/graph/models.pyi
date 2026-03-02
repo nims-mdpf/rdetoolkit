@@ -41,6 +41,14 @@ class DirectionConfig:
     colors: dict[Direction | str, str] = field(default_factory=Incomplete)
     use_custom_colors: bool = ...
 
+def normalize_direction_filter(
+    direction_filter: list[str | Any] | str | None,
+) -> list[str]: ...
+
+def build_direction_config(
+    *, filters: list[str], direction_colors: dict[str, str] | None,
+) -> DirectionConfig: ...
+
 @dataclass
 class RenderResult:
     figure: Any
@@ -85,3 +93,23 @@ class ParsedData:
     y_cols: list[str]
     series_col: str | None = ...
     direction_col: str | None = ...
+
+@dataclass
+class MatplotlibArtifact:
+    filename: str
+    figure: Any
+    metadata: dict[str, Any] | None = ...
+
+@dataclass
+class NormalizedColumns:
+    x_col: int | list[int]
+    y_cols: list[int]
+    direction_cols: list[int | str | None]
+    derived_x_label: str
+    derived_y_label: str
+
+@dataclass
+class RenderCollections:
+    overlay: list[RenderResult]
+    individual: list[RenderResult]
+    def all_results(self) -> list[RenderResult]: ...

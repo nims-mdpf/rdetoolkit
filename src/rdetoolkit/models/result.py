@@ -14,7 +14,7 @@ class WorkflowExecutionStatus(BaseModel):
     mode: str
     error_code: int | None = Field(default=None)
     error_message: str | None = Field(default=None)
-    target: str | None
+    target: str | None = Field(default=None)
     stacktrace: str | None = Field(default=None)
     exception_object: Exception | None = Field(default=None, exclude=True)  # Store original exception, excluded from JSON serialization
 

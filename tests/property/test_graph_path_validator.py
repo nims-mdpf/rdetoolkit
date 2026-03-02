@@ -45,6 +45,8 @@ def safe_filename_strategy(draw: st.DrawFn) -> str:
     assume("\\" not in filename)
     # Ensure not empty and doesn't start with just dots
     assume(not filename.startswith(".."))
+    # Exclude "." as it refers to current directory
+    assume(filename != ".")
 
     return filename
 

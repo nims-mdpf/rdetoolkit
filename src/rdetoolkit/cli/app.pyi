@@ -31,6 +31,13 @@ def artifact(
     output_archive: pathlib.Optional[Path] = None,
     exclude: Optional[list[str]] = None,
 ) -> None: ...
+def gen_invoice(
+    schema_path: pathlib.Path,
+    output_path: pathlib.Optional[Path] = None,
+    fill_defaults: bool = True,
+    required_only: bool = False,
+    output_format: Literal["pretty", "compact"] = "pretty",
+) -> None: ...
 def make_excelinvoice(
     invoice_schema_json_path: pathlib.Path,
     output_path: pathlib.Optional[Path] = None,
@@ -62,3 +69,4 @@ def csv2graph(
     no_individual: Optional[bool] = None,
     max_legend_items: Optional[int] = None,
 ) -> None: ...
+def agent_guide(detailed: bool = False) -> None: ...

@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded / Agent Skills added | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3  | 2026-02-03   | SmartTable sample.ownerId auto-assignment / Missing rawfile error improvement / invoicefile.py bug fixes | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
 | v1.5.1  | 2026-01-21   | SmartTable row data direct access / Variable array feature support in description | [v1.5.1](#v151-2026-01-21) |
@@ -19,6 +20,237 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.6.0 (2026-02-18)
+
+!!! warning "Breaking Changes"
+    This release drops Python 3.9 support. Minimum Python version is now **3.10+**.
+
+!!! info "References"
+    - Key issues: [#351](https://github.com/nims-mdpf/rdetoolkit/issues/351), [#363](https://github.com/nims-mdpf/rdetoolkit/issues/363), [#371](https://github.com/nims-mdpf/rdetoolkit/issues/371), [#380](https://github.com/nims-mdpf/rdetoolkit/issues/380)
+
+### Breaking Changes: Python 3.9 Support Dropped
+
+#### Overview
+Python 3.9 support has been removed from rdetoolkit v1.6.0. The minimum supported Python version is now **3.10**.
+
+#### Rationale
+- **End of Life**: Python 3.9 reached end-of-life on **October 31, 2025**
+- **Security**: Continuing support increases maintenance and security risks
+- **Modernization**: Python 3.10+ provides improved typing features, better performance, and language enhancements
+
+#### Impact
+- **Users on Python 3.9**: `pip install rdetoolkit` will automatically resolve to the last compatible version (**v1.5.2**)
+- **CI/CD Pipelines**: GitHub Actions and tox configurations no longer test Python 3.9
+- **PyPI Metadata**: Python 3.9 classifier removed from package metadata
+
+#### Migration Options
+
+**Option 1: Upgrade Python (Recommended)**
+```bash
+# Install Python 3.10 or higher
+# Then reinstall rdetoolkit
+pip install --upgrade rdetoolkit
+```
+
+Supported versions: Python 3.10, 3.11, 3.12, 3.13, 3.14
+
+**Option 2: Pin to Last Compatible Version**
+```bash
+# Stay on Python 3.9 with rdetoolkit v1.5.2
+pip install "rdetoolkit<1.6.0"
+```
+
+!!! warning
+    Pinning to v1.5.2 means you will not receive new features, bug fixes, or security updates from v1.6.0+.
+
+For more information on Python version support lifecycle, see: [https://endoflife.date/python](https://endoflife.date/python)
+
+---
+
+### Technical Changes
+
+#### Package Metadata
+- Updated `requires-python` to `>=3.10` in `pyproject.toml`
+- Removed `Programming Language :: Python :: 3.9` classifier
+- Updated ruff configuration to target Python 3.10 (`target-version = "py310"`)
+
+#### CI/CD Pipelines
+- Removed Python 3.9 from GitHub Actions workflows (`pypi-release.yml`, `docs-ci.yml`)
+- Updated tox configuration to test only Python 3.10-3.14 environments
+- Removed all `py39-*` test environment sections from `tox.ini`
+
+#### Code Cleanup
+- Removed Python 3.9 compatibility code and version branches:
+  - `sys.version_info` checks in `__init__.py`, `result.py`, `command.py`
+  - Version-specific dataclass parameter handling (`_DATACLASS_KWARGS`)
+  - Conditional `slots=True` logic (now always enabled)
+- Optimized typing imports to use Python 3.10+ built-ins:
+  - `Never`, `ParamSpec`, `TypeAlias` from `typing` module (instead of `typing_extensions`)
+  - Simplified type annotations using native union syntax (`X | Y`)
+
+#### Documentation
+- Updated installation documentation (English and Japanese) to reflect Python 3.10+ requirement
+- Updated usage documentation (CLI, quickstart, validation, object storage) to specify Python 3.10+
+- Updated development documentation to remove Python 3.9 references
+- Adjusted deprecation notices in README.md to reflect v1.6.0 removal
+
+#### Dependencies
+- Regenerated lock files (`uv.lock`, `requirements.lock`, `requirements-dev.lock`) with Python 3.10+ constraints
+- Removed 2,986 lines of Python 3.9-specific package wheels and markers
+- Removed direct `pytz` and `types-pytz` dependencies from `rdetoolkit`; migrated all timezone handling to `datetime.timezone.utc` ([#375](https://github.com/nims-mdpf/rdetoolkit/issues/375))
+
+---
+
+### New Features
+
+#### invoice.json Generation Feature (Issue #371)
+
+Added API and CLI functionality to generate invoice.json directly from invoice.schema.json definitions.
+
+**API Usage**
+```python
+from rdetoolkit.invoice_generator import generate_invoice_from_schema
+
+# Generate with all fields and defaults, write to file
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    output_path="invoice/invoice.json",
+    fill_defaults=True,
+    required_only=False,
+)
+
+# Generate required fields only, return dict without file
+invoice_data = generate_invoice_from_schema(
+    schema_path="tasksupport/invoice.schema.json",
+    fill_defaults=False,
+    required_only=True,
+)
+```
+
+**CLI Usage**
+```bash
+# Basic usage - generates invoice.json in current directory
+rdetoolkit gen-invoice tasksupport/invoice.schema.json
+
+# Specify output path
+rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+
+# Generate required fields only
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only
+
+# Generate with compact formatting
+rdetoolkit gen-invoice tasksupport/invoice.schema.json --format compact
+```
+
+**Default Value Priority**
+1. Schema `default` field
+2. First item from schema `examples`
+3. Type-based defaults: string→"", number→0.0, integer→0, boolean→false
+
+---
+
+#### Result Type Extension: unwrap_or_else Method (Issue #363)
+
+Added `unwrap_or_else` method to the Result type. On failure, it calls a default value generator function that receives the error as an argument.
+
+```python
+from rdetoolkit.result import Success, Failure
+
+# Success: returns the value directly (default_fn is not called)
+result = Success(42)
+value = result.unwrap_or_else(lambda e: 0)  # 42
+
+# Failure: calls default_fn
+result = Failure(ValueError("error"))
+value = result.unwrap_or_else(lambda e: -1)  # -1
+```
+
+---
+
+#### AI Coding Assistant Agent Guide (Issue #380)
+
+Added embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
+
+**Features**
+- `rdetoolkit.agent_guide()`: Function to retrieve guide text
+- `rdetoolkit agent-guide`: CLI command to display the guide
+
+**Usage Examples**
+```python
+import rdetoolkit
+
+# Get the agent guide
+guide = rdetoolkit.agent_guide()
+print(guide)
+```
+
+```bash
+# Display guide from CLI
+rdetoolkit agent-guide
+```
+
+---
+
+#### Agent Skills for AI Coding Assistants
+
+Added Agent Skills (`.agents/SKILL.md`) to provide contextual guidance for AI coding assistants (Claude Code, etc.) when developing RDE structured programs.
+
+**Difference from existing Agent Guide (`_agent/`)**
+
+| Aspect | Agent Guide (`_agent/`) | Agent Skills (`.agents/`) |
+|--------|-------------------------|---------------------------|
+| Distribution | Bundled in package (available after pip install) | In source repository (auto-detected during development) |
+| Access | `rdetoolkit.agent_guide()` API / CLI | Auto-discovered and applied by Claude Code |
+| Purpose | General-purpose agent guide | Contextual guidance during development sessions |
+
+**Structure**
+
+```
+.agents/
+├── SKILL.md                    # Entry point (activation trigger definitions)
+└── references/
+    ├── preferred-apis.md       # fileops / csv2graph API details
+    ├── cli-workflow.md         # CLI execution order guide
+    ├── config.md               # Configuration file spec (YAML/TOML)
+    └── modes.md                # 5-mode detailed reference
+```
+
+**Key Features**
+
+- Encoding-safe file I/O (`rdetoolkit.fileops`) mandatory usage guidance
+- Processing mode selection flowchart for 5 modes (Invoice / ExcelInvoice / SmartTableInvoice / MultiDataTile / RDEFormat)
+- Correct execution order guide for CLI template editing and validation
+- `rdeconfig.yaml` / `pyproject.toml` configuration file spec reference
+- Common mistakes and fixes troubleshooting table
+
+---
+
+#### csv2graph Module Refactoring
+
+Significantly refactored the csv2graph module for improved modularity and testability.
+
+- Extracted dataclasses (`MatplotlibArtifact`, `NormalizedColumns`, `RenderCollections`) to `models.py`
+- Moved internal helper functions to appropriate modules (`config.py`, `normalizers.py`, etc.)
+- Created `strategies/render_coordinator.py` as rendering coordination layer
+- Reduced csv2graph.py from 662 to 512 lines (22.7% reduction)
+- Maintained 100% API backward compatibility
+
+---
+
+#### Dataclass Memory Efficiency Improvements
+
+With Python 3.9 support dropped, enabled `slots=True` on all 13 dataclasses in `rde2types.py`. This reduces memory usage per instance and improves attribute access performance.
+
+---
+
+### Testing
+All core tests pass successfully under Python 3.10-3.14:
+- **Unit tests**: 1,603 passed
+- **Quality checks**: ruff, mypy, pytest all pass
+- **Integration tests**: All workflows validated
+
+---
 
 ## v1.5.3 (2026-02-03)
 

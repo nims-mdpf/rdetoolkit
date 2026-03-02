@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import sys
-import warnings
 
-# Python 3.9 deprecation warning (Issue #360)
-if sys.version_info < (3, 10):
-    warnings.warn(
-        "Python 3.9 support is deprecated and will be removed in rdetoolkit v2.0. "
-        "Please upgrade to Python 3.10 or later.",
-        DeprecationWarning,
-        stacklevel=2,
+# Enforce Python 3.10+ requirement (Issue #351)
+if sys.version_info < (3, 10):  # noqa: UP036
+    msg = (
+        "Python 3.10 or higher is required. "
+        "Python 3.9 support was removed in rdetoolkit 1.6.0. "
+        "Please use rdetoolkit 1.5.x or upgrade Python."
     )
+    raise RuntimeError(msg)
 
 from importlib import import_module
 from typing import Any
 
-__version__ = "1.5.3"
+__version__ = "1.6.0"
 
 _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "DirectoryOps": ("rdetoolkit.core", "DirectoryOps"),
@@ -27,6 +26,8 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "Success": ("rdetoolkit.result", "Success"),
     "Failure": ("rdetoolkit.result", "Failure"),
     "try_result": ("rdetoolkit.result", "try_result"),
+    # Agent guide for AI coding assistants
+    "get_agent_guide": ("rdetoolkit._agent", "get_guide"),
 }
 
 _LAZY_MODULES: dict[str, str] = {
@@ -64,6 +65,7 @@ __all__ = [
     "try_result",
     "errors",
     "exceptions",
+    "get_agent_guide",
     "img2thumb",
     "invoicefile",
     "modeproc",

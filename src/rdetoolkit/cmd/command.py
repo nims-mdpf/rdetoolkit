@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import shutil
-import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,14 +19,12 @@ from rdetoolkit.rdelogger import get_logger
 
 logger = get_logger(__name__)
 
-_DATACLASS_KWARGS: dict[str, bool] = {"slots": True} if sys.version_info >= (3, 10) else {}
-
 
 class InitTemplateError(RuntimeError):
     """Raised when a user-provided init template cannot be applied."""
 
 
-@dataclass(**_DATACLASS_KWARGS)
+@dataclass(slots=True)
 class InitTemplateConfig:
     entry_point: Optional[Path] = None
     modules: Optional[Path] = None

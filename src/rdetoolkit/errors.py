@@ -7,7 +7,8 @@ import sys
 import traceback
 from collections.abc import Generator
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
+from collections.abc import Callable
 
 from rdetoolkit.exceptions import StructuredError
 

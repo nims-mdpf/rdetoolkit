@@ -89,6 +89,92 @@ class DirectionConfig:
     use_custom_colors: bool = False
 
 
+def normalize_direction_filter(
+    direction_filter: list[str | Any] | str | None,
+) -> list[str]:
+    """Normalize direction filter values into strings.
+
+    Converts various direction filter input formats into a normalized list of strings.
+    Handles None values, enum types with .value attribute, and ensures consistent
+    string representation.
+
+    Args:
+        direction_filter: Direction filter specification. Can be:
+            - None: Returns empty list
+            - str: Single direction name, returned as list
+            - list: List of direction values (str, enum, or None)
+
+    Returns:
+        List of normalized direction filter strings with None values filtered out
+
+    Examples:
+        >>> normalize_direction_filter(None)
+        []
+        >>> normalize_direction_filter("Charge")
+        ['Charge']
+        >>> normalize_direction_filter(["Charge", "Discharge"])
+        ['Charge', 'Discharge']
+        >>> normalize_direction_filter(["Charge", None, "Rest"])
+        ['Charge', 'Rest']
+    """
+    if not direction_filter:
+        return []
+
+    candidates = (
+        [direction_filter]
+        if isinstance(direction_filter, str)
+        else [value for value in direction_filter if value is not None]
+    )
+
+    normalized: list[str] = []
+    for value in candidates:
+        if hasattr(value, "value"):
+            normalized.append(str(value.value))
+        else:
+            normalized.append(str(value))
+    return normalized
+
+
+def build_direction_config(
+    *, filters: list[str], direction_colors: dict[str, str] | None,
+) -> DirectionConfig:
+    """Create DirectionConfig from filters and optional color overrides.
+
+    Builds a DirectionConfig object with the specified filters and applies custom
+    color mappings if provided. Default colors are used for directions not
+    explicitly specified in direction_colors.
+
+    Args:
+        filters: List of direction filter strings to apply
+        direction_colors: Optional mapping of direction names to color values.
+            If provided, these colors override the defaults and use_custom_colors
+            is set to True
+
+    Returns:
+        Configured DirectionConfig object with filters and colors
+
+    Examples:
+        >>> config = build_direction_config(filters=["Charge"], direction_colors=None)
+        >>> config.filters
+        ['Charge']
+        >>> config.use_custom_colors
+        False
+        >>> config = build_direction_config(
+        ...     filters=["Charge"],
+        ...     direction_colors={"Charge": "orange"}
+        ... )
+        >>> config.colors["Charge"]
+        'orange'
+        >>> config.use_custom_colors
+        True
+    """
+    direction_config = DirectionConfig(filters=filters)
+    if direction_colors:
+        direction_config.colors.update(direction_colors)
+        direction_config.use_custom_colors = True
+    return direction_config
+
+
 @dataclass
 class RenderResult:
     """Result of rendering operation.
@@ -193,3 +279,54 @@ class ParsedData:
     y_cols: list[str]
     series_col: str | None = None
     direction_col: str | None = None
+
+
+@dataclass(frozen=True)
+class MatplotlibArtifact:
+    """Rendered matplotlib artifact with its target filename.
+
+    Attributes:
+        filename: Target filename for the artifact
+        figure: matplotlib Figure object
+        metadata: Optional metadata dict (e.g., format information)
+    """
+
+    filename: str
+    figure: Any
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class NormalizedColumns:
+    """Normalized column specifications ready for PlotConfig consumption.
+
+    Attributes:
+        x_col: X column index or list of indices
+        y_cols: Y column indices
+        direction_cols: Direction column specifications
+        derived_x_label: Derived X-axis label from headers
+        derived_y_label: Derived Y-axis label from headers
+    """
+
+    x_col: int | list[int]
+    y_cols: list[int]
+    direction_cols: list[int | str | None]
+    derived_x_label: str
+    derived_y_label: str
+
+
+@dataclass(frozen=True)
+class RenderCollections:
+    """Rendered results from overlay and individual strategies.
+
+    Attributes:
+        overlay: List of overlay render results
+        individual: List of individual render results
+    """
+
+    overlay: list[RenderResult]
+    individual: list[RenderResult]
+
+    def all_results(self) -> list[RenderResult]:
+        """Return combined results preserving order."""
+        return [*self.overlay, *self.individual]

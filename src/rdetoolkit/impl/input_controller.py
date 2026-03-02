@@ -368,7 +368,7 @@ class MultiFileChecker(IInputFileChecker):
             # Align with InvoiceChecker: ensure pipeline executes once even when inputdata is empty
             return [()], None
         _rawfiles: list[tuple[Path, ...]] = [(f,) for f in other_files]
-        return sorted(_rawfiles, key=lambda path: str(path)), None
+        return sorted(_rawfiles, key=str), None
 
     def _get_group_by_files(self, input_files: list[Path]) -> OtherFilesPathList:
         excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]

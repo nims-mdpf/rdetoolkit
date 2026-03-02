@@ -1,14 +1,81 @@
-"""Type definitions for RDE toolkit.
+"""RDE type definitions and path structures.
 
-This module provides type definitions used throughout the RDE toolkit, including:
-- Legacy type aliases for backward compatibility
-- NewType definitions for improved type safety
-- Validated path types with runtime checks
-- Data classes for path and configuration management
+This module defines the core types and data structures used throughout rdetoolkit
+for representing RDE (Research Data Express) workflows, paths, and callbacks.
 
-NewType Definitions:
-    NewType provides compile-time type distinction without runtime overhead.
-    Use the helper functions (create_*) to construct typed instances safely.
+The module provides several categories of type definitions:
+
+1. Path Management Classes (Primary):
+   - RdeInputDirPaths: Input directory structure for reading source data
+   - RdeOutputResourcePath: Output directory structure for writing processed data
+   - RdeDatasetPaths: Unified view combining input and output paths
+
+2. Callback Protocols:
+   - DatasetCallback: Type protocol for custom processing functions
+
+3. File Collection Types:
+   - FileGroup: Typed collection of files grouped by type
+   - ProcessedFileGroup: Files after processing (unzipping, parsing)
+   - RawFiles: Collection of raw input files
+
+4. Validated Path Types:
+   - ValidatedPath: Base class for paths with runtime validation
+   - ZipFile, ExcelFile, CsvFile, JsonFile: File type-specific validated paths
+   - ValidatedDirectory: Directory paths with existence validation
+
+5. NewType Definitions:
+   - ZipFilePath, ExcelInvoicePath, SmartTablePath: Individual file path types
+   - InputDataDir, OutputDir, TemporaryDir: Directory path types
+   (Use helper functions create_* to construct these safely)
+
+6. Legacy Type Aliases (Backward Compatibility):
+   - InputFilesGroup, PathTuple, MetaType, etc.
+   (Use newer types like FileGroup for new code)
+
+7. Type Dictionaries:
+   - MetadataDefJson: Metadata definition structure
+   - Name, Schema: Supporting structures for metadata
+
+8. Utility Types:
+   - ValueUnitPair: Value with associated unit
+   - RdeFormatFlags: Legacy format flags (deprecated)
+
+Key Types for Custom Processing Functions:
+    These are the primary types users interact with when writing custom dataset
+    processing functions:
+
+    - RdeInputDirPaths: Access input data, invoice, and configuration
+    - RdeOutputResourcePath: Write processed outputs to structured directories
+    - RdeDatasetPaths: Unified interface to both input and output paths
+    - DatasetCallback: Protocol for function signatures
+
+Example:
+    Custom processing function using the path types:
+
+        >>> from pathlib import Path
+        >>> import pandas as pd
+        >>> from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+        >>>
+        >>> def process_data(srcpaths: RdeInputDirPaths, output: RdeOutputResourcePath):
+        ...     # Read input data
+        ...     for csv_file in srcpaths.inputdata.glob("*.csv"):
+        ...         df = pd.read_csv(csv_file)
+        ...
+        ...     # Save processed output
+        ...     result_file = output.struct / "results.csv"
+        ...     df.to_csv(result_file, index=False)
+
+Notes:
+    - All Path objects use pathlib.Path
+    - Validated types perform runtime checks on construction
+    - NewType definitions provide compile-time type safety
+    - Legacy types maintained for backward compatibility
+    - Use RdeDatasetPaths for new code (single-argument callback style)
+
+See Also:
+    - workflows.run: Main workflow entry point using these types
+    - models.config: Configuration types referenced by RdeInputDirPaths
+    - processing.pipeline: Processing pipeline using these path structures
 """
 
 from __future__ import annotations
@@ -120,7 +187,7 @@ def create_output_dir(path: Path | str) -> OutputDir:
 # These provide both compile-time type safety and runtime validation
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ValidatedPath:
     """Base class for validated path types.
 
@@ -190,7 +257,7 @@ class ValidatedPath:
         return cls(Path(*parts))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ZipFile(ValidatedPath):
     """ZIP file path with validation.
 
@@ -213,7 +280,7 @@ class ZipFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ExcelFile(ValidatedPath):
     """Excel file path with validation.
 
@@ -237,7 +304,7 @@ class ExcelFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CsvFile(ValidatedPath):
     """CSV file path with validation.
 
@@ -260,7 +327,7 @@ class CsvFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class JsonFile(ValidatedPath):
     """JSON file path with validation.
 
@@ -283,7 +350,7 @@ class JsonFile(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ValidatedDirectory(ValidatedPath):
     """Base class for validated directory paths.
 
@@ -295,7 +362,7 @@ class ValidatedDirectory(ValidatedPath):
         ValueError: If must_exist is True and directory doesn't exist
     """
 
-    must_exist: bool = field(default=False)
+    must_exist: bool = field(default=False, kw_only=True)
 
     def __post_init__(self) -> None:
         """Validate directory path and existence if required."""
@@ -308,7 +375,7 @@ class ValidatedDirectory(ValidatedPath):
             raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FileGroup:
     """Typed collection of files for RDE processing.
 
@@ -471,7 +538,7 @@ class FileGroup:
         return cls(raw_files=())
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ProcessedFileGroup:
     """Collection of files after processing (unzipping, parsing, etc.).
 
@@ -533,7 +600,7 @@ class ProcessedFileGroup:
         return count
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeFormatFlags:  # pragma: no cover
     """Class for managing flags used in RDE.
 
@@ -636,22 +703,95 @@ def create_default_config() -> Config:
     )
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeInputDirPaths:
-    """A data class that holds folder paths used for input in the RDE.
+    """Input directory paths for RDE workflow processing.
 
-    It manages the folder paths for input data necessary for the RDE.
+    This class encapsulates the directory structure for input data in the RDE workflow.
+    It provides access to raw data files, invoice configuration, and task support files
+    that custom processing functions can read and utilize.
+
+    The typical directory structure is:
+        container/data/
+            inputdata/        # Raw input data files (CSV, images, etc.)
+            invoice/          # Invoice configuration (invoice.json)
+            tasksupport/      # Task support files (config, schemas, templates)
 
     Attributes:
-        inputdata (Path): Path to the folder where input data is stored.
-        invoice (Path): Path to the folder where invoice.json is stored.
-        tasksupport (Path): Path to the folder where task support data is stored.
-        config (Config): The configuration object.
+        inputdata: Path to the input data directory containing unprocessed input files.
+            This is the primary location where custom processing functions read data from.
+            Common file types: CSV, Excel, images (PNG/JPG), text files, ZIP archives.
+
+        invoice: Path to the invoice directory containing invoice.json and related files.
+            The invoice defines the dataset structure, metadata schema, and processing
+            configuration. Custom functions typically read invoice.json for metadata
+            definitions and validation rules.
+
+        tasksupport: Path to the task support directory containing auxiliary files
+            such as configuration files (config.toml), schema definitions, CSV templates
+            (default_value.csv), and metadata definitions (metadata-def.json).
+
+        config: Configuration object controlling workflow behavior.
+            Contains system settings (extended_mode, save_raw, etc.), MultiDataTile
+            settings, and SmartTable configuration. Custom functions can access this
+            to adjust processing based on the current execution mode.
 
     Properties:
-        default_csv (Path): Provides the path to the `default_value.csv` file.
-                If `tasksupport` is specified, it uses the path under it; otherwise,
-                it uses the default path under `data/tasksupport`.
+        default_csv: Path to the 'default_value.csv' file in tasksupport directory.
+            This CSV file provides default values for metadata fields when not
+            explicitly specified in the input data.
+
+    Examples:
+        Accessing input data files:
+            >>> def process_data(srcpaths: RdeInputDirPaths, output):
+            ...     # Iterate over all files in inputdata directory
+            ...     for file_path in srcpaths.inputdata.glob("*.csv"):
+            ...         df = pd.read_csv(file_path)
+            ...         # Process dataframe
+            ...         pass
+
+        Reading invoice configuration:
+            >>> def process_data(srcpaths: RdeInputDirPaths, output):
+            ...     import json
+            ...     invoice_file = srcpaths.invoice / "invoice.json"
+            ...     with open(invoice_file) as f:
+            ...         invoice_data = json.load(f)
+            ...         # Use invoice metadata definitions
+            ...         metadata = invoice_data.get("metadata", [])
+
+        Checking configuration mode:
+            >>> def process_data(srcpaths: RdeInputDirPaths, output):
+            ...     if srcpaths.config.system.extended_mode == "MultiDataTile":
+            ...         # Process for MultiDataTile mode
+            ...         pass
+            ...     elif srcpaths.config.system.extended_mode == "SmartTable":
+            ...         # Process for SmartTable mode
+            ...         pass
+
+        Using task support files:
+            >>> def process_data(srcpaths: RdeInputDirPaths, output):
+            ...     # Read default values
+            ...     default_csv = srcpaths.default_csv
+            ...     if default_csv.exists():
+            ...         defaults = pd.read_csv(default_csv)
+            ...
+            ...     # Read metadata definitions
+            ...     metadata_def = srcpaths.tasksupport / "metadata-def.json"
+            ...     if metadata_def.exists():
+            ...         with open(metadata_def) as f:
+            ...             metadata_schema = json.load(f)
+
+    Notes:
+        - All Path objects are pathlib.Path instances
+        - Use Path.exists() to check file/directory existence before access
+        - Path.glob() and Path.rglob() enable pattern-based file discovery
+        - config.system.extended_mode determines execution mode (None, "MultiDataTile", "SmartTable")
+        - Invoice directory structure depends on execution mode
+
+    See Also:
+        - RdeOutputResourcePath: Output path structure for processed data
+        - RdeDatasetPaths: Unified view of input and output paths
+        - workflows.run: Main workflow function that provides these paths
     """
 
     inputdata: Path
@@ -673,31 +813,185 @@ class RdeInputDirPaths:
         return tasksupport.joinpath("default_value.csv")
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeOutputResourcePath:
-    """A data class that holds folder paths used as output destinations for RDE.
+    r"""Output resource paths for RDE workflow processing.
 
-    It maintains the paths for various files used in the structuring process.
+    This class encapsulates the directory structure for output data in the RDE workflow.
+    Custom processing functions write their results to these directories, which are then
+    packaged into the final RDE dataset structure.
+
+    The typical directory structure is:
+        container/data/invoice/
+            raw/              # Preserved raw input files
+            nonshared_raw/    # Non-shared raw input files
+            structured/       # Structured data outputs (CSV, Parquet, etc.)
+            main_image/       # Primary visualization images
+            other_image/      # Additional visualization images
+            meta/             # Metadata JSON files
+            thumbnail/        # Thumbnail preview images
+            logs/             # Processing log files
 
     Attributes:
-        raw (Path): Path where raw data is stored.
-        nonshared_raw (Path): Path where nonshared raw data is stored.
-        rawfiles (tuple[Path, ...]): Holds a tuple of input file paths,
-                                    such as those unzipped, for a single tile of data.
-        struct (Path): Path for storing structured data.
-        main_image (Path): Path for storing the main image file.
-        other_image (Path): Path for storing other image files.
-        meta (Path): Path for storing metadata files.
-        thumbnail (Path): Path for storing thumbnail image files.
-        logs (Path): Path for storing log files.
-        invoice (Path): Path for storing invoice files.
-        invoice_schema_json (Path): Path for the invoice.schema.json file.
-        invoice_org (Path): Path for storing the backup of invoice.json.
-        smarttable_rowfile (Optional[Path]): Path for the SmartTable-generated row CSV file.
-        smarttable_row_data (Optional[dict[str, Any]]): Parsed row data from SmartTable CSV file.
-        temp (Optional[Path]): Path for storing temporary files.
-        invoice_patch (Optional[Path]): Path for storing modified invoice files.
-        attachment (Optional[Path]): Path for storing attachment files.
+        raw: Path to the raw data directory for preserving original input files.
+            Files copied here are included in the final dataset package for reproducibility.
+            Controlled by config.system.save_raw setting.
+
+        nonshared_raw: Path to the non-shared raw data directory.
+            Similar to raw but for files that should not be shared externally.
+            Controlled by config.system.save_nonshared_raw setting.
+
+        rawfiles: Tuple of input file paths being processed in the current iteration.
+            In standard mode, contains all input files.
+            In MultiDataTile mode, contains files for the current tile.
+            In SmartTable mode, contains the current row's associated files.
+            Use this to identify which files triggered the current processing.
+
+        struct: Path to the structured data directory for processed outputs.
+            Save tabular data, analysis results, or transformed data here.
+            Common formats: CSV, JSON, Parquet, Arrow.
+            Files here are registered in the dataset metadata automatically.
+
+        main_image: Path to the main image directory for primary visualizations.
+            Save the most important plots, graphs, or representative images here.
+            Common formats: PNG, JPG, SVG, PDF.
+            Typically used for dataset preview images.
+
+        other_image: Path to the other image directory for auxiliary visualizations.
+            Save supplementary charts, diagnostic plots, or additional figures here.
+            Same format support as main_image.
+
+        meta: Path to the metadata directory for JSON metadata files.
+            Save extracted metadata, processing parameters, or analysis summaries here.
+            Format: JSON only. Files here are merged into dataset metadata.
+
+        thumbnail: Path to the thumbnail directory for preview images.
+            Thumbnail images are automatically generated for supported file types.
+            Manual thumbnails can also be saved here for custom preview images.
+            Controlled by config.system.save_thumbnail_image setting.
+
+        logs: Path to the logs directory for processing logs and diagnostics.
+            Save execution logs, error reports, or debugging information here.
+            Helps track processing history and troubleshoot issues.
+
+        invoice: Path to the invoice directory for dataset configuration.
+            Contains invoice.json (dataset metadata) and invoice.schema.json.
+            Custom functions can read but typically should not modify these directly.
+
+        invoice_schema_json: Path to the invoice.schema.json file.
+            Defines the JSON schema for validating invoice.json structure.
+            Use this to understand expected metadata structure.
+
+        invoice_org: Path to the original invoice.json backup.
+            Preserved copy of the original invoice.json before processing.
+            Useful for comparing changes or recovering original configuration.
+
+        smarttable_rowfile: Optional path to the SmartTable-generated row CSV file.
+            Available only in SmartTable mode. Contains the current row being processed.
+            File name format: fsmarttable_<row_index>.csv
+
+        smarttable_row_data: Optional dictionary of parsed SmartTable row data.
+            Available only in SmartTable mode. Contains column names as keys.
+            Use this to access row-specific metadata like sample names, parameters, etc.
+            Example: row_data.get("sample/name", "") or row_data.get("basic/dataName", "")
+
+        temp: Optional path to the temporary directory for intermediate files.
+            Use this for temporary processing files that should not be in the final dataset.
+            Files here are typically cleaned up after processing.
+
+        invoice_patch: Optional path to the invoice patch directory.
+            Used for storing invoice modification fragments that are merged later.
+            Advanced feature for dynamic metadata updates.
+
+        attachment: Optional path to the attachment directory.
+            Used for storing additional files that should be attached to the dataset
+            but don't fit into the standard output categories.
+
+    Examples:
+        Saving processed data:
+            >>> def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+            ...     import pandas as pd
+            ...
+            ...     # Process and save structured data
+            ...     result_df = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
+            ...     output_file = resource_paths.struct / "processed_results.csv"
+            ...     result_df.to_csv(output_file, index=False)
+            ...
+            ...     # Generate and save main visualization
+            ...     import matplotlib.pyplot as plt
+            ...     plt.figure()
+            ...     plt.plot([1, 2, 3], [4, 5, 6])
+            ...     figure_file = resource_paths.main_image / "plot.png"
+            ...     plt.savefig(figure_file)
+            ...     plt.close()
+
+        Creating subdirectories:
+            >>> def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+            ...     # Organize outputs into subdirectories
+            ...     analysis_dir = resource_paths.struct / "analysis"
+            ...     analysis_dir.mkdir(exist_ok=True)
+            ...
+            ...     summary_file = analysis_dir / "summary.json"
+            ...     with open(summary_file, "w") as f:
+            ...         json.dump({"status": "complete"}, f)
+
+        Preserving raw files:
+            >>> def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+            ...     # Copy specific input files to raw directory
+            ...     for raw_file in resource_paths.rawfiles:
+            ...         if raw_file.suffix == ".csv":
+            ...             import shutil
+            ...             dest = resource_paths.raw / raw_file.name
+            ...             shutil.copy2(raw_file, dest)
+
+        Saving metadata:
+            >>> def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+            ...     import json
+            ...
+            ...     # Save processing metadata
+            ...     metadata = {
+            ...         "processing_date": "2024-01-01",
+            ...         "algorithm": "custom_analysis",
+            ...         "parameters": {"threshold": 0.5}
+            ...     }
+            ...     meta_file = resource_paths.meta / "processing_info.json"
+            ...     with open(meta_file, "w") as f:
+            ...         json.dump(metadata, f, indent=2)
+
+        Using SmartTable row data:
+            >>> def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+            ...     # Access SmartTable row-specific data
+            ...     if resource_paths.smarttable_row_data:
+            ...         sample_name = resource_paths.smarttable_row_data.get("sample/name", "")
+            ...         data_name = resource_paths.smarttable_row_data.get("basic/dataName", "")
+            ...
+            ...         # Use row data for file naming
+            ...         output_file = resource_paths.struct / f"{sample_name}_results.csv"
+
+        Saving structured data formats:
+            >>> def process_data(srcpaths, resource_paths: RdeOutputResourcePath):
+            ...     import polars as pl
+            ...
+            ...     # Save as Parquet for efficient storage
+            ...     df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+            ...     parquet_file = resource_paths.struct / "data.parquet"
+            ...     df.write_parquet(parquet_file)
+
+    Notes:
+        - All output directories are automatically created by the workflow
+        - Use pathlib.Path methods for file operations (write_text, write_bytes, etc.)
+        - Create subdirectories as needed with Path.mkdir(exist_ok=True)
+        - Ensure file names are valid across platforms (avoid special characters: / \\ : * ? " < > |)
+        - Use appropriate file extensions for proper type detection (.csv, .json, .png, etc.)
+        - Files in struct/ and meta/ are automatically registered in dataset metadata
+        - SmartTable mode provides row-specific data via smarttable_row_data
+        - Check Path.exists() and handle None for optional paths (temp, invoice_patch, attachment)
+
+    See Also:
+        - RdeInputDirPaths: Input path structure for source data
+        - RdeDatasetPaths: Unified view of input and output paths
+        - workflows.run: Main workflow function that provides these paths
+        - Config: Configuration controlling save_raw, save_thumbnail_image, and extended_mode
     """
 
     raw: Path
@@ -719,7 +1013,7 @@ class RdeOutputResourcePath:
     attachment: Path | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class RdeDatasetPaths:
     """Unified view over input and output paths used by dataset callbacks.
 
@@ -965,7 +1259,7 @@ class MetadataDefJson(TypedDict):
     action: str
 
 
-@dataclass
+@dataclass(slots=True)
 class ValueUnitPair:
     """Dataclass representing a pair of value and unit.
 

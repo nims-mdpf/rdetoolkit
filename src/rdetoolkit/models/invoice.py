@@ -209,7 +209,7 @@ class SpecificTermRegistry(BaseTermRegistry):
         try:
             pl = _ensure_polars()
             filter_expr = pl.lit(True)
-            for col, val in zip(columns, values):
+            for col, val in zip(columns, values, strict=False):
                 expr = pl.col(col) == val
                 filter_expr = expr if filter_expr is None else filter_expr & expr
             filtered_df = self.df.filter(filter_expr)
@@ -222,7 +222,9 @@ class SpecificTermRegistry(BaseTermRegistry):
         except InvalidSearchParametersError:
             raise
         except Exception as e:
-            terms = ",".join(f"{col}={val}" for col, val in zip(columns, values))
+            terms = ",".join(
+                f"{col}={val}" for col, val in zip(columns, values, strict=False)
+            )
             emsg = f"An error occurred while searching for terms: {terms}. Error: {e}"
             raise DataRetrievalError(emsg) from e
 
