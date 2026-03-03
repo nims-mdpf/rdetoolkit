@@ -46,27 +46,80 @@ cd rdetoolkit
 
 ### Adding to your own project
 
-If you're developing a structured processing project in a separate repository, copy the `.agents/` directory into your project.
+If you're developing a structured processing project in a separate repository, follow these steps.
+
+#### 1. Copy the canonical source
+
+Place the skill files in `.agents/skills/rdetoolkit-skill/`.
 
 ```bash
-# Copy .agents/ from rdetoolkit into your project
-cp -r /path/to/rdetoolkit/src/rdetoolkit/.agents/ ./your-project/.agents/
+# Copy skill files from rdetoolkit repository
+mkdir -p ./your-project/.agents/skills/rdetoolkit-skill
+cp -r /path/to/rdetoolkit/src/rdetoolkit/.agents/* ./your-project/.agents/skills/rdetoolkit-skill/
 ```
 
-Claude Code auto-detects the skills when `.agents/SKILL.md` exists at the project root or under a src directory.
+#### 2. Create symlinks for your AI agent(s)
+
+Each AI coding assistant reads skill files from its own dedicated directory. Create symlinks (or copies) for the agents you use.
+
+```bash
+# For Claude Code
+mkdir -p .claude/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .claude/skills/rdetoolkit-skill
+
+# For GitHub Copilot
+mkdir -p .github/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .github/skills/rdetoolkit-skill
+
+# For Gemini CLI
+mkdir -p .gemini/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .gemini/skills/rdetoolkit-skill
+
+# For OpenCode
+mkdir -p .opencode/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .opencode/skills/rdetoolkit-skill
+
+# For Devin
+mkdir -p .devin/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .devin/skills/rdetoolkit-skill
+```
+
+You only need to set up the directories for the agents you actually use.
 
 ## Agent Skills structure
 
+When added to your own project, the directory layout looks like this:
+
 ```
-.agents/
-├── SKILL.md                    # Entry point
-└── references/
-    ├── building-structured-processing.md  # Structured processing build pattern
-    ├── preferred-apis.md                  # fileops & csv2graph API
-    ├── cli-workflow.md                    # CLI execution order guide
-    ├── config.md                          # Configuration file spec
-    └── modes.md                           # Processing mode details
+your-project/
+├── .agents/
+│   └── skills/
+│       └── rdetoolkit-skill/           # ← Canonical source (actual files)
+│           ├── SKILL.md                #    Entry point
+│           └── references/
+│               ├── building-structured-processing.md
+│               ├── preferred-apis.md
+│               ├── cli-workflow.md
+│               ├── config.md
+│               └── modes.md
+├── .claude/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For Claude Code (symlink)
+├── .github/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For GitHub Copilot (symlink)
+├── .gemini/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For Gemini CLI (symlink)
+├── .opencode/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For OpenCode (symlink)
+└── .devin/
+    └── skills/
+        └── rdetoolkit-skill/           # For Devin (symlink)
 ```
+
+`.agents/skills/rdetoolkit-skill/` is the single source of truth. Agent-specific directories contain symlinks pointing back to it. Updating the canonical source automatically propagates changes to all agents.
 
 ### SKILL.md
 
