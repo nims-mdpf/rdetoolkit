@@ -1242,6 +1242,28 @@
       
     </span>
 </a>
+<nav aria-label="Adding to your own project" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-copy-the-canonical-source">
+<span class="md-ellipsis">
+      
+        1. Copy the canonical source
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-create-symlinks-for-your-ai-agents">
+<span class="md-ellipsis">
+      
+        2. Create symlinks for your AI agent(s)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -2396,6 +2418,28 @@
       
     </span>
 </a>
+<nav aria-label="Adding to your own project" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-copy-the-canonical-source">
+<span class="md-ellipsis">
+      
+        1. Copy the canonical source
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-create-symlinks-for-your-ai-agents">
+<span class="md-ellipsis">
+      
+        2. Create symlinks for your AI agent(s)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -2513,29 +2557,111 @@ guide <span style="color: #333">=</span> rdetoolkit<span style="color: #333">.</
 <span style="color: #888"># Launch Claude Code — .agents/SKILL.md is automatically detected</span>
 </code></pre></div></td></tr></table></div>
 <h3 id="adding-to-your-own-project">Adding to your own project</h3>
-<p>If you're developing a structured processing project in a separate repository, copy the <code>.agents/</code> directory into your project.</p>
-<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Copy .agents/ from rdetoolkit into your project</span>
-cp<span style="color: #BBB"> </span>-r<span style="color: #BBB"> </span>/path/to/rdetoolkit/src/rdetoolkit/.agents/<span style="color: #BBB"> </span>./your-project/.agents/
-</code></pre></div></td></tr></table></div>
-<p>Claude Code auto-detects the skills when <code>.agents/SKILL.md</code> exists at the project root or under a src directory.</p>
-<h2 id="agent-skills-structure">Agent Skills structure</h2>
+<p>If you're developing a structured processing project in a separate repository, follow these steps.</p>
+<h4 id="1-copy-the-canonical-source">1. Copy the canonical source</h4>
+<p>Place the skill files in <code>.agents/skills/rdetoolkit-skill/</code>.</p>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">5</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">6</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">7</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">8</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>.agents/
-├── SKILL.md                    # Entry point
-└── references/
-    ├── building-structured-processing.md  # Structured processing build pattern
-    ├── preferred-apis.md                  # fileops &amp; csv2graph API
-    ├── cli-workflow.md                    # CLI execution order guide
-    ├── config.md                          # Configuration file spec
-    └── modes.md                           # Processing mode details
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Copy skill files from rdetoolkit repository</span>
+mkdir<span style="color: #BBB"> </span>-p<span style="color: #BBB"> </span>./your-project/.agents/skills/rdetoolkit-skill
+cp<span style="color: #BBB"> </span>-r<span style="color: #BBB"> </span>/path/to/rdetoolkit/src/rdetoolkit/.agents/*<span style="color: #BBB"> </span>./your-project/.agents/skills/rdetoolkit-skill/
 </code></pre></div></td></tr></table></div>
+<h4 id="2-create-symlinks-for-your-ai-agents">2. Create symlinks for your AI agent(s)</h4>
+<p>Each AI coding assistant reads skill files from its own dedicated directory. Create symlinks (or copies) for the agents you use.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># For Claude Code</span>
+mkdir<span style="color: #BBB"> </span>-p<span style="color: #BBB"> </span>.claude/skills
+ln<span style="color: #BBB"> </span>-s<span style="color: #BBB"> </span>../../.agents/skills/rdetoolkit-skill<span style="color: #BBB"> </span>.claude/skills/rdetoolkit-skill
+
+<span style="color: #888"># For GitHub Copilot</span>
+mkdir<span style="color: #BBB"> </span>-p<span style="color: #BBB"> </span>.github/skills
+ln<span style="color: #BBB"> </span>-s<span style="color: #BBB"> </span>../../.agents/skills/rdetoolkit-skill<span style="color: #BBB"> </span>.github/skills/rdetoolkit-skill
+
+<span style="color: #888"># For Gemini CLI</span>
+mkdir<span style="color: #BBB"> </span>-p<span style="color: #BBB"> </span>.gemini/skills
+ln<span style="color: #BBB"> </span>-s<span style="color: #BBB"> </span>../../.agents/skills/rdetoolkit-skill<span style="color: #BBB"> </span>.gemini/skills/rdetoolkit-skill
+
+<span style="color: #888"># For OpenCode</span>
+mkdir<span style="color: #BBB"> </span>-p<span style="color: #BBB"> </span>.opencode/skills
+ln<span style="color: #BBB"> </span>-s<span style="color: #BBB"> </span>../../.agents/skills/rdetoolkit-skill<span style="color: #BBB"> </span>.opencode/skills/rdetoolkit-skill
+
+<span style="color: #888"># For Devin</span>
+mkdir<span style="color: #BBB"> </span>-p<span style="color: #BBB"> </span>.devin/skills
+ln<span style="color: #BBB"> </span>-s<span style="color: #BBB"> </span>../../.agents/skills/rdetoolkit-skill<span style="color: #BBB"> </span>.devin/skills/rdetoolkit-skill
+</code></pre></div></td></tr></table></div>
+<p>You only need to set up the directories for the agents you actually use.</p>
+<h2 id="agent-skills-structure">Agent Skills structure</h2>
+<p>When added to your own project, the directory layout looks like this:</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>your-project/
+├── .agents/
+│   └── skills/
+│       └── rdetoolkit-skill/           # ← Canonical source (actual files)
+│           ├── SKILL.md                #    Entry point
+│           └── references/
+│               ├── building-structured-processing.md
+│               ├── preferred-apis.md
+│               ├── cli-workflow.md
+│               ├── config.md
+│               └── modes.md
+├── .claude/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For Claude Code (symlink)
+├── .github/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For GitHub Copilot (symlink)
+├── .gemini/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For Gemini CLI (symlink)
+├── .opencode/
+│   └── skills/
+│       └── rdetoolkit-skill/           # For OpenCode (symlink)
+└── .devin/
+    └── skills/
+        └── rdetoolkit-skill/           # For Devin (symlink)
+</code></pre></div></td></tr></table></div>
+<p><code>.agents/skills/rdetoolkit-skill/</code> is the single source of truth. Agent-specific directories contain symlinks pointing back to it. Updating the canonical source automatically propagates changes to all agents.</p>
 <h3 id="skillmd">SKILL.md</h3>
 <p>The main entry point. YAML frontmatter defines activation triggers — the skill activates when rdetoolkit import statements, RDE-related keywords, or specific CLI commands are detected.</p>
 <p>Covers the following:</p>
