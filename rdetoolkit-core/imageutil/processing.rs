@@ -152,7 +152,7 @@ mod tests {
     #[test]
     fn test_resize_success() {
         // Prepare Python Runtime
-        pyo3::prepare_freethreaded_python();
+        pyo3::Python::initialize();
 
         let test_files = setup_test_files();
         for input_path in test_files {
@@ -209,7 +209,7 @@ mod tests {
     #[test]
     fn test_resize_non_existent_inputfile() {
         // Prepare Python Runtime
-        pyo3::prepare_freethreaded_python();
+        pyo3::Python::initialize();
 
         let test_dir = get_test_dir();
         let input_path = test_dir.join("non_existent_file.png");
@@ -250,7 +250,7 @@ mod tests {
     // Negative case 2: Test when the input file is an invalid image file
     #[test]
     fn test_resize_invalid_image() {
-        pyo3::prepare_freethreaded_python();
+        pyo3::Python::initialize();
 
         // setup test files
         let test_dir = get_test_dir();
@@ -296,7 +296,7 @@ mod tests {
     #[test]
     // Negative case 3: Test for zero width or height when resizing
     fn test_resize_zero_dimensions() {
-        pyo3::prepare_freethreaded_python();
+        pyo3::Python::initialize();
 
         let test_dir = get_test_dir();
         let test_files = setup_test_files();
@@ -344,7 +344,7 @@ mod tests {
     // Negative case 4: Test for very large widths and heights
     #[test]
     fn test_exceeding_max_dimensions() {
-        pyo3::prepare_freethreaded_python();
+        pyo3::Python::initialize();
 
         let test_dir = get_test_dir();
         let test_file_path = test_dir.join("test_cos_640_480.png");

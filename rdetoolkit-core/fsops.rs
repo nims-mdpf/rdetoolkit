@@ -36,7 +36,7 @@ fn map_io_err(e: &IoError, context: &str, path: &Path) -> PyErr {
 /// - For `idx>0`: `{base_dir}/divided/{idx:0{n_digit}d}/{dirname}`
 ///
 /// ```
-#[pyclass(module = "rdetoolkit.core")]
+#[pyclass(module = "rdetoolkit.core", skip_from_py_object)]
 #[derive(Clone)]
 pub struct ManagedDirectory {
     base_dir: PathBuf,
@@ -197,7 +197,7 @@ impl ManagedDirectory {
 /// - Create and manage base directories
 /// - Create indexed subdirectories under a "divided" folder
 /// - Access directories via attribute-style notation
-#[pyclass(module = "rdetoolkit.core")]
+#[pyclass(module = "rdetoolkit.core", skip_from_py_object)]
 #[derive(Clone)]
 pub struct DirectoryOps {
     base_dir: PathBuf,
@@ -329,7 +329,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_new() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", None, None)?;
@@ -346,7 +346,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_with_index() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", Some(3), Some(1))?;
@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_call() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", None, None)?;
@@ -384,7 +384,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_list() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", None, None)?;
@@ -404,7 +404,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_string_representation() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", None, None)?;
@@ -417,7 +417,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_path_without_create() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", None, None)?;
@@ -432,7 +432,7 @@ mod tests {
 
     #[test]
     fn test_directory_ops_new() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
 
@@ -450,7 +450,7 @@ mod tests {
 
     #[test]
     fn test_directory_ops_getattr_creates_dir() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let ops = DirectoryOps::new(base_dir, None)?;
@@ -466,7 +466,7 @@ mod tests {
 
     #[test]
     fn test_managed_directory_call_creates_divided() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let dir = ManagedDirectory::new(base_dir, "test_dir", None, None)?;
@@ -486,7 +486,7 @@ mod tests {
 
     #[test]
     fn test_directory_ops_gettattr() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let ops = DirectoryOps::new(base_dir, None)?;
@@ -503,7 +503,7 @@ mod tests {
 
     #[test]
     fn test_directory_ops_repr() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
             let ops = DirectoryOps::new(base_dir, None)?;
@@ -519,7 +519,7 @@ mod tests {
 
     #[test]
     fn test_directory_ops_all() -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let temp = tempdir().unwrap();
             let base_dir = temp.path().to_str().unwrap();
 
@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn test_map_io_err_not_found() {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let e = IoError::new(ErrorKind::NotFound, "some error message");
             let path = PathBuf::from("/not/found/path");
             let err = map_io_err(&e, "test_context", &path);
@@ -598,7 +598,7 @@ mod tests {
 
     #[test]
     fn test_map_io_err_permission_denied() {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let e = IoError::new(ErrorKind::PermissionDenied, "some error message");
             let path = PathBuf::from("/some/protected/path");
             let err = map_io_err(&e, "perm context", &path);
@@ -613,7 +613,7 @@ mod tests {
 
     #[test]
     fn test_map_io_err_other() {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let e = IoError::new(ErrorKind::Other, "some io error");
             let path = PathBuf::from("/path/to/other/error");
             let err = map_io_err(&e, "other context", &path);
