@@ -46,27 +46,80 @@ cd rdetoolkit
 
 ### 自分のプロジェクトに導入する
 
-rdetoolkitを使った構造化処理プロジェクトを独立リポジトリで開発している場合は、`.agents/`ディレクトリをコピーして配置してください。
+rdetoolkitを使った構造化処理プロジェクトを独立リポジトリで開発している場合は、以下の手順で配置してください。
+
+#### 1. 正典ソースをコピーする
+
+`.agents/skills/rdetoolkit-skill/` に実体を配置します。
 
 ```bash
-# rdetoolkitリポジトリの.agents/を自分のプロジェクトにコピー
-cp -r /path/to/rdetoolkit/src/rdetoolkit/.agents/ ./your-project/.agents/
+# rdetoolkitリポジトリからスキルファイルをコピー
+mkdir -p ./your-project/.agents/skills/rdetoolkit-skill
+cp -r /path/to/rdetoolkit/src/rdetoolkit/.agents/* ./your-project/.agents/skills/rdetoolkit-skill/
 ```
 
-プロジェクト直下またはsrcディレクトリ直下に`.agents/SKILL.md`が存在すれば、Claude Codeは自動検出します。
+#### 2. 使用するAIエージェント用にシンボリックリンクを作成する
+
+各AIコーディングアシスタントはそれぞれ専用のディレクトリからスキルファイルを読み込みます。使用するエージェントに合わせてシンボリックリンク（またはコピー）を作成してください。
+
+```bash
+# Claude Code 用
+mkdir -p .claude/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .claude/skills/rdetoolkit-skill
+
+# GitHub Copilot 用
+mkdir -p .github/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .github/skills/rdetoolkit-skill
+
+# Gemini CLI 用
+mkdir -p .gemini/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .gemini/skills/rdetoolkit-skill
+
+# OpenCode 用
+mkdir -p .opencode/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .opencode/skills/rdetoolkit-skill
+
+# Devin 用
+mkdir -p .devin/skills
+ln -s ../../.agents/skills/rdetoolkit-skill .devin/skills/rdetoolkit-skill
+```
+
+すべてのエージェントに対応する必要はありません。使用するツールに対応するディレクトリだけ作成すれば十分です。
 
 ## Agent Skillsの構成
 
+自分のプロジェクトに導入した場合のディレクトリ構成は以下のようになります。
+
 ```
-.agents/
-├── SKILL.md                    # エントリポイント
-└── references/
-    ├── building-structured-processing.md  # 構造化処理の構築パターン
-    ├── preferred-apis.md                  # fileops・csv2graph API
-    ├── cli-workflow.md                    # CLI実行順序ガイド
-    ├── config.md                          # 設定ファイル仕様
-    └── modes.md                           # 処理モード詳細
+your-project/
+├── .agents/
+│   └── skills/
+│       └── rdetoolkit-skill/           # ← 実体（正典ソース）
+│           ├── SKILL.md                #    エントリポイント
+│           └── references/
+│               ├── building-structured-processing.md
+│               ├── preferred-apis.md
+│               ├── cli-workflow.md
+│               ├── config.md
+│               └── modes.md
+├── .claude/
+│   └── skills/
+│       └── rdetoolkit-skill/           # Claude Code 用（シンボリックリンク）
+├── .github/
+│   └── skills/
+│       └── rdetoolkit-skill/           # GitHub Copilot 用（シンボリックリンク）
+├── .gemini/
+│   └── skills/
+│       └── rdetoolkit-skill/           # Gemini CLI 用（シンボリックリンク）
+├── .opencode/
+│   └── skills/
+│       └── rdetoolkit-skill/           # OpenCode 用（シンボリックリンク）
+└── .devin/
+    └── skills/
+        └── rdetoolkit-skill/           # Devin 用（シンボリックリンク）
 ```
+
+`.agents/skills/rdetoolkit-skill/` が唯一の実体で、各エージェント用ディレクトリにはシンボリックリンクを配置します。スキルファイルの更新は正典ソースだけで済み、すべてのエージェントに自動で反映されます。
 
 ### SKILL.md
 
