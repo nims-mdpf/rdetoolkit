@@ -2327,7 +2327,7 @@
 </ul>
 <h4 id="_5">影響</h4>
 <ul>
-<li><strong>Python 3.9ユーザー</strong>: <code>pip install rdetoolkit</code>は自動的に最後の互換バージョン（<strong>v1.5.2</strong>）に解決されます</li>
+<li><strong>Python 3.9ユーザー</strong>: <code>pip install rdetoolkit</code> は、Python 3.9で利用可能な最後の互換バージョンに自動的に解決されます（現時点では <strong>v1.5.2</strong>）</li>
 <li><strong>CI/CDパイプライン</strong>: GitHub ActionsとtoxはPython 3.9でのテストを行わなくなりました</li>
 <li><strong>PyPIメタデータ</strong>: パッケージメタデータからPython 3.9分類子が削除されました</li>
 </ul>
@@ -2342,12 +2342,12 @@ pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>--
 <p>サポート対象バージョン: Python 3.10, 3.11, 3.12, 3.13, 3.14</p>
 <p><strong>オプション2: 最後の互換バージョンに固定</strong>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Python 3.9でrdetoolkit v1.5.2を使用</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Python 3.9で利用可能な最後の互換バージョンを使用（現時点では v1.5.2）</span>
 pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"rdetoolkit&lt;1.6.0"</span>
 </code></pre></div></td></tr></table></div></p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>v1.5.2に固定すると、v1.6.0以降の新機能、バグ修正、セキュリティ更新を受け取れません。</p>
+<p>最後の互換バージョン（現時点では v1.5.2）に固定すると、v1.6.0以降の新機能、バグ修正、セキュリティ更新を受け取れません。</p>
 </div>
 <p>Pythonバージョンサポートのライフサイクルに関する詳細は、以下を参照してください: <a href="https://endoflife.date/python">https://endoflife.date/python</a></p>
 <hr/>
