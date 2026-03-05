@@ -83,7 +83,7 @@ rdetoolkit agent-guide --detailed
 - **Python 3.9 support dropped**: Minimum Python version is now 3.10 (#351)
   - Python 3.9 reached end-of-life on October 31, 2025
   - Users on Python 3.9 should use rdetoolkit v1.5.x or earlier
-  - `pip install rdetoolkit` on Python 3.9 will automatically resolve to the last compatible version (v1.5.2)
+  - `pip install rdetoolkit` on Python 3.9 will automatically resolve to the last version compatible with Python 3.9 (currently v1.5.2)
 
 ### Changed
 
@@ -109,7 +109,7 @@ If you are using Python 3.9:
    ```bash
    pip install "rdetoolkit<1.6.0"
    ```
-   Note: This will limit you to rdetoolkit v1.5.2 and earlier, which will not receive new features or bug fixes.
+   Note: This will limit you to the last version compatible with Python 3.9 (currently v1.5.2) and earlier, which will not receive new features or bug fixes.
 
 For more information on Python version support lifecycle, see: https://endoflife.date/python
 
