@@ -2543,7 +2543,6 @@ dependencies = [
     { name = "toml" },
     { name = "tomlkit" },
     { name = "typer" },
-    { name = "types-pytz" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 
@@ -2610,7 +2609,6 @@ requires-dist = [
     { name = "toml", specifier = ">=0.10.2" },
     { name = "tomlkit", specifier = ">=0.12.4" },
     { name = "typer", specifier = ">=0.9.0" },
-    { name = "types-pytz", specifier = ">=2025.2.0.20250326" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.12.2" },
 ]
 provides-extras = ["minio", "plotly"]
