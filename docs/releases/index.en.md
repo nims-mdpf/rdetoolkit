@@ -40,7 +40,7 @@ Python 3.9 support has been removed from rdetoolkit v1.6.0. The minimum supporte
 - **Modernization**: Python 3.10+ provides improved typing features, better performance, and language enhancements
 
 #### Impact
-- **Users on Python 3.9**: `pip install rdetoolkit` will automatically resolve to the last version compatible with Python 3.9 (currently **v1.5.2**)
+- **Users on Python 3.9**: `pip install rdetoolkit` will automatically resolve to the last version compatible with Python 3.9 (currently **v1.5.3**)
 - **CI/CD Pipelines**: GitHub Actions and tox configurations no longer test Python 3.9
 - **PyPI Metadata**: Python 3.9 classifier removed from package metadata
 
@@ -57,12 +57,12 @@ Supported versions: Python 3.10, 3.11, 3.12, 3.13, 3.14
 
 **Option 2: Pin to Last Compatible Version**
 ```bash
-# Stay on the last version compatible with Python 3.9 (currently v1.5.2)
+# Stay on the last version compatible with Python 3.9 (currently v1.5.3)
 pip install "rdetoolkit<1.6.0"
 ```
 
 !!! warning
-    Pinning to the last version compatible with Python 3.9 (currently v1.5.2) means you will not receive new features, bug fixes, or security updates from v1.6.0+.
+    Pinning to the last version compatible with Python 3.9 (currently v1.5.3) means you will not receive new features, bug fixes, or security updates from v1.6.0+.
 
 For more information on Python version support lifecycle, see: [https://endoflife.date/python](https://endoflife.date/python)
 
