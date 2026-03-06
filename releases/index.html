@@ -2323,11 +2323,11 @@
 <ul>
 <li><strong>サポート終了</strong>: Python 3.9は <strong>2025年10月31日</strong> にEnd of Lifeを迎えました</li>
 <li><strong>セキュリティ</strong>: サポート継続はメンテナンスとセキュリティのリスクを増大させます</li>
-<li><strong>モダン化</strong>: Python 3.10以降では、改善された型ヒント機能、より良いパフォーマンス、言語拡張が提供されます</li>
+<li><strong>モダン化</strong>: Python 3.10以上では、改善された型ヒント機能、より良いパフォーマンス、言語拡張が提供されます</li>
 </ul>
 <h4 id="_5">影響</h4>
 <ul>
-<li><strong>Python 3.9ユーザー</strong>: <code>pip install rdetoolkit</code> は、Python 3.9で利用可能な最後の互換バージョンに自動的に解決されます（現時点では <strong>v1.5.2</strong>）</li>
+<li><strong>Python 3.9ユーザー</strong>: <code>pip install rdetoolkit</code> は、Python 3.9で利用可能な最後の互換バージョンに自動的に解決されます（現時点では <strong>v1.5.3</strong>）</li>
 <li><strong>CI/CDパイプライン</strong>: GitHub ActionsとtoxはPython 3.9でのテストを行わなくなりました</li>
 <li><strong>PyPIメタデータ</strong>: パッケージメタデータからPython 3.9分類子が削除されました</li>
 </ul>
@@ -2342,12 +2342,12 @@ pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>--
 <p>サポート対象バージョン: Python 3.10, 3.11, 3.12, 3.13, 3.14</p>
 <p><strong>オプション2: 最後の互換バージョンに固定</strong>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
-<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Python 3.9で利用可能な最後の互換バージョンを使用（現時点では v1.5.2）</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #888"># Python 3.9で利用可能な最後の互換バージョンを使用（現時点では v1.5.3）</span>
 pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span><span style="background-color: #FFF0F0">"rdetoolkit&lt;1.6.0"</span>
 </code></pre></div></td></tr></table></div></p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>最後の互換バージョン（現時点では v1.5.2）に固定すると、v1.6.0以降の新機能、バグ修正、セキュリティ更新を受け取れません。</p>
+<p>最後の互換バージョン（現時点では v1.5.3）に固定すると、v1.6.0以降の新機能、バグ修正、セキュリティ更新を受け取れません。</p>
 </div>
 <p>Pythonバージョンサポートのライフサイクルに関する詳細は、以下を参照してください: <a href="https://endoflife.date/python">https://endoflife.date/python</a></p>
 <hr/>
@@ -2370,7 +2370,7 @@ pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span><s
 <li><code>__init__.py</code>、<code>result.py</code>、<code>command.py</code>の<code>sys.version_info</code>チェック</li>
 <li>バージョン固有のdataclassパラメータ処理（<code>_DATACLASS_KWARGS</code>）</li>
 <li>条件付き<code>slots=True</code>ロジック（現在は常に有効）</li>
-<li>Python 3.10以降の組み込み型ヒントを使用するように最適化:</li>
+<li>Python 3.10以上の組み込み型ヒントを使用するように最適化:</li>
 <li><code>typing</code>モジュールから<code>Never</code>、<code>ParamSpec</code>、<code>TypeAlias</code>（<code>typing_extensions</code>ではなく）</li>
 <li>ネイティブユニオン構文（<code>X | Y</code>）を使用した型注釈の簡素化</li>
 </ul>
@@ -2787,7 +2787,7 @@ ConfigError: <span style="background-color: #FFF0F0">'/path/to/rdeconfig.yaml'</
 <h4 id="_31">警告メッセージ</h4>
 <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>DeprecationWarning: Python 3.9のサポートは非推奨であり、rdetoolkit v2.0で削除されます。
-Python 3.10以降にアップグレードしてください。
+Python 3.10以上にアップグレードしてください。
 </code></pre></div></td></tr></table></div>
 <hr/>
 <h3 id="property-based-testing-issue-372">Property-Based Testingインフラ導入 (Issue #372)</h3>
