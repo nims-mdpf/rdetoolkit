@@ -25,12 +25,6 @@ def _ensure_chardet() -> Any:
     return chardet
 
 
-def _ensure_universal_detector() -> Any:
-    from chardet.universaldetector import UniversalDetector
-
-    return UniversalDetector
-
-
 def _ensure_charset_detector() -> Callable[[bytes], Any]:
     from charset_normalizer import detect
 
@@ -111,31 +105,22 @@ class CharDecEncoding:
 
     @classmethod
     def __detect(cls, text_filepath: str) -> str:
-        """Detect the encoding of a given text file using chardet.
+        """Detect the encoding of a given text file using chardet public API.
 
         Args:
             text_filepath (str): Path to the text file to be analyzed.
 
         Returns:
-            str: The detected encoding of the text file.
+            str: The detected encoding of the text file, or an empty string
+                if detection fails.
         """
-        detector = _ensure_universal_detector()()
-
-        try:
-            with open(text_filepath, mode="rb") as f:
-                while True:
-                    binary = f.readline()
-                    if binary == b"":
-                        break
-                    detector.feed(binary)
-                    if detector.done:
-                        break
-        finally:
-            detector.close()
-
-        ret = detector.result["encoding"]
-        if ret:
-            return ret.replace("-", "_").lower()
+        chardet = _ensure_chardet()
+        with open(text_filepath, mode="rb") as f:
+            raw = f.read()
+        result = chardet.detect(raw)
+        enc = result.get("encoding")
+        if enc:
+            return enc.replace("-", "_").lower()
         return ""
 
 

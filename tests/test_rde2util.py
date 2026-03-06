@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import tempfile
+from unittest.mock import MagicMock, patch
 
 import pytest
 from rdetoolkit.rde2util import Meta, _split_value_unit, CharDecEncoding, read_from_json_file, write_to_json_file, castval, ValueCaster
@@ -235,6 +236,27 @@ def test_detect_text_file_encoding_shift_jis(shift_jis_file):
 
 def test_detect_text_file_encoding_utf_8_sig(utf_8_sig_file):
     assert CharDecEncoding.detect_text_file_encoding(utf_8_sig_file) == "utf_8_sig"
+
+
+def test_detect_encoding_none_from_chardet(tmp_path):
+    """__detect returns '' when chardet.detect returns encoding=None."""
+    # Given: any file
+    target = tmp_path / "sample.txt"
+    target.write_bytes(b"some bytes")
+
+    # When: charset_normalizer returns unusual encoding and chardet returns None
+    mock_charset_normalizer = MagicMock()
+    mock_charset_normalizer.return_value = {"encoding": "unknown_enc", "confidence": 0.5, "language": ""}
+
+    mock_chardet = MagicMock()
+    mock_chardet.detect.return_value = {"encoding": None, "confidence": 0.0, "language": ""}
+
+    with patch("rdetoolkit.rde2util._ensure_charset_detector", return_value=mock_charset_normalizer), \
+         patch("rdetoolkit.rde2util._ensure_chardet", return_value=mock_chardet):
+        result = CharDecEncoding.detect_text_file_encoding(str(target))
+
+    # Then: empty string is returned
+    assert result == ""
 
 
 # Tests for read_invoice_json_file
