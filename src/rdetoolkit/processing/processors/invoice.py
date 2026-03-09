@@ -380,7 +380,7 @@ class SmartTableInvoiceInitializer(Processor):
                     raise StructuredError(emsg) from exc
                 if not math.isfinite(number_value):
                     emsg = "ERROR: failed to cast SmartTable custom field to number"
-                    raise StructuredError(emsg)
+                    raise StructuredError(emsg) from None
                 return number_value
 
         return castval(value, field_type, field_format)
