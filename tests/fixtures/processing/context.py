@@ -16,6 +16,46 @@ from rdetoolkit.processing.context import ProcessingContext
 from rdetoolkit.models.rde2types import create_default_config
 
 
+def _augment_smarttable_test_schema(schema_path: Path) -> None:
+    """Ensure SmartTable integration fixtures include required custom fields."""
+    schema_data = json.loads(schema_path.read_text(encoding="utf-8"))
+    custom_properties = schema_data.setdefault("properties", {}).setdefault("custom", {}).setdefault("properties", {})
+
+    custom_properties.setdefault(
+        "customField1",
+        {
+            "type": "string",
+            "label": {"ja": "カスタムフィールド1", "en": "Custom Field 1"},
+        },
+    )
+    custom_properties.setdefault(
+        "field1",
+        {
+            "type": "string",
+            "label": {"ja": "フィールド1", "en": "Field 1"},
+        },
+    )
+    custom_properties.setdefault(
+        "temperature",
+        {
+            "type": "number",
+            "label": {"ja": "温度", "en": "Temperature"},
+        },
+    )
+    custom_properties.setdefault(
+        "common_data_type",
+        {
+            "type": "string",
+            "label": {"ja": "共通データタイプ", "en": "Common Data Type"},
+        },
+    )
+
+    schema_path.write_text(
+        json.dumps(schema_data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 @pytest.fixture
 def rde_input_paths():
     """Create a real RdeInputDirPaths object."""
@@ -53,7 +93,7 @@ def rde_output_paths():
 @pytest.fixture
 def rde_output_paths_rdeformat():
     """Create a real RdeOutputResourcePath object."""
-    context = RdeOutputResourcePath(
+    return RdeOutputResourcePath(
         raw=Path("data/raw"),
         nonshared_raw=Path("data/nonshared_raw"),
         main_image=Path("data/main_image"),
@@ -71,7 +111,6 @@ def rde_output_paths_rdeformat():
         ),
         invoice_org=Path("data/invoice/invoice.json"),
     )
-    return context
 
 
 @pytest.fixture
@@ -173,7 +212,7 @@ def processing_context_disabled_features(rde_input_paths, rde_output_paths, mock
 
 @pytest.fixture
 def test_processing_context_mapping(rde_input_paths, rde_output_paths_rdeformat, mock_datasets_function) -> Generator[ProcessingContext, None, None]:
-    """テスト用のProcessingContextを作成（一時ディレクトリ付きかつ、マッピングテスト用）"""
+    """Create a ProcessingContext for mapping tests with a temporary directory."""
     with tempfile.TemporaryDirectory() as temp_dir:
         base_path = Path(temp_dir)
         context = ProcessingContext(
@@ -292,6 +331,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
         test_schema_path = Path(__file__).parent.parent.parent / "samplefile" / "invoice.schema.json"
         if test_schema_path.exists():
             shutil.copy(test_schema_path, rde_output_paths.invoice_schema_json)
+            _augment_smarttable_test_schema(rde_output_paths.invoice_schema_json)
         else:
             # Create a minimal valid schema file if the sample doesn't exist
             schema_data = {
@@ -366,6 +406,7 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
 
             with open(rde_output_paths.invoice_schema_json, 'w') as f:
                 json.dump(schema_data, f)
+            _augment_smarttable_test_schema(rde_output_paths.invoice_schema_json)
 
         input_paths = RdeInputDirPaths(
             inputdata=base_path / "inputdata",

@@ -22,12 +22,14 @@ Execution commands:
 from __future__ import annotations
 
 import csv
+import io
 import json
 import shutil
 from pathlib import Path
 import tempfile
 
 import pytest
+import pandas as pd
 
 hypothesis = pytest.importorskip("hypothesis")
 from hypothesis import given, settings, strategies as st
@@ -167,13 +169,29 @@ def _is_invalid_number_string(value: str) -> bool:
     return False
 
 
+def _is_csv_missing_string(value: str) -> bool:
+    """Return True when the SmartTable CSV loader normalizes the text to missing."""
+    csv_buffer = io.StringIO()
+    writer = csv.DictWriter(csv_buffer, fieldnames=["value"])
+    writer.writeheader()
+    writer.writerow({"value": value})
+    csv_buffer.seek(0)
+
+    parsed = pd.read_csv(csv_buffer, dtype=str).iloc[0, 0]
+    return bool(pd.isna(parsed) or parsed == "")
+
+
 def _is_invalid_boolean_string(value: str) -> bool:
     """Return True when the given text is not a supported boolean token."""
     return value.strip().lower() not in {"true", "false"}
 
 
-invalid_number_strings = st.text(min_size=1, max_size=20).filter(_is_invalid_number_string)
-invalid_boolean_strings = st.text(min_size=1, max_size=20).filter(_is_invalid_boolean_string)
+invalid_number_strings = st.text(min_size=1, max_size=20).filter(
+    lambda value: _is_invalid_number_string(value) and not _is_csv_missing_string(value),
+)
+invalid_boolean_strings = st.text(min_size=1, max_size=20).filter(
+    lambda value: _is_invalid_boolean_string(value) and not _is_csv_missing_string(value),
+)
 
 
 @pytest.mark.property
