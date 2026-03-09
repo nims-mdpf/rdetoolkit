@@ -243,7 +243,13 @@ def test_process_metadata_type_cast_failure_raises(smarttable_processing_context
     )
 
     # When/Then: StructuredError is raised due to type conversion failure
-    with pytest.raises(StructuredError, match="Failed to cast metadata value for key: count"):
+    with pytest.raises(
+        StructuredError,
+        match=(
+            "Value for metadata.json key 'count' does not match the type "
+            "defined in metadata-def.json \\(expected: integer\\)\\."
+        ),
+    ):
         processor.process(context)
 
 
@@ -295,4 +301,3 @@ def test_process_metadata_invalid_definition_format_raises(smarttable_processing
     # When/Then: StructuredError is raised for invalid format
     with pytest.raises(StructuredError, match="metadata-def.json must contain an object at the top level"):
         processor.process(context)
-
