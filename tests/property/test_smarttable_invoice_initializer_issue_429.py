@@ -24,6 +24,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import shutil
 from pathlib import Path
 import tempfile
@@ -65,7 +66,7 @@ def _write_smarttable_row(csv_path: Path, row: dict[str, str]) -> None:
     """Create a single SmartTable row CSV file."""
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     with csv_path.open("w", newline="", encoding="utf-8") as fp:
-        writer = csv.DictWriter(fp, fieldnames=row.keys())
+        writer = csv.DictWriter(fp, fieldnames=row.keys(), escapechar="\\")
         writer.writeheader()
         writer.writerow(row)
 
@@ -157,22 +158,22 @@ def valid_number_strings(draw: st.DrawFn) -> str:
 
 def _is_invalid_number_string(value: str) -> bool:
     """Return True when the given text cannot be parsed as int or float."""
-    if value[:1] in "+-.0123456789":
-        return False
+    normalized = value.strip()
     try:
-        int(value)
+        int(normalized)
     except ValueError:
         try:
-            float(value)
+            parsed = float(normalized)
         except ValueError:
             return True
+        return not math.isfinite(parsed)
     return False
 
 
 def _is_csv_missing_string(value: str) -> bool:
     """Return True when the SmartTable CSV loader normalizes the text to missing."""
     csv_buffer = io.StringIO()
-    writer = csv.DictWriter(csv_buffer, fieldnames=["value"])
+    writer = csv.DictWriter(csv_buffer, fieldnames=["value"], escapechar="\\")
     writer.writeheader()
     writer.writerow({"value": value})
     csv_buffer.seek(0)

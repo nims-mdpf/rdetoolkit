@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections.abc import Mapping
+import math
 from pathlib import Path
 from typing import Any
 import copy
@@ -279,7 +280,11 @@ class SmartTableInvoiceInitializer(Processor):
             _fmt = schema_value.get("format")
             _type = schema_value["type"]
             try:
-                invoice_data["custom"][field] = castval(value, _type, _fmt)
+                invoice_data["custom"][field] = self._cast_custom_field_value(
+                    value,
+                    _type,
+                    _fmt,
+                )
             except StructuredError as cast_error:
                 emsg = (
                     "Value for invoice.json field "
@@ -339,6 +344,46 @@ class SmartTableInvoiceInitializer(Processor):
             raise StructuredError(emsg)
 
         return schema_value
+
+    def _cast_custom_field_value(
+        self,
+        value: str,
+        field_type: str,
+        field_format: str | None,
+    ) -> bool | int | float | str:
+        """Cast SmartTable custom field values with strict schema semantics."""
+        if field_type == "boolean":
+            normalized = value.strip().lower()
+            if normalized == "true":
+                return True
+            if normalized == "false":
+                return False
+            emsg = "ERROR: failed to cast SmartTable custom field to boolean"
+            raise StructuredError(emsg)
+
+        if field_type == "integer":
+            try:
+                return int(value.strip())
+            except ValueError as exc:
+                emsg = "ERROR: failed to cast SmartTable custom field to integer"
+                raise StructuredError(emsg) from exc
+
+        if field_type == "number":
+            normalized = value.strip()
+            try:
+                return int(normalized)
+            except ValueError:
+                try:
+                    number_value = float(normalized)
+                except ValueError as exc:
+                    emsg = "ERROR: failed to cast SmartTable custom field to number"
+                    raise StructuredError(emsg) from exc
+                if not math.isfinite(number_value):
+                    emsg = "ERROR: failed to cast SmartTable custom field to number"
+                    raise StructuredError(emsg)
+                return number_value
+
+        return castval(value, field_type, field_format)
 
     def _clear_mapping_key(self, key: str, invoice_data: dict[str, Any]) -> None:
         """Clear existing invoice data for the given mapping key to avoid stale inheritance."""
