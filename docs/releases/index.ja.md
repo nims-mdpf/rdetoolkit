@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.6.1     | 2026-03-10 | chardet公開API移行（Python 3.14互換） / SmartTableカスタムフィールドの型キャスト修正 | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み / Agent Skills追加 | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3     | 2026-02-03 | SmartTable sample.ownerId自動設定 / 欠損rawfileエラー改善 / invoicefile.pyバグ修正 | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2     | 2026-01-27 | CLI validate終了コード標準化 / metadata-def検証修正 / 設定エラーメッセージ改善 / Python 3.9非推奨警告 / PBTインフラ導入 | [v1.5.2](#v152-2026-01-27) |
@@ -20,6 +21,51 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.6.1 (2026-03-10)
+
+!!! info "参照"
+    - 主な課題: [#427](https://github.com/nims-mdpf/rdetoolkit/issues/427), [#429](https://github.com/nims-mdpf/rdetoolkit/issues/429)
+    - プルリクエスト: [#433](https://github.com/nims-mdpf/rdetoolkit/pull/433)
+
+#### ハイライト
+- `chardet.universaldetector`の内部モジュールパスへの依存を除去し、公開APIに移行（Python 3.14 + chardet>=7.0での互換性を確保）
+- SmartTableのカスタムフィールド型キャストで、スキーマ未定義フィールドが暗黙的にstringにフォールバックしていた問題を修正
+
+### バグ修正
+
+#### chardet公開API移行 (Issue #427)
+
+**問題**: Python 3.14 + chardet>=7.0 環境で`chardet.universaldetector.UniversalDetector`の内部モジュールパスが利用できなくなり、インポートエラーが発生していました。
+
+**修正内容**:
+
+- `_ensure_universal_detector()`関数（`chardet.universaldetector.UniversalDetector`内部モジュールパスに依存）を削除
+- `CharDecEncoding.__detect()`を`chardet.detect(bytes)`公開APIを使用するよう書き換え
+- 既読バイトデータの再利用により二重ファイルI/Oを回避
+- `encoding=None`ブランチをカバーするテスト`test_detect_encoding_none_from_chardet`を追加
+
+#### SmartTableスキーマキャストエラーの厳格化 (Issue #429)
+
+**問題**: SmartTableのカスタムフィールドで、スキーマに未定義のフィールドや型情報が欠落しているフィールドが、エラーなくstringにフォールバックしていました。
+
+**修正内容**:
+
+- `SmartTableInvoiceInitializer`の`custom/...`フィールドスキーマ解決を`custom`セクションのみを検索するよう厳格化
+- スキーマ未定義または型情報欠落の`custom`フィールドに対して即座に`StructuredError`を発生（暗黙的なstringフォールバックを廃止）
+- キャストエラーメッセージにソーススキーマファイルを明示:
+    - `custom`フィールド: `"...does not match the type defined in invoice.schema.json (expected: number)."`
+    - `meta`フィールド: `"...does not match the type defined in metadata-def.json (expected: string)."`
+- `invoicefile._invoice`のキャスト失敗メッセージを同一フォーマットに統一
+- 包括的な回帰テストとプロパティベーステストを追加
+
+### テスト
+
+- `test_detect_encoding_none_from_chardet`: chardet検出でencodingがNoneを返すケースのカバレッジ追加
+- `tests/test_smarttable_invoice_initializer_issue_429.py`: SmartTableカスタムフィールド型キャストの回帰テスト
+- `tests/property/test_smarttable_invoice_initializer_issue_429.py`: プロパティベーステスト
+
+---
 
 ## v1.6.0 (2026-02-18)
 
