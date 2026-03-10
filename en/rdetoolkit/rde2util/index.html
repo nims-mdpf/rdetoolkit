@@ -4100,13 +4100,13 @@ The function constructs and returns a dictionary mapping keys to their correspon
 </div>
 <div class="doc doc-object doc-function">
 <h3 class="doc doc-heading" id="src.rdetoolkit.rde2util.CharDecEncoding.__detect">
-<code class="highlight language-python">__detect(text_filepath)</code>
+<code class="highlight language-python">__detect(raw)</code>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
 </span>
 </h3>
 <div class="doc doc-contents">
-<p>Detect the encoding of a given text file using chardet.</p>
+<p>Detect the encoding of raw bytes using chardet public API.</p>
 <p><span class="doc-section-title">引数：</span></p>
 <table>
 <thead>
@@ -4120,14 +4120,14 @@ The function constructs and returns a dictionary mapping keys to their correspon
 <tbody>
 <tr class="doc-section-item">
 <td>
-<code>text_filepath</code>
+<code>raw</code>
 </td>
 <td>
-<code><span title="str">str</span></code>
+<code><span title="bytes">bytes</span></code>
 </td>
 <td>
 <div class="doc-md-description">
-<p>Path to the text file to be analyzed.</p>
+<p>The raw bytes to analyze for encoding detection.</p>
 </div>
 </td>
 <td>
@@ -4151,7 +4151,7 @@ The function constructs and returns a dictionary mapping keys to their correspon
 </td>
 <td>
 <div class="doc-md-description">
-<p>The detected encoding of the text file.</p>
+<p>The detected encoding, or an empty string if detection fails.</p>
 </div>
 </td>
 </tr>

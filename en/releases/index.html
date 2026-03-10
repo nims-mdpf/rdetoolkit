@@ -2220,6 +2220,12 @@
 </thead>
 <tbody>
 <tr>
+<td>v1.6.1</td>
+<td>2026-03-10</td>
+<td>chardet public API migration (Python 3.14 compat) / SmartTable custom field type cast fix</td>
+<td><a href="#v161-2026-03-10">v1.6.1</a></td>
+</tr>
+<tr>
 <td>v1.6.0</td>
 <td>2026-02-18</td>
 <td><strong>BREAKING</strong>: Python 3.9 support dropped (minimum 3.10+) / direct <code>pytz</code> dependency removed / <code>gen-invoice</code> command added / AI agent guide embedded / Agent Skills added</td>
@@ -2306,6 +2312,50 @@
 </tbody>
 </table>
 <h1 id="release-details">Release Details</h1>
+<h2 id="v161-2026-03-10">v1.6.1 (2026-03-10)</h2>
+<div class="admonition info">
+<p class="admonition-title">References</p>
+<ul>
+<li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/427">#427</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/429">#429</a></li>
+<li>Pull request: <a href="https://github.com/nims-mdpf/rdetoolkit/pull/433">#433</a></li>
+</ul>
+</div>
+<h4 id="highlights">Highlights</h4>
+<ul>
+<li>Removed dependency on <code>chardet.universaldetector</code> internal module path, migrated to public API for Python 3.14 + chardet&gt;=7.0 compatibility</li>
+<li>Fixed SmartTable custom field type casting that silently fell back to string for schema-undefined fields</li>
+</ul>
+<h3 id="bug-fixes">Bug Fixes</h3>
+<h4 id="chardet-public-api-migration-issue-427">chardet Public API Migration (Issue #427)</h4>
+<p><strong>Problem</strong>: On Python 3.14 with chardet&gt;=7.0, the internal module path <code>chardet.universaldetector.UniversalDetector</code> became unavailable, causing import errors.</p>
+<p><strong>Changes</strong>:</p>
+<ul>
+<li>Removed <code>_ensure_universal_detector()</code> function that depended on <code>chardet.universaldetector.UniversalDetector</code> internal module path</li>
+<li>Rewrote <code>CharDecEncoding.__detect()</code> to use <code>chardet.detect(bytes)</code> public API instead of <code>UniversalDetector</code> line-by-line feeding</li>
+<li>Reused already-read bytes in <code>__detect</code> to avoid double file I/O</li>
+<li>Added <code>test_detect_encoding_none_from_chardet</code> test to cover the <code>encoding=None</code> branch</li>
+</ul>
+<h4 id="smarttable-schema-cast-error-tightening-issue-429">SmartTable Schema Cast Error Tightening (Issue #429)</h4>
+<p><strong>Problem</strong>: SmartTable custom fields with undefined schema entries or missing type information silently fell back to string type without raising errors.</p>
+<p><strong>Changes</strong>:</p>
+<ul>
+<li>Tightened <code>custom/...</code> field schema resolution in <code>SmartTableInvoiceInitializer</code> to search <code>custom</code> section exclusively</li>
+<li>Raised <code>StructuredError</code> immediately when a <code>custom</code> field is undefined in schema or type info is missing (instead of silently falling back to string)</li>
+<li>Improved cast error messages to indicate source schema file:<ul>
+<li><code>custom</code> fields: <code>"...does not match the type defined in invoice.schema.json (expected: number)."</code></li>
+<li><code>meta</code> fields: <code>"...does not match the type defined in metadata-def.json (expected: string)."</code></li>
+</ul>
+</li>
+<li>Aligned <code>invoicefile._invoice</code> cast failure messages to the same format</li>
+<li>Added comprehensive regression tests and property-based tests</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<ul>
+<li><code>test_detect_encoding_none_from_chardet</code>: Coverage for chardet returning <code>encoding=None</code></li>
+<li><code>tests/test_smarttable_invoice_initializer_issue_429.py</code>: SmartTable custom field type cast regression tests</li>
+<li><code>tests/property/test_smarttable_invoice_initializer_issue_429.py</code>: Property-based tests</li>
+</ul>
+<hr/>
 <h2 id="v160-2026-02-18">v1.6.0 (2026-02-18)</h2>
 <div class="admonition warning">
 <p class="admonition-title">Breaking Changes</p>
@@ -2561,7 +2611,7 @@ rdetoolkit<span style="color: #BBB"> </span>agent-guide
 <h4 id="dataclass-memory-efficiency-improvements">Dataclass Memory Efficiency Improvements</h4>
 <p>With Python 3.9 support dropped, enabled <code>slots=True</code> on all 13 dataclasses in <code>rde2types.py</code>. This reduces memory usage per instance and improves attribute access performance.</p>
 <hr/>
-<h3 id="testing">Testing</h3>
+<h3 id="testing_1">Testing</h3>
 <p>All core tests pass successfully under Python 3.10-3.14:
 - <strong>Unit tests</strong>: 1,603 passed
 - <strong>Quality checks</strong>: ruff, mypy, pytest all pass
@@ -2574,7 +2624,7 @@ rdetoolkit<span style="color: #BBB"> </span>agent-guide
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/389">#389</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/398">#398</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/399">#399</a></li>
 </ul>
 </div>
-<h4 id="highlights">Highlights</h4>
+<h4 id="highlights_1">Highlights</h4>
 <ul>
 <li>Fixed SmartTable sample registration to automatically set <code>sample.ownerId</code> to <code>basic.dataOwnerId</code>. CSV-specified values take precedence when explicitly provided</li>
 <li>Improved <code>check_exist_rawfiles</code> error message to report all missing raw files in alphabetical order</li>
@@ -2648,7 +2698,7 @@ ERROR: raw file not found: file_a.dat, file_b.dat, file_c.dat
 </code></pre></div></td></tr></table></div>
 <hr/>
 <h3 id="invoicefilepy-quality-improvements-issue-399">invoicefile.py Quality Improvements (Issue #399)</h3>
-<h4 id="bug-fixes">Bug Fixes</h4>
+<h4 id="bug-fixes_1">Bug Fixes</h4>
 <ul>
 <li><strong>Stale TODO Comment Removal</strong>: Removed obsolete <code># [TODO] Correction of type definitions in version 0.1.6</code> comment from v0.1.6 era</li>
 <li><strong>mapping_rules Parameter Bug Fix</strong>: Fixed bug in <code>get_apply_rules_obj</code> method where <code>mapping_rules</code> parameter was ignored and <code>self.rules</code> was always used instead</li>
@@ -2684,7 +2734,7 @@ ERROR: raw file not found: file_a.dat, file_b.dat, file_c.dat
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/358">#358</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/359">#359</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/360">#360</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/361">#361</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/362">#362</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/370">#370</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/372">#372</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/373">#373</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/381">#381</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/382">#382</a></li>
 </ul>
 </div>
-<h4 id="highlights_1">Highlights</h4>
+<h4 id="highlights_2">Highlights</h4>
 <ul>
 <li>Standardized CLI <code>validate</code> command exit codes (0/1/2) for CI/CD pipeline integration</li>
 <li>Fixed <code>metadata-def.json</code> validation to use correct Pydantic model (<code>MetadataDefinitionValidator</code>)</li>
@@ -2880,7 +2930,7 @@ pytest<span style="color: #BBB"> </span>tests/property/<span style="color: #BBB"
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/207">#207</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/210">#210</a></li>
 </ul>
 </div>
-<h4 id="highlights_2">Highlights</h4>
+<h4 id="highlights_3">Highlights</h4>
 <ul>
 <li>Added <code>smarttable_row_data</code> property to <code>RdeDatasetPaths</code> for direct row data access in SmartTable mode, eliminating the need for users to manually read and parse CSV files</li>
 <li>Feature-flagged items from <code>variable</code> array in <code>metadata.json</code> are now transcribed to description in array format (<code>[A,B,C]</code>)</li>
@@ -2970,7 +3020,7 @@ feature_description<span style="color: #BBB"> </span><span style="color: #333">=
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/3">#3</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/247">#247</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/249">#249</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/262">#262</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/301">#301</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/323">#323</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/324">#324</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/325">#325</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/326">#326</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/327">#327</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/328">#328</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/329">#329</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/330">#330</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/333">#333</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/334">#334</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/335">#335</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/336">#336</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/337">#337</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/338">#338</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/341">#341</a></li>
 </ul>
 </div>
-<h4 id="highlights_3">Highlights</h4>
+<h4 id="highlights_4">Highlights</h4>
 <ul>
 <li>Introduced Result type pattern (<code>Result[T, E]</code>) for explicit, type-safe error handling without exceptions</li>
 <li>System logs now use timestamped filenames (<code>rdesys_YYYYMMDD_HHMMSS.log</code>) instead of static <code>rdesys.log</code>, enabling per-run log management and preventing log collision in concurrent or successive executions</li>
@@ -3216,7 +3266,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/292">#292</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/310">#310</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/311">#311</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/302">#302</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/304">#304</a></li>
 </ul>
 </div>
-<h4 id="highlights_4">Highlights</h4>
+<h4 id="highlights_5">Highlights</h4>
 <ul>
 <li>SmartTable split processing now preserves <code>sample.ownerId</code>, respects boolean columns, and prevents empty cells from inheriting values from previous rows, restoring per-row data integrity.</li>
 <li>csv2graph defaults HTML artifacts to the CSV directory (structured) and adds <code>html_output_dir</code> for overrides, while aligning Plotly/Matplotlib legend text and log-scale tick formatting for consistent outputs.</li>
@@ -3257,7 +3307,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/30">#30</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/36">#36</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/246">#246</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/293">#293</a></li>
 </ul>
 </div>
-<h4 id="highlights_5">Highlights</h4>
+<h4 id="highlights_6">Highlights</h4>
 <ul>
 <li><code>InvoiceFile.overwrite()</code> now accepts dictionaries, validates them through <code>InvoiceValidator</code>, and can fall back to the existing <code>invoice_path</code>.</li>
 <li>Excel invoice reading is centralized inside <code>ExcelInvoiceFile</code>, with <code>read_excelinvoice()</code> acting as a warning-backed compatibility wrapper slated for v1.5.0 removal.</li>
@@ -3296,7 +3346,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/204">#204</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/272">#272</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/273">#273</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/278">#278</a></li>
 </ul>
 </div>
-<h4 id="highlights_6">Highlights</h4>
+<h4 id="highlights_7">Highlights</h4>
 <ul>
 <li>Dedicated SmartTable row CSV accessors replace ad-hoc <code>rawfiles[0]</code> lookups without breaking existing callbacks.</li>
 <li>MultiDataTile workflows now guarantee a returned status and surface the failing mode instead of producing silent job artifacts.</li>
@@ -3334,7 +3384,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/188">#188</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/197">#197</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/205">#205</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/236">#236</a></li>
 </ul>
 </div>
-<h4 id="highlights_7">Highlights</h4>
+<h4 id="highlights_8">Highlights</h4>
 <ul>
 <li>SmartTableInvoice automatically writes <code>meta/</code> columns to <code>metadata.json</code></li>
 <li>Compact AI/LLM-friendly traceback output (duplex mode)</li>
@@ -3372,7 +3422,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/217">#217</a> (SmartTable/Invoice validation reliability)</li>
 </ul>
 </div>
-<h4 id="highlights_8">Highlights</h4>
+<h4 id="highlights_9">Highlights</h4>
 <ul>
 <li>Stabilized SmartTable/Invoice validation flow.</li>
 </ul>
@@ -3400,7 +3450,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/201">#201</a></li>
 </ul>
 </div>
-<h4 id="highlights_9">Highlights</h4>
+<h4 id="highlights_10">Highlights</h4>
 <ul>
 <li>Fixed <code>ValidationError</code> construction and stabilized Invoice processing.</li>
 <li>Added <code>sampleWhenRestructured</code> schema for copy-restructure workflows.</li>
@@ -3431,7 +3481,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/193">#193</a></li>
 </ul>
 </div>
-<h4 id="highlights_10">Highlights</h4>
+<h4 id="highlights_11">Highlights</h4>
 <ul>
 <li>Strengthened required-field validation for SmartTableInvoice.</li>
 </ul>
@@ -3460,7 +3510,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/161">#161</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/163">#163</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/168">#168</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/169">#169</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/173">#173</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/174">#174</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/177">#177</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/185">#185</a></li>
 </ul>
 </div>
-<h4 id="highlights_11">Highlights</h4>
+<h4 id="highlights_12">Highlights</h4>
 <ul>
 <li>Fixed empty-sheet exports in Excel invoice templates.</li>
 <li>Enforced stricter validation for <code>extended_mode</code>.</li>
@@ -3497,7 +3547,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/157">#157</a></li>
 </ul>
 </div>
-<h4 id="highlights_12">Highlights</h4>
+<h4 id="highlights_13">Highlights</h4>
 <ul>
 <li>Introduced MinIO storage integration.</li>
 <li>Delivered artifact archiving and report-generation workflows.</li>
