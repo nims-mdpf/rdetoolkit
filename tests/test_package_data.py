@@ -5,6 +5,7 @@ are properly included in the wheel distribution and accessible after installatio
 """
 
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -72,7 +73,7 @@ class TestPackageData:
         """Test: Installed package can access guide files."""
         # Given: Built and installed package
         venv_dir = tmp_path / "venv"
-        subprocess.run(["python", "-m", "venv", str(venv_dir)], check=True)
+        subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
 
         pip_path = venv_dir / "bin" / "pip"
         python_path = venv_dir / "bin" / "python"
@@ -81,13 +82,16 @@ class TestPackageData:
         wheel_dir = tmp_path / "wheels"
         wheel_dir.mkdir()
         subprocess.run(
-            ["python", "-m", "build", "--wheel", "--outdir", str(wheel_dir)],
+            [sys.executable, "-m", "build", "--wheel", "--outdir", str(wheel_dir)],
             check=True,
         )
 
         # Install wheel
         wheels = list(wheel_dir.glob("*.whl"))
-        subprocess.run([str(pip_path), "install", str(wheels[0])], check=True)
+        subprocess.run(
+            [str(pip_path), "install", "--no-deps", str(wheels[0])],
+            check=True,
+        )
 
         # When: Importing and calling get_agent_guide
         test_script = """

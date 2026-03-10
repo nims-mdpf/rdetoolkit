@@ -1391,7 +1391,7 @@ platformdirs==4.5.0 \
 plotly==6.4.0 \
     --hash=sha256:68c6db2ed2180289ef978f087841148b7efda687552276da15a6e9b92107052a \
     --hash=sha256:a1062eafbdc657976c2eedd276c90e184ccd6c21282a5e9ee8f20efca9c9a4c5
-pluggy==1.6.0 \
+pluggy==1.6.1 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
     # via
