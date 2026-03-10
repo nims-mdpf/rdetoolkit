@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.6.1  | 2026-03-10   | chardet public API migration (Python 3.14 compat) / SmartTable custom field type cast fix | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded / Agent Skills added | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3  | 2026-02-03   | SmartTable sample.ownerId auto-assignment / Missing rawfile error improvement / invoicefile.py bug fixes | [v1.5.3](#v153-2026-02-03) |
 | v1.5.2  | 2026-01-27   | CLI validate exit codes / metadata-def validation fix / Config error messages / Python 3.9 deprecation / PBT infrastructure | [v1.5.2](#v152-2026-01-27) |
@@ -20,6 +21,51 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.6.1 (2026-03-10)
+
+!!! info "References"
+    - Key issues: [#427](https://github.com/nims-mdpf/rdetoolkit/issues/427), [#429](https://github.com/nims-mdpf/rdetoolkit/issues/429)
+    - Pull request: [#433](https://github.com/nims-mdpf/rdetoolkit/pull/433)
+
+#### Highlights
+- Removed dependency on `chardet.universaldetector` internal module path, migrated to public API for Python 3.14 + chardet>=7.0 compatibility
+- Fixed SmartTable custom field type casting that silently fell back to string for schema-undefined fields
+
+### Bug Fixes
+
+#### chardet Public API Migration (Issue #427)
+
+**Problem**: On Python 3.14 with chardet>=7.0, the internal module path `chardet.universaldetector.UniversalDetector` became unavailable, causing import errors.
+
+**Changes**:
+
+- Removed `_ensure_universal_detector()` function that depended on `chardet.universaldetector.UniversalDetector` internal module path
+- Rewrote `CharDecEncoding.__detect()` to use `chardet.detect(bytes)` public API instead of `UniversalDetector` line-by-line feeding
+- Reused already-read bytes in `__detect` to avoid double file I/O
+- Added `test_detect_encoding_none_from_chardet` test to cover the `encoding=None` branch
+
+#### SmartTable Schema Cast Error Tightening (Issue #429)
+
+**Problem**: SmartTable custom fields with undefined schema entries or missing type information silently fell back to string type without raising errors.
+
+**Changes**:
+
+- Tightened `custom/...` field schema resolution in `SmartTableInvoiceInitializer` to search `custom` section exclusively
+- Raised `StructuredError` immediately when a `custom` field is undefined in schema or type info is missing (instead of silently falling back to string)
+- Improved cast error messages to indicate source schema file:
+    - `custom` fields: `"...does not match the type defined in invoice.schema.json (expected: number)."`
+    - `meta` fields: `"...does not match the type defined in metadata-def.json (expected: string)."`
+- Aligned `invoicefile._invoice` cast failure messages to the same format
+- Added comprehensive regression tests and property-based tests
+
+### Testing
+
+- `test_detect_encoding_none_from_chardet`: Coverage for chardet returning `encoding=None`
+- `tests/test_smarttable_invoice_initializer_issue_429.py`: SmartTable custom field type cast regression tests
+- `tests/property/test_smarttable_invoice_initializer_issue_429.py`: Property-based tests
+
+---
 
 ## v1.6.0 (2026-02-18)
 
