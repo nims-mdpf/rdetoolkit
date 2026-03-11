@@ -1,6 +1,6 @@
 [project]
 name = "rdetoolkit"
-version = "1.6.1"
+version = "1.6.2"
 description = "A module that supports the workflow of the RDE dataset construction program"
 authors = [{ name = "NIMS MDPF", email = "rde@nims.go" }]
 keywords = ["rdetoolkit", "RDE", "toolkit", "structure", "dataset"]
@@ -79,7 +79,7 @@ dev = [
     "pytest-mpl>=0.17.0",
     "tox>=4.6.4",
     "types-python-dateutil>=2.8.19.14",
-    "mkdocs>=1.6.1",
+    "mkdocs>=1.6.2",
     "mkdocs-material>=9.5.1",
     "mkdocstrings[crystal,python]>=0.27.0",
     "pre-commit>=3.6.0",
@@ -336,7 +336,7 @@ dev-dependencies = [
     "pytest-mock>=3.11.1",
     "tox>=4.6.4",
     "types-python-dateutil>=2.8.19.14",
-    "mkdocs>=1.6.1",
+    "mkdocs>=1.6.2",
     "mkdocs-material>=9.5.1",
     "mkdocstrings[crystal,python]>=0.27.0",
     "pre-commit>=3.6.0",
