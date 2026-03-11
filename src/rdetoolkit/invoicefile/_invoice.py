@@ -40,7 +40,11 @@ def _assign_invoice_val(invoiceobj: MutableMapping[str, Any], key1: str, key2: s
         try:
             invoiceobj[key1][key2] = rde2util.castval(valobj, dct_schema["type"], dct_schema.get("format"))
         except StructuredError as struct_err:
-            emsg = f"ERROR: failed to cast invoice value for key [{key1}][{key2}]"
+            emsg = (
+                "Value for invoice.json field "
+                f"'{key1}.{key2}' does not match the type defined in "
+                f"invoice.schema.json (expected: {dct_schema['type']})."
+            )
             raise StructuredError(emsg) from struct_err
     else:
         invoiceobj[key1][key2] = valobj

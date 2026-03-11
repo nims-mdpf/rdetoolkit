@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections.abc import Mapping
+import math
 from pathlib import Path
 from typing import Any
 import copy
@@ -275,14 +276,22 @@ class SmartTableInvoiceInitializer(Processor):
 
         elif key.startswith("custom/"):
             field = key.replace("custom/", "")
-            schema_value = invoice_schema_obj.find_field(field)
-            _fmt = schema_value.get("format", None) if schema_value else None
-            _type = schema_value.get("type", None) if schema_value else None
-            # If type is not found in schema, use the value as string
-            if _type:
-                invoice_data["custom"][field] = castval(value, _type, _fmt)
-            else:
-                invoice_data["custom"][field] = value
+            schema_value = self._resolve_custom_schema_field(field, invoice_schema_obj)
+            _fmt = schema_value.get("format")
+            _type = schema_value["type"]
+            try:
+                invoice_data["custom"][field] = self._cast_custom_field_value(
+                    value,
+                    _type,
+                    _fmt,
+                )
+            except StructuredError as cast_error:
+                emsg = (
+                    "Value for invoice.json field "
+                    f"'custom.{field}' does not match the type defined in "
+                    f"invoice.schema.json (expected: {_type})."
+                )
+                raise StructuredError(emsg) from cast_error
 
         elif key.startswith("sample/generalAttributes."):
             self._process_general_attributes(key, value, invoice_data)
@@ -305,6 +314,76 @@ class SmartTableInvoiceInitializer(Processor):
         elif key.startswith("inputdata"):
             # inputdata columns are handled separately for file mapping
             pass
+
+    def _resolve_custom_schema_field(
+        self,
+        field: str,
+        invoice_schema_obj: InvoiceSchemaJson,
+    ) -> dict[str, Any]:
+        """Return the schema definition for a SmartTable custom field.
+
+        Args:
+            field: Custom field name without the ``custom/`` prefix.
+            invoice_schema_obj: Parsed invoice schema.
+
+        Returns:
+            The custom field schema definition.
+
+        Raises:
+            StructuredError: If the custom field is missing from the schema or
+                does not provide a type for casting.
+        """
+        schema_value = invoice_schema_obj.find_field(field, custom_only=True)
+        if schema_value is None:
+            emsg = f"Field 'custom.{field}' is not defined in invoice.schema.json."
+            raise StructuredError(emsg)
+
+        field_type = schema_value.get("type")
+        if field_type is None:
+            emsg = f"Field 'custom.{field}' does not define a type in invoice.schema.json."
+            raise StructuredError(emsg)
+
+        return schema_value
+
+    def _cast_custom_field_value(
+        self,
+        value: str,
+        field_type: str,
+        field_format: str | None,
+    ) -> bool | int | float | str:
+        """Cast SmartTable custom field values with strict schema semantics."""
+        if field_type == "boolean":
+            normalized = value.strip().lower()
+            if normalized == "true":
+                return True
+            if normalized == "false":
+                return False
+            emsg = "ERROR: failed to cast SmartTable custom field to boolean"
+            raise StructuredError(emsg)
+
+        if field_type == "integer":
+            try:
+                return int(value.strip())
+            except ValueError as exc:
+                emsg = "ERROR: failed to cast SmartTable custom field to integer"
+                raise StructuredError(emsg) from exc
+
+        if field_type == "number":
+            normalized = value.strip()
+            try:
+                return int(normalized)
+            except ValueError:
+                try:
+                    number_value = float(normalized)
+                except ValueError as exc:
+                    emsg = "ERROR: failed to cast SmartTable custom field to number"
+                    raise StructuredError(emsg) from exc
+                if not math.isfinite(number_value):
+                    emsg = "ERROR: failed to cast SmartTable custom field to number"
+                    raise StructuredError(emsg) from None
+                return number_value
+
+        return castval(value, field_type, field_format)
 
     def _clear_mapping_key(self, key: str, invoice_data: dict[str, Any]) -> None:
         """Clear existing invoice data for the given mapping key to avoid stale inheritance."""
@@ -547,7 +626,11 @@ class SmartTableInvoiceInitializer(Processor):
                 else value
             )
         except StructuredError as cast_error:
-            emsg = f"Failed to cast metadata value for key: {meta_key}"
+            emsg = (
+                "Value for metadata.json key "
+                f"'{meta_key}' does not match the type defined in "
+                f"metadata-def.json (expected: {meta_type})."
+            )
             raise StructuredError(emsg) from cast_error
 
         meta_entry: dict[str, Any] = {"value": converted_value}

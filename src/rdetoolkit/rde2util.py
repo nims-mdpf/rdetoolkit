@@ -25,12 +25,6 @@ def _ensure_chardet() -> Any:
     return chardet
 
 
-def _ensure_universal_detector() -> Any:
-    from chardet.universaldetector import UniversalDetector
-
-    return UniversalDetector
-
-
 def _ensure_charset_detector() -> Callable[[bytes], Any]:
     from charset_normalizer import detect
 
@@ -104,38 +98,26 @@ class CharDecEncoding:
         enc = _cast_detect_ret["encoding"].replace("-", "_").lower() if _cast_detect_ret["encoding"] is not None else ""
 
         if enc not in cls.USUAL_ENCs:
-            enc = cls.__detect(text_filepath)
+            enc = cls.__detect(bcontents)
         if enc == "shift_jis":
             enc = "cp932"
         return enc
 
     @classmethod
-    def __detect(cls, text_filepath: str) -> str:
-        """Detect the encoding of a given text file using chardet.
+    def __detect(cls, raw: bytes) -> str:
+        """Detect the encoding of raw bytes using chardet public API.
 
         Args:
-            text_filepath (str): Path to the text file to be analyzed.
+            raw (bytes): The raw bytes to analyze for encoding detection.
 
         Returns:
-            str: The detected encoding of the text file.
+            str: The detected encoding, or an empty string if detection fails.
         """
-        detector = _ensure_universal_detector()()
-
-        try:
-            with open(text_filepath, mode="rb") as f:
-                while True:
-                    binary = f.readline()
-                    if binary == b"":
-                        break
-                    detector.feed(binary)
-                    if detector.done:
-                        break
-        finally:
-            detector.close()
-
-        ret = detector.result["encoding"]
-        if ret:
-            return ret.replace("-", "_").lower()
+        chardet = _ensure_chardet()
+        result = chardet.detect(raw)
+        enc = result.get("encoding")
+        if enc:
+            return enc.replace("-", "_").lower()
         return ""
 
 
