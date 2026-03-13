@@ -140,4 +140,41 @@ impl RustDAG {
             .map(|ni| self.graph[ni].clone())
             .collect())
     }
+
+    /// Validate the DAG structure and return a list of validation errors.
+    ///
+    /// Each error is a dict with keys: "kind", "node_id", "message".
+    /// Currently detects unconnected nodes (nodes with no incoming or outgoing edges).
+    fn validate(&self) -> Vec<HashMap<String, String>> {
+        let mut errors = Vec::new();
+
+        for (node_id, &idx) in &self.node_index {
+            let has_incoming = self
+                .graph
+                .neighbors_directed(idx, Direction::Incoming)
+                .next()
+                .is_some();
+            let has_outgoing = self
+                .graph
+                .neighbors_directed(idx, Direction::Outgoing)
+                .next()
+                .is_some();
+
+            if !has_incoming && !has_outgoing {
+                let mut err = HashMap::new();
+                err.insert("kind".to_string(), "unconnected_node".to_string());
+                err.insert("node_id".to_string(), node_id.clone());
+                err.insert(
+                    "message".to_string(),
+                    format!(
+                        "Node '{}' has no incoming or outgoing edges",
+                        node_id
+                    ),
+                );
+                errors.push(err);
+            }
+        }
+
+        errors
+    }
 }

@@ -149,3 +149,13 @@ class DAG:
             msg = f"Node '{node_id}' not found in DAG specs"
             raise KeyError(msg)
         return self._specs[node_id]
+
+    def validate(self) -> list[dict[str, str]]:
+        """Validate DAG structure and return a list of validation errors.
+
+        Each error is a dict with keys: "kind", "node_id", "message".
+
+        Returns:
+            List of validation error dicts (empty if valid).
+        """
+        return self._rust.validate()

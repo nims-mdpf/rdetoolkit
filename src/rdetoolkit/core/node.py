@@ -122,6 +122,11 @@ def node(
 
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Deferred import to avoid circular dependency (node <-> flow)
+            from rdetoolkit.core.flow import _is_tracing, _trace_node_call  # noqa: PLC0415
+
+            if _is_tracing():
+                return _trace_node_call(wrapper, *args, **kwargs)
             return fn(*args, **kwargs)
 
         wrapper.__node_spec__ = spec  # type: ignore[attr-defined]
