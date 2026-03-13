@@ -189,3 +189,205 @@ class TestPredecessorsSuccessors:
         dag = RustDAG()
         with pytest.raises(ValueError, match="not found"):
             dag.successors("x")
+
+
+# === 1.3.8: DAG Python wrapper ===
+
+
+class TestDAGPythonWrapper:
+    """Tests for the Python DAG wrapper (core/dag.py)."""
+
+    def test_add_node_with_spec(self) -> None:
+        """DAG wrapper stores NodeSpec Python-side."""
+        from rdetoolkit.core.dag import DAG
+        from rdetoolkit.core.node import NodeSpec
+
+        dag = DAG()
+        spec = NodeSpec(
+            id="a",
+            func_name="a",
+            input_schema={},
+            output_schema=None,
+            tags=(),
+            version="0.0.0",
+            idempotent=False,
+        )
+        dag.add_node("a", spec)
+        assert "a" in dag.node_ids()
+        assert dag.get_spec("a") is spec
+
+    def test_add_node_none_spec(self) -> None:
+        """DAG wrapper accepts None as spec."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        assert "a" in dag.node_ids()
+        assert dag.get_spec("a") is None
+
+    def test_add_edge_delegated(self) -> None:
+        """DAG wrapper delegates add_edge to RustDAG."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_edge("a", "b", "out", "inp")
+        assert dag.edge_list() == [("a", "b", "out", "inp")]
+
+    def test_topological_sort_delegated(self) -> None:
+        """DAG wrapper delegates topological_sort to RustDAG."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_edge("a", "b", "out", "inp")
+        order = dag.topological_sort()
+        assert order.index("a") < order.index("b")
+
+    def test_predecessors_delegated(self) -> None:
+        """DAG wrapper delegates predecessors to RustDAG."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_edge("a", "b", "out", "inp")
+        assert dag.predecessors("b") == ["a"]
+
+    def test_successors_delegated(self) -> None:
+        """DAG wrapper delegates successors to RustDAG."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_edge("a", "b", "out", "inp")
+        assert dag.successors("a") == ["b"]
+
+    def test_node_count(self) -> None:
+        """DAG wrapper returns correct node count."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        assert dag.node_count() == 0
+        dag.add_node("a")
+        dag.add_node("b")
+        assert dag.node_count() == 2
+
+    def test_edge_count(self) -> None:
+        """DAG wrapper returns correct edge count."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        assert dag.edge_count() == 0
+        dag.add_edge("a", "b", "out", "inp")
+        assert dag.edge_count() == 1
+
+    def test_get_spec_nonexistent_raises(self) -> None:
+        """get_spec raises KeyError for unknown node."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        with pytest.raises(KeyError, match="not found"):
+            dag.get_spec("x")
+
+    def test_duplicate_node_raises(self) -> None:
+        """DAG wrapper propagates duplicate node error from Rust."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        with pytest.raises(ValueError, match="already exists"):
+            dag.add_node("a")
+
+    def test_cycle_raises(self) -> None:
+        """DAG wrapper propagates cycle error from Rust."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_edge("a", "b", "out", "inp")
+        with pytest.raises(ValueError, match="cycle"):
+            dag.add_edge("b", "a", "out", "inp")
+
+
+# === 1.3.9: PBT (Property-Based Testing) ===
+
+
+from hypothesis import given, settings, strategies as st
+
+
+@pytest.mark.property
+class TestDAGProperties:
+    """Property-based tests for DAG operations."""
+
+    @given(
+        node_ids=st.lists(
+            st.text(min_size=1, max_size=8, alphabet="abcdefghij"),
+            min_size=0,
+            max_size=15,
+            unique=True,
+        )
+    )
+    def test_topological_sort_contains_each_node_exactly_once(
+        self, node_ids: list[str]
+    ) -> None:
+        """Property: sort result contains each node exactly once (no edges = always acyclic)."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        for nid in node_ids:
+            dag.add_node(nid)
+        order = dag.topological_sort()
+        assert sorted(order) == sorted(node_ids)
+        assert len(order) == len(set(order))
+
+    @given(
+        node_ids=st.lists(
+            st.text(min_size=1, max_size=8, alphabet="abcdefghij"),
+            min_size=0,
+            max_size=15,
+            unique=True,
+        )
+    )
+    def test_acyclic_dag_topological_sort_does_not_raise(
+        self, node_ids: list[str]
+    ) -> None:
+        """Property: an acyclic DAG never raises on topological_sort."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        for nid in node_ids:
+            dag.add_node(nid)
+        # Add only forward edges (i < j) to guarantee acyclicity
+        for i in range(len(node_ids) - 1):
+            dag.add_edge(node_ids[i], node_ids[i + 1], "out", "inp")
+        order = dag.topological_sort()
+        # Verify ordering respects edges
+        for i in range(len(node_ids) - 1):
+            assert order.index(node_ids[i]) < order.index(node_ids[i + 1])
+
+    @given(
+        n=st.integers(min_value=2, max_value=10),
+    )
+    def test_cycle_detection_consistent_with_topological_sort(
+        self, n: int
+    ) -> None:
+        """Property: creating a cycle causes add_edge to raise ValueError."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        nodes = [f"n{i}" for i in range(n)]
+        for nid in nodes:
+            dag.add_node(nid)
+        # Build a chain
+        for i in range(n - 1):
+            dag.add_edge(nodes[i], nodes[i + 1], "out", "inp")
+        # Close the cycle: last -> first should raise
+        with pytest.raises(ValueError, match="cycle"):
+            dag.add_edge(nodes[-1], nodes[0], "out", "inp")
