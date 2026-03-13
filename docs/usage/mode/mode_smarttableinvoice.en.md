@@ -161,3 +161,37 @@ By default, the table data used by SmartTableInvoice mode is --not-- registered 
 smarttable:
     save_table_file: true
 ```
+
+## Automatic Sample Field Clearing Rule (New Sample Registration)
+
+In SmartTable mode, if the `sample/names` column is specified **and** the `sample/sampleId` column is absent or empty, the row is treated as a **new sample registration**. In this case, any dummy sample fields inherited from the original `invoice.json` are automatically cleared.
+
+### Fields Cleared
+
+| Field | Value After Clearing | Notes |
+|-------|---------------------|-------|
+| `sample.sampleId` | `""` (empty string) | Indicates a new sample |
+| `sample.description` | `null` | Resets dummy sample description |
+| `sample.composition` | `null` | Resets dummy sample composition |
+| `sample.referenceUrl` | `null` | Resets dummy sample reference URL |
+| `sample.generalAttributes[*].value` | `null` | Structure (termId) is preserved; only values are cleared |
+| `sample.specificAttributes[*].value` | `null` | Structure (classId+termId) is preserved; only values are cleared |
+| `sample.ownerId` | Set from `basic.dataOwnerId` | Existing rule (Issue #389) continues to apply |
+
+### Examples
+
+```csv
+# Only sample/names specified (no sample/sampleId) → treated as new sample
+basic/dataName,sample/names
+Experiment 1,Sample A
+```
+
+In the above case, even if `sampleId`, `description`, etc. are set in the original `invoice.json`, they are all cleared and the row is registered as a new sample.
+
+```csv
+# sample/sampleId explicitly specified → treated as reference to existing sample; no clearing
+basic/dataName,sample/names,sample/sampleId
+Experiment 2,Sample B,12345678-abcd-ef01-2345-6789abcdef01
+```
+
+In the above case, `sampleId` is preserved and the row is treated as a reference registration to an existing sample.

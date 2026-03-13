@@ -161,3 +161,37 @@ def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourceP
 smarttable:
     save_table_file: true
 ```
+
+## 試料フィールドの自動クリアルール（新規試料登録）
+
+SmartTableモードでは、`sample/names` 列が指定され、かつ `sample/sampleId` 列が存在しないか空文字の場合、**新規試料として登録する意図**として扱われます。このとき、元の `invoice.json` から継承されたダミー試料の各フィールドが自動的にクリアされます。
+
+### クリアされるフィールド
+
+| フィールド | クリア後の値 | 備考 |
+|-----------|------------|------|
+| `sample.sampleId` | `""` (空文字) | 新規試料を示す |
+| `sample.description` | `null` | ダミー試料の説明をリセット |
+| `sample.composition` | `null` | ダミー試料の組成をリセット |
+| `sample.referenceUrl` | `null` | ダミー試料の参照URLをリセット |
+| `sample.generalAttributes[*].value` | `null` | 構造(termId)は維持、値のみクリア |
+| `sample.specificAttributes[*].value` | `null` | 構造(classId+termId)は維持、値のみクリア |
+| `sample.ownerId` | `basic.dataOwnerId` を自動設定 | 既存ルール(Issue #389)が引き続き適用 |
+
+### 動作の例
+
+```csv
+# sample/names のみ指定（sample/sampleId なし）→ 新規試料扱い
+basic/dataName,sample/names
+実験データ1,試料A
+```
+
+上記の場合、元の `invoice.json` に `sampleId` や `description` などが設定されていても、すべてクリアされた上で新規試料として登録されます。
+
+```csv
+# sample/sampleId を明示指定 → 既存試料参照として扱い、クリアしない
+basic/dataName,sample/names,sample/sampleId
+実験データ2,試料B,12345678-abcd-ef01-2345-6789abcdef01
+```
+
+上記の場合は `sampleId` が保持され、既存試料の参照登録として扱われます。

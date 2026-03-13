@@ -497,6 +497,29 @@ class SmartTableInvoiceInitializer(Processor):
             logger.debug("CSV contains no data rows; skipping SmartTable row application")
             return metadata_updates
 
+        # First pass: determine CSV intent before touching invoice_data.
+        # Clearing must happen before CSV values are applied so that fields
+        # set explicitly in the CSV row are not overwritten by the clear step.
+        csv_has_sample_names = False
+        # True only when sample/sampleId column is present with a non-empty value
+        csv_has_sample_id_with_value = False
+        for col in csv_data.columns:
+            value = csv_data.iloc[0][col]
+            if pd.isna(value) or value == "":
+                continue
+            if col == "sample/names":
+                csv_has_sample_names = True
+            if col == "sample/sampleId":
+                csv_has_sample_id_with_value = True
+
+        # When sample/names is specified without an explicit sample/sampleId value,
+        # the intent is to register a new sample.  Clear dummy sample fields
+        # inherited from the original invoice BEFORE applying CSV values so that
+        # fields provided in the CSV row are not erased by the clearing step.
+        if csv_has_sample_names and not csv_has_sample_id_with_value:
+            self._clear_sample_for_new_registration(invoice_data)
+
+        # Second pass: apply CSV data to invoice_data
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]
             if pd.isna(value) or value == "":
@@ -557,6 +580,44 @@ class SmartTableInvoiceInitializer(Processor):
         logger.debug(
             "Set sample.ownerId to basic.dataOwnerId: %s",
             data_owner_id,
+        )
+
+    def _clear_sample_for_new_registration(self, invoice_data: dict[str, Any]) -> None:
+        """Clear dummy sample fields when registering a new sample.
+
+        When a SmartTable row specifies ``sample/names`` but not ``sample/sampleId``,
+        the intent is to register a new sample rather than reference an existing one.
+        Fields inherited from the original invoice that belong to the dummy reference
+        sample must not be silently carried over.
+
+        Fields cleared:
+
+        - ``sample.sampleId`` → ``""`` (empty string indicates a new sample)
+        - ``sample.description`` → ``None``
+        - ``sample.composition`` → ``None``
+        - ``sample.referenceUrl`` → ``None``
+        - ``sample.generalAttributes[*].value`` → ``None`` (structure/termId preserved)
+        - ``sample.specificAttributes[*].value`` → ``None`` (structure/classId+termId preserved)
+
+        Note:
+            ``sample.ownerId`` is handled separately by :meth:`_set_sample_owner_id`
+            per the Issue #389 policy and is not touched here.
+        """
+        sample_section = invoice_data.setdefault("sample", {})
+
+        sample_section["sampleId"] = ""
+        for field in ("description", "composition", "referenceUrl"):
+            sample_section[field] = None
+
+        for attr in sample_section.get("generalAttributes") or []:
+            attr["value"] = None
+
+        for attr in sample_section.get("specificAttributes") or []:
+            attr["value"] = None
+
+        logger.debug(
+            "Cleared dummy sample fields for new sample registration "
+            "(sample/names specified without sample/sampleId)",
         )
 
     def _load_metadata_definition(self, metadata_def_path: Path) -> dict[str, Any]:
