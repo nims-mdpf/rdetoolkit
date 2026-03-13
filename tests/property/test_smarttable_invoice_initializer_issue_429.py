@@ -178,7 +178,11 @@ def _is_csv_missing_string(value: str) -> bool:
     writer.writerow({"value": value})
     csv_buffer.seek(0)
 
-    parsed = pd.read_csv(csv_buffer, dtype=str).iloc[0, 0]
+    parsed_df = pd.read_csv(csv_buffer, dtype=str)
+    if parsed_df.empty or parsed_df.shape[1] == 0:
+        return True
+
+    parsed = parsed_df.iloc[0, 0]
     return bool(pd.isna(parsed) or parsed == "")
 
 
