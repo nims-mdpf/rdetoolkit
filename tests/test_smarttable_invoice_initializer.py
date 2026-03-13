@@ -21,6 +21,7 @@ Boundary Value:
 | `SmartTableInvoiceInitializer.process` | basic.dataOwnerId is empty string               | Defensive handling when field is empty                  | Logs warning, preserves original ownerId    | `TC-BV-003`   |
 | `SmartTableInvoiceInitializer.process` | sample/sampleId boundary: empty string ""       | Empty string is not a valid sampleId reference          | Treated as absent; new sample clearing runs | `TC-BV-004`   |
 | `SmartTableInvoiceInitializer.process` | sample/sampleId boundary: valid UUID string     | UUID present means explicit reference to existing sample| No clearing; sampleId preserved             | `TC-BV-005`   |
+| `SmartTableInvoiceInitializer.process` | sample/sampleId boundary: whitespace-only "   " | Whitespace-only must not be treated as valid sampleId   | Treated as absent; new sample clearing runs | `TC-BV-006`   |
 """
 
 from __future__ import annotations
@@ -617,3 +618,27 @@ def test_smarttable_uuid_sampleid_boundary_preserves_reference__tc_bv_005(tmp_pa
     assert output["sample"]["sampleId"] == uuid_value
     # description still holds the dummy value (no clearing happened)
     assert output["sample"]["description"] == "Dummy description"
+
+
+def test_smarttable_whitespace_sampleid_triggers_clearing__tc_bv_006(tmp_path: Path) -> None:
+    """TC-BV-006: Boundary — whitespace-only sample/sampleId is treated as absent → clearing runs.
+
+    Regression for Copilot review comment: 'value.strip()' must be used so that
+    cells containing only spaces are not mistaken for a valid sampleId reference.
+    """
+    # Given: invoice with dummy sampleId; CSV has sample/sampleId = "   " (spaces only)
+    invoice_org, schema_path, _ = _build_invoice_with_dummy_sample(tmp_path)
+    row0 = tmp_path / "temp" / "fsmarttable_case_0000.csv"
+    _write_smarttable_row(row0, {
+        "sample/names": "Brand New BV-006",
+        "sample/sampleId": "   ",
+    })
+
+    context = _make_context(tmp_path, invoice_org, schema_path, invoice_org.parent, row0)
+    SmartTableInvoiceInitializer().process(context)
+    output = json.loads((invoice_org.parent / "invoice.json").read_text())
+
+    # Then: whitespace-only sampleId is equivalent to absent → new-sample clearing applies
+    assert output["sample"].get("sampleId", "") == ""
+    assert output["sample"]["description"] is None
+    assert output["sample"]["names"] == ["Brand New BV-006"]

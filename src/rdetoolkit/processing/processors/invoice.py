@@ -501,11 +501,11 @@ class SmartTableInvoiceInitializer(Processor):
         # Clearing must happen before CSV values are applied so that fields
         # set explicitly in the CSV row are not overwritten by the clear step.
         csv_has_sample_names = False
-        # True only when sample/sampleId column is present with a non-empty value
+        # True only when sample/sampleId column is present with a non-empty, non-blank value
         csv_has_sample_id_with_value = False
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]
-            if pd.isna(value) or value == "":
+            if pd.isna(value) or str(value).strip() == "":
                 continue
             if col == "sample/names":
                 csv_has_sample_names = True
@@ -522,7 +522,7 @@ class SmartTableInvoiceInitializer(Processor):
         # Second pass: apply CSV data to invoice_data
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]
-            if pd.isna(value) or value == "":
+            if pd.isna(value) or str(value).strip() == "":
                 if self._is_invoice_mapping(col):
                     self._clear_mapping_key(col, invoice_data)
                 continue

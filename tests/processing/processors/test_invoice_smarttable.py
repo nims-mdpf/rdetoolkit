@@ -441,10 +441,11 @@ class TestSmartTableInvoiceInitializerIntegration:
 
     def _setup_invoice_with_dummy_sample(self, context) -> dict:
         """Write an invoice with a non-empty dummy sampleId to context.resource_paths.invoice_org."""
+        # Use 56-char alphanumeric strings matching the schema pattern ^[0-9a-zA-Z]{56}$
         dummy_invoice = {
             "datasetId": "dummy-ds-id",
             "basic": {
-                "dataOwnerId": "owner-id-from-basic-aaaaaa",
+                "dataOwnerId": "0" * 56,
                 "dataName": "dummy",
             },
             "custom": {},
@@ -460,7 +461,7 @@ class TestSmartTableInvoiceInitializerIntegration:
                 "specificAttributes": [
                     {"classId": "cls-1", "termId": "term-sa-1", "value": "sa-val-1"},
                 ],
-                "ownerId": "dummy-owner",
+                "ownerId": "1" * 56,
             },
         }
         invoice_org_path = context.resource_paths.invoice_org
