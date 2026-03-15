@@ -432,6 +432,21 @@ class SmartTableInvoiceInitializer(Processor):
         invoice_prefixes = ("basic/", "custom/", "sample/")
         return key.startswith(invoice_prefixes)
 
+    def _should_preserve_cleared_sample_field(self, key: str) -> bool:
+        """Return True when new-sample clearing should keep the sample mapping structure."""
+        if key in {
+            "sample/sampleId",
+            "sample/description",
+            "sample/composition",
+            "sample/referenceUrl",
+        }:
+            return True
+
+        return key.startswith((
+            "sample/generalAttributes.",
+            "sample/specificAttributes.",
+        ))
+
     def _process_general_attributes(self, key: str, value: str, invoice_data: dict[str, Any]) -> None:
         """Process sample/generalAttributes.<termId> mapping."""
         term_id = key.replace("sample/generalAttributes.", "")
@@ -516,7 +531,8 @@ class SmartTableInvoiceInitializer(Processor):
         # the intent is to register a new sample.  Clear dummy sample fields
         # inherited from the original invoice BEFORE applying CSV values so that
         # fields provided in the CSV row are not erased by the clearing step.
-        if csv_has_sample_names and not csv_has_sample_id_with_value:
+        is_new_sample_registration = csv_has_sample_names and not csv_has_sample_id_with_value
+        if is_new_sample_registration:
             self._clear_sample_for_new_registration(invoice_data)
 
         # Second pass: apply CSV data to invoice_data
@@ -524,7 +540,11 @@ class SmartTableInvoiceInitializer(Processor):
             value = csv_data.iloc[0][col]
             if pd.isna(value) or str(value).strip() == "":
                 if self._is_invoice_mapping(col):
-                    self._clear_mapping_key(col, invoice_data)
+                    if not (
+                        is_new_sample_registration
+                        and self._should_preserve_cleared_sample_field(col)
+                    ):
+                        self._clear_mapping_key(col, invoice_data)
                 continue
             if col.startswith("meta/"):
                 if not context.metadata_def_path.exists():

@@ -12,6 +12,8 @@ Equivalence Partitioning:
 | `SmartTableInvoiceInitializer.process` | Neither sample/names nor sample/sampleId specified             | No sample intent; original invoice sample fields must be preserved     | All original sample fields unchanged                                  | `TC-EP-007`   |
 | `SmartTableInvoiceInitializer.process` | sample/names specified, sample/sampleId column present but ""  | Explicit empty sampleId treated same as absent; new sample             | sampleId→"", other fields cleared                                     | `TC-EP-008`   |
 | `SmartTableInvoiceInitializer.process` | sample/names only; Issue #389 ownerId correction still applies | Clearing must not break existing ownerId auto-assignment logic         | sample.ownerId = basic.dataOwnerId after clearing                     | `TC-EP-009`   |
+| `SmartTableInvoiceInitializer.process` | sample/names with fixed-header blank sample columns            | New sample clearing must survive the generic blank-cell clearing pass  | sampleId/description and attribute structures remain cleared, not removed | `TC-EP-010` |
+| `SmartTableInvoiceInitializer.process` | sample/names + UUID + blank sample field                       | Existing sample reference path must keep generic blank-cell clearing   | Explicit sampleId kept; blank sample field is removed                 | `TC-EP-011`   |
 
 Boundary Value:
 | API                                   | Boundary                                       | Rationale                                               | Expected Outcome                            | Test ID       |
@@ -578,6 +580,70 @@ def test_smarttable_ownerid_corrected_after_new_sample_clearing__tc_ep_009(tmp_p
     assert output["sample"]["sampleId"] == ""
     # Then: ownerId is set to basic.dataOwnerId (Issue #389 logic preserved)
     assert output["sample"]["ownerId"] == expected_owner_id
+
+
+def test_smarttable_preserves_cleared_sample_fields_for_blank_fixed_headers__tc_ep_010(
+    tmp_path: Path,
+) -> None:
+    """TC-EP-010: Blank fixed-header sample columns must not remove new-sample cleared structure."""
+    # Given: original invoice has dummy values and SmartTable includes blank sample columns
+    invoice_org, schema_path, original = _build_invoice_with_dummy_sample(tmp_path)
+    general_attr = original["sample"]["generalAttributes"][0]
+    specific_attr = original["sample"]["specificAttributes"][0]
+    row0 = tmp_path / "temp" / "fsmarttable_case_0000.csv"
+    _write_smarttable_row(row0, {
+        "sample/names": "Brand New Fixed Header",
+        "sample/sampleId": "",
+        "sample/description": "",
+        f"sample/generalAttributes.{general_attr['termId']}": "",
+        (
+            "sample/specificAttributes."
+            f"{specific_attr['classId']}.{specific_attr['termId']}"
+        ): "",
+    })
+
+    # When: processing the new-sample row
+    context = _make_context(tmp_path, invoice_org, schema_path, invoice_org.parent, row0)
+    SmartTableInvoiceInitializer().process(context)
+    output = json.loads((invoice_org.parent / "invoice.json").read_text())
+
+    # Then: cleared scalar fields remain in their normalized empty form
+    assert output["sample"]["sampleId"] == ""
+    assert output["sample"]["description"] is None
+    # Then: cleared attribute entries are preserved instead of being deleted
+    assert any(
+        attr["termId"] == general_attr["termId"] and attr["value"] is None
+        for attr in output["sample"]["generalAttributes"]
+    )
+    assert any(
+        attr["classId"] == specific_attr["classId"]
+        and attr["termId"] == specific_attr["termId"]
+        and attr["value"] is None
+        for attr in output["sample"]["specificAttributes"]
+    )
+
+
+def test_smarttable_existing_sample_still_clears_blank_fields__tc_ep_011(tmp_path: Path) -> None:
+    """TC-EP-011: Existing-sample rows still use generic blank-cell clearing for sample fields."""
+    # Given: original invoice has dummy values and SmartTable references an existing sample
+    invoice_org, schema_path, _ = _build_invoice_with_dummy_sample(tmp_path)
+    row0 = tmp_path / "temp" / "fsmarttable_case_0000.csv"
+    explicit_uuid = "12345678-abcd-ef01-2345-6789abcdef01"
+    _write_smarttable_row(row0, {
+        "sample/names": "Existing Sample",
+        "sample/sampleId": explicit_uuid,
+        "sample/description": "",
+    })
+
+    # When: processing the existing-sample row
+    context = _make_context(tmp_path, invoice_org, schema_path, invoice_org.parent, row0)
+    SmartTableInvoiceInitializer().process(context)
+    output = json.loads((invoice_org.parent / "invoice.json").read_text())
+
+    # Then: explicit sampleId is preserved
+    assert output["sample"]["sampleId"] == explicit_uuid
+    # Then: blank sample fields still follow generic clearing semantics
+    assert "description" not in output["sample"]
 
 
 def test_smarttable_empty_sampleid_boundary_triggers_clearing__tc_bv_004(tmp_path: Path) -> None:
