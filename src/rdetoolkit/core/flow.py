@@ -169,34 +169,15 @@ def _get_trace_dag() -> DAG:
 
 
 def _infer_output_names(spec: NodeSpec) -> tuple[str, ...]:
-    """Infer output names from the NodeSpec's output_schema.
+    """Infer output names from the NodeSpec's output_schema dict.
 
-    For tuple return types like 'tuple[Metadata, DataFrame]',
-    generates positional names ('_0', '_1', ...).
-    For single return types, uses ('_return',).
-    For None return, uses ('_return',).
+    output_schema is ``dict[str, type]`` where keys are port names
+    (e.g. ``_0``, ``_1``, ``_return``).  An empty dict means
+    no meaningful output (None return) — we still yield ``("_return",)``.
     """
-    output_schema = spec.output_schema
-    if output_schema is None or output_schema in {"None", "NoneType"}:
+    if not spec.output_schema:
         return ("_return",)
-
-    # Check for tuple-like return type
-    if isinstance(output_schema, str) and output_schema.startswith("tuple["):
-        # Parse tuple type: count the comma-separated type args
-        inner = output_schema[6:-1]  # strip 'tuple[' and ']'
-        # Simple parse: count top-level commas
-        depth = 0
-        count = 1
-        for ch in inner:
-            if ch in "([":
-                depth += 1
-            elif ch in ")]":
-                depth -= 1
-            elif ch == "," and depth == 0:
-                count += 1
-        return tuple(f"_{i}" for i in range(count))
-
-    return ("_return",)
+    return tuple(spec.output_schema.keys())
 
 
 class _Flow:

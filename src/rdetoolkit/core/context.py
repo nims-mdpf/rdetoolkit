@@ -40,19 +40,21 @@ class RunContext:
         self.input_paths = input_paths
         self.output_context = output_context
 
-    def reserved_types(self) -> dict[str, Any]:
-        """Return a mapping of type name -> value for all available reserved types.
+    def reserved_types(self) -> dict[type, Any]:
+        """Return a mapping of type -> value for all available reserved types.
 
         Returns:
-            Dict with type name strings as keys and their values.
+            Dict with type classes as keys and their instances as values.
             RunContext itself is always included.
             None-valued entries (except RunContext) are excluded.
         """
-        mapping: dict[str, Any] = {"RunContext": self}
+        from rdetoolkit.types import InputPaths, OutputContext  # noqa: PLC0415
+
+        mapping: dict[type, Any] = {RunContext: self}
         if self.input_paths is not None:
-            mapping["InputPaths"] = self.input_paths
+            mapping[InputPaths] = self.input_paths
         if self.output_context is not None:
-            mapping["OutputContext"] = self.output_context
+            mapping[OutputContext] = self.output_context
         return mapping
 
 
@@ -111,8 +113,8 @@ def resolve_inputs(
             resolved[param_name] = value
             continue
 
-        # Priority 2: Runner reserved type
-        if param_type in reserved:
+        # Priority 2: Runner reserved type (match by type object)
+        if isinstance(param_type, type) and param_type in reserved:
             resolved[param_name] = reserved[param_type]
             continue
 

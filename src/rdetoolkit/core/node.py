@@ -6,8 +6,8 @@ altering its runtime behavior — decorated functions remain directly callable.
 
 from __future__ import annotations
 
-import contextlib
 import inspect
+import typing
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
@@ -22,21 +22,61 @@ class NodeSpec:
 
     Attributes:
         id: Unique node identifier (defaults to function name).
-        func_name: Original function name.
-        input_schema: Mapping of parameter names to type annotation strings.
-        output_schema: Return type annotation string, or None.
+        name: Display name (function name).
+        fn: Reference to the original unwrapped function.
+        input_schema: Mapping of parameter names to actual type objects.
+        output_schema: Mapping of output port names to actual type objects.
         tags: Tuple of classification tags.
         version: Semantic version string.
         idempotent: Whether repeated execution yields the same result.
+        source_location: "module:qualname" string identifying the function.
     """
 
     id: str
-    func_name: str
-    input_schema: dict[str, str]
-    output_schema: str | None
+    name: str
+    fn: Callable[..., Any]
+    input_schema: dict[str, type]
+    output_schema: dict[str, type]
     tags: tuple[str, ...]
     version: str
     idempotent: bool
+    source_location: str
+
+
+def _resolve_type_hints(func: Callable[..., Any]) -> dict[str, Any]:
+    """Resolve type hints to actual type objects.
+
+    Uses ``typing.get_type_hints`` which evaluates string annotations
+    (from ``__future__.annotations``) against the function's global namespace.
+    Falls back to an empty dict on failure.
+    """
+    try:
+        return typing.get_type_hints(func, include_extras=False)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _build_output_schema(return_type: Any) -> dict[str, type]:
+    """Build an output_schema dict from a resolved return type annotation.
+
+    - ``None`` / ``NoneType`` -> ``{}``
+    - ``tuple[X, Y, ...]``   -> ``{"_0": X, "_1": Y, ...}``
+    - any other type          -> ``{"_return": <type>}``
+    """
+    if return_type is type(None) or return_type is None:
+        return {}
+
+    origin = typing.get_origin(return_type)
+    if origin is tuple:
+        args = typing.get_args(return_type)
+        if args:
+            return {f"_{i}": t for i, t in enumerate(args)}
+
+    if isinstance(return_type, type):
+        return {"_return": return_type}
+
+    # For generic aliases like list[int], store as-is
+    return {"_return": return_type}
 
 
 def _build_node_spec(
@@ -48,35 +88,33 @@ def _build_node_spec(
 ) -> NodeSpec:
     """Build a NodeSpec by inspecting the function signature."""
     sig = inspect.signature(func)
-    hints: dict[str, Any] = {}
-    with contextlib.suppress(Exception):
-        hints = {
-            k: v
-            for k, v in inspect.get_annotations(func, eval_str=False).items()
-            if k != "return"
-        }
+    hints = _resolve_type_hints(func)
 
-    input_schema: dict[str, str] = {}
-    for name, param in sig.parameters.items():
-        if param.annotation is not inspect.Parameter.empty:
-            ann = hints.get(name, param.annotation)
-            input_schema[name] = ann if isinstance(ann, str) else getattr(ann, "__name__", str(ann))
+    # Build input_schema with actual type objects
+    input_schema: dict[str, type] = {}
+    for name in sig.parameters:
+        if name in hints:
+            input_schema[name] = hints[name]
         else:
-            input_schema[name] = "Any"
+            input_schema[name] = Any
 
-    return_ann = sig.return_annotation
-    output_schema: str | None = None
-    if return_ann is not inspect.Signature.empty:
-        output_schema = return_ann if isinstance(return_ann, str) else getattr(return_ann, "__name__", str(return_ann))
+    # Build output_schema as dict[str, type]
+    return_type = hints.get("return")
+    output_schema = _build_output_schema(return_type)
+
+    # Source location
+    source_location = f"{func.__module__}:{func.__qualname__}"
 
     return NodeSpec(
         id=func.__name__,
-        func_name=func.__name__,
+        name=func.__name__,
+        fn=func,
         input_schema=input_schema,
         output_schema=output_schema,
         tags=tags,
         version=version,
         idempotent=idempotent,
+        source_location=source_location,
     )
 
 

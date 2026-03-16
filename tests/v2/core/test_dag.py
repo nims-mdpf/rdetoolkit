@@ -202,15 +202,20 @@ class TestDAGPythonWrapper:
         from rdetoolkit.core.dag import DAG
         from rdetoolkit.core.node import NodeSpec
 
+        def _dummy() -> None:
+            pass
+
         dag = DAG()
         spec = NodeSpec(
             id="a",
-            func_name="a",
+            name="a",
+            fn=_dummy,
             input_schema={},
-            output_schema=None,
+            output_schema={},
             tags=(),
             version="0.0.0",
             idempotent=False,
+            source_location="test:a",
         )
         dag.add_node("a", spec)
         assert "a" in dag.node_ids()

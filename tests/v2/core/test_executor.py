@@ -14,23 +14,6 @@ from rdetoolkit.core.node import NodeSpec, node
 from rdetoolkit.types import InputPaths
 
 
-def _make_spec(
-    node_id: str,
-    input_schema: dict[str, str],
-    output_schema: str | None = None,
-) -> NodeSpec:
-    """Helper to build a NodeSpec for testing."""
-    return NodeSpec(
-        id=node_id,
-        func_name=node_id,
-        input_schema=input_schema,
-        output_schema=output_schema,
-        tags=(),
-        version="1.0.0",
-        idempotent=False,
-    )
-
-
 # ── 1.5.6: Executor tests ──────────────────────────────────────────────
 
 
@@ -64,9 +47,7 @@ class TestExecutor:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(
-            funcs={"source": source, "sink": sink},
-        )
+        result = executor.execute()
 
         assert isinstance(result, ExecutionResult)
         assert call_order == ["source", "sink"]
@@ -101,9 +82,7 @@ class TestExecutor:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(
-            funcs={"good_node": good_node, "bad_node": bad_node},
-        )
+        result = executor.execute()
 
         assert not result.is_success()
         assert "good_node" in result.outputs
@@ -135,7 +114,7 @@ class TestExecutor:
         dag = DAG()
         plan = ExecutionPlan(order=[], node_specs={})
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(funcs={})
+        result = executor.execute()
 
         assert result.is_success()
         assert result.outputs == {}
@@ -167,7 +146,7 @@ class TestExecutor:
 
         ctx = RunContext(input_paths=ip)
         executor = Executor(plan=plan, dag=dag, context=ctx)
-        result = executor.execute(funcs={"reader": reader})
+        result = executor.execute()
 
         assert result.is_success()
         assert received["paths"] is ip
@@ -189,7 +168,7 @@ class TestExecutor:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(funcs={"multi": multi})
+        result = executor.execute()
 
         assert result.is_success()
         assert result.outputs["multi"]["_0"] == "hello"
@@ -228,7 +207,7 @@ class TestExecutor:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(funcs={"a": a, "b": b, "c": c})
+        result = executor.execute()
 
         assert result.is_success()
         assert result.outputs["a"]["_return"] == 10
@@ -262,11 +241,10 @@ class TestExecutor:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(funcs={"a": a, "b": b})
+        result = executor.execute()
 
         assert not result.is_success()
         assert "a" in result.failures
-        # b should also be in failures (skipped due to upstream failure)
         assert "b" in result.failures
 
 
@@ -309,13 +287,9 @@ class TestMaybeRelease:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(funcs={"a": a, "b": b, "c": c})
+        result = executor.execute()
 
         assert result.is_success()
-        # After execution, intermediate results for 'a' and 'b' should have been
-        # released from the internal store (only final outputs remain in result)
-        # The result.outputs still has all outputs for inspection, but the
-        # executor's internal _results dict should have released intermediates
         assert executor._released_nodes == {"a", "b"}
 
     def test_multi_consumer_not_released_early(self) -> None:
@@ -351,12 +325,9 @@ class TestMaybeRelease:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(
-            funcs={"source": source, "consumer1": consumer1, "consumer2": consumer2},
-        )
+        result = executor.execute()
 
         assert result.is_success()
-        # source should be released only after both consumers have executed
         assert "source" in executor._released_nodes
 
     def test_leaf_node_not_released(self) -> None:
@@ -376,8 +347,7 @@ class TestMaybeRelease:
         )
 
         executor = Executor(plan=plan, dag=dag, context=RunContext())
-        result = executor.execute(funcs={"leaf": leaf})
+        result = executor.execute()
 
         assert result.is_success()
-        # Leaf nodes should not be released (they are terminal outputs)
         assert "leaf" not in executor._released_nodes

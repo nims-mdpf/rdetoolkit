@@ -7,12 +7,14 @@ F = TypeVar('F', bound=Callable[..., Any])
 @dataclass(frozen=True, slots=True)
 class NodeSpec:
     id: str
-    func_name: str
-    input_schema: dict[str, str]
-    output_schema: str | None
+    name: str
+    fn: Callable[..., Any]
+    input_schema: dict[str, type]
+    output_schema: dict[str, type]
     tags: tuple[str, ...]
     version: str
     idempotent: bool
+    source_location: str
 
 @overload
 def node(func: F, /) -> F: ...

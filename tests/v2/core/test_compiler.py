@@ -461,6 +461,10 @@ def _dag_node_ids_strategy() -> st.SearchStrategy[list[str]]:
     )
 
 
+def _dummy_fn() -> None:
+    pass
+
+
 def _build_linear_dag_with_nodes(node_ids: list[str]) -> "DAG":
     """Build a linear DAG: node_ids[0] -> node_ids[1] -> ... -> node_ids[-1]."""
     from rdetoolkit.core.dag import DAG
@@ -470,12 +474,14 @@ def _build_linear_dag_with_nodes(node_ids: list[str]) -> "DAG":
     for i, nid in enumerate(node_ids):
         spec = NodeSpec(
             id=nid,
-            func_name=nid,
-            input_schema={"x": "int"} if i > 0 else {},
-            output_schema="int" if i < len(node_ids) - 1 else "None",
+            name=nid,
+            fn=_dummy_fn,
+            input_schema={"x": int} if i > 0 else {},
+            output_schema={"_return": int} if i < len(node_ids) - 1 else {},
             tags=(),
             version="1.0.0",
             idempotent=False,
+            source_location=f"test:{nid}",
         )
         dag.add_node(nid, spec)
     for i in range(len(node_ids) - 1):
@@ -537,12 +543,14 @@ class TestCompilerPBT:
         for nid in node_ids:
             spec = NodeSpec(
                 id=nid,
-                func_name=nid,
+                name=nid,
+                fn=_dummy_fn,
                 input_schema={},
-                output_schema="int",
+                output_schema={"_return": int},
                 tags=(),
                 version="1.0.0",
                 idempotent=False,
+                source_location=f"test:{nid}",
             )
             dag.add_node(nid, spec)
         # No edges at all

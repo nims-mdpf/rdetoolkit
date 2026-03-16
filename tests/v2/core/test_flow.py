@@ -20,11 +20,16 @@ BV Table:
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pytest
 
 from rdetoolkit.core.node import node
+
+
+def _dummy_fn() -> None:
+    pass
 
 
 # === 1.3.10: Trace proxy tests ===
@@ -53,12 +58,14 @@ class TestNodeProxy:
 
         spec = NodeSpec(
             id="read_csv",
-            func_name="read_csv",
-            input_schema={"paths": "InputPaths"},
-            output_schema="tuple[Metadata, DataFrame]",
+            name="read_csv",
+            fn=_dummy_fn,
+            input_schema={"paths": Path},
+            output_schema={"_0": str, "_1": list},
             tags=(),
             version="0.0.0",
             idempotent=False,
+            source_location="test:read_csv",
         )
         dag = DAG()
         dag.add_node("read_csv", spec)
@@ -83,12 +90,14 @@ class TestNodeProxy:
 
         spec = NodeSpec(
             id="write_meta",
-            func_name="write_meta",
-            input_schema={"meta": "Metadata"},
-            output_schema="None",
+            name="write_meta",
+            fn=_dummy_fn,
+            input_schema={"meta": str},
+            output_schema={},
             tags=(),
             version="0.0.0",
             idempotent=False,
+            source_location="test:write_meta",
         )
         dag = DAG()
         dag.add_node("write_meta", spec)
@@ -106,14 +115,16 @@ class TestNodeProxy:
 
         # Given: two nodes in a DAG
         spec_a = NodeSpec(
-            id="node_a", func_name="node_a",
-            input_schema={}, output_schema="tuple[str, int]",
+            id="node_a", name="node_a", fn=_dummy_fn,
+            input_schema={}, output_schema={"_0": str, "_1": int},
             tags=(), version="0.0.0", idempotent=False,
+            source_location="test:node_a",
         )
         spec_b = NodeSpec(
-            id="node_b", func_name="node_b",
-            input_schema={"x": "str", "y": "int"}, output_schema="None",
+            id="node_b", name="node_b", fn=_dummy_fn,
+            input_schema={"x": str, "y": int}, output_schema={},
             tags=(), version="0.0.0", idempotent=False,
+            source_location="test:node_b",
         )
         dag = DAG()
         dag.add_node("node_a", spec_a)

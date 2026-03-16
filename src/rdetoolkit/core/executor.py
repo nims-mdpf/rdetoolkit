@@ -9,7 +9,6 @@ completed node outputs once all downstream consumers have executed.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -44,29 +43,25 @@ class ExecutionResult:
 
 def _store_output(
     node_id: str,
-    output_schema: str | None,
+    output_schema: dict[str, type],
     raw_output: Any,
 ) -> dict[str, Any]:
     """Store a node's raw output under the correct port names.
 
-    For tuple outputs, splits into positional ports (_0, _1, ...).
-    For single outputs, stores under _return.
+    For multi-output nodes (multiple keys in output_schema), splits a tuple
+    into named ports. For single-output nodes, stores under the single key.
+    For empty output_schema (None return), stores under ``_return``.
     """
-    if output_schema is not None and output_schema.startswith("tuple["):
-        # Parse tuple type to determine expected element count
-        inner = output_schema[6:-1]
-        depth = 0
-        count = 1
-        for ch in inner:
-            if ch in "([":
-                depth += 1
-            elif ch in ")]":
-                depth -= 1
-            elif ch == "," and depth == 0:
-                count += 1
+    if not output_schema:
+        return {"_return": raw_output}
 
-        if isinstance(raw_output, tuple) and len(raw_output) == count:
-            return {f"_{i}": raw_output[i] for i in range(count)}
+    keys = list(output_schema.keys())
+    if len(keys) == 1:
+        return {keys[0]: raw_output}
+
+    # Multiple outputs — expect a tuple matching the port count
+    if isinstance(raw_output, tuple) and len(raw_output) == len(keys):
+        return dict(zip(keys, raw_output, strict=True))
 
     return {"_return": raw_output}
 
@@ -93,15 +88,10 @@ class Executor:
         self._results: dict[str, dict[str, Any]] = {}
         self._released_nodes: set[str] = set()
 
-    def execute(
-        self,
-        *,
-        funcs: dict[str, Callable[..., Any]],
-    ) -> ExecutionResult:
+    def execute(self) -> ExecutionResult:
         """Execute all nodes in plan order.
 
-        Args:
-            funcs: Mapping of node_id -> callable function to execute.
+        Uses ``NodeSpec.fn`` to obtain the callable for each node.
 
         Returns:
             ExecutionResult with outputs and failures.
@@ -125,9 +115,10 @@ class Executor:
                 continue
 
             spec = self._plan.node_specs.get(node_id)
-            func = funcs.get(node_id)
-            if spec is None or func is None:
+            if spec is None:
                 continue
+
+            func = spec.fn
 
             try:
                 # Resolve inputs via DI

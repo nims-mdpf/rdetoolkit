@@ -150,8 +150,8 @@ class Compiler:
             if from_spec is None or to_spec is None:
                 continue
 
-            # Resolve output type from the source node
-            output_type = self._resolve_output_type(from_spec, from_port)
+            # Resolve output type from the source node's output_schema dict
+            output_type = from_spec.output_schema.get(from_port)
             # Resolve input type from the target node
             input_type = to_spec.input_schema.get(to_port)
 
@@ -180,110 +180,54 @@ class Compiler:
                         ),
                     )
 
-    def _resolve_output_type(self, spec: NodeSpec, port: str) -> str | None:
-        """Resolve the type string for a given output port.
-
-        For single-output nodes (_return), uses the output_schema directly.
-        For tuple-output nodes (_0, _1, ...), parses the tuple type.
-
-        Args:
-            spec: The NodeSpec of the producing node.
-            port: The output port name.
-
-        Returns:
-            The type string, or None if unresolvable.
-        """
-        output_schema = spec.output_schema
-        if output_schema is None:
-            return None
-
-        if port == "_return":
-            return output_schema
-
-        # Tuple output: parse positional types
-        if output_schema.startswith("tuple["):
-            inner = output_schema[6:-1]
-            types = self._parse_tuple_types(inner)
-            if port.startswith("_") and port[1:].isdigit():
-                idx = int(port[1:])
-                if idx < len(types):
-                    return types[idx].strip()
-        return None
-
-    @staticmethod
-    def _parse_tuple_types(inner: str) -> list[str]:
-        """Parse the inner types of a tuple annotation string.
-
-        Args:
-            inner: The string inside tuple[...].
-
-        Returns:
-            List of type strings.
-        """
-        types: list[str] = []
-        depth = 0
-        current: list[str] = []
-        for ch in inner:
-            if ch in "([":
-                depth += 1
-                current.append(ch)
-            elif ch in ")]":
-                depth -= 1
-                current.append(ch)
-            elif ch == "," and depth == 0:
-                types.append("".join(current).strip())
-                current = []
-            else:
-                current.append(ch)
-        if current:
-            types.append("".join(current).strip())
-        return types
-
     def _check_ambiguous_deps(self, warnings: list[CompileWarning]) -> None:
         """Check for unconnected inputs with multiple same-type producers.
 
         For each node, find input parameters that have no incoming edge.
         If multiple other nodes produce the same type, warn about ambiguity.
         """
-        edges = self._dag.edge_list()
-        # Build map: (to_id, to_port) -> True for connected inputs
-        connected_inputs: set[tuple[str, str]] = set()
-        for _from_id, to_id, _from_port, to_port in edges:
-            connected_inputs.add((to_id, to_port))
+        connected_inputs = self._build_connected_inputs_set()
+        output_type_producers = self._build_output_type_producers()
 
-        # Build map: output_type -> list of producing node IDs
-        output_type_producers: dict[str, list[str]] = {}
-        for nid in self._dag.node_ids():
-            spec = self._dag.get_spec(nid)
-            if spec is None or spec.output_schema is None:
-                continue
-            out_type = spec.output_schema
-            if out_type not in ("None", "NoneType"):
-                output_type_producers.setdefault(out_type, []).append(nid)
-
-        # Check each node's unconnected inputs
         for nid in self._dag.node_ids():
             spec = self._dag.get_spec(nid)
             if spec is None:
                 continue
             for param_name, param_type in spec.input_schema.items():
-                if (nid, param_name) not in connected_inputs:
-                    # This input is unconnected — check if multiple producers exist
-                    producers = output_type_producers.get(param_type, [])
-                    # Exclude self
-                    producers = [p for p in producers if p != nid]
-                    if len(producers) > 1:
-                        warnings.append(
-                            CompileWarning(
-                                code="W_AMBIGUOUS_DEP",
-                                message=(
-                                    f"Unconnected input '{param_name}' on node '{nid}' "
-                                    f"has {len(producers)} possible producers of type "
-                                    f"'{param_type}': {producers}"
-                                ),
-                                node_id=nid,
+                if (nid, param_name) in connected_inputs:
+                    continue
+                producers = [p for p in output_type_producers.get(param_type, []) if p != nid]
+                if len(producers) > 1:
+                    warnings.append(
+                        CompileWarning(
+                            code="W_AMBIGUOUS_DEP",
+                            message=(
+                                f"Unconnected input '{param_name}' on node '{nid}' "
+                                f"has {len(producers)} possible producers of type "
+                                f"'{param_type}': {producers}"
                             ),
-                        )
+                            node_id=nid,
+                        ),
+                    )
+
+    def _build_connected_inputs_set(self) -> set[tuple[str, str]]:
+        """Build a set of (node_id, port_name) for all connected inputs."""
+        connected: set[tuple[str, str]] = set()
+        for _from_id, to_id, _from_port, to_port in self._dag.edge_list():
+            connected.add((to_id, to_port))
+        return connected
+
+    def _build_output_type_producers(self) -> dict[type, list[str]]:
+        """Build a mapping of output type -> list of producing node IDs."""
+        producers: dict[type, list[str]] = {}
+        for nid in self._dag.node_ids():
+            spec = self._dag.get_spec(nid)
+            if spec is None or not spec.output_schema:
+                continue
+            for _port_name, port_type in spec.output_schema.items():
+                if port_type is not type(None):
+                    producers.setdefault(port_type, []).append(nid)
+        return producers
 
     def _build_plan(self) -> ExecutionPlan:
         """Build an ExecutionPlan from the topological sort and NodeSpecs.

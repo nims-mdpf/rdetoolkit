@@ -399,3 +399,27 @@ class RdeConfigError(RdeError):
 
 class RdeIOError(RdeError):
     """Error related to I/O operations (E021-E025)."""
+
+
+class UnconnectedInputError(RdeExecutionError):
+    """Raised when DI resolution cannot find a value for a node input parameter.
+
+    This means the parameter has no upstream DAG edge result and is not a
+    Runner reserved type (InputPaths, OutputContext, RunContext, etc.).
+
+    Attributes:
+        node_id: The node whose input could not be resolved.
+        param_name: The parameter that has no source.
+    """
+
+    def __init__(self, node_id: str, param_name: str) -> None:
+        self.node_id = node_id
+        self.param_name = param_name
+        super().__init__(
+            code=ErrorCode.E012.value,
+            message=(
+                f"Cannot resolve input '{param_name}' for node '{node_id}': "
+                f"no DAG edge result and not a reserved type"
+            ),
+            detail={"node_id": node_id, "param_name": param_name},
+        )
