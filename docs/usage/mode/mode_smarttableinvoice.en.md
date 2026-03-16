@@ -164,7 +164,20 @@ smarttable:
 
 ## Automatic Sample Field Clearing Rule (New Sample Registration)
 
-In SmartTable mode, if the `sample/names` column is specified **and** the `sample/sampleId` column is absent or empty, the row is treated as a **new sample registration**. In this case, any dummy sample fields inherited from the original `invoice.json` are automatically cleared.
+SmartTableInvoice mode generates each row's `invoice.json` by starting from the original `invoice.json` and then partially overwriting it with the row values. As a result, if no `sample` columns are supplied, the sample information from the original invoice remains as-is.
+
+Given that behavior, when the `sample/names` column is specified **and** `sample/sampleId` does not contain a valid value, the row is treated as an intentional **new sample registration**. In that case, dummy sample fields inherited from the original `invoice.json` are automatically cleared.
+
+### Decision Rules
+
+| SmartTable input | Interpretation | Behavior |
+|------------------|----------------|----------|
+| `sample/names` only | New sample registration | Clear inherited dummy sample fields |
+| `sample/names` + empty `sample/sampleId` | New sample registration | Same clearing behavior as missing `sample/sampleId` |
+| `sample/names` + non-empty `sample/sampleId` | Existing sample reference | Do not run new-sample clearing |
+| No `sample/names` | No sample-registration intent | Preserve sample fields from the original `invoice.json` |
+
+> A `sample/sampleId` cell that contains only whitespace is also treated as missing.
 
 ### Fields Cleared
 
@@ -178,6 +191,18 @@ In SmartTable mode, if the `sample/names` column is specified **and** the `sampl
 | `sample.specificAttributes[*].value` | `null` | Structure (classId+termId) is preserved; only values are cleared |
 | `sample.ownerId` | Set from `basic.dataOwnerId` | Existing rule (Issue #389) continues to apply |
 
+### Interaction with Blank Cells
+
+In fixed-header SmartTable files, columns such as `sample/sampleId`, `sample/description`, or `sample/generalAttributes.<termId>` may always exist while individual cells are left blank.
+
+When the row is interpreted as a new sample registration, those blank columns still preserve the normalized empty structure:
+
+- `sample.sampleId` is kept as `""` instead of removing the key
+- `sample.description`, `sample.composition`, and `sample.referenceUrl` are kept as `null`
+- `sample.generalAttributes[*]` and `sample.specificAttributes[*]` keep their entries, with `value: null`
+
+By contrast, when `sample/sampleId` has a valid value and the row is treated as a reference to an existing sample, blank sample cells continue to use the normal SmartTable clearing behavior.
+
 ### Examples
 
 ```csv
@@ -189,9 +214,17 @@ Experiment 1,Sample A
 In the above case, even if `sampleId`, `description`, etc. are set in the original `invoice.json`, they are all cleared and the row is registered as a new sample.
 
 ```csv
+# Fixed-header sample columns can be present and blank; the normalized empty structure is preserved
+basic/dataName,sample/names,sample/sampleId,sample/description,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
+Experiment 1,Sample A,,,
+```
+
+In this case, `sample.sampleId` remains present as `""`, `sample.description` remains `null`, and the matching general attribute entry is preserved as `{"termId": "...", "value": null}`.
+
+```csv
 # sample/sampleId explicitly specified → treated as reference to existing sample; no clearing
 basic/dataName,sample/names,sample/sampleId
 Experiment 2,Sample B,12345678-abcd-ef01-2345-6789abcdef01
 ```
 
-In the above case, `sampleId` is preserved and the row is treated as a reference registration to an existing sample.
+In the above case, `sampleId` is preserved and the row is treated as a reference registration to an existing sample. If blank columns such as `sample/description` are present in the same row, those fields are still cleared using the normal blank-cell behavior.
