@@ -111,6 +111,8 @@ def process(self, context: ProcessingContext) -> None
 - Reads and parses SmartTable CSV file
 - Maps CSV columns to invoice structure using complex field mapping
 - Processes general and specific attributes
+- Builds each row from the original `invoice.json` and applies SmartTable values as partial overrides
+- Treats `sample/names` without a valid `sample/sampleId` as new-sample registration and clears inherited dummy sample fields while preserving normalized empty sample structures
 - Ensures required invoice fields are present
 - Creates final invoice JSON file
 
