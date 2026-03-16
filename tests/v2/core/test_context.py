@@ -9,10 +9,10 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from rdetoolkit.core.context import RunContext
+from rdetoolkit.core.context import RESERVED, RunContext
 from rdetoolkit.core.node import NodeSpec, node
 from rdetoolkit.errors import UnconnectedInputError
-from rdetoolkit.types import InputPaths, OutputContext
+from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext
 
 
 def _dummy_fn() -> None:
@@ -75,32 +75,32 @@ class TestRunContext:
         assert ctx.input_paths is None
         assert ctx.output_context is None
 
-    def test_reserved_types_returns_mapping(self) -> None:
-        """reserved_types() returns a dict mapping type classes to values."""
+    def test_reserved_values_returns_mapping(self) -> None:
+        """reserved_values() returns a dict mapping param names to values."""
         ip = InputPaths(
             inputdata=Path("/data/input"),
             invoice=Path("/data/invoice"),
             tasksupport=Path("/data/task"),
         )
         ctx = RunContext(input_paths=ip)
-        reserved = ctx.reserved_types()
-        assert InputPaths in reserved
-        assert reserved[InputPaths] is ip
+        reserved = ctx.reserved_values()
+        assert "paths" in reserved
+        assert reserved["paths"] is ip
 
-    def test_reserved_types_excludes_none(self) -> None:
-        """reserved_types() does not include None-valued entries (except RunContext)."""
+    def test_reserved_values_excludes_none(self) -> None:
+        """reserved_values() does not include None-valued entries (except 'context')."""
         ctx = RunContext()
-        reserved = ctx.reserved_types()
-        assert InputPaths not in reserved
-        assert OutputContext not in reserved
-        assert RunContext in reserved
+        reserved = ctx.reserved_values()
+        assert "paths" not in reserved
+        assert "output" not in reserved
+        assert "context" in reserved
 
-    def test_self_reference_in_reserved_types(self) -> None:
-        """RunContext itself is available as a reserved type."""
+    def test_self_reference_in_reserved_values(self) -> None:
+        """RunContext itself is available as reserved_values()['context']."""
         ctx = RunContext()
-        reserved = ctx.reserved_types()
-        assert RunContext in reserved
-        assert reserved[RunContext] is ctx
+        reserved = ctx.reserved_values()
+        assert "context" in reserved
+        assert reserved["context"] is ctx
 
 
 # ── 1.5.3: DI resolution algorithm ─────────────────────────────────────
@@ -239,12 +239,12 @@ class TestResolveInputs:
         assert resolved["paths"] is ip
 
     def test_output_context_reserved_resolution(self) -> None:
-        """OutputContext is injected as a reserved type."""
+        """OutputContext is injected as a reserved type when name='output'."""
         from rdetoolkit.core.context import resolve_inputs
         from rdetoolkit.core.dag import DAG
 
         dag = DAG()
-        spec = _make_spec("writer", {"out": OutputContext})
+        spec = _make_spec("writer", {"output": OutputContext})
         dag.add_node("writer", spec)
 
         oc = OutputContext(
@@ -260,22 +260,22 @@ class TestResolveInputs:
         results: dict[str, dict[str, Any]] = {}
 
         resolved = resolve_inputs(spec, dag, results, ctx)
-        assert resolved["out"] is oc
+        assert resolved["output"] is oc
 
     def test_run_context_self_injection(self) -> None:
-        """RunContext itself can be injected as a reserved type."""
+        """RunContext itself can be injected as a reserved type with name='context'."""
         from rdetoolkit.core.context import resolve_inputs
         from rdetoolkit.core.dag import DAG
 
         dag = DAG()
-        spec = _make_spec("meta_node", {"ctx": RunContext})
+        spec = _make_spec("meta_node", {"context": RunContext})
         dag.add_node("meta_node", spec)
 
         ctx = RunContext()
         results: dict[str, dict[str, Any]] = {}
 
         resolved = resolve_inputs(spec, dag, results, ctx)
-        assert resolved["ctx"] is ctx
+        assert resolved["context"] is ctx
 
     def test_tuple_output_edge_resolution(self) -> None:
         """DAG edge with positional output ports (_0, _1) resolves correctly."""
@@ -310,6 +310,104 @@ class TestResolveInputs:
 
         resolved = resolve_inputs(spec, dag, results, ctx)
         assert resolved == {}
+
+    def test_wrong_name_for_reserved_type_raises(self) -> None:
+        """x: InputPaths should NOT be injected — name must be 'paths'."""
+        from rdetoolkit.core.context import resolve_inputs
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        spec = _make_spec("bad", {"x": InputPaths})
+        dag.add_node("bad", spec)
+
+        ip = InputPaths(
+            inputdata=Path("/data/input"),
+            invoice=Path("/data/invoice"),
+            tasksupport=Path("/data/task"),
+        )
+        ctx = RunContext(input_paths=ip)
+        results: dict[str, dict[str, Any]] = {}
+
+        with pytest.raises(UnconnectedInputError) as exc_info:
+            resolve_inputs(spec, dag, results, ctx)
+        assert exc_info.value.node_id == "bad"
+        assert exc_info.value.param_name == "x"
+        assert exc_info.value.param_type is InputPaths
+
+    def test_invoice_and_iteration_reserved_resolution(self) -> None:
+        """config, invoice, iteration are also reserved-injected by name+type."""
+        from rdetoolkit.core.context import resolve_inputs
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        spec = _make_spec(
+            "multi_reserved",
+            {
+                "paths": InputPaths,
+                "invoice": InvoiceData,
+                "iteration": IterationInfo,
+            },
+        )
+        dag.add_node("multi_reserved", spec)
+
+        ip = InputPaths(
+            inputdata=Path("/data/input"),
+            invoice=Path("/data/invoice"),
+            tasksupport=Path("/data/task"),
+        )
+        inv = InvoiceData(raw={"key": "val"}, mode="invoice")
+        itr = IterationInfo(index=0, total=5, mode="invoice")
+        ctx = RunContext(input_paths=ip, invoice=inv, iteration=itr)
+        results: dict[str, dict[str, Any]] = {}
+
+        resolved = resolve_inputs(spec, dag, results, ctx)
+        assert resolved["paths"] is ip
+        assert resolved["invoice"] is inv
+        assert resolved["iteration"] is itr
+
+    def test_edge_priority_over_reserved_for_input_paths(self) -> None:
+        """Edge resolution takes priority even when reserved name+type matches."""
+        from rdetoolkit.core.context import resolve_inputs
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        spec_a = _make_spec("a", {}, output_schema={"_return": InputPaths})
+        spec_b = _make_spec("b", {"paths": InputPaths})
+        dag.add_node("a", spec_a)
+        dag.add_node("b", spec_b)
+        dag.add_edge("a", "b", "_return", "paths")
+
+        edge_ip = InputPaths(
+            inputdata=Path("/edge"), invoice=Path("/edge"), tasksupport=Path("/edge")
+        )
+        reserved_ip = InputPaths(
+            inputdata=Path("/reserved"), invoice=Path("/reserved"), tasksupport=Path("/reserved")
+        )
+        results: dict[str, dict[str, Any]] = {"a": {"_return": edge_ip}}
+        ctx = RunContext(input_paths=reserved_ip)
+
+        resolved = resolve_inputs(spec_b, dag, results, ctx)
+        assert resolved["paths"] is edge_ip
+
+    def test_unconnected_error_includes_param_type(self) -> None:
+        """UnconnectedInputError message includes param_type."""
+        from rdetoolkit.core.context import resolve_inputs
+        from rdetoolkit.core.dag import DAG
+
+        class CustomType:
+            pass
+
+        dag = DAG()
+        spec = _make_spec("n", {"arg": CustomType})
+        dag.add_node("n", spec)
+
+        ctx = RunContext()
+        results: dict[str, dict[str, Any]] = {}
+
+        with pytest.raises(UnconnectedInputError) as exc_info:
+            resolve_inputs(spec, dag, results, ctx)
+        assert exc_info.value.param_type is CustomType
+        assert "CustomType" in str(exc_info.value)
 
 
 # ── 1.5.5: PBT for DI resolution edge cases ────────────────────────────
@@ -384,16 +482,15 @@ class TestDIResolutionPBT:
 
     @given(
         node_id=_node_id_st,
-        param_name=_param_name_st,
     )
     @settings(max_examples=50)
-    def test_reserved_type_always_resolves(self, node_id: str, param_name: str) -> None:
-        """InputPaths parameter always resolves when RunContext provides it."""
+    def test_reserved_type_resolves_only_with_correct_name(self, node_id: str) -> None:
+        """InputPaths resolves only when param_name is 'paths' (name+type match)."""
         from rdetoolkit.core.context import resolve_inputs
         from rdetoolkit.core.dag import DAG
 
         dag = DAG()
-        spec = _make_spec(node_id, {param_name: InputPaths})
+        spec = _make_spec(node_id, {"paths": InputPaths})
         dag.add_node(node_id, spec)
 
         ip = InputPaths(
@@ -405,7 +502,7 @@ class TestDIResolutionPBT:
         results: dict[str, dict[str, Any]] = {}
 
         resolved = resolve_inputs(spec, dag, results, ctx)
-        assert resolved[param_name] is ip
+        assert resolved["paths"] is ip
 
     @given(
         n_edges=st.integers(min_value=1, max_value=5),

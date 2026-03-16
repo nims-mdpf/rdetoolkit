@@ -404,22 +404,25 @@ class RdeIOError(RdeError):
 class UnconnectedInputError(RdeExecutionError):
     """Raised when DI resolution cannot find a value for a node input parameter.
 
-    This means the parameter has no upstream DAG edge result and is not a
-    Runner reserved type (InputPaths, OutputContext, RunContext, etc.).
+    This means the parameter has no upstream DAG edge result and does not match
+    a Runner reserved type by both name AND type.
 
     Attributes:
         node_id: The node whose input could not be resolved.
         param_name: The parameter that has no source.
+        param_type: The declared type of the unresolved parameter.
     """
 
-    def __init__(self, node_id: str, param_name: str) -> None:
+    def __init__(self, node_id: str, param_name: str, param_type: type | None = None) -> None:
         self.node_id = node_id
         self.param_name = param_name
+        self.param_type = param_type
+        type_info = f" (type: {param_type.__name__})" if param_type is not None else ""
         super().__init__(
             code=ErrorCode.E012.value,
             message=(
-                f"Cannot resolve input '{param_name}' for node '{node_id}': "
+                f"Cannot resolve input '{param_name}'{type_info} for node '{node_id}': "
                 f"no DAG edge result and not a reserved type"
             ),
-            detail={"node_id": node_id, "param_name": param_name},
+            detail={"node_id": node_id, "param_name": param_name, "param_type": str(param_type)},
         )

@@ -4,8 +4,8 @@ RunContext holds Runner reserved types (InputPaths, OutputContext, etc.)
 that can be injected into @node functions via dependency injection.
 
 DI Resolution Priority:
-    1. DAG edge result (upstream @node output)
-    2. Runner reserved type (InputPaths, OutputContext, RunContext)
+    1. DAG edge result (upstream @node output, match by param_name)
+    2. Runner reserved type (match by param_name AND param_type)
     3. UnconnectedInputError
 """
 
@@ -18,7 +18,48 @@ from rdetoolkit.errors import UnconnectedInputError
 if TYPE_CHECKING:
     from rdetoolkit.core.dag import DAG
     from rdetoolkit.core.node import NodeSpec
-    from rdetoolkit.types import InputPaths, OutputContext
+    from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext
+
+
+def _build_reserved() -> dict[str, type]:
+    """Build the reserved name-to-type mapping (lazy to avoid circular imports)."""
+    from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext  # noqa: PLC0415
+
+    return {
+        "paths": InputPaths,
+        "output": OutputContext,
+        "context": RunContext,
+        "invoice": InvoiceData,
+        "iteration": IterationInfo,
+    }
+
+
+# Populated on first access via _get_reserved().
+_RESERVED: dict[str, type] | None = None
+
+
+def _get_reserved() -> dict[str, type]:
+    global _RESERVED  # noqa: PLW0603
+    if _RESERVED is None:
+        _RESERVED = _build_reserved()
+    return _RESERVED
+
+
+def get_reserved_mapping() -> dict[str, type]:
+    """Return the reserved param-name → type mapping.
+
+    This is the public API for accessing the RESERVED constant.
+    """
+    return _get_reserved()
+
+
+# Module-level RESERVED for direct import.
+# We use __getattr__ so the lazy import works at module level.
+def __getattr__(name: str) -> Any:
+    if name == "RESERVED":
+        return _get_reserved()
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
 
 
 class RunContext:
@@ -27,34 +68,42 @@ class RunContext:
     Attributes:
         input_paths: Input directory paths (if available).
         output_context: Output directory context (if available).
+        invoice: Parsed invoice data (if available).
+        iteration: Current iteration info (if available).
     """
 
-    __slots__ = ("input_paths", "output_context")
+    __slots__ = ("input_paths", "invoice", "iteration", "output_context")
 
     def __init__(
         self,
         *,
         input_paths: InputPaths | None = None,
         output_context: OutputContext | None = None,
+        invoice: InvoiceData | None = None,
+        iteration: IterationInfo | None = None,
     ) -> None:
         self.input_paths = input_paths
         self.output_context = output_context
+        self.invoice = invoice
+        self.iteration = iteration
 
-    def reserved_types(self) -> dict[type, Any]:
-        """Return a mapping of type -> value for all available reserved types.
+    def reserved_values(self) -> dict[str, Any]:
+        """Return a mapping of reserved param-name -> value.
 
         Returns:
-            Dict with type classes as keys and their instances as values.
-            RunContext itself is always included.
-            None-valued entries (except RunContext) are excluded.
+            Dict with reserved parameter names as keys and their instances as
+            values.  ``context`` (RunContext itself) is always included.
+            ``None``-valued entries (except ``context``) are excluded.
         """
-        from rdetoolkit.types import InputPaths, OutputContext  # noqa: PLC0415
-
-        mapping: dict[type, Any] = {RunContext: self}
+        mapping: dict[str, Any] = {"context": self}
         if self.input_paths is not None:
-            mapping[InputPaths] = self.input_paths
+            mapping["paths"] = self.input_paths
         if self.output_context is not None:
-            mapping[OutputContext] = self.output_context
+            mapping["output"] = self.output_context
+        if self.invoice is not None:
+            mapping["invoice"] = self.invoice
+        if self.iteration is not None:
+            mapping["iteration"] = self.iteration
         return mapping
 
 
@@ -87,8 +136,8 @@ def resolve_inputs(
     """Resolve all input parameters for a node using the DI priority chain.
 
     Priority:
-        1. DAG edge result (upstream @node output)
-        2. Runner reserved type (InputPaths, OutputContext, RunContext)
+        1. DAG edge result (upstream @node output, match by param_name)
+        2. Runner reserved type (match by param_name AND param_type)
         3. UnconnectedInputError
 
     Args:
@@ -101,24 +150,29 @@ def resolve_inputs(
         Dict mapping parameter names to resolved values.
 
     Raises:
-        UnconnectedInputError: If a parameter cannot be resolved.
+        UnconnectedInputError: If a parameter cannot be resolved by name+type.
     """
     resolved: dict[str, Any] = {}
-    reserved = context.reserved_types()
+    reserved_map = _get_reserved()
+    reserved_vals = context.reserved_values()
 
     for param_name, param_type in node_spec.input_schema.items():
-        # Priority 1: DAG edge result
+        # Priority 1: DAG edge result (match by param_name)
         found, value = _find_edge_result(param_name, node_spec.id, dag, results)
         if found:
             resolved[param_name] = value
             continue
 
-        # Priority 2: Runner reserved type (match by type object)
-        if isinstance(param_type, type) and param_type in reserved:
-            resolved[param_name] = reserved[param_type]
+        # Priority 2: Runner reserved type (param_name AND param_type must both match)
+        if (
+            param_name in reserved_map
+            and reserved_map[param_name] is param_type
+            and param_name in reserved_vals
+        ):
+            resolved[param_name] = reserved_vals[param_name]
             continue
 
         # Priority 3: Unresolvable
-        raise UnconnectedInputError(node_spec.id, param_name)
+        raise UnconnectedInputError(node_spec.id, param_name, param_type)
 
     return resolved
