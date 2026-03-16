@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.6.2     | 2026-03-16 | SmartTableで`sample/names`指定時にダミー試料の`sampleId`が黙って継承される問題を修正 | [v1.6.2](#v162-2026-03-16) |
 | v1.6.1     | 2026-03-10 | chardet公開API移行（Python 3.14互換） / SmartTableカスタムフィールドの型キャスト修正 | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み / Agent Skills追加 | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3     | 2026-02-03 | SmartTable sample.ownerId自動設定 / 欠損rawfileエラー改善 / invoicefile.pyバグ修正 | [v1.5.3](#v153-2026-02-03) |
@@ -21,6 +22,48 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.6.2 (2026-03-16)
+
+!!! info "参照"
+    - 主な課題: [#455](https://github.com/nims-mdpf/rdetoolkit/issues/455)
+    - プルリクエスト: [#457](https://github.com/nims-mdpf/rdetoolkit/pull/457)
+
+#### ハイライト
+- SmartTableモードで`sample/names`のみを指定して新規試料を登録しようとした場合に、元のinvoice.jsonのダミー試料`sampleId`が黙って残る問題を修正
+
+### バグ修正
+
+#### SmartTableのダミー試料sampleId継承防止 (Issue #455)
+
+**問題**: SmartTableの行で`sample/names`を指定し、`sample/sampleId`を省略した場合、送り状画面で選択したダミー参照試料の`sampleId`がそのまま出力結果に残っていました。ユーザーは新規試料として登録したいのに、既存参照試料に紐づいたような結果になっていました。
+
+**修正内容**:
+
+- `SmartTableInvoiceInitializer._apply_smarttable_row()`を2パス方式に変更し、CSV列の走査で`sample/names`の有無と`sample/sampleId`の値有無を先に判定するようにしました
+- 条件に合致する場合、CSV値の適用前に`_clear_sample_for_new_registration()`を呼び出してダミー試料フィールドをクリアします
+- クリア対象フィールド:
+    - `sample.sampleId` → 空文字
+    - `sample.description` / `sample.composition` / `sample.referenceUrl` → null
+    - `sample.generalAttributes[*].value` / `sample.specificAttributes[*].value` → null（構造は維持）
+- `sample.ownerId`はIssue #389のルールどおり`basic.dataOwnerId`の継承に委ねており、今回の修正では変更していません
+
+### テスト
+
+- `tests/test_smarttable_invoice_initializer.py`: TC-EP-005〜009, TC-BV-004/005を追加
+- `tests/processing/processors/test_invoice_smarttable.py`: 結合回帰テスト4件を追加
+
+### ドキュメント
+
+- SmartTableドキュメント（日英）に試料フィールドの自動クリアルールを追記
+
+### 移行 / 互換性
+
+- これまで暗黙的に元invoice.jsonの`sampleId`を継承する運用をしていた場合、v1.6.2から挙動が変わります。`sample/names`のみを指定した行では、ダミー試料のフィールドがクリアされ新規試料として扱われます
+- `sample/sampleId`を明示的に指定している行は、従来どおり指定値が維持されます
+- Issue #389で導入した`sample.ownerId`の`basic.dataOwnerId`自動設定は影響を受けません
+
+---
 
 ## v1.6.1 (2026-03-10)
 
