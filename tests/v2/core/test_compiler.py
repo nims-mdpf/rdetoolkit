@@ -142,6 +142,119 @@ class TestCompileResultStructure:
         assert plan.node_specs == {"a": None}
 
 
+# ── 1.4.4: Compile error detection (E_CYCLE, E_UNCONNECTED_INPUT, E_DUPLICATE_ID, E_AMBIGUOUS_DEPENDENCY)
+
+
+class TestCompileErrorDetection:
+    """Tests for compile-time error detection."""
+
+    def test_cycle_produces_e_cycle(self) -> None:
+        """DAG with a cycle should produce CompileError(E_CYCLE)."""
+        from rdetoolkit.core.compiler import Compiler
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        # Create cycle via unchecked edge
+        dag._rust._add_edge_unchecked("a", "b", "out", "inp")
+        dag._rust._add_edge_unchecked("b", "a", "out", "inp")
+
+        compiler = Compiler(dag, type_check="off")
+        result = compiler.compile()
+        assert not result.is_success()
+        cycle_errors = [e for e in result.errors if e.code == "E_CYCLE"]
+        assert len(cycle_errors) == 1
+        assert result.plan is None
+
+    def test_unconnected_input_produces_e_unconnected_input(self) -> None:
+        """Node input param with no incoming edge should produce E_UNCONNECTED_INPUT."""
+        from rdetoolkit.core.compiler import Compiler
+
+        @node
+        def source() -> int:
+            return 1
+
+        @node
+        def sink(x: int) -> None:
+            pass
+
+        dag = _make_dag_with_nodes(source, sink)
+        # No edge connecting source to sink's 'x' input
+        dag.add_edge("source", "sink", "_return", "y")  # wrong port name
+
+        compiler = Compiler(dag, type_check="off")
+        result = compiler.compile()
+        unconnected = [e for e in result.errors if e.code == "E_UNCONNECTED_INPUT"]
+        assert len(unconnected) >= 1
+        assert any(e.node_id == "sink" for e in unconnected)
+
+    def test_connected_input_no_error(self) -> None:
+        """Properly connected inputs should not produce E_UNCONNECTED_INPUT."""
+        from rdetoolkit.core.compiler import Compiler
+
+        @node
+        def source2() -> int:
+            return 1
+
+        @node
+        def sink2(x: int) -> None:
+            pass
+
+        dag = _make_dag_with_nodes(source2, sink2)
+        dag.add_edge("source2", "sink2", "_return", "x")
+
+        compiler = Compiler(dag, type_check="off")
+        result = compiler.compile()
+        unconnected = [e for e in result.errors if e.code == "E_UNCONNECTED_INPUT"]
+        assert unconnected == []
+
+    def test_ambiguous_dependency_produces_error(self) -> None:
+        """Unconnected input with multiple same-type producers → E_AMBIGUOUS_DEPENDENCY."""
+        from rdetoolkit.core.compiler import Compiler
+        from rdetoolkit.core.dag import DAG
+        from rdetoolkit.core.node import NodeSpec
+
+        def _noop() -> None:
+            pass
+
+        dag = DAG()
+        # Two producers of int
+        dag.add_node(
+            "pa",
+            NodeSpec(
+                id="pa", name="pa", fn=_noop,
+                input_schema={}, output_schema={"_return": int},
+                tags=(), version="1.0.0", idempotent=False, source_location="test:pa",
+            ),
+        )
+        dag.add_node(
+            "pb",
+            NodeSpec(
+                id="pb", name="pb", fn=_noop,
+                input_schema={}, output_schema={"_return": int},
+                tags=(), version="1.0.0", idempotent=False, source_location="test:pb",
+            ),
+        )
+        # Consumer with unconnected int input
+        dag.add_node(
+            "cons",
+            NodeSpec(
+                id="cons", name="cons", fn=_noop,
+                input_schema={"val": int}, output_schema={},
+                tags=(), version="1.0.0", idempotent=False, source_location="test:cons",
+            ),
+        )
+        dag.add_edge("pa", "cons", "_return", "other")  # connects different port
+        dag.add_edge("pb", "cons", "_return", "other2")  # connects different port
+
+        compiler = Compiler(dag, type_check="off")
+        result = compiler.compile()
+        amb_errors = [e for e in result.errors if e.code == "E_AMBIGUOUS_DEPENDENCY"]
+        assert len(amb_errors) >= 1
+        assert any(e.node_id == "cons" for e in amb_errors)
+
+
 # ── 1.4.5 / 1.4.6: Type check + ambiguous dependency ──────────────────
 
 
@@ -234,11 +347,11 @@ class TestTypeChecks:
         # This is fine — no ambiguity
         compiler = Compiler(dag2, type_check="strict")
         result = compiler.compile()
-        amb_warnings = [w for w in result.warnings if w.code == "W_AMBIGUOUS_DEP"]
-        assert amb_warnings == []
+        amb_errors = [e for e in result.errors if e.code == "E_AMBIGUOUS_DEPENDENCY"]
+        assert amb_errors == []
 
-    def test_ambiguous_dependency_warns_when_unresolved(self) -> None:
-        """Unconnected input with multiple possible same-type producers warns."""
+    def test_ambiguous_dependency_errors_when_unresolved(self) -> None:
+        """Unconnected input with multiple possible same-type producers produces error."""
         from rdetoolkit.core.compiler import Compiler
 
         @node
@@ -294,8 +407,8 @@ class TestTypeChecks:
         compiler2 = Compiler(dag4, type_check="strict")
         result2 = compiler2.compile()
         # sink has unconnected input 'val' and multiple producers of int exist
-        amb_warnings = [w for w in result2.warnings if w.code == "W_AMBIGUOUS_DEP"]
-        assert len(amb_warnings) >= 1
+        amb_errors = [e for e in result2.errors if e.code == "E_AMBIGUOUS_DEPENDENCY"]
+        assert len(amb_errors) >= 1
 
 
 # ── 1.4.7 / 1.4.8: Type check strictness (strict / warn / off) ────────

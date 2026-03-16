@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use petgraph::algo::toposort;
+use petgraph::algo::{tarjan_scc, toposort};
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::Direction;
 use pyo3::exceptions::PyValueError;
@@ -144,10 +144,26 @@ impl RustDAG {
     /// Validate the DAG structure and return a list of validation errors.
     ///
     /// Each error is a dict with keys: "kind", "node_id", "message".
-    /// Currently detects unconnected nodes (nodes with no incoming or outgoing edges).
+    /// Detects: cycles, unconnected nodes (no incoming or outgoing edges).
     fn validate(&self) -> Vec<HashMap<String, String>> {
         let mut errors = Vec::new();
 
+        // Check for cycles
+        if let Some(cycle_nodes) = self.find_cycle_nodes() {
+            let mut err = HashMap::new();
+            err.insert("kind".to_string(), "cycle".to_string());
+            err.insert("node_id".to_string(), cycle_nodes.first().cloned().unwrap_or_default());
+            err.insert(
+                "message".to_string(),
+                format!(
+                    "DAG contains a cycle involving nodes: {}",
+                    cycle_nodes.join(" -> ")
+                ),
+            );
+            errors.push(err);
+        }
+
+        // Check for unconnected nodes
         for (node_id, &idx) in &self.node_index {
             let has_incoming = self
                 .graph
@@ -176,5 +192,68 @@ impl RustDAG {
         }
 
         errors
+    }
+
+    /// Detect cycles in the DAG.
+    ///
+    /// Returns a list of node IDs forming a cycle, or None if the DAG is acyclic.
+    fn detect_cycle(&self) -> Option<Vec<String>> {
+        self.find_cycle_nodes()
+    }
+
+    /// Add edge without cycle check. For testing ``detect_cycle()`` only.
+    fn _add_edge_unchecked(
+        &mut self,
+        from_id: &str,
+        to_id: &str,
+        from_port: &str,
+        to_port: &str,
+    ) -> PyResult<()> {
+        let from_idx = self
+            .node_index
+            .get(from_id)
+            .copied()
+            .ok_or_else(|| PyValueError::new_err(format!("Node '{}' not found", from_id)))?;
+        let to_idx = self
+            .node_index
+            .get(to_id)
+            .copied()
+            .ok_or_else(|| PyValueError::new_err(format!("Node '{}' not found", to_id)))?;
+
+        self.graph.add_edge(
+            from_idx,
+            to_idx,
+            EdgeInfo {
+                from_port: from_port.to_string(),
+                to_port: to_port.to_string(),
+            },
+        );
+        Ok(())
+    }
+}
+
+impl RustDAG {
+    /// Internal helper: find cycle nodes using Tarjan's SCC algorithm.
+    fn find_cycle_nodes(&self) -> Option<Vec<String>> {
+        // Fast path: if toposort succeeds, no cycles exist
+        if toposort(&self.graph, None).is_ok() {
+            return None;
+        }
+
+        // Find cycles using Tarjan's strongly connected components
+        for scc in tarjan_scc(&self.graph) {
+            if scc.len() > 1 {
+                return Some(scc.iter().map(|&idx| self.graph[idx].clone()).collect());
+            }
+            // Single-node SCC: check for self-loop
+            if scc.len() == 1 {
+                let idx = scc[0];
+                if self.graph.find_edge(idx, idx).is_some() {
+                    return Some(vec![self.graph[idx].clone()]);
+                }
+            }
+        }
+
+        None
     }
 }

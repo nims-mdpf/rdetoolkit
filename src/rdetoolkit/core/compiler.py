@@ -1,9 +1,12 @@
 """V2 Compiler — validates a DAG and produces an ExecutionPlan.
 
-The Compiler performs three stages:
-1. Structural validation (via RustDAG.validate — unconnected nodes)
-2. Type checking (comparing output/input type annotations across edges)
-3. ExecutionPlan generation (topological order + NodeSpec metadata)
+The Compiler performs validation stages:
+1. Cycle detection (via DAG.detect_cycle)
+2. Structural validation (via RustDAG.validate — unconnected nodes)
+3. Unconnected input detection (input params with no incoming edge)
+4. Type checking (comparing output/input type annotations across edges)
+5. Ambiguous dependency detection (multiple same-type producers for unconnected input)
+6. ExecutionPlan generation (topological order + NodeSpec metadata)
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ class CompileError:
     """A compile-time error that prevents execution.
 
     Attributes:
-        code: Machine-readable error code (e.g. E_CYCLE, E_UNCONNECTED).
+        code: Machine-readable error code (e.g. E_CYCLE, E_UNCONNECTED_INPUT).
         message: Human-readable description.
         node_id: Optional node ID associated with the error.
     """
@@ -107,28 +110,49 @@ class Compiler:
         errors: list[CompileError] = []
         warnings: list[CompileWarning] = []
 
-        # Stage 1: Structural validation (Rust side)
+        # Stage 1: Cycle detection
+        self._check_cycle(errors)
+
+        # Stage 2: Structural validation (Rust side — unconnected nodes)
         self._validate_structure(errors)
 
-        # Stage 2: Type checking (Python side)
+        # Stage 3: Unconnected input detection
+        self._check_unconnected_inputs(errors)
+
+        # Stage 4: Type checking (Python side)
         if self._type_check != "off":
             self._check_types(errors, warnings)
 
-        # Stage 3: Ambiguous dependency check
-        if self._type_check != "off":
-            self._check_ambiguous_deps(warnings)
+        # Stage 5: Ambiguous dependency check
+        self._check_ambiguous_deps(errors)
 
-        # Stage 4: Build execution plan if no errors
+        # Stage 6: Build execution plan if no errors
         plan: ExecutionPlan | None = None
         if not errors:
             plan = self._build_plan()
 
         return CompileResult(errors=errors, warnings=warnings, plan=plan)
 
+    def _check_cycle(self, errors: list[CompileError]) -> None:
+        """Check for cycles using DAG.detect_cycle()."""
+        cycle = self._dag.detect_cycle()
+        if cycle is not None:
+            errors.append(
+                CompileError(
+                    code="E_CYCLE",
+                    message=f"DAG contains a cycle: {' -> '.join(cycle)}",
+                    node_id=cycle[0] if cycle else None,
+                ),
+            )
+
     def _validate_structure(self, errors: list[CompileError]) -> None:
         """Run RustDAG.validate() and convert results to CompileErrors."""
         rust_errors = self._dag.validate()
         for err in rust_errors:
+            kind = err["kind"]
+            if kind == "cycle":
+                # Already handled by _check_cycle; skip to avoid duplicate
+                continue
             errors.append(
                 CompileError(
                     code="E_UNCONNECTED",
@@ -136,6 +160,26 @@ class Compiler:
                     node_id=err["node_id"],
                 ),
             )
+
+    def _check_unconnected_inputs(self, errors: list[CompileError]) -> None:
+        """Check that every node input parameter has an incoming edge."""
+        connected_inputs = self._build_connected_inputs_set()
+        for nid in self._dag.node_ids():
+            spec = self._dag.get_spec(nid)
+            if spec is None:
+                continue
+            for param_name in spec.input_schema:
+                if (nid, param_name) not in connected_inputs:
+                    errors.append(
+                        CompileError(
+                            code="E_UNCONNECTED_INPUT",
+                            message=(
+                                f"Input '{param_name}' on node '{nid}' "
+                                f"has no incoming edge"
+                            ),
+                            node_id=nid,
+                        ),
+                    )
 
     def _check_types(
         self,
@@ -180,11 +224,11 @@ class Compiler:
                         ),
                     )
 
-    def _check_ambiguous_deps(self, warnings: list[CompileWarning]) -> None:
+    def _check_ambiguous_deps(self, errors: list[CompileError]) -> None:
         """Check for unconnected inputs with multiple same-type producers.
 
         For each node, find input parameters that have no incoming edge.
-        If multiple other nodes produce the same type, warn about ambiguity.
+        If multiple other nodes produce the same type, report ambiguity error.
         """
         connected_inputs = self._build_connected_inputs_set()
         output_type_producers = self._build_output_type_producers()
@@ -198,9 +242,9 @@ class Compiler:
                     continue
                 producers = [p for p in output_type_producers.get(param_type, []) if p != nid]
                 if len(producers) > 1:
-                    warnings.append(
-                        CompileWarning(
-                            code="W_AMBIGUOUS_DEP",
+                    errors.append(
+                        CompileError(
+                            code="E_AMBIGUOUS_DEPENDENCY",
                             message=(
                                 f"Unconnected input '{param_name}' on node '{nid}' "
                                 f"has {len(producers)} possible producers of type "

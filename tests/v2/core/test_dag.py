@@ -146,6 +146,93 @@ class TestCycleDetection:
         assert order.index("a") < order.index("b")
 
 
+# === 1.3.6: detect_cycle ===
+
+
+class TestDetectCycle:
+    """Tests for RustDAG.detect_cycle() method."""
+
+    def test_self_loop_detected(self) -> None:
+        """Self-loop a→a: detect_cycle() returns [a]."""
+        dag = RustDAG()
+        dag.add_node("a")
+        dag._add_edge_unchecked("a", "a", "out", "inp")
+        result = dag.detect_cycle()
+        assert result is not None
+        assert "a" in result
+
+    def test_two_node_cycle_detected(self) -> None:
+        """Two-node cycle a→b→a: detect_cycle() returns cycle path."""
+        dag = RustDAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag._add_edge_unchecked("a", "b", "out", "inp")
+        dag._add_edge_unchecked("b", "a", "out", "inp")
+        result = dag.detect_cycle()
+        assert result is not None
+        assert set(result) == {"a", "b"}
+
+    def test_indirect_cycle_detected(self) -> None:
+        """Indirect cycle a→b→c→a: detect_cycle() returns cycle path."""
+        dag = RustDAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_node("c")
+        dag._add_edge_unchecked("a", "b", "out", "inp")
+        dag._add_edge_unchecked("b", "c", "out", "inp")
+        dag._add_edge_unchecked("c", "a", "out", "inp")
+        result = dag.detect_cycle()
+        assert result is not None
+        assert set(result) == {"a", "b", "c"}
+
+    def test_acyclic_dag_returns_none(self) -> None:
+        """Acyclic DAG: detect_cycle() returns None."""
+        dag = RustDAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_node("c")
+        dag.add_edge("a", "b", "out", "inp")
+        dag.add_edge("b", "c", "out", "inp")
+        assert dag.detect_cycle() is None
+
+    def test_empty_dag_returns_none(self) -> None:
+        """Empty DAG: detect_cycle() returns None."""
+        dag = RustDAG()
+        assert dag.detect_cycle() is None
+
+    def test_single_node_no_cycle(self) -> None:
+        """Single node without self-loop: detect_cycle() returns None."""
+        dag = RustDAG()
+        dag.add_node("a")
+        assert dag.detect_cycle() is None
+
+
+class TestDetectCyclePythonWrapper:
+    """Tests for DAG Python wrapper detect_cycle() delegation."""
+
+    def test_acyclic_returns_none(self) -> None:
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag.add_edge("a", "b", "out", "inp")
+        assert dag.detect_cycle() is None
+
+    def test_delegates_to_rust(self) -> None:
+        """Wrapper delegates detect_cycle to RustDAG."""
+        from rdetoolkit.core.dag import DAG
+
+        dag = DAG()
+        dag.add_node("a")
+        dag.add_node("b")
+        dag._rust._add_edge_unchecked("a", "b", "out", "inp")
+        dag._rust._add_edge_unchecked("b", "a", "out", "inp")
+        result = dag.detect_cycle()
+        assert result is not None
+        assert set(result) == {"a", "b"}
+
+
 # === 1.3.7: predecessors / successors ===
 
 

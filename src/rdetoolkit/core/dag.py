@@ -150,6 +150,14 @@ class DAG:
             raise KeyError(msg)
         return self._specs[node_id]
 
+    def detect_cycle(self) -> list[str] | None:
+        """Detect cycles in the DAG.
+
+        Returns:
+            List of node IDs forming a cycle, or None if acyclic.
+        """
+        return self._rust.detect_cycle()
+
     def validate(self) -> list[dict[str, str]]:
         """Validate DAG structure and return a list of validation errors.
 
