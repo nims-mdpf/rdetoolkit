@@ -16,10 +16,14 @@ import threading
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rdetoolkit.core.dag import DAG
 from rdetoolkit.core.node import NodeSpec
+
+if TYPE_CHECKING:
+    from rdetoolkit.core.executor import ExecutionResult
+    from rdetoolkit.types import InputPaths, OutputContext
 
 
 class FlowDefinitionError(Exception):
@@ -209,23 +213,54 @@ class _Flow:
             _trace_context.dag = None
         return FlowResult(dag=dag, flow_name=self._name)
 
-    def execute(self, *args: Any, **kwargs: Any) -> None:
-        """Execute the flow: build DAG then run nodes in topological order.
+    def execute(
+        self,
+        *,
+        paths: InputPaths | None = None,
+        output: OutputContext | None = None,
+        config: Any | None = None,
+    ) -> ExecutionResult:
+        """Execute the flow: Build → Compile → Execute.
 
         Args:
-            *args: Positional arguments to the flow function.
-            **kwargs: Keyword arguments to the flow function.
-        """
-        # Build the DAG to validate structure
-        result = self.build()
-        result.dag.topological_sort()
+            paths: Input directory paths for DI injection.
+            output: Output context for DI injection.
+            config: Optional configuration.
 
-        # Execute nodes by re-calling the flow function directly
-        self._func(*args, **kwargs)
+        Returns:
+            ExecutionResult with outputs and failures.
+
+        Raises:
+            CompileError (via CompileResult errors): If DAG compilation fails.
+        """
+        from rdetoolkit.core.compiler import Compiler  # noqa: PLC0415
+        from rdetoolkit.core.context import RunContext  # noqa: PLC0415
+        from rdetoolkit.core.executor import Executor  # noqa: PLC0415
+
+        # Phase 1: Build — trace the flow to construct the DAG
+        flow_result = self.build()
+        dag = flow_result.dag
+
+        # Phase 2: Compile — validate and produce ExecutionPlan
+        compiler = Compiler(dag, type_check="off")
+        compile_result = compiler.compile()
+        if not compile_result.is_success():
+            msgs = "; ".join(e.message for e in compile_result.errors)
+            msg = f"Flow '{self._name}' compilation failed: {msgs}"
+            raise RuntimeError(msg)
+        execution_plan = compile_result.plan
+        if execution_plan is None:  # pragma: no cover — unreachable if is_success()
+            msg = f"Flow '{self._name}': compile succeeded but plan is None"
+            raise RuntimeError(msg)
+
+        # Phase 3: Execute — run nodes in topological order with DI
+        run_context = RunContext(input_paths=paths, output_context=output)
+        executor = Executor(plan=execution_plan, dag=dag, context=run_context)
+        return executor.execute()
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Direct call delegates to execute mode."""
-        return self.execute(*args, **kwargs)
+        return self.execute(**kwargs)
 
 
 class _FlowInputProxy:

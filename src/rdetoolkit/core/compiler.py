@@ -146,13 +146,35 @@ class Compiler:
             )
 
     def _validate_structure(self, errors: list[CompileError]) -> None:
-        """Run RustDAG.validate() and convert results to CompileErrors."""
+        """Run RustDAG.validate() and convert results to CompileErrors.
+
+        Nodes flagged as "unconnected" by Rust are re-checked: if all of
+        the node's inputs can be satisfied by Runner reserved types, the
+        node is valid (it's a DAG root receiving DI-injected values).
+        """
+        from rdetoolkit.core.context import get_reserved_mapping  # noqa: PLC0415
+
+        reserved = get_reserved_mapping()
         rust_errors = self._dag.validate()
         for err in rust_errors:
             kind = err["kind"]
             if kind == "cycle":
                 # Already handled by _check_cycle; skip to avoid duplicate
                 continue
+            if kind == "unconnected_node":
+                # Check if all inputs are reserved types (DI-injectable).
+                # A node with no inputs at all is truly isolated — don't skip it.
+                nid = err["node_id"]
+                spec = self._dag.get_spec(nid)
+                if (
+                    spec is not None
+                    and spec.input_schema  # must have at least one input
+                    and all(
+                        pname in reserved and reserved[pname] is ptype
+                        for pname, ptype in spec.input_schema.items()
+                    )
+                ):
+                    continue  # All inputs will be DI-injected; not a real error
             errors.append(
                 CompileError(
                     code="E_UNCONNECTED",
@@ -162,24 +184,36 @@ class Compiler:
             )
 
     def _check_unconnected_inputs(self, errors: list[CompileError]) -> None:
-        """Check that every node input parameter has an incoming edge."""
+        """Check that every node input parameter has an incoming edge.
+
+        Parameters whose name AND type match a Runner reserved type
+        (e.g. ``paths: InputPaths``) are skipped — they will be injected
+        at execution time via DI.
+        """
+        from rdetoolkit.core.context import get_reserved_mapping  # noqa: PLC0415
+
+        reserved = get_reserved_mapping()
         connected_inputs = self._build_connected_inputs_set()
         for nid in self._dag.node_ids():
             spec = self._dag.get_spec(nid)
             if spec is None:
                 continue
-            for param_name in spec.input_schema:
-                if (nid, param_name) not in connected_inputs:
-                    errors.append(
-                        CompileError(
-                            code="E_UNCONNECTED_INPUT",
-                            message=(
-                                f"Input '{param_name}' on node '{nid}' "
-                                f"has no incoming edge"
-                            ),
-                            node_id=nid,
+            for param_name, param_type in spec.input_schema.items():
+                if (nid, param_name) in connected_inputs:
+                    continue
+                # Skip reserved types — will be provided by RunContext at runtime
+                if param_name in reserved and reserved[param_name] is param_type:
+                    continue
+                errors.append(
+                    CompileError(
+                        code="E_UNCONNECTED_INPUT",
+                        message=(
+                            f"Input '{param_name}' on node '{nid}' "
+                            f"has no incoming edge"
                         ),
-                    )
+                        node_id=nid,
+                    ),
+                )
 
     def _check_types(
         self,
@@ -227,9 +261,13 @@ class Compiler:
     def _check_ambiguous_deps(self, errors: list[CompileError]) -> None:
         """Check for unconnected inputs with multiple same-type producers.
 
-        For each node, find input parameters that have no incoming edge.
-        If multiple other nodes produce the same type, report ambiguity error.
+        For each node, find input parameters that have no incoming edge
+        and no reserved-type match. If multiple other nodes produce the
+        same type, report ambiguity error.
         """
+        from rdetoolkit.core.context import get_reserved_mapping  # noqa: PLC0415
+
+        reserved = get_reserved_mapping()
         connected_inputs = self._build_connected_inputs_set()
         output_type_producers = self._build_output_type_producers()
 
@@ -239,6 +277,9 @@ class Compiler:
                 continue
             for param_name, param_type in spec.input_schema.items():
                 if (nid, param_name) in connected_inputs:
+                    continue
+                # Skip reserved types
+                if param_name in reserved and reserved[param_name] is param_type:
                     continue
                 producers = [p for p in output_type_producers.get(param_type, []) if p != nid]
                 if len(producers) > 1:

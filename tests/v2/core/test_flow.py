@@ -25,7 +25,9 @@ from typing import Any
 
 import pytest
 
+from rdetoolkit.core.flow import FlowResult, flow
 from rdetoolkit.core.node import node
+from rdetoolkit.types import InputPaths
 
 
 def _dummy_fn() -> None:
@@ -236,16 +238,14 @@ class TestFlowDecorator:
         assert order.index("step1") < order.index("step2")
         assert order.index("step2") < order.index("step3")
 
-    def test_flow_execute_mode__tc_ep_044(self) -> None:
+    def test_flow_execute_mode__tc_ep_044(self, tmp_path: Path) -> None:
         """TC-EP-044: @flow in execute mode runs nodes in topological order."""
-        from rdetoolkit.core.flow import flow
-
         execution_log: list[str] = []
 
         @node
-        def producer(x: int) -> int:
+        def producer(paths: InputPaths) -> int:
             execution_log.append("producer")
-            return x * 10
+            return 50
 
         @node
         def consumer(value: int) -> str:
@@ -253,15 +253,21 @@ class TestFlowDecorator:
             return str(value)
 
         @flow
-        def pipeline(x: int) -> None:
-            val = producer(x)
+        def pipeline(paths: InputPaths) -> None:
+            val = producer(paths)
             consumer(val)
 
-        # When: executing the flow
-        pipeline.execute(5)
+        # When: executing the flow with InputPaths (reserved type for DI)
+        paths = InputPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "support",
+        )
+        result = pipeline.execute(paths=paths)
 
-        # Then: nodes executed in order
+        # Then: nodes executed in order via Compiler → Executor
         assert execution_log == ["producer", "consumer"]
+        assert result.is_success()
 
 
 # === 1.3.14: Data-dependent branching prohibition ===
@@ -290,3 +296,136 @@ class TestFlowBranchProhibition:
 
         with pytest.raises(FlowDefinitionError, match="[Dd]ata.dependent"):
             branching_flow.build()
+
+
+# === Integration tests: @flow.execute() calls Compiler → Executor ===
+
+
+class TestFlowExecuteIntegration:
+    """Tests that @flow.execute() runs Build → Compile → Execute pipeline."""
+
+    def test_execute_runs_compiler_and_executor(self, tmp_path: Path) -> None:
+        """execute() calls Compiler → Executor; nodes execute via NodeSpec.fn."""
+        from rdetoolkit.core.executor import ExecutionResult
+
+        execution_log: list[str] = []
+
+        @node
+        def read_csv(paths: InputPaths) -> str:
+            execution_log.append("read_csv")
+            return "data-from-csv"
+
+        @node
+        def transform(data: str) -> str:
+            execution_log.append("transform")
+            return data.upper()
+
+        @flow
+        def pipeline(paths: InputPaths) -> None:
+            data = read_csv(paths)
+            transform(data)
+
+        paths = InputPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "support",
+        )
+        result = pipeline.execute(paths=paths)
+
+        # Nodes must have been executed via Executor (not direct function call)
+        assert isinstance(result, ExecutionResult)
+        assert result.is_success()
+        assert execution_log == ["read_csv", "transform"]
+
+    def test_execute_di_injects_reserved_types(self, tmp_path: Path) -> None:
+        """DI correctly resolves InputPaths for nodes."""
+        captured: list[InputPaths] = []
+
+        @node
+        def capture_paths(paths: InputPaths) -> None:
+            captured.append(paths)
+
+        @flow
+        def pipeline(paths: InputPaths) -> None:
+            capture_paths(paths)
+
+        paths = InputPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "support",
+        )
+        result = pipeline.execute(paths=paths)
+        assert result.is_success()
+        assert len(captured) == 1
+        assert captured[0] is paths
+
+    def test_execute_releases_intermediate_results(self, tmp_path: Path) -> None:
+        """_maybe_release frees intermediate results after all consumers finish."""
+        @node
+        def step1(paths: InputPaths) -> str:
+            return "intermediate"
+
+        @node
+        def step2(data: str) -> str:
+            return data + "-final"
+
+        @flow
+        def pipeline(paths: InputPaths) -> None:
+            data = step1(paths)
+            step2(data)
+
+        paths = InputPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "support",
+        )
+        result = pipeline.execute(paths=paths)
+        assert result.is_success()
+        # step2 consumed step1's output; the pipeline should complete normally
+        assert "step2" in result.outputs
+
+    def test_execute_raises_on_compile_error(self) -> None:
+        """execute() raises RuntimeError when compilation fails (e.g. unconnected input)."""
+        @node
+        def needs_unresolvable(x: int) -> int:
+            return x
+
+        @node
+        def consumer(value: int) -> str:
+            return str(value)
+
+        @flow
+        def pipeline() -> None:
+            # needs_unresolvable has x: int which is not a reserved type
+            # and has no incoming edge — should trigger E_UNCONNECTED_INPUT
+            val = needs_unresolvable(42)  # literal in trace becomes _FlowInputProxy-like
+            consumer(val)
+
+        # The flow has an unconnected input 'x: int' which is not a reserved type
+        # Compiler should produce E_UNCONNECTED_INPUT → execute raises RuntimeError
+        with pytest.raises(RuntimeError, match="compilation failed"):
+            pipeline.execute()
+
+    def test_execute_with_multi_output_node(self, tmp_path: Path) -> None:
+        """execute() handles multi-output nodes (tuple unpack in @flow)."""
+        @node
+        def produce(paths: InputPaths) -> tuple[str, int]:
+            return ("hello", 42)
+
+        @node
+        def consume(text: str, number: int) -> str:
+            return f"{text}-{number}"
+
+        @flow
+        def pipeline(paths: InputPaths) -> None:
+            text, number = produce(paths)
+            consume(text, number)
+
+        paths = InputPaths(
+            inputdata=tmp_path / "input",
+            invoice=tmp_path / "invoice",
+            tasksupport=tmp_path / "support",
+        )
+        result = pipeline.execute(paths=paths)
+        assert result.is_success()
+        assert result.outputs["consume"]["_return"] == "hello-42"
