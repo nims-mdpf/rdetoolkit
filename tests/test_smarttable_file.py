@@ -1,4 +1,17 @@
-"""Test SmartTableFile functionality."""
+"""Test SmartTableFile functionality with SmartTable file-mapping coverage.
+
+Equivalence Partitioning:
+| API | Input/State Partition | Rationale | Expected Outcome | Test ID |
+| --- | --- | --- | --- | --- |
+| `SmartTableFile.generate_row_csvs_with_file_mapping` | All `inputdata` values resolve to extracted files | Valid SmartTable references should preserve current behavior | Returns per-row CSV mappings with related files | `TC-EP-001` |
+| `SmartTableFile.generate_row_csvs_with_file_mapping` | One `inputdata` value does not exist in extracted files | Missing file should fail early with actionable context | Raises `StructuredError` including row, column, basename | `TC-EP-002` |
+| `SmartTableFile.generate_row_csvs_with_file_mapping` | Multiple `inputdata` values are missing across rows | UI needs one concise example while logs keep all details | Raises representative `StructuredError` and logs all mismatches | `TC-EP-003` |
+|
+Boundary Value:
+| API | Boundary | Rationale | Expected Outcome | Test ID |
+| --- | --- | --- | --- | --- |
+| `SmartTableFile.generate_row_csvs_with_file_mapping` | Second data row (`idx=1`) in SmartTable | User-facing row number must match the displayed SmartTable row (`4`) | Error message reports SmartTable row `4` | `TC-BV-001` |
+"""
 
 from pathlib import Path
 import pytest
@@ -54,7 +67,7 @@ class TestSmartTableFile:
         test_data = pd.DataFrame({
             'A': ['Display Name 1', 'basic/dataName', 'Sample1', 'Sample2'],
             'B': ['Display Name 2', 'custom/value', 'Value1', 'Value2'],
-            'C': ['Display Name 3', 'sample/name', 'Name1', 'Name2']
+            'C': ['Display Name 3', 'sample/name', 'Name1', 'Name2'],
         })
         test_data.to_excel(excel_file, index=False, header=False)
 
@@ -117,7 +130,8 @@ Sample1,データ1"""
 
 
     def test_generate_row_csvs_with_file_mapping(self, tmp_path):
-        """Test generating individual CSV files for each row with file mapping."""
+        """TC-EP-001: Generating individual CSV files keeps related file mappings."""
+        # Given: a SmartTable whose inputdata values all exist in extracted files
         csv_file = tmp_path / "smarttable_test.csv"
         csv_content = """File,Name,Value
 inputdata1,basic/dataName,custom/value
@@ -131,12 +145,15 @@ test2.txt,Sample2,Value2"""
         extracted_files = [
             Path("/temp/test1.txt"),
             Path("/temp/test2.txt"),
-            Path("/temp/other.txt")
+            Path("/temp/other.txt"),
         ]
 
         st_file = SmartTableFile(csv_file)
+
+        # When: generating row CSV files with extracted file mappings
         result = st_file.generate_row_csvs_with_file_mapping(output_dir, extracted_files)
 
+        # Then: each row CSV is created and linked to the matching extracted file
         assert len(result) == 2
 
         # Check first row - new naming convention
@@ -150,6 +167,83 @@ test2.txt,Sample2,Value2"""
         assert csv_path_1.name == "fsmarttable_test_0001.csv"
         assert csv_path_1.exists()
         assert related_files_1 == (Path("/temp/test2.txt"),)
+
+    def test_generate_row_csvs_with_file_mapping_raises_for_missing_file__tc_ep_002(self, tmp_path, caplog):
+        """TC-EP-002: Missing inputdata file raises a concise StructuredError."""
+        # Given: a SmartTable row that references a file absent from the uploaded zip
+        csv_file = tmp_path / "smarttable_missing.csv"
+        csv_file.write_text(
+            """File,Name
+inputdata1,basic/dataName
+nested/results/missing_file.dat,Sample1""",
+        )
+        output_dir = tmp_path / "output"
+        extracted_files = [Path("/temp/results/present_file.dat")]
+        st_file = SmartTableFile(csv_file)
+        caplog.set_level("ERROR", logger="rdetoolkit.invoicefile._smarttable")
+
+        # When: generating row CSV files with an unresolved inputdata reference
+        with pytest.raises(StructuredError) as exc_info:
+            st_file.generate_row_csvs_with_file_mapping(output_dir, extracted_files)
+
+        # Then: the error exposes SmartTable row, column, and basename only
+        error = exc_info.value
+        assert str(error) == "SmartTable row 3 references missing file in zip: inputdata1=missing_file.dat"
+        assert "nested/results/missing_file.dat" not in str(error)
+        assert error.eobj == [(3, "inputdata1", "nested/results/missing_file.dat")]
+        assert "row 3: inputdata1=nested/results/missing_file.dat" in caplog.text
+
+    def test_generate_row_csvs_with_file_mapping_logs_all_missing_files__tc_ep_003(self, tmp_path, caplog):
+        """TC-EP-003: Multiple missing inputdata files are aggregated in logs."""
+        # Given: multiple SmartTable rows whose inputdata references do not exist in the uploaded zip
+        csv_file = tmp_path / "smarttable_multiple_missing.csv"
+        csv_file.write_text(
+            """File,Second File,Name
+inputdata1,inputdata2,basic/dataName
+missing/first.dat,missing/second.dat,Sample1
+missing/third.dat,,Sample2""",
+        )
+        output_dir = tmp_path / "output"
+        extracted_files = [Path("/temp/present.dat")]
+        st_file = SmartTableFile(csv_file)
+        caplog.set_level("ERROR", logger="rdetoolkit.invoicefile._smarttable")
+
+        # When: generating row CSV files encounters multiple unresolved references
+        with pytest.raises(StructuredError) as exc_info:
+            st_file.generate_row_csvs_with_file_mapping(output_dir, extracted_files)
+
+        # Then: the exception uses the first representative case and the log keeps all mismatches
+        error = exc_info.value
+        assert str(error) == "SmartTable row 3 references missing file in zip: inputdata1=first.dat"
+        assert error.eobj == [
+            (3, "inputdata1", "missing/first.dat"),
+            (3, "inputdata2", "missing/second.dat"),
+            (4, "inputdata1", "missing/third.dat"),
+        ]
+        assert "row 3: inputdata1=missing/first.dat" in caplog.text
+        assert "row 3: inputdata2=missing/second.dat" in caplog.text
+        assert "row 4: inputdata1=missing/third.dat" in caplog.text
+
+    def test_generate_row_csvs_with_file_mapping_reports_display_row_number__tc_bv_001(self, tmp_path):
+        """TC-BV-001: Missing file in the second data row reports SmartTable row 4."""
+        # Given: the first data row resolves and the second data row is missing its referenced file
+        csv_file = tmp_path / "smarttable_row_number.csv"
+        csv_file.write_text(
+            """File,Name
+inputdata1,basic/dataName
+present.dat,Sample1
+missing.dat,Sample2""",
+        )
+        output_dir = tmp_path / "output"
+        extracted_files = [Path("/temp/present.dat")]
+        st_file = SmartTableFile(csv_file)
+
+        # When: generating row CSV files checks the second data row
+        with pytest.raises(StructuredError) as exc_info:
+            st_file.generate_row_csvs_with_file_mapping(output_dir, extracted_files)
+
+        # Then: the reported row number matches the displayed SmartTable row number
+        assert str(exc_info.value) == "SmartTable row 4 references missing file in zip: inputdata1=missing.dat"
 
     def test_generate_row_csvs_no_extracted_files(self, tmp_path):
         """Test generating CSV files without extracted files."""
