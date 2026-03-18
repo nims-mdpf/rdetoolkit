@@ -79,7 +79,7 @@ dev = [
     "pytest-mpl>=0.17.0",
     "tox>=4.6.4",
     "types-python-dateutil>=2.8.19.14",
-    "mkdocs>=2.0.0",
+    "mkdocs>=1.6.1,<2.0.0",
     "mkdocs-material>=9.5.1",
     "mkdocstrings[crystal,python]>=0.27.0",
     "pre-commit>=3.6.0",
@@ -101,7 +101,7 @@ dev = [
 
 [tool.maturin]
 python-source = "src"
-module-name = "rdetoolkit.core"
+module-name = "rdetoolkit._core"
 features = ["pyo3/extension-module"]
 
 # The team has agreed not to enforce a maximum character limit per line.
@@ -206,7 +206,8 @@ convention = "google"
 # Unused imports are allowed in __init__.py.
 "__init__.py" = ["F401", "F403", "PLC0415"]
 "src/rdetoolkit/cli.py" = ["PLC0415"]
-"src/rdetoolkit/errors.py" = ["PLC0415"]
+"src/rdetoolkit/errors.py" = ["PLC0415", "E402"]
+"src/rdetoolkit/types.py" = ["A005"]
 "src/rdetoolkit/fileops.py" = ["PLC0415"]
 # TODO: Refactor parse_config_file to reduce complexity (Issue #361)
 "src/rdetoolkit/config.py" = ["C901", "PLR0912"]
@@ -336,7 +337,7 @@ dev-dependencies = [
     "pytest-mock>=3.11.1",
     "tox>=4.6.4",
     "types-python-dateutil>=2.8.19.14",
-    "mkdocs>=2.0.0",
+    "mkdocs>=1.6.1,<2.0.0",
     "mkdocs-material>=9.5.1",
     "mkdocstrings[crystal,python]>=0.27.0",
     "pre-commit>=3.6.0",
