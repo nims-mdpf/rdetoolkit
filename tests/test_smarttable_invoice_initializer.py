@@ -14,6 +14,8 @@ Equivalence Partitioning:
 | `SmartTableInvoiceInitializer.process` | sample/names only; Issue #389 ownerId correction still applies | Clearing must not break existing ownerId auto-assignment logic         | sample.ownerId = basic.dataOwnerId after clearing                     | `TC-EP-009`   |
 | `SmartTableInvoiceInitializer.process` | sample/names with fixed-header blank sample columns            | New sample clearing must survive the generic blank-cell clearing pass  | sampleId/description and attribute structures remain cleared, not removed | `TC-EP-010` |
 | `SmartTableInvoiceInitializer.process` | sample/names + UUID + blank sample field                       | Existing sample reference path must keep generic blank-cell clearing   | Explicit sampleId kept; blank sample field is removed                 | `TC-EP-011`   |
+| `SmartTableInvoiceInitializer.process` | Original invoice has `sample.generalAttributes = null`         | SmartTable must normalize null containers before term assignment       | `sample/generalAttributes.<termId>` is written without error          | `TC-EP-012`   |
+| `SmartTableInvoiceInitializer.process` | Original invoice has `sample.specificAttributes = null`        | SmartTable must normalize null containers before class/term assignment | `sample/specificAttributes.<classId>.<termId>` is written without error | `TC-EP-013` |
 
 Boundary Value:
 | API                                   | Boundary                                       | Rationale                                               | Expected Outcome                            | Test ID       |
@@ -479,6 +481,23 @@ def _make_context(
     )
 
 
+def _build_restructured_invoice(base_dir: Path) -> tuple[Path, Path, dict]:
+    """Copy a restructured invoice fixture with null sample attribute containers."""
+    tasksupport_dir = base_dir / "tasksupport"
+    tasksupport_dir.mkdir(parents=True, exist_ok=True)
+    invoice_dir = base_dir / "invoice"
+    invoice_dir.mkdir(parents=True, exist_ok=True)
+
+    invoice_org = invoice_dir / "invoice.json"
+    schema_path = tasksupport_dir / "invoice.schema.json"
+
+    shutil.copy(Path("tests/samplefile/invoice_restructured.json"), invoice_org)
+    shutil.copy(Path("tests/samplefile/invoice.schema.full.json"), schema_path)
+
+    original = json.loads(invoice_org.read_text())
+    return invoice_org, schema_path, original
+
+
 def test_smarttable_clears_dummy_sample_when_names_only__tc_ep_005(tmp_path: Path) -> None:
     """TC-EP-005: sample/names given without sample/sampleId clears all dummy sample fields."""
     # Given: original invoice has a dummy sampleId and filled dummy fields
@@ -644,6 +663,59 @@ def test_smarttable_existing_sample_still_clears_blank_fields__tc_ep_011(tmp_pat
     assert output["sample"]["sampleId"] == explicit_uuid
     # Then: blank sample fields still follow generic clearing semantics
     assert "description" not in output["sample"]
+
+
+def test_smarttable_normalizes_null_general_attributes_before_assignment__tc_ep_012(
+    tmp_path: Path,
+) -> None:
+    """TC-EP-012: Null generalAttributes containers are normalized before SmartTable assignment."""
+    # Given: a restructured invoice whose generalAttributes container is null
+    invoice_org, schema_path, original = _build_restructured_invoice(tmp_path)
+    assert original["sample"]["generalAttributes"] is None
+    term_id = "7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0"
+    row0 = tmp_path / "temp" / "fsmarttable_case_0000.csv"
+    _write_smarttable_row(row0, {f"sample/generalAttributes.{term_id}": "pellet"})
+
+    # When: processing a SmartTable row that targets sample/generalAttributes.<termId>
+    context = _make_context(tmp_path, invoice_org, schema_path, invoice_org.parent, row0)
+    SmartTableInvoiceInitializer().process(context)
+    output = json.loads((invoice_org.parent / "invoice.json").read_text())
+
+    # Then: the null container is normalized and the requested term is written
+    assert isinstance(output["sample"]["generalAttributes"], list)
+    assert output["sample"]["generalAttributes"] == [
+        {"termId": term_id, "value": "pellet"},
+    ]
+
+
+def test_smarttable_normalizes_null_specific_attributes_before_assignment__tc_ep_013(
+    tmp_path: Path,
+) -> None:
+    """TC-EP-013: Null specificAttributes containers are normalized before SmartTable assignment."""
+    # Given: a restructured invoice whose specificAttributes container is null
+    invoice_org, schema_path, original = _build_restructured_invoice(tmp_path)
+    assert original["sample"]["specificAttributes"] is None
+    class_id = "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+    term_id = "3250c45d-0ed6-1438-43b5-eb679918604a"
+    row0 = tmp_path / "temp" / "fsmarttable_case_0000.csv"
+    _write_smarttable_row(row0, {
+        f"sample/specificAttributes.{class_id}.{term_id}": "single crystal",
+    })
+
+    # When: processing a SmartTable row that targets sample/specificAttributes.<classId>.<termId>
+    context = _make_context(tmp_path, invoice_org, schema_path, invoice_org.parent, row0)
+    SmartTableInvoiceInitializer().process(context)
+    output = json.loads((invoice_org.parent / "invoice.json").read_text())
+
+    # Then: the null container is normalized and the requested class/term entry is written
+    assert isinstance(output["sample"]["specificAttributes"], list)
+    assert output["sample"]["specificAttributes"] == [
+        {
+            "classId": class_id,
+            "termId": term_id,
+            "value": "single crystal",
+        },
+    ]
 
 
 def test_smarttable_empty_sampleid_boundary_triggers_clearing__tc_bv_004(tmp_path: Path) -> None:

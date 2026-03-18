@@ -447,22 +447,46 @@ class SmartTableInvoiceInitializer(Processor):
             "sample/specificAttributes.",
         ))
 
+    def _ensure_sample_attribute_list(
+        self,
+        invoice_data: dict[str, Any],
+        field_name: str,
+    ) -> list[dict[str, Any]]:
+        """Normalize sample attribute containers so SmartTable updates can append safely."""
+        sample_section = invoice_data.setdefault("sample", {})
+        attribute_list = sample_section.get(field_name)
+
+        if attribute_list is None:
+            sample_section[field_name] = []
+            return sample_section[field_name]
+
+        if not isinstance(attribute_list, list):
+            emsg = (
+                "SmartTable sample attribute container must be a list or null: "
+                f"sample.{field_name}"
+            )
+            raise StructuredError(emsg)
+
+        return attribute_list
+
     def _process_general_attributes(self, key: str, value: str, invoice_data: dict[str, Any]) -> None:
         """Process sample/generalAttributes.<termId> mapping."""
         term_id = key.replace("sample/generalAttributes.", "")
-        if "generalAttributes" not in invoice_data["sample"]:
-            invoice_data["sample"]["generalAttributes"] = []
+        general_attributes = self._ensure_sample_attribute_list(
+            invoice_data,
+            "generalAttributes",
+        )
 
         # Find existing entry or create new one
         found = False
-        for attr in invoice_data["sample"]["generalAttributes"]:
+        for attr in general_attributes:
             if attr.get("termId") == term_id:
                 attr["value"] = value
                 found = True
                 break
 
         if not found:
-            invoice_data["sample"]["generalAttributes"].append({
+            general_attributes.append({
                 "termId": term_id,
                 "value": value,
             })
@@ -473,18 +497,20 @@ class SmartTableInvoiceInitializer(Processor):
         required_parts = 2
         if len(parts) == required_parts:
             class_id, term_id = parts
-            if "specificAttributes" not in invoice_data["sample"]:
-                invoice_data["sample"]["specificAttributes"] = []
+            specific_attributes = self._ensure_sample_attribute_list(
+                invoice_data,
+                "specificAttributes",
+            )
 
             found = False
-            for attr in invoice_data["sample"]["specificAttributes"]:
+            for attr in specific_attributes:
                 if attr.get("classId") == class_id and attr.get("termId") == term_id:
                     attr["value"] = value
                     found = True
                     break
 
             if not found:
-                invoice_data["sample"]["specificAttributes"].append({
+                specific_attributes.append({
                     "classId": class_id,
                     "termId": term_id,
                     "value": value,
