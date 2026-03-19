@@ -432,22 +432,61 @@ class SmartTableInvoiceInitializer(Processor):
         invoice_prefixes = ("basic/", "custom/", "sample/")
         return key.startswith(invoice_prefixes)
 
+    def _should_preserve_cleared_sample_field(self, key: str) -> bool:
+        """Return True when new-sample clearing should keep the sample mapping structure."""
+        if key in {
+            "sample/sampleId",
+            "sample/description",
+            "sample/composition",
+            "sample/referenceUrl",
+        }:
+            return True
+
+        return key.startswith((
+            "sample/generalAttributes.",
+            "sample/specificAttributes.",
+        ))
+
+    def _ensure_sample_attribute_list(
+        self,
+        invoice_data: dict[str, Any],
+        field_name: str,
+    ) -> list[dict[str, Any]]:
+        """Normalize sample attribute containers so SmartTable updates can append safely."""
+        sample_section = invoice_data.setdefault("sample", {})
+        attribute_list = sample_section.get(field_name)
+
+        if attribute_list is None:
+            sample_section[field_name] = []
+            return sample_section[field_name]
+
+        if not isinstance(attribute_list, list):
+            emsg = (
+                "SmartTable sample attribute container must be a list or null: "
+                f"sample.{field_name}"
+            )
+            raise StructuredError(emsg)
+
+        return attribute_list
+
     def _process_general_attributes(self, key: str, value: str, invoice_data: dict[str, Any]) -> None:
         """Process sample/generalAttributes.<termId> mapping."""
         term_id = key.replace("sample/generalAttributes.", "")
-        if "generalAttributes" not in invoice_data["sample"]:
-            invoice_data["sample"]["generalAttributes"] = []
+        general_attributes = self._ensure_sample_attribute_list(
+            invoice_data,
+            "generalAttributes",
+        )
 
         # Find existing entry or create new one
         found = False
-        for attr in invoice_data["sample"]["generalAttributes"]:
+        for attr in general_attributes:
             if attr.get("termId") == term_id:
                 attr["value"] = value
                 found = True
                 break
 
         if not found:
-            invoice_data["sample"]["generalAttributes"].append({
+            general_attributes.append({
                 "termId": term_id,
                 "value": value,
             })
@@ -458,18 +497,20 @@ class SmartTableInvoiceInitializer(Processor):
         required_parts = 2
         if len(parts) == required_parts:
             class_id, term_id = parts
-            if "specificAttributes" not in invoice_data["sample"]:
-                invoice_data["sample"]["specificAttributes"] = []
+            specific_attributes = self._ensure_sample_attribute_list(
+                invoice_data,
+                "specificAttributes",
+            )
 
             found = False
-            for attr in invoice_data["sample"]["specificAttributes"]:
+            for attr in specific_attributes:
                 if attr.get("classId") == class_id and attr.get("termId") == term_id:
                     attr["value"] = value
                     found = True
                     break
 
             if not found:
-                invoice_data["sample"]["specificAttributes"].append({
+                specific_attributes.append({
                     "classId": class_id,
                     "termId": term_id,
                     "value": value,
@@ -479,6 +520,24 @@ class SmartTableInvoiceInitializer(Processor):
         """Ensure required fields are present in invoice data."""
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
+
+    def _detect_new_sample_registration(self, csv_data: pd.DataFrame) -> bool:
+        """Scan CSV columns to determine if the row intends new sample registration.
+
+        Returns True when ``sample/names`` is present with a non-empty value
+        and ``sample/sampleId`` is absent or blank.
+        """
+        csv_has_sample_names = False
+        csv_has_sample_id_with_value = False
+        for col in csv_data.columns:
+            value = csv_data.iloc[0][col]
+            if pd.isna(value) or str(value).strip() == "":
+                continue
+            if col == "sample/names":
+                csv_has_sample_names = True
+            if col == "sample/sampleId":
+                csv_has_sample_id_with_value = True
+        return csv_has_sample_names and not csv_has_sample_id_with_value
 
     def _apply_smarttable_row(
         self,
@@ -497,34 +556,65 @@ class SmartTableInvoiceInitializer(Processor):
             logger.debug("CSV contains no data rows; skipping SmartTable row application")
             return metadata_updates
 
+        # First pass: determine CSV intent before touching invoice_data.
+        # Clearing must happen before CSV values are applied so that fields
+        # set explicitly in the CSV row are not overwritten by the clear step.
+        is_new_sample_registration = self._detect_new_sample_registration(csv_data)
+        if is_new_sample_registration:
+            self._clear_sample_for_new_registration(invoice_data)
+
+        # Second pass: apply CSV data to invoice_data
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]
-            if pd.isna(value) or value == "":
-                if self._is_invoice_mapping(col):
+            if pd.isna(value) or str(value).strip() == "":
+                if self._is_invoice_mapping(col) and not (
+                    is_new_sample_registration
+                    and self._should_preserve_cleared_sample_field(col)
+                ):
                     self._clear_mapping_key(col, invoice_data)
                 continue
-            if col.startswith("meta/"):
-                if not context.metadata_def_path.exists():
-                    logger.debug(
-                        "Skipping meta column %s because metadata-def.json is missing",
-                        col,
-                    )
-                    continue
-                if metadata_def is None:
-                    metadata_def = self._load_metadata_definition(context.metadata_def_path)
-                meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
-                metadata_updates[meta_key] = meta_entry
-                continue
-            # Track if sample/ownerId is explicitly specified in CSV
+            applied = self._apply_csv_column(
+                col, value, context, invoice_data, invoice_schema_json_data, metadata_def, metadata_updates,
+            )
+            if applied is not None:
+                metadata_def = applied
             if col == "sample/ownerId":
                 csv_has_sample_owner_id = True
-            self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
 
         # Set sample.ownerId to basic.dataOwnerId only if not specified in CSV
         if not csv_has_sample_owner_id:
             self._set_sample_owner_id(invoice_data)
 
         return metadata_updates
+
+    def _apply_csv_column(
+        self,
+        col: str,
+        value: Any,
+        context: ProcessingContext,
+        invoice_data: dict[str, Any],
+        invoice_schema_json_data: InvoiceSchemaJson,
+        metadata_def: dict[str, Any] | None,
+        metadata_updates: dict[str, dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        """Apply a single non-empty CSV column to invoice data or metadata.
+
+        Returns the loaded metadata_def if it was lazily loaded, otherwise None.
+        """
+        if col.startswith("meta/"):
+            if not context.metadata_def_path.exists():
+                logger.debug(
+                    "Skipping meta column %s because metadata-def.json is missing",
+                    col,
+                )
+                return metadata_def
+            if metadata_def is None:
+                metadata_def = self._load_metadata_definition(context.metadata_def_path)
+            meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
+            metadata_updates[meta_key] = meta_entry
+            return metadata_def
+        self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
+        return None
 
     def _set_sample_owner_id(self, invoice_data: dict[str, Any]) -> None:
         """Set sample.ownerId to basic.dataOwnerId for SmartTable processing.
@@ -557,6 +647,44 @@ class SmartTableInvoiceInitializer(Processor):
         logger.debug(
             "Set sample.ownerId to basic.dataOwnerId: %s",
             data_owner_id,
+        )
+
+    def _clear_sample_for_new_registration(self, invoice_data: dict[str, Any]) -> None:
+        """Clear dummy sample fields when registering a new sample.
+
+        When a SmartTable row specifies ``sample/names`` but not ``sample/sampleId``,
+        the intent is to register a new sample rather than reference an existing one.
+        Fields inherited from the original invoice that belong to the dummy reference
+        sample must not be silently carried over.
+
+        Fields cleared:
+
+        - ``sample.sampleId`` → ``""`` (empty string indicates a new sample)
+        - ``sample.description`` → ``None``
+        - ``sample.composition`` → ``None``
+        - ``sample.referenceUrl`` → ``None``
+        - ``sample.generalAttributes[*].value`` → ``None`` (structure/termId preserved)
+        - ``sample.specificAttributes[*].value`` → ``None`` (structure/classId+termId preserved)
+
+        Note:
+            ``sample.ownerId`` is handled separately by :meth:`_set_sample_owner_id`
+            per the Issue #389 policy and is not touched here.
+        """
+        sample_section = invoice_data.setdefault("sample", {})
+
+        sample_section["sampleId"] = ""
+        for field in ("description", "composition", "referenceUrl"):
+            sample_section[field] = None
+
+        for attr in sample_section.get("generalAttributes") or []:
+            attr["value"] = None
+
+        for attr in sample_section.get("specificAttributes") or []:
+            attr["value"] = None
+
+        logger.debug(
+            "Cleared dummy sample fields for new sample registration "
+            "(sample/names specified without sample/sampleId)",
         )
 
     def _load_metadata_definition(self, metadata_def_path: Path) -> dict[str, Any]:

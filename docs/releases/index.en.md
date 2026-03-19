@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.6.2  | 2026-03-16   | Fix silent inheritance of dummy sampleId when SmartTable specifies `sample/names` / Improve error messages for missing SmartTable file references in zip | [v1.6.2](#v162-2026-03-16) |
 | v1.6.1  | 2026-03-10   | chardet public API migration (Python 3.14 compat) / SmartTable custom field type cast fix | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded / Agent Skills added | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3  | 2026-02-03   | SmartTable sample.ownerId auto-assignment / Missing rawfile error improvement / invoicefile.py bug fixes | [v1.5.3](#v153-2026-02-03) |
@@ -21,6 +22,78 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.6.2 (2026-03-16)
+
+!!! info "References"
+    - Key issues: [#455](https://github.com/nims-mdpf/rdetoolkit/issues/455), [#462](https://github.com/nims-mdpf/rdetoolkit/issues/462)
+    - Pull requests: [#457](https://github.com/nims-mdpf/rdetoolkit/pull/457), [#465](https://github.com/nims-mdpf/rdetoolkit/pull/465)
+
+#### Highlights
+- Fixed a bug where dummy sample `sampleId` from the original invoice.json was silently inherited when a SmartTable row specified `sample/names` without `sample/sampleId`
+- Improved error reporting when SmartTable `inputdata` column references files missing from the uploaded zip, now showing specific row number, column name, and file basename instead of a generic error
+
+### Bug Fixes
+
+#### Prevent Silent Inheritance of Dummy sampleId in SmartTable (Issue #455)
+
+**Problem**: When a SmartTable row specified `sample/names` without `sample/sampleId`, the dummy reference sample's `sampleId` from `invoice.json` was silently carried over into the output. Users intended to register a new sample, but the result appeared as a reference to the existing dummy sample.
+
+**Changes**:
+
+- Refactored `SmartTableInvoiceInitializer._apply_smarttable_row()` to a two-pass approach: the first pass scans CSV columns to detect whether `sample/names` is present and whether `sample/sampleId` has a value
+- When the condition is met, `_clear_sample_for_new_registration()` is called before applying CSV values, clearing dummy sample fields
+- Cleared fields:
+    - `sample.sampleId` → empty string
+    - `sample.description` / `sample.composition` / `sample.referenceUrl` → null
+    - `sample.generalAttributes[*].value` / `sample.specificAttributes[*].value` → null (structure preserved)
+- `sample.ownerId` continues to follow the Issue #389 rule (inheriting from `basic.dataOwnerId`) and is not affected by this change
+
+#### Improve SmartTable Missing File Error Messages (Issue #462)
+
+**Problem**: When a file specified in the SmartTable `inputdata` column did not exist in the uploaded zip, the system showed a generic "Error: ERROR: failed in data processing" message, making it impossible for users to identify which file was missing.
+
+**Changes**:
+
+- Modified `SmartTableFile.generate_row_csvs_with_file_mapping()` to validate all `inputdata...` column file references across all rows
+- When a missing reference is detected, raises `StructuredError` with a specific message including SmartTable row number, column name, and file basename
+- `job.failed` contains a short single-line message with the first representative example (basename only); full details of all missing files are output to the logger
+- Prevents `StructuredError` from being re-wrapped with a generic message, ensuring users receive the specific cause
+
+**Error message examples**:
+
+`job.failed`:
+```text
+ErrorCode=1
+ErrorMessage=SmartTable row 3 references missing file in zip: inputdata1=doc1.txt
+```
+
+Log output (multiple mismatches):
+```text
+SmartTable references files missing from the uploaded zip:
+row 3: inputdata1=doc1.txt
+row 4: inputdata1=doc2.txt
+row 5: inputdata1=doc3.txt
+```
+
+### Testing
+
+- `tests/test_smarttable_invoice_initializer.py`: Added TC-EP-005 through TC-EP-009 and TC-BV-004/005
+- `tests/processing/processors/test_invoice_smarttable.py`: Added 4 integration regression tests
+- `tests/test_smarttable_file.py`: Added regression tests for single/multiple missing file `StructuredError`, SmartTable row number conversion, and control character escaping
+
+### Documentation
+
+- Added sample field auto-clearing rules to SmartTable documentation (Japanese and English)
+
+### Migration / Compatibility
+
+- If your workflow previously relied on the implicit inheritance of `sampleId` from the original invoice.json, behavior changes in v1.6.2. Rows specifying only `sample/names` will now have dummy sample fields cleared and be treated as new sample registrations
+- Rows with an explicit `sample/sampleId` value continue to work as before
+- The `sample.ownerId` auto-assignment from `basic.dataOwnerId` introduced in Issue #389 is not affected
+- When SmartTable `inputdata` columns reference files missing from the uploaded zip, a specific error with row number, column name, and file basename is now shown instead of the generic processing error. No changes to error handling are required
+
+---
 
 ## v1.6.1 (2026-03-10)
 

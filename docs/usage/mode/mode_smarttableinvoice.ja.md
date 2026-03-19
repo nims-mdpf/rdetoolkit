@@ -161,3 +161,70 @@ def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourceP
 smarttable:
     save_table_file: true
 ```
+
+## 試料フィールドの自動クリアルール（新規試料登録）
+
+SmartTableInvoiceモードの `invoice.json` 生成は、元の `invoice.json` をベースに各行の値を部分上書きする方式です。そのため、`sample` 系の列を何も指定しないと、元の `invoice.json` に入っている試料情報がそのまま残ります。
+
+この挙動を踏まえ、SmartTableモードでは `sample/names` 列が指定され、かつ `sample/sampleId` 列に有効な値がない場合、その行は **新規試料として登録する意図** として扱われます。このとき、元の `invoice.json` から継承されたダミー試料の各フィールドが自動的にクリアされます。
+
+### 判定ルール
+
+| SmartTableの指定 | 解釈 | 動作 |
+|------------------|------|------|
+| `sample/names` のみ | 新規試料登録 | ダミーの `sampleId` などをクリア |
+| `sample/names` + 空の `sample/sampleId` | 新規試料登録 | `sample/sampleId` 未指定と同様にクリア |
+| `sample/names` + 値あり `sample/sampleId` | 既存試料参照 | クリアしない |
+| `sample/names` なし | 試料登録意図なし | 元の `invoice.json` の試料情報を維持 |
+
+> `sample/sampleId` が空文字だけでなく空白のみの場合も、値なしとして扱われます。
+
+### クリアされるフィールド
+
+| フィールド | クリア後の値 | 備考 |
+|-----------|------------|------|
+| `sample.sampleId` | `""` (空文字) | 新規試料を示す |
+| `sample.description` | `null` | ダミー試料の説明をリセット |
+| `sample.composition` | `null` | ダミー試料の組成をリセット |
+| `sample.referenceUrl` | `null` | ダミー試料の参照URLをリセット |
+| `sample.generalAttributes[*].value` | `null` | 構造(termId)は維持、値のみクリア |
+| `sample.specificAttributes[*].value` | `null` | 構造(classId+termId)は維持、値のみクリア |
+| `sample.ownerId` | `basic.dataOwnerId` を自動設定 | 既存ルール(Issue #389)が引き続き適用 |
+
+### 空欄セルとの関係
+
+SmartTable では固定ヘッダー運用のため、`sample/sampleId` や `sample/description`、`sample/generalAttributes.<termId>` などの列が常に存在し、セルだけが空欄になるケースがあります。
+
+新規試料登録と判定された行では、これらの空欄列があっても次の正規化済みの構造を保持します。
+
+- `sample.sampleId` はキーごと削除せず、`""` を保持
+- `sample.description` / `sample.composition` / `sample.referenceUrl` はキーごと削除せず、`null` を保持
+- `sample.generalAttributes[*]` / `sample.specificAttributes[*]` は配列要素を削除せず、`value: null` を保持
+
+一方で、`sample/sampleId` に有効値が入っている既存試料参照の行では、従来どおり空欄セルはその項目のクリアとして扱われます。
+
+### 動作の例
+
+```csv
+# sample/names のみ指定（sample/sampleId なし）→ 新規試料扱い
+basic/dataName,sample/names
+実験データ1,試料A
+```
+
+上記の場合、元の `invoice.json` に `sampleId` や `description` などが設定されていても、すべてクリアされた上で新規試料として登録されます。
+
+```csv
+# 固定ヘッダーで sample 列が存在していても、空欄なら新規試料用の空構造を保持
+basic/dataName,sample/names,sample/sampleId,sample/description,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
+実験データ1,試料A,,,
+```
+
+上記の場合、`sample.sampleId` は削除されず `""` が残り、`sample.description` は `null`、一般属性の該当要素も `{"termId": "...", "value": null}` の形で保持されます。
+
+```csv
+# sample/sampleId を明示指定 → 既存試料参照として扱い、クリアしない
+basic/dataName,sample/names,sample/sampleId
+実験データ2,試料B,12345678-abcd-ef01-2345-6789abcdef01
+```
+
+上記の場合は `sampleId` が保持され、既存試料の参照登録として扱われます。さらに、同じ行に `sample/description` などの空欄列がある場合は、その項目は通常どおりクリアされます。

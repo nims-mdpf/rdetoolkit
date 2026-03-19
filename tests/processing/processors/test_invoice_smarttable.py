@@ -434,6 +434,149 @@ class TestSmartTableInvoiceInitializerIntegration:
         # Verify that smarttable_row_data is None for empty CSV
         assert context.resource_paths.smarttable_row_data is None
 
+    # ------------------------------------------------------------------
+    # Issue #455: Dummy sample field clearing when sample/names is given
+    # without sample/sampleId
+    # ------------------------------------------------------------------
+
+    def _setup_invoice_with_dummy_sample(self, context) -> dict:
+        """Write an invoice with a non-empty dummy sampleId to context.resource_paths.invoice_org."""
+        # Use 56-char alphanumeric strings matching the schema pattern ^[0-9a-zA-Z]{56}$
+        dummy_invoice = {
+            "datasetId": "dummy-ds-id",
+            "basic": {
+                "dataOwnerId": "0" * 56,
+                "dataName": "dummy",
+            },
+            "custom": {},
+            "sample": {
+                "sampleId": "aaaabbbb-1111-2222-3333-ccccddddeeee",
+                "names": ["dummy-sample"],
+                "description": "Dummy description",
+                "composition": "Dummy composition",
+                "referenceUrl": "https://dummy.example.com",
+                "generalAttributes": [
+                    {"termId": "term-ga-1", "value": "ga-val-1"},
+                ],
+                "specificAttributes": [
+                    {"classId": "cls-1", "termId": "term-sa-1", "value": "sa-val-1"},
+                ],
+                "ownerId": "1" * 56,
+            },
+        }
+        invoice_org_path = context.resource_paths.invoice_org
+        invoice_org_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(invoice_org_path, "w") as f:
+            json.dump(dummy_invoice, f)
+        return dummy_invoice
+
+    def test_clears_dummy_sample_when_names_only__issue_455(self, smarttable_processing_context):
+        """Issue #455: sample/names given without sample/sampleId clears all dummy sample fields."""
+        # Given: original invoice has a dummy sampleId and filled dummy fields
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+        SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
+        self._setup_invoice_with_dummy_sample(context)
+
+        csv_data = pd.DataFrame({
+            "sample/names": ["New Sample Name"],
+            "basic/dataName": ["New Data"],
+        })
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        # When: processing
+        processor.process(context)
+
+        # Then: dummy fields are cleared
+        with open(context.invoice_dst_filepath) as f:
+            output = json.load(f)
+
+        assert output["sample"]["sampleId"] == ""
+        assert output["sample"]["description"] is None
+        assert output["sample"]["composition"] is None
+        assert output["sample"]["referenceUrl"] is None
+        assert output["sample"]["names"] == ["New Sample Name"]
+        for attr in output["sample"].get("generalAttributes", []):
+            assert attr["value"] is None
+        for attr in output["sample"].get("specificAttributes", []):
+            assert attr["value"] is None
+
+    def test_preserves_sampleid_when_uuid_given__issue_455(self, smarttable_processing_context):
+        """Issue #455: Explicit sample/sampleId UUID prevents new-sample clearing."""
+        # Given: original invoice has dummy sampleId; CSV provides an explicit UUID
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+        SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
+        self._setup_invoice_with_dummy_sample(context)
+
+        explicit_uuid = "12345678-abcd-ef01-2345-6789abcdef01"
+        csv_data = pd.DataFrame({
+            "sample/names": ["Existing Sample"],
+            "sample/sampleId": [explicit_uuid],
+        })
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        # When: processing
+        processor.process(context)
+
+        # Then: sampleId preserved, description not cleared
+        with open(context.invoice_dst_filepath) as f:
+            output = json.load(f)
+
+        assert output["sample"]["sampleId"] == explicit_uuid
+        assert output["sample"]["description"] == "Dummy description"
+
+    def test_preserves_original_when_no_sample_names__issue_455(self, smarttable_processing_context):
+        """Issue #455: No sample/names column → original sample fields untouched."""
+        # Given: original invoice has a dummy sampleId; CSV has no sample/ columns
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+        SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
+        original = self._setup_invoice_with_dummy_sample(context)
+
+        csv_data = pd.DataFrame({"basic/dataName": ["Only Basic"]})
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        # When: processing
+        processor.process(context)
+
+        # Then: sample fields are all preserved from original invoice
+        with open(context.invoice_dst_filepath) as f:
+            output = json.load(f)
+
+        assert output["sample"]["sampleId"] == original["sample"]["sampleId"]
+        assert output["sample"]["description"] == "Dummy description"
+
+    def test_ownerid_still_set_after_new_sample_clearing__issue_455(self, smarttable_processing_context):
+        """Issue #455 + #389: ownerId correction still applies after new-sample clearing."""
+        # Given: original invoice has a dummy sampleId and basic.dataOwnerId
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+        SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
+        original = self._setup_invoice_with_dummy_sample(context)
+        expected_owner_id = original["basic"]["dataOwnerId"]
+
+        csv_data = pd.DataFrame({"sample/names": ["New Sample"]})
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        # When: processing
+        processor.process(context)
+
+        with open(context.invoice_dst_filepath) as f:
+            output = json.load(f)
+
+        # Then: sampleId is cleared (new-sample) AND ownerId = basic.dataOwnerId (#389)
+        assert output["sample"]["sampleId"] == ""
+        assert output["sample"]["ownerId"] == expected_owner_id
+
 
 class TestSmartTableEarlyExitProcessorIntegration:
     """Integration test cases for SmartTableEarlyExitProcessor focusing on invoice dataName updates."""
