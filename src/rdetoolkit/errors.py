@@ -306,3 +306,123 @@ def write_job_errorlog_file(code: int, message: str, *, filename: str = "job.fai
     ) as f:
         f.write(f"ErrorCode={code}\n")
         f.write(f"ErrorMessage={message}\n")
+
+
+# ---------------------------------------------------------------------------
+# v2 Error Hierarchy (append-only below this line)
+# ---------------------------------------------------------------------------
+
+import enum
+from typing import Any as _Any
+
+
+class ErrorCode(enum.Enum):
+    """Machine-readable error codes for rdetoolkit v2.
+
+    Ranges:
+        E001-E005: Graph/DAG errors
+        E006-E010: Compilation errors
+        E011-E015: Execution errors
+        E016-E020: Configuration errors
+        E021-E025: I/O errors
+    """
+
+    E001 = "E001"  # DAG cycle detected
+    E002 = "E002"  # Node not found in DAG
+    E003 = "E003"  # Duplicate node ID
+    E004 = "E004"  # Invalid edge (port mismatch)
+    E005 = "E005"  # Unconnected node
+    E006 = "E006"  # Type mismatch in compilation
+    E007 = "E007"  # Ambiguous dependency
+    E008 = "E008"  # Missing required input
+    E009 = "E009"  # Compile validation failed
+    E010 = "E010"  # Warnings treated as errors
+    E011 = "E011"  # Node execution failed
+    E012 = "E012"  # Unconnected input at runtime
+    E013 = "E013"  # DI resolution failed
+    E014 = "E014"  # Execution timeout
+    E015 = "E015"  # Iteration error
+    E016 = "E016"  # Invalid configuration
+    E017 = "E017"  # Missing configuration key
+    E018 = "E018"  # Invalid mode
+    E019 = "E019"  # Schema validation failed
+    E020 = "E020"  # Config file not found
+    E021 = "E021"  # File not found
+    E022 = "E022"  # File read error
+    E023 = "E023"  # File write error
+    E024 = "E024"  # Directory creation error
+    E025 = "E025"  # Path resolution error
+
+
+class RdeError(Exception):
+    """Base exception for rdetoolkit v2 with machine-readable error codes.
+
+    Attributes:
+        code: Error code string (e.g. 'E001').
+        message: Human-readable error description.
+        detail: Optional additional context about the error.
+    """
+
+    def __init__(self, *, code: str, message: str, detail: dict[str, _Any] | None = None) -> None:
+        self.code = code
+        self.message = message
+        self.detail = detail
+        super().__init__(f"[{code}] {message}")
+
+    def to_dict(self) -> dict[str, _Any]:
+        """Serialize error to a dictionary.
+
+        Returns:
+            Dictionary with code, message, and optional detail.
+        """
+        d: dict[str, _Any] = {"code": self.code, "message": self.message}
+        if self.detail is not None:
+            d["detail"] = self.detail
+        return d
+
+
+class RdeGraphError(RdeError):
+    """Error related to DAG graph operations (E001-E005)."""
+
+
+class RdeCompileError(RdeError):
+    """Error related to DAG compilation (E006-E010)."""
+
+
+class RdeExecutionError(RdeError):
+    """Error related to node execution (E011-E015)."""
+
+
+class RdeConfigError(RdeError):
+    """Error related to configuration (E016-E020)."""
+
+
+class RdeIOError(RdeError):
+    """Error related to I/O operations (E021-E025)."""
+
+
+class UnconnectedInputError(RdeExecutionError):
+    """Raised when DI resolution cannot find a value for a node input parameter.
+
+    This means the parameter has no upstream DAG edge result and does not match
+    a Runner reserved type by both name AND type.
+
+    Attributes:
+        node_id: The node whose input could not be resolved.
+        param_name: The parameter that has no source.
+        param_type: The declared type of the unresolved parameter.
+    """
+
+    def __init__(self, node_id: str, param_name: str, param_type: type | None = None) -> None:
+        self.node_id = node_id
+        self.param_name = param_name
+        self.param_type = param_type
+        type_info = f" (type: {param_type.__name__})" if param_type is not None else ""
+        super().__init__(
+            code=ErrorCode.E012.value,
+            message=(
+                f"Cannot resolve input '{param_name}'{type_info} for node '{node_id}': "
+                f"no DAG edge result and not a reserved type"
+            ),
+            detail={"node_id": node_id, "param_name": param_name, "param_type": str(param_type)},
+        )
