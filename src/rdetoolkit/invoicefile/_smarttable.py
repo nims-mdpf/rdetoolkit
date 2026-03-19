@@ -11,9 +11,12 @@ from typing import TYPE_CHECKING
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.invoicefile._helpers import _ensure_pandas
+from rdetoolkit.rdelogger import get_logger
 
 if TYPE_CHECKING:
     import pandas as pd
+
+logger = get_logger(__name__)
 
 
 class SmartTableFile:
@@ -127,11 +130,14 @@ class SmartTableFile:
         """
         data = self.read_table()
         csv_file_mappings = []
+        missing_references: list[tuple[int, str, str]] = []
+        zip_was_uploaded = extracted_files is not None
 
         pd = _ensure_pandas()
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
             inputdata_columns = [col for col in data.columns if col.startswith("inputdata")]
+            available_files = extracted_files if extracted_files is not None else []
 
             for idx, row in data.iterrows():
                 # New naming convention: smarttable_<original_filename>_XXXX.csv
@@ -148,17 +154,28 @@ class SmartTableFile:
                     if pd.isna(file_relative_path) or file_relative_path == "":
                         continue
 
-                    # Find matching file in extracted files
-                    if extracted_files:
-                        matching_file = self._find_file_by_relative_path(
-                            file_relative_path, extracted_files,
-                        )
-                        if matching_file:
-                            related_files.append(matching_file)
+                    matching_file = self._find_file_by_relative_path(
+                        str(file_relative_path), available_files,
+                    )
+                    if matching_file:
+                        related_files.append(matching_file)
+                        continue
+
+                    missing_references.append(
+                        (self._to_smarttable_row_number(idx), col, str(file_relative_path)),
+                    )
 
                 csv_file_mappings.append((csv_path, tuple(related_files)))
+
+            if missing_references:
+                self._raise_missing_reference_error(
+                    missing_references,
+                    zip_was_uploaded=zip_was_uploaded,
+                )
             return csv_file_mappings
 
+        except StructuredError:
+            raise
         except Exception as e:
             error_msg = f"Failed to generate CSV files with file mapping: {str(e)}"
             raise StructuredError(error_msg) from e
@@ -191,3 +208,69 @@ class SmartTableFile:
                 if relative_part == normalized_path.replace("\\", "/"):
                     return file_path
         return None
+
+    def _to_smarttable_row_number(self, data_row_index: int) -> int:
+        """Convert a zero-based data row index to a SmartTable display row number."""
+        first_data_row_number = 3
+        return int(data_row_index) + first_data_row_number
+
+    def _raise_missing_reference_error(
+        self,
+        missing_references: list[tuple[int, str, str]],
+        *,
+        zip_was_uploaded: bool,
+    ) -> None:
+        """Raise a user-facing error for unresolved inputdata references."""
+        logger.error(
+            self._missing_reference_log_message(zip_was_uploaded),
+            self._format_missing_references_for_log(missing_references),
+        )
+        first_row_number, first_column, first_path = missing_references[0]
+        first_column_label = self._sanitize_text(first_column)
+        first_basename = self._basename_for_message(first_path)
+        if zip_was_uploaded:
+            error_msg = (
+                "SmartTable row "
+                f"{first_row_number} references missing file in uploaded zip: "
+                f"{first_column_label}={first_basename}"
+            )
+        else:
+            error_msg = (
+                "SmartTable row "
+                f"{first_row_number} references {first_column_label}={first_basename} "
+                "but no zip was uploaded"
+            )
+        raise StructuredError(error_msg, eobj=missing_references)
+
+    def _missing_reference_log_message(self, zip_was_uploaded: bool) -> str:
+        """Return the summary log message for unresolved inputdata references."""
+        if zip_was_uploaded:
+            return "SmartTable references files missing from the uploaded zip:\n%s"
+        return "SmartTable references inputdata files but no zip was uploaded:\n%s"
+
+    def _format_missing_references_for_log(self, missing_references: list[tuple[int, str, str]]) -> str:
+        """Render missing references as a control-character-safe log payload."""
+        return "\n".join(
+            "row "
+            f"{row_number}: {self._sanitize_text(column)}={self._sanitize_text(relative_path)}"
+            for row_number, column, relative_path in missing_references
+        )
+
+    def _basename_for_message(self, relative_path: str) -> str:
+        """Return a short filename for user-facing error messages."""
+        normalized_path = relative_path.strip().strip("/\\").replace("\\", "/")
+        if not normalized_path:
+            return self._sanitize_text(relative_path)
+        return self._sanitize_text(Path(normalized_path).name)
+
+    def _sanitize_text(self, value: str) -> str:
+        """Escape control characters before including user-provided text in logs/messages."""
+        replacements = {
+            "\n": "\\n",
+            "\r": "\\r",
+            "\t": "\\t",
+        }
+        return "".join(
+            replacements.get(char, char if char.isprintable() else f"\\x{ord(char):02x}")
+            for char in value
+        )
