@@ -521,6 +521,24 @@ class SmartTableInvoiceInitializer(Processor):
         if "basic" not in invoice_data:
             invoice_data["basic"] = {}
 
+    def _detect_new_sample_registration(self, csv_data: pd.DataFrame) -> bool:
+        """Scan CSV columns to determine if the row intends new sample registration.
+
+        Returns True when ``sample/names`` is present with a non-empty value
+        and ``sample/sampleId`` is absent or blank.
+        """
+        csv_has_sample_names = False
+        csv_has_sample_id_with_value = False
+        for col in csv_data.columns:
+            value = csv_data.iloc[0][col]
+            if pd.isna(value) or str(value).strip() == "":
+                continue
+            if col == "sample/names":
+                csv_has_sample_names = True
+            if col == "sample/sampleId":
+                csv_has_sample_id_with_value = True
+        return csv_has_sample_names and not csv_has_sample_id_with_value
+
     def _apply_smarttable_row(
         self,
         csv_data: pd.DataFrame,
@@ -541,23 +559,7 @@ class SmartTableInvoiceInitializer(Processor):
         # First pass: determine CSV intent before touching invoice_data.
         # Clearing must happen before CSV values are applied so that fields
         # set explicitly in the CSV row are not overwritten by the clear step.
-        csv_has_sample_names = False
-        # True only when sample/sampleId column is present with a non-empty, non-blank value
-        csv_has_sample_id_with_value = False
-        for col in csv_data.columns:
-            value = csv_data.iloc[0][col]
-            if pd.isna(value) or str(value).strip() == "":
-                continue
-            if col == "sample/names":
-                csv_has_sample_names = True
-            if col == "sample/sampleId":
-                csv_has_sample_id_with_value = True
-
-        # When sample/names is specified without an explicit sample/sampleId value,
-        # the intent is to register a new sample.  Clear dummy sample fields
-        # inherited from the original invoice BEFORE applying CSV values so that
-        # fields provided in the CSV row are not erased by the clearing step.
-        is_new_sample_registration = csv_has_sample_names and not csv_has_sample_id_with_value
+        is_new_sample_registration = self._detect_new_sample_registration(csv_data)
         if is_new_sample_registration:
             self._clear_sample_for_new_registration(invoice_data)
 
@@ -565,35 +567,54 @@ class SmartTableInvoiceInitializer(Processor):
         for col in csv_data.columns:
             value = csv_data.iloc[0][col]
             if pd.isna(value) or str(value).strip() == "":
-                if self._is_invoice_mapping(col):
-                    if not (
-                        is_new_sample_registration
-                        and self._should_preserve_cleared_sample_field(col)
-                    ):
-                        self._clear_mapping_key(col, invoice_data)
+                if self._is_invoice_mapping(col) and not (
+                    is_new_sample_registration
+                    and self._should_preserve_cleared_sample_field(col)
+                ):
+                    self._clear_mapping_key(col, invoice_data)
                 continue
-            if col.startswith("meta/"):
-                if not context.metadata_def_path.exists():
-                    logger.debug(
-                        "Skipping meta column %s because metadata-def.json is missing",
-                        col,
-                    )
-                    continue
-                if metadata_def is None:
-                    metadata_def = self._load_metadata_definition(context.metadata_def_path)
-                meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
-                metadata_updates[meta_key] = meta_entry
-                continue
-            # Track if sample/ownerId is explicitly specified in CSV
+            applied = self._apply_csv_column(
+                col, value, context, invoice_data, invoice_schema_json_data, metadata_def, metadata_updates,
+            )
+            if applied is not None:
+                metadata_def = applied
             if col == "sample/ownerId":
                 csv_has_sample_owner_id = True
-            self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
 
         # Set sample.ownerId to basic.dataOwnerId only if not specified in CSV
         if not csv_has_sample_owner_id:
             self._set_sample_owner_id(invoice_data)
 
         return metadata_updates
+
+    def _apply_csv_column(
+        self,
+        col: str,
+        value: Any,
+        context: ProcessingContext,
+        invoice_data: dict[str, Any],
+        invoice_schema_json_data: InvoiceSchemaJson,
+        metadata_def: dict[str, Any] | None,
+        metadata_updates: dict[str, dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        """Apply a single non-empty CSV column to invoice data or metadata.
+
+        Returns the loaded metadata_def if it was lazily loaded, otherwise None.
+        """
+        if col.startswith("meta/"):
+            if not context.metadata_def_path.exists():
+                logger.debug(
+                    "Skipping meta column %s because metadata-def.json is missing",
+                    col,
+                )
+                return metadata_def
+            if metadata_def is None:
+                metadata_def = self._load_metadata_definition(context.metadata_def_path)
+            meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)
+            metadata_updates[meta_key] = meta_entry
+            return metadata_def
+        self._process_mapping_key(col, value, invoice_data, invoice_schema_json_data)
+        return None
 
     def _set_sample_owner_id(self, invoice_data: dict[str, Any]) -> None:
         """Set sample.ownerId to basic.dataOwnerId for SmartTable processing.
