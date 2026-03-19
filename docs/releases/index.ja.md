@@ -4,7 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
-| v1.6.2     | 2026-03-16 | SmartTableで`sample/names`指定時にダミー試料の`sampleId`が黙って継承される問題を修正 | [v1.6.2](#v162-2026-03-16) |
+| v1.6.2     | 2026-03-16 | SmartTableで`sample/names`指定時にダミー試料の`sampleId`が黙って継承される問題を修正 / SmartTableのファイル参照がzip内に存在しない場合のエラーメッセージ改善 | [v1.6.2](#v162-2026-03-16) |
 | v1.6.1     | 2026-03-10 | chardet公開API移行（Python 3.14互換） / SmartTableカスタムフィールドの型キャスト修正 | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み / Agent Skills追加 | [v1.6.0](#v160-2026-02-18) |
 | v1.5.3     | 2026-02-03 | SmartTable sample.ownerId自動設定 / 欠損rawfileエラー改善 / invoicefile.pyバグ修正 | [v1.5.3](#v153-2026-02-03) |
@@ -26,11 +26,12 @@
 ## v1.6.2 (2026-03-16)
 
 !!! info "参照"
-    - 主な課題: [#455](https://github.com/nims-mdpf/rdetoolkit/issues/455)
-    - プルリクエスト: [#457](https://github.com/nims-mdpf/rdetoolkit/pull/457)
+    - 主な課題: [#455](https://github.com/nims-mdpf/rdetoolkit/issues/455), [#462](https://github.com/nims-mdpf/rdetoolkit/issues/462)
+    - プルリクエスト: [#457](https://github.com/nims-mdpf/rdetoolkit/pull/457), [#465](https://github.com/nims-mdpf/rdetoolkit/pull/465)
 
 #### ハイライト
 - SmartTableモードで`sample/names`のみを指定して新規試料を登録しようとした場合に、元のinvoice.jsonのダミー試料`sampleId`が黙って残る問題を修正
+- SmartTableの`inputdata`列で指定したファイルがzip内に存在しない場合、汎用エラーではなく行番号・列名・ファイル名を含む具体的なエラーメッセージを表示するよう改善
 
 ### バグ修正
 
@@ -48,10 +49,38 @@
     - `sample.generalAttributes[*].value` / `sample.specificAttributes[*].value` → null（構造は維持）
 - `sample.ownerId`はIssue #389のルールどおり`basic.dataOwnerId`の継承に委ねており、今回の修正では変更していません
 
+#### SmartTableのzip内ファイル参照エラーの改善 (Issue #462)
+
+**問題**: SmartTableの`inputdata`列に指定したファイルがアップロードされたzipファイル内に存在しない場合、後段の処理で汎用的な「Error: ERROR: failed in data processing」が表示され、登録者がどのファイルが不足しているか特定できませんでした。
+
+**修正内容**:
+
+- `SmartTableFile.generate_row_csvs_with_file_mapping()`で`inputdata...`列の参照ファイルを全行にわたって検証するよう変更
+- zip内に存在しない参照を検出した場合、`StructuredError`を送出し、SmartTable上の行番号・列名・basenameを含む具体的なメッセージを表示
+- `job.failed`にはbasenameのみを含む短い文面（先頭の代表例1件）を記載し、全件の詳細はloggerに出力
+- `StructuredError`を汎用メッセージで再ラップしないようにし、利用者に具体的な原因が伝わるよう改善
+
+**エラーメッセージ例**:
+
+`job.failed`:
+```text
+ErrorCode=1
+ErrorMessage=SmartTable row 3 references missing file in zip: inputdata1=doc1.txt
+```
+
+ログ出力（複数不一致時）:
+```text
+SmartTable references files missing from the uploaded zip:
+row 3: inputdata1=doc1.txt
+row 4: inputdata1=doc2.txt
+row 5: inputdata1=doc3.txt
+```
+
 ### テスト
 
 - `tests/test_smarttable_invoice_initializer.py`: TC-EP-005〜009, TC-BV-004/005を追加
 - `tests/processing/processors/test_invoice_smarttable.py`: 結合回帰テスト4件を追加
+- `tests/test_smarttable_file.py`: 不足ファイル1件/複数件の`StructuredError`、SmartTable行番号変換、制御文字エスケープの回帰テストを追加
 
 ### ドキュメント
 
@@ -62,6 +91,7 @@
 - これまで暗黙的に元invoice.jsonの`sampleId`を継承する運用をしていた場合、v1.6.2から挙動が変わります。`sample/names`のみを指定した行では、ダミー試料のフィールドがクリアされ新規試料として扱われます
 - `sample/sampleId`を明示的に指定している行は、従来どおり指定値が維持されます
 - Issue #389で導入した`sample.ownerId`の`basic.dataOwnerId`自動設定は影響を受けません
+- SmartTableの`inputdata`列でzip内に存在しないファイルを参照した場合、従来の汎用エラーではなく具体的な行番号・列名・ファイル名を含むエラーが表示されます。エラーハンドリングの変更はありません
 
 ---
 

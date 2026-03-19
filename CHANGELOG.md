@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+#### SmartTable Missing File Reference Error Improvement (#462)
+
+Improved error messages when SmartTable `inputdata` column references files that do not exist in the uploaded zip. Previously, a generic "ERROR: failed in data processing" was shown. Now raises `StructuredError` with the specific SmartTable row number, column name, and file basename. Full details of all missing references are logged for multi-file diagnosis.
+
 ### Added
 
 #### Agent Guide for AI Coding Assistants (#380)
