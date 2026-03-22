@@ -1117,6 +1117,55 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#automatic-sample-field-clearing-rule-new-sample-registration">
+<span class="md-ellipsis">
+      
+        Automatic Sample Field Clearing Rule (New Sample Registration)
+      
+    </span>
+</a>
+<nav aria-label="Automatic Sample Field Clearing Rule (New Sample Registration)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#decision-rules">
+<span class="md-ellipsis">
+      
+        Decision Rules
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fields-cleared">
+<span class="md-ellipsis">
+      
+        Fields Cleared
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#interaction-with-blank-cells">
+<span class="md-ellipsis">
+      
+        Interaction with Blank Cells
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#examples">
+<span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </li>
@@ -2486,6 +2535,55 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#automatic-sample-field-clearing-rule-new-sample-registration">
+<span class="md-ellipsis">
+      
+        Automatic Sample Field Clearing Rule (New Sample Registration)
+      
+    </span>
+</a>
+<nav aria-label="Automatic Sample Field Clearing Rule (New Sample Registration)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#decision-rules">
+<span class="md-ellipsis">
+      
+        Decision Rules
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fields-cleared">
+<span class="md-ellipsis">
+      
+        Fields Cleared
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#interaction-with-blank-cells">
+<span class="md-ellipsis">
+      
+        Interaction with Blank Cells
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#examples">
+<span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </div>
@@ -2672,6 +2770,122 @@ basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sampl
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #070">smarttable</span>:
 <span style="color: #BBB">    </span><span style="color: #070">save_table_file</span>:<span style="color: #BBB"> </span>true
 </code></pre></div></td></tr></table></div>
+<h2 id="automatic-sample-field-clearing-rule-new-sample-registration">Automatic Sample Field Clearing Rule (New Sample Registration)</h2>
+<p>SmartTableInvoice mode generates each row's <code>invoice.json</code> by starting from the original <code>invoice.json</code> and then partially overwriting it with the row values. As a result, if no <code>sample</code> columns are supplied, the sample information from the original invoice remains as-is.</p>
+<p>Given that behavior, when the <code>sample/names</code> column is specified <strong>and</strong> <code>sample/sampleId</code> does not contain a valid value, the row is treated as an intentional <strong>new sample registration</strong>. In that case, dummy sample fields inherited from the original <code>invoice.json</code> are automatically cleared.</p>
+<h3 id="decision-rules">Decision Rules</h3>
+<table>
+<thead>
+<tr>
+<th>SmartTable input</th>
+<th>Interpretation</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sample/names</code> only</td>
+<td>New sample registration</td>
+<td>Clear inherited dummy sample fields</td>
+</tr>
+<tr>
+<td><code>sample/names</code> + empty <code>sample/sampleId</code></td>
+<td>New sample registration</td>
+<td>Same clearing behavior as missing <code>sample/sampleId</code></td>
+</tr>
+<tr>
+<td><code>sample/names</code> + non-empty <code>sample/sampleId</code></td>
+<td>Existing sample reference</td>
+<td>Do not run new-sample clearing</td>
+</tr>
+<tr>
+<td>No <code>sample/names</code></td>
+<td>No sample-registration intent</td>
+<td>Preserve sample fields from the original <code>invoice.json</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>A <code>sample/sampleId</code> cell that contains only whitespace is also treated as missing.</p>
+</blockquote>
+<h3 id="fields-cleared">Fields Cleared</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value After Clearing</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sample.sampleId</code></td>
+<td><code>""</code> (empty string)</td>
+<td>Indicates a new sample</td>
+</tr>
+<tr>
+<td><code>sample.description</code></td>
+<td><code>null</code></td>
+<td>Resets dummy sample description</td>
+</tr>
+<tr>
+<td><code>sample.composition</code></td>
+<td><code>null</code></td>
+<td>Resets dummy sample composition</td>
+</tr>
+<tr>
+<td><code>sample.referenceUrl</code></td>
+<td><code>null</code></td>
+<td>Resets dummy sample reference URL</td>
+</tr>
+<tr>
+<td><code>sample.generalAttributes[*].value</code></td>
+<td><code>null</code></td>
+<td>Structure (termId) is preserved; only values are cleared</td>
+</tr>
+<tr>
+<td><code>sample.specificAttributes[*].value</code></td>
+<td><code>null</code></td>
+<td>Structure (classId+termId) is preserved; only values are cleared</td>
+</tr>
+<tr>
+<td><code>sample.ownerId</code></td>
+<td>Set from <code>basic.dataOwnerId</code></td>
+<td>Existing rule (Issue #389) continues to apply</td>
+</tr>
+</tbody>
+</table>
+<h3 id="interaction-with-blank-cells">Interaction with Blank Cells</h3>
+<p>In fixed-header SmartTable files, columns such as <code>sample/sampleId</code>, <code>sample/description</code>, or <code>sample/generalAttributes.&lt;termId&gt;</code> may always exist while individual cells are left blank.</p>
+<p>When the row is interpreted as a new sample registration, those blank columns still preserve the normalized empty structure:</p>
+<ul>
+<li><code>sample.sampleId</code> is kept as <code>""</code> instead of removing the key</li>
+<li><code>sample.description</code>, <code>sample.composition</code>, and <code>sample.referenceUrl</code> are kept as <code>null</code></li>
+<li><code>sample.generalAttributes[*]</code> and <code>sample.specificAttributes[*]</code> keep their entries, with <code>value: null</code></li>
+</ul>
+<p>By contrast, when <code>sample/sampleId</code> has a valid value and the row is treated as a reference to an existing sample, blank sample cells continue to use the normal SmartTable clearing behavior.</p>
+<h3 id="examples">Examples</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># Only sample/names specified (no sample/sampleId) → treated as new sample
+basic/dataName,sample/names
+Experiment 1,Sample A
+</code></pre></div></td></tr></table></div>
+<p>In the above case, even if <code>sampleId</code>, <code>description</code>, etc. are set in the original <code>invoice.json</code>, they are all cleared and the row is registered as a new sample.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># Fixed-header sample columns can be present and blank; the normalized empty structure is preserved
+basic/dataName,sample/names,sample/sampleId,sample/description,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
+Experiment 1,Sample A,,,
+</code></pre></div></td></tr></table></div>
+<p>In this case, <code>sample.sampleId</code> remains present as <code>""</code>, <code>sample.description</code> remains <code>null</code>, and the matching general attribute entry is preserved as <code>{"termId": "...", "value": null}</code>.</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># sample/sampleId explicitly specified → treated as reference to existing sample; no clearing
+basic/dataName,sample/names,sample/sampleId
+Experiment 2,Sample B,12345678-abcd-ef01-2345-6789abcdef01
+</code></pre></div></td></tr></table></div>
+<p>In the above case, <code>sampleId</code> is preserved and the row is treated as a reference registration to an existing sample. If blank columns such as <code>sample/description</code> are present in the same row, those fields are still cleared using the normal blank-cell behavior.</p>
 <!-- Dify Chatbot Script -->
 <script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
 </script>

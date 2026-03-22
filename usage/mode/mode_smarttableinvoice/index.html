@@ -1116,6 +1116,55 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_12">
+<span class="md-ellipsis">
+      
+        試料フィールドの自動クリアルール（新規試料登録）
+      
+    </span>
+</a>
+<nav aria-label="試料フィールドの自動クリアルール（新規試料登録）" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_13">
+<span class="md-ellipsis">
+      
+        判定ルール
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_14">
+<span class="md-ellipsis">
+      
+        クリアされるフィールド
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_15">
+<span class="md-ellipsis">
+      
+        空欄セルとの関係
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_16">
+<span class="md-ellipsis">
+      
+        動作の例
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </li>
@@ -2485,6 +2534,55 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_12">
+<span class="md-ellipsis">
+      
+        試料フィールドの自動クリアルール（新規試料登録）
+      
+    </span>
+</a>
+<nav aria-label="試料フィールドの自動クリアルール（新規試料登録）" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_13">
+<span class="md-ellipsis">
+      
+        判定ルール
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_14">
+<span class="md-ellipsis">
+      
+        クリアされるフィールド
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_15">
+<span class="md-ellipsis">
+      
+        空欄セルとの関係
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#_16">
+<span class="md-ellipsis">
+      
+        動作の例
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </div>
@@ -2671,6 +2769,122 @@ basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sampl
 <span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code><span style="color: #070">smarttable</span>:
 <span style="color: #BBB">    </span><span style="color: #070">save_table_file</span>:<span style="color: #BBB"> </span>true
 </code></pre></div></td></tr></table></div>
+<h2 id="_12">試料フィールドの自動クリアルール（新規試料登録）</h2>
+<p>SmartTableInvoiceモードの <code>invoice.json</code> 生成は、元の <code>invoice.json</code> をベースに各行の値を部分上書きする方式です。そのため、<code>sample</code> 系の列を何も指定しないと、元の <code>invoice.json</code> に入っている試料情報がそのまま残ります。</p>
+<p>この挙動を踏まえ、SmartTableモードでは <code>sample/names</code> 列が指定され、かつ <code>sample/sampleId</code> 列に有効な値がない場合、その行は <strong>新規試料として登録する意図</strong> として扱われます。このとき、元の <code>invoice.json</code> から継承されたダミー試料の各フィールドが自動的にクリアされます。</p>
+<h3 id="_13">判定ルール</h3>
+<table>
+<thead>
+<tr>
+<th>SmartTableの指定</th>
+<th>解釈</th>
+<th>動作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sample/names</code> のみ</td>
+<td>新規試料登録</td>
+<td>ダミーの <code>sampleId</code> などをクリア</td>
+</tr>
+<tr>
+<td><code>sample/names</code> + 空の <code>sample/sampleId</code></td>
+<td>新規試料登録</td>
+<td><code>sample/sampleId</code> 未指定と同様にクリア</td>
+</tr>
+<tr>
+<td><code>sample/names</code> + 値あり <code>sample/sampleId</code></td>
+<td>既存試料参照</td>
+<td>クリアしない</td>
+</tr>
+<tr>
+<td><code>sample/names</code> なし</td>
+<td>試料登録意図なし</td>
+<td>元の <code>invoice.json</code> の試料情報を維持</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>sample/sampleId</code> が空文字だけでなく空白のみの場合も、値なしとして扱われます。</p>
+</blockquote>
+<h3 id="_14">クリアされるフィールド</h3>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>クリア後の値</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sample.sampleId</code></td>
+<td><code>""</code> (空文字)</td>
+<td>新規試料を示す</td>
+</tr>
+<tr>
+<td><code>sample.description</code></td>
+<td><code>null</code></td>
+<td>ダミー試料の説明をリセット</td>
+</tr>
+<tr>
+<td><code>sample.composition</code></td>
+<td><code>null</code></td>
+<td>ダミー試料の組成をリセット</td>
+</tr>
+<tr>
+<td><code>sample.referenceUrl</code></td>
+<td><code>null</code></td>
+<td>ダミー試料の参照URLをリセット</td>
+</tr>
+<tr>
+<td><code>sample.generalAttributes[*].value</code></td>
+<td><code>null</code></td>
+<td>構造(termId)は維持、値のみクリア</td>
+</tr>
+<tr>
+<td><code>sample.specificAttributes[*].value</code></td>
+<td><code>null</code></td>
+<td>構造(classId+termId)は維持、値のみクリア</td>
+</tr>
+<tr>
+<td><code>sample.ownerId</code></td>
+<td><code>basic.dataOwnerId</code> を自動設定</td>
+<td>既存ルール(Issue #389)が引き続き適用</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_15">空欄セルとの関係</h3>
+<p>SmartTable では固定ヘッダー運用のため、<code>sample/sampleId</code> や <code>sample/description</code>、<code>sample/generalAttributes.&lt;termId&gt;</code> などの列が常に存在し、セルだけが空欄になるケースがあります。</p>
+<p>新規試料登録と判定された行では、これらの空欄列があっても次の正規化済みの構造を保持します。</p>
+<ul>
+<li><code>sample.sampleId</code> はキーごと削除せず、<code>""</code> を保持</li>
+<li><code>sample.description</code> / <code>sample.composition</code> / <code>sample.referenceUrl</code> はキーごと削除せず、<code>null</code> を保持</li>
+<li><code>sample.generalAttributes[*]</code> / <code>sample.specificAttributes[*]</code> は配列要素を削除せず、<code>value: null</code> を保持</li>
+</ul>
+<p>一方で、<code>sample/sampleId</code> に有効値が入っている既存試料参照の行では、従来どおり空欄セルはその項目のクリアとして扱われます。</p>
+<h3 id="_16">動作の例</h3>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># sample/names のみ指定（sample/sampleId なし）→ 新規試料扱い
+basic/dataName,sample/names
+実験データ1,試料A
+</code></pre></div></td></tr></table></div>
+<p>上記の場合、元の <code>invoice.json</code> に <code>sampleId</code> や <code>description</code> などが設定されていても、すべてクリアされた上で新規試料として登録されます。</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># 固定ヘッダーで sample 列が存在していても、空欄なら新規試料用の空構造を保持
+basic/dataName,sample/names,sample/sampleId,sample/description,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e
+実験データ1,試料A,,,
+</code></pre></div></td></tr></table></div>
+<p>上記の場合、<code>sample.sampleId</code> は削除されず <code>""</code> が残り、<code>sample.description</code> は <code>null</code>、一般属性の該当要素も <code>{"termId": "...", "value": null}</code> の形で保持されます。</p>
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code># sample/sampleId を明示指定 → 既存試料参照として扱い、クリアしない
+basic/dataName,sample/names,sample/sampleId
+実験データ2,試料B,12345678-abcd-ef01-2345-6789abcdef01
+</code></pre></div></td></tr></table></div>
+<p>上記の場合は <code>sampleId</code> が保持され、既存試料の参照登録として扱われます。さらに、同じ行に <code>sample/description</code> などの空欄列がある場合は、その項目は通常どおりクリアされます。</p>
 <!-- Dify Chatbot Script -->
 <script defer="" id="miUabi3XxqUrpE7E" src="https://dify.escidoc.jp/embed.min.js">
 </script>

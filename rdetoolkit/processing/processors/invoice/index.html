@@ -2870,6 +2870,8 @@ excel_initializer<span style="color: #333">.</span>process(context)  <span style
 - Reads and parses SmartTable CSV file
 - Maps CSV columns to invoice structure using complex field mapping
 - Processes general and specific attributes
+- Builds each row from the original <code>invoice.json</code> and applies SmartTable values as partial overrides
+- Treats <code>sample/names</code> without a valid <code>sample/sampleId</code> as new-sample registration and clears inherited dummy sample fields while preserving normalized empty sample structures
 - Ensures required invoice fields are present
 - Creates final invoice JSON file</p>
 <p><strong>Field Mapping:</strong>

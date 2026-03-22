@@ -2220,6 +2220,12 @@
 </thead>
 <tbody>
 <tr>
+<td>v1.6.2</td>
+<td>2026-03-16</td>
+<td>Fix silent inheritance of dummy sampleId when SmartTable specifies <code>sample/names</code> / Improve error messages for missing SmartTable file references in zip</td>
+<td><a href="#v162-2026-03-16">v1.6.2</a></td>
+</tr>
+<tr>
 <td>v1.6.1</td>
 <td>2026-03-10</td>
 <td>chardet public API migration (Python 3.14 compat) / SmartTable custom field type cast fix</td>
@@ -2312,6 +2318,76 @@
 </tbody>
 </table>
 <h1 id="release-details">Release Details</h1>
+<h2 id="v162-2026-03-16">v1.6.2 (2026-03-16)</h2>
+<div class="admonition info">
+<p class="admonition-title">References</p>
+<ul>
+<li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/455">#455</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/462">#462</a></li>
+<li>Pull requests: <a href="https://github.com/nims-mdpf/rdetoolkit/pull/457">#457</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/pull/465">#465</a></li>
+</ul>
+</div>
+<h4 id="highlights">Highlights</h4>
+<ul>
+<li>Fixed a bug where dummy sample <code>sampleId</code> from the original invoice.json was silently inherited when a SmartTable row specified <code>sample/names</code> without <code>sample/sampleId</code></li>
+<li>Improved error reporting when SmartTable <code>inputdata</code> column references files missing from the uploaded zip, now showing specific row number, column name, and file basename instead of a generic error</li>
+</ul>
+<h3 id="bug-fixes">Bug Fixes</h3>
+<h4 id="prevent-silent-inheritance-of-dummy-sampleid-in-smarttable-issue-455">Prevent Silent Inheritance of Dummy sampleId in SmartTable (Issue #455)</h4>
+<p><strong>Problem</strong>: When a SmartTable row specified <code>sample/names</code> without <code>sample/sampleId</code>, the dummy reference sample's <code>sampleId</code> from <code>invoice.json</code> was silently carried over into the output. Users intended to register a new sample, but the result appeared as a reference to the existing dummy sample.</p>
+<p><strong>Changes</strong>:</p>
+<ul>
+<li>Refactored <code>SmartTableInvoiceInitializer._apply_smarttable_row()</code> to a two-pass approach: the first pass scans CSV columns to detect whether <code>sample/names</code> is present and whether <code>sample/sampleId</code> has a value</li>
+<li>When the condition is met, <code>_clear_sample_for_new_registration()</code> is called before applying CSV values, clearing dummy sample fields</li>
+<li>Cleared fields:<ul>
+<li><code>sample.sampleId</code> → empty string</li>
+<li><code>sample.description</code> / <code>sample.composition</code> / <code>sample.referenceUrl</code> → null</li>
+<li><code>sample.generalAttributes[*].value</code> / <code>sample.specificAttributes[*].value</code> → null (structure preserved)</li>
+</ul>
+</li>
+<li><code>sample.ownerId</code> continues to follow the Issue #389 rule (inheriting from <code>basic.dataOwnerId</code>) and is not affected by this change</li>
+</ul>
+<h4 id="improve-smarttable-missing-file-error-messages-issue-462">Improve SmartTable Missing File Error Messages (Issue #462)</h4>
+<p><strong>Problem</strong>: When a file specified in the SmartTable <code>inputdata</code> column did not exist in the uploaded zip, the system showed a generic "Error: ERROR: failed in data processing" message, making it impossible for users to identify which file was missing.</p>
+<p><strong>Changes</strong>:</p>
+<ul>
+<li>Modified <code>SmartTableFile.generate_row_csvs_with_file_mapping()</code> to validate all <code>inputdata...</code> column file references across all rows</li>
+<li>When a missing reference is detected, raises <code>StructuredError</code> with a specific message including SmartTable row number, column name, and file basename</li>
+<li><code>job.failed</code> contains a short single-line message with the first representative example (basename only); full details of all missing files are output to the logger</li>
+<li>Prevents <code>StructuredError</code> from being re-wrapped with a generic message, ensuring users receive the specific cause</li>
+</ul>
+<p><strong>Error message examples</strong>:</p>
+<p><code>job.failed</code>:
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>ErrorCode=1
+ErrorMessage=SmartTable row 3 references missing file in zip: inputdata1=doc1.txt
+</code></pre></div></td></tr></table></div></p>
+<p>Log output (multiple mismatches):
+<div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">4</span></pre></div></td><td class="code"><div><pre style="line-height: 125%;"><span></span><code>SmartTable references files missing from the uploaded zip:
+row 3: inputdata1=doc1.txt
+row 4: inputdata1=doc2.txt
+row 5: inputdata1=doc3.txt
+</code></pre></div></td></tr></table></div></p>
+<h3 id="testing">Testing</h3>
+<ul>
+<li><code>tests/test_smarttable_invoice_initializer.py</code>: Added TC-EP-005 through TC-EP-009 and TC-BV-004/005</li>
+<li><code>tests/processing/processors/test_invoice_smarttable.py</code>: Added 4 integration regression tests</li>
+<li><code>tests/test_smarttable_file.py</code>: Added regression tests for single/multiple missing file <code>StructuredError</code>, SmartTable row number conversion, and control character escaping</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>Added sample field auto-clearing rules to SmartTable documentation (Japanese and English)</li>
+</ul>
+<h3 id="migration-compatibility">Migration / Compatibility</h3>
+<ul>
+<li>If your workflow previously relied on the implicit inheritance of <code>sampleId</code> from the original invoice.json, behavior changes in v1.6.2. Rows specifying only <code>sample/names</code> will now have dummy sample fields cleared and be treated as new sample registrations</li>
+<li>Rows with an explicit <code>sample/sampleId</code> value continue to work as before</li>
+<li>The <code>sample.ownerId</code> auto-assignment from <code>basic.dataOwnerId</code> introduced in Issue #389 is not affected</li>
+<li>When SmartTable <code>inputdata</code> columns reference files missing from the uploaded zip, a specific error with row number, column name, and file basename is now shown instead of the generic processing error. No changes to error handling are required</li>
+</ul>
+<hr/>
 <h2 id="v161-2026-03-10">v1.6.1 (2026-03-10)</h2>
 <div class="admonition info">
 <p class="admonition-title">References</p>
@@ -2320,12 +2396,12 @@
 <li>Pull request: <a href="https://github.com/nims-mdpf/rdetoolkit/pull/433">#433</a></li>
 </ul>
 </div>
-<h4 id="highlights">Highlights</h4>
+<h4 id="highlights_1">Highlights</h4>
 <ul>
 <li>Removed dependency on <code>chardet.universaldetector</code> internal module path, migrated to public API for Python 3.14 + chardet&gt;=7.0 compatibility</li>
 <li>Fixed SmartTable custom field type casting that silently fell back to string for schema-undefined fields</li>
 </ul>
-<h3 id="bug-fixes">Bug Fixes</h3>
+<h3 id="bug-fixes_1">Bug Fixes</h3>
 <h4 id="chardet-public-api-migration-issue-427">chardet Public API Migration (Issue #427)</h4>
 <p><strong>Problem</strong>: On Python 3.14 with chardet&gt;=7.0, the internal module path <code>chardet.universaldetector.UniversalDetector</code> became unavailable, causing import errors.</p>
 <p><strong>Changes</strong>:</p>
@@ -2349,7 +2425,7 @@
 <li>Aligned <code>invoicefile._invoice</code> cast failure messages to the same format</li>
 <li>Added comprehensive regression tests and property-based tests</li>
 </ul>
-<h3 id="testing">Testing</h3>
+<h3 id="testing_1">Testing</h3>
 <ul>
 <li><code>test_detect_encoding_none_from_chardet</code>: Coverage for chardet returning <code>encoding=None</code></li>
 <li><code>tests/test_smarttable_invoice_initializer_issue_429.py</code>: SmartTable custom field type cast regression tests</li>
@@ -2425,7 +2501,7 @@ pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span><s
 <li><code>Never</code>, <code>ParamSpec</code>, <code>TypeAlias</code> from <code>typing</code> module (instead of <code>typing_extensions</code>)</li>
 <li>Simplified type annotations using native union syntax (<code>X | Y</code>)</li>
 </ul>
-<h4 id="documentation">Documentation</h4>
+<h4 id="documentation_1">Documentation</h4>
 <ul>
 <li>Updated installation documentation (English and Japanese) to reflect Python 3.10+ requirement</li>
 <li>Updated usage documentation (CLI, quickstart, validation, object storage) to specify Python 3.10+</li>
@@ -2611,7 +2687,7 @@ rdetoolkit<span style="color: #BBB"> </span>agent-guide
 <h4 id="dataclass-memory-efficiency-improvements">Dataclass Memory Efficiency Improvements</h4>
 <p>With Python 3.9 support dropped, enabled <code>slots=True</code> on all 13 dataclasses in <code>rde2types.py</code>. This reduces memory usage per instance and improves attribute access performance.</p>
 <hr/>
-<h3 id="testing_1">Testing</h3>
+<h3 id="testing_2">Testing</h3>
 <p>All core tests pass successfully under Python 3.10-3.14:
 - <strong>Unit tests</strong>: 1,603 passed
 - <strong>Quality checks</strong>: ruff, mypy, pytest all pass
@@ -2624,7 +2700,7 @@ rdetoolkit<span style="color: #BBB"> </span>agent-guide
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/389">#389</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/398">#398</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/399">#399</a></li>
 </ul>
 </div>
-<h4 id="highlights_1">Highlights</h4>
+<h4 id="highlights_2">Highlights</h4>
 <ul>
 <li>Fixed SmartTable sample registration to automatically set <code>sample.ownerId</code> to <code>basic.dataOwnerId</code>. CSV-specified values take precedence when explicitly provided</li>
 <li>Improved <code>check_exist_rawfiles</code> error message to report all missing raw files in alphabetical order</li>
@@ -2698,14 +2774,14 @@ ERROR: raw file not found: file_a.dat, file_b.dat, file_c.dat
 </code></pre></div></td></tr></table></div>
 <hr/>
 <h3 id="invoicefilepy-quality-improvements-issue-399">invoicefile.py Quality Improvements (Issue #399)</h3>
-<h4 id="bug-fixes_1">Bug Fixes</h4>
+<h4 id="bug-fixes_2">Bug Fixes</h4>
 <ul>
 <li><strong>Stale TODO Comment Removal</strong>: Removed obsolete <code># [TODO] Correction of type definitions in version 0.1.6</code> comment from v0.1.6 era</li>
 <li><strong>mapping_rules Parameter Bug Fix</strong>: Fixed bug in <code>get_apply_rules_obj</code> method where <code>mapping_rules</code> parameter was ignored and <code>self.rules</code> was always used instead</li>
 <li><strong>Docstring Typo Fix</strong>: Corrected <code>tructuredError</code> to <code>StructuredError</code> in <code>check_exist_rawfiles</code> function's Raises section</li>
 </ul>
 <hr/>
-<h3 id="migration-compatibility">Migration / Compatibility</h3>
+<h3 id="migration-compatibility_1">Migration / Compatibility</h3>
 <h4 id="smarttable-sampleownerid">SmartTable sample.ownerId</h4>
 <ul>
 <li><strong>Backward Compatible</strong>: Workflows not specifying <code>sample/ownerId</code> in CSV will automatically use <code>basic.dataOwnerId</code></li>
@@ -2734,7 +2810,7 @@ ERROR: raw file not found: file_a.dat, file_b.dat, file_c.dat
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/358">#358</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/359">#359</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/360">#360</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/361">#361</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/362">#362</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/370">#370</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/372">#372</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/373">#373</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/381">#381</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/382">#382</a></li>
 </ul>
 </div>
-<h4 id="highlights_2">Highlights</h4>
+<h4 id="highlights_3">Highlights</h4>
 <ul>
 <li>Standardized CLI <code>validate</code> command exit codes (0/1/2) for CI/CD pipeline integration</li>
 <li>Fixed <code>metadata-def.json</code> validation to use correct Pydantic model (<code>MetadataDefinitionValidator</code>)</li>
@@ -2896,7 +2972,7 @@ pytest<span style="color: #BBB"> </span>tests/property/<span style="color: #BBB"
 <li>Resolution: Explicit pytz dependency in <code>pyproject.toml</code> and regenerated lock files</li>
 </ul>
 <hr/>
-<h3 id="migration-compatibility_1">Migration / Compatibility</h3>
+<h3 id="migration-compatibility_2">Migration / Compatibility</h3>
 <h4 id="cli-validate-exit-codes">CLI Validate Exit Codes</h4>
 <ul>
 <li><strong>Exit code change</strong>: Internal errors now return exit code 2 (was 3) for consistency</li>
@@ -2930,7 +3006,7 @@ pytest<span style="color: #BBB"> </span>tests/property/<span style="color: #BBB"
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/207">#207</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/210">#210</a></li>
 </ul>
 </div>
-<h4 id="highlights_3">Highlights</h4>
+<h4 id="highlights_4">Highlights</h4>
 <ul>
 <li>Added <code>smarttable_row_data</code> property to <code>RdeDatasetPaths</code> for direct row data access in SmartTable mode, eliminating the need for users to manually read and parse CSV files</li>
 <li>Feature-flagged items from <code>variable</code> array in <code>metadata.json</code> are now transcribed to description in array format (<code>[A,B,C]</code>)</li>
@@ -2993,7 +3069,7 @@ pytest<span style="color: #BBB"> </span>tests/property/<span style="color: #BBB"
 feature_description<span style="color: #BBB"> </span><span style="color: #333">=</span><span style="color: #BBB"> </span><span style="color: #080; font-weight: bold">false</span>
 </code></pre></div></td></tr></table></div></p>
 <hr/>
-<h3 id="migration-compatibility_2">Migration / Compatibility</h3>
+<h3 id="migration-compatibility_3">Migration / Compatibility</h3>
 <h4 id="smarttable-row-data-access">SmartTable Row Data Access</h4>
 <ul>
 <li><strong>Backward Compatible</strong>: Existing <code>smarttable_rowfile</code> path access continues to work</li>
@@ -3020,7 +3096,7 @@ feature_description<span style="color: #BBB"> </span><span style="color: #333">=
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/3">#3</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/247">#247</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/249">#249</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/262">#262</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/301">#301</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/323">#323</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/324">#324</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/325">#325</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/326">#326</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/327">#327</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/328">#328</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/329">#329</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/330">#330</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/333">#333</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/334">#334</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/335">#335</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/336">#336</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/337">#337</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/338">#338</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/341">#341</a></li>
 </ul>
 </div>
-<h4 id="highlights_4">Highlights</h4>
+<h4 id="highlights_5">Highlights</h4>
 <ul>
 <li>Introduced Result type pattern (<code>Result[T, E]</code>) for explicit, type-safe error handling without exceptions</li>
 <li>System logs now use timestamped filenames (<code>rdesys_YYYYMMDD_HHMMSS.log</code>) instead of static <code>rdesys.log</code>, enabling per-run log management and preventing log collision in concurrent or successive executions</li>
@@ -3207,7 +3283,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Added official Python 3.14 support across classifiers, tox environments, and CI build/test matrices</li>
 </ul>
 <hr/>
-<h3 id="migration-compatibility_3">Migration / Compatibility</h3>
+<h3 id="migration-compatibility_4">Migration / Compatibility</h3>
 <h4 id="result-type-pattern">Result Type Pattern</h4>
 <ul>
 <li><strong>Backward Compatible</strong>: All original exception-based functions remain unchanged</li>
@@ -3266,7 +3342,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/292">#292</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/310">#310</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/311">#311</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/302">#302</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/304">#304</a></li>
 </ul>
 </div>
-<h4 id="highlights_5">Highlights</h4>
+<h4 id="highlights_6">Highlights</h4>
 <ul>
 <li>SmartTable split processing now preserves <code>sample.ownerId</code>, respects boolean columns, and prevents empty cells from inheriting values from previous rows, restoring per-row data integrity.</li>
 <li>csv2graph defaults HTML artifacts to the CSV directory (structured) and adds <code>html_output_dir</code> for overrides, while aligning Plotly/Matplotlib legend text and log-scale tick formatting for consistent outputs.</li>
@@ -3288,7 +3364,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Corrected csv2graph HTML placement when <code>output_dir</code> pointed to <code>other_image</code>, defaulting HTML to the CSV/structured directory unless overridden.</li>
 <li>Normalized Plotly legends that previously showed full headers (e.g., <code>total:intensity</code>) and removed 2/5 minor log ticks while enforcing exponential labels.</li>
 </ul>
-<h4 id="migration-compatibility_4">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_5">Migration / Compatibility</h4>
 <ul>
 <li>csv2graph now saves HTML alongside the CSV by default (typically <code>data/structured</code>). Use <code>html_output_dir</code> (API) or <code>--html-output-dir</code> (CLI) to target a different directory.</li>
 <li>SmartTable no longer reuses prior-row values for empty cells; provide explicit values on each row where inheritance was previously relied upon.</li>
@@ -3307,7 +3383,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/30">#30</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/36">#36</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/246">#246</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/293">#293</a></li>
 </ul>
 </div>
-<h4 id="highlights_6">Highlights</h4>
+<h4 id="highlights_7">Highlights</h4>
 <ul>
 <li><code>InvoiceFile.overwrite()</code> now accepts dictionaries, validates them through <code>InvoiceValidator</code>, and can fall back to the existing <code>invoice_path</code>.</li>
 <li>Excel invoice reading is centralized inside <code>ExcelInvoiceFile</code>, with <code>read_excelinvoice()</code> acting as a warning-backed compatibility wrapper slated for v1.5.0 removal.</li>
@@ -3327,7 +3403,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li><code>_process_invoice_sheet()</code>, <code>_process_general_term_sheet()</code>, and <code>_process_specific_term_sheet()</code> now correctly return <code>pd.DataFrame</code> objects, avoiding attribute errors in callers that expect frame operations.</li>
 <li><code>MultiFileChecker.parse()</code> returns <code>[()]</code> when no payload files are detected so MultiDataTile validation runs even on empty input directories, matching Invoice mode semantics.</li>
 </ul>
-<h4 id="migration-compatibility_5">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_6">Migration / Compatibility</h4>
 <ul>
 <li>Code calling <code>InvoiceFile.overwrite()</code> can now supply dictionaries directly; omit the destination argument to write to the instance path, and expect schema validation errors when invalid structures are provided.</li>
 <li><code>read_excelinvoice()</code> is officially deprecated and scheduled for removal in v1.5.0—migrate to <code>ExcelInvoiceFile().read()</code> or <code>ExcelInvoiceFile.read()</code> helpers.</li>
@@ -3346,7 +3422,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/204">#204</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/272">#272</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/273">#273</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/278">#278</a></li>
 </ul>
 </div>
-<h4 id="highlights_7">Highlights</h4>
+<h4 id="highlights_8">Highlights</h4>
 <ul>
 <li>Dedicated SmartTable row CSV accessors replace ad-hoc <code>rawfiles[0]</code> lookups without breaking existing callbacks.</li>
 <li>MultiDataTile workflows now guarantee a returned status and surface the failing mode instead of producing silent job artifacts.</li>
@@ -3365,7 +3441,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Ensured MultiDataTile mode always returns a <code>WorkflowExecutionStatus</code> and raises a <code>StructuredError</code> that names the failing mode if the pipeline fails to report back.</li>
 <li>Updated <code>CSVParser._parse_meta_block()</code> and <code>_parse_no_header()</code> to ignore <code>#</code>-prefixed metadata rows and return an empty <code>DataFrame</code> when no data remains, eliminating <code>ParserError</code> / <code>EmptyDataError</code>.</li>
 </ul>
-<h4 id="migration-compatibility_6">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_7">Migration / Compatibility</h4>
 <ul>
 <li>Existing callbacks using <code>resource_paths.rawfiles[0]</code> continue to work, but now emit a <code>FutureWarning</code>; migrate to <code>smarttable_rowfile</code> to silence it.</li>
 <li>The <code>rawfiles</code> tuple itself remains the primary list of user-supplied files—only the assumption that its first entry is always the SmartTable row CSV is being phased out.</li>
@@ -3384,7 +3460,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/188">#188</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/197">#197</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/205">#205</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/236">#236</a></li>
 </ul>
 </div>
-<h4 id="highlights_8">Highlights</h4>
+<h4 id="highlights_9">Highlights</h4>
 <ul>
 <li>SmartTableInvoice automatically writes <code>meta/</code> columns to <code>metadata.json</code></li>
 <li>Compact AI/LLM-friendly traceback output (duplex mode)</li>
@@ -3404,7 +3480,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Resolved a MultiDataTile issue where <code>StructuredError</code> failed to stop execution when <code>ignore_errors=True</code>.</li>
 <li>Cleaned up SmartTable error handling and annotations for more predictable failure behavior.</li>
 </ul>
-<h4 id="migration-compatibility_7">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_8">Migration / Compatibility</h4>
 <ul>
 <li>Legacy two-argument callbacks continue to work but should migrate to the single-argument <code>RdeDatasetPaths</code> form.</li>
 <li>Projects using SmartTable <code>meta/</code> columns should ensure <code>metadata-def.json</code> is present for automatic mapping.</li>
@@ -3422,7 +3498,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/217">#217</a> (SmartTable/Invoice validation reliability)</li>
 </ul>
 </div>
-<h4 id="highlights_9">Highlights</h4>
+<h4 id="highlights_10">Highlights</h4>
 <ul>
 <li>Stabilized SmartTable/Invoice validation flow.</li>
 </ul>
@@ -3434,7 +3510,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <ul>
 <li>Addressed SmartTableInvoice validation edge cases causing improper exception propagation or typing mismatches.</li>
 </ul>
-<h4 id="migration-compatibility_8">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_9">Migration / Compatibility</h4>
 <ul>
 <li>No breaking changes.</li>
 </ul>
@@ -3450,7 +3526,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/201">#201</a></li>
 </ul>
 </div>
-<h4 id="highlights_10">Highlights</h4>
+<h4 id="highlights_11">Highlights</h4>
 <ul>
 <li>Fixed <code>ValidationError</code> construction and stabilized Invoice processing.</li>
 <li>Added <code>sampleWhenRestructured</code> schema for copy-restructure workflows.</li>
@@ -3465,7 +3541,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Replaced the faulty <code>ValidationError.__new__()</code> usage with <code>SchemaValidationError</code> during <code>_validate_required_fields_only</code> checks.</li>
 <li>Clarified optional fields for <code>InvoiceSchemaJson</code> and <code>Properties</code>, fixing CI/CD mypy failures.</li>
 </ul>
-<h4 id="migration-compatibility_9">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_10">Migration / Compatibility</h4>
 <ul>
 <li>No configuration changes required; existing <code>invoice.json</code> files remain compatible.</li>
 </ul>
@@ -3481,7 +3557,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/193">#193</a></li>
 </ul>
 </div>
-<h4 id="highlights_11">Highlights</h4>
+<h4 id="highlights_12">Highlights</h4>
 <ul>
 <li>Strengthened required-field validation for SmartTableInvoice.</li>
 </ul>
@@ -3494,7 +3570,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <ul>
 <li>Tidied exception handling and annotations within SmartTable validation.</li>
 </ul>
-<h4 id="migration-compatibility_10">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_11">Migration / Compatibility</h4>
 <ul>
 <li>Backward compatible, though workflows adding extraneous <code>invoice.json</code> fields should remove them.</li>
 </ul>
@@ -3510,7 +3586,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issues: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/144">#144</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/161">#161</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/163">#163</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/168">#168</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/169">#169</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/173">#173</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/174">#174</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/177">#177</a>, <a href="https://github.com/nims-mdpf/rdetoolkit/issues/185">#185</a></li>
 </ul>
 </div>
-<h4 id="highlights_12">Highlights</h4>
+<h4 id="highlights_13">Highlights</h4>
 <ul>
 <li>Fixed empty-sheet exports in Excel invoice templates.</li>
 <li>Enforced stricter validation for <code>extended_mode</code>.</li>
@@ -3529,7 +3605,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Ensured <code>generalTerm</code> / <code>specificTerm</code> sheets appear even when attributes are empty and corrected variable naming errors.</li>
 <li>Specified <code>orient</code> in <code>FixedHeaders</code> to silence future warnings.</li>
 </ul>
-<h4 id="migration-compatibility_11">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_12">Migration / Compatibility</h4>
 <ul>
 <li>Invalid <code>extended_mode</code> values now raise errors; normalize configuration accordingly.</li>
 <li>Review SmartTable defaults if relying on prior <code>save_table_file</code> behavior.</li>
@@ -3547,7 +3623,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <li>Key issue: <a href="https://github.com/nims-mdpf/rdetoolkit/issues/157">#157</a></li>
 </ul>
 </div>
-<h4 id="highlights_13">Highlights</h4>
+<h4 id="highlights_14">Highlights</h4>
 <ul>
 <li>Introduced MinIO storage integration.</li>
 <li>Delivered artifact archiving and report-generation workflows.</li>
@@ -3562,7 +3638,7 @@ other<span style="color: #BBB"> </span><span style="color: #333">=</span><span s
 <ul>
 <li>Updated dependencies and modernized CI configurations.</li>
 </ul>
-<h4 id="migration-compatibility_12">Migration / Compatibility</h4>
+<h4 id="migration-compatibility_13">Migration / Compatibility</h4>
 <ul>
 <li>Fully backward compatible; enable optional dependencies when using MinIO.</li>
 </ul>
