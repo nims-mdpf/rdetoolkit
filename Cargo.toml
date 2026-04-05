@@ -13,7 +13,7 @@ path = "rdetoolkit-core/lib.rs"
 [dependencies]
 pyo3 = { version = "0.28.2", features = ["extension-module"] }
 image = "0.25.10"
-chardetng = "0.1.17"
+chardetng = "1.0.0"
 encoding_rs = "0.8.35"
 tempfile = "3.27.0"
 
