@@ -153,40 +153,17 @@ def test_resize_image_exception_handling():
             resize_image(image_path, width, height, output_path)
 
 
-def test_copy_images_to_thumbnail_uppercase_jpg(dummy_out_dir_thumb, dummy_out_dir_main):
-    """大文字拡張子 .JPG のファイルがサムネイルフォルダにコピーされることを確認するテスト"""
-    # Given: .JPG拡張子（大文字）のダミー画像ファイルをmain_imageに配置
-    with open(dummy_out_dir_main.joinpath("dummy_main_img.JPG"), "w") as f:
+@pytest.mark.parametrize("filename", ["dummy_main_img.JPG", "dummy_main_img.JPEG", "dummy_main_img.PNG"])
+def test_copy_images_to_thumbnail_uppercase_extensions(dummy_out_dir_thumb, dummy_out_dir_main, filename):
+    """大文字拡張子のファイルがサムネイルフォルダにコピーされることを確認するテスト"""
+    # Given: 大文字拡張子のダミー画像ファイルをmain_imageに配置
+    with open(dummy_out_dir_main.joinpath(filename), "w") as f:
         f.write("dummy")
     # When: copy_images_to_thumbnailを実行
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
     # Then: サムネイルフォルダに1つのファイルがコピーされていること
     assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
-    assert dummy_out_dir_thumb.joinpath("dummy_main_img.JPG").exists()
-
-
-def test_copy_images_to_thumbnail_uppercase_jpeg(dummy_out_dir_thumb, dummy_out_dir_main):
-    """大文字拡張子 .JPEG のファイルがサムネイルフォルダにコピーされることを確認するテスト"""
-    # Given: .JPEG拡張子（大文字）のダミー画像ファイルをmain_imageに配置
-    with open(dummy_out_dir_main.joinpath("dummy_main_img.JPEG"), "w") as f:
-        f.write("dummy")
-    # When: copy_images_to_thumbnailを実行
-    copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
-    # Then: サムネイルフォルダに1つのファイルがコピーされていること
-    assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
-    assert dummy_out_dir_thumb.joinpath("dummy_main_img.JPEG").exists()
-
-
-def test_copy_images_to_thumbnail_uppercase_png(dummy_out_dir_thumb, dummy_out_dir_main):
-    """大文字拡張子 .PNG のファイルがサムネイルフォルダにコピーされることを確認するテスト"""
-    # Given: .PNG拡張子（大文字）のダミー画像ファイルをmain_imageに配置
-    with open(dummy_out_dir_main.joinpath("dummy_main_img.PNG"), "w") as f:
-        f.write("dummy")
-    # When: copy_images_to_thumbnailを実行
-    copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
-    # Then: サムネイルフォルダに1つのファイルがコピーされていること
-    assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
-    assert dummy_out_dir_thumb.joinpath("dummy_main_img.PNG").exists()
+    assert dummy_out_dir_thumb.joinpath(filename).exists()
 
 
 def test_copy_images_to_thumbnail_mixed_case_extensions(dummy_out_dir_thumb, dummy_out_dir_main):
