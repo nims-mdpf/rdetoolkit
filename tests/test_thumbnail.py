@@ -155,25 +155,25 @@ def test_resize_image_exception_handling():
 
 @pytest.mark.parametrize("filename", ["dummy_main_img.JPG", "dummy_main_img.JPEG", "dummy_main_img.PNG"])
 def test_copy_images_to_thumbnail_uppercase_extensions(dummy_out_dir_thumb, dummy_out_dir_main, filename):
-    """大文字拡張子のファイルがサムネイルフォルダにコピーされることを確認するテスト"""
-    # Given: 大文字拡張子のダミー画像ファイルをmain_imageに配置
+    """Test that files with uppercase extensions are copied to the thumbnail folder."""
+    # Given: a dummy image file with an uppercase extension in main_image
     with open(dummy_out_dir_main.joinpath(filename), "w") as f:
         f.write("dummy")
-    # When: copy_images_to_thumbnailを実行
+    # When: copy_images_to_thumbnail is called
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
-    # Then: サムネイルフォルダに1つのファイルがコピーされていること
+    # Then: exactly one file should be copied to the thumbnail folder
     assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
     assert dummy_out_dir_thumb.joinpath(filename).exists()
 
 
 def test_copy_images_to_thumbnail_mixed_case_extensions(dummy_out_dir_thumb, dummy_out_dir_main):
-    """小文字・大文字拡張子が混在する場合に代表画像が1つコピーされることを確認するテスト"""
-    # Given: 小文字・大文字混在のダミー画像ファイルをmain_imageに配置
+    """Test that only one representative image is copied when mixed-case extensions exist."""
+    # Given: dummy image files with both lowercase and uppercase extensions in main_image
     with open(dummy_out_dir_main.joinpath("dummy_main_img_lower.jpg"), "w") as f:
         f.write("dummy")
     with open(dummy_out_dir_main.joinpath("dummy_main_img_upper.JPG"), "w") as f:
         f.write("dummy")
-    # When: copy_images_to_thumbnailを実行
+    # When: copy_images_to_thumbnail is called
     copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
-    # Then: サムネイルフォルダに1つのファイルのみがコピーされていること（代表画像は1つ）
+    # Then: only one representative image should be copied to the thumbnail folder
     assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
