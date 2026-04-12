@@ -151,3 +151,29 @@ def test_resize_image_exception_handling():
 
         with pytest.raises(StructuredError, match="Failed to resize image: Mocked exception"):
             resize_image(image_path, width, height, output_path)
+
+
+@pytest.mark.parametrize("filename", ["dummy_main_img.JPG", "dummy_main_img.JPEG", "dummy_main_img.PNG"])
+def test_copy_images_to_thumbnail_uppercase_extensions(dummy_out_dir_thumb, dummy_out_dir_main, filename):
+    """Test that files with uppercase extensions are copied to the thumbnail folder."""
+    # Given: a dummy image file with an uppercase extension in main_image
+    with open(dummy_out_dir_main.joinpath(filename), "w") as f:
+        f.write("dummy")
+    # When: copy_images_to_thumbnail is called
+    copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
+    # Then: exactly one file should be copied to the thumbnail folder
+    assert len(list(dummy_out_dir_thumb.glob("*"))) == 1
+    assert dummy_out_dir_thumb.joinpath(filename).exists()
+
+
+def test_copy_images_to_thumbnail_mixed_case_extensions(dummy_out_dir_thumb, dummy_out_dir_main):
+    """Test that only one representative image is copied when mixed-case extensions exist."""
+    # Given: dummy image files with both lowercase and uppercase extensions in main_image
+    with open(dummy_out_dir_main.joinpath("dummy_main_img_lower.jpg"), "w") as f:
+        f.write("dummy")
+    with open(dummy_out_dir_main.joinpath("dummy_main_img_upper.JPG"), "w") as f:
+        f.write("dummy")
+    # When: copy_images_to_thumbnail is called
+    copy_images_to_thumbnail(dummy_out_dir_thumb, dummy_out_dir_main)
+    # Then: only one representative image should be copied to the thumbnail folder
+    assert len(list(dummy_out_dir_thumb.glob("*"))) == 1

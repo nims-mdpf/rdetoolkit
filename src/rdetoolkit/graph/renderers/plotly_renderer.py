@@ -122,7 +122,7 @@ class PlotlyRenderer:
             msg = f"x_cols ({len(x_cols)}) and y_cols ({len(y_cols)}) must match"
             raise ValueError(msg)
 
-        direction_cols = (
+        direction_cols: list[int | str | None] = (
             list(config.direction_cols)
             if config.direction_cols
             else [None] * len(y_cols)
