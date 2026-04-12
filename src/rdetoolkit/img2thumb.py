@@ -53,11 +53,9 @@ def copy_images_to_thumbnail(
         target_image_name (str, optional): Specify the name of the image file to be copied to the thumbnail folder.
         img_ext (str, optional): image file extension.
     """
+    default_img_exts = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tif", ".tiff"]
     img_exts = (
-        [
-            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tif", ".tiff",
-            ".JPG", ".JPEG", ".PNG", ".GIF", ".BMP", ".SVG", ".WEBP", ".TIF", ".TIFF",
-        ]
+        default_img_exts + [ext.upper() for ext in default_img_exts]
         if img_ext is None
         else [img_ext]
     )
