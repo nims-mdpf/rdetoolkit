@@ -659,7 +659,7 @@ class SmartTableInvoiceInitializer(Processor):
 
         Fields cleared:
 
-        - ``sample.sampleId`` → ``""`` (empty string indicates a new sample)
+        - ``sample.sampleId`` → ``None`` (None indicates new sample registration; empty string causes server-side error)
         - ``sample.description`` → ``None``
         - ``sample.composition`` → ``None``
         - ``sample.referenceUrl`` → ``None``
@@ -672,7 +672,7 @@ class SmartTableInvoiceInitializer(Processor):
         """
         sample_section = invoice_data.setdefault("sample", {})
 
-        sample_section["sampleId"] = ""
+        sample_section["sampleId"] = None
         for field in ("description", "composition", "referenceUrl"):
             sample_section[field] = None
 
