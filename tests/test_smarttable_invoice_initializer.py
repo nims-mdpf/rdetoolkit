@@ -1,31 +1,33 @@
 """Test SmartTableInvoiceInitializer behavior with equivalence partitioning and boundary values.
 
 Equivalence Partitioning:
-| API                                   | Input/State Partition                                         | Rationale                                                              | Expected Outcome                                                      | Test ID       |
-| ------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------- |
-| `SmartTableInvoiceInitializer.process` | Multiple SmartTable rows with fresh processors per row        | Pipelines re-instantiate processors for each row                       | sample.ownerId is set to basic.dataOwnerId                            | `TC-EP-001`   |
-| `SmartTableInvoiceInitializer.process` | Missing SmartTable row CSV in SmartTable mode                  | Invalid SmartTable input should be rejected                             | Raises `StructuredError`                                              | `TC-EP-002`   |
-| `SmartTableInvoiceInitializer.process` | basic.dataOwnerId is missing in original invoice               | Defensive handling when required field is absent                       | Logs warning, preserves original sample.ownerId                       | `TC-EP-003`   |
-| `SmartTableInvoiceInitializer.process` | SmartTable CSV contains sample/ownerId column                  | CSV value should take precedence when explicitly specified             | sample.ownerId uses CSV value, not basic.dataOwnerId                  | `TC-EP-004`   |
-| `SmartTableInvoiceInitializer.process` | sample/names specified, sample/sampleId column absent          | New sample registration; dummy sampleId must not be inherited          | sampleId→"", description/composition/referenceUrl→None, attr values→None | `TC-EP-005`   |
-| `SmartTableInvoiceInitializer.process` | sample/names specified, sample/sampleId = UUID                 | Explicit reference to existing sample; no clearing should occur        | sampleId preserved, other fields unchanged                            | `TC-EP-006`   |
-| `SmartTableInvoiceInitializer.process` | Neither sample/names nor sample/sampleId specified             | No sample intent; original invoice sample fields must be preserved     | All original sample fields unchanged                                  | `TC-EP-007`   |
-| `SmartTableInvoiceInitializer.process` | sample/names specified, sample/sampleId column present but ""  | Explicit empty sampleId treated same as absent; new sample             | sampleId→"", other fields cleared                                     | `TC-EP-008`   |
-| `SmartTableInvoiceInitializer.process` | sample/names only; Issue #389 ownerId correction still applies | Clearing must not break existing ownerId auto-assignment logic         | sample.ownerId = basic.dataOwnerId after clearing                     | `TC-EP-009`   |
-| `SmartTableInvoiceInitializer.process` | sample/names with fixed-header blank sample columns            | New sample clearing must survive the generic blank-cell clearing pass  | sampleId/description and attribute structures remain cleared, not removed | `TC-EP-010` |
-| `SmartTableInvoiceInitializer.process` | sample/names + UUID + blank sample field                       | Existing sample reference path must keep generic blank-cell clearing   | Explicit sampleId kept; blank sample field is removed                 | `TC-EP-011`   |
-| `SmartTableInvoiceInitializer.process` | Original invoice has `sample.generalAttributes = null`         | SmartTable must normalize null containers before term assignment       | `sample/generalAttributes.<termId>` is written without error          | `TC-EP-012`   |
-| `SmartTableInvoiceInitializer.process` | Original invoice has `sample.specificAttributes = null`        | SmartTable must normalize null containers before class/term assignment | `sample/specificAttributes.<classId>.<termId>` is written without error | `TC-EP-013` |
+
+| Input/State Partition                                   | Expected Outcome                                       | Test ID     |
+| ------------------------------------------------------- | ------------------------------------------------------ | ----------- |
+| Multiple SmartTable rows with fresh processors per row  | sample.ownerId is set to basic.dataOwnerId             | TC-EP-001   |
+| Missing SmartTable row CSV in SmartTable mode           | Raises StructuredError                                 | TC-EP-002   |
+| basic.dataOwnerId is missing in original invoice        | Logs warning, preserves original sample.ownerId        | TC-EP-003   |
+| SmartTable CSV contains sample/ownerId column           | sample.ownerId uses CSV value, not basic.dataOwnerId   | TC-EP-004   |
+| sample/names specified, sample/sampleId absent          | sampleId=None, other dummy fields cleared              | TC-EP-005   |
+| sample/names specified, sample/sampleId = UUID          | sampleId preserved, other fields unchanged             | TC-EP-006   |
+| Neither sample/names nor sample/sampleId specified      | All original sample fields unchanged                   | TC-EP-007   |
+| sample/names given, sample/sampleId column present=""  | sampleId=None, other fields cleared                    | TC-EP-008   |
+| sample/names only; Issue #389 ownerId correction        | sample.ownerId = basic.dataOwnerId after clearing      | TC-EP-009   |
+| sample/names with fixed-header blank sample columns     | Cleared structures remain, not removed                 | TC-EP-010   |
+| sample/names + UUID + blank sample field                | Explicit sampleId kept; blank field removed            | TC-EP-011   |
+| Original invoice has sample.generalAttributes = null   | generalAttributes.<termId> written without error       | TC-EP-012   |
+| Original invoice has sample.specificAttributes = null  | specificAttributes.<classId>.<termId> written ok       | TC-EP-013   |
 
 Boundary Value:
-| API                                   | Boundary                                       | Rationale                                               | Expected Outcome                            | Test ID       |
-| ------------------------------------- | ---------------------------------------------- | ------------------------------------------------------- | ------------------------------------------- | ------------- |
-| `SmartTableInvoiceInitializer.process` | First invocation with SmartTable row           | Automatic ownerId assignment from basic.dataOwnerId     | sample.ownerId is set to basic.dataOwnerId  | `TC-BV-001`   |
-| `SmartTableInvoiceInitializer.process` | `smarttable_file` is `None`                     | SmartTable mode should be enforced                      | Raises `ValueError`                         | `TC-BV-002`   |
-| `SmartTableInvoiceInitializer.process` | basic.dataOwnerId is empty string               | Defensive handling when field is empty                  | Logs warning, preserves original ownerId    | `TC-BV-003`   |
-| `SmartTableInvoiceInitializer.process` | sample/sampleId boundary: empty string ""       | Empty string is not a valid sampleId reference          | Treated as absent; new sample clearing runs | `TC-BV-004`   |
-| `SmartTableInvoiceInitializer.process` | sample/sampleId boundary: valid UUID string     | UUID present means explicit reference to existing sample| No clearing; sampleId preserved             | `TC-BV-005`   |
-| `SmartTableInvoiceInitializer.process` | sample/sampleId boundary: whitespace-only "   " | Whitespace-only must not be treated as valid sampleId   | Treated as absent; new sample clearing runs | `TC-BV-006`   |
+
+| Boundary                                     | Expected Outcome                            | Test ID   |
+| -------------------------------------------- | ------------------------------------------- | --------- |
+| First invocation with SmartTable row         | sample.ownerId set to basic.dataOwnerId     | TC-BV-001 |
+| smarttable_file is None                      | Raises ValueError                           | TC-BV-002 |
+| basic.dataOwnerId is empty string            | Logs warning, preserves original ownerId    | TC-BV-003 |
+| sample/sampleId = empty string ""            | Treated as absent; new sample clearing runs | TC-BV-004 |
+| sample/sampleId = valid UUID string          | No clearing; sampleId preserved             | TC-BV-005 |
+| sample/sampleId = whitespace-only "   "      | Treated as absent; new sample clearing runs | TC-BV-006 |
 """
 
 from __future__ import annotations
@@ -510,7 +512,7 @@ def test_smarttable_clears_dummy_sample_when_names_only__tc_ep_005(tmp_path: Pat
     output = json.loads((invoice_org.parent / "invoice.json").read_text())
 
     # Then: dummy sampleId is cleared
-    assert output["sample"]["sampleId"] == ""
+    assert output["sample"]["sampleId"] is None
     # Then: dummy text fields are cleared
     assert output["sample"]["description"] is None
     assert output["sample"]["composition"] is None
@@ -578,7 +580,7 @@ def test_smarttable_clears_dummy_sample_when_sampleid_empty__tc_ep_008(tmp_path:
     output = json.loads((invoice_org.parent / "invoice.json").read_text())
 
     # Then: new-sample clearing applies because sampleId was not a non-empty value
-    assert output["sample"].get("sampleId", "") == ""
+    assert output["sample"]["sampleId"] is None
     assert output["sample"]["description"] is None
     assert output["sample"]["names"] == ["Brand New"]
 
@@ -596,7 +598,7 @@ def test_smarttable_ownerid_corrected_after_new_sample_clearing__tc_ep_009(tmp_p
     output = json.loads((invoice_org.parent / "invoice.json").read_text())
 
     # Then: sampleId is cleared (new-sample clearing ran)
-    assert output["sample"]["sampleId"] == ""
+    assert output["sample"]["sampleId"] is None
     # Then: ownerId is set to basic.dataOwnerId (Issue #389 logic preserved)
     assert output["sample"]["ownerId"] == expected_owner_id
 
@@ -627,7 +629,7 @@ def test_smarttable_preserves_cleared_sample_fields_for_blank_fixed_headers__tc_
     output = json.loads((invoice_org.parent / "invoice.json").read_text())
 
     # Then: cleared scalar fields remain in their normalized empty form
-    assert output["sample"]["sampleId"] == ""
+    assert output["sample"]["sampleId"] is None
     assert output["sample"]["description"] is None
     # Then: cleared attribute entries are preserved instead of being deleted
     assert any(
@@ -733,7 +735,7 @@ def test_smarttable_empty_sampleid_boundary_triggers_clearing__tc_bv_004(tmp_pat
     output = json.loads((invoice_org.parent / "invoice.json").read_text())
 
     # Then: empty sampleId in CSV is treated as "no sampleId" → clearing applies
-    assert output["sample"].get("sampleId", "") == ""
+    assert output["sample"]["sampleId"] is None
     assert output["sample"]["description"] is None
 
 
@@ -777,6 +779,6 @@ def test_smarttable_whitespace_sampleid_triggers_clearing__tc_bv_006(tmp_path: P
     output = json.loads((invoice_org.parent / "invoice.json").read_text())
 
     # Then: whitespace-only sampleId is equivalent to absent → new-sample clearing applies
-    assert output["sample"].get("sampleId", "") == ""
+    assert output["sample"]["sampleId"] is None
     assert output["sample"]["description"] is None
     assert output["sample"]["names"] == ["Brand New BV-006"]
