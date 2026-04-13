@@ -53,9 +53,8 @@
 
 **Changes**:
 
-- Added uppercase extension variants (`.JPG`, `.JPEG`, `.PNG`, `.GIF`, `.BMP`, `.SVG`, `.WEBP`) to the image extension list in `copy_images_to_thumbnail` function (`src/rdetoolkit/img2thumb.py`)
-- Added `.tif`/`.tiff` and their uppercase variants (`.TIF`, `.TIFF`) which were previously missing from the extension list
-- Refactored to use single directory scan with case-insensitive extension matching for improved efficiency
+- Refactored `copy_images_to_thumbnail` (`src/rdetoolkit/img2thumb.py`) to use a single directory scan with case-insensitive extension matching
+- Added `.tif`/`.tiff` support, which was previously missing from the image extension list
 - Added 4 test cases in `tests/test_thumbnail.py` to verify uppercase extension handling
 - Fixed an unrelated mypy type error in `src/rdetoolkit/graph/renderers/plotly_renderer.py`
 
