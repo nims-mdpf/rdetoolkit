@@ -15,7 +15,7 @@ Fixed a bug where `sampleId` was set to an empty string `""` instead of `None` d
 
 #### Support Uppercase Image Extensions in Thumbnail Copy (#473)
 
-Fixed a bug where image files with uppercase extensions (`.JPG`, `.JPEG`, `.PNG`) were not copied to the thumbnail folder. On case-sensitive file systems (Linux/Docker), `glob` pattern matching only found lowercase extensions. Added uppercase variants and `.tif`/`.tiff` support to the extension list. Also used single directory scan with case-insensitive extension matching for improved efficiency.
+Fixed a bug where image files with uppercase extensions (`.JPG`, `.JPEG`, `.PNG`) were not copied to the thumbnail folder. On case-sensitive file systems (Linux/Docker), `glob` pattern matching only found lowercase extensions. Added `.tif`/`.tiff` support and switched to a single directory scan that normalizes file suffixes to lowercase for case-insensitive extension matching, improving both correctness and efficiency.
 
 #### SmartTable Missing File Reference Error Improvement (#462)
 
