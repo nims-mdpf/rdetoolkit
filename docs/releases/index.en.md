@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.6.3  | 2026-04-13   | Fix SmartTable new sample `sampleId` set to None instead of empty string / Support uppercase image extensions in thumbnail copy | [v1.6.3](#v163-2026-04-13) |
 | v1.6.2  | 2026-03-16   | Fix silent inheritance of dummy sampleId when SmartTable specifies `sample/names` / Improve error messages for missing SmartTable file references in zip | [v1.6.2](#v162-2026-03-16) |
 | v1.6.1  | 2026-03-10   | chardet public API migration (Python 3.14 compat) / SmartTable custom field type cast fix | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0  | 2026-02-18   | **BREAKING**: Python 3.9 support dropped (minimum 3.10+) / direct `pytz` dependency removed / `gen-invoice` command added / AI agent guide embedded / Agent Skills added | [v1.6.0](#v160-2026-02-18) |
@@ -22,6 +23,54 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.6.3 (2026-04-13)
+
+!!! info "References"
+    - Key issues: [#470](https://github.com/nims-mdpf/rdetoolkit/issues/470), [#473](https://github.com/nims-mdpf/rdetoolkit/issues/473)
+    - Pull requests: [#474](https://github.com/nims-mdpf/rdetoolkit/pull/474), [#475](https://github.com/nims-mdpf/rdetoolkit/pull/475)
+
+#### Highlights
+- Fixed SmartTable new sample registration setting `sampleId` to empty string instead of `None`, which caused a server-side "non-existent sample ID" error
+- Fixed uppercase image file extensions (`.JPG`, `.JPEG`, `.PNG`) not being copied to the thumbnail folder on case-sensitive file systems
+
+### Bug Fixes
+
+#### SmartTable New Sample Registration sampleId Fix (Issue #470)
+
+**Problem**: When registering a new sample via SmartTable, `_clear_sample_for_new_registration()` set `sampleId` to an empty string `""`. The server interpreted this as a reference to a non-existent sample, resulting in the error "存在しない試料IDが指定されました" (non-existent sample ID specified).
+
+**Changes**:
+
+- Changed `_clear_sample_for_new_registration()` to set `sampleId = None` instead of `sampleId = ""` in `src/rdetoolkit/processing/processors/invoice.py`
+- Updated docstring to clarify that `None` indicates new sample registration and empty string causes server-side error
+- Updated existing test assertions from `== ""` to `is None`
+- Added regression test `test_new_sample_sampleid_is_none_not_empty_string__issue_470`
+
+#### Support Uppercase Image Extensions in Thumbnail Copy (Issue #473)
+
+**Problem**: Image files with uppercase extensions (`.JPG`, `.JPEG`, `.PNG`) were not copied to the `data/thumbnail` folder. Python's `glob.glob()` depends on the OS file system's case-sensitivity. On Linux (ext4) and Docker containers (case-sensitive), uppercase extensions did not match the lowercase-only extension list. macOS (APFS, case-insensitive by default) did not exhibit this issue, making it harder to detect during development.
+
+**Changes**:
+
+- Added uppercase extension variants (`.JPG`, `.JPEG`, `.PNG`, `.GIF`, `.BMP`, `.SVG`, `.WEBP`) to the image extension list in `copy_images_to_thumbnail` function (`src/rdetoolkit/img2thumb.py`)
+- Added `.tif`/`.tiff` and their uppercase variants (`.TIF`, `.TIFF`) which were previously missing from the extension list
+- Refactored to use single directory scan with case-insensitive extension matching for improved efficiency
+- Added 4 test cases in `tests/test_thumbnail.py` to verify uppercase extension handling
+- Fixed an unrelated mypy type error in `src/rdetoolkit/graph/renderers/plotly_renderer.py`
+
+### Testing
+
+- `tests/processing/processors/test_invoice_smarttable.py`: Updated assertions and added regression test for Issue #470
+- `tests/test_smarttable_invoice_initializer.py`: Updated assertions from `== ""` to `is None`
+- `tests/test_thumbnail.py`: Added 4 new test cases for uppercase extension handling
+
+### Migration / Compatibility
+
+- If your workflow relies on `sampleId` being an empty string `""` after `_clear_sample_for_new_registration()`, it is now `None`. This is the correct behavior for new sample registration on the RDE server
+- Thumbnail copy now supports uppercase image extensions (`.JPG`, `.JPEG`, `.PNG`, etc.) and `.tif`/`.tiff` formats, which were previously ignored on case-sensitive file systems. No user action required
+
+---
 
 ## v1.6.2 (2026-03-16)
 
