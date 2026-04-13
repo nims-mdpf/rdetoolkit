@@ -53,9 +53,15 @@ def copy_images_to_thumbnail(
         img_ext (str, optional): image file extension.
     """
     default_img_exts = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tif", ".tiff"}
-    normalized_img_exts = default_img_exts if img_ext is None else {img_ext.lower()}
+    normalized_img_exts = (
+        default_img_exts
+        if img_ext is None
+        else {img_ext.lower() if img_ext.startswith(".") else f".{img_ext.lower()}"}
+    )
 
     main_img_dir = Path(out_dir_main_img)
+    if not main_img_dir.is_dir():
+        return
     img_path_main = [
         str(path)
         for path in sorted(main_img_dir.iterdir())
