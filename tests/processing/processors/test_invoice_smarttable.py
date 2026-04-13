@@ -493,7 +493,7 @@ class TestSmartTableInvoiceInitializerIntegration:
         with open(context.invoice_dst_filepath) as f:
             output = json.load(f)
 
-        assert output["sample"]["sampleId"] == ""
+        assert output["sample"]["sampleId"] is None
         assert output["sample"]["description"] is None
         assert output["sample"]["composition"] is None
         assert output["sample"]["referenceUrl"] is None
@@ -574,8 +574,46 @@ class TestSmartTableInvoiceInitializerIntegration:
             output = json.load(f)
 
         # Then: sampleId is cleared (new-sample) AND ownerId = basic.dataOwnerId (#389)
-        assert output["sample"]["sampleId"] == ""
+        assert output["sample"]["sampleId"] is None
         assert output["sample"]["ownerId"] == expected_owner_id
+
+    def test_new_sample_sampleid_is_none_not_empty_string__issue_470(self, smarttable_processing_context):
+        """Issue #470: sample/names given without sample/sampleId must set sampleId to None, not empty string.
+
+        An empty-string sampleId causes a server-side error
+        ("存在しない試料IDが指定されました").
+        None correctly indicates new sample registration intent.
+        """
+        # Given: original invoice has a dummy sampleId and filled dummy fields
+        processor = SmartTableInvoiceInitializer()
+        context = smarttable_processing_context
+        SmartTableInvoiceInitializer._BASE_INVOICE_CACHE.clear()
+        self._setup_invoice_with_dummy_sample(context)
+
+        # CSV has sample/names but no sample/sampleId column (new sample registration intent)
+        csv_data = pd.DataFrame({
+            "sample/names": ["Brand New Sample"],
+            "basic/dataName": ["Issue470 Data"],
+        })
+        csv_path = context.smarttable_rowfile
+        assert csv_path is not None
+        csv_data.to_csv(csv_path, index=False)
+
+        # When: processing (new sample registration: names present, sampleId absent)
+        processor.process(context)
+
+        # Then: sampleId must be None (not empty string "")
+        with open(context.invoice_dst_filepath) as f:
+            output = json.load(f)
+
+        assert output["sample"]["sampleId"] is None, (
+            "sampleId should be None for new sample registration, not empty string. "
+            "Empty string causes server-side error: '存在しない試料IDが指定されました'"
+        )
+        assert output["sample"]["sampleId"] != "", (
+            "sampleId must not be empty string; this causes the RDE server error in Issue #470"
+        )
+        assert output["sample"]["names"] == ["Brand New Sample"]
 
 
 class TestSmartTableEarlyExitProcessorIntegration:

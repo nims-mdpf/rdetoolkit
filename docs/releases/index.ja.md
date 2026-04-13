@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.6.3     | 2026-04-13 | SmartTable新規試料登録時の`sampleId`を空文字ではなく`None`に修正 / サムネイルコピーで大文字画像拡張子をサポート | [v1.6.3](#v163-2026-04-13) |
 | v1.6.2     | 2026-03-16 | SmartTableで`sample/names`指定時にダミー試料の`sampleId`が黙って継承される問題を修正 / SmartTableのファイル参照がzip内に存在しない場合のエラーメッセージ改善 | [v1.6.2](#v162-2026-03-16) |
 | v1.6.1     | 2026-03-10 | chardet公開API移行（Python 3.14互換） / SmartTableカスタムフィールドの型キャスト修正 | [v1.6.1](#v161-2026-03-10) |
 | v1.6.0     | 2026-02-18 | **破壊的変更**: Python 3.9サポート終了（最小バージョン3.10+） / `pytz`の直接依存を削除 / `gen-invoice`コマンド追加 / AIエージェントガイド埋め込み / Agent Skills追加 | [v1.6.0](#v160-2026-02-18) |
@@ -22,6 +23,54 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.6.3 (2026-04-13)
+
+!!! info "参照"
+    - 主な課題: [#470](https://github.com/nims-mdpf/rdetoolkit/issues/470), [#473](https://github.com/nims-mdpf/rdetoolkit/issues/473)
+    - プルリクエスト: [#474](https://github.com/nims-mdpf/rdetoolkit/pull/474), [#475](https://github.com/nims-mdpf/rdetoolkit/pull/475)
+
+#### ハイライト
+- SmartTableで新規試料を登録する際に`sampleId`が空文字`""`に設定され、サーバー側で「存在しない試料IDが指定されました」エラーが発生する問題を修正
+- 大文字拡張子の画像ファイル（`.JPG`、`.JPEG`、`.PNG`）がcase-sensitiveなファイルシステム上でサムネイルフォルダにコピーされない問題を修正
+
+### バグ修正
+
+#### SmartTable新規試料登録時のsampleId修正 (Issue #470)
+
+**問題**: SmartTableで新規試料を登録する際、`_clear_sample_for_new_registration()`が`sampleId`を空文字`""`に設定していました。サーバーはこれを存在しない試料IDへの参照と解釈し、「存在しない試料IDが指定されました」というエラーが発生していました。
+
+**修正内容**:
+
+- `src/rdetoolkit/processing/processors/invoice.py`の`_clear_sample_for_new_registration()`で`sampleId`を`""`ではなく`None`に設定するよう変更
+- `None`が新規試料登録を意味し、空文字がサーバーエラーを引き起こすことをdocstringに明記
+- 既存テストのアサーションを`== ""`から`is None`に修正
+- 回帰テスト`test_new_sample_sampleid_is_none_not_empty_string__issue_470`を追加
+
+#### サムネイルコピーでの大文字画像拡張子サポート (Issue #473)
+
+**問題**: 大文字拡張子の画像ファイル（`.JPG`、`.JPEG`、`.PNG`）が`data/thumbnail`フォルダにコピーされていませんでした。Pythonの`glob.glob()`はOSのファイルシステムのcase-sensitivityに依存しており、Linux（ext4）やDockerコンテナ（case-sensitive）では小文字のみの拡張子リストに大文字拡張子がマッチしませんでした。macOS（APFS、デフォルトでcase-insensitive）では問題が発現しないため、開発時に検出が困難でした。
+
+**修正内容**:
+
+- `src/rdetoolkit/img2thumb.py`の`copy_images_to_thumbnail`関数で、`path.suffix.lower()`によるcase-insensitiveな拡張子判定に変更
+- これまで対応対象に含まれていなかった`.tif`/`.tiff`を追加し、これらもcase-insensitiveに判定されるよう修正
+- 単一ディレクトリスキャンによるcase-insensitive拡張子マッチングにリファクタリングし、効率を改善
+- `tests/test_thumbnail.py`に大文字拡張子処理を検証するテストケース4件を追加
+- `src/rdetoolkit/graph/renderers/plotly_renderer.py`の既存mypy型エラーを修正（Issue外）
+
+### テスト
+
+- `tests/processing/processors/test_invoice_smarttable.py`: アサーション更新およびIssue #470の回帰テストを追加
+- `tests/test_smarttable_invoice_initializer.py`: アサーションを`== ""`から`is None`に更新
+- `tests/test_thumbnail.py`: 大文字拡張子処理のテストケース4件を追加
+
+### 移行 / 互換性
+
+- `_clear_sample_for_new_registration()`後の`sampleId`が空文字`""`から`None`に変更されます。これはRDEサーバーでの新規試料登録に必要な正しい動作です
+- サムネイルコピーが大文字画像拡張子（`.JPG`、`.JPEG`、`.PNG`等）と`.tif`/`.tiff`形式をサポートするようになりました。case-sensitiveなファイルシステムで以前無視されていたファイルもコピーされます。ユーザーの対応は不要です
+
+---
 
 ## v1.6.2 (2026-03-16)
 

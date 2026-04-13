@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import os
 import shutil
 from glob import glob
@@ -53,10 +52,21 @@ def copy_images_to_thumbnail(
         target_image_name (str, optional): Specify the name of the image file to be copied to the thumbnail folder.
         img_ext (str, optional): image file extension.
     """
-    img_exts = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"] if img_ext is None else [img_ext]
+    default_img_exts = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tif", ".tiff"}
+    normalized_img_exts = (
+        default_img_exts
+        if img_ext is None
+        else {img_ext.lower() if img_ext.startswith(".") else f".{img_ext.lower()}"}
+    )
 
-    img_paths_main = [glob(os.path.join(out_dir_main_img, "*" + ext)) for ext in img_exts]
-    img_path_main = list(itertools.chain.from_iterable(img_paths_main))
+    main_img_dir = Path(out_dir_main_img)
+    if not main_img_dir.is_dir():
+        return
+    img_path_main = [
+        str(path)
+        for path in sorted(main_img_dir.iterdir())
+        if path.is_file() and path.suffix.lower() in normalized_img_exts
+    ]
 
     # When there are multiple images in the main image folder, copy one at the leading index as the representative image.
     __main_img_path: str = ""
