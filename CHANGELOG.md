@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+#### SmartTable New Sample Registration sampleId Fix (#470)
+
+Fixed a bug where `sampleId` was set to an empty string `""` instead of `None` during new sample registration in SmartTable mode. The empty string caused a server-side error "存在しない試料IDが指定されました" (non-existent sample ID specified). Now `_clear_sample_for_new_registration()` sets `sampleId` to `None`, which correctly triggers new sample creation.
+
+#### Support Uppercase Image Extensions in Thumbnail Copy (#473)
+
+Fixed a bug where image files with uppercase extensions (`.JPG`, `.JPEG`, `.PNG`) were not copied to the thumbnail folder. On case-sensitive file systems (Linux/Docker), `glob` pattern matching only found lowercase extensions. Added `.tif`/`.tiff` support and switched to a single directory scan that normalizes file suffixes to lowercase for case-insensitive extension matching, improving both correctness and efficiency.
+
 #### SmartTable Missing File Reference Error Improvement (#462)
 
 Improved error messages when SmartTable `inputdata` column references files that do not exist in the uploaded zip. Previously, a generic "ERROR: failed in data processing" was shown. Now raises `StructuredError` with the specific SmartTable row number, column name, and file basename. Full details of all missing references are logged for multi-file diagnosis.
