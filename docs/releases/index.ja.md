@@ -53,8 +53,8 @@
 
 **修正内容**:
 
-- `src/rdetoolkit/img2thumb.py`の`copy_images_to_thumbnail`関数で画像拡張子リストに大文字バリアント（`.JPG`、`.JPEG`、`.PNG`、`.GIF`、`.BMP`、`.SVG`、`.WEBP`）を追加
-- これまで拡張子リストに含まれていなかった`.tif`/`.tiff`とその大文字バリアント（`.TIF`、`.TIFF`）を追加
+- `src/rdetoolkit/img2thumb.py`の`copy_images_to_thumbnail`関数で、`path.suffix.lower()`によるcase-insensitiveな拡張子判定に変更
+- これまで対応対象に含まれていなかった`.tif`/`.tiff`を追加し、これらもcase-insensitiveに判定されるよう修正
 - 単一ディレクトリスキャンによるcase-insensitive拡張子マッチングにリファクタリングし、効率を改善
 - `tests/test_thumbnail.py`に大文字拡張子処理を検証するテストケース4件を追加
 - `src/rdetoolkit/graph/renderers/plotly_renderer.py`の既存mypy型エラーを修正（Issue外）
