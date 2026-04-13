@@ -125,4 +125,4 @@ jobs:
           HYPOTHESIS_PROFILE: ci
         run: tox -e py311-module
       - name: Upload coverage report
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
