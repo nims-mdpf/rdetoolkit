@@ -158,7 +158,6 @@ class NodeProxy:
         return NodeProxy(node_spec=node_spec, dag=dag, output_names=output_names)
 
 
-# Thread-local storage for trace mode context
 _trace_context: threading.local = threading.local()
 
 
