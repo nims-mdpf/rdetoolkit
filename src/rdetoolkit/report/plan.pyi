@@ -1,0 +1,6 @@
+from typing import Any
+
+from rdetoolkit.core.compiler import ExecutionPlan
+
+def plan_to_dict(plan: ExecutionPlan) -> dict[str, Any]: ...
+def plan_to_json(plan: ExecutionPlan, *, indent: int | None = ...) -> str: ...

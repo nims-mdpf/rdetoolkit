@@ -215,7 +215,7 @@ class TestExecutor:
         assert result.outputs["c"]["_return"] == "20"
 
     def test_failure_stops_downstream(self) -> None:
-        """When a node fails, downstream nodes depending on it also fail."""
+        """When a node fails, downstream nodes are skipped (not failed)."""
         from rdetoolkit.core.executor import Executor
 
         @node
@@ -245,7 +245,9 @@ class TestExecutor:
 
         assert not result.is_success()
         assert "a" in result.failures
-        assert "b" in result.failures
+        # Per Phase 2.1.6 追補: b is skipped, not failed
+        assert "b" not in result.failures
+        assert "b" in result.skipped
 
 
 # ── 1.5.8: _maybe_release memory management ────────────────────────────
