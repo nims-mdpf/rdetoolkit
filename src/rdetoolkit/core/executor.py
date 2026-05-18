@@ -7,7 +7,7 @@ Includes intermediate result memory management (_maybe_release) to free
 completed node outputs once all downstream consumers have executed.
 
 Optionally accepts an ``EventSink`` to emit lifecycle events (node_started,
-node_finished, node_failed) during execution.
+node_finished, node_failed, node_skipped) during execution.
 """
 
 from __future__ import annotations
@@ -143,12 +143,17 @@ class Executor:
         for node_id in self._plan.order:
             # Check if any upstream dependency has failed or been skipped
             if self._has_unreachable_upstream(node_id, unreachable_nodes):
-                upstream_failed = [n for n in self._dag.predecessors(node_id) if n in failed_nodes]
-                reason = (
-                    f"upstream '{upstream_failed[0]}' failed"
-                    if upstream_failed
-                    else "upstream dependency skipped"
-                )
+                predecessors = self._dag.predecessors(node_id)
+                upstream_failed = [n for n in predecessors if n in failed_nodes]
+                upstream_skipped = [n for n in predecessors if n in skipped_nodes]
+                if upstream_failed:
+                    reason = f"upstream '{upstream_failed[0]}' failed"
+                elif upstream_skipped:
+                    up_id = upstream_skipped[0]
+                    up_reason = skipped.get(up_id, "unknown")
+                    reason = f"upstream '{up_id}' skipped ({up_reason})"
+                else:
+                    reason = "upstream dependency unreachable"
                 skipped[node_id] = reason
                 skipped_nodes.add(node_id)
                 unreachable_nodes = failed_nodes | skipped_nodes
@@ -174,7 +179,6 @@ class Executor:
                 self._results[node_id] = port_outputs
                 outputs[node_id] = port_outputs
             except Exception as e:
-                duration = time.monotonic() - t0
                 failures[node_id] = e
                 failed_nodes.add(node_id)
                 unreachable_nodes = failed_nodes | skipped_nodes

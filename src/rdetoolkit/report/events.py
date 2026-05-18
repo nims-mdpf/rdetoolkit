@@ -155,12 +155,19 @@ class MemoryEventSink:
 class FileEventSink:
     """Event sink that writes events as JSONL (one JSON object per line).
 
+    The parent directory of ``path`` is created on construction (idempotent)
+    so callers do not need to ensure the directory exists ahead of time.
+
     Args:
         path: Path to the output JSONL file.
     """
 
     def __init__(self, path: Path) -> None:
         self._path = path
+        # Ensure parent directory exists to avoid FileNotFoundError on emit().
+        parent = self._path.parent
+        if str(parent) not in ("", "."):
+            parent.mkdir(parents=True, exist_ok=True)
 
     def emit(self, event: Event) -> None:
         """Append an event as a JSON line to the file.

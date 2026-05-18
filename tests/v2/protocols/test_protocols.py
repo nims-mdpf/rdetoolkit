@@ -25,8 +25,9 @@ class TestFileReaderProtocol:
 
     def test_filereader_is_runtime_checkable(self) -> None:
         """FileReader protocol supports isinstance() checks at runtime."""
-        # Verify protocol has runtime_checkable applied
-        assert getattr(FileReader, "_is_runtime_protocol", False)
+        # Behavioral check: a non-runtime_checkable Protocol raises TypeError
+        # in isinstance(). Passing without raise means runtime_checkable is applied.
+        isinstance(object(), FileReader)
 
     def test_filereader_isinstance_complete(self) -> None:
         """Class implementing all FileReader methods passes isinstance check."""
@@ -59,7 +60,7 @@ class TestMetadataExtractorProtocol:
 
     def test_metadata_extractor_is_runtime_checkable(self) -> None:
         """MetadataExtractor protocol supports isinstance() checks."""
-        assert getattr(MetadataExtractor, "_is_runtime_protocol", False)
+        isinstance(object(), MetadataExtractor)
 
     def test_metadata_extractor_isinstance_complete(self) -> None:
         """Class implementing MetadataExtractor methods passes isinstance."""
@@ -92,7 +93,7 @@ class TestDataValidatorProtocol:
 
     def test_data_validator_is_runtime_checkable(self) -> None:
         """DataValidator protocol supports isinstance() checks."""
-        assert getattr(DataValidator, "_is_runtime_protocol", False)
+        isinstance(object(), DataValidator)
 
     def test_data_validator_isinstance_complete(self) -> None:
         """Class implementing DataValidator methods passes isinstance."""
@@ -125,7 +126,7 @@ class TestNodeRunnerProtocol:
 
     def test_node_runner_is_runtime_checkable(self) -> None:
         """NodeRunner protocol supports isinstance() checks."""
-        assert getattr(NodeRunner, "_is_runtime_protocol", False)
+        isinstance(object(), NodeRunner)
 
     def test_node_runner_isinstance_complete(self) -> None:
         """Class implementing NodeRunner methods passes isinstance."""
@@ -158,7 +159,7 @@ class TestFormatHandlerProtocol:
 
     def test_format_handler_is_runtime_checkable(self) -> None:
         """FormatHandler protocol supports isinstance() checks."""
-        assert getattr(FormatHandler, "_is_runtime_protocol", False)
+        isinstance(object(), FormatHandler)
 
     def test_format_handler_isinstance_complete(self) -> None:
         """Class implementing all FormatHandler methods passes isinstance."""
