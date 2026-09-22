@@ -1,5 +1,72 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session I-REVIEW-B (PR #539 review response: contracts & tests)
+
+Test-and-contract response to review findings F4, F5 and F7. No
+`src/rdetoolkit` file changes in this session; the behavior described below
+already existed and is now protected by tests that can fail.
+
+### Added
+
+- **Artifact content is part of parity.** The contract observation gained an
+  `artifact_sha256` key covering every run-produced non-raw file —
+  `meta/`, `structured/`, `thumbnail/`, `main_image/`, `other_image/`,
+  `attachment/`, `temp/` and `job.failed` — and it is the fourth
+  `observe.PARITY_KEYS` entry. Writing `b"broken"` into a correctly named
+  `data/thumbnail/1.jpg` passed "full artifact parity" before; it is now
+  detected by **every comparison against a live v1 oracle** (the mode
+  compatibility, RDEFormat invoice-stage, SmartTable `save_table_file` and all
+  six multi-tile policy cells). The cells that compare against the **frozen**
+  corpus start enforcing it when the snapshots are re-frozen — see the
+  maintainers' note below.
+- **`TC-UM-*-CB-V2-{OK,USERERR,VALERR}` (15 cells).** The v1 dataset callback is
+  executed through `Runner.run(RunRequest(target=LegacyCallbackTarget(...)))` —
+  i.e. the unified Runner driving `LegacyCallbackInvoker` — and compared with
+  the same frozen v1 observation as the existing `CB` cells, which stay as pins
+  of the oracle. Plus a dynamic SmartTable row-material comparison against a
+  live v1 run, a unified-signature cell, and a cell proving that the v1 `Config`
+  object (not a mapping of the same switches) is what seeds the fail-fast
+  policy.
+- **Six multi-tile error-policy cells** replace the `pytest.fail()` seats.
+  Each runs a three-tile family whose tile 1 raises `StructuredError(999)`.
+  The `FAIL-FAST` cells and the MultiDataTile `CONTINUE-PARTIAL` cell are
+  compared against a live v1 oracle on tree, raw, artifact content, invoices
+  and `job.failed`; ExcelInvoice and SmartTable `CONTINUE-PARTIAL` are stated as
+  a v2-only contract because v1 honors `ignore_errors` in MultiDataTile alone.
+  Reserved xfail seats drop from 12 to 6 (SIGTERM 1 + callback observability 5).
+
+### Changed
+
+- Thumbnail and main-image **bytes** are now compared. The former exclusion
+  assumed an image-library re-encode; both v1 `ThumbnailGenerator` and v2
+  `ImageArtifactService` call `img2thumb.copy_images_to_thumbnail`, which is a
+  `shutil.copy`, so the digests are environment-independent.
+- Contract snapshot regeneration covers every mode again. Session H4 had
+  narrowed write mode to the SmartTable subset for a PII re-freeze; the
+  PII guarantee is enforced by the owner-value scan, not by that filter.
+- `tests/v2/modes/canary_support.py` replaces the per-mode canary harness
+  boilerplate (Session I-REVIEW-A debt 1).
+
+### Fixed
+
+- **Observation classification no longer depends on where a run lives.** Both
+  digest walkers tested the absolute path for `raw`/`logs`/`inputdata`
+  components, so a project checked out below a directory with one of those
+  names was observed incorrectly — and silently, because v1 and v2 agreed on
+  the same wrong answer. Classification now looks only below the data root.
+  This is the ancestor-sensitivity class reported as R1 for RDEFormat.
+  The 21 frozen `raw_sha256` observations are unchanged by the fix.
+
+### Note for maintainers
+
+`tests/v2/contract/fixtures/expected/**` is deliberately **not** regenerated in
+this commit, so `_generate.py --check` reports a mismatch for all 21 snapshots
+until the human re-freeze runs on a clean tree. `observe.PENDING_FREEZE_KEYS`
+makes the frozen comparisons skip exactly the new key in the meantime; every
+live-oracle comparison already uses it. Emptying `PENDING_FREEZE_KEYS` after
+the re-freeze is what turns the frozen cells content-aware too. See
+`merge_v1/contracts.md` §I-REVIEW-B for the two-commit ritual.
+
 ## Unreleased — Session I-REVIEW-A (PR #539 review response)
 
 Core response to the two independent PR #539 reviews. Every item below is

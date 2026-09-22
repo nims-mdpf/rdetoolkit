@@ -106,6 +106,7 @@ observation = {
     "output_tree": _generate._output_tree(data_root),
     "invoices": _generate._invoice_outputs(data_root),
     "raw_sha256": _generate._raw_hashes(data_root),
+    "artifact_sha256": _generate._artifact_hashes(data_root),
     "callback_count": len(calls),
     "exit_code": exit_code,
 }

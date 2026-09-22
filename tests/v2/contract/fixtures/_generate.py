@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -632,7 +633,23 @@ def _invalidate_invoice(root: Path) -> None:
     _write_json(invoice_path, invoice)
 
 
-def _oracle_config(mode: str) -> Any:
+def oracle_config(mode: str, *, ignore_errors: bool = False) -> Any:
+    """Return the v1 ``Config`` every frozen observation of ``mode`` was made with.
+
+    Contract tests that execute the unified Runner over the same static input
+    must hand it this exact object: passing a mapping instead would take the v2
+    configuration defaults (notably ``on_iteration_error: continue``) and the
+    comparison would then measure a configuration difference.
+
+    Args:
+        mode: One of the five unified execution modes.
+        ignore_errors: v1 ``multidata_tile.ignore_errors``. Only the
+            MultiDataTile pipeline honors it (``workflows._process_mode``); the
+            frozen corpus is generated with the v1 default ``False``.
+
+    Returns:
+        The v1 configuration for this mode.
+    """
     from rdetoolkit.models.config import (  # noqa: PLC0415
         Config,
         MultiDataTileSettings,
@@ -652,7 +669,7 @@ def _oracle_config(mode: str) -> Any:
             save_thumbnail_image=False,
             magic_variable=False,
         ),
-        multidata_tile=MultiDataTileSettings(ignore_errors=False),
+        multidata_tile=MultiDataTileSettings(ignore_errors=ignore_errors),
         smarttable=SmartTableSettings(save_table_file=False),
     )
 
@@ -707,27 +724,144 @@ def canary_effective_config_record(mode: str) -> dict[str, Any]:
     }
 
 
+#: Marker the oracle callbacks append one line to per invocation. It lives in
+#: the run root (the process CWD), never below ``data/``, so it can never
+#: appear in an observed output tree.
+CALLBACK_MARKER_NAME = ".callback_calls"
+
+#: Marker recording the ``RdeOutputResourcePath.smarttable_row_data`` each
+#: invocation received, one JSON document per line, aligned with the call
+#: marker. Session I-REVIEW-B ruling #2 compares the v1 and the v2 callback
+#: material dynamically instead of freezing it.
+ROW_DATA_MARKER_NAME = ".callback_row_data.jsonl"
+
+#: The message ``_oracle_callback_usererr`` raises. The v2 contract tests raise
+#: a byte-identical one, so ``job.failed`` parity is a real comparison.
+CALLBACK_FAILURE_MESSAGE = (
+    "Contract callback failed. Remediation: inspect the fixture callback "
+    "and correct its input."
+)
+
+#: Tile the multi-tile policy callbacks fail (Session I-REVIEW-B ruling #3).
+#: Index 1 is the only choice that distinguishes ``continue`` from
+#: ``fail_fast`` on a three-tile run: a later tile must remain to be skipped.
+FAILING_TILE_INDEX = 1
+
+
 def _record_callback_call() -> None:
-    marker = Path(".callback_calls")
+    marker = Path(CALLBACK_MARKER_NAME)
     with marker.open("a", encoding="utf-8") as stream:
         stream.write("called\n")
 
 
+def _callback_call_count() -> int:
+    """Return how many times an oracle callback has run in this process tree."""
+    marker = Path(CALLBACK_MARKER_NAME)
+    if not marker.exists():
+        return 0
+    return len(marker.read_text(encoding="utf-8").splitlines())
+
+
+def _jsonable_row_data(row_data: Any) -> dict[str, Any] | None:
+    """Return a JSON round-trippable form of one SmartTable row dictionary.
+
+    ``pandas`` reads the row CSV with ``dtype=str`` and represents an empty cell
+    as ``NaN``, which survives ``json.dumps`` but compares unequal to itself
+    afterwards. Recording it as ``null`` keeps an equality comparison of two
+    recorded rows meaningful; both sides of the comparison use this function.
+
+    Args:
+        row_data: The ``smarttable_row_data`` a callback received.
+
+    Returns:
+        A JSON-safe mapping, or ``None`` when the tile carried no row.
+    """
+    if row_data is None:
+        return None
+    normalized: dict[str, Any] = {}
+    for key, value in dict(row_data).items():
+        if isinstance(value, float) and math.isnan(value):
+            normalized[str(key)] = None
+        elif value is None or isinstance(value, (str, bool, int)):
+            normalized[str(key)] = value
+        else:
+            normalized[str(key)] = str(value)
+    return normalized
+
+
+def _record_row_data(resource_paths: object) -> None:
+    """Append this invocation's SmartTable row material to the row marker."""
+    row_data = _jsonable_row_data(getattr(resource_paths, "smarttable_row_data", None))
+    marker = Path(ROW_DATA_MARKER_NAME)
+    with marker.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(row_data, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def read_callback_row_data(root: Path) -> list[dict[str, Any] | None]:
+    """Return the row dictionaries the oracle callbacks received under ``root``.
+
+    Args:
+        root: Run root the callbacks executed in.
+
+    Returns:
+        One entry per invocation, in call order; ``None`` for a tile with no
+        SmartTable row.
+    """
+    marker = root / ROW_DATA_MARKER_NAME
+    if not marker.exists():
+        return []
+    return [
+        json.loads(line)
+        for line in marker.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+
+
 def _oracle_callback_ok(srcpaths: object, resource_paths: object) -> None:
-    del srcpaths, resource_paths
+    del srcpaths
     _record_callback_call()
+    _record_row_data(resource_paths)
 
 
 def _oracle_callback_usererr(srcpaths: object, resource_paths: object) -> None:
     from rdetoolkit.exceptions import StructuredError  # noqa: PLC0415
 
-    del srcpaths, resource_paths
+    del srcpaths
     _record_callback_call()
-    message = (
-        "Contract callback failed. Remediation: inspect the fixture callback "
-        "and correct its input."
-    )
-    raise StructuredError(message, ecode=999)
+    _record_row_data(resource_paths)
+    raise StructuredError(CALLBACK_FAILURE_MESSAGE, ecode=999)
+
+
+def oracle_callback_tile_failure(srcpaths: object, resource_paths: object) -> None:
+    """Fail only tile :data:`FAILING_TILE_INDEX`, leaving later tiles runnable.
+
+    The call marker is the tile counter: v1 invokes the dataset callback exactly
+    once per tile, in tile order, so the appended line count identifies the tile
+    without the callback needing a v1-specific path convention.
+
+    Args:
+        srcpaths: v1 input paths (unused).
+        resource_paths: v1 output paths for this tile.
+
+    Raises:
+        StructuredError: On the failing tile, with the same ``ecode``/message
+            the single-tile user-error oracle raises.
+    """
+    from rdetoolkit.exceptions import StructuredError  # noqa: PLC0415
+
+    del srcpaths
+    _record_callback_call()
+    _record_row_data(resource_paths)
+    if _callback_call_count() == FAILING_TILE_INDEX + 1:
+        raise StructuredError(CALLBACK_FAILURE_MESSAGE, ecode=999)
+
+
+#: Outcome-to-callback dispatch for the isolated v1 worker. Unlisted outcomes
+#: (``ok``, ``valerr``) run the success callback, as they always have.
+_ORACLE_CALLBACKS: dict[str, Callable[[object, object], None]] = {
+    "usererr": _oracle_callback_usererr,
+    "tilefail": oracle_callback_tile_failure,
+}
 
 
 def _normalize_output_path(path: str) -> str:
@@ -760,10 +894,78 @@ def _invoice_outputs(data_root: Path) -> dict[str, Any]:
     return outputs
 
 
+#: Path components that make a file a raw copy rather than another artifact.
+_RAW_COMPONENTS = frozenset({"raw", "nonshared_raw"})
+
+
+def _classifiable_parts(path: Path, data_root: Path) -> tuple[str, ...]:
+    """Return the path components a classification rule may look at.
+
+    Only the part of a path **below the data root** describes an RDE run.
+    Classifying on the absolute path made every rule depend on where the run
+    happens to live: a project checked out under a directory named ``raw`` had
+    all of its artifacts classified as raw copies, and one under ``logs`` had
+    them all silently dropped — with no test failing, because the observation
+    was then empty on both sides. This is the same ancestor-sensitivity class
+    the reviewer reported as R1 for RDEFormat classification.
+
+    Args:
+        path: File below ``data_root``.
+        data_root: The ``data`` directory of an observed run.
+
+    Returns:
+        The ``data_root``-relative components of ``path``.
+    """
+    return path.relative_to(data_root).parts
+
+
 def _raw_hashes(data_root: Path) -> dict[str, str]:
+    """Return sha256 digests of the raw copies below one data root."""
     hashes: dict[str, str] = {}
     for path in sorted(data_root.rglob("*")):
-        if not path.is_file() or not {"raw", "nonshared_raw"}.intersection(path.parts):
+        if not path.is_file() or not _RAW_COMPONENTS.intersection(_classifiable_parts(path, data_root)):
+            continue
+        relative = path.relative_to(data_root.parent).as_posix()
+        hashes[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashes
+
+
+#: Path components whose files are never a run-produced non-raw artifact:
+#: ``raw``/``nonshared_raw`` belong to :func:`_raw_hashes`, ``inputdata`` and
+#: ``tasksupport`` are input material the run only reads, and ``logs`` is the
+#: one directory whose contents are contractually asymmetric between v1 and v2
+#: (Design §6.3 addendum, Session I6-1 ruling #2).
+_NON_ARTIFACT_COMPONENTS = _RAW_COMPONENTS | frozenset({"inputdata", "tasksupport", "logs"})
+
+
+def _artifact_hashes(data_root: Path) -> dict[str, str]:
+    """Return sha256 digests of every non-raw artifact the run produced.
+
+    Session I-REVIEW-B ruling #1 (PR #539 review F4): comparing only paths for
+    ``meta``/``structured``/``thumbnail``/``main_image``/``other_image``/
+    ``attachment``/``temp`` let a corrupted artifact with the right filename
+    pass full parity. Their bytes are deterministic — thumbnails are produced by
+    ``img2thumb.copy_images_to_thumbnail``'s ``shutil.copy`` on both the v1 and
+    the v2 side, never by a re-encode — so a digest is a legitimate contract.
+
+    ``invoice/invoice.json`` is skipped because the ``invoices`` observation
+    already carries its parsed value, which is a far better failure message.
+
+    Classification looks only below ``data_root`` (:func:`_classifiable_parts`),
+    so a run root that happens to live under a directory named ``logs`` or
+    ``inputdata`` is observed like any other.
+
+    Args:
+        data_root: The ``data`` directory of an observed run.
+
+    Returns:
+        Digest per ``data/``-relative POSIX path, in sorted path order.
+    """
+    hashes: dict[str, str] = {}
+    for path in sorted(data_root.rglob("*")):
+        if not path.is_file() or _NON_ARTIFACT_COMPONENTS.intersection(_classifiable_parts(path, data_root)):
+            continue
+        if path.name == "invoice.json" and path.parent.name == "invoice":
             continue
         relative = path.relative_to(data_root.parent).as_posix()
         hashes[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -799,6 +1001,7 @@ def _collect_oracle_observation(root: Path, result: str | None, exit_code: int) 
         "output_tree": _output_tree(data_root),
         "invoices": _invoice_outputs(data_root),
         "raw_sha256": _raw_hashes(data_root),
+        "artifact_sha256": _artifact_hashes(data_root),
         "job_failed_error_code": job_failed_error_code,
         "job_failed_text": job_failed_text,
         "invoice_backup_exists": invoice_backup_path.exists(),
@@ -812,12 +1015,13 @@ def _run_oracle_worker(
     root: Path,
     *,
     canary: bool = False,
+    ignore_errors: bool = False,
 ) -> int:
     from rdetoolkit.workflows import run as v1_run  # noqa: PLC0415
 
     if outcome == "valerr":
         _invalidate_invoice(root)
-    callback = _oracle_callback_usererr if outcome == "usererr" else _oracle_callback_ok
+    callback = _ORACLE_CALLBACKS.get(outcome, _oracle_callback_ok)
     previous = Path.cwd()
     result: str | None = None
     exit_code = 0
@@ -830,7 +1034,7 @@ def _run_oracle_worker(
                     root / "data/tasksupport/rdeconfig.yaml",
                 )[0]
                 if canary
-                else _oracle_config(mode)
+                else oracle_config(mode, ignore_errors=ignore_errors)
             )
             result = v1_run(
                 custom_dataset_function=callback,
@@ -851,8 +1055,25 @@ def _execute_v1_observation(
     root: Path,
     *,
     canary: bool = False,
+    ignore_errors: bool = False,
 ) -> dict[str, Any]:
-    """Run the isolated v1 worker against an already-materialized case."""
+    """Run the isolated v1 worker against an already-materialized case.
+
+    Args:
+        mode: One of the five unified execution modes.
+        outcome: ``ok`` / ``usererr`` / ``valerr`` / ``tilefail``.
+        root: Already-materialized run root the worker executes in.
+        canary: Read the effective configuration from the assembled canary
+            ``data/tasksupport/rdeconfig.yaml`` instead of the oracle config.
+        ignore_errors: Run with v1 ``multidata_tile.ignore_errors=True``, the
+            only v1 continue-on-error policy there is (``workflows._process_mode``).
+
+    Returns:
+        The normalized v1 observation.
+
+    Raises:
+        RuntimeError: If the worker process failed to produce an observation.
+    """
     command = [
         sys.executable,
         str(Path(__file__).resolve()),
@@ -863,6 +1084,8 @@ def _execute_v1_observation(
     ]
     if canary:
         command.append("--canary")
+    if ignore_errors:
+        command.append("--ignore-errors")
     completed = subprocess.run(  # noqa: S603
         command,
         cwd=REPOSITORY_ROOT,
@@ -963,15 +1186,15 @@ def _compare_or_write(path: Path, payload: dict[str, Any], *, check: bool) -> st
 
 
 def _process_v1_snapshots(*, check: bool, stamped_commit: str | None) -> list[str]:
-    """Check every G1 snapshot or rewrite the sanitized SmartTable subset."""
+    """Check or regenerate every G1 snapshot.
+
+    Session H4 narrowed write mode to the SmartTable subset because that PII
+    re-freeze was the only authorized rewrite at the time. Session I-REVIEW-B
+    adds the ``artifact_sha256`` observation key to every mode, so write mode
+    owns the whole inventory again (ruling #1 ritual step (b)).
+    """
     mismatches: list[str] = []
-    paths = expected_snapshot_paths()
-    if not check:
-        # The G1 SmartTable source once copied a real owner hash from the legacy
-        # sample invoice. Its three observations are the only authorized G1
-        # rewrite; all other synthetic snapshots remain byte-identical.
-        paths = [path for path in paths if path.parent.name == "smarttable"]
-    for path in paths:
+    for path in expected_snapshot_paths():
         mode, outcome, zero_rows = _snapshot_case_from_path(path)
         payload = {
             "source": _frozen_source(path, check=check, stamped_commit=stamped_commit),
@@ -1019,9 +1242,8 @@ def freeze_expected_outputs(*, check: bool) -> list[str]:
     staleness is surfaced by the non-failing ``source_revision_warnings``
     instead. Only a real regeneration (check=False) stamps a new revision.
 
-    In write mode, the sanitized G1 SmartTable subset and ``expected/canary``
-    are frozen. Other G1 modes remain byte-identical. Check mode regenerates
-    and compares both complete families.
+    Write mode freezes the complete G1 inventory and ``expected/canary``;
+    check mode regenerates and compares the same two families.
     """
     stamped_commit = None if check else _git_revision()
     return [
@@ -1044,6 +1266,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--oracle-worker", nargs=3, metavar=("MODE", "OUTCOME", "ROOT"), help=argparse.SUPPRESS)
     parser.add_argument("--canary", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--ignore-errors", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
         "--provenance-root",
         type=Path,
@@ -1061,7 +1284,13 @@ def main() -> int:  # noqa: PLR0911
     args = _parse_args()
     if args.oracle_worker is not None:
         mode, outcome, root = args.oracle_worker
-        return _run_oracle_worker(mode, outcome, Path(root), canary=args.canary)
+        return _run_oracle_worker(
+            mode,
+            outcome,
+            Path(root),
+            canary=args.canary,
+            ignore_errors=args.ignore_errors,
+        )
     if args.provenance_root is not None:
         provenance_errors = source_revision_errors(root=args.provenance_root)
         if provenance_errors:

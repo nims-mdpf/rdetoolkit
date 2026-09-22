@@ -18,6 +18,17 @@ Two translation rules cover all ten cells:
     4001 with the underlying defect, where v1 reported a mode-specific
     downstream symptom after the callback had already run. This divergence was
     ruled intentional in session_h2.md Conflict #2 and is pinned here.
+
+Session I-REVIEW-B (review F5) added the **CB-V2 column**: the same ten cells
+executed through ``Runner.run(RunRequest(target=LegacyCallbackTarget(...)))``,
+i.e. the unified Runner driving the new ``LegacyCallbackInvoker`` rather than
+v1's own loop. The translation rules are unchanged — a user ``StructuredError``
+still passes through verbatim and an invalid source invoice is still frontloaded
+to 4001 — but the *iteration* column differs from the FLOW column, because a
+v1 ``Config`` handed to ``config_source`` seeds ``on_iteration_error:
+fail_fast`` (``ConfigNormalizer._convert_v1``) where a v2 flow cell takes the v2
+default ``continue``. That is what makes the CB-V2 callback counts equal to the
+frozen v1 ones instead of equal to the tile count.
 """
 
 from __future__ import annotations
@@ -50,6 +61,8 @@ class IterationRule(Enum):
     EVERY_TILE = "every-tile"
     #: ``pre_validate`` rejects the run, so ``iterate`` is never entered.
     NONE = "none"
+    #: ``fail_fast`` aborts at the first failing tile, so exactly one tile runs.
+    FIRST_TILE = "first-tile"
 
 
 @dataclass(frozen=True)
@@ -64,6 +77,12 @@ class FlowErrorCell:
     v2_message: MessageRule
     v2_iterations: IterationRule
     rationale: str
+    #: CB-V2 column: the same cell executed through the unified Runner with a
+    #: ``LegacyCallbackTarget``. The code and message rules are shared with the
+    #: FLOW column; only the iteration and callback counts differ, because the
+    #: v1 ``Config`` the cell passes seeds the fail-fast policy.
+    cb_v2_iterations: IterationRule = IterationRule.FIRST_TILE
+    cb_v2_callback_count: int = 1
 
 
 _USER_PASSTHROUGH = (
@@ -82,11 +101,11 @@ FLOW_ERROR_TABLE: tuple[FlowErrorCell, ...] = (
     FlowErrorCell("multidatatile", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
     FlowErrorCell("rdeformat", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
     FlowErrorCell("smarttable", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
-    FlowErrorCell("invoice", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED),
-    FlowErrorCell("excelinvoice", "valerr", 1, 0, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED),
-    FlowErrorCell("multidatatile", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED),
-    FlowErrorCell("rdeformat", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED),
-    FlowErrorCell("smarttable", "valerr", 1, 0, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED),
+    FlowErrorCell("invoice", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
+    FlowErrorCell("excelinvoice", "valerr", 1, 0, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
+    FlowErrorCell("multidatatile", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
+    FlowErrorCell("rdeformat", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
+    FlowErrorCell("smarttable", "valerr", 1, 0, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
 )
 
 _BY_CASE = {(cell.mode, cell.outcome): cell for cell in FLOW_ERROR_TABLE}
@@ -119,6 +138,23 @@ def expected_iteration_count(cell: FlowErrorCell, tile_count: int) -> int:
         The contracted iteration count for this cell.
     """
     return tile_count if cell.v2_iterations is IterationRule.EVERY_TILE else 0
+
+
+def expected_cb_v2_iteration_count(cell: FlowErrorCell, tile_count: int) -> int:
+    """Return how many iterations the CB-V2 run report must contain.
+
+    Args:
+        cell: Translation row under test.
+        tile_count: Tiles this mode produces, taken from the frozen OK oracle.
+
+    Returns:
+        The contracted iteration count for this cell's CB-V2 column.
+    """
+    if cell.cb_v2_iterations is IterationRule.NONE:
+        return 0
+    if cell.cb_v2_iterations is IterationRule.FIRST_TILE:
+        return 1
+    return tile_count
 
 
 def expected_divided_indices(cell: FlowErrorCell, tile_count: int) -> tuple[str, ...]:

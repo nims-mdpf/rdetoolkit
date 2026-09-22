@@ -66,7 +66,7 @@ _STRUCTURED_ERROR_CODE = 1
 #: The single directory v1 creates before parsing and v2 does not (see module docstring).
 _UNPACK_DIRECTORY_GAP = frozenset({"data/temp/"})
 
-#: The five artifact switches ``_generate._oracle_config`` freezes fixtures with
+#: The five artifact switches ``_generate.oracle_config`` freezes fixtures with
 #: (contracts.md §I6-1 ruling #8).
 _V2_OVERRIDES: dict[str, Any] = {
     "system": {

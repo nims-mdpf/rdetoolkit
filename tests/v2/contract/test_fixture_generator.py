@@ -134,11 +134,18 @@ def test_all_fixture_owner_keys_use_synthetic_ids__tc_h4_pii_003() -> None:
     assert invalid == []
 
 
-def test_g1_write_freeze_is_limited_to_smarttable__tc_h4_pii_002(
+def test_g1_write_freeze_covers_every_snapshot__tc_h4_pii_002(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-H4-PII-002: only authorized G1 SmartTable snapshots are rewritten."""
+    """TC-H4-PII-002 (UPDATED, I-REVIEW-B ruling #1): write mode owns the whole inventory.
+
+    Session H4 narrowed write mode to the SmartTable subset because the PII
+    re-freeze was the only authorized rewrite then. ``artifact_sha256`` is a new
+    observation key for *every* mode, so a partial write mode would leave a
+    permanently unauditable corpus. The PII guarantee itself is unaffected: it
+    is enforced by the value scan in TC-H4-PII-003, not by this filter.
+    """
     # Given: one candidate snapshot for SmartTable and one for another G1 mode
     smarttable = tmp_path / "smarttable" / "ok.json"
     invoice = tmp_path / "invoice" / "ok.json"
@@ -159,9 +166,9 @@ def test_g1_write_freeze_is_limited_to_smarttable__tc_h4_pii_002(
         check=False,
         stamped_commit="clean-revision",
     )
-    # Then: the authorized SmartTable observation is the sole write target
+    # Then: every declared snapshot is a write target, in inventory order
     assert mismatches == []
-    assert written == [smarttable]
+    assert written == [invoice, smarttable]
 
 
 def test_normalize_snapshot_replaces_all_declared_volatile_values__tc_g1_001(

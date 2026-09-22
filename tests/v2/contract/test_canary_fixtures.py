@@ -28,6 +28,7 @@ from typing import Any
 import pytest
 
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.observe import pending_freeze_view
 
 _CASES = [
     pytest.param("invoice", id="TC-H4-CANARY-001"),
@@ -60,7 +61,9 @@ def test_real_canary_matches_frozen_v1_observation(mode: str) -> None:
     assert fixture["case"]["mode"] == mode
     assert fixture["case"]["outcome"] == "ok"
     assert fixture["case"]["effective_config"] == _generate.canary_effective_config_record(mode)
-    assert actual == fixture["observed"]
+    # ``artifact_sha256`` is observed but not yet frozen (Session I-REVIEW-B
+    # ruling #1 ritual step (a)); every already-frozen key stays mandatory.
+    assert pending_freeze_view(actual, fixture["observed"]) == fixture["observed"]
     assert actual["exit_code"] == 0
     assert actual["callback_count"] >= 1
     status_modes = {
