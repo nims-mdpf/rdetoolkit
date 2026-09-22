@@ -41,7 +41,7 @@ from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import resolve_tile_paths
-from rdetoolkit.runner.planner import _flat_layout_invoice_source
+from rdetoolkit.runner.planner import TilePreparation, _flat_layout_invoice_source
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 
 _CASES = [
@@ -117,7 +117,10 @@ def test_run_level_invoice_backup_matches_v1_mode_contract__tc_g0_backup(
         "rdetoolkit.runner.planner.iterate_tiles",
         lambda *args, **kwargs: iter([(info, paths, out)]),
     )
-    monkeypatch.setattr("rdetoolkit.runner.planner._tile_invoice", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "rdetoolkit.runner.planner._tile_invoice",
+        lambda *args, **kwargs: TilePreparation(),
+    )
     monkeypatch.setattr(
         "rdetoolkit.runner.invoker.run_tile",
         lambda *args, **kwargs: ExecutionResult(
@@ -187,7 +190,10 @@ def test_invoice_backup_is_root_relative_across_layout_cwd_mode_matrix__tc_gr_ba
         "rdetoolkit.runner.planner.iterate_tiles",
         lambda *args, **kwargs: iter([(info, paths, out)]),
     )
-    monkeypatch.setattr("rdetoolkit.runner.planner._tile_invoice", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "rdetoolkit.runner.planner._tile_invoice",
+        lambda *args, **kwargs: TilePreparation(),
+    )
     monkeypatch.setattr(
         "rdetoolkit.runner.invoker.run_tile",
         lambda *args, **kwargs: ExecutionResult(
@@ -291,6 +297,7 @@ def test_backup_is_written_even_without_tiles__tc_i6_1_ev_071(
         inputdata_path=data_root / "inputdata",
         unpacked_dir_path=data_root / "temp",
         invoice_service=InvoiceService(),
+        data_root=data_root,
     )
 
     # When: planning the run

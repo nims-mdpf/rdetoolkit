@@ -16,11 +16,11 @@ Equivalence partitions (EP):
 | ``IterationFactory.files`` | unordered siblings | returns sorted paths | TC-H3-EP-010 |
 | ``IterationFactory.files`` | missing directory | raises catalogued validation error | TC-H3-EP-011 |
 | ``InvoiceService.backup`` | backup mode | copies to explicit temp path | TC-H3-EP-012 |
-| ``InvoiceService.apply_config`` | three invoice flags | consumes all three flags, structured copy taken from ``invoice_org`` | TC-H3-EP-013 |
-| ``InvoiceService.apply_config`` | step subset | omitted steps do not run | TC-H3-EV-017 |
-| ``InvoiceService.apply_config`` | feature updater fails | suppresses the exception | TC-H3-EP-014 |
-| ``InvoiceService.apply_config`` | structured source absent | raises ``FileNotFoundError`` like v1 | TC-H3-EV-015 |
-| ``InvoiceService.apply_config`` | source already is the destination | copy is skipped, file untouched | TC-H3-EV-016 |
+| ``InvoiceService.apply_step`` | three invoice flags | consumes all three flags, structured copy taken from ``invoice_org`` | TC-H3-EP-013 |
+| ``InvoiceService.apply_step`` | omitted stage | a stage left out of the sequence does not run | TC-H3-EV-017 |
+| ``InvoiceService.apply_step`` | feature updater fails | suppresses the exception | TC-H3-EP-014 |
+| ``InvoiceService.apply_step`` | structured source absent | raises ``FileNotFoundError`` like v1 | TC-H3-EV-015 |
+| ``InvoiceService.apply_step`` | source already is the destination | copy is skipped, file untouched | TC-H3-EV-016 |
 
 Boundary values (BV):
 
@@ -237,20 +237,20 @@ def test_invoice_service_backup_is_path_based__tc_h3_ep_012_bv_003(tmp_path: Pat
     service = InvoiceService()
 
     # When: backing up a v1 backup mode
-    backup = service.backup(ModeKind.rdeformat, root=tmp_path, inputdata_path=data_root / "inputdata")
+    backup = service.backup(ModeKind.rdeformat, data_root=data_root, inputdata_path=data_root / "inputdata")
 
     # Then: the source is copied to the explicit data-root temp directory
     assert backup == data_root / "temp" / "invoice_org.json"
     assert json.loads(backup.read_text(encoding="utf-8")) == {"datasetId": "source"}
     assert service.backup(
         ModeKind.rdeformat,
-        root=tmp_path / "absent",
+        data_root=tmp_path / "absent",
         inputdata_path=tmp_path / "absent" / "inputdata",
     ) == tmp_path / "absent" / "invoice" / "invoice.json"
 
 
 def _dataset_paths(tmp_path: Path, *, invoice_org: Path, rawfiles: tuple[Path, ...] = ()) -> RdeDatasetPaths:
-    """Build the v1 tile bundle ``apply_config`` consumes."""
+    """Build the v1 tile bundle ``apply_step`` consumes."""
     from rdetoolkit.domain.invoice_service import build_tile_dataset_paths
     from rdetoolkit.runner.paths import resolve_tile_paths
     from rdetoolkit.types import InputPaths, OutputContext
@@ -301,18 +301,22 @@ def test_invoice_service_consumes_three_invoice_flags__tc_h3_ep_013_014(
     )
     dataset_paths = _dataset_paths(tmp_path, invoice_org=invoice_org, rawfiles=(rawfile,))
 
-    # When: applying enabled magic, structured-copy, and feature-description policy
-    InvoiceService().apply_config(
-        config=RdeConfig(
-            system={
-                "magic_variable": True,
-                "save_invoice_to_structured": True,
-                "feature_description": True,
-            },
-        ),
-        dataset_paths=dataset_paths,
-        feature_updater=lambda: (_ for _ in ()).throw(OSError("optional metadata")),
+    # When: running the v1 invoice pipeline's stages in order (ruling #5)
+    service = InvoiceService()
+    config = RdeConfig(
+        system={
+            "magic_variable": True,
+            "save_invoice_to_structured": True,
+            "feature_description": True,
+        },
     )
+    for step in ("structured", "magic", "description"):
+        service.apply_step(
+            step,
+            config=config,
+            dataset_paths=dataset_paths,
+            feature_updater=lambda: (_ for _ in ()).throw(OSError("optional metadata")),
+        )
 
     # Then: mandatory actions run, magic receives the bundle, feature failure is suppressed
     assert magic_calls == [(invoice, rawfile, dataset_paths)]
@@ -329,7 +333,8 @@ def test_invoice_service_rejects_a_missing_structured_source__tc_h3_ev_015(tmp_p
 
     # When/Then: the v1 FileNotFoundError contract is preserved
     with pytest.raises(FileNotFoundError):
-        InvoiceService().apply_config(
+        InvoiceService().apply_step(
+            "structured",
             config=RdeConfig(system={"save_invoice_to_structured": True}),
             dataset_paths=_dataset_paths(tmp_path, invoice_org=tmp_path / "temp" / "invoice_org.json"),
         )
@@ -344,7 +349,8 @@ def test_invoice_service_skips_a_self_targeted_structured_copy__tc_h3_ev_016(tmp
     invoice_org.write_text('{"datasetId": "already-there"}', encoding="utf-8")
 
     # When: applying the structured gate
-    InvoiceService().apply_config(
+    InvoiceService().apply_step(
+        "structured",
         config=RdeConfig(system={"save_invoice_to_structured": True}),
         dataset_paths=_dataset_paths(tmp_path, invoice_org=invoice_org),
     )
@@ -357,7 +363,13 @@ def test_invoice_service_runs_only_the_selected_steps__tc_h3_ev_017(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-H3-EV-017: a mode-selected subset omits the steps its v1 pipeline lacks."""
+    """TC-H3-EV-017 (UPDATED, ruling #5): an omitted stage is simply not run.
+
+    The step selection used to be a ``frozenset`` argument to ``apply_config``.
+    A set cannot express order, and review R3 proved the order is observable,
+    so the caller now drives an ordered sequence of ``apply_step`` calls: a mode
+    omits a stage by leaving it out of its sequence.
+    """
     # Given: every gate enabled but only the description step selected
     invoice_org = tmp_path / "temp" / "invoice_org.json"
     rawfile = tmp_path / "inputdata" / "sample.dat"
@@ -372,19 +384,23 @@ def test_invoice_service_runs_only_the_selected_steps__tc_h3_ev_017(
     )
     description_calls: list[int] = []
 
-    # When: applying with the RDEFormat-shaped subset
-    InvoiceService().apply_config(
-        config=RdeConfig(
-            system={
-                "magic_variable": True,
-                "save_invoice_to_structured": True,
-                "feature_description": True,
-            },
-        ),
-        dataset_paths=_dataset_paths(tmp_path, invoice_org=invoice_org, rawfiles=(rawfile,)),
-        steps=frozenset({"description"}),
-        feature_updater=lambda: description_calls.append(1),
+    # When: running only the RDEFormat-shaped sequence
+    service = InvoiceService()
+    config = RdeConfig(
+        system={
+            "magic_variable": True,
+            "save_invoice_to_structured": True,
+            "feature_description": True,
+        },
     )
+    dataset_paths = _dataset_paths(tmp_path, invoice_org=invoice_org, rawfiles=(rawfile,))
+    for step in ("description",):
+        service.apply_step(
+            step,
+            config=config,
+            dataset_paths=dataset_paths,
+            feature_updater=lambda: description_calls.append(1),
+        )
 
     # Then: only the selected step ran
     assert magic_calls == []

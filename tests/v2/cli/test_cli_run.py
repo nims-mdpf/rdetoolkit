@@ -34,12 +34,13 @@ Binding API-shape pins asserted by this file (precision standard):
 Fixture data-directory convention: mirrors
 ``tests/v2/e2e/test_run_flow.py``'s ``_build_data_fixture`` shape but uses
 ``data/temp`` (not ``data/unpacked``) as the unpacked-dir, because
-``workflows.run(flow=...)`` hardcodes ``unpacked_dir_path=data_root /
-"temp"`` (workflows.py:566-570) -- this is the "explicit data/temp
-convention" Known Trap 3 requires ``--validate-only``'s own manually
-constructed ``Runner(...)`` to match. Self-contained (no
-``tests.v2.e2e`` import), per that file's own "no cross-file test helper
-imports" rule.
+``workflows.run(flow=...)`` uses ``unpacked_dir_path=data_root / "temp"`` --
+this is the "explicit data/temp convention" Known Trap 3 requires
+``--validate-only``'s own manually constructed ``Runner(...)`` to match. Since
+Session I-REVIEW-A both derive ``data_root`` from
+``runner.paths.resolve_data_root`` instead of hardcoding ``<root>/data``, which
+the alias-flat cells below pin. Self-contained (no ``tests.v2.e2e`` import),
+per that file's own "no cross-file test helper imports" rule.
 """
 
 from __future__ import annotations
@@ -47,6 +48,7 @@ from __future__ import annotations
 import json
 from collections.abc import Generator
 from pathlib import Path
+from typing import cast
 
 import pytest
 import yaml
@@ -83,6 +85,27 @@ def _build_data_fixture(root: Path, *, input_files: dict[str, str] | None = None
         encoding="utf-8",
     )
     (root / "data" / "temp").mkdir(parents=True)
+
+
+def _build_alias_flat_fixture(root: Path) -> None:
+    """Build the same project with the RDE markers directly below ``root``.
+
+    ``resolve_data_root`` contracts that such a root *is* the data root
+    (Session I-REVIEW-A ruling #1). ``--validate-only`` hardcoded
+    ``<cwd>/data``, so on this layout it validated a tree that does not exist.
+    """
+    inputdata = root / "inputdata"
+    inputdata.mkdir(parents=True)
+    (inputdata / "test_single.txt").write_text("dummy", encoding="utf-8")
+    (root / "invoice").mkdir(parents=True)
+    (root / "invoice" / "invoice.json").write_text(json.dumps(_SEED_INVOICE_JSON), encoding="utf-8")
+    (root / "tasksupport").mkdir(parents=True)
+    (root / "tasksupport" / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
+    (root / "tasksupport" / "metadata-def.json").write_text(
+        json.dumps({"constant": {}, "variable": []}),
+        encoding="utf-8",
+    )
+    (root / "temp").mkdir(parents=True)
 
 
 def _write_rdeconfig(root: Path, data: dict) -> None:
@@ -277,6 +300,101 @@ class TestRunValidateOnly:
 
         assert result.exit_code == 1
         assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
+
+    def test_alias_flat_root_validates_its_own_tree__tc_cli_run_ep_009b(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        """TC-CLI-RUN-EP-009b: --validate-only follows the resolved data root.
+
+        Session I-REVIEW-A F-1: the path hardcoded ``<cwd>/data``, so an
+        alias-flat project was validated against a non-existent tree. The
+        negative half of the pin is below: removing the invoice the resolved
+        root really owns must turn the exit code into 1.
+        """
+        from tests.v2.cli.fixtures import run_flows
+
+        # Given: an alias-flat project with a valid invoice and schema
+        before = len(run_flows.VALIDATE_ONLY_SENTINEL)
+        _build_alias_flat_fixture(isolated_root)
+
+        # When: validating without executing the flow
+        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+
+        # Then: the real tree validated, and the flow never ran
+        assert result.exit_code == 0, result.output
+        assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
+        assert not (isolated_root / "data").exists()
+
+    def test_alias_flat_root_reports_its_own_invalid_tree__tc_cli_run_ep_010b(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        """TC-CLI-RUN-EP-010b: the alias-flat pin is not satisfied by any tree."""
+        # Given: an alias-flat project whose own invoice is missing
+        _build_alias_flat_fixture(isolated_root)
+        (isolated_root / "invoice" / "invoice.json").unlink()
+
+        # When: validating without executing the flow
+        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+
+        # Then: validation fails on the resolved root's own artifacts
+        assert result.exit_code == 1
+        assert "Validation failed" in result.output
+
+    def test_alias_flat_root_drives_mode_resolution__tc_cli_run_ep_009c(
+        self,
+        isolated_root: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-CLI-RUN-EP-009c: the input paths follow the resolved data root.
+
+        This is a construction-level pin, deliberately: with the old
+        ``<cwd>/data`` hardcode the *validation* result was unchanged (the
+        Runner resolves its own data root for ``pre_validate``), but
+        ``resolve_mode`` scanned a non-existent ``<root>/data/inputdata`` and
+        silently answered ``invoice`` for every alias-flat project -- including
+        ExcelInvoice and SmartTable ones. ``--validate-only`` prints no mode, so
+        the only honest observable is which directories the Runner is given.
+        """
+        from rdetoolkit.cli import run_cmd
+
+        # Given: an alias-flat project
+        #
+        # (The fixture deliberately keeps a plain input file: a workbook here
+        # would trigger the W1001 mode-override event, which this path emits
+        # with an empty ``run_id`` and therefore cannot publish -- an unrelated
+        # latent defect of the step-by-step API, recorded in contracts.md.)
+        _build_alias_flat_fixture(isolated_root)
+        constructed: list[dict[str, Path]] = []
+        real_runner = run_cmd.Runner
+
+        class _RecordingRunner(real_runner):  # type: ignore[misc, valid-type]
+            def __init__(self, **kwargs: object) -> None:
+                constructed.append(
+                    {
+                        "root": cast(Path, kwargs["root"]),
+                        "inputdata_path": cast(Path, kwargs["inputdata_path"]),
+                        "unpacked_dir_path": cast(Path, kwargs["unpacked_dir_path"]),
+                    },
+                )
+                super().__init__(**kwargs)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(run_cmd, "Runner", _RecordingRunner)
+
+        # When: running the validate-only path
+        run_cmd.validate_only(None)
+
+        # Then: the Runner scans the directories the resolved data root owns
+        assert constructed == [
+            {
+                "root": isolated_root,
+                "inputdata_path": isolated_root / "inputdata",
+                "unpacked_dir_path": isolated_root / "temp",
+            },
+        ]
 
     def test_validate_only_without_flow_exits_3__tc_cli_run_ep_011(
         self,

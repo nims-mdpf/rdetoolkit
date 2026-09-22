@@ -22,7 +22,7 @@ EP table (component routing — one row per v1 destination):
 | TC-I6-A-EP-006 | logs | ``temp/0000/logs/run.log`` | ``<tile>/logs/run.log`` |
 | TC-I6-A-EP-007 | nonshared_raw | ``temp/0000/nonshared_raw/n.txt`` | ``<tile>/nonshared_raw/n.txt`` |
 | TC-I6-A-EP-008 | seam | ``RdeFormatModeHandler.raw_copy_strategy`` | an RDEFormat strategy, not ``None`` |
-| TC-I6-A-EP-009 | invoice stage | ``RdeFormatModeHandler.invoice_stage_steps`` | ``description`` only, of the three invoice steps |
+| TC-I6-A-EP-009 | invoice stage | ``RdeFormatModeHandler.artifact_stage_order`` | ``(thumbnail, description)`` -- ``description`` only, of the three invoice steps |
 
 BV / negative table:
 | TC | Class | Input | Expected |
@@ -97,14 +97,20 @@ def _copy(
     *,
     config: RdeConfig | None = None,
     smarttable: bool = False,
+    data_root: Path | None = None,
 ) -> None:
-    """Run the strategy with the executor's keyword contract."""
+    """Run the strategy with the executor's keyword contract.
+
+    ``data_root`` bounds the component classification (Session I-REVIEW-A
+    ruling #7); the tile directory *is* the data root in these fixtures.
+    """
     RdeFormatRawCopyStrategy().copy(
         sources,
         raw_dir=tile / "raw",
         nonshared_raw_dir=tile / "nonshared_raw",
         config=config if config is not None else RdeConfig(),
         smarttable=smarttable,
+        data_root=data_root if data_root is not None else tile,
     )
 
 
@@ -176,12 +182,14 @@ def test_invoice_stage_runs_description_only__tc_i6_a_ep_009() -> None:
     # Given: the production RDEFormat handler
     handler = RdeFormatModeHandler()
 
-    # When: the executor asks which invoice artifact steps this mode runs
-    steps = handler.invoice_stage_steps(None)  # type: ignore[arg-type]
+    # When: the executor asks for this mode's artifact stage sequence
+    order = handler.artifact_stage_order(None)  # type: ignore[arg-type]
 
     # Then: of the three invoice steps only the DescriptionUpdater survives
-    assert steps is not None
-    assert steps & INVOICE_STEPS == frozenset({INVOICE_STEP_DESCRIPTION})
+    assert order is not None
+    assert frozenset(order) & INVOICE_STEPS == frozenset({INVOICE_STEP_DESCRIPTION})
+    # And: the sequence is ordered, thumbnail first, as the v1 pipeline is
+    assert order == ("thumbnail", INVOICE_STEP_DESCRIPTION)
 
 
 def test_unmatched_component_is_not_published__tc_i6_a_ev_010(tmp_path: Path) -> None:
@@ -326,10 +334,10 @@ def test_invoice_stage_excludes_structured_and_magic__tc_i6_a_ev_019() -> None:
     # Given: the production RDEFormat handler
     handler = RdeFormatModeHandler()
 
-    # When: the executor asks which invoice artifact steps this mode runs
-    steps = handler.invoice_stage_steps(None)  # type: ignore[arg-type]
+    # When: the executor asks for this mode's artifact stage sequence
+    order = handler.artifact_stage_order(None)  # type: ignore[arg-type]
 
     # Then: neither StructuredInvoiceSaver nor VariableApplier is selected
-    assert steps is not None
-    assert INVOICE_STEP_STRUCTURED not in steps
-    assert INVOICE_STEP_MAGIC not in steps
+    assert order is not None
+    assert INVOICE_STEP_STRUCTURED not in order
+    assert INVOICE_STEP_MAGIC not in order

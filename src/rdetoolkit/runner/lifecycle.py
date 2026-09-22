@@ -22,7 +22,7 @@ from rdetoolkit.api.request import (
 from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
-from rdetoolkit.domain.validation import invoice_validate, metadata_validate
+from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
 from rdetoolkit.errors import (
     ERROR_CATALOG,
     RdeConfigError,
@@ -31,7 +31,6 @@ from rdetoolkit.errors import (
     RdeInternalError,
     RdeValidationError,
 )
-from rdetoolkit.exceptions import InvoiceSchemaValidationError, MetadataValidationError
 from rdetoolkit.models.config import Config
 from rdetoolkit.report.events import Event, EventSink, MemoryEventSink
 from rdetoolkit.report.run_report import RunReport
@@ -41,7 +40,7 @@ from rdetoolkit.runner.executor import TileExecutor
 from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
-from rdetoolkit.runner.paths import resolve_tile_paths
+from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
 from rdetoolkit.runner.planner import RunPlanner
 from rdetoolkit.types import RdeConfig
 
@@ -91,7 +90,11 @@ class Runner:
         self._run_id_factory = run_id_factory or (lambda: uuid.uuid4().hex)
         self._invoice_service = invoice_service or InvoiceService()
         self.run_id = ""
-        self._validation_data_root: Path | None = None
+        # One run, one data root (Session I-REVIEW-A ruling #1). It is resolved
+        # by ``run`` before anything is created and handed to every consumer;
+        # a Runner driven step-by-step resolves it lazily on first use so the
+        # answer is still taken exactly once.
+        self._data_root: Path | None = None
         self._planner = planner or RunPlanner(
             inputdata_path=lambda: self.inputdata_path,
             unpacked_dir_path=lambda: self.unpacked_dir_path,
@@ -108,7 +111,19 @@ class Runner:
             image_artifact_service=ImageArtifactService(),
             invoice_service=self._invoice_service,
         )
-        self._finalizer = finalizer or RunFinalizer(root=lambda: self.root)
+        self._finalizer = finalizer or RunFinalizer(data_root=lambda: self.data_root)
+
+    @property
+    def data_root(self) -> Path:
+        """Return the directory that owns this run's RDE inputs and outputs.
+
+        The four-tier ``resolve_data_root`` rule is evaluated once per run and
+        cached, because an alias-flat root gains a ``data`` child as soon as
+        tile 0 is created: re-resolving later would silently move the run.
+        """
+        if self._data_root is None:
+            self._data_root = resolve_data_root(self.root)
+        return self._data_root
 
     def run(self, request: RunRequest | Callable[..., Any], **overrides: Any) -> RunReport:
         """Execute the six Runner lifecycle steps in Design §6.1 order.
@@ -140,7 +155,10 @@ class Runner:
             raise TypeError(msg)
         target = run_request.target
         self._apply_request_root(run_request.root)
-        self._invoice_service.begin_run(self.root)
+        # Resolved before any directory is created, so the alias-flat answer
+        # cannot change once tile 0 exists (ruling #1).
+        self._data_root = resolve_data_root(self.root)
+        self._invoice_service.begin_run()
 
         previous_sigterm: Any = None
         sigterm_installed = False
@@ -191,7 +209,7 @@ class Runner:
             # Runs are bounded, so this run's invoice material is released here
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
-            self._invoice_service.end_run(self.root)
+            self._invoice_service.end_run()
 
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.
@@ -202,12 +220,15 @@ class Runner:
         Returns:
             Effective configuration.
         """
+        # The data root was resolved before anything existed (ruling #1), and
+        # config discovery needs it to reach data/tasksupport (ruling #4).
+        data_root = self.data_root
         if source is None:
-            return load_config_from_root(self.root)
+            return load_config_from_root(self.root, data_root=data_root)
         if isinstance(source, RdeConfig):
-            return load_config_from_root(self.root, overrides=source.model_dump())
+            return load_config_from_root(self.root, overrides=source.model_dump(), data_root=data_root)
         if isinstance(source, Mapping):
-            return load_config_from_root(self.root, overrides=source)
+            return load_config_from_root(self.root, overrides=source, data_root=data_root)
         if isinstance(source, Config):
             return ConfigNormalizer().normalize(source, root=self.root, origin="v1")
         return ConfigNormalizer().normalize(source, root=self.root, origin="v2")
@@ -245,8 +266,7 @@ class Runner:
             config: Effective configuration.
         """
         _ = config
-        data_root = _data_root(self.root)
-        self._validation_data_root = data_root
+        data_root = self.data_root
         invoice_path = data_root / "invoice" / "invoice.json"
         schema_path = data_root / "tasksupport" / "invoice.schema.json"
         for path in (invoice_path, schema_path):
@@ -280,13 +300,13 @@ class Runner:
             target=execution_target,
             config_source=config,
         )
-        plan = self._planner.create(request, config=config, mode=mode)
+        plan = self._planner.create(request, config=config, mode=mode, data_root=self.data_root)
         aggregator = RunAggregator(
             run_id=self.run_id,
             flow_id=_target_flow_id(execution_target),
             mode=mode.value,
             config_digest=_config_digest(config),
-            logs_dir=self.root / "data" / "logs",
+            logs_dir=self.data_root / "logs",
         )
         failed_count = 0
         completed_count = 0
@@ -344,9 +364,9 @@ class Runner:
             report: Report produced by iteration.
         """
         _ = config
-        validation_root = self._validation_data_root or _data_root(self.root)
-        schema_path = validation_root / "tasksupport" / "invoice.schema.json"
-        output_root = self.root / "data"
+        data_root = self.data_root
+        schema_path = data_root / "tasksupport" / "invoice.schema.json"
+        output_root = data_root
         for iteration in report.iterations:
             if iteration.get("status") != "completed":
                 continue
@@ -355,10 +375,11 @@ class Runner:
                 raise _validation_error(4003, f"Completed iteration has invalid index: {index!r}")
             paths = resolve_tile_paths(output_root, index)
             try:
-                invoice_validate(paths.invoice / "invoice.json", schema_path)
-                metadata_path = paths.meta / "metadata.json"
-                if metadata_path.exists():
-                    metadata_validate(metadata_path)
+                validate_tile_outputs(
+                    invoice_path=paths.invoice / "invoice.json",
+                    schema_path=schema_path,
+                    metadata_path=paths.meta / "metadata.json",
+                )
             except Exception as exc:  # noqa: BLE001
                 raise _wrap_domain_validation_error(exc) from exc
 
@@ -512,13 +533,6 @@ def _failure_warnings(failed_count: int) -> list[dict[str, Any]]:
     ]
 
 
-def _data_root(root: Path) -> Path:
-    candidate = root / "data"
-    if (candidate / "inputdata").exists() or (candidate / "invoice").exists() or (candidate / "tasksupport").exists():
-        return candidate
-    return root
-
-
 def _validation_error(code: int, reason: str) -> RdeValidationError:
     error_def = ERROR_CATALOG[code]
     error_cls: Any = RdeValidationError
@@ -536,8 +550,5 @@ def _validation_error(code: int, reason: str) -> RdeValidationError:
 
 
 def _wrap_domain_validation_error(exc: Exception) -> RdeValidationError:
-    if isinstance(exc, InvoiceSchemaValidationError):
-        return _validation_error(4001, str(exc))
-    if isinstance(exc, MetadataValidationError):
-        return _validation_error(4002, str(exc))
-    return _validation_error(4003, str(exc))
+    """Delegate to the single owner of the validation-code mapping (ruling #6)."""
+    return wrap_validation_error(exc)

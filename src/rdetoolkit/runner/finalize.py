@@ -9,7 +9,6 @@ from typing import Any
 from rdetoolkit.errors import ERROR_CATALOG, write_job_errorlog_file
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.report.run_report import RunReport
-from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
 
 
@@ -58,13 +57,15 @@ def structured_error_record(exc: BaseException | None) -> dict[str, Any] | None:
 class RunFinalizer:
     """Persist the final report through the single Runner-owned finalization path."""
 
-    def __init__(self, *, root: Path | Callable[[], Path]) -> None:
+    def __init__(self, *, data_root: Path | Callable[[], Path]) -> None:
         """Create a finalizer.
 
         Args:
-            root: Run root or a provider for the Runner's current request root.
+            data_root: The run's resolved data root, or a provider for it. The
+                finalizer never resolves one itself: the Runner decided it once
+                before anything was created (ruling #1).
         """
-        self._root = root
+        self._data_root = data_root
 
     def finalize(self, report: RunReport, config: RdeConfig) -> None:
         """Persist final artifacts for one completed lifecycle.
@@ -73,11 +74,11 @@ class RunFinalizer:
             report: Primary run report.
             config: Effective canonical configuration.
         """
-        root = self._root() if callable(self._root) else self._root
-        finalize(report, config, root=root)
+        data_root = self._data_root() if callable(self._data_root) else self._data_root
+        finalize(report, config, data_root=data_root)
 
 
-def finalize(report: RunReport, config: RdeConfig, *, root: Path) -> None:
+def finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None:
     """Persist the run report and write ``job.failed`` for failed runs.
 
     The ``job.failed`` file is delegated to v1 ``write_job_errorlog_file`` so
@@ -86,19 +87,19 @@ def finalize(report: RunReport, config: RdeConfig, *, root: Path) -> None:
     Args:
         report: Run report produced by the Runner.
         config: Effective v2 Runner configuration.
-        root: Project root that owns the ``data`` output directory.
+        data_root: The run's single resolved data root.
     """
     _ = config
-    _write_run_report(report, root=root)
+    _write_run_report(report, data_root=data_root)
     if report.status == "failed":
         code, message = _failure_error(report)
-        failure_path = (resolve_data_root(root) / "job.failed").resolve()
+        failure_path = (data_root / "job.failed").resolve()
         failure_path.parent.mkdir(parents=True, exist_ok=True)
         write_job_errorlog_file(code, message, filename=str(failure_path))
 
 
-def _write_run_report(report: RunReport, *, root: Path) -> None:
-    logs_dir = resolve_data_root(root) / "logs"
+def _write_run_report(report: RunReport, *, data_root: Path) -> None:
+    logs_dir = data_root / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     report_path = logs_dir / f"run_report_{report.run_id}.json"
     report_path.write_text(report.to_json(), encoding="utf-8")

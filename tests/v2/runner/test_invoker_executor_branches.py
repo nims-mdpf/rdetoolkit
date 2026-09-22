@@ -35,7 +35,7 @@ from rdetoolkit.runner.executor import TileExecutor
 from rdetoolkit.runner.invoker import FlowInvoker, InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import resolve_tile_paths
-from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
+from rdetoolkit.runner.planner import ExecutionPlan, TileMaterial, TilePlan
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext, RdeConfig
 
 
@@ -70,6 +70,8 @@ def _plan(tmp_path: Path, tile: TilePlan) -> ExecutionPlan:
         mode=ModeKind.invoice,
         config=RdeConfig(),
         root=tmp_path,
+        data_root=tmp_path,
+        invoice_source=tmp_path / "data" / "invoice" / "invoice.json",
         error_policy="continue",
         tiles=(tile,),
     )
@@ -90,7 +92,8 @@ def test_flow_invoker_delegates_exact_arguments__tc_ep_hr_f6_101(
     monkeypatch.setattr("rdetoolkit.runner.invoker.run_tile", run_tile)
 
     # When: invoking the normalized flow target
-    actual = FlowInvoker().invoke(target, context, event_sink=sink, run_id="run", config=config)
+    material = TileMaterial(invoice_source=Path("invoice.json"))
+    actual = FlowInvoker().invoke(target, context, event_sink=sink, run_id="run", config=config, material=material)
 
     # Then: arguments are delegated exactly and iteration events remain Runner-owned
     assert actual is expected
@@ -117,6 +120,7 @@ def test_flow_invoker_rejects_non_flow_target__tc_ep_hr_f6_102() -> None:
             event_sink=MemoryEventSink(),
             run_id="run",
             config=RdeConfig(),
+            material=TileMaterial(invoice_source=Path("invoice.json")),
         )
 
     # Then: routing that target is the registry's job, not the flow adapter's
@@ -155,9 +159,17 @@ def test_registry_dispatches_legacy_target__tc_ep_i5_114() -> None:
     context = _context()
     sink = MemoryEventSink()
     config = RdeConfig()
+    material = TileMaterial(invoice_source=Path("invoice.json"))
 
     # When: invoking through the registry
-    actual = registry.invoke(target, context, event_sink=sink, run_id="run", config=config)
+    actual = registry.invoke(
+        target,
+        context,
+        event_sink=sink,
+        run_id="run",
+        config=config,
+        material=material,
+    )
 
     # Then: the legacy adapter received the arguments unchanged
     assert actual.status == "completed"
@@ -167,6 +179,7 @@ def test_registry_dispatches_legacy_target__tc_ep_i5_114() -> None:
         event_sink=sink,
         run_id="run",
         config=config,
+        material=material,
     )
 
 

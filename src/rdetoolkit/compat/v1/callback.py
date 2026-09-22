@@ -17,8 +17,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from rdetoolkit.api.request import LegacyCallbackTarget
-from rdetoolkit.domain.invoice import tile_row_data
-from rdetoolkit.domain.invoice_service import resolve_invoice_source
 from rdetoolkit.models.config import (
     Config,
     MultiDataTileSettings,
@@ -36,6 +34,7 @@ if TYPE_CHECKING:
     from rdetoolkit.api.request import ExecutionTarget
     from rdetoolkit.core.context import RunContext
     from rdetoolkit.report.events import EventSink
+    from rdetoolkit.runner.planner import TileMaterial
     from rdetoolkit.types import RdeConfig
 
 
@@ -87,11 +86,16 @@ def accepts_unified_argument(callback: Callable[..., Any]) -> bool | None:
     return None
 
 
-def to_legacy_dataset_paths(context: RunContext) -> RdeDatasetPaths:
+def to_legacy_dataset_paths(context: RunContext, *, material: TileMaterial) -> RdeDatasetPaths:
     """Convert one tile's v2 material into the v1 dataset path bundle.
 
     Args:
         context: Reserved values prepared by the Runner for the current tile.
+        material: Run-owned tile material. It carries the ``invoice_org`` the
+            plan decided (ruling #3) and this tile's SmartTable row dictionary
+            (ruling #2), so this adapter neither re-decides the source from
+            what happens to exist under ``temp/`` nor reads a process-global
+            handoff a concurrent run could have erased.
 
     Returns:
         The unified v1 path bundle, which also exposes the legacy pair through
@@ -127,15 +131,15 @@ def to_legacy_dataset_paths(context: RunContext) -> RdeDatasetPaths:
         logs=out.logs,
         invoice=out.invoice,
         invoice_schema_json=paths.tasksupport / "invoice.schema.json",
-        invoice_org=resolve_invoice_source(paths.invoice.parent),
+        invoice_org=material.invoice_source,
         # OutputContext deliberately omits these two directories (Design §6.3
         # addendum), so the tile root they share with invoice/ resolves them.
         temp=tile_root / "temp",
         invoice_patch=tile_root / "invoice_patch",
         smarttable_rowfile=smarttable_rowfile,
         smarttable_row_data=(
-            tile_row_data(paths.invoice.parent, out.invoice / "invoice.json")
-            if smarttable_rowfile is not None
+            dict(material.smarttable_row_data)
+            if smarttable_rowfile is not None and material.smarttable_row_data is not None
             else None
         ),
         attachment=out.attachment,
@@ -181,6 +185,7 @@ class LegacyCallbackInvoker:
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult:
         """Convert the tile material and call the v1 dataset callback.
 
@@ -190,6 +195,7 @@ class LegacyCallbackInvoker:
             event_sink: Unused; iteration events stay Runner-owned.
             run_id: Unused; the callback entry point emits no node events.
             config: Unused; the effective config travels inside ``context``.
+            material: Run-owned tile material handed to the v1 bundle.
 
         Returns:
             A completed result for the tile. Failures propagate so the common
@@ -210,7 +216,10 @@ class LegacyCallbackInvoker:
             raise ValueError(msg)
 
         if target.function is not None:
-            _call_with_matching_signature(target.function, to_legacy_dataset_paths(context))
+            _call_with_matching_signature(
+                target.function,
+                to_legacy_dataset_paths(context, material=material),
+            )
 
         # Positional fields are: iteration index, status, call log, outputs.
         # The v1 entry point contributes neither of the latter two in I5.

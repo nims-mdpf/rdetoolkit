@@ -373,8 +373,13 @@ class TestRunnerIterateRealDispatch:
 
         assert isinstance(report, RunReport)
         assert len(calls) == 2, "flow must be called once per tile (2 loose input files)"
-        assert (root / "data" / "structured").is_dir()
-        assert (root / "data" / "divided" / "0001" / "structured").is_dir()
+        # UPDATED (Session I-REVIEW-A ruling #1): this root is alias-flat -- it
+        # directly owns inputdata/invoice/tasksupport -- so it IS the data root.
+        # The previous expectation (outputs under root/data while the invoice
+        # side read root/invoice) pinned the split this session removes.
+        assert (root / "structured").is_dir()
+        assert (root / "divided" / "0001" / "structured").is_dir()
+        assert not (root / "data").exists()
 
 
 class TestLifecycleInitializationFailure:
@@ -512,15 +517,15 @@ class TestExcelinvoiceSourceBackup:
             self: InvoiceService,
             mode: ModeKind,
             *,
-            root: Path,
+            data_root: Path,
             inputdata_path: Path,
             rawfiles: tuple[Path, ...] = (),
         ) -> Path:
-            backup_calls.append((mode, root, inputdata_path, rawfiles))
+            backup_calls.append((mode, data_root, inputdata_path, rawfiles))
             return original_backup(
                 self,
                 mode,
-                root=root,
+                data_root=data_root,
                 inputdata_path=inputdata_path,
                 rawfiles=rawfiles,
             )
@@ -533,7 +538,7 @@ class TestExcelinvoiceSourceBackup:
         monkeypatch.chdir(caller)
         actual = _run_invoice_source(
             ModeKind.excelinvoice,
-            root=tmp_path,
+            data_root=tmp_path,
             inputdata_path=inputdata,
         )
 

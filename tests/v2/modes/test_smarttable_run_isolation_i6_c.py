@@ -11,7 +11,7 @@ Equivalence partitions (EP):
 | API | Partition | Rationale | Expected | Test ID |
 | --- | --- | --- | --- | --- |
 | ``InvoiceService.prepare_tile`` | two runs, one root, source replaced | overlapping runs | each keeps its own snapshot | TC-I6-C-CONC-001 |
-| ``InvoiceService.begin_run`` | second run starts mid-first-run | no global eviction | first run's snapshot survives | TC-I6-C-CONC-002 |
+| ``InvoiceService.begin_run`` | second run starts mid-first-run | instance-owned material | first run's snapshot survives | TC-I6-C-CONC-002 |
 
 Boundary values (BV):
 
@@ -103,12 +103,12 @@ def test_two_runs_over_one_root_keep_their_own_base_invoice__tc_i6_c_conc_001(tm
     source = _materialize_root(tmp_path, "first-content")
     first = InvoiceService()
     second = InvoiceService()
-    first.begin_run(tmp_path)
+    first.begin_run()
     first_tile = _prepare(first, tmp_path, "first")
 
     # When: the shared source is replaced and the second run prepares its tile
     source.write_text(json.dumps(_source_invoice("second-content")), encoding="utf-8")
-    second.begin_run(tmp_path)
+    second.begin_run()
     second_tile = _prepare(second, tmp_path, "second")
     later_first_tile = _prepare(first, tmp_path, "first_later")
 
@@ -123,15 +123,15 @@ def test_starting_a_run_does_not_evict_another_runs_snapshot__tc_i6_c_conc_002(t
     # Given: a run that already snapshotted the shared source invoice
     source = _materialize_root(tmp_path, "first-content")
     first = InvoiceService()
-    first.begin_run(tmp_path)
+    first.begin_run()
     _prepare(first, tmp_path, "first")
 
     # When: a second run over the same root starts and ends while the first
     # run is still executing, with the source replaced in between
     second = InvoiceService()
-    second.begin_run(tmp_path)
+    second.begin_run()
     source.write_text(json.dumps(_source_invoice("second-content")), encoding="utf-8")
-    second.end_run(tmp_path)
+    second.end_run()
     survivor = _prepare(first, tmp_path, "first_later")
 
     # Then: the first run's snapshot survived both boundaries of the second
@@ -157,21 +157,21 @@ def test_two_threads_hold_different_base_invoices__tc_i6_c_conc_003(tmp_path: Pa
 
     def run_a() -> None:
         service = InvoiceService()
-        service.begin_run(tmp_path)
+        service.begin_run()
         results["a_first"] = _data_name(_prepare(service, tmp_path, "a_first"))
         snapshot_taken.wait()
         # Run B replaces the shared source and reads it here.
         replacement_done.wait()
         results["a_later"] = _data_name(_prepare(service, tmp_path, "a_later"))
-        service.end_run(tmp_path)
+        service.end_run()
 
     def run_b() -> None:
         snapshot_taken.wait()
         source.write_text(json.dumps(_source_invoice("run-b-content")), encoding="utf-8")
         service = InvoiceService()
-        service.begin_run(tmp_path)
+        service.begin_run()
         results["b_first"] = _data_name(_prepare(service, tmp_path, "b_first"))
-        service.end_run(tmp_path)
+        service.end_run()
         replacement_done.wait()
 
     # When: both runs execute simultaneously in separate threads

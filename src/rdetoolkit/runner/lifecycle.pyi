@@ -18,6 +18,8 @@ class Runner:
     unpacked_dir_path: Path
     event_sink: EventSink
     run_id: str
+    @property
+    def data_root(self) -> Path: ...
     def __init__(
         self,
         *,

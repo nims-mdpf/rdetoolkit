@@ -215,24 +215,6 @@ def _frozen_canary(mode: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _canary_overrides(case: Mapping[str, Any], *, root: Path) -> dict[str, Any]:
-    """Project a frozen canary effective config onto v2 Runner overrides.
-
-    The canary snapshots record the *v1* effective ``Config`` the oracle ran
-    with, assembled from the case's own ``data/tasksupport/rdeconfig.yaml``.
-    A v2 flow entry does not search ``data/tasksupport`` (``config/normalize.py``
-    ``origin="v2"``, deferred ruling #9), so the frozen config is handed to the
-    Runner as explicit overrides instead. The v1 -> v2 projection is delegated to
-    the production ``ConfigNormalizer`` so this helper cannot invent a mapping
-    of its own: it re-uses the same ``origin="v1"`` rules the Runner applies to
-    a legacy config (``extended_mode: null`` -> ``invoice``,
-    ``multidata_tile.ignore_errors`` -> ``execution.on_iteration_error``).
-    """
-    effective = case["effective_config"]["config"]
-    canonical = ConfigNormalizer().normalize(effective, root=root, origin="v1")
-    return canonical.model_dump()
-
-
 @pytest.mark.parametrize(
     "mode",
     [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CANARY-FLOW-OK") for mode in _CANARY_FLOW_MODES],
@@ -264,8 +246,8 @@ def test_canary_flow_entry_matches_frozen_real_input_observation(
         unpacked_dir_path=root / "data" / "temp",
     )
 
-    # When: running the eager flow with the canary's own effective config
-    report = runner.run(_contract_noop_flow, **_canary_overrides(frozen["case"], root=root))
+    # When: running the eager flow with no overrides at all (ruling #4)
+    report = runner.run(_contract_noop_flow)
 
     # Then: the run succeeds with the tile count v1 observed
     assert report.status == "success"

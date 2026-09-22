@@ -19,12 +19,11 @@ from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
 from rdetoolkit.rde2util import castval
 from rdetoolkit.rdelogger import get_logger
 from rdetoolkit.runner.mode_resolver import ModeKind
-from rdetoolkit.runner.planner import TilePlan, create_common_tiles
+from rdetoolkit.runner.planner import TilePlan, TilePreparation, create_common_tiles
 
 if TYPE_CHECKING:
     from rdetoolkit.modes.protocol import PlanningContext, RawCopyStrategy
     from rdetoolkit.runner.planner import ExecutionPlan
-    from rdetoolkit.types import InvoiceData
 
 logger = get_logger(__name__)
 
@@ -94,14 +93,14 @@ class SmartTableModeHandler:
         _ = plan
         return None
 
-    def invoice_stage_steps(self, plan: ExecutionPlan) -> frozenset[str] | None:
-        """Run every invoice artifact step, as the v1 pipeline for this mode does.
+    def artifact_stage_order(self, plan: ExecutionPlan) -> tuple[str, ...] | None:
+        """Run the v1 invoice pipeline's artifact sequence.
 
         Args:
             plan: Immutable run execution plan.
 
         Returns:
-            ``None``, selecting structured, magic variable, and description.
+            ``None``, selecting thumbnail -> structured -> magic -> description.
         """
         _ = plan
         return None
@@ -134,7 +133,7 @@ def _original_smarttable_file(rawfiles: tuple[Path, ...]) -> Path | None:
     return None
 
 
-def _early_exit_invoice(*, table: Path, invoice_dir: Path) -> InvoiceData:
+def _early_exit_invoice(*, table: Path, invoice_dir: Path) -> TilePreparation:
     """Publish the EarlyExit invoice of the original SmartTable tile.
 
     v1 rewrites ``basic.dataName`` of the tile's own ``invoice.json`` — for the
@@ -146,13 +145,14 @@ def _early_exit_invoice(*, table: Path, invoice_dir: Path) -> InvoiceData:
         invoice_dir: This tile's invoice directory.
 
     Returns:
-        The published tile invoice.
+        The published tile invoice. The EarlyExit tile has no SmartTable row,
+        so it carries no row data for the callback.
     """
     invoice_path = invoice_dir / "invoice.json"
     invoice_data = readf_json(invoice_path)
     invoice_data["basic"]["dataName"] = table.name
     writef_json(invoice_path, invoice_data)
-    return load_invoice(invoice_path)
+    return TilePreparation(invoice=load_invoice(invoice_path))
 
 
 class SmartTableInvoiceBuilder:

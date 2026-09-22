@@ -188,13 +188,13 @@ class _RawProbe:
 
 
 class _InvoiceStageProbe:
-    """Record the post-invoke invoice stage."""
+    """Record the post-invoke invoice stages, in the order they are applied."""
 
     def __init__(self) -> None:
-        self.calls: int = 0
+        self.calls: list[str] = []
 
-    def apply_config(self, **kwargs: object) -> None:
-        self.calls += 1
+    def apply_step(self, step: str, **kwargs: object) -> None:
+        self.calls.append(step)
 
 
 class _ImageProbe:
@@ -207,8 +207,38 @@ class _ImageProbe:
         self.calls += 1
 
 
+def _write_tile_artifacts(tmp_path: Path) -> None:
+    """Publish the artifacts a pre-completed tile must validate (ruling #6).
+
+    v1's EarlyExit validated its tile *before* skipping the rest of the
+    pipeline, so the executor now does the same. The probe tile therefore needs
+    a real invoice and schema on disk.
+    """
+    data_root = tmp_path / "data"
+    (data_root / "invoice").mkdir(parents=True, exist_ok=True)
+    (data_root / "tasksupport").mkdir(parents=True, exist_ok=True)
+    (data_root / "invoice" / "invoice.json").write_text(
+        json.dumps(
+            {
+                "datasetId": "i6c-early-exit",
+                "basic": {
+                    "dateSubmitted": "2026-09-14",
+                    "dataOwnerId": "0" * 56,
+                    "dataName": "smarttable_full.xlsx",
+                },
+            },
+        ),
+        encoding="utf-8",
+    )
+    (data_root / "tasksupport" / "invoice.schema.json").write_text(
+        json.dumps({"properties": {}}),
+        encoding="utf-8",
+    )
+
+
 def _tile(tmp_path: Path, *, precompleted: bool) -> TilePlan:
     rawfile = tmp_path / "data" / "inputdata" / "smarttable_full.xlsx"
+    _write_tile_artifacts(tmp_path)
     output_paths = resolve_tile_paths(tmp_path / "data", 0)
     return TilePlan(
         iteration=IterationInfo(index=0, total=1, mode="smarttable"),
@@ -231,6 +261,8 @@ def _plan(tmp_path: Path, tile: TilePlan) -> ExecutionPlan:
         mode=ModeKind.smarttable,
         config=RdeConfig(),
         root=tmp_path,
+        data_root=tmp_path,
+        invoice_source=tmp_path / "data" / "invoice" / "invoice.json",
         error_policy="continue",
         tiles=(tile,),
     )
@@ -261,7 +293,7 @@ def test_precompleted_tile_skips_invocation__tc_i6_c_ep_070(tmp_path: Path) -> N
 
     # Then: no invocation, no post-invoke stage, and an empty call log
     assert probes["invoker"] == 0
-    assert probes["invoice"] == 0
+    assert probes["invoice"] == []
     assert probes["image"] == 0
     assert result.status == "completed"
     assert result.call_records == ()
@@ -278,9 +310,10 @@ def test_ordinary_tile_keeps_the_full_pipeline__tc_i6_c_ep_071(tmp_path: Path) -
     # When: the executor runs it
     result, probes = _execute(tmp_path, precompleted=False)
 
-    # Then: the flow and both post-invoke stages run exactly as before
+    # Then: the flow and both post-invoke stages run exactly as before, and the
+    # SmartTable sequence is the v1 invoice pipeline's order (ruling #5)
     assert probes["invoker"] == 1
-    assert probes["invoice"] == 1
+    assert probes["invoice"] == ["structured", "magic", "description"]
     assert probes["image"] == 1
     assert result.status == "completed"
     assert len(probes["raw"]) == 1

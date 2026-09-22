@@ -11,13 +11,13 @@ EP table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-I6-A-EP-020 | raw seam | ``InvoiceModeHandler.raw_copy_strategy`` | ``None`` (generic ``RawArtifactService``) |
-| TC-I6-A-EP-021 | invoice seam | ``InvoiceModeHandler.invoice_stage_steps`` | ``None`` (all three v1 steps) |
+| TC-I6-A-EP-021 | invoice seam | ``InvoiceModeHandler.artifact_stage_order`` | ``None`` (the default v1 invoice order) |
 
 BV / negative table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-I6-A-EV-022 | isolation | the four non-RDEFormat built-in handlers | every ``raw_copy_strategy`` is ``None`` |
-| TC-I6-A-EV-023 | isolation | the four non-RDEFormat built-in handlers | every ``invoice_stage_steps`` is ``None`` |
+| TC-I6-A-EV-023 | isolation | the four non-RDEFormat built-in handlers | every stage of the v1 invoice pipeline still runs |
 | TC-I6-A-EV-024 | statelessness | two consecutive seam queries | the answer does not depend on call order |
 """
 
@@ -51,15 +51,15 @@ def test_invoice_keeps_the_generic_raw_service__tc_i6_a_ep_020() -> None:
 
 
 def test_invoice_runs_the_full_invoice_stage__tc_i6_a_ep_021() -> None:
-    """TC-I6-A-EP-021: invoice mode runs structured, magic and description."""
+    """TC-I6-A-EP-021: invoice mode runs the whole v1 invoice stage, in v1 order."""
     # Given: the production invoice handler
     handler = InvoiceModeHandler()
 
-    # When: the executor asks which invoice artifact steps this mode runs
-    steps = handler.invoice_stage_steps(None)  # type: ignore[arg-type]
+    # When: the executor asks for this mode's artifact stage sequence
+    order = handler.artifact_stage_order(None)  # type: ignore[arg-type]
 
-    # Then: ``None`` selects the complete v1 invoice stage
-    assert steps is None
+    # Then: ``None`` selects the default, which is the v1 invoice pipeline's
+    assert order is None
 
 
 @pytest.mark.parametrize(
@@ -84,12 +84,24 @@ def test_non_rdeformat_handlers_keep_the_generic_raw_service__tc_i6_a_ev_022(
 def test_non_rdeformat_handlers_keep_the_full_invoice_stage__tc_i6_a_ev_023(
     handler_type: type,
 ) -> None:
-    """TC-I6-A-EV-023: RDEFormat's step narrowing must not leak into other modes."""
+    """TC-I6-A-EV-023: RDEFormat's stage narrowing must not leak into other modes.
+
+    Updated in Session I-REVIEW-A (ruling #5): MultiDataTile and ExcelInvoice do
+    declare a sequence, because their v1 pipelines expand magic variables first.
+    What must not leak is RDEFormat's *narrowing* -- every other mode keeps all
+    four stages.
+    """
     # Given: a built-in handler whose v1 pipeline has all three invoice processors
+    from rdetoolkit.runner.executor import DEFAULT_ARTIFACT_STAGE_ORDER  # noqa: PLC0415
+
     handler = handler_type()
 
-    # When/Then: the full invoice stage stays selected
-    assert handler.invoice_stage_steps(None) is None
+    # When: the executor asks for this mode's artifact stage sequence
+    order = handler.artifact_stage_order(None)  # type: ignore[arg-type]
+
+    # Then: every stage of the v1 invoice pipeline is still run
+    effective = DEFAULT_ARTIFACT_STAGE_ORDER if order is None else order
+    assert sorted(effective) == sorted(DEFAULT_ARTIFACT_STAGE_ORDER)
 
 
 def test_seam_answers_are_stateless__tc_i6_a_ev_024() -> None:

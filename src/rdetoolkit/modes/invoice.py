@@ -46,14 +46,14 @@ class InvoiceModeHandler:
         _ = plan
         return None
 
-    def invoice_stage_steps(self, plan: ExecutionPlan) -> frozenset[str] | None:
-        """Run every invoice artifact step, as the v1 pipeline for this mode does.
+    def artifact_stage_order(self, plan: ExecutionPlan) -> tuple[str, ...] | None:
+        """Run the v1 invoice pipeline's artifact sequence.
 
         Args:
             plan: Immutable run execution plan.
 
         Returns:
-            ``None``, selecting structured, magic variable, and description.
+            ``None``, selecting thumbnail -> structured -> magic -> description.
         """
         _ = plan
         return None

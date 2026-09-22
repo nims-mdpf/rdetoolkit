@@ -95,6 +95,7 @@ class _FakePlanner:
         *,
         config: RdeConfig,
         mode: ModeKind,
+        data_root: Path,
     ) -> Any:
         from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
 
@@ -124,6 +125,8 @@ class _FakePlanner:
             root=request.root,
             error_policy=config.execution.on_iteration_error,
             tiles=(tile,),
+            data_root=data_root,
+            invoice_source=data_root / "invoice" / "invoice.json",
         )
 
 
@@ -330,7 +333,7 @@ def test_invalid_metadata_is_wrapped_with_4002__tc_ep_h2_004(
     metadata_path.parent.mkdir()
     metadata_path.write_text("{}", encoding="utf-8")
     monkeypatch.setattr(
-        "rdetoolkit.runner.lifecycle.metadata_validate",
+        "rdetoolkit.domain.validation.metadata_validate",
         lambda path: (_ for _ in ()).throw(MetadataValidationError("invalid metadata")),
     )
     runner = Runner(root=tmp_path)
@@ -353,11 +356,11 @@ def test_post_validate_checks_completed_only_and_skips_absent_metadata__tc_bv_h2
     invoice_calls: list[tuple[Path, Path]] = []
     metadata_calls: list[Path] = []
     monkeypatch.setattr(
-        "rdetoolkit.runner.lifecycle.invoice_validate",
+        "rdetoolkit.domain.validation.invoice_validate",
         lambda path, schema: invoice_calls.append((Path(path), Path(schema))),
     )
     monkeypatch.setattr(
-        "rdetoolkit.runner.lifecycle.metadata_validate",
+        "rdetoolkit.domain.validation.metadata_validate",
         lambda path: metadata_calls.append(Path(path)),
     )
     runner = Runner(root=tmp_path)

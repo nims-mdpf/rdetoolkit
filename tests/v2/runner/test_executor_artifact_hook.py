@@ -57,6 +57,7 @@ class _RawArtifactProbe:
         nonshared_raw_dir: Path,
         config: RdeConfig,
         smarttable: bool = False,
+        data_root: Path,
     ) -> None:
         self.calls.append(
             {
@@ -65,6 +66,7 @@ class _RawArtifactProbe:
                 "nonshared_raw_dir": nonshared_raw_dir,
                 "config": config,
                 "smarttable": smarttable,
+                "data_root": data_root,
             },
         )
 
@@ -115,6 +117,8 @@ def _plan(tmp_path: Path, tiles: tuple[TilePlan, ...]) -> ExecutionPlan:
         mode=ModeKind.invoice,
         config=RdeConfig(),
         root=tmp_path,
+        data_root=tmp_path,
+        invoice_source=tmp_path / "data" / "invoice" / "invoice.json",
         error_policy="continue",
         tiles=tiles,
     )

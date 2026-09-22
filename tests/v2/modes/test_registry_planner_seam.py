@@ -34,14 +34,14 @@ from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 class _InvoiceServiceProbe:
     """Keep planner tests independent from filesystem invoice preparation."""
 
-    def begin_run(self, root: Path) -> None:
-        self.root = root
+    def begin_run(self, data_root: Path) -> None:
+        self.data_root = data_root
 
-    def invariant_invoice(self, mode: ModeKind, *, root: Path) -> None:
+    def invariant_invoice(self, mode: ModeKind, *, data_root: Path) -> None:
         return None
 
     def backup(self, mode: ModeKind, **kwargs: Any) -> Path:
-        return Path(kwargs["root"]) / "invoice" / "invoice.json"
+        return Path(kwargs["data_root"]) / "invoice" / "invoice.json"
 
     def prepare_tile(self, mode: ModeKind, **kwargs: Any) -> None:
         return None
@@ -134,7 +134,7 @@ def test_planner_delegates_to_registered_handler__tc_ep_i0_002(
     monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", _unexpected_fallback)
 
     # When: creating and enumerating the execution plan
-    plan = _planner(tmp_path).create(_request(tmp_path), config=RdeConfig(), mode=ModeKind.invoice)
+    plan = _planner(tmp_path).create(_request(tmp_path), config=RdeConfig(), mode=ModeKind.invoice, data_root=tmp_path)
     actual = tuple(plan.tiles)
 
     # Then: the handler supplies the tile and receives explicit planning material
@@ -144,6 +144,8 @@ def test_planner_delegates_to_registered_handler__tc_ep_i0_002(
     assert context.root == tmp_path
     assert context.inputdata_path == tmp_path / "inputdata"
     assert context.unpacked_dir_path == tmp_path / "temp"
+    # The Runner-resolved data root travels on the context (ruling #1).
+    assert context.data_root == tmp_path
 
 
 @pytest.mark.usefixtures("empty_mode_registry")
@@ -163,7 +165,7 @@ def test_planner_falls_back_when_mode_is_unregistered__tc_ep_i0_003(
     monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", _fallback)
 
     # When: creating and enumerating a plan before mode handlers are installed
-    plan = _planner(tmp_path).create(_request(tmp_path), config=RdeConfig(), mode=ModeKind.invoice)
+    plan = _planner(tmp_path).create(_request(tmp_path), config=RdeConfig(), mode=ModeKind.invoice, data_root=tmp_path)
     actual = tuple(plan.tiles)
 
     # Then: the original iterator remains the complete fallback

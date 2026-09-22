@@ -49,6 +49,7 @@ class ConfigNormalizer:
         *,
         root: Path,
         origin: ConfigOrigin,
+        data_root: Path | None = None,
     ) -> RdeConfig:
         """Normalize one configuration source at the public API boundary.
 
@@ -56,6 +57,10 @@ class ConfigNormalizer:
             source: Explicit model, mapping, file path, or ``None`` for discovery.
             root: Directory anchoring implicit configuration discovery.
             origin: Input contract whose defaults and compatibility rules apply.
+            data_root: The run's resolved data root. With ``origin="v2"`` and
+                implicit discovery it extends the search to the v1 layout every
+                real structured program ships,
+                ``<data_root>/tasksupport/rdeconfig.yaml`` (ruling #4).
 
         Returns:
             Strict canonical v2 configuration.
@@ -68,12 +73,51 @@ class ConfigNormalizer:
             msg = f"Unsupported configuration origin: {origin!r}"
             raise ValueError(msg)
 
+        if source is None and origin == "v2" and data_root is not None:
+            discovered = _discover_v2_config(root)
+            if discovered is None:
+                return self._normalize_tasksupport(root, data_root)
+            return self._build(discovered, origin=origin)
+
         data = self._source_data(source, root=root, origin=origin)
+        return self._build(data, origin=origin)
+
+    def _build(self, data: Mapping[str, Any], *, origin: ConfigOrigin) -> RdeConfig:
         normalized = self._convert_v1(data) if origin == "v1" else self._convert_v2(data)
         try:
             return RdeConfig(**normalized)
         except ValidationError as exc:
             raise _config_error(str(exc)) from exc
+
+    def _normalize_tasksupport(self, root: Path, data_root: Path) -> RdeConfig:
+        """Read the v1 tasksupport configuration with the v1 loader itself.
+
+        The file is v1 material, so v1 owns its interpretation: whatever
+        ``rdetoolkit.config.parse_config_file`` accepts, the unified Runner
+        accepts identically. Re-parsing it here would fork the contract.
+
+        Args:
+            root: Project root, used only for error reporting.
+            data_root: The run's resolved data root.
+
+        Returns:
+            Canonical configuration, or the v2 defaults when no file exists.
+        """
+        _ = root
+        path = _find_tasksupport_config(data_root)
+        if path is None:
+            return RdeConfig()
+        # Imported at call time: rdetoolkit.config imports the v1 model layer,
+        # and this module is imported from the v2 config package itself.
+        from rdetoolkit.config import parse_config_file  # noqa: PLC0415
+        from rdetoolkit.exceptions import ConfigError  # noqa: PLC0415
+
+        try:
+            legacy = parse_config_file(path=str(path))
+        except ConfigError as exc:
+            reason = f"could not read {path}: {exc}"
+            raise _config_error(reason) from exc
+        return self._build(legacy.model_dump(exclude_none=True), origin="v1")
 
     def _source_data(
         self,
@@ -150,6 +194,31 @@ class ConfigNormalizer:
 def _mapping_section(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     value = data.get(key)
     return value if isinstance(value, Mapping) else {}
+
+
+#: Filenames the v1 loader accepts, in its own priority order
+#: (``rdetoolkit.config.CONFIG_FILES``).
+_V1_CONFIG_FILENAMES = ("rdeconfig.yaml", "rdeconfig.yml", "pyproject.toml")
+
+
+def _discover_v2_config(root: Path) -> dict[str, Any] | None:
+    """Return the v2-form configuration at the project root, if there is one."""
+    if root.is_file():
+        return _load_mapping(root)
+    for path in (root / "rdeconfig.yaml", root / "pyproject.toml"):
+        if path.exists():
+            return _load_mapping(path)
+    return None
+
+
+def _find_tasksupport_config(data_root: Path) -> Path | None:
+    """Return the v1 configuration a structured program ships, if there is one."""
+    tasksupport = data_root / "tasksupport"
+    for filename in _V1_CONFIG_FILENAMES:
+        candidate = tasksupport / filename
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def _discover_config(root: Path, origin: ConfigOrigin) -> dict[str, Any]:

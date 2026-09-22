@@ -13,6 +13,12 @@ if TYPE_CHECKING:
     from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
 
 
+#: v1 pipeline order for this mode (``processing/factories.py``):
+#: VariableApplier -> ThumbnailGenerator -> StructuredInvoiceSaver ->
+#: DescriptionUpdater.
+_ARTIFACT_STAGE_ORDER = ("magic", "thumbnail", "structured", "description")
+
+
 class MultiDataTileModeHandler:
     """Plan MultiDataTile-mode tiles.
 
@@ -46,14 +52,19 @@ class MultiDataTileModeHandler:
         _ = plan
         return None
 
-    def invoice_stage_steps(self, plan: ExecutionPlan) -> frozenset[str] | None:
-        """Run every invoice artifact step, as the v1 pipeline for this mode does.
+    def artifact_stage_order(self, plan: ExecutionPlan) -> tuple[str, ...] | None:
+        """Expand magic variables first, as this mode's v1 pipeline does.
+
+        ``processing/factories.py`` builds this pipeline as VariableApplier ->
+        ThumbnailGenerator -> StructuredInvoiceSaver -> DescriptionUpdater. The
+        order is observable: when the magic expansion fails, v1 leaves no
+        ``structured/invoice.json`` behind (review R3).
 
         Args:
             plan: Immutable run execution plan.
 
         Returns:
-            ``None``, selecting structured, magic variable, and description.
+            The v1 sequence for this mode.
         """
         _ = plan
-        return None
+        return _ARTIFACT_STAGE_ORDER

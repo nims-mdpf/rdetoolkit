@@ -52,6 +52,7 @@ from rdetoolkit.core.context import RunContext
 from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.report.events import MemoryEventSink
 from rdetoolkit.runner.paths import resolve_tile_paths
+from rdetoolkit.runner.planner import TileMaterial
 from rdetoolkit.types import (
     InputPaths,
     IterationInfo,
@@ -81,6 +82,17 @@ def _context(tmp_path: Path, *, config: RdeConfig | None = None) -> RunContext:
     )
 
 
+def _material(context: RunContext, *, invoice_source: Path | None = None) -> TileMaterial:
+    """Build the run-owned material the Runner hands to this invoker.
+
+    The default is the plan's invoice-mode decision (ruling #3): the adapter
+    never probes the filesystem for a backup of its own.
+    """
+    assert context.paths is not None
+    default = context.paths.invoice / "invoice.json"
+    return TileMaterial(invoice_source=invoice_source or default)
+
+
 def _invoke(target: LegacyCallbackTarget | FlowTarget, context: RunContext) -> Any:
     return LegacyCallbackInvoker().invoke(
         target,
@@ -88,6 +100,7 @@ def _invoke(target: LegacyCallbackTarget | FlowTarget, context: RunContext) -> A
         event_sink=MemoryEventSink(),
         run_id="i5-run",
         config=context.config or RdeConfig(),
+        material=_material(context) if context.paths is not None else TileMaterial(invoice_source=Path()),
     )
 
 
@@ -262,7 +275,7 @@ def test_legacy_paths_map_v2_material__tc_ep_i5_110(tmp_path: Path) -> None:
     assert context.out is not None
 
     # When: converting to the v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(context))
 
     # Then: input, output, and tile-scoped file paths match the v2 material
     assert legacy.input_paths.inputdata == context.paths.inputdata
@@ -283,19 +296,30 @@ def test_legacy_paths_map_v2_material__tc_ep_i5_110(tmp_path: Path) -> None:
     assert legacy.output_paths.invoice_org == context.paths.invoice / "invoice.json"
 
 
-def test_backup_invoice_wins_as_invoice_org__tc_bv_i5_102(tmp_path: Path) -> None:
-    """TC-BV-I5-102: a run-level backup is the v1 ``invoice_org`` source."""
-    # Given: a run whose planner already produced data/temp/invoice_org.json
+def test_planned_invoice_source_is_the_v1_invoice_org__tc_bv_i5_102(tmp_path: Path) -> None:
+    """TC-BV-I5-102 (UPDATED, ruling #3): the plan decides ``invoice_org``.
+
+    The previous expectation was that an existing ``data/temp/invoice_org.json``
+    *wins*. That presence rule is exactly review R2's defect: a backup left
+    behind by an earlier run silently became this run's source. v1 decides from
+    the mode, so the planner's answer travels on the tile material and a
+    leftover file on disk changes nothing.
+    """
+    # Given: a run whose planner selected the backup, plus an unrelated leftover
     context = _context(tmp_path)
     backup = tmp_path / "data" / "temp" / "invoice_org.json"
     backup.parent.mkdir(parents=True, exist_ok=True)
     backup.write_text("{}", encoding="utf-8")
 
-    # When: converting to the v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    # When: converting with a plan that chose the original invoice
+    legacy = to_legacy_dataset_paths(context, material=_material(context))
 
-    # Then: the backup replaces the original invoice, as v1 does for backup modes
-    assert legacy.output_paths.invoice_org == backup
+    # Then: the leftover backup is ignored, because nothing re-decides here
+    assert legacy.output_paths.invoice_org == context.paths.invoice / "invoice.json"
+
+    # And: a plan that chose the backup gets the backup
+    planned = to_legacy_dataset_paths(context, material=_material(context, invoice_source=backup))
+    assert planned.output_paths.invoice_org == backup
 
 
 def test_v2_invoice_mode_maps_to_v1_none__tc_bv_i5_103(tmp_path: Path) -> None:
@@ -308,8 +332,8 @@ def test_v2_invoice_mode_maps_to_v1_none__tc_bv_i5_103(tmp_path: Path) -> None:
     )
 
     # When: converting both contexts
-    default_legacy = to_legacy_dataset_paths(default_context)
-    smarttable_legacy = to_legacy_dataset_paths(smarttable_context)
+    default_legacy = to_legacy_dataset_paths(default_context, material=_material(default_context))
+    smarttable_legacy = to_legacy_dataset_paths(smarttable_context, material=_material(smarttable_context))
 
     # Then: neither projection can violate the v1 Config validator
     assert default_legacy.input_paths.config.system.extended_mode is None
@@ -329,8 +353,8 @@ def test_continue_policy_maps_to_v1_ignore_errors__tc_ep_i5_111(tmp_path: Path) 
     )
 
     # When: converting both contexts
-    continue_legacy = to_legacy_dataset_paths(continue_context)
-    fail_fast_legacy = to_legacy_dataset_paths(fail_fast_context)
+    continue_legacy = to_legacy_dataset_paths(continue_context, material=_material(continue_context))
+    fail_fast_legacy = to_legacy_dataset_paths(fail_fast_context, material=_material(fail_fast_context))
 
     # Then: v1 ignore_errors mirrors the policy in both directions
     assert continue_legacy.input_paths.config.multidata_tile is not None
@@ -350,7 +374,7 @@ def test_incomplete_context_is_rejected__tc_bv_i5_104(context: RunContext) -> No
     """TC-BV-I5-104: v1 arguments cannot be fabricated from a partial context."""
     # Given / When / Then: conversion refuses to invent paths
     with pytest.raises(ValueError, match="RunContext"):
-        to_legacy_dataset_paths(context)
+        to_legacy_dataset_paths(context, material=TileMaterial(invoice_source=Path()))
 
 
 def test_missing_iteration_is_rejected__tc_bv_i5_105(tmp_path: Path) -> None:
@@ -371,7 +395,7 @@ def test_absent_config_projects_v1_defaults__tc_bv_i5_106(tmp_path: Path) -> Non
     context.config = None
 
     # When: converting to the v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(context))
 
     # Then: the v1 defaults apply instead of a fabricated projection
     assert legacy.input_paths.config.system.extended_mode is None

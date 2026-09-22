@@ -53,7 +53,7 @@ def _tiles(root: Path, mode: ModeKind, config: RdeConfig | None, *, suffix: str)
             mode,
             data / "inputdata",
             data / f"temp{suffix}",
-            data / f"out{suffix}",
+            data,
             config=config,
         )
     ]
@@ -105,7 +105,7 @@ def test_config_argument_is_optional__tc_i6_1_ev_042(tmp_path: Path) -> None:
     data = root / "data"
 
     # When: calling the iterator positionally, without a config
-    tiles = list(iterate_tiles(ModeKind.smarttable, data / "inputdata", data / "temp", data / "out"))
+    tiles = list(iterate_tiles(ModeKind.smarttable, data / "inputdata", data / "temp", data))
 
     # Then: the legacy tile layout is produced
     assert len(tiles) == _SMARTTABLE_ROWS
@@ -147,6 +147,7 @@ def test_planner_forwards_the_run_config__tc_i6_1_ev_044(
         RunRequest(root=root, target=FlowTarget(function=_noop_flow), config_source=config),
         config=config,
         mode=ModeKind.smarttable,
+        data_root=data,
     )
     tiles = list(plan.tiles)
 

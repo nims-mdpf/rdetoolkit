@@ -5,6 +5,10 @@ from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.invoker import TargetInvoker
 from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
 
+DEFAULT_ARTIFACT_STAGE_ORDER: tuple[str, ...]
+
+def artifact_stage_order(plan: ExecutionPlan) -> tuple[str, ...]: ...
+
 class TileExecutor:
     def __init__(
         self,

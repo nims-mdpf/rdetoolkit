@@ -64,9 +64,10 @@ class _AttachmentStrategy:
         nonshared_raw_dir: Path,
         config: Any,
         smarttable: bool = False,
+        data_root: Path,
     ) -> None:
         """Redirect every raw input to the tile attachment directory."""
-        _ = (nonshared_raw_dir, config, smarttable)
+        _ = (nonshared_raw_dir, config, smarttable, data_root)
         destination = raw_dir.parent / "attachment"
         destination.mkdir(parents=True, exist_ok=True)
         for source in source_files:

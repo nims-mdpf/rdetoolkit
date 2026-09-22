@@ -1,5 +1,64 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session I-REVIEW-A (PR #539 review response)
+
+Core response to the two independent PR #539 reviews. Every item below is
+backed by a regression test that reproduces the reviewers' counterexample.
+
+### Fixed
+
+- **One data root per run.** `Runner.run` resolves the data root once, before
+  anything is created, and every consumer (config discovery, tile iteration,
+  invoice service, callback adapter, validation, aggregator, finalizer) uses
+  that answer. An alias-flat root no longer splits a single run between
+  `<root>/invoice` and `<root>/data/raw`.
+- **SmartTable callback material is run-private.** The process-global row-data
+  dictionary is removed; the row a v1 callback receives now travels by value
+  from tile preparation to the invoker, so a second Runner on the same root
+  cannot erase it.
+- **A stale `data/temp/invoice_org.json` is ignored.** The run-level
+  `invoice_org` is decided once, by v1's own mode rule, instead of by the
+  presence of a backup file; the structured export, `${invoice:...}` resolution
+  and the callback's `invoice_org` all follow that decision.
+- **Configuration shipped in `data/tasksupport` is honored.** v2 discovery now
+  falls back to `data/tasksupport/{rdeconfig.yaml,rdeconfig.yml,pyproject.toml}`,
+  read through the v1 loader. A configuration discovered there also adopts v1's
+  `fail_fast` error policy unless it sets `multidata_tile.ignore_errors`. All
+  five real-canary families now reach full artifact parity through production
+  discovery with no configuration overrides.
+- **Mode-specific artifact order is preserved.** MultiDataTile and ExcelInvoice
+  expand magic variables before the thumbnail and structured stages, as their v1
+  pipelines do, so a tile whose magic expansion fails no longer leaves a
+  `structured/invoice.json` v1 never wrote.
+- **SmartTable EarlyExit validates before completing.** A pre-completed tile is
+  validated before it is recorded, so a broken tile invoice or metadata aborts a
+  fail-fast run without executing any user flow, exactly as v1 does.
+- **RDEFormat classifies inputs relative to the data root.** A project stored
+  below a directory named `raw`, `meta` or `structured` no longer misplaces its
+  structured and metadata artifacts.
+- **The public entry points follow the resolved data root.**
+  `workflows.run(flow=...)` and `rdetoolkit run --validate-only` derived it from
+  a hardcoded `<root>/data`. On an alias-flat project the flow entry therefore
+  processed zero input files and still reported success, and `--validate-only`
+  resolved the mode against a directory that does not exist. The v1
+  `custom_dataset_function` path is unchanged.
+
+### Changed
+
+- `ModeHandler` is now the minimum protocol (`kind`, `create_tiles`). The two
+  artifact capabilities are separate, runtime-checkable protocols,
+  `RawCopyStrategyProvider` and `ArtifactStageProvider`, exported from
+  `rdetoolkit.modes`. A handler implementing only the minimum is accepted by
+  both the runtime and a type checker.
+- `ModeHandler.invoice_stage_steps` (a `frozenset`) is replaced by
+  `artifact_stage_order`, which returns an ordered tuple.
+- `InvoiceService.apply_config(steps=...)` is replaced by
+  `InvoiceService.apply_step(step, ...)`; the caller owns the order.
+- `RawCopyStrategy.copy` takes a `data_root` argument.
+- `runner.finalize.finalize` and `RunFinalizer` take `data_root` instead of
+  `root`; `runner.iterator.iterate_tiles` takes `data_root` as its fourth
+  argument and derives the tile invoice/tasksupport inputs from it.
+
 ## 2.0.0a1 — 2026-07-14
 
 This alpha is the Phase F feature baseline. It keeps the current dual-entry

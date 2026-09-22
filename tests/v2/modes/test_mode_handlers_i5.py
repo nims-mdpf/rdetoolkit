@@ -113,7 +113,7 @@ def _planned(root: Path, mode: ModeKind) -> list[dict[str, Any]]:
         run_id_factory=lambda: "i5-plan",
     )
     request = RunRequest(root=root, target=FlowTarget(function=lambda: None))
-    plan = planner.create(request, config=RdeConfig(), mode=mode)
+    plan = planner.create(request, config=RdeConfig(), mode=mode, data_root=root / "data")
     return [_normalize(tile, root) for tile in plan.tiles]
 
 

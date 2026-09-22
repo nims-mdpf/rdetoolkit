@@ -4,6 +4,7 @@ from rdetoolkit.api.request import ExecutionTarget
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.report.events import EventSink
 from rdetoolkit.runner.execute import ExecutionResult
+from rdetoolkit.runner.planner import TileMaterial
 from rdetoolkit.types import RdeConfig
 
 class TargetInvoker(Protocol):
@@ -15,6 +16,7 @@ class TargetInvoker(Protocol):
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult: ...
 
 class FlowInvoker:
@@ -26,6 +28,7 @@ class FlowInvoker:
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult: ...
 
 class InvokerRegistry:
@@ -44,4 +47,5 @@ class InvokerRegistry:
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult: ...

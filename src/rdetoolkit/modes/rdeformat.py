@@ -34,17 +34,12 @@ _DESTINATION_COMPONENTS = (
     "nonshared_raw",
 )
 
-#: Invoice-stage steps the v1 RDEFormat pipeline actually runs.
-#:
-#: ``processing/factories.py::RDEFormatPipelineBuilder`` is
+#: Post-invoke artifact stages the v1 RDEFormat pipeline actually runs, in
+#: order. ``processing/factories.py::RDEFormatPipelineBuilder`` is
 #: StandardInvoiceInitializer -> RDEFormatFileCopier -> DatasetRunner ->
 #: ThumbnailGenerator -> DescriptionUpdater: it has neither
-#: ``StructuredInvoiceSaver`` nor ``VariableApplier``. ``thumbnail`` records the
-#: ThumbnailGenerator the mode does keep; ``InvoiceService.apply_config`` only
-#: consults the three invoice step names, so the effective selection there is
-#: ``description`` alone (the thumbnail stage is a separate, config-gated
-#: executor step).
-_INVOICE_STAGE_STEPS = frozenset({"thumbnail", "description"})
+#: ``StructuredInvoiceSaver`` nor ``VariableApplier``.
+_ARTIFACT_STAGE_ORDER = ("thumbnail", "description")
 
 
 class RdeFormatRawCopyStrategy:
@@ -65,6 +60,7 @@ class RdeFormatRawCopyStrategy:
         nonshared_raw_dir: Path,
         config: RdeConfig,
         smarttable: bool = False,
+        data_root: Path,
     ) -> None:
         """Copy each input to the tile directory its path names.
 
@@ -77,16 +73,39 @@ class RdeFormatRawCopyStrategy:
                 ``save_nonshared_raw``.
             smarttable: Unused. SmartTable input filtering is a different
                 mode's rule and v1 never applies it to RDEFormat.
+            data_root: The run's single resolved data root, which bounds the
+                classification (ruling #7).
         """
         del config, smarttable
         destinations = _destinations(raw_dir=raw_dir, nonshared_raw_dir=nonshared_raw_dir)
         # Sorted for determinism: the copy order is not part of any contract,
         # but a stable one keeps a partial failure reproducible.
         for source in sorted(source_files):
+            components = _classifiable_parts(source, data_root)
             for component, destination in destinations.items():
-                if component in source.parts:
+                if component in components:
                     _copy_one(source, destination)
                     break
+
+
+def _classifiable_parts(source: Path, data_root: Path) -> tuple[str, ...]:
+    """Return the path components that may classify one unpacked input.
+
+    v1's ``RDEFormatFileCopier`` sees a CWD-relative ``data/temp/0000/raw/...``,
+    so only directories *inside* the project can decide a destination. The v2
+    Runner passes absolute paths, which additionally expose every ancestor of
+    the project: a research share named ``raw`` silently rerouted structured
+    output (review R1). Restricting the comparison to the part of the path
+    below the data root restores v1's meaning.
+
+    A source that the data root does not contain has no classifiable
+    components at all, so it is left unpublished rather than guessed at.
+    """
+    try:
+        relative = source.relative_to(data_root)
+    except ValueError:
+        return ()
+    return relative.parts[:-1]
 
 
 def _destinations(*, raw_dir: Path, nonshared_raw_dir: Path) -> dict[str, Path]:
@@ -148,15 +167,16 @@ class RdeFormatModeHandler:
         _ = plan
         return RdeFormatRawCopyStrategy()
 
-    def invoice_stage_steps(self, plan: ExecutionPlan) -> frozenset[str] | None:
-        """Return only the artifact steps the v1 RDEFormat pipeline runs.
+    def artifact_stage_order(self, plan: ExecutionPlan) -> tuple[str, ...] | None:
+        """Return only the artifact stages the v1 RDEFormat pipeline runs.
 
         Args:
             plan: Immutable run execution plan.
 
         Returns:
-            The thumbnail and description steps; structured invoice export and
-            magic-variable substitution have no processor in this pipeline.
+            The thumbnail and description stages, in order; the structured
+            invoice export and the magic-variable substitution have no
+            processor in this pipeline.
         """
         _ = plan
-        return _INVOICE_STAGE_STEPS
+        return _ARTIFACT_STAGE_ORDER

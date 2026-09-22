@@ -4,11 +4,16 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from typing import TYPE_CHECKING
+
 from rdetoolkit.api.request import ExecutionTarget, FlowTarget, LegacyCallbackTarget
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.report.events import EventSink
 from rdetoolkit.runner.execute import ExecutionResult, run_tile
 from rdetoolkit.types import RdeConfig
+
+if TYPE_CHECKING:
+    from rdetoolkit.runner.planner import TileMaterial
 
 
 class TargetInvoker(Protocol):
@@ -22,6 +27,7 @@ class TargetInvoker(Protocol):
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult:
         """Invoke a normalized target for one tile."""
         ...
@@ -38,6 +44,7 @@ class FlowInvoker:
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult:
         """Execute one flow tile without duplicating DI or call-log behavior.
 
@@ -47,6 +54,7 @@ class FlowInvoker:
             event_sink: Sink receiving node events.
             run_id: Active run identifier.
             config: Effective run configuration.
+            material: Unused; a v2 flow reads its inputs from ``context``.
 
         Returns:
             Primary execution result returned by ``run_tile``.
@@ -57,6 +65,7 @@ class FlowInvoker:
         if not isinstance(target, FlowTarget):
             msg = "FlowInvoker requires a FlowTarget; a LegacyCallbackTarget belongs to LegacyCallbackInvoker"
             raise TypeError(msg)
+        _ = material
         return run_tile(
             target.function,
             context,
@@ -120,6 +129,7 @@ class InvokerRegistry:
         event_sink: EventSink,
         run_id: str,
         config: RdeConfig,
+        material: TileMaterial,
     ) -> ExecutionResult:
         """Dispatch one tile to the invoker registered for its target.
 
@@ -129,6 +139,7 @@ class InvokerRegistry:
             event_sink: Sink receiving node events.
             run_id: Active run identifier.
             config: Effective run configuration.
+            material: Run-owned tile material for the selected invoker.
 
         Returns:
             Primary execution result produced by the selected invoker.
@@ -139,4 +150,5 @@ class InvokerRegistry:
             event_sink=event_sink,
             run_id=run_id,
             config=config,
+            material=material,
         )

@@ -14,6 +14,7 @@ import yaml
 from rdetoolkit import workflows
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.lifecycle import Runner
+from rdetoolkit.runner.paths import resolve_data_root
 
 
 def usage_error(message: str) -> None:
@@ -65,9 +66,15 @@ def determine_exit_code(report: RunReport) -> int:
 
 
 def validate_only(config: dict[str, Any] | None) -> None:
-    """Run config, mode, and pre-flow validation without resolving a flow."""
+    """Run config, mode, and pre-flow validation without resolving a flow.
+
+    The data root comes from ``resolve_data_root`` rather than a hardcoded
+    ``<cwd>/data`` so this path agrees with ``workflows.run(flow=...)`` and the
+    Runner about which directory owns the run (Session I-REVIEW-A ruling #1);
+    an alias-flat project otherwise validated a tree that does not exist.
+    """
     root = Path.cwd()
-    data_root = root / "data"
+    data_root = resolve_data_root(root)
     runner = Runner(
         root=root,
         inputdata_path=data_root / "inputdata",

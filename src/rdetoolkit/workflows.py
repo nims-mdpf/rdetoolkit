@@ -551,13 +551,19 @@ def run(  # pragma: no cover  # noqa: PLR0915
     if flow is not None:
         from rdetoolkit.api.request import build_run_request
         from rdetoolkit.runner.lifecycle import Runner
+        from rdetoolkit.runner.paths import resolve_data_root
 
         request = build_run_request(
             flow=flow,
             custom_dataset_function=custom_dataset_function,
             config=config,
         )
-        data_root = request.root / "data"
+        # The public entry is a consumer of the single data root, not a second
+        # authority on it (Session I-REVIEW-A ruling #1). Hardcoding
+        # ``request.root / "data"`` made an alias-flat project -- one whose
+        # inputdata/invoice/tasksupport sit directly below the root -- run with
+        # zero inputs and still report success.
+        data_root = resolve_data_root(request.root)
         return Runner(
             root=request.root,
             inputdata_path=data_root / "inputdata",

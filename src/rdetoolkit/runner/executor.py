@@ -12,22 +12,31 @@ from typing import TYPE_CHECKING, Any
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import (
+    INVOICE_STEP_DESCRIPTION,
+    INVOICE_STEP_MAGIC,
+    INVOICE_STEP_STRUCTURED,
     InvoiceService,
     build_tile_dataset_paths,
-    resolve_invoice_source,
 )
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
+from rdetoolkit.domain.validation import validate_tile_outputs, wrap_validation_error
 from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
 from rdetoolkit.report.events import EventSink
 from rdetoolkit.runner.execute import ExecutionResult, TileExecutionError
 from rdetoolkit.runner.finalize import structured_error_record
 from rdetoolkit.runner.invoker import FlowInvoker, TargetInvoker
+from rdetoolkit.runner.planner import TileMaterial, TilePreparation
 
 
 if TYPE_CHECKING:
     from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
 
+
+#: The image stage is owned by the executor, not by the invoice service, so it
+#: is named in the same sequence to keep one ordering authority per mode.
+_THUMBNAIL_STAGE = "thumbnail"
 
 _RUN_INTERRUPTED_CODE = 3004
 _ARTIFACT_PUBLICATION_FAILED_CODE = 3005
@@ -72,8 +81,11 @@ class TileExecutor:
             Completed or failed primary execution result.
         """
         invoice = tile.invoice
+        preparation = TilePreparation(invoice=tile.invoice)
         try:
-            invoice = tile.prepare_invoice() if tile.prepare_invoice is not None else tile.invoice
+            if tile.prepare_invoice is not None:
+                preparation = tile.prepare_invoice()
+            invoice = preparation.invoice
             context = RunContext(
                 paths=tile.paths,
                 out=tile.out,
@@ -87,6 +99,11 @@ class TileExecutor:
             # raw/ and nonshared_raw/ populated, exactly as v1 does.
             self._publish_raw(plan, tile)
             if tile.precompleted:
+                # v1's EarlyExit validates the tile and only then skips the
+                # rest of the pipeline, so the check belongs *before* the tile
+                # is recorded as completed (ruling #6). Validating afterwards
+                # let flows run that v1 never reached (review R5).
+                _validate_precompleted_tile(tile)
                 # The mode already finished this tile. v1's SmartTable
                 # EarlyExit is the case: it writes the tile invoice, lets the
                 # raw stage above copy the table, and raises
@@ -108,6 +125,7 @@ class TileExecutor:
                     event_sink=self._event_sink,
                     run_id=plan.run_id,
                     config=plan.config,
+                    material=_tile_material(plan, preparation),
                 ),
                 invoice=invoice,
                 rawfiles=tile.paths.rawfiles,
@@ -157,12 +175,23 @@ class TileExecutor:
     def _publish_post_invoke(self, plan: ExecutionPlan, tile: TilePlan) -> None:
         """Publish the artifacts v1 produces after the dataset callback.
 
-        The order is the v1 invoice pipeline's (``processing/factories.py``):
-        ThumbnailGenerator -> StructuredInvoiceSaver -> VariableApplier ->
-        DescriptionUpdater.
+        The sequence is mode-owned (Session I-REVIEW-A ruling #5). v1's invoice
+        pipeline is ThumbnailGenerator -> StructuredInvoiceSaver ->
+        VariableApplier -> DescriptionUpdater, while MultiDataTile and
+        ExcelInvoice expand magic variables first; running one fixed order for
+        every mode changes which artifacts a failing tile leaves behind
+        (review R3).
         """
-        self._publish_images(plan, tile)
-        self._publish_invoice_artifacts(plan, tile)
+        dataset_paths = build_tile_dataset_paths(
+            paths=tile.paths,
+            out=tile.out,
+            invoice_org=plan.invoice_source,
+        )
+        for step in artifact_stage_order(plan):
+            if step == _THUMBNAIL_STAGE:
+                self._publish_images(plan, tile)
+                continue
+            self._publish_invoice_step(plan, step, dataset_paths)
 
     def _publish_raw(self, plan: ExecutionPlan, tile: TilePlan) -> None:
         """Copy raw inputs through the mode strategy, or the generic service."""
@@ -177,6 +206,7 @@ class TileExecutor:
                 nonshared_raw_dir=tile.out.nonshared_raw,
                 config=plan.config,
                 smarttable=plan.mode.value == "smarttable",
+                data_root=plan.data_root,
             )
 
     def _publish_images(self, plan: ExecutionPlan, tile: TilePlan) -> None:
@@ -190,18 +220,52 @@ class TileExecutor:
                 config=plan.config,
             )
 
-    def _publish_invoice_artifacts(self, plan: ExecutionPlan, tile: TilePlan) -> None:
-        """Apply the structured / magic-variable / description invoice steps."""
+    def _publish_invoice_step(
+        self,
+        plan: ExecutionPlan,
+        step: str,
+        dataset_paths: RdeDatasetPaths,
+    ) -> None:
+        """Apply one structured / magic-variable / description invoice step."""
         with _publication_guard(_invoice_stage_error):
-            self._invoice_service.apply_config(
+            self._invoice_service.apply_step(
+                step,
                 config=plan.config,
-                dataset_paths=build_tile_dataset_paths(
-                    paths=tile.paths,
-                    out=tile.out,
-                    invoice_org=resolve_invoice_source(plan.root),
-                ),
-                steps=_invoice_stage_steps(plan),
+                dataset_paths=dataset_paths,
             )
+
+
+def _validate_precompleted_tile(tile: TilePlan) -> None:
+    """Apply the per-tile artifact contract to a mode-completed tile.
+
+    Args:
+        tile: Tile the mode marked as pre-completed.
+
+    Raises:
+        RdeValidationError: If the tile's invoice or metadata does not validate.
+            The tile boundary turns it into an ordinary iteration failure, so
+            ``fail_fast`` aborts the run exactly where v1 did.
+    """
+    try:
+        validate_tile_outputs(
+            invoice_path=tile.out.invoice / "invoice.json",
+            schema_path=tile.paths.tasksupport / "invoice.schema.json",
+            metadata_path=tile.out.meta / "metadata.json",
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise wrap_validation_error(exc) from exc
+
+
+def _tile_material(plan: ExecutionPlan, preparation: TilePreparation) -> TileMaterial:
+    """Bundle the run-owned material one tile hands to its invoker.
+
+    Carrying it by value is what replaced the module-global row-data handoff
+    and the filesystem-probing invoice-source resolver (rulings #2 and #3).
+    """
+    return TileMaterial(
+        invoice_source=plan.invoice_source,
+        smarttable_row_data=preparation.smarttable_row_data,
+    )
 
 
 def _precompleted_result(tile: TilePlan) -> ExecutionResult:
@@ -260,18 +324,37 @@ def _raw_copy_strategy(plan: ExecutionPlan) -> RawCopyStrategy | None:
     return provider(plan)
 
 
-def _invoice_stage_steps(plan: ExecutionPlan) -> frozenset[str] | None:
-    """Return the invoice steps this mode runs, or ``None`` for all of them.
+#: The v1 invoice/SmartTable pipeline order, used when a mode declares none.
+DEFAULT_ARTIFACT_STAGE_ORDER: tuple[str, ...] = (
+    _THUMBNAIL_STAGE,
+    INVOICE_STEP_STRUCTURED,
+    INVOICE_STEP_MAGIC,
+    INVOICE_STEP_DESCRIPTION,
+)
 
-    v1's RDEFormat pipeline has neither ``StructuredInvoiceSaver`` nor
-    ``VariableApplier``, so the stage cannot be unconditional; the selection is
-    mode-owned and read through ``getattr`` so the member stays optional.
+
+def artifact_stage_order(plan: ExecutionPlan) -> tuple[str, ...]:
+    """Return the ordered post-invoke artifact stages this mode runs.
+
+    The sequence — not a set — is the contract (ruling #5): v1's MultiDataTile
+    and ExcelInvoice pipelines run ``VariableApplier`` before the thumbnail and
+    structured stages, and RDEFormat runs neither the structured export nor the
+    magic expansion at all. The capability stays optional and is read through
+    ``getattr``, so a handler that declares only ``kind``/``create_tiles``
+    remains valid at runtime *and* in the type system (ruling #8).
+
+    Args:
+        plan: Immutable run execution plan.
+
+    Returns:
+        The ordered stage names, defaulting to the v1 invoice pipeline's.
     """
     handler = handler_for(plan.mode)
-    provider = getattr(handler, "invoice_stage_steps", None)
+    provider = getattr(handler, "artifact_stage_order", None)
     if provider is None:
-        return None
-    return provider(plan)
+        return DEFAULT_ARTIFACT_STAGE_ORDER
+    order = provider(plan)
+    return DEFAULT_ARTIFACT_STAGE_ORDER if order is None else tuple(order)
 
 
 def _is_run_interrupted(exc: Exception) -> bool:

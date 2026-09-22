@@ -375,7 +375,7 @@ class TestSmarttableTileInvoiceDelegation:
         schema_path.write_text(json.dumps({"properties": {}}), encoding="utf-8")
         dist_path = tmp_path / "divided" / "0000" / "invoice" / "invoice.json"
 
-        invoice = build_smarttable_tile_invoice(
+        invoice, row_data = build_smarttable_tile_invoice(
             smarttable_rowfile=rowfile,
             invoice_org=invoice_org,
             invoice_schema_path=schema_path,
@@ -387,6 +387,9 @@ class TestSmarttableTileInvoiceDelegation:
         assert on_disk["basic"]["dataName"] == "smarttable_value_0"
         assert invoice.raw["basic"]["dataName"] == "smarttable_value_0"
         assert invoice.mode == "invoice"
+        # Session I-REVIEW-A ruling #2: the row dictionary is returned, not
+        # retained anywhere a concurrent run could reach.
+        assert row_data == {"basic/dataName": "smarttable_value_0"}
 
 
 class TestExistingInvoiceFacadeUnaffected:
@@ -402,100 +405,3 @@ class TestExistingInvoiceFacadeUnaffected:
 
         params = list(inspect.signature(load_invoice).parameters)
         assert params == ["invoice_path", "schema_path"]
-
-
-# Session I6-1: SmartTable row-data handoff (S14), keyed by exact run data root.
-#
-# EP/BV table:
-# | TC | Class | Input | Expected |
-# |----|-------|-------|----------|
-# | TC-I6-1-EP-060 | recorded | a row dict for one tile | readable through tile_row_data |
-# | TC-I6-1-EV-061 | absent tile | never-recorded path | None |
-# | TC-I6-1-EV-062 | None row | recording None | the entry is removed, not stored |
-# | TC-I6-1-EV-063 | run scope | clear_tile_row_data(data_root) | only that root's entries are dropped |
-# | TC-I6-1-EV-064 | nested roots | parent root cleared | the nested root keeps its entries |
-
-
-def test_tile_row_data_round_trips__tc_i6_1_ep_060(tmp_path: Path) -> None:
-    """TC-I6-1-EP-060: a recorded row dictionary is readable for that tile."""
-    # Given: a recorded row dictionary
-    from rdetoolkit.domain.invoice import clear_tile_row_data, record_tile_row_data, tile_row_data
-
-    data_root = tmp_path / "data"
-    tile_invoice = data_root / "invoice" / "invoice.json"
-    tile_invoice.parent.mkdir(parents=True)
-    tile_invoice.write_text("{}", encoding="utf-8")
-    record_tile_row_data(data_root, tile_invoice, {"basic/dataName": "row-0"})
-
-    # When / Then: the same tile reads its own dictionary back
-    assert tile_row_data(data_root, tile_invoice) == {"basic/dataName": "row-0"}
-    clear_tile_row_data(data_root)
-
-
-def test_unknown_tile_has_no_row_data__tc_i6_1_ev_061(tmp_path: Path) -> None:
-    """TC-I6-1-EV-061: a tile that never recorded anything reads as None."""
-    # Given / When / Then: an unrecorded tile path yields nothing
-    from rdetoolkit.domain.invoice import tile_row_data
-
-    data_root = tmp_path / "data"
-    assert tile_row_data(data_root, data_root / "invoice" / "invoice.json") is None
-
-
-def test_recording_none_removes_the_entry__tc_i6_1_ev_062(tmp_path: Path) -> None:
-    """TC-I6-1-EV-062: a SmartTable CSV without data rows clears the entry."""
-    # Given: a tile that previously recorded a row dictionary
-    from rdetoolkit.domain.invoice import clear_tile_row_data, record_tile_row_data, tile_row_data
-
-    data_root = tmp_path / "data"
-    tile_invoice = data_root / "invoice" / "invoice.json"
-    tile_invoice.parent.mkdir(parents=True)
-    tile_invoice.write_text("{}", encoding="utf-8")
-    record_tile_row_data(data_root, tile_invoice, {"basic/dataName": "row-0"})
-
-    # When: the initializer reports no row data for the same tile
-    record_tile_row_data(data_root, tile_invoice, None)
-
-    # Then: nothing stale survives
-    assert tile_row_data(data_root, tile_invoice) is None
-    clear_tile_row_data(data_root)
-
-
-def test_clearing_is_scoped_to_one_run_root__tc_i6_1_ev_063(tmp_path: Path) -> None:
-    """TC-I6-1-EV-063: clearing one run root leaves a concurrent root intact."""
-    # Given: two runs rooted in different directories
-    from rdetoolkit.domain.invoice import clear_tile_row_data, record_tile_row_data, tile_row_data
-
-    roots = [tmp_path / "run_a" / "data", tmp_path / "run_b" / "data"]
-    for index, data_root in enumerate(roots):
-        (data_root / "invoice").mkdir(parents=True)
-        (data_root / "invoice" / "invoice.json").write_text("{}", encoding="utf-8")
-        record_tile_row_data(data_root, data_root / "invoice" / "invoice.json", {"n": str(index)})
-
-    # When: only the first run is cleared
-    clear_tile_row_data(roots[0])
-
-    # Then: the concurrent run keeps its own material
-    assert tile_row_data(roots[0], roots[0] / "invoice" / "invoice.json") is None
-    assert tile_row_data(roots[1], roots[1] / "invoice" / "invoice.json") == {"n": "1"}
-    clear_tile_row_data(roots[1])
-
-
-def test_nested_roots_do_not_clobber_each_other__tc_i6_1_ev_064(tmp_path: Path) -> None:
-    """TC-I6-1-EV-064: clearing a parent root never releases a nested run."""
-    # Given: one run rooted inside another run's directory tree
-    from rdetoolkit.domain.invoice import clear_tile_row_data, record_tile_row_data, tile_row_data
-
-    parent = tmp_path / "data"
-    nested = tmp_path / "nested" / "data"
-    for data_root, value in ((parent, "outer"), (nested, "inner")):
-        (data_root / "invoice").mkdir(parents=True)
-        (data_root / "invoice" / "invoice.json").write_text("{}", encoding="utf-8")
-        record_tile_row_data(data_root, data_root / "invoice" / "invoice.json", {"who": value})
-
-    # When: the enclosing run finishes and releases its own material
-    clear_tile_row_data(parent)
-
-    # Then: the nested run is untouched, because keying is by exact root
-    assert tile_row_data(parent, parent / "invoice" / "invoice.json") is None
-    assert tile_row_data(nested, nested / "invoice" / "invoice.json") == {"who": "inner"}
-    clear_tile_row_data(nested)

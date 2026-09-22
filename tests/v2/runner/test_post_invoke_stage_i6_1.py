@@ -707,7 +707,12 @@ def test_mode_selected_steps_skip_the_omitted_ones__tc_i6_1_ev_030(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-I6-1-EV-030: a handler-selected subset omits structured and magic."""
+    """TC-I6-1-EV-030: a handler-selected sequence omits structured and magic.
+
+    Updated in Session I-REVIEW-A (ruling #5): the seam is an ordered
+    ``artifact_stage_order`` instead of a ``frozenset``, because review R3
+    proved the order is observable when a stage fails.
+    """
     # Given: a handler that declares only the description step
     from rdetoolkit.modes.install import install_default_handlers
     from rdetoolkit.modes.registry import clear, register
@@ -720,9 +725,9 @@ def test_mode_selected_steps_skip_the_omitted_ones__tc_i6_1_ev_030(
         def create_tiles(self, context: Any) -> Any:
             return create_common_tiles(self.kind, context)
 
-        def invoice_stage_steps(self, plan: Any) -> frozenset[str]:
+        def artifact_stage_order(self, plan: Any) -> tuple[str, ...]:
             _ = plan
-            return frozenset({"description"})
+            return ("description",)
 
     root = _prepare_root(tmp_path, data_name="${filename}")
     monkeypatch.chdir(root)

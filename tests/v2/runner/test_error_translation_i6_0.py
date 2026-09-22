@@ -118,6 +118,8 @@ def _plan(tmp_path: Path, tile: TilePlan, target: FlowTarget | None = None) -> E
         mode=ModeKind.invoice,
         config=RdeConfig(),
         root=tmp_path,
+        data_root=tmp_path,
+        invoice_source=tmp_path / "data" / "invoice" / "invoice.json",
         error_policy="continue",
         tiles=(tile,),
     )
@@ -448,7 +450,7 @@ class TestFinalizeHonorsPassthroughCodes:
         )
 
         # When: finalizing that report
-        finalize(report, RdeConfig(), root=tmp_path)
+        finalize(report, RdeConfig(), data_root=tmp_path / "data")
 
         # Then: job.failed reproduces the v1 code and message exactly
         content = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
@@ -466,7 +468,7 @@ class TestFinalizeHonorsPassthroughCodes:
         report = _make_report(error={"code": 8888, "name": "MysteryFailure", "message": "boom"})
 
         # When: finalizing that report
-        finalize(report, RdeConfig(), root=tmp_path)
+        finalize(report, RdeConfig(), data_root=tmp_path / "data")
 
         # Then: the catalog default replaces the unknown code
         content = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
@@ -486,7 +488,7 @@ class TestFinalizeHonorsPassthroughCodes:
         )
 
         # When: finalizing that report
-        finalize(report, RdeConfig(), root=tmp_path)
+        finalize(report, RdeConfig(), data_root=tmp_path / "data")
 
         # Then: the declared code is written unchanged
         content = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
@@ -504,7 +506,7 @@ class TestFinalizeHonorsPassthroughCodes:
         report = _make_report(error={"code": _USER_CODE, "name": "StructuredError"})
 
         # When: finalizing that report
-        finalize(report, RdeConfig(), root=tmp_path)
+        finalize(report, RdeConfig(), data_root=tmp_path / "data")
 
         # Then: the user code survives with a placeholder-free message
         content = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")

@@ -28,6 +28,13 @@ from rdetoolkit.types import IterationInfo, RdeConfig
 
 
 def _build_multidatatile_root(tmp_path: Path, file_count: int) -> Path:
+    """Build an alias-flat root: the marker directories sit directly below it.
+
+    ``resolve_data_root`` therefore answers ``root`` itself, and the Runner
+    streams to ``root/logs/iterations`` (Session I-REVIEW-A ruling #1); before
+    that ruling the invoice side used ``root`` while the outputs used
+    ``root/data``, splitting one run across two roots.
+    """
     root = tmp_path / "run_root"
     (root / "inputdata").mkdir(parents=True)
     for i in range(file_count):
@@ -61,7 +68,7 @@ class TestPerTileStreamingDuringRealRun:
         @node
         def _observe(iteration: IterationInfo) -> None:
             if iteration.index > 0:
-                previous_file = root / "data" / "logs" / "iterations" / f"iteration_{iteration.index - 1}.json"
+                previous_file = root / "logs" / "iterations" / f"iteration_{iteration.index - 1}.json"
                 observed_before_start[iteration.index] = previous_file.exists()
 
         @flow
@@ -146,7 +153,7 @@ class TestFailedTileCallLogStreaming:
         report = runner.iterate(_pipeline, ModeKind.multidatatile, RdeConfig())
 
         # Then: recorder snapshots, not EventSink reconstruction, supply both views
-        streamed = json.loads((root / "data" / "logs" / "iterations" / "iteration_0.json").read_text(encoding="utf-8"))
+        streamed = json.loads((root / "logs" / "iterations" / "iteration_0.json").read_text(encoding="utf-8"))
         assert streamed["call_records"][0]["node_id"] == "tc_d2r_f4_failed_node"
         assert streamed["call_records"][0]["status"] == "failed"
         assert report.iterations[0]["node_calls"][0]["node_id"] == "tc_d2r_f4_failed_node"

@@ -22,7 +22,7 @@ class TileIterator(Protocol):
         mode: ModeKind,
         inputdata_path: Path,
         unpacked_dir_path: Path,
-        base_output_dir: Path,
+        data_root: Path,
         config: RdeConfig | None = None,
     ) -> Iterator[tuple[IterationInfo, InputPaths, OutputContext]]:
         """Yield per-tile ``IterationInfo``, ``InputPaths``, and ``OutputContext`` triples."""
@@ -33,7 +33,7 @@ def iterate_tiles(
     mode: ModeKind,
     inputdata_path: Path,
     unpacked_dir_path: Path,
-    base_output_dir: Path,
+    data_root: Path,
     config: RdeConfig | None = None,
 ) -> Iterator[tuple[IterationInfo, InputPaths, OutputContext]]:
     """Yield v1-compatible tile contexts for all Runner modes.
@@ -42,7 +42,10 @@ def iterate_tiles(
         mode: Effective Runner mode.
         inputdata_path: Directory containing input files.
         unpacked_dir_path: Directory used by legacy input checkers.
-        base_output_dir: Root ``data`` output directory.
+        data_root: The run's single resolved data root. It anchors both the
+            per-tile output directories and the ``invoice``/``tasksupport``
+            input directories, so one run can never read its invoice from one
+            root while writing its tiles below another (ruling #1).
         config: Effective run configuration. The legacy checkers consume
             ``smarttable.save_table_file`` from it; passing ``None`` keeps the
             v1 default behavior.
@@ -52,8 +55,8 @@ def iterate_tiles(
     """
     src_paths = RdeInputDirPaths(
         inputdata=inputdata_path,
-        invoice=inputdata_path.parent / "invoice",
-        tasksupport=inputdata_path.parent / "tasksupport",
+        invoice=data_root / "invoice",
+        tasksupport=data_root / "tasksupport",
     )
     checker = selected_input_checker(
         src_paths,
@@ -65,7 +68,7 @@ def iterate_tiles(
     total = len(rawfiles_by_tile)
 
     for idx, rawfiles in enumerate(rawfiles_by_tile):
-        tile_paths = resolve_tile_paths(base_output_dir, idx)
+        tile_paths = resolve_tile_paths(data_root, idx)
         _create_output_dirs(tile_paths)
         rawfiles_tuple = tuple(rawfiles)
         yield (

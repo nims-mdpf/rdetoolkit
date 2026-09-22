@@ -6,7 +6,14 @@ v1 callback, so a migrated program could not reach material v1 always provided.
 The rules ported here are v1's own: ``workflows.generate_folder_paths_iterator``
 (per-tile ``temp``/``invoice_patch``), ``workflows._select_smarttable_rowfile``
 (row CSV selection) and ``SmartTableInvoiceInitializer`` (the row dictionary,
-which is now retained instead of discarded).
+which is now returned by value).
+
+Session I-REVIEW-A (ruling #2) moved the row-dictionary cells out of this
+module: TC-I6-1-EP-053 and TC-I6-1-EV-058 tested a process-global handoff that
+no longer exists. Their replacements are strictly stronger and live in
+``tests/v2/compat/test_tile_material_handoff_i_review_a.py`` (TC-IRA-2-EP-020 /
+EP-021 prove the by-value handoff, TC-IRA-2-EV-022 proves a concurrent run on
+the same root cannot erase it, TC-IRA-2-EV-024 proves the global is gone).
 
 EP table:
 | TC | Class | Input | Expected |
@@ -14,16 +21,14 @@ EP table:
 | TC-I6-1-EP-050 | tile 0 | invoice-mode context | ``temp``/``invoice_patch`` are the tile-0 directories |
 | TC-I6-1-EP-051 | divided tile | tile 1 context | both point below ``divided/0001`` |
 | TC-I6-1-EP-052 | SmartTable | generated row CSV in rawfiles | ``smarttable_rowfile`` is that CSV |
-| TC-I6-1-EP-053 | SmartTable | prepared tile invoice | ``smarttable_row_data`` is the initializer's row dict |
 
 BV / negative table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-I6-1-EV-054 | non-SmartTable | plain rawfiles | both SmartTable fields stay ``None`` |
-| TC-I6-1-EV-055 | divided tile | tile 1 with a run-level backup | ``invoice_org`` stays run-level |
+| TC-I6-1-EV-055 | divided tile | tile 1, run-level source on the material | ``invoice_org`` stays run-level |
 | TC-I6-1-EV-056 | wrong prefix | ``other_0000.csv`` first rawfile | ``smarttable_rowfile`` stays ``None`` |
 | TC-I6-1-EV-057 | empty tile | no rawfiles | both SmartTable fields stay ``None`` |
-| TC-I6-1-EV-058 | run lifetime | three runs on distinct roots | no row data is retained afterwards |
 """
 
 from __future__ import annotations
@@ -38,8 +43,14 @@ from rdetoolkit.core.context import RunContext
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import resolve_tile_paths
+from rdetoolkit.runner.planner import TileMaterial
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 from tests.v2.contract.fixtures import _generate
+
+
+def _material(root: Path, *, invoice_source: Path | None = None) -> TileMaterial:
+    """Build the run-owned material the Runner hands to the callback adapter."""
+    return TileMaterial(invoice_source=invoice_source or root / "data" / "invoice" / "invoice.json")
 
 
 def _context(root: Path, *, idx: int = 0, rawfiles: tuple[Path, ...] = ()) -> RunContext:
@@ -67,7 +78,7 @@ def test_root_tile_exposes_temp_and_invoice_patch__tc_i6_1_ep_050(tmp_path: Path
     context = _context(tmp_path)
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path))
 
     # Then: both directories are the tile-0 paths, not None
     assert legacy.output_paths.temp == tmp_path / "data" / "temp"
@@ -80,7 +91,7 @@ def test_divided_tile_exposes_its_own_directories__tc_i6_1_ep_051(tmp_path: Path
     context = _context(tmp_path, idx=1)
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path))
 
     # Then: the divided tile's own directories are exposed
     assert legacy.output_paths.temp == tmp_path / "data" / "divided" / "0001" / "temp"
@@ -98,43 +109,10 @@ def test_smarttable_rowfile_follows_the_v1_rule__tc_i6_1_ep_052(tmp_path: Path) 
     context = _context(tmp_path, rawfiles=(rowfile, other))
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path))
 
     # Then: the row CSV is exposed to the callback
     assert legacy.output_paths.smarttable_rowfile == rowfile
-
-
-def test_smarttable_row_data_survives_invoice_preparation__tc_i6_1_ep_053(tmp_path: Path) -> None:
-    """TC-I6-1-EP-053: the initializer's row dict reaches the callback."""
-    # Given: a SmartTable fixture whose tiles were prepared by the invoice service
-    root = tmp_path / "smarttable"
-    _generate.materialize_sut_case("smarttable", root)
-    data_root = root / "data"
-    service = InvoiceService()
-    service.begin_run(root)
-    from rdetoolkit.runner.iterator import iterate_tiles  # noqa: PLC0415 -- exercises the production enumeration
-
-    tiles = list(iterate_tiles(ModeKind.smarttable, data_root / "inputdata", data_root / "temp", data_root))
-    info, paths, out = tiles[0]
-    service.prepare_tile(
-        ModeKind.smarttable,
-        paths=paths,
-        invoice_dir=out.invoice,
-        iteration_index=info.index,
-        invariant_invoice=None,
-        invoice_source=data_root / "invoice" / "invoice.json",
-    )
-    context = RunContext(paths=paths, out=out, config=RdeConfig(), iteration=info)
-
-    # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
-
-    # Then: the callback sees the same row dictionary the initializer computed
-    row_data = legacy.output_paths.smarttable_row_data
-    assert row_data is not None
-    expected = json.loads((out.invoice / "invoice.json").read_text(encoding="utf-8"))
-    assert row_data["basic/dataName"] == expected["basic"]["dataName"]
-    assert legacy.output_paths.smarttable_rowfile == paths.rawfiles[0]
 
 
 def test_non_smarttable_tiles_keep_the_fields_empty__tc_i6_1_ev_054(tmp_path: Path) -> None:
@@ -146,7 +124,7 @@ def test_non_smarttable_tiles_keep_the_fields_empty__tc_i6_1_ev_054(tmp_path: Pa
     context = _context(tmp_path, rawfiles=(rawfile,))
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path))
 
     # Then: both SmartTable fields stay empty
     assert legacy.output_paths.smarttable_rowfile is None
@@ -154,18 +132,29 @@ def test_non_smarttable_tiles_keep_the_fields_empty__tc_i6_1_ev_054(tmp_path: Pa
 
 
 def test_divided_tile_keeps_the_run_level_invoice_org__tc_i6_1_ev_055(tmp_path: Path) -> None:
-    """TC-I6-1-EV-055: divided tiles read the run-level backup, as v1 does."""
-    # Given: a run-level backup and a divided tile
+    """TC-I6-1-EV-055 (UPDATED, ruling #3): a divided tile uses the plan's source.
+
+    The previous version put a backup on disk and required the adapter to
+    *discover* it. That presence rule is review R2's defect — a leftover from an
+    earlier run won the same way. The invariant worth keeping is that the
+    run-level source is run-level: a divided tile must not fall back to its own
+    ``divided/0001/temp/invoice_org.json``.
+    """
+    # Given: a plan whose run-level source is the backup, and a divided tile
     backup = tmp_path / "data" / "temp" / "invoice_org.json"
     backup.parent.mkdir(parents=True, exist_ok=True)
     backup.write_text("{}", encoding="utf-8")
+    tile_local = tmp_path / "data" / "divided" / "0001" / "temp" / "invoice_org.json"
+    tile_local.parent.mkdir(parents=True, exist_ok=True)
+    tile_local.write_text("{}", encoding="utf-8")
     context = _context(tmp_path, idx=1)
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path, invoice_source=backup))
 
-    # Then: the tile's own temp directory never shadows the run-level backup
+    # Then: the tile's own temp directory never shadows the run-level source
     assert legacy.output_paths.invoice_org == backup
+    assert legacy.output_paths.invoice_org != tile_local
 
 
 @pytest.mark.parametrize(
@@ -181,7 +170,7 @@ def test_non_matching_first_rawfile_is_not_a_rowfile__tc_i6_1_ev_056(tmp_path: P
     context = _context(tmp_path, rawfiles=(candidate,))
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path))
 
     # Then: no row file is advertised
     assert legacy.output_paths.smarttable_rowfile is None
@@ -193,41 +182,8 @@ def test_empty_tile_exposes_no_smarttable_material__tc_i6_1_ev_057(tmp_path: Pat
     context = _context(tmp_path)
 
     # When: converting to v1 dataset paths
-    legacy = to_legacy_dataset_paths(context)
+    legacy = to_legacy_dataset_paths(context, material=_material(tmp_path))
 
     # Then: both SmartTable fields stay empty
     assert legacy.output_paths.smarttable_rowfile is None
     assert legacy.output_paths.smarttable_row_data is None
-
-
-def test_sequential_runs_retain_no_row_data__tc_i6_1_ev_058(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """TC-I6-1-EV-058: the row-data handoff does not accumulate across runs."""
-    # Given: three SmartTable runs rooted in three different directories
-    from rdetoolkit.core.flow import flow
-    from rdetoolkit.domain import invoice as invoice_module
-    from rdetoolkit.runner.lifecycle import Runner
-
-    @flow
-    def _noop(paths: InputPaths) -> None:
-        assert paths.inputdata.is_dir()
-
-    invoice_module._TILE_ROW_DATA.clear()  # noqa: SLF001 -- isolate this test from earlier runs
-
-    # When: running them one after another
-    for index in range(3):
-        root = tmp_path / f"run_{index}"
-        _generate.materialize_sut_case("smarttable", root)
-        monkeypatch.chdir(root)
-        runner = Runner(
-            root=root,
-            inputdata_path=root / "data" / "inputdata",
-            unpacked_dir_path=root / "data" / "temp",
-        )
-        report = runner.run(_noop)
-        assert report.status == "success", report.error
-
-    # Then: every run released its own material at the end of the run
-    assert invoice_module._TILE_ROW_DATA == {}  # noqa: SLF001 -- the handoff must be empty

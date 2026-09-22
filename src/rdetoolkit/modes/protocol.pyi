@@ -14,6 +14,7 @@ class PlanningContext:
     inputdata_path: Path
     unpacked_dir_path: Path
     invoice_service: InvoiceService
+    data_root: Path
     config: RdeConfig | None = ...
 
 class RawCopyStrategy(Protocol):
@@ -25,10 +26,15 @@ class RawCopyStrategy(Protocol):
         nonshared_raw_dir: Path,
         config: RdeConfig,
         smarttable: bool = ...,
+        data_root: Path,
     ) -> None: ...
 
 class ModeHandler(Protocol):
     kind: ModeKind
     def create_tiles(self, context: PlanningContext) -> Iterable[TilePlan]: ...
+
+class RawCopyStrategyProvider(Protocol):
     def raw_copy_strategy(self, plan: ExecutionPlan) -> RawCopyStrategy | None: ...
-    def invoice_stage_steps(self, plan: ExecutionPlan) -> frozenset[str] | None: ...
+
+class ArtifactStageProvider(Protocol):
+    def artifact_stage_order(self, plan: ExecutionPlan) -> tuple[str, ...] | None: ...
