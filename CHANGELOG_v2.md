@@ -59,13 +59,14 @@ already existed and is now protected by tests that can fail.
 
 ### Note for maintainers
 
-`tests/v2/contract/fixtures/expected/**` is deliberately **not** regenerated in
-this commit, so `_generate.py --check` reports a mismatch for all 21 snapshots
-until the human re-freeze runs on a clean tree. `observe.PENDING_FREEZE_KEYS`
-makes the frozen comparisons skip exactly the new key in the meantime; every
-live-oracle comparison already uses it. Emptying `PENDING_FREEZE_KEYS` after
-the re-freeze is what turns the frozen cells content-aware too. See
-`merge_v1/contracts.md` §I-REVIEW-B for the two-commit ritual.
+The 21 snapshots under `tests/v2/contract/fixtures/expected/**` were re-frozen
+on a clean tree in a separate commit (two-commit ritual, see
+`merge_v1/contracts.md` §I-REVIEW-B); the only delta was the added
+`artifact_sha256` key plus the provenance stamp. `observe.PENDING_FREEZE_KEYS`
+is empty again, so every frozen cell -- not only the live-oracle cells --
+now compares artifact contents. Keep the tuple empty unless a future session
+adds another observation key; list the key there only between the generator
+change and its re-freeze.
 
 ## Unreleased — Session I-REVIEW-A (PR #539 review response)
 

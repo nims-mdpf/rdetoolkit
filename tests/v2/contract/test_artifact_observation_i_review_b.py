@@ -154,39 +154,51 @@ def test_raw_artifacts_stay_owned_by_raw_sha256__tc_irb_f4_ev_004(tmp_path: Path
     assert set(raw) == {"data/raw/first.txt", "data/nonshared_raw/first.txt"}
 
 
-def test_a_missing_mandatory_parity_key_is_fatal__tc_irb_f4_bv_005() -> None:
-    """TC-IRB-F4-BV-005: only the pending re-freeze key may be absent."""
-    # Given: a frozen observation that lost an already-frozen parity key
-    frozen = {key: {} for key in PARITY_KEYS if key != "invoices"}
+@pytest.mark.parametrize("missing", PARITY_KEYS)
+def test_a_missing_mandatory_parity_key_is_fatal__tc_irb_f4_bv_005(missing: str) -> None:
+    """TC-IRB-F4-BV-005: every parity key is mandatory once the corpus is frozen.
 
-    # When/Then: the omission is an error, not a silently narrower comparison
-    with pytest.raises(KeyError, match="invoices"):
+    ``artifact_sha256`` was the pending key between ritual steps (a) and (c);
+    after the 2026-09-23 re-freeze nothing is pending, so a frozen observation
+    that lacks *any* parity key -- the new one included -- is an error, never a
+    silently narrower comparison.
+    """
+    # Given: nothing is pending and a frozen observation lost one parity key
+    assert PENDING_FREEZE_KEYS == ()
+    frozen: dict[str, object] = {
+        key: ({"directories": [], "files": []} if key == "output_tree" else {})
+        for key in PARITY_KEYS
+        if key != missing
+    }
+
+    # When/Then: the omission is fatal
+    with pytest.raises(KeyError, match=missing):
         parity_view(frozen)
 
-    # And: the pre-ritual corpus shape is accepted, because only the pending
-    # key is missing from it
-    pre_ritual = {key: {} for key in PARITY_KEYS if key not in PENDING_FREEZE_KEYS}
-    pre_ritual["output_tree"] = {"directories": [], "files": []}
-    assert set(parity_view(pre_ritual)) == set(PARITY_KEYS) - set(PENDING_FREEZE_KEYS)
 
+def test_pending_freeze_view_is_the_identity_after_the_refreeze__tc_irb_f4_ev_006() -> None:
+    """TC-IRB-F4-EV-006: no narrowing survives the re-freeze.
 
-def test_pending_freeze_view_drops_only_the_pending_key__tc_irb_f4_ev_006() -> None:
-    """TC-IRB-F4-EV-006: narrowing is scoped to the not-yet-frozen key."""
-    # Given: a live observation and the pre-ritual frozen snapshot beside it
+    Every frozen snapshot now carries ``artifact_sha256``, so the live
+    observation is compared in full; a frozen snapshot that still lacked the
+    key would be a stale corpus, not a reason to skip the comparison.
+    """
+    # Given: a live observation next to its (re-frozen) snapshot
     frozen_path = _generate.EXPECTED_ROOT / "invoice" / "ok.json"
     frozen = json.loads(frozen_path.read_text(encoding="utf-8"))["observed"]
+    assert "artifact_sha256" in frozen
     live = {**frozen, "artifact_sha256": {"data/meta/metadata.json": "deadbeef"}}
 
-    # When: narrowing the live observation to what the snapshot can express
+    # When: passing it through the (now identity) narrowing helper
     narrowed = pending_freeze_view(live, frozen)
 
-    # Then: exactly the pending key disappears and every other value survives
-    assert set(live) - set(narrowed) == set(PENDING_FREEZE_KEYS)
-    assert narrowed == frozen
+    # Then: nothing is dropped, so a content difference stays visible
+    assert narrowed == live
+    assert narrowed != frozen
 
-    # And: once the snapshot carries the key, nothing is dropped any more
-    refrozen = {**frozen, "artifact_sha256": {"data/meta/metadata.json": "deadbeef"}}
-    assert pending_freeze_view(live, refrozen) == live
+    # And: a snapshot that lost the key does not get the comparison narrowed
+    stale = {key: value for key, value in frozen.items() if key != "artifact_sha256"}
+    assert pending_freeze_view(live, stale) == live
 
 
 @pytest.mark.parametrize(

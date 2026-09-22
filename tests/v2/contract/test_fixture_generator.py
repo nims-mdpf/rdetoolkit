@@ -394,25 +394,24 @@ def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -
     assert all(path.is_file() for path in snapshots)
 
     # And: each value records clean generator provenance and observed v1 result.
-    # source.commit is the revision that WROTE each snapshot. The authorized
-    # PII remediation selectively regenerated SmartTable, so provenance must
-    # be internally consistent within that cohort and within the untouched G1
-    # baseline; it intentionally need not match the checked-out revision.
-    commits_by_mode: dict[str, set[str]] = {}
+    # source.commit is the revision that WROTE each snapshot. Between the H4
+    # PII remediation (SmartTable only) and the I-REVIEW-B re-freeze the corpus
+    # carried two cohorts; the 2026-09-23 re-freeze rewrote all 16 on one clean
+    # tree, so a single recorded revision now covers the whole corpus. It
+    # intentionally need not match the checked-out revision.
+    commits: set[str] = set()
     for path in snapshots:
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["source"]["tag"] == _generate.SOURCE_TAG
         commit = payload["source"]["commit"]
         assert isinstance(commit, str) and commit and commit != "<unrecorded>"
         assert "-dirty" not in commit
-        commits_by_mode.setdefault(path.parent.name, set()).add(commit)
+        commits.add(commit)
         assert payload["observed"]["exit_code"] in {0, 1}
         assert "output_tree" in payload["observed"]
-    smarttable_commits = commits_by_mode.pop("smarttable")
-    baseline_commits = set().union(*commits_by_mode.values())
-    assert len(smarttable_commits) == 1
-    assert len(baseline_commits) == 1
-    assert smarttable_commits.isdisjoint(baseline_commits)
+        # The re-freeze is what made artifact contents part of the contract.
+        assert "artifact_sha256" in payload["observed"]
+    assert len(commits) == 1
 
 
 def test_materialize_oracle_case_recreates_unpacked_after_fresh_checkout__tc_gr_001(
