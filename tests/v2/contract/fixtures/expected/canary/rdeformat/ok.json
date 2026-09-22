@@ -30,6 +30,12 @@
     "outcome": "ok"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/main_image/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563",
+      "data/temp/invoice_org.json": "9afff64f54d433b8b857f7ee82c238e8a3ec5f4668ffd9d816e32f8d0a6faf16",
+      "data/temp/main_image/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563",
+      "data/thumbnail/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563"
+    },
     "callback_count": 1,
     "exit_code": 0,
     "invoice_backup": {
@@ -155,7 +161,7 @@
     }
   },
   "source": {
-    "commit": "750f20a3c412",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

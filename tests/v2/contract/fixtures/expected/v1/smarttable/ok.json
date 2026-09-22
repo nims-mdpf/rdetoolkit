@@ -5,6 +5,15 @@
     "outcome": "ok"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/divided/0001/meta/metadata.json": "c3fbb237061a87a45cd037e93bb822bf59f2ee0809c30da1646a26b28133e0b8",
+      "data/divided/0002/meta/metadata.json": "d82f70072b27f1dcb4fb9eaf5885ac95e5e618238e1fd20a9ffefaa0fdb843ea",
+      "data/temp/fsmarttable_full_0000.csv": "18df0ac0a066691cf6b338fac3e813291ca16440268b8f760e5df053e982172d",
+      "data/temp/fsmarttable_full_0001.csv": "eee7b8e396ed13d5948232349909c0713e1308b7e61957cd5b694f77676208d4",
+      "data/temp/fsmarttable_full_0002.csv": "7adc8f4f19802a8621a4649c34f0ea58d523f7d9bceda6f52385dbeb4abf9bc5",
+      "data/temp/measurements/row0.txt": "692db41f1adebbf0b021bcbaa9f977fc7f99bea4ef8e4490ecc6f2160fafe804",
+      "data/temp/測定/行1.txt": "9703a3b6a9e44627275d53acc029faee81e02438575f343ecbd92ced236561a5"
+    },
     "callback_count": 3,
     "exit_code": 0,
     "invoice_backup": null,
@@ -379,7 +388,7 @@
     }
   },
   "source": {
-    "commit": "543caa17a3a6",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

@@ -36,6 +36,11 @@
     "outcome": "ok"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/temp/LiTFSI_DME_charge_discharge_dummy.csv": "0789d619ac4864b6482f573e130c42ad66a6639e3e5f72e5aa6f50fd4af0f048",
+      "data/temp/fsmarttable_battery_electrolyte_0000.csv": "dcd851a5b0ad5c1a16bf835bc41131270d7821782c735e2a5c5034e1367cd32e",
+      "data/temp/smarttable_battery_electrolyte.csv": "f5bc499da5dedc694687a539a3cc5f15b31f90ba98206058132b501945800055"
+    },
     "callback_count": 1,
     "exit_code": 0,
     "invoice_backup": null,
@@ -152,7 +157,7 @@
     }
   },
   "source": {
-    "commit": "750f20a3c412",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

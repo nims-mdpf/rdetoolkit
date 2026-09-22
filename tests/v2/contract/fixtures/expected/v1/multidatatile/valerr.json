@@ -5,6 +5,10 @@
     "outcome": "valerr"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "9f97a4bbf6a12ed0a461e751e52324e11aded0e59fd4d8a411f64e54e2747b3f",
+      "data/temp/invoice_org.json": "cfc86918510cca708b6f0735b36ac2b275cd799c4d7fc30296dbc68d2e0bc647"
+    },
     "callback_count": 1,
     "exit_code": 1,
     "invoice_backup": {
@@ -58,7 +62,7 @@
     }
   },
   "source": {
-    "commit": "ada227a85b4a",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

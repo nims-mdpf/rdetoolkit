@@ -36,6 +36,9 @@
     "outcome": "ok"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/temp/invoice_org.json": "c6000280cbbfd946b5016cdaea94cdf01ddafc797663142d6fac49d622fba72a"
+    },
     "callback_count": 1,
     "exit_code": 0,
     "invoice_backup": {
@@ -201,7 +204,7 @@
     }
   },
   "source": {
-    "commit": "750f20a3c412",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

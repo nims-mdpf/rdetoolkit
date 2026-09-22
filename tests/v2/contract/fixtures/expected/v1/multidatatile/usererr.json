@@ -5,6 +5,10 @@
     "outcome": "usererr"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "29e4a167a8786e8e99acad42eed3d888c500099802519d071be12bcc1bd28764",
+      "data/temp/invoice_org.json": "15e8541de1ce43696a427a2017349f0d6d68cbcbe8d276c292457bc1cc3f9121"
+    },
     "callback_count": 1,
     "exit_code": 1,
     "invoice_backup": {
@@ -66,7 +70,7 @@
     }
   },
   "source": {
-    "commit": "ada227a85b4a",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

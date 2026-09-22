@@ -5,6 +5,9 @@
     "outcome": "zero_rows"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "9360989353484c50e40012b9d77f2bb5efc64dd7452858be4f270a0c33d5eb9b"
+    },
     "callback_count": 0,
     "exit_code": 1,
     "invoice_backup": null,
@@ -44,7 +47,7 @@
     "raw_sha256": {}
   },
   "source": {
-    "commit": "ada227a85b4a",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }
