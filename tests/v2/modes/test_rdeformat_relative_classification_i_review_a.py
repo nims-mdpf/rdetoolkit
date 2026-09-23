@@ -14,6 +14,19 @@ EP table:
 |----|-------|-------|----------|
 | TC-IRA-7-EP-050 | ancestor-free | ``<tmp>/project`` | the v1 output tree |
 | TC-IRA-7-EP-051 | ancestor ``raw`` | ``<tmp>/raw/project`` | the same tree and contents |
+| TC-IRA-7-EP-054 | ancestor ``meta`` | ``<tmp>/meta/project`` | the same tree and contents |
+| TC-IRA-7-EP-055 | ancestor ``structured`` | ``<tmp>/structured/project`` | the same tree and contents |
+| TC-IRA-7-EP-056 | ancestor ``main_image`` | ``<tmp>/main_image/project`` | the same tree and contents |
+
+Component priority matters for what an ancestor *could* hijack: the strategy
+checks ``raw, main_image, other_image, meta, structured, logs, nonshared_raw``
+in that order and stops at the first match. Under absolute-path
+classification a ``raw`` ancestor therefore hijacked every file, ``main_image``
+hijacked the ``meta`` and ``structured`` files, ``meta`` hijacked the
+``structured`` file, while a ``structured`` ancestor could hijack nothing in
+this fixture (every file's own component outranks it). EP-055 is kept as the
+review asked for it and pins the correct outcome; EP-051/054/056 are the seats
+that go red when the relative classification is lost.
 
 BV / negative table:
 | TC | Class | Input | Expected |
@@ -147,28 +160,61 @@ def test_plain_layout_matches_v1__tc_ira_7_ep_050(
     assert actual == expected
 
 
-def test_ancestor_named_raw_does_not_reclassify__tc_ira_7_ep_051_ev_052(
+@pytest.mark.parametrize(
+    "ancestor",
+    [
+        pytest.param("raw", id="TC-IRA-7-EP-051-raw"),
+        pytest.param("meta", id="TC-IRA-7-EP-054-meta"),
+        pytest.param("structured", id="TC-IRA-7-EP-055-structured"),
+        pytest.param("main_image", id="TC-IRA-7-EP-056-main_image"),
+    ],
+)
+def test_ancestor_named_like_a_component_does_not_reclassify__tc_ira_7_ep_051_054_055_056_ev_052(
+    ancestor: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-IRA-7-EP-051/EV-052: an ancestor named ``raw`` changes nothing.
+    """TC-IRA-7-EP-051/054/055/056 + EV-052: a component-named ancestor changes nothing.
 
-    This is review R1's counterexample: before this session ``result.csv``
-    landed in ``data/raw/`` and ``metadata.json`` in ``data/divided/0001/raw/``,
-    and the run reported success.
+    This is review R1's counterexample and its required test: the same ZIP is
+    processed below an ancestor named after a classification component. Before
+    this session ``result.csv`` landed in ``data/raw/`` under a ``raw``
+    ancestor; a ``meta`` or ``structured`` ancestor would have hijacked every
+    file into that component instead, because the first matching component of
+    the *absolute* path won.
     """
-    # Given: the same fixture below an ancestor directory named "raw"
-    expected = _run_v1(tmp_path / "v1" / "raw" / "project")
+    # Given: the same fixture below an ancestor directory named like a component
+    expected = _run_v1(tmp_path / "v1" / ancestor / "project")
 
     # When: the v2 Runner processes it from that misleading location
-    actual = _run_v2(tmp_path / "v2" / "raw" / "project", monkeypatch)
+    actual = _run_v2(tmp_path / "v2" / ancestor / "project", monkeypatch)
 
     # Then: the tree is v1's, not the ancestor's
     assert actual == expected
 
-    # And: the artifacts really are classified, not dumped into raw/
-    assert any(path.startswith("structured/") for path in actual)
-    assert any(path.endswith("meta/metadata.json") for path in actual)
+    # And: each artifact sits in the component its own path names ...
+    assert "structured/result.csv" in actual
+    assert "divided/0001/meta/metadata.json" in actual
+    assert "raw/first.txt" in actual
+
+    # ... and nowhere else: the ancestor's component hijacked nothing
+    hijacked = {
+        "raw/result.csv",
+        "raw/metadata.json",
+        "divided/0001/raw/metadata.json",
+        "meta/first.txt",
+        "meta/result.csv",
+        "divided/0001/meta/日本語データ.txt",
+        "structured/first.txt",
+        "structured/metadata.json",
+        "divided/0001/structured/日本語データ.txt",
+        "divided/0001/structured/metadata.json",
+        "main_image/first.txt",
+        "main_image/result.csv",
+        "divided/0001/main_image/日本語データ.txt",
+        "divided/0001/main_image/metadata.json",
+    }
+    assert hijacked.isdisjoint(actual)
 
 
 def test_source_outside_the_data_root_is_not_classified__tc_ira_7_ev_053(tmp_path: Path) -> None:

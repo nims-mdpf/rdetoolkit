@@ -97,13 +97,17 @@ backed by a regression test that reproduces the reviewers' counterexample.
 - **Mode-specific artifact order is preserved.** MultiDataTile and ExcelInvoice
   expand magic variables before the thumbnail and structured stages, as their v1
   pipelines do, so a tile whose magic expansion fails no longer leaves a
-  `structured/invoice.json` v1 never wrote.
+  `structured/invoice.json` v1 never wrote. The reverse direction is pinned as
+  well: when the structured export fails after the flow, those modes already
+  carry the expanded magic variable in the tile invoice, while invoice mode
+  (structured first) still carries the template — both compared with a live v1 run.
 - **SmartTable EarlyExit validates before completing.** A pre-completed tile is
   validated before it is recorded, so a broken tile invoice or metadata aborts a
   fail-fast run without executing any user flow, exactly as v1 does.
 - **RDEFormat classifies inputs relative to the data root.** A project stored
-  below a directory named `raw`, `meta` or `structured` no longer misplaces its
-  structured and metadata artifacts.
+  below a directory named `raw`, `meta`, `structured` or `main_image` no longer
+  misplaces its structured and metadata artifacts; each layout is compared with
+  a live v1 run on the same layout.
 - **The public entry points follow the resolved data root.**
   `workflows.run(flow=...)` and `rdetoolkit run --validate-only` derived it from
   a hardcoded `<root>/data`. On an alias-flat project the flow entry therefore
