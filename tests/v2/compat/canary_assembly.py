@@ -14,6 +14,31 @@ Usage from the repository root::
 
 The caller owns the destination and any cleanup. Existing ``data/`` trees are
 never overwritten.
+
+Assembly records the material's demonstrated intent rather than reproducing
+every historical accident of the source tree; the ExcelInvoice ``invoice_auto``
+rename, the workbook filename convention, the mistyped row-2 cells and the
+MultiDataTile ``tasksupport2`` overlay are all existing examples. Session
+I-REVIEW-A adds one more, for the same reason: the assembled
+``data/tasksupport/rdeconfig.yaml`` is written in the shape its own frozen
+provenance already declares (``case.effective_config.source.normalizations``).
+
+* **excelinvoice** -- the imported SEM config predates the nested schema and
+  states the ``SystemSettings`` switches as top-level keys. v1's loader does not
+  lift them (``Config`` has ``extra="allow"``, so they survive as unread
+  extras), so an assembled case that kept them flat would describe a different
+  configuration from the one its own frozen observation was generated with.
+  Assembly lifts them into ``system:`` -- exactly the normalization
+  ``_generate._effective_canary_config`` records.
+* **rdeformat** -- the imported config declares no mode; assembly writes
+  ``system.extended_mode: rdeformat``, the same overlay the effective-config
+  record already carries, so mode selection comes from the assembled material
+  instead of from a test-side override.
+
+Both transformations are idempotent and are the *only* edits assembly makes to
+a configuration file. Since the v2 Runner discovers
+``data_root/tasksupport/rdeconfig.yaml`` (contracts.md §I-REVIEW-A 4), every
+canary cell now runs with production configuration discovery and no overrides.
 """
 
 from __future__ import annotations
@@ -26,6 +51,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
+import yaml
 from openpyxl import load_workbook
 
 CANARY_MODES = (
@@ -320,7 +346,56 @@ def assemble_canary_case(
         (data_root / "inputdata" / "cb550_excelinvoice.xlsx").rename(workbook_path)
         _trim_excelinvoice_filename_cells(workbook_path)
     (data_root / "unpacked").mkdir()
+    _normalize_assembled_config(mode, data_root)
     return data_root
+
+
+def _normalize_assembled_config(mode: str, data_root: Path) -> None:
+    """Write the assembled ``rdeconfig.yaml`` in the shape its provenance declares.
+
+    The two transformations are the ones ``_generate._effective_canary_config``
+    already applies when it derives ``case.effective_config``: flat
+    ``SystemSettings`` keys become ``system.*``, and RDEFormat gains its
+    ``system.extended_mode``. Applying them to the materialized file too makes
+    the assembled case and its frozen observation describe one configuration,
+    so production discovery can read it (Session I-REVIEW-A ruling #4).
+
+    Args:
+        mode: Canary mode being assembled.
+        data_root: The assembled ``data`` directory.
+
+    Raises:
+        ValueError: If the shipped configuration is not a YAML mapping.
+    """
+    from rdetoolkit.models.config import SystemSettings  # noqa: PLC0415 -- test asset, not a runtime dependency
+
+    path = data_root / "tasksupport" / "rdeconfig.yaml"
+    if not path.exists():
+        return
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(loaded, dict):
+        msg = f"canary config must contain a mapping: {path.as_posix()}"
+        raise ValueError(msg)
+
+    data = dict(loaded)
+    changed = False
+    if "system" not in data:
+        system_keys = set(SystemSettings.model_fields)
+        data["system"] = {key: data.pop(key) for key in tuple(data) if key in system_keys}
+        changed = True
+    if mode == "rdeformat":
+        system_data = data.setdefault("system", {})
+        if not isinstance(system_data, dict):
+            msg = f"canary system config must contain a mapping: {path.as_posix()}"
+            raise ValueError(msg)
+        if system_data.get("extended_mode") != "rdeformat":
+            system_data["extended_mode"] = "rdeformat"
+            changed = True
+    if changed:
+        path.write_text(
+            yaml.safe_dump(data, allow_unicode=True, sort_keys=False),
+            encoding="utf-8",
+        )
 
 
 def _trim_excelinvoice_filename_cells(workbook_path: Path) -> None:

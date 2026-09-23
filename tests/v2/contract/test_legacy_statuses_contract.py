@@ -232,6 +232,7 @@ def test_runner_run_legacy_statuses_use_tile_indexes_not_run_uuid__tc_ep_hr2_ae_
             *,
             config: RdeConfig,
             mode: ModeKind,
+            data_root: Path,
         ) -> ExecutionPlan:
             tiles: list[TilePlan] = []
             for index in range(2):
@@ -262,6 +263,8 @@ def test_runner_run_legacy_statuses_use_tile_indexes_not_run_uuid__tc_ep_hr2_ae_
                 root=request.root,
                 error_policy="continue",
                 tiles=tuple(tiles),
+                data_root=data_root,
+                invoice_source=data_root / "invoice" / "invoice.json",
             )
 
     # Given: a real Runner with a fixed run UUID and a production two-tile plan

@@ -14,16 +14,22 @@ from rdetoolkit.types import RdeConfig
 def load_config(
     root: Path,
     overrides: Mapping[str, Any] | None = None,
+    *,
+    data_root: Path | None = None,
 ) -> RdeConfig:
     """Load strict v2 Runner configuration.
 
-    The fallback chain is ``rdeconfig.yaml`` first, then
-    ``pyproject.toml`` ``[tool.rdetoolkit]``, then ``RdeConfig()`` defaults.
+    The discovery chain is ``<root>/rdeconfig.yaml``, then ``<root>/pyproject.toml``
+    ``[tool.rdetoolkit]``, then — when ``data_root`` is known — the v1 layout a
+    real structured program ships,
+    ``<data_root>/tasksupport/{rdeconfig.yaml, rdeconfig.yml, pyproject.toml}``
+    (Session I-REVIEW-A ruling #4), and finally ``RdeConfig()`` defaults.
     Explicit overrides win over file values.
 
     Args:
         root: Directory containing optional config files.
         overrides: Values merged over the loaded config.
+        data_root: The run's resolved data root, enabling tasksupport discovery.
 
     Returns:
         Effective v2 configuration.
@@ -33,7 +39,7 @@ def load_config(
             for ``RdeConfig`` or its child models.
     """
     normalizer = ConfigNormalizer()
-    config_data = normalizer.normalize(None, root=root, origin="v2").model_dump()
+    config_data = normalizer.normalize(None, root=root, origin="v2", data_root=data_root).model_dump()
     if overrides:
         config_data = _deep_merge(config_data, dict(overrides))
     return normalizer.normalize(config_data, root=root, origin="v2")

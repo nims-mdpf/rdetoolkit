@@ -30,6 +30,11 @@
     "outcome": "ok"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/temp/CrossBeam550_手動_1.tif": "dedba5d4d8422e85a3f53a5deebb68ebeb8e984c36957fdee6ec73787688f3a0",
+      "data/temp/CrossBeam550_自動_1.tif": "4ad6b1d9a4ef0b0f3c133abf409df16fcfe66a1e160991f7692d396d2b22ffb3",
+      "data/temp/invoice_org.json": "4cabaa6a69b4057f453f552e4b0a8717b7652be5c9d769995d833c36aed41c7d"
+    },
     "callback_count": 2,
     "exit_code": 0,
     "invoice_backup": {
@@ -222,7 +227,7 @@
     }
   },
   "source": {
-    "commit": "750f20a3c412",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

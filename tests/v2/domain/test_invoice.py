@@ -375,7 +375,7 @@ class TestSmarttableTileInvoiceDelegation:
         schema_path.write_text(json.dumps({"properties": {}}), encoding="utf-8")
         dist_path = tmp_path / "divided" / "0000" / "invoice" / "invoice.json"
 
-        invoice = build_smarttable_tile_invoice(
+        invoice, row_data = build_smarttable_tile_invoice(
             smarttable_rowfile=rowfile,
             invoice_org=invoice_org,
             invoice_schema_path=schema_path,
@@ -387,6 +387,9 @@ class TestSmarttableTileInvoiceDelegation:
         assert on_disk["basic"]["dataName"] == "smarttable_value_0"
         assert invoice.raw["basic"]["dataName"] == "smarttable_value_0"
         assert invoice.mode == "invoice"
+        # Session I-REVIEW-A ruling #2: the row dictionary is returned, not
+        # retained anywhere a concurrent run could reach.
+        assert row_data == {"basic/dataName": "smarttable_value_0"}
 
 
 class TestExistingInvoiceFacadeUnaffected:

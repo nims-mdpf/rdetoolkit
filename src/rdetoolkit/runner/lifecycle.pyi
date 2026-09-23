@@ -2,7 +2,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from rdetoolkit.api.request import RunRequest
+from rdetoolkit.api.request import ExecutionTarget, RunRequest
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.report.events import EventSink
 from rdetoolkit.report.run_report import RunReport
@@ -18,6 +18,8 @@ class Runner:
     unpacked_dir_path: Path
     event_sink: EventSink
     run_id: str
+    @property
+    def data_root(self) -> Path: ...
     def __init__(
         self,
         *,
@@ -35,6 +37,11 @@ class Runner:
     def load_config(self, source: object | None = None) -> RdeConfig: ...
     def resolve_mode(self, config: RdeConfig) -> ModeKind: ...
     def pre_validate(self, config: RdeConfig) -> None: ...
-    def iterate(self, flow_fn: Callable[..., Any], mode: ModeKind, config: RdeConfig) -> RunReport: ...
+    def iterate(
+        self,
+        target: ExecutionTarget | Callable[..., Any],
+        mode: ModeKind,
+        config: RdeConfig,
+    ) -> RunReport: ...
     def post_validate(self, config: RdeConfig, report: RunReport) -> None: ...
     def finalize(self, report: RunReport, config: RdeConfig) -> None: ...

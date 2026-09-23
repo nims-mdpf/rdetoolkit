@@ -15,6 +15,8 @@ Equivalence partitions (EP):
 | ``Runner.iterate`` | cwd differs from root | public root independence | backup content equals source | TC-GR-BACKUP-006 |
 | ``Runner.iterate`` | excel/rdeformat/multidatatile | three v1 backup modes | backup content equals source | TC-GR-BACKUP-006 |
 | flat invoice helper | explicit invoice path | mode-independent path copy | TC-GR-BACKUP-007 |
+| ``Runner.run`` | rdeformat + unpack root data/temp | backup must not become a raw input | TC-I6-1-EV-070 |
+| ``create_common_tiles`` | zero tiles | v1 backs up regardless of tile count | TC-I6-1-EV-071 |
 
 Boundary values (BV):
 
@@ -32,15 +34,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 
 from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.mode_resolver import ModeKind
-from rdetoolkit.runner.planner import _flat_layout_invoice_source
-from rdetoolkit.types import InputPaths, IterationInfo, RdeConfig
+from rdetoolkit.runner.paths import resolve_tile_paths
+from rdetoolkit.runner.planner import TilePreparation, _flat_layout_invoice_source
+from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 
 _CASES = [
     pytest.param(ModeKind.excelinvoice, True, id="excelinvoice"),
@@ -108,12 +110,17 @@ def test_run_level_invoice_backup_matches_v1_mode_contract__tc_g0_backup(
         raw=rawfile,
         rawfiles=(rawfile,),
     )
-    out = SimpleNamespace(invoice=invoice_dir)
+    # A complete OutputContext: the Runner now injects artifact services, so a
+    # partial double would hide the per-tile publication path from this test.
+    out = OutputContext.from_resource_paths(resolve_tile_paths(data_root, 0))
     monkeypatch.setattr(
         "rdetoolkit.runner.planner.iterate_tiles",
         lambda *args, **kwargs: iter([(info, paths, out)]),
     )
-    monkeypatch.setattr("rdetoolkit.runner.planner._tile_invoice", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "rdetoolkit.runner.planner._tile_invoice",
+        lambda *args, **kwargs: TilePreparation(),
+    )
     monkeypatch.setattr(
         "rdetoolkit.runner.invoker.run_tile",
         lambda *args, **kwargs: ExecutionResult(
@@ -176,12 +183,17 @@ def test_invoice_backup_is_root_relative_across_layout_cwd_mode_matrix__tc_gr_ba
         raw=rawfile,
         rawfiles=(rawfile,),
     )
-    out = SimpleNamespace(invoice=invoice_dir)
+    # A complete OutputContext: the Runner now injects artifact services, so a
+    # partial double would hide the per-tile publication path from this test.
+    out = OutputContext.from_resource_paths(resolve_tile_paths(data_root, 0))
     monkeypatch.setattr(
         "rdetoolkit.runner.planner.iterate_tiles",
         lambda *args, **kwargs: iter([(info, paths, out)]),
     )
-    monkeypatch.setattr("rdetoolkit.runner.planner._tile_invoice", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "rdetoolkit.runner.planner._tile_invoice",
+        lambda *args, **kwargs: TilePreparation(),
+    )
     monkeypatch.setattr(
         "rdetoolkit.runner.invoker.run_tile",
         lambda *args, **kwargs: ExecutionResult(
@@ -211,3 +223,87 @@ def test_invoice_backup_is_root_relative_across_layout_cwd_mode_matrix__tc_gr_ba
     assert report.status == "success"
     assert backup_path.exists()
     assert json.loads(backup_path.read_text(encoding="utf-8")) == source
+
+
+def test_backup_is_not_ingested_as_an_rdeformat_rawfile__tc_i6_1_ev_070(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-I6-1-EV-070: the run-level backup never enters the RDEFormat rawfiles.
+
+    v1 backs the invoice up after ``check_files`` (workflows.py), so
+    ``data/temp/invoice_org.json`` does not exist while the RDEFormat checker
+    globs ``data/temp/**``. With the v2 unpack root at ``data/temp`` the same
+    ordering has to hold, otherwise the backup is registered as raw data.
+    """
+    # Given: the frozen RDEFormat fixture and the flow entry contract
+    from rdetoolkit.core.flow import flow
+    from rdetoolkit.types import InputPaths
+    from tests.v2.contract.fixtures import _generate
+
+    seen: list[tuple[Path, ...]] = []
+
+    @flow
+    def _capture(paths: InputPaths) -> None:
+        seen.append(paths.rawfiles)
+
+    root = tmp_path / "rdeformat"
+    _generate.materialize_sut_case("rdeformat", root)
+    monkeypatch.chdir(root)
+    runner = Runner(
+        root=root,
+        inputdata_path=root / "data" / "inputdata",
+        unpacked_dir_path=root / "data" / "temp",
+    )
+
+    # When: running with both raw destinations enabled
+    report = runner.run(
+        _capture,
+        system={"extended_mode": "rdeformat", "save_raw": True, "save_nonshared_raw": True},
+    )
+
+    # Then: the backup exists, but no tile saw it and no raw copy contains it
+    assert report.status == "success", report.error
+    assert (root / "data" / "temp" / "invoice_org.json").exists()
+    assert seen
+    assert all("invoice_org.json" not in {path.name for path in rawfiles} for rawfiles in seen)
+    assert not (root / "data" / "raw" / "invoice_org.json").exists()
+    assert not (root / "data" / "nonshared_raw" / "invoice_org.json").exists()
+
+
+def test_backup_is_written_even_without_tiles__tc_i6_1_ev_071(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-I6-1-EV-071: an input set with no tiles still gets the v1 backup.
+
+    v1 calls ``backup_invoice_json_files`` unconditionally after
+    ``check_files``, so the deferral introduced for the RDEFormat glob must not
+    turn the backup into something only tiles trigger.
+    """
+    # Given: a MultiDataTile root whose checker yields no tile at all
+    from rdetoolkit.domain.invoice_service import InvoiceService
+    from rdetoolkit.modes.protocol import PlanningContext
+    from rdetoolkit.runner.planner import create_common_tiles
+
+    data_root = tmp_path / "data"
+    for name in ("inputdata", "invoice", "tasksupport", "temp"):
+        (data_root / name).mkdir(parents=True)
+    source = {"basic": {"dataName": "seed"}}
+    (data_root / "invoice" / "invoice.json").write_text(json.dumps(source), encoding="utf-8")
+    monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", lambda *args: iter(()))
+    context = PlanningContext(
+        root=tmp_path,
+        inputdata_path=data_root / "inputdata",
+        unpacked_dir_path=data_root / "temp",
+        invoice_service=InvoiceService(),
+        data_root=data_root,
+    )
+
+    # When: planning the run
+    tiles = list(create_common_tiles(ModeKind.multidatatile, context))
+
+    # Then: no tile is produced, and the backup exists with the source content
+    assert tiles == []
+    backup = data_root / "temp" / "invoice_org.json"
+    assert json.loads(backup.read_text(encoding="utf-8")) == source

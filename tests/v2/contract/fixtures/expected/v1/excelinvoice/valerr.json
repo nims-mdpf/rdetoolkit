@@ -5,6 +5,12 @@
     "outcome": "valerr"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "345588d5909fb3e5412ee52fc1a64ae3939cf5563fa3c460636829e511f50648",
+      "data/temp/invoice_org.json": "cfc86918510cca708b6f0735b36ac2b275cd799c4d7fc30296dbc68d2e0bc647",
+      "data/temp/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/temp/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    },
     "callback_count": 0,
     "exit_code": 1,
     "invoice_backup": {
@@ -55,7 +61,7 @@
     "raw_sha256": {}
   },
   "source": {
-    "commit": "ada227a85b4a",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

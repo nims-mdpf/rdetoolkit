@@ -155,6 +155,7 @@ ignore = [
     "D105",
     "D107",
     "PLR0913",
+    "PLR0917",  # positional-arg twin of the already-ignored PLR0913; promoted in ruff 0.16 and broke lockless CI
     "S307",
     "ANN002",
     "ANN003",

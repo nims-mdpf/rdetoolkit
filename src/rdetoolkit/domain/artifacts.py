@@ -21,6 +21,7 @@ class RawArtifactService:
         nonshared_raw_dir: Path,
         config: RdeConfig,
         smarttable: bool = False,
+        data_root: Path | None = None,
     ) -> None:
         """Copy configured raw artifacts using explicit destination paths.
 
@@ -30,7 +31,11 @@ class RawArtifactService:
             nonshared_raw_dir: Non-shared raw destination.
             config: Canonical run configuration.
             smarttable: Whether SmartTable filtering rules apply.
+            data_root: Unused. The generic service copies every selected input
+                into the two raw directories, so it never classifies by path
+                component and needs no reference point (ruling #7).
         """
+        _ = data_root
         selected = self._selected_files(source_files, config=config, smarttable=smarttable)
         if config.system.save_raw:
             self._copy_files(selected, raw_dir)

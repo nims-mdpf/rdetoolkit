@@ -5,9 +5,12 @@ EP table:
 | API | Partition | Expected | Test ID |
 | --- | --- | --- | --- |
 | ``FlowInvoker.invoke`` | FlowTarget | delegates exact tile arguments | TC-EP-HR-F6-101 |
-| ``FlowInvoker.invoke`` | LegacyCallbackTarget | rejects Phase J target | TC-EP-HR-F6-102 |
+| ``FlowInvoker.invoke`` | LegacyCallbackTarget | rejected; registry owns the routing | TC-EP-HR-F6-102 |
 | ``TileExecutor.execute`` | RunInterrupted | propagates code 3004 | TC-EP-HR-F6-103 |
 | ``TileExecutor.execute`` | successful external raw path | preserves absolute legacy target | TC-EP-HR-F6-104 |
+| ``InvokerRegistry.for_target`` | injected adapters | injected instances are used as-is | TC-EP-I5-112 |
+| ``InvokerRegistry.for_target`` | unsupported target type | rejected | TC-EP-I5-113 |
+| ``InvokerRegistry.invoke`` | legacy callback target | dispatched to the legacy adapter | TC-EP-I5-114 |
 
 BV table:
 
@@ -23,15 +26,16 @@ from unittest.mock import MagicMock
 import pytest
 
 from rdetoolkit.api.request import FlowTarget, LegacyCallbackTarget
+from rdetoolkit.compat.v1.callback import LegacyCallbackInvoker
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
 from rdetoolkit.report.events import MemoryEventSink
 from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.executor import TileExecutor
-from rdetoolkit.runner.invoker import FlowInvoker
+from rdetoolkit.runner.invoker import FlowInvoker, InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import resolve_tile_paths
-from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
+from rdetoolkit.runner.planner import ExecutionPlan, TileMaterial, TilePlan
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext, RdeConfig
 
 
@@ -66,6 +70,8 @@ def _plan(tmp_path: Path, tile: TilePlan) -> ExecutionPlan:
         mode=ModeKind.invoice,
         config=RdeConfig(),
         root=tmp_path,
+        data_root=tmp_path,
+        invoice_source=tmp_path / "data" / "invoice" / "invoice.json",
         error_policy="continue",
         tiles=(tile,),
     )
@@ -86,7 +92,8 @@ def test_flow_invoker_delegates_exact_arguments__tc_ep_hr_f6_101(
     monkeypatch.setattr("rdetoolkit.runner.invoker.run_tile", run_tile)
 
     # When: invoking the normalized flow target
-    actual = FlowInvoker().invoke(target, context, event_sink=sink, run_id="run", config=config)
+    material = TileMaterial(invoice_source=Path("invoice.json"))
+    actual = FlowInvoker().invoke(target, context, event_sink=sink, run_id="run", config=config, material=material)
 
     # Then: arguments are delegated exactly and iteration events remain Runner-owned
     assert actual is expected
@@ -101,19 +108,79 @@ def test_flow_invoker_delegates_exact_arguments__tc_ep_hr_f6_101(
 
 
 def test_flow_invoker_rejects_non_flow_target__tc_ep_hr_f6_102() -> None:
-    """TC-EP-HR-F6-102: Phase H cannot silently invoke a legacy callback."""
+    """TC-EP-HR-F6-102: the flow adapter never silently invokes a legacy callback."""
     # Given: a callback target at the flow-only invoker boundary
     target = LegacyCallbackTarget(function=lambda: None)
 
     # When / Then: the unsupported target is rejected before execution
-    with pytest.raises(TypeError, match="LegacyCallbackTarget.*Phase J"):
+    with pytest.raises(TypeError, match="FlowInvoker requires a FlowTarget"):
         FlowInvoker().invoke(
             target,
             _context(),
             event_sink=MemoryEventSink(),
             run_id="run",
             config=RdeConfig(),
+            material=TileMaterial(invoice_source=Path("invoice.json")),
         )
+
+    # Then: routing that target is the registry's job, not the flow adapter's
+    assert isinstance(InvokerRegistry().for_target(target), LegacyCallbackInvoker)
+
+
+def test_registry_uses_injected_adapters__tc_ep_i5_112() -> None:
+    """TC-EP-I5-112: both adapters are replaceable for alternate hosts."""
+    # Given: a registry built from two injected adapters
+    flow_invoker = MagicMock()
+    legacy_invoker = MagicMock()
+    registry = InvokerRegistry(flow_invoker=flow_invoker, legacy_invoker=legacy_invoker)
+
+    # When / Then: each target type resolves to its injected adapter
+    assert registry.for_target(FlowTarget(function=lambda: None)) is flow_invoker
+    assert registry.for_target(LegacyCallbackTarget(function=None)) is legacy_invoker
+
+
+def test_registry_rejects_unknown_target__tc_ep_i5_113() -> None:
+    """TC-EP-I5-113: only normalized execution targets can be routed."""
+    # Given: an object that is not an execution target
+    target: Any = object()
+
+    # When / Then: the registry refuses to guess an adapter
+    with pytest.raises(TypeError, match="Unsupported execution target"):
+        InvokerRegistry().for_target(target)
+
+
+def test_registry_dispatches_legacy_target__tc_ep_i5_114() -> None:
+    """TC-EP-I5-114: dispatch forwards the exact tile arguments once."""
+    # Given: a registry whose legacy adapter is observable
+    legacy_invoker = MagicMock()
+    legacy_invoker.invoke.return_value = _result()
+    registry = InvokerRegistry(legacy_invoker=legacy_invoker)
+    target = LegacyCallbackTarget(function=None)
+    context = _context()
+    sink = MemoryEventSink()
+    config = RdeConfig()
+    material = TileMaterial(invoice_source=Path("invoice.json"))
+
+    # When: invoking through the registry
+    actual = registry.invoke(
+        target,
+        context,
+        event_sink=sink,
+        run_id="run",
+        config=config,
+        material=material,
+    )
+
+    # Then: the legacy adapter received the arguments unchanged
+    assert actual.status == "completed"
+    legacy_invoker.invoke.assert_called_once_with(
+        target,
+        context,
+        event_sink=sink,
+        run_id="run",
+        config=config,
+        material=material,
+    )
 
 
 def test_tile_executor_propagates_run_interrupted__tc_ep_hr_f6_103(tmp_path: Path) -> None:

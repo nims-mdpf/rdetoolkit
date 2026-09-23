@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from rdetoolkit.exceptions import InvoiceSchemaValidationError, MetadataValidationError
+from rdetoolkit.domain.service_errors import validation_error
+from rdetoolkit.errors import RdeValidationError
 from rdetoolkit.fileops import readf_json
 
 
@@ -444,3 +446,60 @@ def invoice_validate(path: str | Path, schema: str | Path) -> None:
         validator.validate(path=path)
     except _pydantic_validation_error() as validation_error:
         raise InvoiceSchemaValidationError from validation_error
+
+
+def validate_tile_outputs(
+    *,
+    invoice_path: Path,
+    schema_path: Path,
+    metadata_path: Path,
+) -> None:
+    """Validate the artifacts one completed tile must publish.
+
+    This is the per-tile half of Runner ``post_validate``, extracted so the
+    executor can apply it *before* a mode-completed tile is recorded as
+    completed (Session I-REVIEW-A ruling #6). v1's SmartTable EarlyExit
+    validated its tile and only then skipped the rest of the pipeline, so
+    validating afterwards let flows run that v1 never reached (review R5).
+
+    ``metadata.json`` is optional: v1 only validates it when the tile wrote one.
+
+    Args:
+        invoice_path: The tile's ``invoice/invoice.json``.
+        schema_path: The run's ``tasksupport/invoice.schema.json``.
+        metadata_path: The tile's ``meta/metadata.json``, which may be absent.
+
+    Raises:
+        InvoiceSchemaValidationError: If the tile invoice does not validate.
+        MetadataValidationError: If a present metadata file does not validate.
+    """
+    invoice_validate(invoice_path, schema_path)
+    if metadata_path.exists():
+        metadata_validate(metadata_path)
+
+
+#: Catalog codes the per-tile artifact contract publishes (contracts.md §H2).
+_INVOICE_SCHEMA_CODE = 4001
+_METADATA_CODE = 4002
+_ARTIFACT_CODE = 4003
+
+
+def wrap_validation_error(exc: Exception) -> RdeValidationError:
+    """Translate a domain validation failure into its catalogued v2 error.
+
+    One owner for the mapping (Session I-REVIEW-A ruling #6): both the Runner's
+    ``pre_validate``/``post_validate`` and the executor's pre-completion check
+    of a mode-completed tile publish the same codes.
+
+    Args:
+        exc: Exception raised by a validation helper.
+
+    Returns:
+        The catalogued validation error: 4001 for an invoice schema failure,
+        4002 for a metadata failure, 4003 for anything else.
+    """
+    if isinstance(exc, InvoiceSchemaValidationError):
+        return validation_error(_INVOICE_SCHEMA_CODE, str(exc))
+    if isinstance(exc, MetadataValidationError):
+        return validation_error(_METADATA_CODE, str(exc))
+    return validation_error(_ARTIFACT_CODE, str(exc))

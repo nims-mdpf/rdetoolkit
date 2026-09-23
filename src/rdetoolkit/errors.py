@@ -751,3 +751,26 @@ class RdeValidationError(RdeError):
 
 class RdeInternalError(RdeError):
     """Internal rdetoolkit error for v2 5xxx codes."""
+
+
+ERROR_CATALOG[3005] = ErrorDef(
+    name="ArtifactPublicationFailed",
+    message_template="Publishing tile artifacts failed after the flow completed: {reason}",
+    remediation=(
+        "The flow itself succeeded; the failure is in the rdetoolkit output stage. "
+        "Check free space and write permissions for the data/ output directories "
+        "(raw, nonshared_raw, thumbnail, structured, invoice), then rerun."
+    ),
+)
+
+
+ERROR_CATALOG[3006] = ErrorDef(
+    name="InvoiceArtifactFailed",
+    message_template="Applying the configured invoice artifact steps failed: {reason}",
+    remediation=(
+        "The flow itself succeeded; the failure is in the rdetoolkit invoice output stage "
+        "(structured copy, magic variable, or description update). Check that "
+        "data/invoice/invoice.json and the tasksupport schema are readable and consistent "
+        "with the enabled system.* settings, then rerun."
+    ),
+)

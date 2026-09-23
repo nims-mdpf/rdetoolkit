@@ -7,20 +7,22 @@ Design authority: local/develop/v2/Design.md §6.3 (job.failed), §13.1, §13.3
 Session authority: local/develop/v2/tasks/session_b2.md (B2.4/B2.5/B2.6)
 
 Contract exercised here:
-    finalize(report: RunReport, config: RdeConfig, *, root: Path) -> None
+    finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None
       - status == "failed"  -> calls rdetoolkit.errors.write_job_errorlog_file
                                 with an int ERROR_CATALOG code and a message;
                                 v1 owns the "ErrorCode=/ErrorMessage=" format.
       - status in {"success", "partial"} -> job.failed is NOT written.
       - Regardless of status, RunReport is persisted as JSON below
-        ``root/data/logs/run_report_{run_id}.json``.
+        ``data_root/logs/run_report_{run_id}.json``. The data root is decided
+        once by the Runner (Session I-REVIEW-A ruling #1); finalize never
+        re-resolves one of its own.
 
 EP table:
 
 | API | Partition | Expected | Test ID |
 | --- | --- | --- | --- |
 | Runner.finalize | root differs from cwd | report is written below root | TC-H0-ROOT-EP-001 |
-| finalize | root is already ``data`` | report is written below ``root/logs`` | TC-EP-HR2-B-001 |
+| finalize | the Runner-resolved data root | report is written below ``data_root/logs`` | TC-EP-HR2-B-001 |
 
 BV table:
 
@@ -86,7 +88,7 @@ class TestFinalizeWritesJobFailedOnFailure:
         """job.failed must exist under data/ after finalize() on a failed report."""
         report = _make_report("failed", error={"code": _NODE_EXECUTION_FAILED_CODE, "message": "boom"})
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         assert (_cwd_data_dir / "job.failed").exists()
 
@@ -98,7 +100,7 @@ class TestFinalizeSkipsJobFailedOnSuccessOrPartial:
         """job.failed must be absent after finalize() on a successful report."""
         report = _make_report("success")
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         assert not (_cwd_data_dir / "job.failed").exists()
 
@@ -106,7 +108,7 @@ class TestFinalizeSkipsJobFailedOnSuccessOrPartial:
         """job.failed must be absent after finalize() on a partial report."""
         report = _make_report("partial")
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         assert not (_cwd_data_dir / "job.failed").exists()
 
@@ -121,7 +123,7 @@ class TestFinalizeJobFailedFormat:
             error={"code": _NODE_EXECUTION_FAILED_CODE, "message": "node execution failed for call c-1"},
         )
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         content = (_cwd_data_dir / "job.failed").read_text(encoding="utf_8")
         assert content == f"ErrorCode={_NODE_EXECUTION_FAILED_CODE}\nErrorMessage=node execution failed for call c-1\n"
@@ -142,7 +144,7 @@ class TestFinalizeSingleResponsibility:
         monkeypatch.setattr("rdetoolkit.runner.finalize.write_job_errorlog_file", mock_write)
         report = _make_report("failed", error={"code": _NODE_EXECUTION_FAILED_CODE, "message": "boom"})
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         mock_write.assert_called_once_with(
             _NODE_EXECUTION_FAILED_CODE,
@@ -158,7 +160,7 @@ class TestFinalizeSingleResponsibility:
         monkeypatch.setattr("rdetoolkit.runner.finalize.write_job_errorlog_file", mock_write)
         report = _make_report("success")
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         mock_write.assert_not_called()
 
@@ -170,7 +172,7 @@ class TestFinalizePersistsRunReport:
         """A logs/run_report_{run_id}.json file must exist after a failed run is finalized."""
         report = _make_report("failed", error={"code": _NODE_EXECUTION_FAILED_CODE, "message": "boom"}, run_id="run-fail-1")
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         report_path = _cwd_data_dir / "logs" / "run_report_run-fail-1.json"
         assert report_path.exists()
@@ -182,7 +184,7 @@ class TestFinalizePersistsRunReport:
         """A logs/run_report_{run_id}.json file must exist after a successful run is finalized too."""
         report = _make_report("success", run_id="run-ok-1")
 
-        finalize(report, RdeConfig(), root=_cwd_data_dir.parent)
+        finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         report_path = _cwd_data_dir / "logs" / "run_report_run-ok-1.json"
         assert report_path.exists()
@@ -201,7 +203,7 @@ class TestFinalizePersistsRunReport:
         report = _make_report("success", run_id="flat-root")
 
         # When: finalizing the report against that flat root
-        finalize(report, RdeConfig(), root=data_root)
+        finalize(report, RdeConfig(), data_root=data_root)
 
         # Then: the report is under root/logs and no second data layer exists
         assert (data_root / "logs" / "run_report_flat-root.json").exists()
@@ -234,7 +236,7 @@ class TestReviewFollowUps:
         (tmp_path / "data").mkdir()
         report = _make_report(status="failed", error={"code": 3001})  # no message
 
-        finalize(report, RdeConfig(), root=tmp_path)
+        finalize(report, RdeConfig(), data_root=tmp_path / "data")
 
         content = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
         assert "{" not in content and "}" not in content, content

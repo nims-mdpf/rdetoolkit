@@ -11,7 +11,7 @@ Session authority: local/develop/v2/tasks/session_d1.md
 Target import (fails until implementation exists — expected in Red phase):
     from rdetoolkit.runner.iterator import iterate_tiles, TileIterator
 
-``iterate_tiles(mode, inputdata_path, unpacked_dir_path, base_output_dir)``
+``iterate_tiles(mode, inputdata_path, unpacked_dir_path, data_root)``
 must yield ``(IterationInfo, InputPaths, OutputContext)`` triples in tile
 order, uniformly across all 5 modes, driven by the same
 ``domain.mode.selected_input_checker``-family checker classes used by
@@ -44,13 +44,18 @@ from rdetoolkit.types import InputPaths, OutputContext, IterationInfo
 
 
 def _mk_dirs(tmp_path: Path) -> tuple[Path, Path, Path]:
-    """Build a fresh (inputdata, unpacked, base_output) triple under tmp_path."""
+    """Build a fresh (inputdata, unpacked, data_root) triple under tmp_path.
+
+    ``data_root`` is the fourth ``iterate_tiles`` argument: since Session
+    I-REVIEW-A it anchors both the per-tile outputs and the invoice/tasksupport
+    inputs, so the iterator can no longer straddle two roots (ruling #1).
+    """
     inputdata = tmp_path / "inputdata"
     inputdata.mkdir()
     unpacked = tmp_path / "unpacked"
     unpacked.mkdir()
-    base_output = tmp_path / "data"
-    return inputdata, unpacked, base_output
+    data_root = tmp_path / "data"
+    return inputdata, unpacked, data_root
 
 
 def _write_excel_invoice(path: Path, *, drop_rows: int = 0) -> None:
@@ -113,7 +118,7 @@ class TestTileIteratorExported:
 
         assert hasattr(iterator_module, "TileIterator"), (
             "runner/iterator.py must export a TileIterator Protocol or type alias "
-            "describing the (mode, inputdata_path, unpacked_dir_path, base_output_dir) "
+            "describing the (mode, inputdata_path, unpacked_dir_path, data_root) "
             "-> Iterator[tuple[IterationInfo, InputPaths, OutputContext]] shape."
         )
 
@@ -362,21 +367,28 @@ class TestSmartTableModeIteration:
 
 
 class TestInputPathsConventionalDirs:
-    """InputPaths.inputdata/invoice/tasksupport follow the mode_resolver.py convention."""
+    """InputPaths.invoice/tasksupport belong to the run's single data root."""
 
-    def test_invoice_and_tasksupport_dirs_are_siblings_of_inputdata(self, tmp_path: Path) -> None:
-        """TC-ITER-014: invoice/tasksupport resolve under inputdata_path.parent (as in
-        runner/mode_resolver.py's own RdeInputDirPaths construction)."""
+    def test_invoice_and_tasksupport_dirs_belong_to_the_data_root(self, tmp_path: Path) -> None:
+        """TC-ITER-014 (UPDATED, Session I-REVIEW-A ruling #1): invoice and
+        tasksupport resolve under the ``data_root`` the Runner decided, not
+        under ``inputdata_path.parent``.
+
+        The old ``inputdata_path.parent`` rule was a fifth, implicit data-root
+        resolver: with an alias-flat root it answered ``root`` while the tile
+        outputs were hard-coded to ``root/data``, so one run read its invoice
+        from one tree and wrote its artifacts into another."""
         from rdetoolkit.runner.iterator import iterate_tiles  # noqa: PLC0415
 
-        inputdata, unpacked, base_output = _mk_dirs(tmp_path)
+        inputdata, unpacked, data_root = _mk_dirs(tmp_path)
         (inputdata / "a.txt").write_text("a")
 
-        info, paths, _out = next(iterate_tiles(ModeKind.invoice, inputdata, unpacked, base_output))
+        info, paths, _out = next(iterate_tiles(ModeKind.invoice, inputdata, unpacked, data_root))
 
         assert paths.inputdata == inputdata
-        assert paths.invoice == inputdata.parent / "invoice"
-        assert paths.tasksupport == inputdata.parent / "tasksupport"
+        assert paths.invoice == data_root / "invoice"
+        assert paths.tasksupport == data_root / "tasksupport"
+        assert paths.invoice != inputdata.parent / "invoice"
 
 
 class TestDirectoryCreationSideEffect:

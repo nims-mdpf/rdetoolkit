@@ -15,7 +15,13 @@ from pathlib import Path
 
 @dataclass(frozen=True, slots=True)
 class TileOutputPaths:
-    """Output path bundle compatible with ``OutputContext.from_resource_paths``."""
+    """Output path bundle compatible with ``OutputContext.from_resource_paths``.
+
+    ``temp`` and ``invoice_patch`` complete the twelve directories v1 creates
+    per tile (Design §6.3 addendum). They are deliberately absent from
+    ``OutputContext``: the directories are part of the artifact contract, but
+    the public v2 output API stays at ten fields (types.py design note).
+    """
 
     struct: Path
     meta: Path
@@ -27,6 +33,8 @@ class TileOutputPaths:
     raw: Path
     invoice: Path
     logs: Path
+    temp: Path
+    invoice_patch: Path
 
 
 _NDIGIT = 4
@@ -41,6 +49,8 @@ _DIRNAMES = {
     "raw": "raw",
     "invoice": "invoice",
     "logs": "logs",
+    "temp": "temp",
+    "invoice_patch": "invoice_patch",
 }
 
 
@@ -77,7 +87,7 @@ def resolve_tile_paths(base_dir: Path, idx: int) -> TileOutputPaths:
             ``divided/{idx:04d}``.
 
     Returns:
-        Path bundle exposing the ten canonical output directory attributes.
+        Path bundle exposing the twelve canonical output directory attributes.
     """
     root = base_dir if idx == 0 else base_dir / "divided" / f"{idx:0{_NDIGIT}d}"
     return TileOutputPaths(
@@ -91,4 +101,6 @@ def resolve_tile_paths(base_dir: Path, idx: int) -> TileOutputPaths:
         raw=root / _DIRNAMES["raw"],
         invoice=root / _DIRNAMES["invoice"],
         logs=root / _DIRNAMES["logs"],
+        temp=root / _DIRNAMES["temp"],
+        invoice_patch=root / _DIRNAMES["invoice_patch"],
     )

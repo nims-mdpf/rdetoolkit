@@ -130,7 +130,7 @@ class TestSigtermIntegration:
                     return
                 time.sleep(30)
 
-            sink = FileEventSink(root / "data" / "logs")
+            sink = FileEventSink(root / "logs")
             runner = MultiTileRunner(
                 root=root,
                 inputdata_path=inputdata,
@@ -157,15 +157,16 @@ class TestSigtermIntegration:
 
         # Then: shutdown is orderly and all persisted failure artifacts agree
         assert return_code == 0
-        report_path = tmp_path / "data" / "logs" / "run_report_sigterm-run.json"
+        # The child root is alias-flat, so it IS the data root (ruling #1).
+        report_path = tmp_path / "logs" / "run_report_sigterm-run.json"
         report = json.loads(report_path.read_text(encoding="utf-8"))
         assert report["status"] == "failed"
         assert report["error"]["code"] == 3004
         assert report["error"]["name"] == "RunInterrupted"
         assert "Remediation:" in report["error"]["message"]
-        job_failed = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
+        job_failed = (tmp_path / "job.failed").read_text(encoding="utf-8")
         assert "ErrorCode=3004\n" in job_failed
-        events_path = tmp_path / "data" / "logs" / "events_sigterm-run.jsonl"
+        events_path = tmp_path / "logs" / "events_sigterm-run.jsonl"
         events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
         assert any(
             event.get("name") == "run.completed" and event.get("payload") == {"status": "failed"}

@@ -12,4 +12,5 @@ class ConfigNormalizer:
         *,
         root: Path,
         origin: ConfigOrigin,
+        data_root: Path | None = None,
     ) -> RdeConfig: ...

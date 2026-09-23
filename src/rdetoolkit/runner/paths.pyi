@@ -11,6 +11,8 @@ class TileOutputPaths:
     raw: Path
     invoice: Path
     logs: Path
+    temp: Path
+    invoice_patch: Path
     def __init__(
         self,
         struct: Path,
@@ -23,6 +25,8 @@ class TileOutputPaths:
         raw: Path,
         invoice: Path,
         logs: Path,
+        temp: Path,
+        invoice_patch: Path,
     ) -> None: ...
 
 def resolve_data_root(root: Path) -> Path: ...

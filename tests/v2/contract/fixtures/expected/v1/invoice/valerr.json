@@ -5,6 +5,9 @@
     "outcome": "valerr"
   },
   "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "3119bac676316bdee0d8e5a19d96d26750df203a278ddab67b67040b2e1f4043"
+    },
     "callback_count": 1,
     "exit_code": 1,
     "invoice_backup": null,
@@ -53,7 +56,7 @@
     }
   },
   "source": {
-    "commit": "ada227a85b4a",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

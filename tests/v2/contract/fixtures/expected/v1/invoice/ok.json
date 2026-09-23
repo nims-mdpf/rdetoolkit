@@ -5,6 +5,7 @@
     "outcome": "ok"
   },
   "observed": {
+    "artifact_sha256": {},
     "callback_count": 1,
     "exit_code": 0,
     "invoice_backup": null,
@@ -69,7 +70,7 @@
     }
   },
   "source": {
-    "commit": "ada227a85b4a",
+    "commit": "7279adc055fa",
     "tag": "v2.0.0a1"
   }
 }

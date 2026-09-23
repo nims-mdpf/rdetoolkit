@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Protocol
 
 from rdetoolkit.runner.mode_resolver import ModeKind
-from rdetoolkit.types import InputPaths, IterationInfo, OutputContext
+from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 
 class TileIterator(Protocol):
     def __call__(
@@ -11,12 +11,14 @@ class TileIterator(Protocol):
         mode: ModeKind,
         inputdata_path: Path,
         unpacked_dir_path: Path,
-        base_output_dir: Path,
+        data_root: Path,
+        config: RdeConfig | None = ...,
     ) -> Iterator[tuple[IterationInfo, InputPaths, OutputContext]]: ...
 
 def iterate_tiles(
     mode: ModeKind,
     inputdata_path: Path,
     unpacked_dir_path: Path,
-    base_output_dir: Path,
+    data_root: Path,
+    config: RdeConfig | None = ...,
 ) -> Iterator[tuple[IterationInfo, InputPaths, OutputContext]]: ...

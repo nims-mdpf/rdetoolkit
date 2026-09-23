@@ -90,6 +90,29 @@ def _build_v1_invoice_fixture(root: Path) -> None:
     )
 
 
+def _build_alias_flat_fixture(root: Path) -> None:
+    """Build an alias-flat project: the RDE markers sit directly below ``root``.
+
+    ``resolve_data_root`` contracts that such a root *is* the data root. Before
+    Session I-REVIEW-A the public ``run(flow=...)`` entry hardcoded
+    ``request.root / "data"``, so this layout ran with zero input files and
+    still returned ``success``.
+    """
+    (root / "inputdata").mkdir(parents=True)
+    (root / "inputdata" / "a.txt").write_text("a", encoding="utf-8")
+    (root / "invoice").mkdir(parents=True)
+    (root / "invoice" / "invoice.json").write_text(json.dumps(_SEED_INVOICE_JSON), encoding="utf-8")
+    (root / "tasksupport").mkdir(parents=True)
+    (root / "tasksupport" / "invoice.schema.json").write_text(
+        json.dumps({"properties": {}}),
+        encoding="utf-8",
+    )
+    (root / "tasksupport" / "metadata-def.json").write_text(
+        json.dumps({"constant": {}, "variable": []}),
+        encoding="utf-8",
+    )
+
+
 def _v1_config() -> Config:
     return Config(
         system=SystemSettings(extended_mode=None, save_raw=True, save_thumbnail_image=True, magic_variable=False),
@@ -105,33 +128,43 @@ class TestFlowDispatch:
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
+        """TC-DISPATCH-001 (STRENGTHENED, Session I-REVIEW-A F-1): the public
+        entry resolves the data root instead of hardcoding ``root/"data"``.
+
+        The previous assertion was ``status in {success, partial, failed}``,
+        which every outcome satisfies. On this alias-flat root the old dispatch
+        pointed the Runner at a non-existent ``<root>/data/inputdata``, so the
+        run processed **nothing** and still reported success. The test now
+        requires the run to observe the real input.
+        """
         from rdetoolkit.core.flow import flow
-        from rdetoolkit.core.node import node
         from rdetoolkit.report.run_report import RunReport
-        from rdetoolkit.types import IterationInfo
+        from rdetoolkit.types import InputPaths
         from rdetoolkit.workflows import run
 
+        # Given: an alias-flat project root and a flow that records its inputs
         root = tmp_path / "run_root"
-        (root / "inputdata").mkdir(parents=True)
-        (root / "inputdata" / "a.txt").write_text("a", encoding="utf-8")
-        (root / "unpacked").mkdir()
-        (root / "invoice").mkdir()
-        (root / "invoice" / "invoice.json").write_text(json.dumps({"basic": {}}), encoding="utf-8")
-        (root / "tasksupport").mkdir()
+        root.mkdir()
+        _build_alias_flat_fixture(root)
         monkeypatch.chdir(root)
-
-        @node
-        def _noop(iteration: IterationInfo) -> None:
-            return None
+        observed: list[tuple[Path, ...]] = []
 
         @flow
-        def _pipeline(iteration: IterationInfo) -> None:
-            _noop(iteration)
+        def _pipeline(paths: InputPaths) -> None:
+            observed.append(paths.rawfiles)
 
-        result = run(flow=_pipeline)
+        # When: dispatching through the public v2 entry point
+        result = run(flow=_pipeline, config={"system": {"save_raw": True}})
 
+        # Then: the run succeeded on the real input, not on an empty tree
         assert isinstance(result, RunReport)
-        assert result.status in {"success", "partial", "failed"}
+        assert result.status == "success", result.error
+        assert len(result.iterations) == 1
+        assert [path.name for tile in observed for path in tile] == ["a.txt"]
+
+        # And: the artifacts belong to the single resolved data root
+        assert (root / "raw" / "a.txt").is_file()
+        assert not (root / "data").exists()
 
     def test_run_flow_uses_standard_cwd_data_paths__tc_d2r_f1(
         self,
