@@ -20,12 +20,11 @@ question owned by Session I7 (session_i5.md audit F3), and the multi-tile
 policy seats themselves belong to Phase J; the tests below only fix the
 translation, not the default.
 
-Known asymmetry, verified bounded here: v1 creates ``data/temp``
-unconditionally before running any input checker
-(``workflows.check_files_result``), while v2 creates it only when a tile exists
-or an archive is unpacked. On a scenario rejected before that point the whole
-observable difference is that one directory entry, and TC-EV-034 asserts the
-difference set exactly.
+Former asymmetry, closed by Session J0 (Phase J ruling #7): v1 creates
+``data/temp`` unconditionally before running any input checker
+(``workflows.check_files_result``), and ``Runner.run`` now does the same before
+it parses anything. On a scenario rejected before parsing the observable
+difference is therefore **empty**, and TC-EV-034 asserts that exactly.
 
 EP table:
 | TC | Class | Input | Expected |
@@ -63,8 +62,6 @@ from tests.v2.contract.observe import observe_v2_run, parity_view
 _MODE = "multidatatile"
 #: v1's ``StructuredError`` default code, published verbatim by v2 (§I6-0).
 _STRUCTURED_ERROR_CODE = 1
-#: The single directory v1 creates before parsing and v2 does not (see module docstring).
-_UNPACK_DIRECTORY_GAP = frozenset({"data/temp/"})
 
 #: The five artifact switches ``_generate.oracle_config`` freezes fixtures with
 #: (contracts.md §I6-1 ruling #8).
@@ -276,7 +273,7 @@ def test_excel_workbook_overrides_the_configured_mode__tc_i6_b_ev_034(
     assert report.error["code"] == _STRUCTURED_ERROR_CODE
     assert _job_failed(root) == oracle["job_failed_text"]
 
-    # And: the artifacts agree, up to the one directory v1 pre-creates
+    # And: the artifacts agree exactly -- Session J0 closed the temp/ asymmetry
     assert observed["raw_sha256"] == parity_view(oracle)["raw_sha256"]
     assert observed["invoices"] == parity_view(oracle)["invoices"]
-    assert _tree_divergence(observed, oracle) == set(_UNPACK_DIRECTORY_GAP)
+    assert _tree_divergence(observed, oracle) == set()

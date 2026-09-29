@@ -181,6 +181,13 @@ class Runner:
                     self.event_sink.emit(Event.run_started(run_id=self.run_id))
                     config = self.load_config(run_request.config_source)
                     mode = self.resolve_mode(config)
+                    # v1 creates the unpack directory before it parses anything
+                    # (``workflows.check_files_result`` opens with
+                    # ``StorageDir.get_specific_outputdir(True, "temp")``), so a
+                    # run that fails before parsing still published it. Doing it
+                    # here -- once, from the data root -- removes the last
+                    # directory-tree asymmetry the Session I6-B seats bounded.
+                    (self.data_root / "temp").mkdir(parents=True, exist_ok=True)
                     self.pre_validate(config)
                     report = self.iterate(target, mode, config)
                     self.post_validate(config, report)
@@ -241,6 +248,11 @@ class Runner:
         if self.unpacked_dir_path == previous_root / "unpacked":
             self.unpacked_dir_path = root / "unpacked"
         self.root = root
+        # The cached answer belongs to ``previous_root``. ``run`` re-resolves
+        # right after this call, but a Runner driven step-by-step would keep
+        # answering with the old root (Session J0, contracts.md §I-REVIEW-A
+        # debt 4), so the cache is dropped here and re-taken lazily.
+        self._data_root = None
 
     def resolve_mode(self, config: RdeConfig) -> ModeKind:
         """Resolve the effective mode for this run.

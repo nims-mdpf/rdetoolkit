@@ -401,7 +401,106 @@ def _process_mode(  # noqa: C901 PLR0912
         raise StructuredError(emsg, 999) from e
 
 
-def run(  # pragma: no cover  # noqa: PLR0915
+def _run_legacy(custom_dataset_function: DatasetCallback | None, config: Any = None) -> str:  # pragma: no cover
+    """Run the v1 orchestration loop and return the v1 legacy JSON string.
+
+    Session J0 moved this body out of :func:`run` verbatim (Phase J ruling #1):
+    the v1 orchestration is kept alive for the dynamic oracles that still
+    compare v2 against it, while the public entry point stops being the only
+    place it can be reached from. Phase K deletes this function together with
+    those oracles, so nothing here is refactored -- statement order and local
+    names are exactly what ``run`` used to execute.
+
+    Args:
+        custom_dataset_function: Optional v1 dataset callback, invoked once per
+            data tile by the mode processors.
+        config: Optional v1 ``Config``; ``None`` loads it from
+            ``tasksupport/``.
+
+    Returns:
+        JSON string carrying one ``WorkflowExecutionStatus`` per data tile.
+    """
+    from rdetoolkit.config import load_config
+    from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error
+    from rdetoolkit.invoicefile import backup_invoice_json_files
+    from rdetoolkit.models.result import WorkflowResultManager
+    from rdetoolkit.models.rde2types import RdeInputDirPaths
+    from rdetoolkit.rde2util import StorageDir
+    from rdetoolkit.rdelogger import get_logger, generate_log_timestamp
+
+    log_timestamp = generate_log_timestamp()
+    log_filename = f"rdesys_{log_timestamp}.log"
+    log_path = StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
+    get_logger("rdetoolkit", file_path=log_path)
+    logger = get_logger(__name__)
+
+    wf_manager = WorkflowResultManager()
+    error_info = None
+    __config: Config | None = None
+
+    try:
+        # Enabling mode flag and validating input file
+        srcpaths = RdeInputDirPaths(
+            inputdata=StorageDir.get_specific_outputdir(False, "inputdata"),
+            invoice=StorageDir.get_specific_outputdir(False, "invoice"),
+            tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
+        )
+
+        # Loading configuration file
+        __config = load_config(str(srcpaths.tasksupport), config=config)
+        srcpaths.config = __config
+
+        raw_files_group, excel_invoice_files, smarttable_file = check_files(
+            srcpaths,
+            mode=__config.system.extended_mode,
+            config=__config,
+        )
+        if smarttable_file is not None:
+            from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
+
+            SmartTableInvoiceInitializer.clear_base_invoice_cache()
+
+        # Backup of invoice.json
+        invoice_org_filepath = backup_invoice_json_files(
+            excel_invoice_files,
+            __config.system.extended_mode,
+        )
+        invoice_schema_filepath = srcpaths.tasksupport.joinpath("invoice.schema.json")
+
+        # Execution of data set structuring process based on various modes
+        # Use iterator directly to avoid loading all items into memory at once
+        rde_data_tiles_iterator = generate_folder_paths_iterator(
+            raw_files_group,
+            invoice_org_filepath,
+            invoice_schema_filepath,
+            smarttable_mode=smarttable_file is not None,
+        )
+
+        for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
+            status, error_info, mode = _process_mode(
+                idx,
+                srcpaths,
+                rdeoutput_resource,
+                __config,
+                excel_invoice_files,
+                smarttable_file,
+                custom_dataset_function,
+                logger,
+            )
+            if error_info and any(value is not None for value in error_info.values()):
+                status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
+
+            wf_manager.add_status(status)
+
+    except StructuredError as e:
+        handle_and_exit_on_structured_error(e, logger, config=__config)
+    except Exception as e:
+        handle_generic_error(e, logger, config=__config)
+
+    return wf_manager.to_json()
+
+
+def run(  # pragma: no cover
     *,
     flow: Callable[..., Any] | type[ProcessingTemplate] | None = None,
     custom_dataset_function: DatasetCallback | None = None,
@@ -570,81 +669,4 @@ def run(  # pragma: no cover  # noqa: PLR0915
             unpacked_dir_path=data_root / "temp",
         ).run(request)
 
-    from rdetoolkit.config import load_config
-    from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error
-    from rdetoolkit.invoicefile import backup_invoice_json_files
-    from rdetoolkit.models.result import WorkflowResultManager
-    from rdetoolkit.models.rde2types import RdeInputDirPaths
-    from rdetoolkit.rde2util import StorageDir
-    from rdetoolkit.rdelogger import get_logger, generate_log_timestamp
-
-    log_timestamp = generate_log_timestamp()
-    log_filename = f"rdesys_{log_timestamp}.log"
-    log_path = StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
-    get_logger("rdetoolkit", file_path=log_path)
-    logger = get_logger(__name__)
-
-    wf_manager = WorkflowResultManager()
-    error_info = None
-    __config: Config | None = None
-
-    try:
-        # Enabling mode flag and validating input file
-        srcpaths = RdeInputDirPaths(
-            inputdata=StorageDir.get_specific_outputdir(False, "inputdata"),
-            invoice=StorageDir.get_specific_outputdir(False, "invoice"),
-            tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
-        )
-
-        # Loading configuration file
-        __config = load_config(str(srcpaths.tasksupport), config=config)
-        srcpaths.config = __config
-
-        raw_files_group, excel_invoice_files, smarttable_file = check_files(
-            srcpaths,
-            mode=__config.system.extended_mode,
-            config=__config,
-        )
-        if smarttable_file is not None:
-            from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
-
-            SmartTableInvoiceInitializer.clear_base_invoice_cache()
-
-        # Backup of invoice.json
-        invoice_org_filepath = backup_invoice_json_files(
-            excel_invoice_files,
-            __config.system.extended_mode,
-        )
-        invoice_schema_filepath = srcpaths.tasksupport.joinpath("invoice.schema.json")
-
-        # Execution of data set structuring process based on various modes
-        # Use iterator directly to avoid loading all items into memory at once
-        rde_data_tiles_iterator = generate_folder_paths_iterator(
-            raw_files_group,
-            invoice_org_filepath,
-            invoice_schema_filepath,
-            smarttable_mode=smarttable_file is not None,
-        )
-
-        for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
-            status, error_info, mode = _process_mode(
-                idx,
-                srcpaths,
-                rdeoutput_resource,
-                __config,
-                excel_invoice_files,
-                smarttable_file,
-                custom_dataset_function,
-                logger,
-            )
-            if error_info and any(value is not None for value in error_info.values()):
-                status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
-
-            wf_manager.add_status(status)
-
-    except StructuredError as e:
-        handle_and_exit_on_structured_error(e, logger, config=__config)
-    except Exception as e:
-        handle_generic_error(e, logger, config=__config)
-
-    return wf_manager.to_json()
+    return _run_legacy(custom_dataset_function, config)

@@ -1,5 +1,64 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session J0 (Phase J groundwork: the legacy loop goes private)
+
+Behaviour-preserving session. The public `workflows.run` contract is byte-for-byte
+unchanged; Session J2 is what unifies it onto the Runner.
+
+### Changed
+
+- **`workflows.run`'s v1 orchestration loop moved verbatim into the private
+  `workflows._run_legacy(custom_dataset_function, config)`.** The public v1
+  branch is now a single delegating call. This is a pure move: statement order,
+  local names and the coverage pragma travel with the body, `_process_mode` and
+  the five `*_mode_process` shims stay in place, and the entry point's return
+  value, exceptions and absence of a DeprecationWarning are unchanged
+  (`TC-DISPATCH-001..006` and the whole v1 test suite stay GREEN untouched).
+  The v1 loop is kept alive on purpose: the dynamic oracles that still compare
+  v2 against a real v1 run now reach it through `_run_legacy`, and Phase K
+  deletes the function together with those oracles.
+- **Every dynamic v1 oracle under `tests/v2/` calls `_run_legacy`** — the frozen
+  fixture generator's worker, the directory-tree goldens, the e2e goldens and the
+  rdeformat / smarttable / stage-order / EarlyExit workers. The switch is
+  import-line-only, so observations are bit-identical and
+  `tests/v2/contract/fixtures/_generate.py --check` stays clean. Calls that
+  exercise the public entry as the *subject under test* are unchanged.
+- **`Runner.run` creates `<data root>/temp` before it parses any input**, after
+  `resolve_mode` and before `pre_validate`, mirroring v1's
+  `check_files_result` (`StorageDir.get_specific_outputdir(True, "temp")` runs
+  before any input checker). A run rejected before parsing therefore publishes
+  the same directory tree v1 published: the Session I6-B seats
+  `TC-I6-B-EV-025/026/027` and `TC-I6-B-EV-034` now assert a symmetric
+  difference of `∅` instead of `{"data/temp/"}`. The directory follows the run's
+  data root, so an alias-flat project gets `<root>/temp`. No frozen fixture
+  changed — they already carried `data/temp/`.
+
+### Fixed
+
+- **`Runner._apply_request_root` now drops the cached data root.** The
+  one-run-one-data-root answer (§I-REVIEW-A ruling 1) was cached but survived a
+  request-root rebase, so a Runner driven through the step-by-step API
+  (`load_config`, then a root change, then `pre_validate`) kept resolving
+  against the *previous* root. `Runner.run` re-resolved immediately after
+  applying the request root, which is why no production path was affected.
+  (`local/develop/v2/merge_v1/contracts.md` §I-REVIEW-A debt 4.)
+- **A golden directory-tree test had stopped being a golden test.**
+  `tests/v2/golden/test_dir_tree_parity.py`'s ExcelInvoice cell (TC-GOLD-002)
+  replaces the module-global `v1_run` with a directory-contract stub and never
+  restored it, so TC-GOLD-003 (MultiDataTile) ran that stub instead of v1 and
+  passed while comparing v2 against v2. An autouse fixture now scopes the
+  substitution to the cell that installs it, and TC-GOLD-003 executes the real v1
+  loop again (verified: the MultiDataTile case produces
+  `data/logs/rdesys_*.log` and per-tile `raw/` copies, neither of which the stub
+  can create). Pre-existing since Session B2; tests only, no production code.
+
+### Note for maintainers
+
+Reserved seats are unchanged at **6 xfail** (`TC-UM-MDT-FLOW-SIGTERM` plus the
+five `TC-UM-*-CB-OBS`) and **5 skip**; RunReport `schema_version` stays `"2"`.
+`_run_legacy` is private and must not be re-exported: after Session J2 it is
+reachable only from the dynamic oracles, and Phase K removes both.
+
 ## Unreleased — Session I-REVIEW-B (PR #539 review response: contracts & tests)
 
 Test-and-contract response to review findings F4, F5 and F7. No

@@ -1017,7 +1017,7 @@ def _run_oracle_worker(
     canary: bool = False,
     ignore_errors: bool = False,
 ) -> int:
-    from rdetoolkit.workflows import run as v1_run  # noqa: PLC0415
+    from rdetoolkit.workflows import _run_legacy as v1_run  # noqa: PLC0415
 
     if outcome == "valerr":
         _invalidate_invoice(root)

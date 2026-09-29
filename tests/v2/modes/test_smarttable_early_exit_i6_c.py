@@ -72,7 +72,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 sys.path.insert(0, os.getcwd())
 from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import run as v1_run
+from rdetoolkit.workflows import _run_legacy as v1_run
 from tests.v2.contract.fixtures import _generate
 
 calls = []

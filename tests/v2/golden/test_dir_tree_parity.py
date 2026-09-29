@@ -8,10 +8,11 @@ Session authority: local/develop/v2/tasks/session_b2.md (B2.3)
 
 Golden test principle (non-negotiable, Design §6.4 / session_b2.md):
     The "expected" directory set is generated DYNAMICALLY by running v1 code
-    (``rdetoolkit.workflows.run`` or ``rdetoolkit.workflows.generate_folder_paths_iterator``)
+    (``rdetoolkit.workflows._run_legacy`` -- the v1 orchestration loop, private
+    since Session J0 -- or ``rdetoolkit.workflows.generate_folder_paths_iterator``)
     against a minimal fixture built under ``tmp_path``. Hand-written snapshot
-    directory lists are forbidden. Every test below either runs v1 for real or
-    is explicitly skipped pending fixture porting (never hand-written).
+    directory lists are forbidden. Every test below runs v1 code for real; none
+    is skipped.
 
 Fixture assets are copied read-only from ``tests/samplefile/`` (v1 test data);
 v1 test files themselves are never imported or modified.
@@ -38,14 +39,36 @@ from tests.fixtures.invoice import invoice_json_with_sample_info
 from tests.fixtures.schema import ivnoice_schema_json_none_specificAttributes
 from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
 from rdetoolkit.workflows import generate_folder_paths_iterator
-from rdetoolkit.workflows import run as v1_run
+from rdetoolkit.workflows import _run_legacy as v1_run
 
 # Target import — fails until implementation exists (expected in Red phase):
 from rdetoolkit.runner.paths import resolve_tile_paths
 
 _SAMPLEFILE_DIR = Path(__file__).resolve().parents[2] / "samplefile"
 _FIXTURE_GENERATORS: list[Generator[str, None, None]] = []
+#: The real v1 orchestration loop. ``_install_excelinvoice_v1_directory_runner``
+#: rebinds the ``v1_run`` global for the duration of the ExcelInvoice cell, and
+#: :func:`_restore_v1_run` puts this back afterwards.
 _ORIGINAL_V1_RUN = v1_run
+
+
+@pytest.fixture(autouse=True)
+def _restore_v1_run() -> Generator[None, None, None]:
+    """Keep the ExcelInvoice cell's runner substitution inside that cell.
+
+    TC-GOLD-002 replaces the module-global ``v1_run`` with a directory-contract
+    stub (see :func:`_install_excelinvoice_v1_directory_runner`). Until Session
+    J0 that rebinding was never undone, so TC-GOLD-003 and TC-GOLD-006 -- which
+    run after it in file order -- executed the stub instead of v1 and silently
+    stopped being golden tests at all (no ``data/logs/rdesys_*.log`` was produced
+    on the MultiDataTile case). Restoring the global after every test makes each
+    cell state its own oracle.
+    """
+    global v1_run  # noqa: PLW0603 -- the substitution under test is a module global
+    try:
+        yield
+    finally:
+        v1_run = _ORIGINAL_V1_RUN
 
 # v1 RdeOutputResourcePath field -> on-disk directory basename
 # (rdetoolkit.types.OutputContext docstring "v1 field coverage" table).
@@ -135,7 +158,11 @@ def _build_excelinvoice_support_files(root: Path) -> None:
 
 
 def _install_excelinvoice_v1_directory_runner() -> None:
-    global v1_run
+    """Swap ``v1_run`` for the ExcelInvoice directory-contract stub.
+
+    Scoped to the calling test by the autouse :func:`_restore_v1_run` fixture.
+    """
+    global v1_run  # noqa: PLW0603 -- the substitution is the point of this helper
 
     def _run_excelinvoice_directory_contract(*, custom_dataset_function: object = None, config: object = None) -> str:
         _ = (custom_dataset_function, config)
@@ -244,10 +271,13 @@ class TestDirTreeParityMultidatatitleMode:
     ) -> None:
         """MultiDataTile mode (3 tiles) must produce matching divided/ directory sets.
 
-        Skipped for now: a full MultiDataTile run requires multiple raw input
-        files and multidata_tile config wiring (heavier than the invoice-mode
-        fixture). Ported during B2 implementation once the asset set is
-        finalized.
+        The expected tree comes from a real MultiDataTile dispatch of the v1
+        orchestration loop over three input files (TC-GOLD-004 principle), never
+        a hand-written directory list. Until Session J0 this cell silently ran
+        TC-GOLD-002's directory-contract stub, because that stub leaked out of
+        the ExcelInvoice cell through the module global; the autouse
+        ``_restore_v1_run`` fixture is what makes the assertion below mean
+        something.
         """
         _build_invoice_fixture(tmp_path)
         monkeypatch.chdir(tmp_path)

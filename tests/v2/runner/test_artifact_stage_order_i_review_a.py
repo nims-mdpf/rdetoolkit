@@ -63,7 +63,7 @@ root = Path(sys.argv[1])
 mode = sys.argv[2]
 sys.path.insert(0, os.getcwd())
 from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import run as v1_run
+from rdetoolkit.workflows import _run_legacy as v1_run
 
 extended = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
 config = Config(
@@ -284,7 +284,7 @@ root = Path(sys.argv[1])
 mode = sys.argv[2]
 sys.path.insert(0, os.getcwd())
 from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import run as v1_run
+from rdetoolkit.workflows import _run_legacy as v1_run
 
 extended = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
 config = Config(
