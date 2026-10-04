@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import sys
 import traceback
 from collections.abc import Callable, Generator
 from pathlib import Path
@@ -500,6 +501,107 @@ def _run_legacy(custom_dataset_function: DatasetCallback | None, config: Any = N
     return wf_manager.to_json()
 
 
+#: Single stderr line the v1 callback entry writes before exiting non-zero.
+#: v1 printed the failure through its ``handle_*_error`` helpers; the unified
+#: entry's failure detail already reached ``data/job.failed`` and the RunReport,
+#: so this line only tells an operator where to look.
+_CALLBACK_ENTRY_FAILURE_NOTICE = (
+    "rdetoolkit: the structured process failed; see data/job.failed for the error code\n"
+)
+
+
+def _callback_entry_log_path() -> Path:
+    """Return the ``rdesys_<ts>.log`` path the v1 callback entry logs into.
+
+    The path is taken through v1's own ``StorageDir`` — the identical ritual
+    ``_run_legacy`` performs (Phase J ruling #3) — rather than from the run's
+    resolved data root. ``StorageDir`` *is* the v1 contract for this file: it is
+    the only seam a v1 caller (or a v1 test) can redirect, and v1 always wrote
+    the log below ``<cwd>/data`` even for a project whose RDE markers sit
+    directly below the root. For the standard layout both answers are the same
+    directory.
+
+    Returns:
+        ``<cwd>/data/logs/rdesys_<timestamp>.log``, its parent created.
+    """
+    from rdetoolkit.rde2util import StorageDir
+    from rdetoolkit.rdelogger import generate_log_timestamp
+
+    log_filename = f"rdesys_{generate_log_timestamp()}.log"
+    return StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
+
+
+def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config: Any = None) -> str:
+    """Run the v1 dataset-callback entry point through the unified Runner.
+
+    Session J2 / merge-v1 I7 (Phase J ruling #2): ``run(custom_dataset_function=...)``
+    calls the single Runner exactly once while keeping every observable half of
+    the v1 contract — the ``rdesys_<ts>.log`` file logger, the legacy JSON return
+    value, ``SystemExit(1)`` for a failed run, and v1's fail-fast iteration
+    policy. ``_run_legacy`` stays in this module for the dynamic oracles only.
+
+    Args:
+        custom_dataset_function: Optional v1 dataset callback, invoked once per
+            data tile by ``LegacyCallbackInvoker``.
+        config: ``None`` resolves the v1 configuration from
+            ``<data root>/tasksupport`` with v1's own loader; a v1 ``Config`` is
+            passed through unchanged. Both keep the v1 contract — fail-fast
+            unless ``multidata_tile.ignore_errors`` says otherwise. An
+            ``RdeConfig`` or mapping is normalized as a v2 source.
+
+    Returns:
+        The v1 ``{"statuses": [...]}`` JSON string for a successful or partial
+        run.
+
+    Raises:
+        SystemExit: With code 1 when the run failed. ``Runner.finalize`` has
+            already written ``data/job.failed``, exactly as v1 did before it
+            exited.
+    """
+    from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
+    from rdetoolkit.config import load_config as load_v1_config
+    from rdetoolkit.rdelogger import get_logger
+    from rdetoolkit.runner.lifecycle import Runner
+    from rdetoolkit.runner.paths import resolve_data_root
+
+    get_logger("rdetoolkit", file_path=_callback_entry_log_path())
+    # The handler is created with ``delay=True``, so the log file only appears
+    # once a record is emitted. v1 emitted plenty of them from the pipeline it
+    # ran next; the Runner logs through its own channels, so the entry point
+    # opens the file itself -- the frozen v1 observations carry
+    # ``data/logs/rdesys_<ts>.log`` as an existing file (Phase J ruling #3).
+    get_logger(__name__).debug("rdetoolkit structured process started (unified Runner)")
+
+    root = Path.cwd()
+    data_root = resolve_data_root(root)
+    # ``config=None`` must not fall through to v2 config discovery: that path
+    # takes the v2 default ``on_iteration_error: continue`` and ignores the v1
+    # material a structured program ships, while Design §7.2 contracts the v1
+    # API as fail-fast. v1's own loader answers both questions at once -- it
+    # honours ``system.extended_mode`` and ``multidata_tile.ignore_errors`` from
+    # ``data/tasksupport``, exactly as ``_run_legacy`` does, and the v1
+    # ``Config`` it returns reaches ``ConfigNormalizer`` with ``origin="v1"``
+    # (Phase J ruling #2c, amended by the Session J2 B-ruling #1b).
+    config_source: Any = (
+        load_v1_config(str(data_root / "tasksupport"), config=None) if config is None else config
+    )
+    report = Runner(
+        root=root,
+        inputdata_path=data_root / "inputdata",
+        unpacked_dir_path=data_root / "temp",
+    ).run(
+        RunRequest(
+            root=root,
+            target=LegacyCallbackTarget(function=custom_dataset_function),
+            config_source=config_source,
+        ),
+    )
+    if report.status == "failed":
+        sys.stderr.write(_CALLBACK_ENTRY_FAILURE_NOTICE)
+        sys.exit(1)
+    return report.to_legacy_statuses()
+
+
 def run(  # pragma: no cover
     *,
     flow: Callable[..., Any] | type[ProcessingTemplate] | None = None,
@@ -512,6 +614,14 @@ def run(  # pragma: no cover
     processing input data, generating invoices, creating thumbnails, and executing custom
     data transformations. The workflow supports multiple processing modes (Invoice,
     Excelinvoice, MultiDataTile, SmartTable) configured via the Config object.
+
+    Both public forms execute through the **single unified Runner** (merge-v1
+    I7): ``run(flow=...)`` returns its ``RunReport``, while
+    ``run(custom_dataset_function=...)`` keeps the v1 return and exit contract on
+    top of it — the ``rdesys_<ts>.log`` file logger, the legacy ``{"statuses":
+    [...]}`` JSON string, v1's fail-fast iteration policy, and ``SystemExit(1)``
+    after ``data/job.failed`` has been written for a failed run. No
+    DeprecationWarning is emitted for either form.
 
     The workflow pipeline processes data in the following stages:
     1. Validation: Verify directory structure and configuration
@@ -531,10 +641,14 @@ def run(  # pragma: no cover
             For backward compatibility, callbacks accepting the two legacy arguments are still supported.
             This function receives input paths (raw data) and output paths (processed data)
             and should perform domain-specific data transformations.
-        config: Optional Config object with system settings. If None, config is loaded from
-            tasksupport/config.toml. The config controls processing mode (extended_mode),
-            output options (save_raw, save_thumbnail_image, save_main_image),
-            and mode-specific settings (multidata_tile, smarttable configurations)
+        config: Optional Config object with system settings. The config controls
+            processing mode (extended_mode), output options (save_raw,
+            save_thumbnail_image, save_main_image), and mode-specific settings
+            (multidata_tile, smarttable configurations). On the
+            ``custom_dataset_function`` path ``None`` means "the v1 defaults",
+            which keeps the v1 fail-fast iteration policy; on the ``flow`` path
+            ``None`` lets the Runner discover ``rdeconfig.yaml`` /
+            ``tasksupport/`` configuration.
 
     Returns:
         For ``run(flow=...)``, a v2 ``RunReport``. For the v1
@@ -669,4 +783,4 @@ def run(  # pragma: no cover
             unpacked_dir_path=data_root / "temp",
         ).run(request)
 
-    return _run_legacy(custom_dataset_function, config)
+    return _run_callback_entry(custom_dataset_function, config)

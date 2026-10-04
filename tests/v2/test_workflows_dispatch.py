@@ -11,9 +11,15 @@ Session authority: local/develop/v2/tasks/session_d2.md D2.8, Known Trap 1
 keyword-only parameter list; ``custom_dataset_function``'s parameter kind
 must not change), decisions_pre_A1.md Ruling 4 (flow= keyword-only, E1001).
 
-Pinned dispatch contract:
+Pinned dispatch contract (UPDATED Session J2 / merge-v1 I7, ruling #1):
     run(flow=<flow_fn>)                              -> v2 Runner, returns RunReport
-    run(custom_dataset_function=<fn>)                 -> v1 code path, returns str (byte-identical, no DeprecationWarning)
+    run(custom_dataset_function=<fn>)                 -> **the same single v2
+        Runner**, keeping every v1 *observable*: a legacy JSON ``str`` for a
+        successful or partial run, ``SystemExit(1)`` after ``data/job.failed``
+        for a failed one, the ``rdesys_<ts>.log`` file logger, v1's fail-fast
+        iteration policy, and no DeprecationWarning. ``workflows._run_legacy``
+        is no longer reachable from the public entry point; it survives only as
+        the dynamic oracles' subject (contracts.md §J0-1, §J2).
     run(flow=..., custom_dataset_function=...)         -> RdeConfigError(code=1001)
     run()  (neither specified)                         -> v1-compatible behavior maintained
         (Design §11: "Python API でどちらも未指定 -> v1 互換のため既存
@@ -40,6 +46,7 @@ import warnings
 from pathlib import Path
 
 import pytest
+import yaml
 
 from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
 from rdetoolkit.workflows import run as v1_run
@@ -111,6 +118,18 @@ def _build_alias_flat_fixture(root: Path) -> None:
         json.dumps({"constant": {}, "variable": []}),
         encoding="utf-8",
     )
+
+
+def _write_tasksupport_config(root: Path, data: dict) -> None:
+    """Write the v1 configuration a deployed structured program ships.
+
+    ``data/tasksupport/rdeconfig.yaml`` is where ``extended_mode`` and
+    ``multidata_tile.ignore_errors`` live in production; the public callback
+    entry point reads it with v1's own loader when ``config is None``.
+    """
+    tasksupport = root / "data" / "tasksupport"
+    tasksupport.mkdir(parents=True, exist_ok=True)
+    (tasksupport / "rdeconfig.yaml").write_text(yaml.safe_dump(data), encoding="utf-8")
 
 
 def _v1_config() -> Config:
@@ -223,24 +242,170 @@ class TestFlowDispatch:
 
 
 class TestCustomDatasetFunctionDispatch:
-    """TC-DISPATCH-002: run(custom_dataset_function=...) keeps the v1 code
-    path byte-identical (still returns the v1 JSON-string contract).
+    """TC-DISPATCH-002 / 003b: the v1 callback entry goes through one Runner.
+
+    UPDATED (Session J2 ruling #6). The pre-J2 cell asserted only that the
+    return value was a JSON ``str``, which both the old v1 loop and the unified
+    Runner satisfy -- it could not tell them apart, and its name claimed the
+    "v1 code path" was preserved. The two cells below assert the contract the
+    session establishes instead: the single Runner is entered exactly once,
+    ``_run_legacy`` is never called, and the v1 return/exit contract survives on
+    top of it. Strictly stronger: it pins the dispatch target *and* the legacy
+    payload shape, where the old cell pinned only the latter.
     """
 
-    def test_run_with_custom_dataset_function_returns_v1_json_str__tc_dispatch_002(
+    def test_run_with_custom_dataset_function_uses_the_single_runner__tc_dispatch_002(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
+        # Given: a runnable v1 fixture, with the legacy loop made observable
+        from rdetoolkit import workflows
+        from rdetoolkit.runner.lifecycle import Runner
+
         monkeypatch.chdir(tmp_path)
         _build_v1_invoice_fixture(tmp_path)
 
+        runner_calls: list[object] = []
+        real_run = Runner.run
+
+        def _counting_run(self, request, **overrides):  # type: ignore[no-untyped-def]
+            runner_calls.append(request)
+            return real_run(self, request, **overrides)
+
+        def _forbidden_legacy(custom_dataset_function, config=None):  # type: ignore[no-untyped-def]
+            msg = "the public entry point must not reach workflows._run_legacy"
+            raise AssertionError(msg)
+
+        monkeypatch.setattr(Runner, "run", _counting_run)
+        monkeypatch.setattr(workflows, "_run_legacy", _forbidden_legacy)
+
+        # When: calling the public v1 entry point
         result = v1_run(custom_dataset_function=_no_op_dataset_function, config=_v1_config())
 
+        # Then: the unified Runner ran exactly once, with the legacy target
+        assert len(runner_calls) == 1
+        assert type(runner_calls[0].target).__name__ == "LegacyCallbackTarget"
+        assert runner_calls[0].validate_only is False
+
+        # And: the v1 JSON-string return contract is unchanged
         assert isinstance(result, str)
         parsed = json.loads(result)
         assert isinstance(parsed, dict)
         assert isinstance(parsed.get("statuses"), list)
+        assert [status["status"] for status in parsed["statuses"]] == ["success"]
+
+    def test_run_with_failing_callback_exits_1_after_job_failed__tc_dispatch_003b(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-DISPATCH-003b (new, ruling #6): the v1 failure contract survives.
+
+        v1 wrote ``data/job.failed`` and called ``sys.exit(1)`` without ever
+        returning. The unified entry point must do both, in that order -- the
+        file is written by ``Runner.finalize`` before the exit.
+        """
+        # Given: a runnable fixture and a callback that raises
+        from rdetoolkit.exceptions import StructuredError
+
+        monkeypatch.chdir(tmp_path)
+        _build_v1_invoice_fixture(tmp_path)
+
+        def _failing_dataset_function(srcpaths: object, resource_paths: object) -> None:
+            raise StructuredError("dispatch 003b failure", ecode=777)
+
+        # When: calling the public v1 entry point
+        with pytest.raises(SystemExit) as exit_info:
+            v1_run(custom_dataset_function=_failing_dataset_function, config=_v1_config())
+
+        # Then: the process exit status is 1, as v1's was
+        assert exit_info.value.code == 1
+
+        # And: job.failed carries the callback's own ecode and message
+        job_failed = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
+        assert job_failed.splitlines()[0] == "ErrorCode=777"
+        assert "dispatch 003b failure" in job_failed
+
+
+class TestCallbackEntryConfigResolution:
+    """TC-J2-ENTRY-CFG-001/002: ``config=None`` honours data/tasksupport.
+
+    Session J2 B-ruling #1b. Routing the public entry through the Runner must
+    not silently take the v2 configuration defaults: a deployed structured
+    program declares its mode and its error policy in
+    ``data/tasksupport/rdeconfig.yaml`` and passes no ``config`` at all. The
+    entry point therefore resolves that file with v1's own loader, so both
+    values keep working while ``ConfigNormalizer`` still seeds the v1 policy.
+    """
+
+    def test_tasksupport_extended_mode_selects_multidatatile__tc_j2_entry_cfg_001(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # Given: two inputs and a tasksupport config declaring MultiDataTile
+        from rdetoolkit.workflows import run
+
+        monkeypatch.chdir(tmp_path)
+        _build_v1_invoice_fixture(tmp_path)
+        (tmp_path / "data" / "inputdata" / "second.txt").write_text("second", encoding="utf-8")
+        _write_tasksupport_config(tmp_path, {"system": {"extended_mode": "MultiDataTile"}})
+
+        # When: calling the public entry point with no explicit config
+        result = run(custom_dataset_function=_no_op_dataset_function)
+
+        # Then: the declared mode drove the run, producing one tile per file.
+        # Taking the v2 defaults instead would have reported "invoice" with a
+        # single tile covering both files.
+        statuses = json.loads(str(result))["statuses"]
+        assert [status["mode"] for status in statuses] == ["MultiDataTile", "MultiDataTile"]
+        assert [status["run_id"] for status in statuses] == ["0000", "0001"]
+
+    def test_tasksupport_ignore_errors_yields_a_partial_run__tc_j2_entry_cfg_002(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A tasksupport ``ignore_errors: true`` keeps v1's continue policy.
+
+        This is the negative half of the fail-fast seed: without reading the
+        file the run would stop at the failing tile and exit 1, and without the
+        ``origin="v1"`` normalization a *missing* ``ignore_errors`` would wrongly
+        continue. Here the file says continue, so a failed tile must not abort
+        the run and the process must still exit 0 with a payload.
+        """
+        from rdetoolkit.exceptions import StructuredError
+        from rdetoolkit.workflows import run
+
+        # Given: two inputs, continue policy, and a callback failing tile 1
+        monkeypatch.chdir(tmp_path)
+        _build_v1_invoice_fixture(tmp_path)
+        (tmp_path / "data" / "inputdata" / "second.txt").write_text("second", encoding="utf-8")
+        _write_tasksupport_config(
+            tmp_path,
+            {
+                "system": {"extended_mode": "MultiDataTile"},
+                "multidata_tile": {"ignore_errors": True},
+            },
+        )
+        calls: list[int] = []
+
+        def _second_tile_fails(srcpaths: object, resource_paths: object) -> None:
+            calls.append(len(calls))
+            if len(calls) == 2:
+                raise StructuredError("tile 1 failed", ecode=888)
+
+        # When: calling the public entry point with no explicit config
+        result = run(custom_dataset_function=_second_tile_fails)
+
+        # Then: the run returned normally -- a partial run is not SystemExit
+        statuses = json.loads(str(result))["statuses"]
+        assert [status["status"] for status in statuses] == ["success", "failed"]
+        assert calls == [0, 1]
+
+        # And: a partial run writes no job.failed, exactly as v1 measured
+        assert not (tmp_path / "data" / "job.failed").exists()
 
 
 class TestMutualExclusionUsageError:

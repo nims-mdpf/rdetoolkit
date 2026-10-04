@@ -50,13 +50,16 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import cast
 
+import pandas as pd
 import pytest
 import yaml
 from typer.testing import CliRunner
 
 from rdetoolkit.cli.app import app
+from tests.v2.cli.fixtures import legacy_targets
 
 FIXTURE_MODULE = "tests.v2.cli.fixtures.run_flows"
+LEGACY_MODULE = "tests.v2.cli.fixtures.legacy_targets"
 
 _SEED_INVOICE_JSON: dict = {
     "datasetId": "seed-dataset",
@@ -110,6 +113,55 @@ def _build_alias_flat_fixture(root: Path) -> None:
 
 def _write_rdeconfig(root: Path, data: dict) -> None:
     (root / "rdeconfig.yaml").write_text(yaml.safe_dump(data), encoding="utf-8")
+
+
+def _write_tasksupport_rdeconfig(root: Path, data: dict) -> None:
+    """Write the v1 configuration a structured program actually ships.
+
+    The legacy target rejects ``--config`` (Design §10), so the only way to
+    configure TC-CLI-RUN-EP-018's continue policy is the v1 location the public
+    entry point reads with v1's own loader.
+    """
+    tasksupport = root / "data" / "tasksupport"
+    tasksupport.mkdir(parents=True, exist_ok=True)
+    (tasksupport / "rdeconfig.yaml").write_text(yaml.safe_dump(data), encoding="utf-8")
+
+
+def _legacy_payload(output: str) -> dict:
+    """Return the legacy statuses JSON the CLI echoed.
+
+    ``CliRunner`` mixes stderr into ``output`` and the Runner writes its failure
+    count line there, so the payload is selected by shape rather than by
+    position.
+
+    Args:
+        output: Captured CLI output.
+
+    Returns:
+        The decoded ``{"statuses": [...]}`` document.
+    """
+    for line in output.splitlines():
+        candidate = line.strip()
+        if candidate.startswith('{"statuses"'):
+            return cast(dict, json.loads(candidate))
+    msg = f"no legacy statuses payload in CLI output: {output!r}"
+    raise AssertionError(msg)
+
+
+def _write_excel_invoice_workbook(path: Path) -> None:
+    """Write the smallest workbook ``selected_input_checker`` detects.
+
+    Only the ``*_excel_invoice.xlsx`` name and an ``invoice_form`` sheet matter
+    for mode detection, which is all TC-CLI-RUN-EP-019 needs: the run never
+    reaches the point of reading rows.
+    """
+    with pd.ExcelWriter(path) as writer:
+        pd.DataFrame([["invoiceList_format_id"], [""]]).to_excel(
+            writer,
+            sheet_name="invoice_form",
+            index=False,
+            header=False,
+        )
 
 
 @pytest.fixture
@@ -358,17 +410,25 @@ class TestRunValidateOnly:
         silently answered ``invoice`` for every alias-flat project -- including
         ExcelInvoice and SmartTable ones. ``--validate-only`` prints no mode, so
         the only honest observable is which directories the Runner is given.
-        """
-        from rdetoolkit.cli import run_cmd
 
-        # Given: an alias-flat project
-        #
-        # (The fixture deliberately keeps a plain input file: a workbook here
-        # would trigger the W1001 mode-override event, which this path emits
-        # with an empty ``run_id`` and therefore cannot publish -- an unrelated
-        # latent defect of the step-by-step API, recorded in contracts.md.)
+        UPDATED (Session J2 ruling #4): ``validate_only`` now takes the resolved
+        flow and drives one ``Runner.run(RunRequest(validate_only=True))`` call
+        instead of three step-by-step Runner methods, so the call is adapted and
+        the pin is **extended** -- the request the Runner receives is captured
+        too, and it must carry ``validate_only=True`` with the flow as its
+        target. The directory expectation is unchanged, and the step-by-step
+        API's inability to publish W1001 (noted here before J2) is now its own
+        regression cell, TC-CLI-RUN-EP-019.
+        """
+        from rdetoolkit.api.request import FlowTarget, RunRequest
+        from rdetoolkit.cli import run_cmd
+        from tests.v2.cli.fixtures import run_flows
+
+        # Given: an alias-flat project carrying a plain input file
+        before = len(run_flows.VALIDATE_ONLY_SENTINEL)
         _build_alias_flat_fixture(isolated_root)
         constructed: list[dict[str, Path]] = []
+        requests: list[RunRequest] = []
         real_runner = run_cmd.Runner
 
         class _RecordingRunner(real_runner):  # type: ignore[misc, valid-type]
@@ -382,10 +442,14 @@ class TestRunValidateOnly:
                 )
                 super().__init__(**kwargs)  # type: ignore[arg-type]
 
+            def run(self, request: RunRequest, **overrides: object) -> object:
+                requests.append(request)
+                return super().run(request, **overrides)
+
         monkeypatch.setattr(run_cmd, "Runner", _RecordingRunner)
 
         # When: running the validate-only path
-        run_cmd.validate_only(None)
+        run_cmd.validate_only(run_flows.validate_only_pipeline, None)
 
         # Then: the Runner scans the directories the resolved data root owns
         assert constructed == [
@@ -396,6 +460,15 @@ class TestRunValidateOnly:
             },
         ]
 
+        # And: it is driven by exactly one validate-only request naming the flow
+        assert len(requests) == 1
+        assert requests[0].validate_only is True
+        assert requests[0].root == isolated_root
+        assert requests[0].target == FlowTarget(function=run_flows.validate_only_pipeline)
+
+        # And: resolving the flow is not calling it
+        assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
+
     def test_validate_only_without_flow_exits_3__tc_cli_run_ep_011(
         self,
         cli_runner: CliRunner,
@@ -404,6 +477,198 @@ class TestRunValidateOnly:
         result = cli_runner.invoke(app, ["run", "legacy_target::attr", "--validate-only"])
 
         assert result.exit_code == 3
+
+    def test_validate_only_failure_writes_no_job_failed__tc_cli_run_ep_020(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        """TC-CLI-RUN-EP-020: a failed pre-flight leaves no job-failure marker.
+
+        Routing ``--validate-only`` through ``Runner.run`` (Session J2 ruling
+        #4) put its failures on the ordinary ``_failed_report`` + ``finalize``
+        path, which writes ``data/job.failed``. The pre-J2 step-by-step helper
+        wrote nothing at all, and the RDE platform reads that file as *the*
+        job-failure marker -- a pre-flight check must not claim the job failed.
+        The amended ruling: a validate-only run never writes ``job.failed``
+        under any outcome, while still reporting exit 1 to its caller.
+
+        The run report *is* written: it is a log, not a marker, and asserting
+        its presence keeps this cell from passing for the wrong reason (a
+        ``finalize`` that was skipped wholesale).
+        """
+        from tests.v2.cli.fixtures import run_flows
+
+        # Given: a project whose own invoice is missing, so pre_validate fails
+        # after the §J0-3 unpack directory has been prepared
+        before = len(run_flows.VALIDATE_ONLY_SENTINEL)
+        _build_data_fixture(isolated_root)
+        (isolated_root / "data" / "invoice" / "invoice.json").unlink()
+
+        # When: validating without executing the flow
+        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+
+        # Then: the caller is told it failed, and the flow never ran
+        assert result.exit_code == 1
+        assert "Validation failed" in result.output
+        assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
+
+        # And: no job-failure marker was left behind
+        assert not (isolated_root / "data" / "job.failed").exists(), (
+            "a validate-only pre-flight must not write the RDE job-failure marker"
+        )
+
+        # And: the run report was still written, so the skip is specific
+        assert list((isolated_root / "data" / "logs").glob("run_report_*.json")), (
+            "the run report is a log and is still expected"
+        )
+
+        # And: the unpack directory v1 prepared before parsing is still there
+        # (contracts.md §J0-3), the same layout TC-CLI-RUN-EP-009b validates
+        assert (isolated_root / "data" / "temp").is_dir()
+
+    def test_mode_override_publishes_w1001__tc_cli_run_ep_019(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        """TC-CLI-RUN-EP-019: --validate-only publishes the W1001 override event.
+
+        Regression cell for §I-REVIEW-A debt 5, closed by Session J2 ruling #4.
+        The pre-J2 path built the first three lifecycle steps by hand *before*
+        any run id existed, so ``resolve_mode``'s W1001 warning was emitted with
+        ``run_id=""`` and could not be published to a sink at all. Driving the
+        same work through ``Runner.run(RunRequest(validate_only=True))`` gives it
+        a real run id.
+
+        The fixture declares ``extended_mode: invoice`` while shipping an
+        ExcelInvoice workbook, which is exactly the "file detection overrode an
+        explicitly configured mode" condition W1001 exists for.
+        """
+        from rdetoolkit.api.request import build_run_request
+        from rdetoolkit.report.events import MemoryEventSink
+        from rdetoolkit.runner.lifecycle import Runner
+        from rdetoolkit.runner.paths import resolve_data_root
+        from tests.v2.cli.fixtures import run_flows
+
+        # Given: a project whose declared mode loses to its ExcelInvoice input
+        before = len(run_flows.VALIDATE_ONLY_SENTINEL)
+        _build_data_fixture(isolated_root, input_files={"test_single.txt": "dummy"})
+        _write_excel_invoice_workbook(isolated_root / "data" / "inputdata" / "sample_excel_invoice.xlsx")
+        _write_rdeconfig(isolated_root, {"system": {"extended_mode": "invoice"}})
+
+        # When: validating through the CLI
+        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+
+        # Then: validation succeeds without running the flow
+        assert result.exit_code == 0, result.output
+        assert "Validation succeeded" in result.output
+        assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
+
+        # And: the same request publishes W1001 with a real run id. The CLI owns
+        # no sink, so the event is observed by replaying the one request the CLI
+        # builds through a Runner that does.
+        data_root = resolve_data_root(isolated_root)
+        sink = MemoryEventSink()
+        report = Runner(
+            root=isolated_root,
+            inputdata_path=data_root / "inputdata",
+            unpacked_dir_path=data_root / "temp",
+            event_sink=sink,
+        ).run(
+            build_run_request(
+                flow=run_flows.validate_only_pipeline,
+                custom_dataset_function=None,
+                config=None,
+                root=isolated_root,
+                validate_only=True,
+            ),
+        )
+        assert report.status == "success"
+        assert report.iterations == []
+        warnings_published = [
+            event for event in sink.events if event.name == "warning" and event.payload.get("code") == 1001
+        ]
+        assert len(warnings_published) == 1
+        assert warnings_published[0].run_id == report.run_id
+        assert warnings_published[0].run_id != "", "W1001 was unpublishable while run_id was empty"
+        assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
+
+
+class TestRunLegacyTargetExitCodes:
+    """TC-CLI-RUN-EP-016..018: the legacy target maps onto §9.3's 0/1/2/3.
+
+    The v1 *Python* contract keeps ``SystemExit(1)`` for a failed run and a
+    normal return for a partial one; the CLI is uniform across every ``run``
+    form (Session J2 ruling #3). These three cells drive the public entry point
+    for real -- no stub -- so the mapping is measured end to end.
+    """
+
+    def test_legacy_target_success_exits_0__tc_cli_run_ep_016(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        # Given: a one-tile project and a callback that succeeds
+        _build_data_fixture(isolated_root)
+
+        # When: running it as a legacy target
+        result = cli_runner.invoke(app, ["run", f"{LEGACY_MODULE}::succeeds"])
+
+        # Then: exit 0, and the legacy JSON payload reached stdout
+        assert result.exit_code == 0, result.output
+        assert legacy_targets.call_count(isolated_root) == 1
+        payload = _legacy_payload(result.output)
+        assert [status["status"] for status in payload["statuses"]] == ["success"]
+
+    def test_legacy_target_failure_exits_1__tc_cli_run_ep_017(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        # Given: a one-tile project and a callback that raises
+        _build_data_fixture(isolated_root)
+
+        # When: running it as a legacy target
+        result = cli_runner.invoke(app, ["run", f"{LEGACY_MODULE}::always_fails"])
+
+        # Then: the entry point's SystemExit(1) becomes CLI exit 1, not a
+        # traceback escaping through ``except Exception``
+        assert result.exit_code == 1
+        assert legacy_targets.call_count(isolated_root) == 1
+
+        # And: the v1 failure artifact carries the user's own ecode
+        job_failed = (isolated_root / "data" / "job.failed").read_text(encoding="utf-8")
+        assert job_failed.splitlines()[0] == f"ErrorCode={legacy_targets.FAILURE_CODE}"
+
+    def test_legacy_target_partial_exits_2__tc_cli_run_ep_018(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        # Given: a two-tile MultiDataTile project with v1's continue policy,
+        # declared in data/tasksupport because a legacy target rejects --config
+        _build_data_fixture(isolated_root, input_files={"a.txt": "a", "b.txt": "b"})
+        _write_tasksupport_rdeconfig(
+            isolated_root,
+            {
+                "system": {"extended_mode": "MultiDataTile"},
+                "multidata_tile": {"ignore_errors": True},
+            },
+        )
+
+        # When: tile 1 fails while tile 0 succeeds
+        result = cli_runner.invoke(app, ["run", f"{LEGACY_MODULE}::second_tile_fails"])
+
+        # Then: a partial run is exit 2 -- the v1 API returned normally, so the
+        # code can only come from the returned statuses
+        assert result.exit_code == 2, result.output
+        assert legacy_targets.call_count(isolated_root) == 2
+        payload = _legacy_payload(result.output)
+        assert [status["status"] for status in payload["statuses"]] == ["success", "failed"]
+
+        # And: a partial run leaves no job.failed, exactly as v1 measured
+        assert not (isolated_root / "data" / "job.failed").exists()
 
 
 class TestRunConfigOverride:

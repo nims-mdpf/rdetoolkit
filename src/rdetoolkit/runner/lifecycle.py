@@ -38,7 +38,7 @@ from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
 from rdetoolkit.runner.executor import TileExecutor
-from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record
+from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
@@ -96,6 +96,13 @@ class Runner:
         # a Runner driven step-by-step resolves it lazily on first use so the
         # answer is still taken exactly once.
         self._data_root: Path | None = None
+        # Per-run, like ``run_id`` and ``_data_root``: whether this run is a
+        # pre-flight check. It is state rather than a ``finalize`` parameter
+        # because both finalization seams are already contracted -- several test
+        # doubles override ``Runner.finalize(report, config)`` and others inject
+        # a ``finalizer=`` implementing the same two-argument call -- and a
+        # pre-flight flag is not worth changing either protocol for.
+        self._validate_only = False
         self._planner = planner or RunPlanner(
             inputdata_path=lambda: self.inputdata_path,
             unpacked_dir_path=lambda: self.unpacked_dir_path,
@@ -155,6 +162,7 @@ class Runner:
             msg = "Config overrides must be carried by RunRequest.config_source"
             raise TypeError(msg)
         target = run_request.target
+        self._validate_only = run_request.validate_only
         self._apply_request_root(run_request.root)
         # Resolved before any directory is created, so the alias-flat answer
         # cannot change once tile 0 exists (ruling #1).
@@ -190,8 +198,13 @@ class Runner:
                     # directory-tree asymmetry the Session I6-B seats bounded.
                     (self.data_root / "temp").mkdir(parents=True, exist_ok=True)
                     self.pre_validate(config)
-                    report = self.iterate(target, mode, config)
-                    self.post_validate(config, report)
+                    report = self._execute(
+                        run_request,
+                        target,
+                        mode=mode,
+                        config=config,
+                        started=started,
+                    )
                 except Exception as exc:  # noqa: BLE001
                     config = config or RdeConfig()
                     report = _failed_report(
@@ -218,6 +231,52 @@ class Runner:
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
             self._invoice_service.end_run()
+
+    def _execute(
+        self,
+        request: RunRequest,
+        target: ExecutionTarget,
+        *,
+        mode: ModeKind,
+        config: RdeConfig,
+        started: float,
+    ) -> RunReport:
+        """Iterate the tiles, or stop after validation for a validate-only run.
+
+        ``RunRequest.validate_only`` existed since Session D but was never
+        consumed: the CLI reimplemented the first three lifecycle steps by
+        hand, which left ``run_id`` empty and made W1001 unpublishable
+        (Session J2 ruling #4). Consuming it here means a validate-only request
+        takes the same ``load_config`` -> ``resolve_mode`` -> ``pre_validate``
+        prefix as a real run — with a real run id, a real event sink and the
+        ordinary failure route — and simply never builds a tile.
+
+        Args:
+            request: Normalized request, read for ``validate_only``.
+            target: Execution target, used for the report's ``flow_id``.
+            mode: Mode resolved for this run.
+            config: Effective configuration.
+            started: Monotonic-ish start time of the run.
+
+        Returns:
+            The iteration report, or a tile-free successful report.
+        """
+        if request.validate_only:
+            return RunReport(
+                run_id=self.run_id,
+                status="success",
+                flow_id=_target_flow_id(target),
+                mode=mode.value,
+                started_at=_iso_timestamp(started),
+                duration_ms=(time.time() - started) * 1000.0,
+                config_digest=_config_digest(config),
+                iterations=[],
+                warnings=[],
+                error=None,
+            )
+        report = self.iterate(target, mode, config)
+        self.post_validate(config, report)
+        return report
 
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.
@@ -403,10 +462,22 @@ class Runner:
         through the v1 contract. This is the production path; tests may still
         replace this step through the injectable-step seam.
 
+        A **validate-only** run is exempt from the ``job.failed`` half: the RDE
+        platform reads that file as the job-failure marker, and a pre-flight
+        check that merely reports "this input would not validate" must not claim
+        the job failed (Session J2 ruling #4 as amended). It still writes the run
+        report, which is a log. The skip lives here rather than behind a
+        ``RunFinalizer`` flag so that neither injectable seam changes shape --
+        ``Runner.finalize(report, config)`` is overridden by several test
+        doubles, and ``finalizer=`` is injected by others.
+
         Args:
             report: Report produced by iteration.
             config: Effective configuration.
         """
+        if self._validate_only:
+            write_run_report(report, data_root=self.data_root)
+            return
         self._finalizer.finalize(report, config)
 
 

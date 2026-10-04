@@ -90,7 +90,7 @@ def finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None:
         data_root: The run's single resolved data root.
     """
     _ = config
-    _write_run_report(report, data_root=data_root)
+    write_run_report(report, data_root=data_root)
     if report.status == "failed":
         code, message = _failure_error(report)
         failure_path = (data_root / "job.failed").resolve()
@@ -98,7 +98,20 @@ def finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None:
         write_job_errorlog_file(code, message, filename=str(failure_path))
 
 
-def _write_run_report(report: RunReport, *, data_root: Path) -> None:
+def write_run_report(report: RunReport, *, data_root: Path) -> None:
+    """Write one run's report JSON below ``<data root>/logs``.
+
+    Exposed separately from :func:`finalize` for the single caller that needs
+    the report **without** the ``job.failed`` half: a validate-only pre-flight
+    check. The RDE platform reads ``job.failed`` as the job-failure marker, so a
+    check that merely reports "this input would not validate" must not leave one
+    behind (Session J2 ruling #4 as amended), while the report itself is a log
+    and is still useful.
+
+    Args:
+        report: Report to persist.
+        data_root: The run's single resolved data root.
+    """
     logs_dir = data_root / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     report_path = logs_dir / f"run_report_{report.run_id}.json"

@@ -19,6 +19,14 @@ EP table:
         LegacyCallbackTarget(...)))`` driving ``LegacyCallbackInvoker`` — still
         compared with the frozen v1 observation (Session I-REVIEW-B, review F5).
         The CB cells above deliberately stay v1-versus-v1 pins.
+    TC-UM-*-CB-ENTRY-OK/USERERR/VALERR: the same three outcomes with the
+        **public** entry point as the SUT — ``workflows.run(custom_dataset_function=
+        ...)`` executed in a subprocess so its ``sys.exit`` and its CWD-relative
+        inputs are observable (Session J2 / I7, ruling #2;
+        tests/v2/contract/entry_observation.py). The expectation is the same
+        frozen v1 observation, compared key by key for OK (``legacy_return``
+        included — this is the H1 verification point) and for USERERR; VALERR
+        follows the front-loaded-validation divergence rule (contracts.md §J2 D4).
     TC-UM-*-CB-OBS: the callback entry point's **observability** equals the flow
         entry point's (Session J1 / I8, ADR-023 decision 5). One callback calling
         one ``@node`` is compared with a ``@flow`` calling the same ``@node``:
@@ -38,7 +46,12 @@ BV table:
         compared with a live v1 oracle.
     TC-UM-XLS/SMT-FLOW-CONTINUE-PARTIAL: v2-only contract — v1 re-raises from
         these modes, so there is no oracle (contracts.md §I-REVIEW-B).
-    TC-UM-MDT-FLOW-SIGTERM: representative termination flush contract xfail.
+    TC-UM-MDT-FLOW-SIGTERM: a two-tile MultiDataTile run terminated between
+        tiles; the flush contract is RunReport ``failed`` 3004, ``job.failed``
+        ``ErrorCode=3004``, ``run.completed{failed}``, and tile 0's artifacts
+        surviving (Session J2, ruling #5).
+    TC-UM-MDT-CB-ENTRY-SIGTERM: the same termination through the public entry
+        point, whose return code is 1 because a failed run exits non-zero.
 
 All expected callback values are static JSON produced by ``_generate.py`` at
 the ``source.commit`` recorded in each snapshot. The tests execute v1 only as
@@ -48,10 +61,15 @@ the SUT; they never create an expected value at test time.
 from __future__ import annotations
 
 import json
+import os
+import signal
+import subprocess
+import sys
+import time
 import zipfile
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 import pytest
@@ -71,6 +89,13 @@ from rdetoolkit.runner.executor import TileExecutor
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo
+from tests.v2.contract.entry_observation import (
+    entry_parity_view,
+    execute_entry_observation,
+    frontload_gap_kind,
+    has_rdesys_log,
+    tree_entries,
+)
 from tests.v2.contract.fixtures import _generate
 from tests.v2.contract.observe import observe_v2_run, parity_pair, parity_view, pending_freeze_view
 from tests.v2.contract.provenance_parity import (
@@ -80,12 +105,14 @@ from tests.v2.contract.provenance_parity import (
     graph_iterations,
     node_call_columns,
     node_event_ids,
+    read_events,
     recorded_parent_flows,
     report_shape,
     run_report_path,
 )
 from tests.v2.contract.flow_error_table import (
     FAILED_EXIT_CODE,
+    INVOICE_SCHEMA_INVALID_CODE,
     VALIDATION_REASON,
     MessageRule,
     expected_cb_v2_iteration_count,
@@ -93,6 +120,13 @@ from tests.v2.contract.flow_error_table import (
     expected_iteration_count,
     flow_error_cell,
 )
+
+#: Repository root, put on the child interpreters' ``PYTHONPATH`` so the SIGTERM
+#: subprocesses can import the fixture generator's ``oracle_config``.
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+
+#: ``ERROR_CATALOG`` code for an interrupted run (Design §6.3).
+_RUN_INTERRUPTED_CODE = 3004
 
 _MODES = ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
 _MODE_IDS = {
@@ -536,6 +570,152 @@ def test_callback_target_accepts_the_unified_signature__tc_um_inv_cb_v2_signatur
     assert actual == expected_view
 
 
+# --------------------------------------------------------------------------
+# CB-ENTRY matrix (Session J2 / I7, ruling #2)
+#
+# The CB cells run v1's loop; the CB-V2 cells run the Runner through a
+# ``RunRequest`` a test built. Neither runs the thing a deployed structured
+# program calls: ``rdetoolkit.workflows.run(custom_dataset_function=...)``.
+# These fifteen cells make that public entry the subject under test, in a
+# subprocess, because its failure contract is ``sys.exit(1)`` and its inputs
+# come from the process CWD.
+# --------------------------------------------------------------------------
+
+
+def _cb_entry_observation(mode: str, outcome: str, root: Path) -> dict[str, Any]:
+    """Materialize one static case and observe the public entry point on it."""
+    _generate.materialize_sut_case(mode, root)
+    return execute_entry_observation(mode, outcome, root)
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CB-ENTRY-OK") for mode in _MODES],
+)
+def test_public_entry_success_matches_the_frozen_v1_observation(
+    mode: str,
+    tmp_path: Path,
+) -> None:
+    """CB-ENTRY OK cells: every observed key equals the frozen v1 one.
+
+    ``legacy_return`` is included deliberately: this is where
+    ``RunReport.to_legacy_statuses()`` is proven to reproduce v1's
+    ``WorkflowResultManager.to_json()`` through a real run rather than through a
+    hand-built aggregator (the H1 contract, Phase J ruling #2).
+    """
+    # Given: the frozen v1 observation of a successful callback run
+    expected = _frozen(mode, "ok")["observed"]
+
+    # When: the public v1 entry point runs the same callback on the same input
+    actual = _cb_entry_observation(mode, "ok", tmp_path / mode)
+
+    # Then: the complete observation matches, log directory contents aside
+    assert entry_parity_view(actual) == entry_parity_view(expected)
+
+    # And: the run succeeded, calling the callback once per frozen tile
+    assert actual["exit_code"] == 0
+    assert actual["callback_count"] == expected["callback_count"]
+
+    # And: both entry points published the v1 rdesys log (Phase J ruling #3).
+    # The equality above cannot see it -- data/logs contents are the one
+    # contractually asymmetric region -- so it is asserted here explicitly.
+    assert has_rdesys_log(actual)
+    assert has_rdesys_log(expected)
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CB-ENTRY-USERERR") for mode in _MODES],
+)
+def test_public_entry_user_error_matches_the_frozen_v1_observation(
+    mode: str,
+    tmp_path: Path,
+) -> None:
+    """CB-ENTRY USERERR cells: a raising callback reproduces v1 exactly.
+
+    Ruling #2 only requires ``exit_code`` / ``legacy_return`` / ``job_failed_text``
+    / ``callback_count`` / tree / raw / artifact here. The measured result is full
+    equality of every key, so that is what is asserted — a strictly stronger
+    expectation than the ruling's floor, with the named fields spelled out below
+    so a regression names itself.
+    """
+    # Given: the frozen v1 observation of a StructuredError(999) callback
+    cell = flow_error_cell(mode, "usererr")
+    expected = _frozen(mode, "usererr")["observed"]
+
+    # When: the public v1 entry point runs that callback
+    actual = _cb_entry_observation(mode, "usererr", tmp_path / mode)
+
+    # Then: the complete observation matches, log directory contents aside
+    assert entry_parity_view(actual) == entry_parity_view(expected)
+
+    # And: the v1 exit and return contract holds -- v1 never returned a value
+    # from a failed run, and neither does the unified entry point
+    assert actual["exit_code"] == FAILED_EXIT_CODE
+    assert actual["legacy_return"] is None
+
+    # And: job.failed is byte-identical, carrying the user's own ecode
+    assert actual["job_failed_text"] == expected["job_failed_text"]
+    assert actual["job_failed_error_code"] == f"ErrorCode={cell.v1_code}"
+
+    # And: fail_fast stopped the run where v1 stopped
+    assert actual["callback_count"] == cell.v1_callback_count
+    assert has_rdesys_log(actual)
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CB-ENTRY-VALERR") for mode in _MODES],
+)
+def test_public_entry_validation_error_is_frontloaded(
+    mode: str,
+    tmp_path: Path,
+) -> None:
+    """CB-ENTRY VALERR cells: the invoice defect is reported before tile 0 exists.
+
+    This is the one deliberate divergence of the public entry point
+    (contracts.md §J2 D4): v1 validated mid-pipeline, so it had already created
+    the twelve per-tile directories, unpacked its inputs into ``data/temp`` and
+    -- for three of five modes -- run the callback. The unified Runner validates
+    in ``pre_validate`` and reports catalog code 4001 with nothing built.
+
+    The comparison therefore pins "v2 fails EARLIER", not merely "v2 produces
+    less": the observed tree must be a strict subset of the frozen one, and every
+    missing entry must classify as a tile artifact, an unpacked input or the
+    invoice backup.
+    """
+    # Given: the frozen v1 observation of the same invalid invoice
+    expected = _frozen(mode, "valerr")["observed"]
+
+    # When: the public v1 entry point runs on it
+    actual = _cb_entry_observation(mode, "valerr", tmp_path / mode)
+
+    # Then: the run exits 1 having validated before any user code ran
+    assert actual["exit_code"] == FAILED_EXIT_CODE
+    assert actual["callback_count"] == 0
+    assert actual["legacy_return"] is None
+    assert actual["job_failed_error_code"] == f"ErrorCode={INVOICE_SCHEMA_INVALID_CODE}"
+    assert VALIDATION_REASON in actual["job_failed_text"]
+    assert has_rdesys_log(actual)
+
+    # And: nothing but the failure marker was produced
+    assert actual["raw_sha256"] == {}
+    assert sorted(actual["artifact_sha256"]) == ["data/job.failed"]
+    assert actual["invoice_backup_exists"] is False
+    assert actual["invoice_backup"] is None
+    assert actual["invoices"] == expected["invoices"]
+
+    # And: the tree is a strict subset of v1's, missing exactly the artifacts v1
+    # built before it validated
+    observed_entries = tree_entries(entry_parity_view(actual))
+    frozen_entries = tree_entries(entry_parity_view(expected))
+    assert observed_entries < frozen_entries
+    gap = frozen_entries - observed_entries
+    unclassified = sorted(path for path in gap if frontload_gap_kind(path) is None)
+    assert unclassified == []
+    assert "tile-artifact" in {frontload_gap_kind(path) for path in gap}
+
+
 def _frozen_canary(mode: str) -> dict:
     path = _generate.CANARY_EXPECTED_ROOT / mode / "ok.json"
     return json.loads(path.read_text(encoding="utf-8"))
@@ -930,14 +1110,216 @@ def test_multitile_continue_partial_is_a_v2_only_contract(
     assert "structured/invoice.json" in completed_tile
 
 
-@pytest.mark.xfail(strict=False, reason="Phase J: deterministic SIGTERM flush integration is not wired")
-def test_multidatatile_sigterm_cell_is_placed__tc_um_mdt_flow_sigterm() -> None:
-    """TC-UM-MDT-FLOW-SIGTERM reserves RunReport/job.failed signal flushing."""
-    # Given: the representative MultiDataTile termination contract
-    signal_name = "SIGTERM"
-    # When/Then: Phase J must wire and verify deterministic signal flushing
-    assert signal_name == "SIGTERM"
-    pytest.fail("Phase J must implement SIGTERM RunReport/job.failed flushing")
+# --------------------------------------------------------------------------
+# SIGTERM cells (Session J2, ruling #4/#5; contract_matrix open item #2)
+#
+# v1 installed no handler at all: SIGTERM killed the process outright, leaving
+# no job.failed and no record of how far the run got. The unified Runner turns
+# it into catalog code 3004 and flushes both artifacts -- an intentional
+# improvement over v1, stated as divergence D7 in contracts.md §J2.
+#
+# Determinism comes from two markers rather than from sleeping: the target
+# writes TILE_0_MARKER while handling tile 0 and TILE_1_MARKER immediately
+# before blocking in tile 1, and the parent only signals once the second marker
+# exists. Tile 0 is therefore provably complete -- tile 1's pre-invoke stages
+# have already run -- when the signal is delivered.
+# --------------------------------------------------------------------------
+
+#: Written while tile 0 is handled.
+_SIGTERM_TILE_0_MARKER = "tile-0-done"
+
+#: Written immediately before tile 1 blocks, i.e. the signal window opens.
+_SIGTERM_TILE_1_MARKER = "tile-1-blocking"
+
+#: Seconds tile 1 blocks for. Long enough that the parent always wins the race,
+#: short enough that a harness defect fails the test instead of hanging the run.
+_SIGTERM_BLOCK_SECONDS = 30
+
+#: Exit status a SIGTERM-interrupted run reports from each entry point. The
+#: Runner's own lifecycle returns the failed report and the process ends
+#: normally (0); the public v1 entry point turns a failed report into
+#: ``sys.exit(1)``, so the same interruption is observed as 1 there.
+_SIGTERM_FLOW_RETURN_CODE = 0
+_SIGTERM_ENTRY_RETURN_CODE = 1
+
+_SIGTERM_TARGET_PREAMBLE = f"""
+import json
+import sys
+import time
+from pathlib import Path
+
+root = Path.cwd()
+tile_0_marker = root / {_SIGTERM_TILE_0_MARKER!r}
+tile_1_marker = root / {_SIGTERM_TILE_1_MARKER!r}
+
+
+def block_on_second_tile():
+    if not tile_0_marker.exists():
+        tile_0_marker.write_text("done", encoding="utf-8")
+        return
+    tile_1_marker.write_text("blocking", encoding="utf-8")
+    time.sleep({_SIGTERM_BLOCK_SECONDS})
+
+
+from tests.v2.contract.fixtures._generate import oracle_config
+
+config = oracle_config("multidatatile")
+"""
+
+_SIGTERM_FLOW_SCRIPT = _SIGTERM_TARGET_PREAMBLE + """
+from rdetoolkit.api.request import FlowTarget, RunRequest
+from rdetoolkit.core.flow import flow
+from rdetoolkit.report.events import FileEventSink
+from rdetoolkit.runner.lifecycle import Runner
+from rdetoolkit.types import InputPaths
+
+
+@flow
+def pipeline(paths: InputPaths) -> None:
+    block_on_second_tile()
+
+
+Runner(
+    root=root,
+    inputdata_path=root / "data" / "inputdata",
+    unpacked_dir_path=root / "data" / "temp",
+    event_sink=FileEventSink(root / "data" / "logs"),
+    run_id_factory=lambda: "sigterm-run",
+).run(RunRequest(root=root, target=FlowTarget(function=pipeline), config_source=config))
+"""
+
+_SIGTERM_ENTRY_SCRIPT = _SIGTERM_TARGET_PREAMBLE + """
+from rdetoolkit.workflows import run
+
+
+def dataset_callback(srcpaths, resource_paths):
+    block_on_second_tile()
+
+
+run(custom_dataset_function=dataset_callback, config=config)
+"""
+
+
+def _run_until_sigterm(script: str, root: Path) -> int:
+    """Start a two-tile run, terminate it inside tile 1, and return its status.
+
+    Args:
+        script: Child program source; it runs with ``root`` as its CWD.
+        root: Already-materialized MultiDataTile run root.
+
+    Returns:
+        The child's process return code.
+    """
+    environment = os.environ.copy()
+    # The child needs ``tests.v2.contract.fixtures._generate`` for the frozen
+    # oracle config; ``rdetoolkit`` itself comes from the installed package, so
+    # the child measures exactly what the test session measures.
+    environment["PYTHONPATH"] = os.pathsep.join(
+        [str(_REPOSITORY_ROOT), environment.get("PYTHONPATH", "")],
+    ).rstrip(os.pathsep)
+    process = subprocess.Popen(  # noqa: S603
+        [sys.executable, "-c", script],
+        cwd=root,
+        env=environment,
+    )
+    marker = root / _SIGTERM_TILE_1_MARKER
+    deadline = time.monotonic() + 60
+    while not marker.exists() and process.poll() is None and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert marker.exists(), f"child never reached tile 1 (exit={process.poll()})"
+    # The marker is written immediately before the blocking call, so a short
+    # settle keeps the signal inside it rather than racing its first instruction.
+    time.sleep(0.25)
+    process.send_signal(signal.SIGTERM)
+    return process.wait(timeout=60)
+
+
+def _sigterm_report(root: Path) -> dict[str, Any]:
+    """Return the single run report a terminated run flushed."""
+    reports = sorted((root / "data" / "logs").glob("run_report_*.json"))
+    assert len(reports) == 1, f"expected exactly one flushed run report, got {reports}"
+    return cast(dict[str, Any], json.loads(reports[0].read_text(encoding="utf-8")))
+
+
+def _assert_interrupted_flush(root: Path) -> None:
+    """Assert the shared 3004 flush contract both SIGTERM cells require."""
+    # The RunReport is on disk and names the interruption
+    report = _sigterm_report(root)
+    assert report["status"] == "failed"
+    assert report["error"]["code"] == _RUN_INTERRUPTED_CODE
+    assert report["error"]["name"] == "RunInterrupted"
+    assert "Remediation:" in report["error"]["message"]
+
+    # job.failed carries the same catalog code, which v1 never wrote at all
+    job_failed = (root / "data" / "job.failed").read_text(encoding="utf-8")
+    assert job_failed.splitlines()[0] == f"ErrorCode={_RUN_INTERRUPTED_CODE}"
+
+    # Tile 0's artifacts survive the interruption
+    assert (root / "data" / "raw" / "tile_00.txt").is_file()
+    assert (root / "data" / "invoice" / "invoice.json").is_file()
+
+    # Tile 1 kept only its pre-invoke artifacts: it never finished
+    interrupted_tile = _tile_files(root / "data" / "divided" / "0001")
+    assert interrupted_tile.count("invoice/invoice.json") == 1
+    assert [path for path in interrupted_tile if path.startswith("structured/")] == []
+
+
+def test_multidatatile_flow_sigterm_flushes_the_failure_contract__tc_um_mdt_flow_sigterm(
+    tmp_path: Path,
+) -> None:
+    """TC-UM-MDT-FLOW-SIGTERM: a terminated flow run flushes 3004 everywhere.
+
+    Replaces the Phase J xfail placeholder (contract_matrix open item #2) by
+    applying the TC-E0-001 subprocess harness to the real MultiDataTile matrix
+    fixture, configured from the same ``oracle_config`` the other cells use.
+    """
+    # Given: the two-tile MultiDataTile fixture
+    root = tmp_path / "multidatatile"
+    _generate.materialize_sut_case("multidatatile", root)
+
+    # When: the run is terminated while tile 1 is executing
+    return_code = _run_until_sigterm(_SIGTERM_FLOW_SCRIPT, root)
+
+    # Then: shutdown is orderly -- the Runner returns its failed report
+    assert return_code == _SIGTERM_FLOW_RETURN_CODE
+
+    # And: every persisted failure artifact agrees on 3004
+    _assert_interrupted_flush(root)
+
+    # And: the event log records the terminal status
+    assert any(
+        record["name"] == "run.completed" and record["payload"] == {"status": "failed"}
+        for record in read_events(root / "data" / "logs", "sigterm-run")
+    )
+
+
+def test_multidatatile_public_entry_sigterm_exits_1__tc_um_mdt_cb_entry_sigterm(
+    tmp_path: Path,
+) -> None:
+    """TC-UM-MDT-CB-ENTRY-SIGTERM: the public entry exits 1 on interruption.
+
+    Same termination, same 3004 flush, but through
+    ``workflows.run(custom_dataset_function=...)``: a failed report is
+    ``sys.exit(1)`` there (Phase J ruling #2b), so the process status differs
+    from the flow cell above by design. v1 would have died on the signal with
+    no ``job.failed`` and no report at all (divergence D7).
+    """
+    # Given: the two-tile MultiDataTile fixture
+    root = tmp_path / "multidatatile"
+    _generate.materialize_sut_case("multidatatile", root)
+
+    # When: the run is terminated while tile 1's callback is executing
+    return_code = _run_until_sigterm(_SIGTERM_ENTRY_SCRIPT, root)
+
+    # Then: the v1 entry contract turns the failed run into a non-zero exit
+    assert return_code == _SIGTERM_ENTRY_RETURN_CODE
+
+    # And: the same flush contract holds as for the flow entry point
+    _assert_interrupted_flush(root)
+
+    # And: the v1 rdesys log was still configured before the run started
+    rdesys_logs = sorted(path.name for path in (root / "data" / "logs").glob("rdesys_*.log"))
+    assert len(rdesys_logs) >= 1, f"the public entry must configure the v1 file logger; found {rdesys_logs}"
 
 
 # --------------------------------------------------------------------------

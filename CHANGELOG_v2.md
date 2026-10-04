@@ -1,5 +1,84 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session J2 (Phase J / I7: one Runner behind every entry point)
+
+`rdetoolkit.workflows.run(custom_dataset_function=...)` — the call every existing
+RDE structured program makes — now executes through the **single v2 Runner**.
+Every v1 *observable* is preserved: the legacy `{"statuses": [...]}` JSON string,
+`SystemExit(1)` after `data/job.failed` for a failed run, a normal return for a
+partial one, the `data/logs/rdesys_<ts>.log` file logger, v1's fail-fast
+iteration policy, and the configuration a program ships in
+`data/tasksupport/rdeconfig.yaml`. `RunReport.schema_version` stays `"2"`.
+
+### Changed
+
+- **`workflows.run(custom_dataset_function=...)` goes through the unified
+  Runner** (`workflows._run_callback_entry`). The old v1 orchestration loop,
+  `workflows._run_legacy`, is no longer reachable from any public entry point; it
+  remains only as the subject the dynamic contract oracles compare against, and
+  Phase K deletes it together with them. Verified by the 15
+  `TC-UM-*-CB-ENTRY-*` cells, which run the public entry in a subprocess and
+  compare the result with the frozen v1 observations — for success and for user
+  errors, **every observed key matches**, `legacy_return` included. That last
+  equality is the proof that `RunReport.to_legacy_statuses()` reproduces v1's
+  `WorkflowResultManager.to_json()`.
+- **`rdetoolkit run <module::attr>` (the legacy CLI target) uses the uniform
+  exit codes**: 0 success, 1 failed, 2 partial, 3 usage error (Design §9.3). The
+  entry point's `SystemExit(1)` is caught and mapped — it is a `BaseException`
+  and previously escaped as a traceback — and "partial" is recovered from a
+  returned payload containing a `failed` status. The v1 *Python* API keeps its
+  own contract unchanged.
+- **`rdetoolkit run --flow ... --validate-only` goes through
+  `Runner.run(RunRequest(validate_only=True))`.** `RunRequest.validate_only` was
+  defined but never consumed; the CLI drove `load_config` / `resolve_mode` /
+  `pre_validate` by hand, before any run id existed, so `resolve_mode`'s **W1001**
+  mode-override warning was emitted with an empty `run_id` and could not be
+  published at all. One Runner call fixes that. The flow is still never called
+  and validation failures still exit 1.
+  - **A validate-only run never writes `data/job.failed`.** The RDE platform
+    reads that file as the job-failure marker, and a pre-flight check must not
+    claim the job failed — not even when it reports failure to its caller. The
+    run report is still written, because it is a log rather than a marker.
+  - **`--validate-only` with an unresolvable `--flow` is now a usage error
+    (exit 3)** instead of a successful validation (exit 0). The flow reference is
+    resolved before the validate-only branch so the request can name its target,
+    and a bad reference is now reported the way every other `--flow` form
+    already reports it.
+- `rdetoolkit.cli.run_cmd.validate_only` now takes the resolved flow as its first
+  argument, and `rdetoolkit.runner.finalize.write_run_report` is new (both
+  internal APIs).
+
+### Added
+
+- **`TC-UM-MDT-FLOW-SIGTERM` and `TC-UM-MDT-CB-ENTRY-SIGTERM`** — the last xfail
+  seat of the unified matrix is now two real tests. A two-tile MultiDataTile run
+  is terminated while tile 1 executes; both entry points flush
+  `RunReport(status="failed", error.code=3004, error.name="RunInterrupted")`,
+  write `job.failed` with `ErrorCode=3004`, emit `run.completed{failed}`, and
+  keep tile 0's artifacts. v1 installed no handler at all, so a terminated v1 run
+  left no `job.failed` and no record of its progress — this is an intentional
+  improvement, not a parity claim.
+- `tests/v2/contract/entry_observation.py` — the public-entry subprocess worker
+  and its observation normalizers.
+
+### Intentional divergences from v1
+
+| Case | v1 | Unified entry point |
+|---|---|---|
+| `invoice.schema.json` invalid **and** the callback also raises | the callback's `ErrorCode` (v1 validated only *after* the callback ran) | `ErrorCode=4001` with the schema reason; **the callback is never invoked** |
+| invoice violates its schema | mode-specific code, callback already run in 3 of 5 modes, full tile tree on disk | `ErrorCode=4001`, callback never run, **nothing built** — the output tree is a strict subset of v1's |
+| SIGTERM during a run | process dies; no `job.failed`, no report | `3004 RunInterrupted` flushed to `job.failed` and the RunReport; return code 0 from `Runner.run`, 1 from the public entry point |
+| `rdetoolkit run <target>` exit code | no `run` CLI existed in v1 | uniform 0/1/2/3 |
+
+The first two are the same front-loaded-validation decision contracts.md §I6-0
+already recorded for the flow and `CB-V2` entry points; J2 extends it to the
+public API. One `tests/` root cell pinned v1's stage order for that input and was
+updated accordingly, under an explicit exception, to assert the published
+contract instead (`ErrorCode=4001`, callback not invoked, `SystemExit(1)`).
+
+Full contract text, including the authoritative D1–D8 divergence table and the
+Phase K deletion list: `local/develop/v2/merge_v1/contracts.md` §J2.
+
 ## Unreleased — Session J1 (Phase J / I8: the v1 callback becomes observable)
 
 Mostly an observability session: no artifact file changes, no exit code changes,
