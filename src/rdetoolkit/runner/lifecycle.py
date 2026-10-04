@@ -20,6 +20,7 @@ from rdetoolkit.api.request import (
     build_run_request,
 )
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.core.flow import derive_flow_id
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
@@ -410,19 +411,31 @@ class Runner:
 
 
 def _flow_id(flow_fn: Callable[..., Any]) -> str:
-    module = getattr(flow_fn, "__module__", "")
-    qualname = getattr(flow_fn, "__qualname__", getattr(flow_fn, "__name__", repr(flow_fn)))
-    return f"{module}.{qualname}" if module else qualname
+    """Return the report's flow identifier for one executable entry point.
+
+    Delegates to the single derivation in ``core.flow`` so the report agrees
+    with what the flow stack pushes. A ``@flow(id=...)`` used to be recomputed
+    as ``module.qualname`` here, which made every one of its node records read
+    ``parent_flow != flow_id`` (Session J1 ruling #1, Design §3.4 addendum).
+    """
+    return derive_flow_id(flow_fn)
 
 
 def _target_flow_id(target: ExecutionTarget) -> str:
     """Identify the executed target for the report.
 
-    A v1 callback-free run has no callable at all, so it reports a stable
-    sentinel instead of an identifier derived from ``None``.
+    A v1 callback-free run has no callable at all, so it reports the callback
+    adapter's stable sentinel instead of an identifier derived from ``None``.
     """
     function = target.function
-    return _flow_id(function) if function is not None else "rdetoolkit.compat.v1.callback:none"
+    if function is not None:
+        return _flow_id(function)
+    # Imported at call time (twice per run) for the same reason
+    # ``InvokerRegistry`` does it: the compat package stays off the runner's
+    # module-level import graph.
+    from rdetoolkit.compat.v1.callback import NO_CALLBACK_FLOW_ID  # noqa: PLC0415
+
+    return NO_CALLBACK_FLOW_ID
 
 
 def _raise_run_interrupted(signum: int, frame: FrameType | None) -> None:

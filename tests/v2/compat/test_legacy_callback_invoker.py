@@ -1,9 +1,12 @@
-"""Minimal v1 callback invoker (Session I5.1b, merge_v1 Design §7).
+"""V1 callback invoker: argument conversion and dispatch (Session I5.1b, merge_v1 Design §7).
 
-The invoker only converts arguments and calls; provenance semantics for the
-callback entry point stay with Session I8. The signature-dispatch rules are a
-port of v1 ``processing/processors/datasets.py`` (DatasetRunner), which is the
-behavioral oracle for every case below.
+This file owns the *conversion and dispatch* contract. The provenance semantics
+the same invoker gained in Session J1 (recorder context, node events, call log)
+are pinned separately in ``test_callback_provenance_j1.py``; only TC-EP-I5-108
+below overlaps, because failure propagation is shared between the two contracts.
+The signature-dispatch rules are a port of v1
+``processing/processors/datasets.py`` (DatasetRunner), which is the behavioral
+oracle for every case below.
 
 Equivalence partitions (EP):
 
@@ -16,7 +19,7 @@ Equivalence partitions (EP):
 | ``LegacyCallbackInvoker.invoke`` | legacy two-argument callback | receives the v1 pair | TC-EP-I5-105 |
 | ``LegacyCallbackInvoker.invoke`` | ambiguous callback | unified attempted first | TC-EP-I5-106 |
 | ``LegacyCallbackInvoker.invoke`` | ambiguous + arity ``TypeError`` | legacy fallback | TC-EP-I5-107 |
-| ``LegacyCallbackInvoker.invoke`` | callback raising a domain ``TypeError`` | propagates unchanged | TC-EP-I5-108 |
+| ``LegacyCallbackInvoker.invoke`` | callback raising a domain ``TypeError`` | ``TileExecutionError`` whose ``__cause__`` is that ``TypeError`` | TC-EP-I5-108 |
 | ``LegacyCallbackInvoker.invoke`` | ``FlowTarget`` | rejected | TC-EP-I5-109 |
 | ``to_legacy_dataset_paths`` | complete run context | v1 field mapping | TC-EP-I5-110 |
 | ``to_legacy_dataset_paths`` | ``on_iteration_error='continue'`` | v1 ``ignore_errors=True`` | TC-EP-I5-111 |
@@ -51,6 +54,7 @@ from rdetoolkit.compat.v1.callback import (
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.report.events import MemoryEventSink
+from rdetoolkit.runner.execute import TileExecutionError
 from rdetoolkit.runner.paths import resolve_tile_paths
 from rdetoolkit.runner.planner import TileMaterial
 from rdetoolkit.types import (
@@ -227,7 +231,17 @@ def test_ambiguous_callback_falls_back_on_arity_error__tc_ep_i5_107(tmp_path: Pa
 
 
 def test_domain_type_error_is_not_retried__tc_ep_i5_108(tmp_path: Path) -> None:
-    """TC-EP-I5-108: a user TypeError must not be masked by an arity retry."""
+    """TC-EP-I5-108 (UPDATED, Session J1 ruling #2e): a user TypeError is never masked.
+
+    Two things must hold, and this cell now pins both instead of only the first:
+
+    1. the arity guard does not retry a *domain* ``TypeError`` (``calls == [1]``);
+    2. the exception reaching the tile boundary is the shared
+       ``TileExecutionError`` — so the failing tile keeps its call log — while the
+       user's own exception stays recoverable through ``__cause__``. Asserting
+       only ``pytest.raises(TypeError)`` would now pass on an implementation that
+       silently dropped ``recorder.records``, which is exactly trap #2.
+    """
     # Given: a *args callback raising an unrelated TypeError
     calls: list[int] = []
 
@@ -236,10 +250,14 @@ def test_domain_type_error_is_not_retried__tc_ep_i5_108(tmp_path: Path) -> None:
         msg = "unsupported operand type(s) for +: 'int' and 'str'"
         raise TypeError(msg)
 
-    # When / Then: the original failure propagates after a single attempt
-    with pytest.raises(TypeError, match="unsupported operand"):
+    # When / Then: the failure surfaces once, wrapped, with its cause intact
+    with pytest.raises(TileExecutionError) as exc_info:
         _invoke(LegacyCallbackTarget(function=callback), _context(tmp_path))
     assert calls == [1]
+    cause = exc_info.value.__cause__
+    assert isinstance(cause, TypeError)
+    assert "unsupported operand" in str(cause)
+    assert exc_info.value.result.status == "failed"
 
 
 def test_flow_target_is_rejected__tc_ep_i5_109(tmp_path: Path) -> None:
@@ -260,7 +278,9 @@ def test_absent_callback_completes_without_invocation__tc_bv_i5_101(tmp_path: Pa
     # When: invoking it for one tile
     result = _invoke(target, _context(tmp_path))
 
-    # Then: the tile completes with no call log and no outputs (provenance is I8)
+    # Then: the tile completes with no call log and no outputs. Since J1 the
+    # recorder context exists for this path too, but a run with no callback has
+    # no user code and therefore nothing to record.
     assert result.status == "completed"
     assert result.call_records == ()
     assert result.outputs == ()

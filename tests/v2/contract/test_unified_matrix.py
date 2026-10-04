@@ -19,7 +19,14 @@ EP table:
         LegacyCallbackTarget(...)))`` driving ``LegacyCallbackInvoker`` — still
         compared with the frozen v1 observation (Session I-REVIEW-B, review F5).
         The CB cells above deliberately stay v1-versus-v1 pins.
-    TC-UM-*-CB-OBS: callback Events/Provenance/RunReport columns are Phase J xfails.
+    TC-UM-*-CB-OBS: the callback entry point's **observability** equals the flow
+        entry point's (Session J1 / I8, ADR-023 decision 5). One callback calling
+        one ``@node`` is compared with a ``@flow`` calling the same ``@node``:
+        event-name sequence, ``node_calls`` columns, the
+        ``parent_flow == RunReport.flow_id`` invariant, RunReport shape, and the
+        ``graph`` / ``report show`` / ``repro export`` surfaces (matrix columns
+        6/7/8/12). A negative-control cell reinstates the pre-J1 recorder-less
+        invoker to prove the five cells detect the difference.
 
 BV table:
     TC-UM-XLS/MDT/SMT-FLOW-FAIL-FAST: a three-tile family whose tile 1 raises
@@ -48,15 +55,35 @@ from typing import Any
 
 import pandas as pd
 import pytest
+from typer.testing import CliRunner
 
 from rdetoolkit.api.request import FlowTarget, LegacyCallbackTarget, RunRequest
-from rdetoolkit.compat.v1.callback import accepts_unified_argument
+from rdetoolkit.cli.app import app
+from rdetoolkit.compat.v1.callback import accepts_unified_argument, to_legacy_dataset_paths
 from rdetoolkit.core.flow import flow
+from rdetoolkit.core.node import node
+from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
+from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.report.events import FileEventSink
+from rdetoolkit.runner.execute import ExecutionResult
+from rdetoolkit.runner.executor import TileExecutor
+from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo
 from tests.v2.contract.fixtures import _generate
 from tests.v2.contract.observe import observe_v2_run, parity_pair, parity_view, pending_freeze_view
+from tests.v2.contract.provenance_parity import (
+    archive_listing,
+    event_names,
+    expected_event_names,
+    graph_iterations,
+    node_call_columns,
+    node_event_ids,
+    recorded_parent_flows,
+    report_shape,
+    run_report_path,
+)
 from tests.v2.contract.flow_error_table import (
     FAILED_EXIT_CODE,
     VALIDATION_REASON,
@@ -913,16 +940,249 @@ def test_multidatatile_sigterm_cell_is_placed__tc_um_mdt_flow_sigterm() -> None:
     pytest.fail("Phase J must implement SIGTERM RunReport/job.failed flushing")
 
 
-@pytest.mark.xfail(strict=False, reason="Phase J: callback observability is unavailable before unification")
+# --------------------------------------------------------------------------
+# CB-OBS matrix (Session J1 / I8, ruling #3)
+#
+# The question these five cells answer is not "does the callback path work?" --
+# the CB-V2 cells above already pin its artifacts against frozen v1. It is
+# "does a v1 callback user get the same *observability* a @flow user gets?",
+# i.e. matrix columns 6 (RunReport), 7 (Events), 8 (Provenance) and 12 (repro /
+# graph / report show). Each cell runs the same mode fixture twice -- once with a
+# callback that calls one @node, once with a @flow that calls the same @node the
+# same number of times -- and compares the normalized observations.
+#
+# Both runs are configured from the same v1 ``oracle_config(mode)``, so both
+# inherit ``on_iteration_error: fail_fast`` from the v1 origin: a configuration
+# difference cannot be mistaken for an observability difference.
+# --------------------------------------------------------------------------
+
+#: Shared between the two entry points, so the node-identity comparison is real.
+_CB_OBS_NODE_ID = "tests.v2.contract.cb_obs_probe"
+
+#: Modes whose ``oracle_config`` declares no ``extended_mode`` while their input
+#: is detected as a non-invoice mode, so ``resolve_mode`` publishes W1001 once
+#: per run (Design §8.1 ``warning``). Listed here rather than derived from the
+#: run, so the canonical event sequence stays an expectation independent of the
+#: subject under test. Both entry points share the resolution step, so the value
+#: is the same on both sides by construction.
+_CB_OBS_MODE_OVERRIDE_MODES = frozenset({"excelinvoice", "smarttable"})
+
+
+@node(id=_CB_OBS_NODE_ID)
+def _cb_obs_probe(label: str) -> str:
+    """The one recorded unit of work both CB-OBS entry points perform."""
+    return label
+
+
+def _cb_obs_callback(srcpaths: object, resource_paths: object) -> None:
+    """v1 two-argument dataset callback whose only work is one ``@node`` call."""
+    del srcpaths, resource_paths
+    _cb_obs_probe("cb-obs")
+
+
+@flow
+def _cb_obs_flow(paths: InputPaths) -> None:
+    """The same ``@node``, called the same number of times, from a ``@flow``."""
+    assert paths.inputdata.is_dir()
+    _cb_obs_probe("cb-obs")
+
+
+def _run_cb_obs(mode: str, root: Path, target: Any, monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Run one CB-OBS side, writing a real JSONL event log next to the report."""
+    _generate.materialize_sut_case(mode, root)
+    monkeypatch.chdir(root)
+    runner = Runner(
+        root=root,
+        inputdata_path=root / "data" / "inputdata",
+        unpacked_dir_path=root / "data" / "temp",
+        event_sink=FileEventSink(root / "data" / "logs"),
+    )
+    return runner.run(
+        RunRequest(root=root, target=target, config_source=_generate.oracle_config(mode)),
+    )
+
+
+def _cb_obs_cli_views(root: Path, report_path: Path) -> tuple[str, str, set[str]]:
+    """Return the ``graph`` / ``report show`` output and the repro archive listing."""
+    cli = CliRunner()
+    graph = cli.invoke(app, ["graph", str(report_path), "--format", "json"])
+    assert graph.exit_code == 0, graph.output
+    show = cli.invoke(app, ["report", "show", str(report_path)])
+    assert show.exit_code == 0, show.output
+    archive = root / "repro.zip"
+    export = cli.invoke(app, ["repro", "export", str(report_path), "--output", str(archive)])
+    assert export.exit_code == 0, export.output
+    return graph.output, show.output, archive_listing(archive, report_name=report_path.name)
+
+
 @pytest.mark.parametrize(
     "mode",
     [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CB-OBS") for mode in _MODES],
 )
-def test_callback_observability_columns_are_placed(mode: str) -> None:
-    """Callback Events, Provenance, and RunReport columns remain visible for Phase J."""
-    # Given: a legacy callback execution with no unified observability artifacts
-    expected_columns = {"events", "provenance", "run_report"}
-    assert mode in _MODES
-    # When/Then: Phase J must populate every declared comparison column
-    assert expected_columns
-    pytest.fail("Phase J must add callback Events/Provenance/RunReport parity")
+def test_callback_observability_matches_the_flow_entry(
+    mode: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CB-OBS cells: the callback entry point is observable exactly like a flow.
+
+    Columns compared (contract_matrix §2): 6 RunReport, 7 Events, 8 Provenance,
+    12 repro archive plus ``graph`` / ``report show`` usability. ``flow_id`` is
+    the one value that legitimately differs -- it identifies the callback on one
+    side and the flow on the other -- and the invariant that replaces equality is
+    ``parent_flow == flow_id`` on **both** sides (ruling #1).
+    """
+    # Given: the frozen v1 tile count for this mode, and two run roots
+    tiles = int(_frozen(mode, "ok")["observed"]["callback_count"])
+    cb_root = tmp_path / "cb"
+    flow_root = tmp_path / "flow"
+
+    # When: running the same fixture through both entry points
+    cb_report = _run_cb_obs(mode, cb_root, LegacyCallbackTarget(function=_cb_obs_callback), monkeypatch)
+    flow_report = _run_cb_obs(mode, flow_root, FlowTarget(function=_cb_obs_flow), monkeypatch)
+
+    # Then (column 7): the event-name sequence is identical and canonical
+    cb_logs = cb_root / "data" / "logs"
+    flow_logs = flow_root / "data" / "logs"
+    cb_names = event_names(cb_logs, cb_report.run_id)
+    assert cb_names == event_names(flow_logs, flow_report.run_id)
+    assert cb_names == expected_event_names(
+        tiles=tiles,
+        run_warnings=1 if mode in _CB_OBS_MODE_OVERRIDE_MODES else 0,
+    )
+
+    # And: the node events name the same node, in the same order, on both sides
+    cb_node_events = node_event_ids(cb_logs, cb_report.run_id)
+    assert cb_node_events == node_event_ids(flow_logs, flow_report.run_id)
+    assert {node_id for _, node_id in cb_node_events} == {_CB_OBS_NODE_ID}
+
+    # Then (column 8): the recorded call columns are identical
+    assert node_call_columns(cb_report) == node_call_columns(flow_report)
+    assert node_call_columns(cb_report) == [[(_CB_OBS_NODE_ID, 1, "completed")] for _ in range(tiles)]
+
+    # And: every record's parent flow is its own run's reported flow_id
+    assert recorded_parent_flows(cb_root / "data") == {cb_report.flow_id}
+    assert recorded_parent_flows(flow_root / "data") == {flow_report.flow_id}
+
+    # And: the two flow_ids differ, so the invariant above is not trivially true
+    assert cb_report.flow_id != flow_report.flow_id
+    assert cb_report.flow_id == f"{_cb_obs_callback.__module__}.{_cb_obs_callback.__qualname__}"
+
+    # Then (column 6): the RunReport shape matches
+    assert cb_report.status == "success"
+    assert report_shape(cb_report) == report_shape(flow_report)
+    assert len(cb_report.iterations) == tiles
+
+    # Then (column 12): both runs are equally consumable by the CLI
+    cb_report_path = run_report_path(cb_root / "data", cb_report.run_id)
+    flow_report_path = run_report_path(flow_root / "data", flow_report.run_id)
+    cb_graph, cb_show, cb_archive = _cb_obs_cli_views(cb_root, cb_report_path)
+    flow_graph, flow_show, flow_archive = _cb_obs_cli_views(flow_root, flow_report_path)
+    assert cb_archive == flow_archive
+    assert "data/logs/<RUN_REPORT>" in cb_archive
+
+    # And: ``graph`` renders the recorded calls instead of the empty placeholder
+    for rendered in (cb_graph, flow_graph):
+        assert _CB_OBS_NODE_ID in rendered
+        assert "No recorded calls" not in rendered
+    assert graph_iterations(cb_graph) == graph_iterations(flow_graph)
+
+    # And: ``report show`` is non-empty and identical once the run id line is
+    # dropped. It prints failed call ids only, so a successful run shows no node
+    # id there by design; ``graph`` above is what carries the node identity.
+    assert cb_show.splitlines()[1:] == flow_show.splitlines()[1:]
+    assert f"iterations: {tiles}" in cb_show
+
+
+def test_callback_observability_seats_detect_the_pre_j1_behaviour__tc_um_cb_obs_control(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Negative control for the five CB-OBS cells (ruling #3, last bullet).
+
+    Before Session J1 the callback was invoked *outside* any recorder context, so
+    its ``@node`` calls were plain function calls: ``node_calls`` was empty, no
+    ``node.*`` event existed, and ``graph`` printed "No recorded calls". This cell
+    reinstates that behaviour through an invoker substituted at the registry
+    boundary and asserts the difference is visible -- without it, the five cells
+    above could be satisfied by an implementation that records nothing on either
+    side.
+    """
+
+    # Given: an invoker reproducing the pre-J1 *observable effect*
+    class _PreJ1Invoker:
+        """Reproduce the pre-J1 observability: no recorder, no events, no records.
+
+        This is deliberately not a copy of the Session I5 ``invoke`` body. It
+        hard-codes the legacy two-argument call instead of running
+        ``accepts_unified_argument``'s dispatch (the probe callback below has that
+        signature), and it derives ``datatile_id`` from the iteration index rather
+        than the raw-file stem. Neither is under test here: the control exists to
+        establish that *absence of the recorder context* is what collapses the
+        CB-OBS columns, so only that absence is reproduced.
+        """
+
+        def invoke(
+            self,
+            target: Any,
+            context: Any,
+            *,
+            event_sink: Any,
+            run_id: str,
+            config: Any,
+            material: Any,
+        ) -> ExecutionResult:
+            del event_sink, run_id, config
+            srcpaths, resource_paths = to_legacy_dataset_paths(context, material=material).as_legacy_args()
+            target.function(srcpaths, resource_paths)
+            return ExecutionResult(
+                iteration_index=context.iteration.index,
+                status="completed",
+                call_records=(),
+                outputs=(),
+                datatile_id=str(context.iteration.index),
+            )
+
+    root = tmp_path / "control"
+    _generate.materialize_sut_case("invoice", root)
+    monkeypatch.chdir(root)
+    invoice_service = InvoiceService()
+    sink = FileEventSink(root / "data" / "logs")
+    runner = Runner(
+        root=root,
+        inputdata_path=root / "data" / "inputdata",
+        unpacked_dir_path=root / "data" / "temp",
+        event_sink=sink,
+        invoice_service=invoice_service,
+        executor=TileExecutor(
+            event_sink=sink,
+            flow_invoker=InvokerRegistry(legacy_invoker=_PreJ1Invoker()),
+            raw_artifact_service=RawArtifactService(),
+            image_artifact_service=ImageArtifactService(),
+            invoice_service=invoice_service,
+        ),
+    )
+
+    # When: the same callback runs without a recorder context
+    report = runner.run(
+        RunRequest(
+            root=root,
+            target=LegacyCallbackTarget(function=_cb_obs_callback),
+            config_source=_generate.oracle_config("invoice"),
+        ),
+    )
+
+    # Then: the run still succeeds -- the regression is invisible in the artifacts
+    assert report.status == "success"
+
+    # And: every CB-OBS column collapses, which is what the five cells detect
+    assert node_call_columns(report) == [[]]
+    assert "node.started" not in event_names(root / "data" / "logs", report.run_id)
+    assert recorded_parent_flows(root / "data") == set()
+    rendered = CliRunner().invoke(
+        app,
+        ["graph", str(run_report_path(root / "data", report.run_id)), "--format", "mermaid"],
+    )
+    assert rendered.exit_code == 0, rendered.output
+    assert "No recorded calls" in rendered.output
+    assert _CB_OBS_NODE_ID not in rendered.output

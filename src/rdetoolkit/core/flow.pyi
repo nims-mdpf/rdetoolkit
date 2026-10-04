@@ -1,10 +1,12 @@
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from typing import Any, TypeVar, overload
 
 F = TypeVar("F", bound=Callable[..., Any])
 
 def current_flow_id() -> str | None: ...
-
+def push_flow(flow_id: str) -> AbstractContextManager[None]: ...
+def derive_flow_id(fn: Callable[..., Any]) -> str: ...
 @overload
 def flow(func: F, /) -> F: ...
 @overload

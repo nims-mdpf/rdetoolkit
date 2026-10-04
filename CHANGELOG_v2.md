@@ -1,5 +1,92 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session J1 (Phase J / I8: the v1 callback becomes observable)
+
+Mostly an observability session: no artifact file changes, no exit code changes,
+and `schema_version` stays `"2"`. **One published value does change** — a callback
+that raises something other than `StructuredError` now reports catalog code
+`3001`; see "Intentional divergence" below.
+
+### Added
+
+- **A v1 dataset callback now produces the same execution history a `@flow`
+  produces.** `LegacyCallbackInvoker.invoke` runs the callback inside the same
+  `CallLogRecorder` context `run_tile` builds — with the callback's own flow id
+  pushed on the flow stack — so every `@node` the callback calls is recorded in
+  the tile's call log, bridged to `node.started`/`node.completed`/`node.failed`
+  events, and carried on `ExecutionResult.call_records`. `rdetoolkit graph`,
+  `report show` and `repro export` are therefore as useful to a v1 callback user
+  as to a flow user (ADR-023 decision 5, Design §3.4 addendum). Work inside the
+  callback that is not a `@node` call stays unrecorded, which is structural.
+- **`rdetoolkit.core.flow.push_flow(flow_id)`** — the single context manager that
+  writes the flow stack. `@flow` and the v1 callback adapter share it.
+- **`rdetoolkit.core.flow.derive_flow_id(fn)`** and
+  **`rdetoolkit.compat.v1.callback.callback_flow_id(callback)`** — the single
+  derivation for a run's `flow_id`.
+
+### Changed
+
+- **`RunReport.flow_id` honours an explicit `@flow(id=...)`.** It used to be
+  recomputed as `module.qualname`, which disagreed with the `FlowSpec.id` that
+  the flow stack records in `NodeCallRecord.parent_flow`. The contract is now
+  stated as an invariant: **every record's `parent_flow` equals its run's
+  `flow_id`**, on the flow *and* the callback entry point. A flow without an
+  explicit id, a plain function and a template wrapper are unaffected —
+  `module.qualname` is still what they report.
+- **The callback-free sentinel is dotted**: `rdetoolkit.compat.v1.callback.none`
+  (was the colon-separated spelling). Colon-separated names belong to
+  `FlowSpec.source_location`, not to identifiers. Not pinned by any test before
+  this session.
+- **A failing callback tile keeps its call log.** The adapter now raises
+  `TileExecutionError` carrying the records observed before the failure, exactly
+  as `run_tile` does, instead of letting the exception propagate bare. The
+  original exception remains the `__cause__`, so an interruption keeps catalog
+  code `3004`. The failed iteration additionally gains `error.call_id` and a
+  `stacktrace` — both additive inside schema `"2"`, and both closer to what v1
+  recorded.
+- **`LegacyCallbackInvoker.invoke` uses its `config` argument.** The recorder's
+  `provenance.repr_head` / `repr_head_len` / `execution.type_check` now come from
+  the effective run configuration; the parameter used to be discarded.
+
+### Intentional divergence — how a failing callback is reported
+
+| Callback raises | Pre-J1 v2 | Post-J1 v2 | v1 (`workflows._run_legacy`) |
+|---|---|---|---|
+| `StructuredError(msg, ecode=999)` | `999` + `msg` verbatim | **unchanged**: `999` + `msg` verbatim | `999` + `msg` verbatim |
+| `ValueError("boom")` | `3001` + `"boom"` (bare `str(exc)`) | **`3001` + the E3001 catalogue message**, which contains `"boom"`, plus `error.call_id` | `999` + `"Unexpected error in Invoice mode: boom"` |
+
+- The `StructuredError` passthrough (§I6-0) is **untouched**: `ecode`/`emsg` still
+  reach `job.failed`, `RunReport.error` and `to_legacy_statuses()` verbatim. All 15
+  CB-V2 cells and the 5 USERERR cells stay GREEN unmodified.
+- The plain-exception row is the one change, and it is deliberate: the callback
+  path now fails through the same `TileExecutionError` → `_failed_error` route a
+  `@flow` fails through, so the two entry points report an uncatalogued user
+  exception identically. It matched neither pre-J1 v2 nor v1 before, and no frozen
+  cell covered it. It is now pinned on both sides — `TC-J1-CBP-EV-010` (the v2
+  contract) and `TC-J1-CBP-EV-011` (a live v1 oracle asserting the divergence
+  exactly), so it is a checked contract rather than unnoticed drift. Session J2
+  extends this table when the public `workflows.run` entry is unified.
+
+### Tests
+
+- `TC-UM-{INV,XLS,MDT,RDF,SMT}-CB-OBS` are real parity cells (xfail **6 → 1**;
+  only `TC-UM-MDT-FLOW-SIGTERM` remains, for Session J2). Each runs one mode
+  fixture through both entry points and compares contract-matrix columns 6/7/8/12
+  after normalization. A negative-control cell reinstates the pre-J1
+  recorder-less invoker and proves the columns collapse without the change;
+  removing the recorder from the production adapter was separately measured to
+  turn all five cells RED.
+- New: `tests/v2/core/test_flow_id_derivation_j1.py`,
+  `tests/v2/compat/test_callback_provenance_j1.py`,
+  `tests/v2/contract/provenance_parity.py` (normalizers, written for reuse by
+  Session J2's CB-ENTRY cells) and
+  `tests/v2/contract/test_provenance_parity_helpers_j1.py`, which pins what those
+  normalizers do and do **not** drop — `report_shape` is a blacklist over
+  `to_dict()`, so run-level `error` and per-iteration `error`/`stacktrace` are
+  compared, which matters only once J2 reuses it on failure paths.
+- `contract_matrix.md` open item **#3** (v1-path Events/Provenance expectations)
+  is closed; see `merge_v1/contracts.md` §J1.
+
 ## Unreleased — Session J0 (Phase J groundwork: the legacy loop goes private)
 
 Behaviour-preserving session. The public `workflows.run` contract is byte-for-byte
