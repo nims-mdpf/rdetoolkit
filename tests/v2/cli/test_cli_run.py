@@ -670,6 +670,39 @@ class TestRunLegacyTargetExitCodes:
         # And: a partial run leaves no job.failed, exactly as v1 measured
         assert not (isolated_root / "data" / "job.failed").exists()
 
+    def test_legacy_target_all_tiles_failed_under_ignore_errors_exits_2__tc_cli_run_ep_021(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+    ) -> None:
+        """contracts.md §J-REVIEW D9: v1's continue policy never fails the run.
+
+        With ``ignore_errors: true`` v1 returned every failed status normally,
+        even when no tile succeeded, so the public entry point returns its
+        payload and the CLI maps a payload carrying ``failed`` to partial.
+        """
+        # Given: a two-tile MultiDataTile project with v1's continue policy
+        _build_data_fixture(isolated_root, input_files={"a.txt": "a", "b.txt": "b"})
+        _write_tasksupport_rdeconfig(
+            isolated_root,
+            {
+                "system": {"extended_mode": "MultiDataTile"},
+                "multidata_tile": {"ignore_errors": True},
+            },
+        )
+
+        # When: every tile fails
+        result = cli_runner.invoke(app, ["run", f"{LEGACY_MODULE}::always_fails"])
+
+        # Then: exit 2, not 1 -- the entry point returned instead of exiting
+        assert result.exit_code == 2, result.output
+        assert legacy_targets.call_count(isolated_root) == 2
+        payload = _legacy_payload(result.output)
+        assert [status["status"] for status in payload["statuses"]] == ["failed", "failed"]
+
+        # And: no job.failed, exactly as v1 measured for this policy
+        assert not (isolated_root / "data" / "job.failed").exists()
+
 
 class TestRunConfigOverride:
     """TC-CLI-RUN-EP-012, TC-CLI-RUN-BV-001/002: --config semantics

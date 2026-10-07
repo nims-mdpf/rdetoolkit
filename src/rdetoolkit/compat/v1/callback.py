@@ -15,6 +15,7 @@ than a limitation to work around (Design §3.4 addendum).
 
 from __future__ import annotations
 
+import copy
 import inspect
 import traceback
 from collections.abc import Callable
@@ -341,6 +342,14 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
     legacy input checkers, which read ``smarttable.save_table_file`` from a v1
     ``Config`` (``domain.mode.selected_input_checker``).
 
+    ``RdeConfig.custom`` is restored as v1 ``Config`` *extra* fields (Session
+    J-REVIEW ruling #1). ``ConfigNormalizer`` moves every unknown top-level key
+    of a v1 configuration -- a structured program's own ``threshold`` and the
+    like -- into ``custom``; a callback reads them back as
+    ``srcpaths.config.<key>``, so the projection must put them where v1 had
+    them. A key spelled like a v1 field is skipped: there the structured v1
+    field is authoritative.
+
     Args:
         config: Effective canonical configuration, or ``None``.
 
@@ -365,7 +374,21 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
             ignore_errors=config.execution.on_iteration_error == "continue",
         ),
         smarttable=SmartTableSettings(save_table_file=config.smarttable.save_table_file),
+        **_legacy_extra_fields(config.custom),
     )
+
+
+def _legacy_extra_fields(custom: dict[str, Any]) -> dict[str, Any]:
+    """Return the ``custom`` entries that can be v1 ``Config`` extra fields.
+
+    Deep-copied so a callback mutating its config cannot reach back into the
+    run's effective configuration, which later steps still read.
+    """
+    return {
+        key: copy.deepcopy(value)
+        for key, value in custom.items()
+        if key not in Config.model_fields
+    }
 
 
 def _datatile_id(context: RunContext, iteration_index: int) -> str:

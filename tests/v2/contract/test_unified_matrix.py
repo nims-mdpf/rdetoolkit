@@ -534,7 +534,11 @@ def test_callback_target_error_policy_comes_from_the_v1_config__tc_um_mdt_cb_v2_
     )
 
     # Then: the v2 continue policy attempts every tile, unlike v1
-    assert report.status == "failed"
+    # (UPDATED Session J-REVIEW ruling #2 / contracts.md §J-REVIEW D9: a legacy
+    # callback target whose every tile failed under continue is "partial", as
+    # v1's ignore_errors run was, and publishes no job.failed)
+    assert report.status == "partial"
+    assert not (root / "data" / "job.failed").exists()
     assert len(report.iterations) == tile_count
     assert _callback_count(root) == tile_count
     assert _callback_count(root) != frozen_callbacks

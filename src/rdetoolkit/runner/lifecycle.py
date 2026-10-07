@@ -416,6 +416,12 @@ class Runner:
             completed_count=completed_count,
             failed_count=failed_count,
             fail_fast=plan.error_policy == "fail_fast",
+            # v1's continue policy (``multidata_tile.ignore_errors``) never made
+            # a tile failure a run failure, not even when every tile failed, and
+            # the v1 callback API keeps that contract (ADR-023, contracts.md
+            # §J-REVIEW D9). Keyed on the target, never on the config alone: a
+            # flow under ``continue`` keeps Design §7.2's "failed".
+            all_failed_is_partial=isinstance(execution_target, LegacyCallbackTarget),
         )
         warnings = _failure_warnings(failed_count) if failed_count else []
         if failed_count:
@@ -605,16 +611,30 @@ def _finalize_error(exc: Exception) -> RdeError:
     return error_cls(code=5001, name=error_def.name, message=message)
 
 
-def _run_status(*, completed_count: int, failed_count: int, fail_fast: bool = False) -> str:
+def _run_status(
+    *,
+    completed_count: int,
+    failed_count: int,
+    fail_fast: bool = False,
+    all_failed_is_partial: bool = False,
+) -> str:
     """Classify the run outcome (Design §7.2).
 
     Under fail_fast, any tile failure aborts the run, so the run as a whole is
     "failed" even when earlier tiles completed — "partial" exists only for the
     continue policy (no implicit partial success).
+
+    ``all_failed_is_partial`` is the v1 callback exception (Session J-REVIEW
+    ruling #2): under v1's continue policy a run whose every tile failed still
+    returned its statuses and wrote no ``job.failed``, so for a legacy callback
+    target that run is "partial" rather than "failed". It never overrides
+    fail_fast.
     """
     if failed_count == 0:
         return "success"
-    if fail_fast or completed_count == 0:
+    if fail_fast:
+        return "failed"
+    if completed_count == 0 and not all_failed_is_partial:
         return "failed"
     return "partial"
 

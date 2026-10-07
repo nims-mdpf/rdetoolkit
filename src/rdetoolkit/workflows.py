@@ -510,25 +510,35 @@ _CALLBACK_ENTRY_FAILURE_NOTICE = (
 )
 
 
-def _callback_entry_log_path() -> Path:
+def _callback_entry_log_path(root: Path, data_root: Path) -> Path:
     """Return the ``rdesys_<ts>.log`` path the v1 callback entry logs into.
 
-    The path is taken through v1's own ``StorageDir`` — the identical ritual
-    ``_run_legacy`` performs (Phase J ruling #3) — rather than from the run's
-    resolved data root. ``StorageDir`` *is* the v1 contract for this file: it is
-    the only seam a v1 caller (or a v1 test) can redirect, and v1 always wrote
-    the log below ``<cwd>/data`` even for a project whose RDE markers sit
-    directly below the root. For the standard layout both answers are the same
-    directory.
+    Decided **after** ``resolve_data_root`` (Session J-REVIEW ruling #3). For
+    the standard layout -- ``data_root == <cwd>/data`` -- the path is taken
+    through v1's own ``StorageDir``, the identical ritual ``_run_legacy``
+    performs: it is the only seam a v1 caller (or a v1 test) can redirect, and
+    there it names the same directory. For any other data root (an alias-flat
+    project, or a CWD that already is ``data``) ``StorageDir`` would create
+    ``<cwd>/data``, and an existing ``data`` child outranks the RDE markers in
+    ``resolve_data_root`` -- creating the log directory would move the data
+    root the Runner resolves next. The log then lives below the data root.
+
+    Args:
+        root: The process CWD the entry point runs from.
+        data_root: ``resolve_data_root(root)``, resolved before anything exists.
 
     Returns:
-        ``<cwd>/data/logs/rdesys_<timestamp>.log``, its parent created.
+        ``<data root>/logs/rdesys_<timestamp>.log``, its parent created.
     """
     from rdetoolkit.rde2util import StorageDir
     from rdetoolkit.rdelogger import generate_log_timestamp
 
     log_filename = f"rdesys_{generate_log_timestamp()}.log"
-    return StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
+    if data_root == root / "data":
+        return StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
+    logs_dir = data_root / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    return logs_dir / log_filename
 
 
 def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config: Any = None) -> str:
@@ -539,6 +549,10 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     the v1 contract — the ``rdesys_<ts>.log`` file logger, the legacy JSON return
     value, ``SystemExit(1)`` for a failed run, and v1's fail-fast iteration
     policy. ``_run_legacy`` stays in this module for the dynamic oracles only.
+
+    Order matters (Session J-REVIEW ruling #3): the data root is resolved
+    before anything is created, so neither the log directory nor any later
+    step can move it.
 
     Args:
         custom_dataset_function: Optional v1 dataset callback, invoked once per
@@ -555,8 +569,9 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
 
     Raises:
         SystemExit: With code 1 when the run failed. ``Runner.finalize`` has
-            already written ``data/job.failed``, exactly as v1 did before it
-            exited.
+            already written ``<data root>/job.failed``, exactly as v1 did before
+            it exited. A configuration that cannot be loaded exits the same way
+            after writing v1's generic ``ErrorCode=999`` marker.
     """
     from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
     from rdetoolkit.config import load_config as load_v1_config
@@ -564,7 +579,9 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     from rdetoolkit.runner.lifecycle import Runner
     from rdetoolkit.runner.paths import resolve_data_root
 
-    get_logger("rdetoolkit", file_path=_callback_entry_log_path())
+    root = Path.cwd()
+    data_root = resolve_data_root(root)
+    get_logger("rdetoolkit", file_path=_callback_entry_log_path(root, data_root))
     # The handler is created with ``delay=True``, so the log file only appears
     # once a record is emitted. v1 emitted plenty of them from the pipeline it
     # ran next; the Runner logs through its own channels, so the entry point
@@ -572,8 +589,6 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     # ``data/logs/rdesys_<ts>.log`` as an existing file (Phase J ruling #3).
     get_logger(__name__).debug("rdetoolkit structured process started (unified Runner)")
 
-    root = Path.cwd()
-    data_root = resolve_data_root(root)
     # ``config=None`` must not fall through to v2 config discovery: that path
     # takes the v2 default ``on_iteration_error: continue`` and ignores the v1
     # material a structured program ships, while Design §7.2 contracts the v1
@@ -581,10 +596,30 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     # honours ``system.extended_mode`` and ``multidata_tile.ignore_errors`` from
     # ``data/tasksupport``, exactly as ``_run_legacy`` does, and the v1
     # ``Config`` it returns reaches ``ConfigNormalizer`` with ``origin="v1"``
-    # (Phase J ruling #2c, amended by the Session J2 B-ruling #1b).
-    config_source: Any = (
-        load_v1_config(str(data_root / "tasksupport"), config=None) if config is None else config
-    )
+    # (Phase J ruling #2c, amended by the Session J2 B-ruling #1b). It runs
+    # before the Runner's failure route exists, so its failure takes v1's
+    # generic route here (Session J-REVIEW ruling #4).
+    config_source: Any = config
+    if config is None:
+        try:
+            config_source = load_v1_config(str(data_root / "tasksupport"), config=None)
+        except Exception as error:  # noqa: BLE001 -- v1 converted every loader failure
+            # v1's ``handle_generic_error`` observation, field for field --
+            # stderr traceback, ``ErrorCode=999`` with its fixed message, the
+            # exception in the rdesys log, exit 1 -- except that the marker is
+            # written below the *resolved* data root: the helper itself writes
+            # below ``<cwd>/data``, which an alias-flat project does not have.
+            from rdetoolkit.errors import handle_exception, write_job_errorlog_file
+
+            sys.stderr.write((handle_exception(error, verbose=True).traceback_info or "") + "\n")
+            data_root.mkdir(parents=True, exist_ok=True)
+            write_job_errorlog_file(
+                999,
+                "Error: Please check the logs and code, then try again.",
+                filename=str(data_root / "job.failed"),
+            )
+            get_logger(__name__).exception(str(error))
+            sys.exit(1)
     report = Runner(
         root=root,
         inputdata_path=data_root / "inputdata",

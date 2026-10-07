@@ -1,5 +1,34 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session J-REVIEW (PR #542 review response)
+
+### Fixed
+
+- `workflows.run(custom_dataset_function=...)`: user-defined top-level keys of a
+  v1 `Config` (explicit or from `data/tasksupport/rdeconfig.yaml`) reach the
+  callback again as `srcpaths.config.<key>` — `to_legacy_config` restores
+  `RdeConfig.custom` as v1 extra fields (keys named like v1 fields are skipped).
+- With v1's continue policy (`multidata_tile.ignore_errors: true`), a callback
+  run in which **every** tile failed is `partial` again, as in v1: the failed
+  statuses are returned, no `job.failed` is written, the process does not exit;
+  the CLI legacy target reports exit 2. `run(flow=...)` keeps Design §7.2
+  (`continue` with every tile failed is `failed`).
+- As in v1, `ignore_errors` only takes effect in MultiDataTile mode for a
+  callback: in invoice, ExcelInvoice, RDEFormat and SmartTable mode the first
+  failing tile ends the run (exit status 1, `job.failed`), whatever the
+  configuration says. Previously such runs kept going and exited 0.
+- Failed entries of a returned legacy statuses payload use v1's shape:
+  `title` `Structured Process Failed: <mode>`, `error_message` `Error: <message>`,
+  `target` the tile's raw files comma-joined.
+- The `rdesys_<ts>.log` set-up no longer creates `<cwd>/data` for an alias-flat
+  project (RDE directories directly below the CWD); the log goes below the
+  resolved data root, so the callback runs against the right inputs.
+- A malformed `data/tasksupport/rdeconfig.yaml` is reported as v1 did:
+  `job.failed` `ErrorCode=999` with v1's generic message and exit status 1,
+  instead of an uncaught `ConfigError`.
+
+Contract record: `local/develop/v2/merge_v1/contracts.md` §J-REVIEW (D9).
+
 ## Unreleased — Session J2 (Phase J / I7: one Runner behind every entry point)
 
 `rdetoolkit.workflows.run(custom_dataset_function=...)` — the call every existing
