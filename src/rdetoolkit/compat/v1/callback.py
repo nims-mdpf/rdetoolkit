@@ -1,22 +1,30 @@
-"""Minimal v1 dataset-callback adapter for the unified Runner (Design §7).
+"""V1 dataset-callback adapter for the unified Runner (Design §7, §3.4).
 
-This module owns exactly two things: converting one tile's v2 material into the
-v1 callback arguments, and calling the user callback with the signature it
-expects. The signature rules are a port of the v1 ``DatasetRunner``
+This module owns three things: converting one tile's v2 material into the v1
+callback arguments, calling the user callback with the signature it expects, and
+— since Session J1 (ADR-023 decision 5) — running that call as a *flow* so the
+callback entry point produces the same execution history a ``@flow`` does. The
+signature rules are a port of the v1 ``DatasetRunner``
 (``processing/processors/datasets.py``), which stays the behavioral oracle.
 
-Anything beyond conversion and invocation — notably the execution history of
-the callback entry point — is Session I8 work and is deliberately absent here.
+The provenance semantics are deliberately thin: the callback is recorded as the
+parent flow of the ``@node`` calls it makes, and nothing else inside it is
+observable. That is a structural consequence of recording ``@node`` calls rather
+than a limitation to work around (Design §3.4 addendum).
 """
 
 from __future__ import annotations
 
+import copy
 import inspect
+import traceback
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from rdetoolkit.api.request import LegacyCallbackTarget
+from rdetoolkit.core.calllog import CallLogRecorder
+from rdetoolkit.core.flow import derive_flow_id, push_flow
 from rdetoolkit.models.config import (
     Config,
     MultiDataTileSettings,
@@ -28,7 +36,12 @@ from rdetoolkit.models.rde2types import (
     RdeInputDirPaths,
     RdeOutputResourcePath,
 )
-from rdetoolkit.runner.execute import ExecutionResult
+from rdetoolkit.runner.execute import (
+    ExecutionResult,
+    TileExecutionError,
+    _emit_node_events,
+    _failed_error,
+)
 
 if TYPE_CHECKING:
     from rdetoolkit.api.request import ExecutionTarget
@@ -37,6 +50,11 @@ if TYPE_CHECKING:
     from rdetoolkit.runner.planner import TileMaterial
     from rdetoolkit.types import RdeConfig
 
+
+#: ``flow_id`` reported by a v1 run that supplies no ``custom_dataset_function``
+#: at all. Dotted like every other flow id (Session J1 ruling #1): the colon
+#: spelling would have made ``parent_flow == flow_id`` unverifiable.
+NO_CALLBACK_FLOW_ID = "rdetoolkit.compat.v1.callback.none"
 
 _LEGACY_ARG_COUNT = 2
 # v1's own threshold (``workflows._select_smarttable_rowfile``): a row CSV stem
@@ -174,8 +192,25 @@ def _select_smarttable_rowfile(rawfiles: tuple[Path, ...]) -> Path | None:
     return candidate if parts[-1].isdigit() else None
 
 
+def callback_flow_id(callback: Callable[..., Any] | None) -> str:
+    """Return the flow identifier a v1 dataset callback is recorded under.
+
+    The callback is treated as the flow it effectively is (ADR-023 decision 5),
+    so it shares the single derivation with ``@flow`` and with
+    ``RunReport.flow_id``. That is what makes the Design §3.4 invariant
+    ``parent_flow == RunReport.flow_id`` hold on the v1 entry point too.
+
+    Args:
+        callback: User dataset callback, or ``None`` for a callback-free v1 run.
+
+    Returns:
+        The callback's dotted stable reference, or :data:`NO_CALLBACK_FLOW_ID`.
+    """
+    return NO_CALLBACK_FLOW_ID if callback is None else derive_flow_id(callback)
+
+
 class LegacyCallbackInvoker:
-    """Invoke a v1 dataset callback for one planned tile."""
+    """Invoke a v1 dataset callback for one planned tile, recording it as a flow."""
 
     def invoke(
         self,
@@ -187,48 +222,86 @@ class LegacyCallbackInvoker:
         config: RdeConfig,
         material: TileMaterial,
     ) -> ExecutionResult:
-        """Convert the tile material and call the v1 dataset callback.
+        """Convert the tile material and call the v1 dataset callback as a flow.
+
+        The call happens inside the same ``CallLogRecorder`` context ``run_tile``
+        builds for a ``@flow``, with the callback's flow id pushed on the flow
+        stack. Every ``@node`` the callback calls is therefore recorded in this
+        tile's call log with ``parent_flow`` equal to the run's ``flow_id``, and
+        bridged to ``node.*`` events — on success and on failure alike.
 
         Args:
             target: Normalized legacy callback target.
             context: Reserved values for the current tile.
-            event_sink: Unused; iteration events stay Runner-owned.
-            run_id: Unused; the callback entry point emits no node events.
-            config: Unused; the effective config travels inside ``context``.
+            event_sink: Sink receiving the bridged node events.
+            run_id: Active run identifier carried by those events.
+            config: Effective run configuration owning the recorder's
+                provenance and type-check settings.
             material: Run-owned tile material handed to the v1 bundle.
 
         Returns:
-            A completed result for the tile. Failures propagate so the common
-            tile executor keeps owning failure normalization.
+            A completed result carrying the tile's call log.
 
         Raises:
             TypeError: If the target is not a legacy callback target.
             ValueError: If the tile context has no iteration information.
+            TileExecutionError: If the callback fails. The error carries the
+                records observed before the failure — the same contract
+                ``run_tile`` uses — and keeps the original exception as its
+                ``__cause__`` so the tile boundary can restore a
+                ``StructuredError``'s ``ecode``/``emsg`` (§I6-0).
         """
         if not isinstance(target, LegacyCallbackTarget):
             msg = "LegacyCallbackInvoker requires a LegacyCallbackTarget"
             raise TypeError(msg)
-        _ = (event_sink, run_id, config)
 
         iteration = context.iteration
         if iteration is None:
             msg = "RunContext.iteration is required for tile execution."
             raise ValueError(msg)
 
-        if target.function is not None:
-            _call_with_matching_signature(
-                target.function,
-                to_legacy_dataset_paths(context, material=material),
+        callback = target.function
+        # Argument conversion is pure adapter work, not user code: keeping it
+        # outside the recorder context means a conversion defect stays an
+        # ordinary framework failure instead of being reported as a tile's node
+        # execution failure. A callback-free v1 run converts nothing.
+        dataset_paths = None if callback is None else to_legacy_dataset_paths(context, material=material)
+        recorder = CallLogRecorder(
+            repr_head=config.provenance.repr_head,
+            repr_head_len=config.provenance.repr_head_len,
+            type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
+            iteration_index=iteration.index,
+        )
+        datatile_id = _datatile_id(context, iteration.index)
+        try:
+            # The recorder and the flow id are installed even for a callback-free
+            # run, so this entry point has exactly one execution shape.
+            with recorder, push_flow(callback_flow_id(callback)):
+                # Both operands are the same condition; the second one is what
+                # narrows ``dataset_paths`` for the type checker.
+                if callback is not None and dataset_paths is not None:
+                    _call_with_matching_signature(callback, dataset_paths)
+        except Exception as exc:
+            _emit_node_events(event_sink, run_id=run_id, records=recorder.records)
+            failed = ExecutionResult(
+                iteration_index=iteration.index,
+                status="failed",
+                call_records=recorder.records,
+                outputs=(),
+                error=_failed_error(exc, recorder.records),
+                datatile_id=datatile_id,
+                stacktrace=traceback.format_exc(),
             )
-
-        # Positional fields are: iteration index, status, call log, outputs.
-        # The v1 entry point contributes neither of the latter two in I5.
+            raise TileExecutionError(failed, exc) from exc
+        _emit_node_events(event_sink, run_id=run_id, records=recorder.records)
+        # A v1 callback's return value is ignored by contract, so a tile of this
+        # entry point never has outputs — only the call log it produced.
         return ExecutionResult(
-            iteration.index,
-            "completed",
-            (),
-            (),
-            datatile_id=_datatile_id(context, iteration.index),
+            iteration_index=iteration.index,
+            status="completed",
+            call_records=recorder.records,
+            outputs=(),
+            datatile_id=datatile_id,
         )
 
 
@@ -269,6 +342,14 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
     legacy input checkers, which read ``smarttable.save_table_file`` from a v1
     ``Config`` (``domain.mode.selected_input_checker``).
 
+    ``RdeConfig.custom`` is restored as v1 ``Config`` *extra* fields (Session
+    J-REVIEW ruling #1). ``ConfigNormalizer`` moves every unknown top-level key
+    of a v1 configuration -- a structured program's own ``threshold`` and the
+    like -- into ``custom``; a callback reads them back as
+    ``srcpaths.config.<key>``, so the projection must put them where v1 had
+    them. A key spelled like a v1 field is skipped: there the structured v1
+    field is authoritative.
+
     Args:
         config: Effective canonical configuration, or ``None``.
 
@@ -293,7 +374,21 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
             ignore_errors=config.execution.on_iteration_error == "continue",
         ),
         smarttable=SmartTableSettings(save_table_file=config.smarttable.save_table_file),
+        **_legacy_extra_fields(config.custom),
     )
+
+
+def _legacy_extra_fields(custom: dict[str, Any]) -> dict[str, Any]:
+    """Return the ``custom`` entries that can be v1 ``Config`` extra fields.
+
+    Deep-copied so a callback mutating its config cannot reach back into the
+    run's effective configuration, which later steps still read.
+    """
+    return {
+        key: copy.deepcopy(value)
+        for key, value in custom.items()
+        if key not in Config.model_fields
+    }
 
 
 def _datatile_id(context: RunContext, iteration_index: int) -> str:

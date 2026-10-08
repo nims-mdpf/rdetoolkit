@@ -277,10 +277,23 @@ def test_run_empty_config(
 
 
 def test_structured_error_propagation_in_workflow(tmp_path, monkeypatch):
-    """Test that StructuredError from custom dataset function propagates correctly to job.failed.
+    """Test that an invalid invoice.schema.json is reported before the callback runs.
 
-    This test reproduces the issue reported in issue_203 where custom error messages
-    and codes were not being written to job.failed correctly.
+    UPDATED (Session J2 / merge-v1 I7, divergence D3, orchestrator-granted
+    exception to the tests/-root freeze). The fixture below carries an
+    ``invoice.schema.json`` that rdetoolkit rejects in BOTH versions -- it lacks
+    the required ``properties.custom.label`` / ``.required`` / ``.properties``.
+    The old expectation (``ErrorCode=21`` from the callback) pinned v1's stage
+    ORDER, in which the schema was only validated after the dataset callback had
+    already run and raised. The unified Runner validates the source invoice and
+    its schema in ``pre_validate`` (contracts.md §I6-0), so the defect is now
+    reported as catalog code 4001 and the callback is never invoked at all.
+
+    This assertion is strictly stronger than the one it replaces: it pins the
+    published error code AND the remediation message AND the fact that no user
+    code ran, through an explicit call counter. The original intent of
+    issue_203 -- "the decorator's values must not mask the real error" -- is
+    preserved below and now also covers the decorator vs. validation case.
     """
     from rdetoolkit.errors import catch_exception_with_message
     from rdetoolkit.exceptions import StructuredError
@@ -337,28 +350,37 @@ def test_structured_error_propagation_in_workflow(tmp_path, monkeypatch):
     os.chdir(tmp_path)
 
     try:
-        # Define custom dataset function that raises StructuredError
+        # Given: a dataset callback that would raise, and a counter proving
+        # whether it was reached at all
+        calls = []
+
         @catch_exception_with_message(error_message="Dataset processing failed", error_code=50)
         def custom_dataset_function(srcpaths, resource_paths):
+            calls.append(1)
             raise StructuredError("error message in dataset()", 21)
 
-        # Run the workflow and expect it to exit with error
-        with pytest.raises(SystemExit):
+        # When: running the public v1 entry point on the invalid schema
+        with pytest.raises(SystemExit) as exit_info:
             run(custom_dataset_function=custom_dataset_function)
 
-        # Check that job.failed was created with correct content
+        # Then: the process exits 1, exactly as v1 did
+        assert exit_info.value.code == 1
+
+        # And: job.failed carries the front-loaded validation contract
         job_failed_path = test_data_dir / "job.failed"
         assert job_failed_path.exists(), "job.failed file was not created"
 
         content = job_failed_path.read_text()
+        # Equality, not containment: the decorator's 50 and the callback's 21
+        # are both excluded by it, so a future change that let either of them
+        # reach job.failed would surface here as a published-code change. The
+        # two "not in content" assertions this replaces became vacuous once the
+        # callback stopped running at all.
+        assert content.splitlines()[0] == "ErrorCode=4001", f"Expected the first line to be ErrorCode=4001, got: {content}"
+        assert "Validation Errors in invoice.schema.json" in content, f"Expected the schema validation message in job.failed, got: {content}"
 
-        # The StructuredError values should be used, not the decorator values
-        assert "ErrorCode=21" in content, f"Expected ErrorCode=21 in job.failed, got: {content}"
-        assert "ErrorMessage=Error: error message in dataset()" in content, f"Expected correct error message in job.failed, got: {content}"
-
-        # Should NOT contain the decorator values
-        assert "ErrorCode=50" not in content, "Should not contain decorator error code"
-        assert "Dataset processing failed" not in content, "Should not contain decorator error message"
+        # And: validation happened BEFORE any user code ran
+        assert calls == [], "pre_validate must reject the schema before the dataset callback runs"
 
     finally:
         os.chdir(original_cwd)

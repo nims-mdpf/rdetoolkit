@@ -97,15 +97,25 @@ class RunReport:
         legacy_run_id = f"{raw_index:04d}" if isinstance(raw_index, int) else ""
         if raw_index is not None and not isinstance(raw_index, int):
             legacy_run_id = str(raw_index)
+        completed = iteration.get("status") == "completed"
+        title = iteration.get("title") or iteration.get("datatile_id") or ""
+        message = error.get("message")
+        if not completed:
+            # v1 returned failed statuses from an ``ignore_errors`` run, so
+            # their shape is observable v1 contract (Session J-REVIEW ruling #2,
+            # decision A): ``workflows._create_error_status`` titled them by
+            # mode and ``skip_exception_context`` prefixed the message.
+            title = f"Structured Process Failed: {_legacy_failure_label(self.mode)}"
+            message = f"Error: {message}" if message is not None else None
         return {
             "error_code": error.get("code"),
-            "error_message": error.get("message"),
+            "error_message": message,
             "mode": _legacy_mode(self.mode),
             "run_id": legacy_run_id,
             "stacktrace": iteration.get("stacktrace"),
-            "status": "success" if iteration.get("status") == "completed" else "failed",
+            "status": "success" if completed else "failed",
             "target": iteration.get("target"),
-            "title": iteration.get("title") or iteration.get("datatile_id") or "",
+            "title": title,
         }
 
     @classmethod
@@ -132,6 +142,17 @@ class RunReport:
             warnings=data.get("warnings", []),
             error=data.get("error"),
         )
+
+
+def _legacy_failure_label(mode: str) -> str:
+    """Return the mode label v1's ``workflows._process_mode`` put in failure titles."""
+    return {
+        "invoice": "Invoice",
+        "excelinvoice": "Excelinvoice",
+        "multidatatile": "MultiDataTile",
+        "rdeformat": "rdeformat",
+        "smarttable": "SmartTableInvoice",
+    }.get(mode, mode)
 
 
 def _legacy_mode(mode: str) -> str:

@@ -20,6 +20,7 @@ from rdetoolkit.api.request import (
     build_run_request,
 )
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.core.flow import derive_flow_id
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
@@ -37,7 +38,7 @@ from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
 from rdetoolkit.runner.executor import TileExecutor
-from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record
+from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
@@ -95,6 +96,13 @@ class Runner:
         # a Runner driven step-by-step resolves it lazily on first use so the
         # answer is still taken exactly once.
         self._data_root: Path | None = None
+        # Per-run, like ``run_id`` and ``_data_root``: whether this run is a
+        # pre-flight check. It is state rather than a ``finalize`` parameter
+        # because both finalization seams are already contracted -- several test
+        # doubles override ``Runner.finalize(report, config)`` and others inject
+        # a ``finalizer=`` implementing the same two-argument call -- and a
+        # pre-flight flag is not worth changing either protocol for.
+        self._validate_only = False
         self._planner = planner or RunPlanner(
             inputdata_path=lambda: self.inputdata_path,
             unpacked_dir_path=lambda: self.unpacked_dir_path,
@@ -154,6 +162,7 @@ class Runner:
             msg = "Config overrides must be carried by RunRequest.config_source"
             raise TypeError(msg)
         target = run_request.target
+        self._validate_only = run_request.validate_only
         self._apply_request_root(run_request.root)
         # Resolved before any directory is created, so the alias-flat answer
         # cannot change once tile 0 exists (ruling #1).
@@ -181,9 +190,21 @@ class Runner:
                     self.event_sink.emit(Event.run_started(run_id=self.run_id))
                     config = self.load_config(run_request.config_source)
                     mode = self.resolve_mode(config)
+                    # v1 creates the unpack directory before it parses anything
+                    # (``workflows.check_files_result`` opens with
+                    # ``StorageDir.get_specific_outputdir(True, "temp")``), so a
+                    # run that fails before parsing still published it. Doing it
+                    # here -- once, from the data root -- removes the last
+                    # directory-tree asymmetry the Session I6-B seats bounded.
+                    (self.data_root / "temp").mkdir(parents=True, exist_ok=True)
                     self.pre_validate(config)
-                    report = self.iterate(target, mode, config)
-                    self.post_validate(config, report)
+                    report = self._execute(
+                        run_request,
+                        target,
+                        mode=mode,
+                        config=config,
+                        started=started,
+                    )
                 except Exception as exc:  # noqa: BLE001
                     config = config or RdeConfig()
                     report = _failed_report(
@@ -210,6 +231,52 @@ class Runner:
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
             self._invoice_service.end_run()
+
+    def _execute(
+        self,
+        request: RunRequest,
+        target: ExecutionTarget,
+        *,
+        mode: ModeKind,
+        config: RdeConfig,
+        started: float,
+    ) -> RunReport:
+        """Iterate the tiles, or stop after validation for a validate-only run.
+
+        ``RunRequest.validate_only`` existed since Session D but was never
+        consumed: the CLI reimplemented the first three lifecycle steps by
+        hand, which left ``run_id`` empty and made W1001 unpublishable
+        (Session J2 ruling #4). Consuming it here means a validate-only request
+        takes the same ``load_config`` -> ``resolve_mode`` -> ``pre_validate``
+        prefix as a real run — with a real run id, a real event sink and the
+        ordinary failure route — and simply never builds a tile.
+
+        Args:
+            request: Normalized request, read for ``validate_only``.
+            target: Execution target, used for the report's ``flow_id``.
+            mode: Mode resolved for this run.
+            config: Effective configuration.
+            started: Monotonic-ish start time of the run.
+
+        Returns:
+            The iteration report, or a tile-free successful report.
+        """
+        if request.validate_only:
+            return RunReport(
+                run_id=self.run_id,
+                status="success",
+                flow_id=_target_flow_id(target),
+                mode=mode.value,
+                started_at=_iso_timestamp(started),
+                duration_ms=(time.time() - started) * 1000.0,
+                config_digest=_config_digest(config),
+                iterations=[],
+                warnings=[],
+                error=None,
+            )
+        report = self.iterate(target, mode, config)
+        self.post_validate(config, report)
+        return report
 
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.
@@ -241,6 +308,11 @@ class Runner:
         if self.unpacked_dir_path == previous_root / "unpacked":
             self.unpacked_dir_path = root / "unpacked"
         self.root = root
+        # The cached answer belongs to ``previous_root``. ``run`` re-resolves
+        # right after this call, but a Runner driven step-by-step would keep
+        # answering with the old root (Session J0, contracts.md §I-REVIEW-A
+        # debt 4), so the cache is dropped here and re-taken lazily.
+        self._data_root = None
 
     def resolve_mode(self, config: RdeConfig) -> ModeKind:
         """Resolve the effective mode for this run.
@@ -344,6 +416,12 @@ class Runner:
             completed_count=completed_count,
             failed_count=failed_count,
             fail_fast=plan.error_policy == "fail_fast",
+            # v1's continue policy (``multidata_tile.ignore_errors``) never made
+            # a tile failure a run failure, not even when every tile failed, and
+            # the v1 callback API keeps that contract (ADR-023, contracts.md
+            # §J-REVIEW D9). Keyed on the target, never on the config alone: a
+            # flow under ``continue`` keeps Design §7.2's "failed".
+            all_failed_is_partial=isinstance(execution_target, LegacyCallbackTarget),
         )
         warnings = _failure_warnings(failed_count) if failed_count else []
         if failed_count:
@@ -390,27 +468,51 @@ class Runner:
         through the v1 contract. This is the production path; tests may still
         replace this step through the injectable-step seam.
 
+        A **validate-only** run is exempt from the ``job.failed`` half: the RDE
+        platform reads that file as the job-failure marker, and a pre-flight
+        check that merely reports "this input would not validate" must not claim
+        the job failed (Session J2 ruling #4 as amended). It still writes the run
+        report, which is a log. The skip lives here rather than behind a
+        ``RunFinalizer`` flag so that neither injectable seam changes shape --
+        ``Runner.finalize(report, config)`` is overridden by several test
+        doubles, and ``finalizer=`` is injected by others.
+
         Args:
             report: Report produced by iteration.
             config: Effective configuration.
         """
+        if self._validate_only:
+            write_run_report(report, data_root=self.data_root)
+            return
         self._finalizer.finalize(report, config)
 
 
 def _flow_id(flow_fn: Callable[..., Any]) -> str:
-    module = getattr(flow_fn, "__module__", "")
-    qualname = getattr(flow_fn, "__qualname__", getattr(flow_fn, "__name__", repr(flow_fn)))
-    return f"{module}.{qualname}" if module else qualname
+    """Return the report's flow identifier for one executable entry point.
+
+    Delegates to the single derivation in ``core.flow`` so the report agrees
+    with what the flow stack pushes. A ``@flow(id=...)`` used to be recomputed
+    as ``module.qualname`` here, which made every one of its node records read
+    ``parent_flow != flow_id`` (Session J1 ruling #1, Design §3.4 addendum).
+    """
+    return derive_flow_id(flow_fn)
 
 
 def _target_flow_id(target: ExecutionTarget) -> str:
     """Identify the executed target for the report.
 
-    A v1 callback-free run has no callable at all, so it reports a stable
-    sentinel instead of an identifier derived from ``None``.
+    A v1 callback-free run has no callable at all, so it reports the callback
+    adapter's stable sentinel instead of an identifier derived from ``None``.
     """
     function = target.function
-    return _flow_id(function) if function is not None else "rdetoolkit.compat.v1.callback:none"
+    if function is not None:
+        return _flow_id(function)
+    # Imported at call time (twice per run) for the same reason
+    # ``InvokerRegistry`` does it: the compat package stays off the runner's
+    # module-level import graph.
+    from rdetoolkit.compat.v1.callback import NO_CALLBACK_FLOW_ID  # noqa: PLC0415
+
+    return NO_CALLBACK_FLOW_ID
 
 
 def _raise_run_interrupted(signum: int, frame: FrameType | None) -> None:
@@ -509,16 +611,30 @@ def _finalize_error(exc: Exception) -> RdeError:
     return error_cls(code=5001, name=error_def.name, message=message)
 
 
-def _run_status(*, completed_count: int, failed_count: int, fail_fast: bool = False) -> str:
+def _run_status(
+    *,
+    completed_count: int,
+    failed_count: int,
+    fail_fast: bool = False,
+    all_failed_is_partial: bool = False,
+) -> str:
     """Classify the run outcome (Design §7.2).
 
     Under fail_fast, any tile failure aborts the run, so the run as a whole is
     "failed" even when earlier tiles completed — "partial" exists only for the
     continue policy (no implicit partial success).
+
+    ``all_failed_is_partial`` is the v1 callback exception (Session J-REVIEW
+    ruling #2): under v1's continue policy a run whose every tile failed still
+    returned its statuses and wrote no ``job.failed``, so for a legacy callback
+    target that run is "partial" rather than "failed". It never overrides
+    fail_fast.
     """
     if failed_count == 0:
         return "success"
-    if fail_fast or completed_count == 0:
+    if fail_fast:
+        return "failed"
+    if completed_count == 0 and not all_failed_is_partial:
         return "failed"
     return "partial"
 

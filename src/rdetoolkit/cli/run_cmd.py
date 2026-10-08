@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import json
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
@@ -12,9 +13,16 @@ import typer
 import yaml
 
 from rdetoolkit import workflows
+from rdetoolkit.api.request import build_run_request
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.paths import resolve_data_root
+
+
+#: Exit status for a run that completed some tiles and failed others
+#: (Design §9.3). Named so the legacy mapping cannot be mistaken for the
+#: ``failed`` code 1.
+_PARTIAL_EXIT_CODE = 2
 
 
 def usage_error(message: str) -> None:
@@ -65,13 +73,60 @@ def determine_exit_code(report: RunReport) -> int:
     return {"success": 0, "failed": 1, "partial": 2}.get(report.status, 1)
 
 
-def validate_only(config: dict[str, Any] | None) -> None:
-    """Run config, mode, and pre-flow validation without resolving a flow.
+def legacy_exit_code(result: object) -> int:
+    """Map the v1 entry point's return value to the uniform CLI exit contract.
+
+    Design §9.3 gives every ``run`` form the same 0/1/2/3 codes, while the v1
+    *Python* API keeps its own contract: a failed run raises ``SystemExit(1)``
+    and a partial run returns normally (process status 0, Session J2 ruling #3).
+    The CLI therefore recovers "partial" from the returned statuses — a
+    ``failed`` entry in a payload that came back at all means some tiles ran and
+    some did not.
+
+    Args:
+        result: Whatever ``workflows.run(custom_dataset_function=...)``
+            returned. A value that is not the documented legacy payload is
+            treated as success, because only that payload carries per-tile
+            outcomes.
+
+    Returns:
+        ``2`` when the payload reports at least one failed tile, else ``0``.
+    """
+    if not isinstance(result, str):
+        return 0
+    try:
+        payload = json.loads(result)
+    except json.JSONDecodeError:
+        return 0
+    statuses = payload.get("statuses") if isinstance(payload, dict) else None
+    if not isinstance(statuses, list):
+        return 0
+    failed = any(
+        isinstance(status, dict) and status.get("status") == "failed"
+        for status in statuses
+    )
+    return _PARTIAL_EXIT_CODE if failed else 0
+
+
+def validate_only(flow_fn: Callable[..., Any], config: dict[str, Any] | None) -> None:
+    """Validate config, mode, and the source invoice without calling the flow.
+
+    This goes through ``Runner.run(RunRequest(validate_only=True))`` instead of
+    driving ``load_config`` / ``resolve_mode`` / ``pre_validate`` by hand
+    (Session J2 ruling #4). The step-by-step form left ``run_id`` empty, so
+    ``resolve_mode``'s W1001 mode-override warning could not be published at
+    all; one Runner call fixes that and routes failures through the Runner's own
+    report instead of a bare exception.
 
     The data root comes from ``resolve_data_root`` rather than a hardcoded
     ``<cwd>/data`` so this path agrees with ``workflows.run(flow=...)`` and the
     Runner about which directory owns the run (Session I-REVIEW-A ruling #1);
     an alias-flat project otherwise validated a tree that does not exist.
+
+    Args:
+        flow_fn: The resolved flow. It is never called; it only identifies the
+            request's target so the report names the right ``flow_id``.
+        config: Optional ``--config`` overrides.
     """
     root = Path.cwd()
     data_root = resolve_data_root(root)
@@ -80,23 +135,28 @@ def validate_only(config: dict[str, Any] | None) -> None:
         inputdata_path=data_root / "inputdata",
         unpacked_dir_path=data_root / "temp",
     )
-    try:
-        effective_config = runner.load_config(config)
-        runner.resolve_mode(effective_config)
-        runner.pre_validate(effective_config)
-    except Exception as exc:  # noqa: BLE001
-        typer.echo(f"Validation failed: {exc}", err=True)
-        raise typer.Exit(code=1) from exc
+    request = build_run_request(
+        flow=flow_fn,
+        custom_dataset_function=None,
+        config=config,
+        root=root,
+        validate_only=True,
+    )
+    report = runner.run(request)
+    if report.status != "success":
+        reason = (report.error or {}).get("message", report.status)
+        typer.echo(f"Validation failed: {reason}", err=True)
+        raise typer.Exit(code=1)
     typer.echo("Validation succeeded")
 
 
 def run_flow(flow_ref: str, *, validate_only_requested: bool, config_path: Path | None) -> None:
     """Execute or validate a v2 flow selected by CLI string reference."""
     config = load_config_overrides(config_path)
-    if validate_only_requested:
-        validate_only(config)
-        return
     flow_fn = resolve_flow(flow_ref)
+    if validate_only_requested:
+        validate_only(flow_fn, config)
+        return
     result = workflows.run(flow=flow_fn, config=config)
     report = cast(RunReport, result)
     typer.echo(report.to_json())

@@ -9,7 +9,7 @@ from itertools import chain
 from pathlib import Path
 from typing import Any, Literal
 
-from rdetoolkit.api.request import ExecutionTarget, RunRequest
+from rdetoolkit.api.request import ExecutionTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.domain.invoice_service import InvoiceService, invoice_source_for
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
@@ -166,11 +166,30 @@ class RunPlanner:
             mode=mode,
             config=config,
             root=request.root,
-            error_policy=config.execution.on_iteration_error,
+            error_policy=_error_policy(request.target, mode, config),
             tiles=tiles,
             data_root=data_root,
             invoice_source=invoice_source_for(mode, data_root=data_root),
         )
+
+
+def _error_policy(target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> Literal["continue", "fail_fast"]:
+    """Return the iteration error policy for one run.
+
+    A flow follows ``execution.on_iteration_error`` (Design §7.2). A v1
+    callback follows v1's iteration semantics whatever the config source: v1
+    honoured ``multidata_tile.ignore_errors`` only in MultiDataTile
+    (``workflows._process_mode``) and aborted on the first failure in every
+    other mode. ``ConfigNormalizer`` maps that flag to ``continue`` without
+    knowing the mode, so the mode half of the rule lives here, where the mode
+    is known (Session J-REVIEW audit F1/F2). A v2 mapping asking for
+    ``continue`` with a callback target outside MultiDataTile is therefore
+    still fail-fast.
+    """
+    policy = config.execution.on_iteration_error
+    if isinstance(target, LegacyCallbackTarget) and mode is not ModeKind.multidatatile:
+        return "fail_fast"
+    return policy
 
 
 def create_common_tiles(mode: ModeKind, context: PlanningContext) -> Iterator[TilePlan]:

@@ -23,6 +23,9 @@ app = typer.Typer(
 
 DEFAULT_EXCEL_INVOICE_TEMPLATE = "template_excel_invoice.xlsx"
 
+#: Exit status for a run whose report is ``failed`` (Design §9.3).
+_FAILED_EXIT_CODE = 1
+
 
 def validate_json_file(value: Path) -> Path:
     """Validate that the provided file is a properly formatted JSON file.
@@ -270,7 +273,7 @@ def run(
     config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides.")] = None,
 ) -> None:
     """Run rdetoolkit workflows with a user-defined dataset function."""
-    from rdetoolkit.cli.run_cmd import run_flow, usage_error
+    from rdetoolkit.cli.run_cmd import legacy_exit_code, run_flow, usage_error
 
     if (target is None) == (flow is None):
         usage_error("Provide exactly one of TARGET or --flow")
@@ -285,13 +288,27 @@ def run(
     from rdetoolkit import cli as cli_module
 
     try:
+        # Looked up on the module object at call time, never bound at import
+        # time: the v2 CLI tests spy on ``rdetoolkit.workflows.run`` itself.
         workflow_run = cast(Callable[..., str], cli_module.workflows.run)
         result = workflow_run(custom_dataset_function=func)
+    except SystemExit as exc:
+        # The v1 Python contract for a failed run is ``sys.exit(1)``, and
+        # ``SystemExit`` is a BaseException -- it would sail straight through the
+        # handler below and surface as a traceback. Design §9.3 wants one
+        # uniform CLI code for every ``run`` form, so it is mapped here
+        # (Session J2 ruling #3).
+        raise typer.Exit(code=_FAILED_EXIT_CODE if exc.code else 0) from exc
     except Exception as exc:
         typer.echo("An error occurred while running the workflow.", err=True)
-        raise typer.Exit(code=1) from exc
+        raise typer.Exit(code=_FAILED_EXIT_CODE) from exc
     if result is not None:
         typer.echo(result)
+    # A partial run returns normally from the v1 API (process status 0 by the
+    # v1 contract) but is exit code 2 for every ``run`` CLI form.
+    exit_code = legacy_exit_code(result)
+    if exit_code:
+        raise typer.Exit(code=exit_code)
 
 
 @app.command("gen-config")

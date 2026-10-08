@@ -23,13 +23,13 @@ TC-EV-027 show v1 rejects the two ways inputdata could hold a second workbook,
 and TC-EP-023 shows an ``.xlsx`` arriving through the archive does not displace
 the inputdata workbook.
 
-Known asymmetry, verified bounded here: v1 creates ``data/temp`` unconditionally
-before running any input checker (``workflows.check_files_result`` calls
-``StorageDir.get_specific_outputdir(True, "temp")``), while v2 creates it only
-when a tile exists or the archive is actually unpacked. On the scenarios that
-fail *before* unpacking, the whole observable difference is that one directory
-entry; the tests assert the difference set exactly, so any further divergence
-fails.
+Former asymmetry, closed by Session J0 (Phase J ruling #7): v1 creates
+``data/temp`` unconditionally before running any input checker
+(``workflows.check_files_result`` calls
+``StorageDir.get_specific_outputdir(True, "temp")``), and ``Runner.run`` now
+does the same before it parses anything. Every scenario below -- including the
+ones rejected before unpacking -- therefore asserts an **empty** symmetric
+difference against the v1 tree.
 
 EP table:
 | TC | Class | Input | Expected |
@@ -43,9 +43,9 @@ BV / negative table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-I6-B-EV-024 | count mismatch | 3 unpacked folders, 2 rows | v1 ``StructuredError`` verbatim, full v1 parity |
-| TC-I6-B-EV-025 | blank row | empty row between data rows | v1 ``StructuredError`` verbatim, divergence bounded to ``data/temp/`` |
-| TC-I6-B-EV-026 | identity | two ``*_excel_invoice.xlsx`` | v1 rejects before selection, divergence bounded |
-| TC-I6-B-EV-027 | identity | stray ``.xlsx`` in inputdata | v1 rejects before selection, divergence bounded |
+| TC-I6-B-EV-025 | blank row | empty row between data rows | v1 ``StructuredError`` verbatim, zero tree divergence |
+| TC-I6-B-EV-026 | identity | two ``*_excel_invoice.xlsx`` | v1 rejects before selection, zero tree divergence |
+| TC-I6-B-EV-027 | identity | stray ``.xlsx`` in inputdata | v1 rejects before selection, zero tree divergence |
 """
 
 from __future__ import annotations
@@ -76,8 +76,6 @@ _ARCHIVE = "data/inputdata/excelinvoice_files.zip"
 _OWNER_ID = "0" * 56
 #: v1's ``StructuredError`` default code, published verbatim by v2 (§I6-0).
 _STRUCTURED_ERROR_CODE = 1
-#: The single directory v1 creates before parsing and v2 does not (see module docstring).
-_UNPACK_DIRECTORY_GAP = frozenset({"data/temp/"})
 
 #: The five artifact switches ``_generate.oracle_config`` freezes fixtures with.
 #: Passing anything else would measure a configuration difference instead of an
@@ -361,33 +359,29 @@ def test_archive_workbook_does_not_displace_the_inputdata_one__tc_i6_b_ep_023(
 # BV / negative cases
 # --------------------------------------------------------------------------
 @pytest.mark.parametrize(
-    ("build", "message", "divergence", "case_id"),
+    ("build", "message", "case_id"),
     [
         pytest.param(
             _build_extra_group,
             "Error! The input file and the description in the ExcelInvoice are not consistent.",
-            frozenset(),
             "TC-I6-B-EV-024",
             id="TC-I6-B-EV-024",
         ),
         pytest.param(
             _build_blank_row,
             "Error! Blank lines exist between lines",
-            _UNPACK_DIRECTORY_GAP,
             "TC-I6-B-EV-025",
             id="TC-I6-B-EV-025",
         ),
         pytest.param(
             _build_two_workbooks,
             "ERROR: more than 1 excelinvoice file list. file num: 2",
-            _UNPACK_DIRECTORY_GAP,
             "TC-I6-B-EV-026",
             id="TC-I6-B-EV-026",
         ),
         pytest.param(
             _build_stray_workbook,
             "ERROR: input file should be EXCEL or ZIP file",
-            _UNPACK_DIRECTORY_GAP,
             "TC-I6-B-EV-027",
             id="TC-I6-B-EV-027",
         ),
@@ -396,7 +390,6 @@ def test_archive_workbook_does_not_displace_the_inputdata_one__tc_i6_b_ep_023(
 def test_rejected_shapes_match_the_v1_oracle(
     build: CaseBuilder,
     message: str,
-    divergence: frozenset[str],
     case_id: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -420,7 +413,7 @@ def test_rejected_shapes_match_the_v1_oracle(
     assert report.error["name"] == "StructuredError"
     assert _job_failed(root) == oracle["job_failed_text"]
 
-    # And: the artifacts agree, up to the one directory v1 pre-creates
+    # And: the artifacts agree exactly -- Session J0 closed the temp/ asymmetry
     assert observed["raw_sha256"] == parity_view(oracle)["raw_sha256"]
     assert observed["invoices"] == parity_view(oracle)["invoices"]
-    assert _tree_divergence(observed, oracle) == set(divergence)
+    assert _tree_divergence(observed, oracle) == set()

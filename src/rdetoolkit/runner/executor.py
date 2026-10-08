@@ -169,6 +169,7 @@ class TileExecutor:
                 status="failed",
                 error=exc.record,
                 stacktrace=traceback.format_exc(),
+                target=_legacy_failed_target(tile.paths.rawfiles, root=plan.root),
             )
         return result
 
@@ -443,14 +444,34 @@ def _with_legacy_metadata(
     rawfiles: tuple[Path, ...],
     root: Path,
 ) -> ExecutionResult:
-    """Attach compatibility inputs while they are available at the tile boundary."""
+    """Attach compatibility inputs while they are available at the tile boundary.
+
+    A failed tile names its raw files rather than their directory: v1's
+    ``workflows._create_error_status`` wrote ``",".join(rawfiles)`` as the
+    failed status's ``target``, and a v1 ``ignore_errors`` run *returns* those
+    statuses, so the shape is observable v1 contract (Session J-REVIEW ruling
+    #2, decision A). A completed tile keeps the directory form v1 reported.
+    """
     title = result.datatile_id
     if invoice is not None:
         basic = invoice.raw.get("basic")
         if isinstance(basic, dict) and isinstance(basic.get("dataName"), str):
             title = basic["dataName"]
-    target = _legacy_target(rawfiles, root=root)
+    target: str | None = (
+        _legacy_failed_target(rawfiles, root=root) if result.status == "failed" else _legacy_target(rawfiles, root=root)
+    )
     return replace(result, title=title, target=target)
+
+
+def _legacy_failed_target(rawfiles: tuple[Path, ...], *, root: Path) -> str:
+    """Return v1's failed-status target: every raw file, comma-joined."""
+    return ",".join(_root_relative(path, root=root) for path in rawfiles)
+
+
+def _root_relative(path: Path, *, root: Path) -> str:
+    with contextlib.suppress(ValueError):
+        path = path.relative_to(root)
+    return path.as_posix()
 
 
 def _legacy_target(rawfiles: tuple[Path, ...], *, root: Path) -> str | None:

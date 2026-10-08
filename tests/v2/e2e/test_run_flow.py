@@ -46,7 +46,7 @@ from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, IterationInfo, RdeConfig
-from rdetoolkit.workflows import run as v1_run
+from rdetoolkit.workflows import _run_legacy as v1_run
 
 # v1 RdeOutputResourcePath field -> on-disk directory basename, matching
 # runner/paths.py's _DIRNAMES and the golden test's _OUTPUT_FIELD_TO_DIRNAME.

@@ -19,7 +19,7 @@ BV table:
 |---|---|---|
 | one status | full single-item ``statuses`` list | invoice cell |
 | multiple statuses | order and every field preserved | other four cells |
-| null v1 error return | v2 defines one structural failed status | ten error seats |
+| null v1 error return | one failed status in v1's ``_create_error_status`` shape (J-REVIEW) | ten error seats |
 | two statuses | run UUID never leaks into either status | TC-BV-HR2-AE-001 |
 """
 
@@ -32,6 +32,16 @@ import pytest
 
 
 _EXPECTED_ROOT = Path(__file__).parent / "fixtures" / "expected" / "v1"
+
+#: The mode labels v1's ``workflows._process_mode`` puts in a failed status's
+#: title (``Structured Process Failed: <label>``), copied from the v1 code.
+_V1_FAILURE_LABELS = {
+    "invoice": "Invoice",
+    "excelinvoice": "Excelinvoice",
+    "multidatatile": "MultiDataTile",
+    "smarttable": "SmartTableInvoice",
+    "rdeformat": "rdeformat",
+}
 
 
 def _iteration_titles(observed: dict[str, Any]) -> list[str]:
@@ -202,7 +212,14 @@ def test_to_legacy_statuses_matches_frozen_v1_error_payload(
     assert len(actual_statuses) == len(report.iterations)
     assert set(actual_statuses[0]) == set(reference_status)
     assert actual_statuses[0]["error_code"] == error["code"]
-    assert actual_statuses[0]["error_message"] == error["message"]
+    # UPDATED Session J-REVIEW ruling #2 (decision A): a failed entry is no
+    # longer a v2-defined shape. v1 returns failed statuses from an
+    # ``ignore_errors`` run, and the live ``_run_legacy`` oracle
+    # (TC-JREV-P2-001/008) shows v1's ``_create_error_status`` shape: the
+    # ``Error: `` message prefix and the mode-labelled title.
+    assert actual_statuses[0]["error_message"] == f"Error: {error['message']}"
+    assert actual_statuses[0]["title"] == f"Structured Process Failed: {_V1_FAILURE_LABELS[mode]}"
+    assert actual_statuses[0]["status"] == "failed"
     assert actual_statuses[0]["run_id"] == "0000"
     assert actual_statuses[0]["run_id"] != report.run_id
 
