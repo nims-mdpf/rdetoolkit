@@ -109,7 +109,7 @@ class SmartTableEarlyExitProcessor(Processor):
     def _update_invoice_data_name(self, context: ProcessingContext, file_path: Path) -> None:
         """Update the dataName in invoice.json with the SmartTable file name.
 
-        Since v1.7.0 the original SmartTable file tile is registered as
+        Since v1.7.1 the original SmartTable file tile is registered as
         divided/0001, whose invoice/ directory starts empty, so the tile's
         invoice.json must be seeded before the dataName update.
 
