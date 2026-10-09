@@ -60,7 +60,7 @@ This row is read and automatically mapped to `invoice.json` and metadata. The ma
 - `sample/<key in invoice.json>`: mapped to the `sample` section of `invoice.json`.
 - `sample/generalAttributes.<termId>`: mapped to the `value` of the matching `termId` in the `generalAttributes` array.
 - `sample/specificAttributes.<classId>.<termId>`: mapped to the `value` of the matching `classId` and `termId` in the `specificAttributes` array.
-- `meta/<metadata-def key>`: written to the `constant` section of `metadata.json` according to `metadata-def.json` (values are cast using `schema.type`, and `unit` is copied when provided). Entries marked with `variable` are not supported at this time. If `metadata-def.json` is absent, the meta columns are skipped as before.
+- `meta/<metadata-def key>`: written to the `constant` section of `metadata.json` according to `metadata-def.json` (values are cast using `schema.type`, and `unit` is copied when provided). Entries marked with `variable` are not supported at this time. Specifying at least one `meta/` column requires the `tasksupport/metadata-def.json` file to be present. If the file itself is absent, or the specified key is not defined in it, a `StructuredError` is raised.
 - `inputdataX`: specifies a file path inside the ZIP file (X = 1, 2, 3, …).
 
 > Currently, table data is automatically expanded into `invoice.json` and `metadata.json` (for `meta/` columns). Other data is exposed so it can be used by the structured processing.
@@ -131,7 +131,9 @@ data/
 
 ## Retrieving a Single Row of Table Data in Structuring Processing
 
-If you define the structured processing as shown below, you can obtain the CSV path from `RdeOutputResourcePath.rawfiles`. In the example directory structure above, this would be `temp/fsmarttable_experiment_0001.csv`, etc.
+`RdeOutputResourcePath.rawfiles` contains **only the user's data files** for the current row (e.g. `file1.txt`, `file2.txt`); it never includes the generated row CSV (`fsmarttable_*.csv`). This means structured processing programs written for Invoice mode (which iterate over `rawfiles` by extension, count, or `rawfiles[0]`) can be reused for SmartTableInvoice mode without modification.
+
+To obtain the path of the generated row CSV itself, use `RdeOutputResourcePath.smarttable_rawfile` (`Path | None`; it is `None` outside SmartTableInvoice mode). In the example directory structure above, this would be `temp/fsmarttable_experiment_0001.csv`, etc.
 
 ```python
 def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
@@ -150,8 +152,19 @@ def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourceP
     Note:
         The actual function names and processing details may vary depending on the project.
     """
+    # resource_paths.rawfiles contains only the user's data files
+    # (e.g. file1.txt, file2.txt), never the generated row CSV.
+    row_csv = resource_paths.smarttable_rawfile  # e.g. temp/fsmarttable_experiment_0001.csv
     ...
 ```
+
+!!! note "Breaking change in v1.7.0"
+    Prior to v1.7.0, the generated row CSV was included as the first element of
+    `RdeOutputResourcePath.rawfiles`, and the accessor was named
+    `smarttable_rowfile`. As of v1.7.0, `rawfiles` no longer contains the row
+    CSV, and the accessor has been renamed to `smarttable_rawfile`. The old
+    `smarttable_rowfile` name is still available as a deprecated alias and
+    emits a `DeprecationWarning`; it is scheduled for removal in v2.0.
 
 ## Registering the Table Data File with RDE
 
@@ -161,6 +174,14 @@ By default, the table data used by SmartTableInvoice mode is --not-- registered 
 smarttable:
     save_table_file: true
 ```
+
+!!! note "Breaking change in v1.7.0"
+    When `save_table_file: true` is set, the original table data file is now
+    registered as **`divided/0001`** (the first tile) instead of the `data/`
+    root directory (the last tile). Data rows are shifted accordingly, so they
+    now occupy `divided/0002` onward, while the last data row is registered at
+    the `data/` root. Row ordering among the data rows themselves is
+    unchanged.
 
 ## Automatic Sample Field Clearing Rule (New Sample Registration)
 

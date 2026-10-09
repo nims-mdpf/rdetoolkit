@@ -176,7 +176,7 @@ class SmartTableInvoiceInitializer(Processor):
             raise ValueError(error_msg)
 
         try:
-            csv_file = context.smarttable_rowfile
+            csv_file = context.smarttable_rawfile
             if csv_file is None:
                 error_msg = "No SmartTable row CSV file found"
                 raise StructuredError(error_msg)
@@ -602,12 +602,6 @@ class SmartTableInvoiceInitializer(Processor):
         Returns the loaded metadata_def if it was lazily loaded, otherwise None.
         """
         if col.startswith("meta/"):
-            if not context.metadata_def_path.exists():
-                logger.debug(
-                    "Skipping meta column %s because metadata-def.json is missing",
-                    col,
-                )
-                return metadata_def
             if metadata_def is None:
                 metadata_def = self._load_metadata_definition(context.metadata_def_path)
             meta_key, meta_entry = self._process_meta_mapping(col, value, metadata_def)

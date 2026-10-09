@@ -104,7 +104,7 @@ def _build_resource_paths(
         invoice=invoice_dir,
         invoice_schema_json=schema_path,
         invoice_org=invoice_org,
-        smarttable_rowfile=rowfile,
+        smarttable_rawfile=rowfile,
         temp=base_dir / "temp",
         invoice_patch=base_dir / "invoice_patch",
         attachment=base_dir / "attachment",

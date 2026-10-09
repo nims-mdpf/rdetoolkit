@@ -109,11 +109,17 @@ class SmartTableEarlyExitProcessor(Processor):
     def _update_invoice_data_name(self, context: ProcessingContext, file_path: Path) -> None:
         """Update the dataName in invoice.json with the SmartTable file name.
 
+        Since v1.7.0 the original SmartTable file tile is registered as
+        divided/0001, whose invoice/ directory starts empty, so the tile's
+        invoice.json must be seeded before the dataName update.
+
         Args:
             context: Processing context
             file_path: Path to the SmartTable file
         """
         invoice_path = context.invoice_dst_filepath
+        if not invoice_path.exists():
+            self._seed_tile_invoice(context, invoice_path)
         invoice_data = readf_json(str(invoice_path))
 
         invoice_data['basic']['dataName'] = file_path.name
@@ -121,6 +127,22 @@ class SmartTableEarlyExitProcessor(Processor):
         writef_json(str(invoice_path), invoice_data)
 
         logger.debug(f"invoice.json updated with dataName: {file_path.name}")
+
+    def _seed_tile_invoice(self, context: ProcessingContext, invoice_path: Path) -> None:
+        """Create the tile's invoice.json when it does not exist yet.
+
+        Called for the original SmartTable file tile (divided/0001), which has no
+        row CSV and therefore never passes through SmartTableInvoiceInitializer.
+        The seeded invoice must satisfy invoice.schema.json because
+        _validate_files() runs right after the dataName update.
+
+        Args:
+            context: Processing context
+            invoice_path: Destination path of the tile's invoice.json (does not exist yet)
+        """
+        invoice_org_path = context.resource_paths.invoice_org
+        self._copy_file(invoice_org_path, invoice_path)
+        logger.info(f"Seeded tile invoice.json from original invoice: {invoice_path}")
 
     def _should_save_table_file(self, context: ProcessingContext) -> bool:
         """Check if save_table_file is enabled in the configuration.

@@ -48,7 +48,7 @@ class TestSmartTableRowClearing:
         # Given: invoice_org already contains previous row content
         invoice_org = context.resource_paths.invoice_org
         _write_invoice(invoice_org, description="old-desc", composition="old-comp", sample_description="old-sample-desc")
-        csv_path = context.smarttable_rowfile
+        csv_path = context.smarttable_rawfile
         assert csv_path is not None
         pd.DataFrame(
             {
@@ -79,7 +79,7 @@ class TestSmartTableRowClearing:
         # Given: invoice_org has stale values while SmartTable provides replacements
         invoice_org = context.resource_paths.invoice_org
         _write_invoice(invoice_org, description="stale-desc", composition="stale-comp", sample_description="stale-sample-desc")
-        csv_path = context.smarttable_rowfile
+        csv_path = context.smarttable_rawfile
         assert csv_path is not None
         pd.DataFrame(
             {
@@ -112,7 +112,7 @@ class TestSmartTableRowClearing:
         # Given: invoice_org contains earlier row data and SmartTable sends empty strings
         invoice_org = context.resource_paths.invoice_org
         _write_invoice(invoice_org, description="carryover-desc", composition="carryover-comp", sample_description="carryover-sample")
-        csv_path = context.smarttable_rowfile
+        csv_path = context.smarttable_rawfile
         assert csv_path is not None
         pd.DataFrame(
             {

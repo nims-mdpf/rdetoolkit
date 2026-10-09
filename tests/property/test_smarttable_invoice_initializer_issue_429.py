@@ -121,7 +121,7 @@ def _build_context(
         invoice=invoice_org.parent,
         invoice_schema_json=schema_path,
         invoice_org=invoice_org,
-        smarttable_rowfile=rowfile,
+        smarttable_rawfile=rowfile,
         temp=tmp_path / "temp",
         invoice_patch=tmp_path / "invoice_patch",
         attachment=tmp_path / "attachment",

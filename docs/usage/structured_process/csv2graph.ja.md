@@ -160,6 +160,30 @@ csv2graph(
 )
 ```
 
+## 目盛りラベルの表記形式
+
+プロットする値が桁数の大きく異なる範囲にまたがると、matplotlibのデフォルト目盛りは軸の上端付近に小さなオフセット表記（例: `x10^-5`）を表示することがあり、見た目上誤解を招く場合があります。csv2graphでは、明示的に設定されていない軸に対して、読みやすい目盛りフォーマット（主目盛りを最大6本に制限し、オフセット表記のフォントサイズを目盛りラベルと揃える）を自動的に適用します。
+
+より細かく制御したい場合は`x_tick_format` / `y_tick_format`を指定します。
+
+- `auto`（デフォルト）: 値が10のべき乗で`-3`〜`4`の範囲を超えた場合のみ、自動的に`x10^n`表記に切り替えます。
+- `plain`: 常にプレーン表記（非科学的記数法）の数値を表示します。
+- `sci`: 常に科学的記数法（`x10^n`）で表示します。
+- `eng`: SI接頭辞のようなサフィックスを付けた工学表記（例: `3.6 M`）で表示します。
+
+```python
+csv2graph(
+    "data.csv",
+    y_tick_format="eng",
+)
+```
+
+```bash
+rdetoolkit csv2graph data.csv --y-tick-format eng
+```
+
+軸の`label`にすでに単位が含まれている場合（例: `Voltage (V)`）は、二重に合成されず指定通りに表示されます。CSVヘッダから軸ラベルや単位がどのように導出されるかについては、後述の「ヘッダ名の自動変換」セクションを参照してください。
+
 ## ヘッダ名の自動変換
 
 CSVヘッダがsnake_case形式の場合、軸ラベルや凡例では自動的にTitle Caseに変換されます。
@@ -245,6 +269,69 @@ csv2graph(
 ```
 
 凡例項目数が`max_legend_items`を超えると、凡例は自動的に非表示になります。
+
+#### 凡例配置ポリシー
+
+複数系列をオーバーレイ表示すると、凡例がプロット領域と重なることがあります。
+`legend_policy` で凡例の配置を制御できます。
+
+| policy           | 動作                                                                     |
+| ---------------- | ------------------------------------------------------------------------ |
+| `legacy`（デフォルト） | `legend_loc` と `max_legend_items` による既存動作を維持する              |
+| `auto`           | 凡例項目数に応じて配置を自動的に選択する                                   |
+| `inside`         | `legend_loc` を用いてプロット領域内に表示する                              |
+| `outside_right`  | プロット領域の外側・右側に配置する                                        |
+| `outside_bottom` | プロット領域の外側・下側に配置する                                        |
+| `hide`           | 凡例を表示しない                                                          |
+
+`auto` は項目数に応じて次のように配置を切り替えます。
+
+| 条件（デフォルト値の場合） | 配置 |
+| -------------------------- | ---- |
+| 1〜8項目（`legend_outside_threshold` 以下） | `inside` |
+| 9〜20項目 | `outside_right` |
+| 21項目以上（`legend_bottom_threshold` 以上） | `outside_bottom` |
+| `max_legend_items` 超過 | `hide` |
+
+```python
+# 系列数が多い場合に凡例を自動でプロット外へ配置
+csv2graph(
+    "data.csv",
+    legend_policy="auto",
+    legend_outside_threshold=8,   # 8項目を超えると右外側配置に切り替え
+    legend_bottom_threshold=21,   # 21項目以上で下側配置に切り替え（Noneで無効化）
+    max_legend_items=30,
+)
+
+# 凡例を強制的にプロット右外側に配置
+csv2graph(
+    "data.csv",
+    legend_policy="outside_right",
+)
+
+# 凡例を強制的にグラフ下側に3列で配置
+csv2graph(
+    "data.csv",
+    legend_policy="outside_bottom",
+    legend_ncol=3,
+)
+
+# 30項目程度の凡例を10列（約3段）でグラフ下側に配置
+csv2graph(
+    "data.csv",
+    legend_policy="outside_bottom",
+    legend_ncol=10,
+)
+```
+
+`outside_right` / `outside_bottom` では、プロット領域を縮小して凡例スペースを作るのではなく、
+凡例のサイズに応じてFigure（キャンバス）側を拡張します。系列数が多くてもグラフ本体の描画サイズは維持されます。
+
+`legend_policy` は Plotly HTML 出力（`--html`）にも反映されます。`hide` は凡例を非表示にし、`inside` / `outside_right` / `outside_bottom` は対応する Plotly の凡例位置にマッピングされます（`legacy` は従来どおり Plotly のデフォルト位置に表示）。
+
+`legend_policy` に未対応の値を渡すと `ValueError` が送出されます。
+
+`legend_policy` のデフォルトは `"legacy"` のため、明示的に指定しない限り既存コードの動作に影響はない。
 
 ## Python実行例
 
@@ -519,6 +606,20 @@ python -m rdetoolkit.graph.api.csv2graph multi_series_data.csv \
     --output_dir plots \
     --max_legend_items 10 \
     --legend_loc "upper right"
+
+# 系列数が多い場合に凡例を自動でプロット外へ配置
+python -m rdetoolkit.graph.api.csv2graph multi_series_data.csv \
+    --output_dir plots \
+    --legend-policy auto \
+    --legend-outside-threshold 8 \
+    --legend-bottom-threshold 21 \
+    --max-legend-items 30
+
+# 凡例を強制的にグラフ下側に3列で配置
+python -m rdetoolkit.graph.api.csv2graph multi_series_data.csv \
+    --output_dir plots \
+    --legend-policy outside_bottom \
+    --legend-ncol 3
 
 # 個別プロットをスキップ
 python -m rdetoolkit.graph.api.csv2graph data.csv \

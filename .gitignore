@@ -197,7 +197,7 @@ launch.json
 claudedocs
 
 # Repo tooling scripts — the [Ss]cripts rule above targets Windows venv dirs,
-# not the repository scripts/ directory (gen_error_docs.py must be tracked).
+# not the repository scripts/ directory (gen_error_docs.py / check_version_consistency.py must be tracked).
 !/scripts/
 
 # B6 guard: the Rust extension is rdetoolkit._core — a stale core.cpython-*.so

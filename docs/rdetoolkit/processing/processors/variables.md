@@ -471,9 +471,13 @@ except Exception as e:
    ```python
    logger.debug("Starting magic variable processing")
    try:
+       # smarttable_rawfile is None outside SmartTable mode (and for the
+       # original-file tile when save_table_file=true); fall back to the
+       # first raw file in that case.
+       rawfile_path = context.smarttable_rawfile or context.resource_paths.rawfiles[0]
        result = apply_magic_variable(
            context.invoice_dst_filepath,
-           context.smarttable_rowfile or context.resource_paths.rawfiles[0],
+           rawfile_path,
            save_filepath=context.invoice_dst_filepath
        )
        if result:

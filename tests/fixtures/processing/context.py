@@ -312,9 +312,9 @@ def smarttable_processing_context(mock_datasets_function) -> Generator[Processin
             logs=base_path / "logs",
             invoice=base_path / "invoice",
             invoice_schema_json=base_path / "tasksupport" / "invoice.schema.json",
-            rawfiles=(csv_path,),  # SmartTable CSV file
+            rawfiles=(),  # Row CSV is no longer part of rawfiles (see smarttable_rawfile)
             invoice_org=base_path / "invoice" / "invoice.json",
-            smarttable_rowfile=csv_path,
+            smarttable_rawfile=csv_path,
         )
 
         # Create necessary directories

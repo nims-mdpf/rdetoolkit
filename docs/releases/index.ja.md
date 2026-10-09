@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.7.0     | unreleased | **破壊的変更**: SmartTableの行CSVを`rawfiles`から除外 / `smarttable_rowfile`を`smarttable_rawfile`に改名 / `save_table_file: true`時の元ファイル登録先を`divided/0001`に変更 / SmartTableの`meta/`列に`metadata-def.json`を必須化 / csv2graphに凡例配置ポリシーと軸目盛りフォーマットを追加 | [v1.7.0](#v170-unreleased) |
 | v1.6.4     | 2026-06-03 | SmartTableデータ登録順序をテーブル行順に修正 / CLIからclick直接依存を除去 | [v1.6.4](#v164-2026-06-03) |
 | v1.6.3     | 2026-04-13 | SmartTable新規試料登録時の`sampleId`を空文字ではなく`None`に修正 / サムネイルコピーで大文字画像拡張子をサポート | [v1.6.3](#v163-2026-04-13) |
 | v1.6.2     | 2026-03-16 | SmartTableで`sample/names`指定時にダミー試料の`sampleId`が黙って継承される問題を修正 / SmartTableのファイル参照がzip内に存在しない場合のエラーメッセージ改善 | [v1.6.2](#v162-2026-03-16) |
@@ -24,6 +25,255 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.7.0 (unreleased)
+
+!!! warning "破壊的変更"
+    SmartTableInvoiceモードにおいて、`paths.rawfiles`に自動生成される行CSVが
+    含まれなくなり、`smarttable_rowfile`アクセサは`smarttable_rawfile`に
+    改名されました。`smarttable.save_table_file: true`利用時の元テーブル
+    ファイルの登録位置も変更されます。
+
+!!! info "参照"
+    - 主な課題: [#503](https://github.com/nims-mdpf/rdetoolkit/issues/503), [#497](https://github.com/nims-mdpf/rdetoolkit/issues/497), [#496](https://github.com/nims-mdpf/rdetoolkit/issues/496), [#483](https://github.com/nims-mdpf/rdetoolkit/issues/483), [#491](https://github.com/nims-mdpf/rdetoolkit/issues/491)
+    - プルリクエスト: [#507](https://github.com/nims-mdpf/rdetoolkit/pull/507), [#499](https://github.com/nims-mdpf/rdetoolkit/pull/499), [#505](https://github.com/nims-mdpf/rdetoolkit/pull/505), [#506](https://github.com/nims-mdpf/rdetoolkit/pull/506), [#498](https://github.com/nims-mdpf/rdetoolkit/pull/498)
+
+#### ハイライト
+- SmartTableInvoiceモードの`paths.rawfiles`には、その行に紐づく
+  ユーザーのデータファイルのみが含まれるようになり、自動生成される
+  行CSV（`fsmarttable_*.csv`）は含まれなくなった。これにより
+  Invoiceモード向けの構造化処理プログラムを改修なしにSmartTableモードで
+  流用できる
+- `smarttable_rowfile`を`smarttable_rawfile`に改名（誤記修正）。
+  `rawfiles[0]`フォールバックヒューリスティックは削除
+- `smarttable.save_table_file: true`利用時、元テーブルファイルの登録先が
+  `data/`ルート（最後）から`divided/0001`（最初）に変更
+- `rdetoolkit gen-config smarttable`が生成するテンプレートの
+  `save_table_file`のデフォルトを`false`に変更
+- SmartTableの`meta/<key>`列を使う際、`tasksupport/metadata-def.json`が
+  存在しない場合はサイレントにスキップせず`StructuredError`を送出するよう変更
+- `csv2graph()`に`legend_policy`オプションを追加し、プロット領域を
+  縮小せずに凡例配置（`auto` / `inside` / `outside_right` /
+  `outside_bottom` / `hide`）を柔軟に指定可能に
+- `csv2graph()`に`tick_format`オプションを追加し、大きい値・小さい値の
+  範囲でも読みやすい軸目盛りラベルを表示可能に
+
+### 破壊的変更
+
+#### SmartTableの行CSVを`rawfiles`から除外 (Issue #503)
+
+**問題**: 自動生成される行CSV（`fsmarttable_*.csv`）が`paths.rawfiles`の
+要素として紛れ込んでいたため、Invoiceモード向けに書かれた構造化処理
+プログラム（拡張子・件数・`rawfiles[0]`を前提に`rawfiles`を走査するもの）を
+SmartTableモードにそのまま流用できませんでした。
+
+**修正内容**:
+
+- `SmartTableChecker.parse()`が行CSVを`rawfiles`に混入させないよう修正。
+  `paths.rawfiles`はすべてのモードでユーザーのデータファイルのみを
+  含むようになった
+- 行CSV自体を取得したい場合は、新しい`paths.smarttable_rawfile`
+  アクセサ（`Path | None`）を使用する
+- 行CSVは`system.save_raw` / `save_nonshared_raw`の設定に関わらず、
+  `raw` / `nonshared_raw`にコピーされなくなった
+
+#### `smarttable_rowfile`を`smarttable_rawfile`に改名 (Issue #503)
+
+**問題**: アクセサ名`smarttable_rowfile`には誤記があり、また
+（行CSVが未設定の場合に`rawfiles[0]`を使う）フォールバック
+ヒューリスティックは、上記の変更により前提が崩れていました。
+
+**修正内容**:
+
+- `RdeOutputResourcePath.smarttable_rowfile`・
+  `RdeDatasetPaths.smarttable_rowfile`・
+  `ProcessingContext.smarttable_rowfile`を`smarttable_rawfile`に改名
+- 旧名`smarttable_rowfile`は、3クラスすべてで`DeprecationWarning`を
+  発する非推奨エイリアス（getter/setter）として引き続き利用可能
+  （v2.0で削除予定）
+- `rawfiles[0]`フォールバックヒューリスティックは完全に削除され、
+  アクセサは実際の行CSVパス（または`None`）のみを反映するようになった
+
+#### `save_table_file: true`時、元ファイルが`divided/0001`に登録される (Issue #503)
+
+**問題**: `smarttable.save_table_file: true`を設定した場合、元の
+SmartTableファイルは`data/`ルート（最後）に登録され、データ行が
+`divided/0001`以降を占めていました。
+
+**修正内容**:
+
+- 元のSmartTableファイルは`divided/0001`（最初）に登録されるように変更
+- データ行は`divided/0002`以降にずれ、最後のデータ行が`data/`ルートに
+  登録される。データ行同士の順序自体は変わらない
+- `save_table_file: false`（デフォルト）時の挙動は変更なし: 最後の
+  データ行が`data/`ルートに、それ以前の行が`divided/0001+`に登録される
+
+#### SmartTableの`meta/`列に`metadata-def.json`を必須化 (Issue #496)
+
+**問題**: SmartTableInvoiceモードで`meta/<key>`列を指定した際、
+`tasksupport/metadata-def.json`が存在しない場合に`metadata.json`への
+書き込みがサイレントにスキップされており、テンプレート作成者が
+ファイル配置を忘れていることに気づけませんでした。
+
+**修正内容**:
+
+- `meta/<key>`列を使用する際に`tasksupport/metadata-def.json`が
+  存在しない場合、既存の「metadata-def.jsonにキー未定義」エラーと
+  整合する形で`StructuredError`を送出するよう変更
+- `meta/`列を使用しないテンプレートには影響なし
+
+### 追加
+
+#### csv2graphの凡例配置ポリシー (Issue #497)
+
+**問題**: `csv2graph()`には凡例の配置を制御する手段がなく、系列数が
+多い場合`tight_layout`がプロット領域を縮小していました（例:
+30系列のプロットでouter-right凡例を使うと、軸領域が8.85×8インチ中
+5.05×0.91インチまで圧縮）。
+
+**修正内容**:
+
+- `csv2graph()`・`plot_from_dataframe()`・`Csv2GraphCommand`・CLIに
+  `legend_policy`（`legacy` / `auto` / `inside` / `outside_right` /
+  `outside_bottom` / `hide`）・`legend_outside_threshold`・
+  `legend_bottom_threshold`・`legend_ncol`オプションを追加
+  （`--legend-policy`・`--legend-outside-threshold`・
+  `--legend-bottom-threshold`・`--legend-ncol`）
+- `auto`は凡例項目数に応じて配置を自動解決: `legend_outside_threshold`
+  （デフォルト8）以下は`inside`、それを超えると`outside_right`、
+  `legend_bottom_threshold`（デフォルト21、`None`で無効化）以上は
+  `outside_bottom`、`max_legend_items`を超えると凡例を非表示
+- 外側配置の凡例はプロット領域を縮小しなくなった: レンダラーが軸の
+  ジオメトリを確定し、凡例のはみ出し量を計測してから、その分だけ
+  図のキャンバスを拡大する（`tight_layout`による軸圧縮は行わない）
+- Plotly HTML出力も、両レンダラーで共有される
+  `rdetoolkit.graph.legend_policy`モジュールを通じて`legend_policy`に
+  対応
+- 不正な`legend_policy`値は、Python API・ビルダー・CLIのいずれの経路でも
+  実行時に`ValueError`を送出するよう変更
+
+#### csv2graphの軸目盛りラベルフォーマット (Issue #483)
+
+**問題**: MatplotlibのPNG出力では、非常に大きい・小さい軸の値が
+`1e-5`のような窮屈な目盛りラベルで表示され、すでに指数オフセット
+表記を使用していたPlotly HTML出力と見た目が揃っていませんでした。
+
+**修正内容**:
+
+- 線形軸向けに`ScalarFormatter`（`set_powerlimits((-3, 4))`）と
+  `MaxNLocator(nbins=6)`を用いた`_apply_linear_axis_formatting()`を追加。
+  範囲外の値はmathtextの`×10ⁿ`オフセット表記で表示し、通常範囲の値
+  （例: 0〜100）は従来通り
+- `AxisConfig`に`tick_format: Literal["auto", "plain", "sci", "eng"] =
+  "auto"`と`scilimits: tuple[int, int] = (-3, 4)`を追加。`plain`は
+  従来表記への退避手段、`sci`は常に指数オフセット表記、`eng`は
+  工学表記（例: `3.6 M`）
+- `csv2graph()`・`plot_from_dataframe()`・CLI
+  （`--x-tick-format` / `--y-tick-format`、不正値はエラー）に
+  `x_tick_format` / `y_tick_format`を追加
+- 軸ラベルに単位が含まれていない場合、`AxisConfig.unit`から
+  `f"{label} ({unit})"`の形で自動的に単位を付与するよう変更
+
+### 変更
+
+- `rdetoolkit gen-config smarttable`が生成するテンプレートの
+  `save_table_file`のデフォルトを`false`に変更し、Pydanticモデルの
+  既定値・対話モードの既定値と整合させた（非破壊的変更: 新規生成する
+  設定ファイルにのみ影響）
+
+### 修正
+
+#### csv2graphのPlotly凡例項目カウント修正 (Issue #483)
+
+**問題**: Plotlyレンダラーが凡例項目数を誤ってカウントしており、
+設定した`legend_policy`の閾値と一致しない形で凡例が表示・非表示に
+なることがありました。
+
+**修正内容**:
+
+- `plotly_renderer.py`の凡例項目カウントを修正し、解決された
+  `legend_policy`と凡例の表示・非表示が一致するよう修正
+
+#### マジック変数ドキュメントの例を修正 (Issue #491)
+
+**問題**: マジック変数ドキュメントの`${filename}`の例が誤っており、
+自動補完される対象に関する日本語の説明もわかりにくいものでした。
+
+**修正内容**:
+
+- `magic_variable.en.md`・`magic_variable.ja.md`の`${filename}`の例を修正
+- 自動補完される対象の説明を「データセット名」から「データ名」に修正し、
+  拡張モードではデータタイル名になる旨を明記
+
+#### `save_table_file: true`時に`divided/0001`タイルの`invoice.json`が存在しない問題 (Issue #503)
+
+**問題**: `smarttable.save_table_file: true`を設定した場合、（上記の変更で
+移動先となった）`divided/0001`タイル（元のSmartTableファイル）には
+`SmartTableInvoiceInitializer`を一度も通らないため`invoice.json`が
+存在せず、`SmartTableEarlyExitProcessor`が存在しないファイルの
+`dataName`を更新しようとして`FileNotFoundError`が発生し、
+ワークフロー全体が中断していました。
+
+**修正内容**:
+
+- `SmartTableEarlyExitProcessor._seed_tile_invoice()`が、
+  `_update_invoice_data_name()`で`dataName`を元ファイル名に更新する前に、
+  `invoice_org`からタイルの`invoice.json`をシードするよう修正
+
+### 移行ガイド
+
+`rawfiles`から行CSVを走査していた、または`rawfiles[0]`に依存していた
+SmartTableモード向けテンプレートは、`paths.smarttable_rawfile`への
+書き換えが必要です。
+
+```python
+# Before (v1.6.x): rawfilesを走査して行CSVを取得
+def custom_module(srcpaths, resource_paths):
+    csv_file = next(f for f in resource_paths.rawfiles if f.name.startswith("fsmarttable_"))
+    ...
+
+# After (v1.7.0+): 専用アクセサを使用
+def custom_module(srcpaths, resource_paths):
+    csv_file = resource_paths.smarttable_rawfile
+    ...
+```
+
+`smarttable.save_table_file: true`を利用している場合は、元テーブル
+ファイルのタイル番号を前提としたロジックがないか確認してください
+（従来の`data/`ルート・最後に登録 → `divided/0001`・最初に登録に変更、
+データ行は`divided/0002`以降にずれます）。Invoiceモード・
+Excelインボイスモード向けのテンプレートは、本リリースの変更による
+影響を受けません。
+
+### テスト
+
+- `tests/test_smarttable_workflow_integration.py`（新規）:
+  無改修のInvoiceモード向け`custom_dataset_function`をSmartTableモードで
+  実行するエンドツーエンドテスト。登録順序、`rawfiles`から行CSVが
+  除外されていること、行CSVが`raw` / `nonshared_raw`にコピーされない
+  ことを検証
+- `tests/test_smarttable_rawfile_deprecation.py`（新規）:
+  `smarttable_rowfile`非推奨エイリアスと`rawfiles[0]`フォールバック
+  削除の回帰テスト
+- `tests/test_smarttable_checker.py`・`tests/test_generate_folder_paths_iterator.py`・
+  `tests/test_smarttable_file_copier.py`および関連するprocessor/context
+  テストを、新しい`rawfiles` / `smarttable_rawfile`構造に合わせて更新
+- `tests/test_invoice_metadata.py`・`tests/test_invoice.py`・
+  `tests/test_invoice_smarttable.py`を`metadata-def.json`必須化の挙動に
+  合わせて更新
+- `tests/graph/test_renderer_linear_formatting.py`・
+  `tests/graph/test_models.py`・`tests/graph/test_renderer_tick_format.py`・
+  `tests/graph/test_csv2graph_helpers.py`・`tests/test_cli.py`・
+  `tests/test_csv2graph_unit.py`: 目盛りフォーマットの値範囲、
+  フォーマッタ種別の選択、オフセットのフォントサイズ、目盛り数の上限、
+  従来表記の回帰、単位の合成、APIの伝播、CLIバリデーションを検証
+- `tests/graph/test_matplotlib_renderer.py`・
+  `tests/graph/test_graph_legend_policy.py`（プロパティベース）・
+  `tests/graph/test_config.py`・`tests/graph/test_renderers.py`・
+  `tests/test_cli.py`: 凡例配置ポリシーの境界値解決、プロット領域の維持、
+  `legend_ncol`、Plotly側の凡例挙動、CLIバリデーションを検証
+
+---
 
 ## v1.6.4 (2026-06-03)
 

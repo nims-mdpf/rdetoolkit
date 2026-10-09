@@ -167,7 +167,7 @@ def test_dataset_callback_receives_smarttable_row_data_new_signature(
         invoice=setup["invoice_dir"],
         invoice_schema_json=setup["schema_path"],
         invoice_org=setup["invoice_org_path"],
-        smarttable_rowfile=setup["csv_file"],
+        smarttable_rawfile=setup["csv_file"],
     )
 
     # Setup callback
@@ -242,7 +242,7 @@ def test_dataset_callback_receives_smarttable_row_data_legacy_signature(
         invoice=setup["invoice_dir"],
         invoice_schema_json=setup["schema_path"],
         invoice_org=setup["invoice_org_path"],
-        smarttable_rowfile=setup["csv_file"],
+        smarttable_rawfile=setup["csv_file"],
     )
 
     # Setup callback with legacy signature
@@ -292,7 +292,7 @@ def test_callback_without_smarttable_mode(tmp_path: Path) -> None:
         invoice=tmp_path / "invoice",
         invoice_schema_json=tmp_path / "schema.json",
         invoice_org=tmp_path / "invoice_org",
-        smarttable_rowfile=None,  # Not SmartTable mode
+        smarttable_rawfile=None,  # Not SmartTable mode
         smarttable_row_data=None,
     )
 
@@ -343,7 +343,7 @@ def test_issue_207_expected_api_pattern(smarttable_test_setup: dict[str, Any]) -
         invoice=setup["invoice_dir"],
         invoice_schema_json=setup["schema_path"],
         invoice_org=setup["invoice_org_path"],
-        smarttable_rowfile=setup["csv_file"],
+        smarttable_rawfile=setup["csv_file"],
     )
 
     # AFTER pattern (new improved API from Issue #207)
@@ -429,7 +429,7 @@ def test_smarttable_row_data_empty_csv(tmp_path: Path) -> None:
         invoice=invoice_dir,
         invoice_schema_json=schema_path,
         invoice_org=invoice_org_path,
-        smarttable_rowfile=csv_file,
+        smarttable_rawfile=csv_file,
     )
 
     helper = CallbackTestHelper()

@@ -85,13 +85,10 @@ class RDEFormatFileCopier(Processor):
 
 
 class SmartTableFileCopier(Processor):
-    """Copies raw files for SmartTable mode, excluding generated CSV files."""
-
-    def __init__(self) -> None:
-        self.smarttable_suffix_length = 4
+    """Copies raw files for SmartTable mode, filtering the original SmartTable file."""
 
     def process(self, context: ProcessingContext) -> None:
-        """Copy files based on configuration settings, excluding SmartTable CSV files.
+        """Copy files based on configuration settings.
 
         This method handles file copying operations according to the system configuration.
         It processes raw file copying and non-shared raw file copying based on the
@@ -105,7 +102,10 @@ class SmartTableFileCopier(Processor):
             None
 
         Note:
-            SmartTable CSV files are excluded from the copying process.
+            The original SmartTable file is excluded from the copying process when
+            ``smarttable.save_table_file`` is False. SmartTable-generated row CSV files
+            are never present in ``rawfiles`` to begin with, so no additional filtering
+            for them is required here.
         """
         if context.srcpaths.config.system.save_raw:
             self._copy_to_raw(context)
@@ -114,40 +114,14 @@ class SmartTableFileCopier(Processor):
             self._copy_to_nonshared_raw(context)
 
     def _copy_to_raw(self, context: ProcessingContext) -> None:
-        """Copy files to raw directory, excluding SmartTable generated CSVs."""
-        filtered_files = self._filter_smarttable_csvs(context.resource_paths.rawfiles)
-        filtered_files = self._filter_smarttable_original_file(context, filtered_files)
+        """Copy files to raw directory, excluding the SmartTable original file when disabled."""
+        filtered_files = self._filter_smarttable_original_file(context, context.resource_paths.rawfiles)
         self._copy_files(context.resource_paths.raw, filtered_files)
 
     def _copy_to_nonshared_raw(self, context: ProcessingContext) -> None:
-        """Copy files to nonshared_raw directory, excluding SmartTable generated CSVs."""
-        filtered_files = self._filter_smarttable_csvs(context.resource_paths.rawfiles)
-        filtered_files = self._filter_smarttable_original_file(context, filtered_files)
+        """Copy files to nonshared_raw directory, excluding the SmartTable original file when disabled."""
+        filtered_files = self._filter_smarttable_original_file(context, context.resource_paths.rawfiles)
         self._copy_files(context.resource_paths.nonshared_raw, filtered_files)
-
-    def _filter_smarttable_csvs(self, source_files: tuple[Path, ...]) -> tuple[Path, ...]:
-        """Filter out SmartTable generated CSV files from the copy list.
-
-        SmartTable generated CSV files have specific naming patterns:
-        - Start with 'f' followed by original smarttable filename
-        - Located in temp directory
-        - Have .csv extension
-
-        Args:
-            source_files: Original list of files to copy
-
-        Returns:
-            Filtered list of files excluding SmartTable generated CSVs
-        """
-        filtered = []
-        for file_path in source_files:
-            # Check if this is a SmartTable generated CSV file
-            if self._is_smarttable_generated_csv(file_path):
-                logger.debug(f"Skipping SmartTable generated CSV: {file_path}")
-                continue
-            filtered.append(file_path)
-
-        return tuple(filtered)
 
     def _filter_smarttable_original_file(self, context: ProcessingContext, source_files: tuple[Path, ...]) -> tuple[Path, ...]:
         """Filter original SmartTable file based on configuration.
@@ -197,37 +171,6 @@ class SmartTableFileCopier(Processor):
 
         supported_extensions = ['.xlsx', '.csv', '.tsv']
         return file_path.suffix.lower() in supported_extensions
-
-    def _is_smarttable_generated_csv(self, file_path: Path) -> bool:
-        """Check if the file is a SmartTable generated CSV file.
-
-        Args:
-            file_path: Path to check
-
-        Returns:
-            True if this is a SmartTable generated CSV file
-        """
-        if file_path.suffix.lower() != '.csv':
-            return False
-
-        if 'temp' not in file_path.parts:
-            return False
-
-        filename = file_path.name
-        if not filename.startswith('fsmarttable_'):
-            return False
-
-        name_without_ext = filename[:-4]
-        parts = name_without_ext.split('_')
-
-        # Must have at least 3 parts: ['fsmarttable', 'filename', 'number']
-        min_parts = 3
-        if len(parts) < min_parts:
-            return False
-
-        # Last part must be numeric (4-digit number like 0000, 0001, etc.)
-        last_part = parts[-1]
-        return last_part.isdigit() and len(last_part) == self.smarttable_suffix_length
 
     def _copy_files(self, dest_dir: Path, source_files: tuple[Path, ...]) -> None:
         """Copy files to destination directory."""

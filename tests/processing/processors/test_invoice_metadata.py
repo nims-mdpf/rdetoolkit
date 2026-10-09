@@ -5,7 +5,7 @@
 # | ----------------------------------- | ---------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------- | ----------- |
 # | `SmartTableInvoiceInitializer.process` | predefined meta column                               | verify it can write to metadata.json | converted values are written to metadata.json constant | `TC-EP-001` |
 # | `SmartTableInvoiceInitializer.process` | existing metadata.json has the same key              | verify other fields are preserved on overwrite | only target key is overwritten; other keys and variable are preserved | `TC-EP-002` |
-# | `SmartTableInvoiceInitializer.process` | metadata-def.json is missing                         | verify it is skipped for backward compatibility | metadata.json is not created and processing continues | `TC-EP-003` |
+# | `SmartTableInvoiceInitializer.process` | metadata-def.json is missing                         | verify a meta column requires metadata-def.json | `StructuredError` is raised | `TC-EP-003` |
 # | `SmartTableInvoiceInitializer.process` | meta value is empty/NaN                              | verify boundary behavior for invalid values | metadata.json is not created and the value is skipped | `TC-EP-004` |
 # | `SmartTableInvoiceInitializer.process` | key not defined in metadata-def                       | schema mismatch negative case | `StructuredError` is raised | `TC-EP-005` |
 # | `SmartTableInvoiceInitializer.process` | value cannot be converted                             | type validation negative case | `StructuredError` is raised | `TC-EP-006` |
@@ -37,7 +37,7 @@ def _write_metadata_def(context, payload: dict[str, dict[str, object]]) -> None:
 
 
 def _write_smarttable_row(context, columns: list[str], values: list[str]) -> None:
-    csv_path = context.resource_paths.rawfiles[0]
+    csv_path = context.resource_paths.smarttable_rawfile
     dataframe = pd.DataFrame([values], columns=columns)
     dataframe.to_csv(csv_path, index=False)
 
@@ -138,8 +138,8 @@ def test_process_metadata_overwrites_existing_value(smarttable_processing_contex
     assert metadata["variable"] == [{"cycle": {"value": "A"}}]
 
 
-def test_process_metadata_def_missing_skips_without_error(smarttable_processing_context) -> None:
-    """metadata-def.json が無い場合はスキップされることを確認。"""
+def test_process_metadata_def_missing_raises(smarttable_processing_context) -> None:
+    """Verify that StructuredError is raised when metadata-def.json is missing."""
 
     processor = SmartTableInvoiceInitializer()
     context = smarttable_processing_context
@@ -154,10 +154,9 @@ def test_process_metadata_def_missing_skips_without_error(smarttable_processing_
         ["note", "dataset"],
     )
 
-    # When: processing the SmartTable row
-    processor.process(context)
-
-    # Then: metadata.json is not created and processing completes
+    # When/Then: StructuredError is raised because metadata-def.json is missing
+    with pytest.raises(StructuredError, match="metadata-def.json not found"):
+        processor.process(context)
     assert not context.metadata_path.exists()
 
 

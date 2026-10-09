@@ -29,7 +29,7 @@ Processors: Validation → Files → Invoice → Thumbnails → Description → 
 - `invoice/invoice_schema_json/invoice_org: Path` - Invoice paths
 
 **Optional:**
-- `smarttable_rowfile/smarttable_row_data: Path | dict | None`
+- `smarttable_rawfile/smarttable_row_data: Path | dict | None`
 - `temp/invoice_patch/attachment: Path | None`
 
 ### RdeDatasetPaths

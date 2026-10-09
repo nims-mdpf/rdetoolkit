@@ -87,24 +87,16 @@ class ProcessingContext:
         return self.smarttable_file
 
     @property
-    def smarttable_rowfile(self) -> Path | None:
-        """Return SmartTable row CSV path with rawfiles fallback."""
-        rowfile = getattr(self.resource_paths, "smarttable_rowfile", None)
-        if rowfile is not None:
-            return rowfile
+    def smarttable_rawfile(self) -> Path | None:
+        """Return SmartTable row CSV path (None outside SmartTable mode)."""
+        return getattr(self.resource_paths, "smarttable_rawfile", None)
 
-        rawfiles = getattr(self.resource_paths, "rawfiles", ())
-        if rawfiles:
-            candidate = rawfiles[0]
-            if (
-                isinstance(candidate, Path)
-                and candidate.suffix.lower() == ".csv"
-                and candidate.stem.startswith("fsmarttable_")
-            ):
-                warnings.warn(
-                    "ProcessingContext.smarttable_rowfile uses rawfiles[0] fallback; update generators to populate smarttable_rowfile.",
-                    FutureWarning,
-                    stacklevel=2,
-                )
-                return candidate
-        return None
+    @property
+    def smarttable_rowfile(self) -> Path | None:
+        """Deprecated alias for :pyattr:`smarttable_rawfile`."""
+        warnings.warn(
+            "ProcessingContext.smarttable_rowfile is deprecated; use smarttable_rawfile instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.smarttable_rawfile

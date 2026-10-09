@@ -26,7 +26,7 @@ When you include variables listed under **Supported Variables**, RDE structured 
 
 | Variable Name                       | Description                                                                                      | Example                                               |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| `${filename}`                       | Raw file name including the extension                                                            | `sample.csv` → `sample.csv`                           |
+| `${filename}`                       | Raw file name including the extension                                                            | `${filename}` → `sample.csv`                          |
 | `${invoice:basic:<field>}`          | Value copied from the `basic` node of the source invoice (`invoice_org`)                         | `${invoice:basic:experimentId}` → `EXP-42`            |
 | `${invoice:custom:<field>}`         | Value copied from the `custom` node of the source invoice                                        | `${invoice:custom:batchId}` → `BATCH-001`             |
 | `${invoice:sample:names}`           | All non-empty entries under `sample.names` joined with `_`                                       | `["alpha", "", "beta"]` → `alpha_beta`                |

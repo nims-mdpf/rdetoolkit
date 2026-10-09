@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "chardet>=5.2.0",
-    "charset-normalizer>=3.2.0,<3.5",  # 3.5.x misdetects UTF-8 zip entry names (see tests/test_compressedfile_mode.py Japanese names)
+    "charset-normalizer>=3.2.0,<3.5",  # 3.5.x misdetects UTF-8 zip entry names (tests/test_compressedfile_mode.py Japanese filenames)
     "openpyxl>=3.1.2",
     "pandas>=2.2.3",
     "build>=1.0.3",
@@ -36,7 +36,7 @@ dependencies = [
     "eval_type_backport>=0.2.0",
     "typing-extensions>=4.12.2; python_version < '3.11'",
     "numpy>=1.26.4",
-    "polars>=1.9.0",
+    "polars>=1.9.0,<2",  # 2.0.0 breaks the Excel invoice template generator (row length 14 vs 13, tests/test_invoicefile.py); v1 pins the same way,
     "pyarrow>=19.0.0",
     "pip>=24.3.1",
     "rpds-py>=0.26",
@@ -215,6 +215,8 @@ convention = "google"
 "src/rdetoolkit/fileops.py" = ["PLC0415"]
 # TODO: Refactor parse_config_file to reduce complexity (Issue #361)
 "src/rdetoolkit/config/__init__.py" = ["C901", "PLR0912"]
+# Standalone CLI helper scripts: print-based output and no package context are expected.
+"scripts/**/*.py" = ["T201", "D103", "INP001", "PLC0415"]
 "src/rdetoolkit/graph/__init__.py" = ["PLC0415"]
 "src/rdetoolkit/graph/api/csv2graph.py" = ["PLC0415"]
 "src/rdetoolkit/invoicefile.py" = ["PLC0415"]

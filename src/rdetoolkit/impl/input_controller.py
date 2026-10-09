@@ -17,6 +17,7 @@ from rdetoolkit.models.rde2types import (
     InputFilesGroup,
     OtherFilesPathList,
     RawFiles,
+    SmartTableRawFiles,
     ZipFilesPathList,
 )
 from rdetoolkit.rdelogger import get_logger
@@ -394,6 +395,11 @@ class SmartTableChecker(IInputFileChecker):
     The returned ``raw_files`` order is tied to RDE registration order:
     index 0 maps to ``data/`` and is registered last, while index 1..N map to
     ``data/divided/0001``.. and are registered first in ascending index order.
+    When ``save_table_file`` is ``True``, the original SmartTable file occupies
+    ``data/divided/0001`` (registered first); otherwise the tile for the last
+    data row occupies ``data/`` (registered last). Special case: when
+    ``save_table_file`` is ``True`` and the table yields zero data rows, the
+    original file is the only tile and occupies ``data/`` (index 0) itself.
 
     Attributes:
         out_dir_temp (Path): Temporary directory for the unpacked content.
@@ -408,7 +414,7 @@ class SmartTableChecker(IInputFileChecker):
         """Return the type identifier for this checker."""
         return "smarttable"
 
-    def parse(self, src_dir_input: Path) -> tuple[RawFiles, Path | None]:
+    def parse(self, src_dir_input: Path) -> tuple[SmartTableRawFiles, Path | None]:
         """Parses the source input directory for SmartTable files and zip files.
 
         Creates individual CSV files for each SmartTable row and maps them to related files.
@@ -417,17 +423,16 @@ class SmartTableChecker(IInputFileChecker):
             src_dir_input (Path): Source directory containing the input files.
 
         Returns:
-            tuple[RawFiles, Path | None]:
-                - RawFiles: A list of tuples where each tuple contains (csv_file, related_files...)
+            tuple[SmartTableRawFiles, Path | None]:
+                - SmartTableRawFiles: A list of ``(row_csv, user_files)`` pairs. ``row_csv`` is
+                  the path to the auto-generated per-row CSV, or ``None`` for the tile that
+                  holds only the original SmartTable file (``save_table_file=True`` case).
+                  ``user_files`` are the actual data files referenced from the table's
+                  related-file columns.
                 - Path | None: Path to the SmartTable file if found, otherwise None.
 
         Raises:
             StructuredError: If no SmartTable files are found or if multiple SmartTable files are present.
-
-        Note:
-            This method uses legacy RawFiles type for backward compatibility.
-            New implementations should consider FileGroup and ProcessedFileGroup for
-            enhanced type safety. Migration path: RawFiles -> list[FileGroup] in future version.
         """
         input_files = list(src_dir_input.glob("*"))
         # Filter out system files before processing
@@ -462,26 +467,30 @@ class SmartTableChecker(IInputFileChecker):
             extracted_files,
         )
 
-        # Convert to RawFiles format: each mapping becomes a tuple
-        # (data rows preserve table order: row1, row2, ..., rowN)
-        data_rows: list[tuple[Path, ...]] = [
-            (csv_path,) + related_files for csv_path, related_files in csv_file_mappings
-        ]
+        # (row_csv, user_files) pairs, preserving table order: row1, row2, ..., rowN.
+        mappings: list[tuple[Path, tuple[Path, ...]]] = csv_file_mappings
+        original_file_entry: tuple[Path | None, tuple[Path, ...]] = (None, (smarttable_file,))
 
         # The RDE system registers data/divided/0001..N first and data/ root (idx=0) LAST.
         # raw_files index mapping: idx=0 -> data/ root, idx>=1 -> data/divided/000{idx}.
-        raw_files: list[tuple[Path, ...]] = []
+        raw_files: list[tuple[Path | None, tuple[Path, ...]]] = []
         if self.save_table_file:
-            # SmartTable file occupies data/ root (registers last);
-            # data rows fill divided/0001+ so registration order stays row1..rowN.
-            raw_files.append((smarttable_file,))
-            raw_files.extend(data_rows)
-        elif data_rows:
-            # No SmartTable file, but data/ root must always be registered (and registers
-            # last). Place the LAST data row at idx=0 so the registration order stays
-            # row1..rowN, with earlier rows filling divided/0001+.
-            raw_files.append(data_rows[-1])
-            raw_files.extend(data_rows[:-1])
+            if not mappings:
+                # No data rows: original file alone occupies data/ root.
+                raw_files.append(original_file_entry)
+            else:
+                # idx=0 -> data/ root (last row, registered last)
+                # idx=1 -> divided/0001 (original file, registered first)
+                # idx=2.. -> divided/0002.. (row1..row(N-1), in table order)
+                raw_files.append(mappings[-1])
+                raw_files.append(original_file_entry)
+                raw_files.extend(mappings[:-1])
+        elif mappings:
+            # No SmartTable file to save: last row occupies data/ root (registered
+            # last); earlier rows fill divided/0001+ in table order (unchanged from
+            # current behavior).
+            raw_files.append(mappings[-1])
+            raw_files.extend(mappings[:-1])
 
         return raw_files, smarttable_file
 

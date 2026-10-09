@@ -78,11 +78,13 @@ def test_check_files_result_success_smarttable_mode():
     srcpaths = Mock(spec=RdeInputDirPaths)
     srcpaths.inputdata = Path("/data/inputdata")
 
-    # Mock the input checker to return smarttable mode result
+    # Mock the input checker to return smarttable mode result using the
+    # SmartTableRawFiles shape: a list of (row_csv | None, user_files) pairs.
     mock_checker = Mock()
     mock_checker.checker_type = "smarttable"
     smarttable_file = Path("/data/inputdata/smarttable.csv")
-    mock_checker.parse.return_value = ([("file1.txt",)], smarttable_file)
+    smarttable_rawfiles = [(Path("fsmarttable_x_0000.csv"), (Path("file1.txt"),))]
+    mock_checker.parse.return_value = (smarttable_rawfiles, smarttable_file)
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
@@ -94,7 +96,7 @@ def test_check_files_result_success_smarttable_mode():
 
         assert isinstance(result, Success)
         rawfiles, excel_invoice, smarttable = result.unwrap()
-        assert rawfiles == [("file1.txt",)]
+        assert rawfiles == smarttable_rawfiles
         assert excel_invoice is None
         assert smarttable == smarttable_file
 

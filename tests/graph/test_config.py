@@ -65,6 +65,31 @@ class TestPlotConfigBuilderInitialization:
         assert config.legend.max_items == 20
         assert config.legend.info is None
         assert config.legend.loc is None
+        # New fields must default to backward-compatible values
+        assert config.legend.policy == "legacy"
+        assert config.legend.outside_threshold == 8
+        assert config.legend.ncol is None
+
+    def test_legend_config_accepts_policy_fields(self):
+        """LegendConfig stores policy, outside_threshold, and ncol overrides."""
+        legend = LegendConfig(
+            policy="outside_bottom",
+            outside_threshold=5,
+            ncol=4,
+        )
+        assert legend.policy == "outside_bottom"
+        assert legend.outside_threshold == 5
+        assert legend.ncol == 4
+
+    def test_legend_config_rejects_invalid_policy(self):
+        """LegendConfig raises ValueError at runtime for unsupported policies."""
+        with pytest.raises(ValueError, match="Invalid legend policy"):
+            LegendConfig(policy="typo")  # type: ignore[arg-type]
+
+    def test_legend_config_accepts_every_valid_policy(self):
+        """All documented legend policies construct without error."""
+        for policy in ("legacy", "auto", "inside", "outside_right", "outside_bottom", "hide"):
+            assert LegendConfig(policy=policy).policy == policy  # type: ignore[arg-type]
 
     def test_default_direction_config(self):
         """Builder initializes with default direction configuration."""
@@ -261,6 +286,15 @@ class TestPlotConfigBuilderSetters:
         assert config.legend.max_items == 15
         assert config.legend.loc == "upper right"
         assert config.legend.info == "Test Info"
+
+    def test_set_legend_updates_policy_fields(self):
+        """set_legend() propagates new policy fields into PlotConfig."""
+        builder = PlotConfigBuilder()
+        legend = LegendConfig(policy="hide", outside_threshold=10, ncol=2)
+        config = builder.set_legend(legend).build()
+        assert config.legend.policy == "hide"
+        assert config.legend.outside_threshold == 10
+        assert config.legend.ncol == 2
 
     def test_set_direction_returns_self(self):
         """set_direction() returns builder for chaining."""

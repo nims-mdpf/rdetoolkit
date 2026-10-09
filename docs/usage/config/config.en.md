@@ -218,6 +218,13 @@ smarttable:
   save_table_file: true
 ```
 
+!!! note
+    As of v1.7.0, `rdetoolkit gen-config smarttable` also generates
+    `save_table_file: false` in the template it produces, matching this
+    default. See [SmartTableInvoice Mode](../mode/mode_smarttableinvoice.en.md#registering-the-table-data-file-with-rde)
+    for the registration-order change that applies when this is set to
+    `true`.
+
 ---
 
 ### **5. Add logging / stack‑trace settings**
