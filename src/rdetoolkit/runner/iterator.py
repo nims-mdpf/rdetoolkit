@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Protocol
 
@@ -12,6 +12,9 @@ from rdetoolkit.models.rde2types import RdeInputDirPaths
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import TileOutputPaths, resolve_tile_paths
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
+
+#: Arity of a v1.7 ``SmartTableRawFiles`` element: ``(row_csv | None, user_files)``.
+_SMARTTABLE_PAIR_LEN = 2
 
 
 class TileIterator(Protocol):
@@ -64,24 +67,65 @@ def iterate_tiles(
         _mode_for_checker(mode),
         config=_checker_config(config),
     )
-    rawfiles_by_tile, _special = checker.parse(inputdata_path)
-    total = len(rawfiles_by_tile)
+    groups, _special = checker.parse(inputdata_path)
+    total = len(groups)
 
-    for idx, rawfiles in enumerate(rawfiles_by_tile):
+    for idx, group in enumerate(groups):
         tile_paths = resolve_tile_paths(data_root, idx)
         _create_output_dirs(tile_paths)
-        rawfiles_tuple = tuple(rawfiles)
+        rawfiles, row_csv = _tile_files(mode, group, idx)
         yield (
             IterationInfo(index=idx, total=total, mode=mode.value),
             InputPaths(
                 inputdata=inputdata_path,
                 invoice=src_paths.invoice,
                 tasksupport=src_paths.tasksupport,
-                raw=rawfiles_tuple[0] if len(rawfiles_tuple) == 1 else None,
-                rawfiles=rawfiles_tuple,
+                raw=rawfiles[0] if len(rawfiles) == 1 else None,
+                rawfiles=rawfiles,
+                smarttable_rawfile=row_csv,
             ),
             OutputContext.from_resource_paths(tile_paths),
         )
+
+
+def _tile_files(mode: ModeKind, group: object, idx: int) -> tuple[tuple[Path, ...], Path | None]:
+    """Split one checker group into the tile's user files and its row CSV.
+
+    Since v1.7 (#503) the SmartTable checker returns ``(row_csv | None,
+    user_files)`` pairs while every other checker returns flat path tuples.
+    The split mirrors ``workflows.generate_folder_paths_iterator``: the row CSV
+    never enters ``rawfiles`` (so it is never copied to raw storage and never
+    becomes ``rawfiles[0]``) and travels only as ``smarttable_rawfile``.
+    The shape is checked explicitly because the distinction is runtime-only;
+    a flat tuple in SmartTable mode would otherwise surface far away, as the
+    ``'tuple' object has no attribute ...`` failure this replaced.
+
+    Args:
+        mode: Effective Runner mode, which decides the group shape.
+        group: One element of the checker's ``parse`` result.
+        idx: Tile index, quoted in the shape error.
+
+    Returns:
+        The tile's user files and its row CSV (``None`` outside SmartTable).
+
+    Raises:
+        TypeError: If the group does not have the shape the mode implies.
+    """
+    if mode is not ModeKind.smarttable:
+        if not isinstance(group, Sequence) or not all(isinstance(path, Path) for path in group):
+            msg = f"{mode.value} tile {idx} must be a sequence of Path objects; got {group!r}"
+            raise TypeError(msg)
+        return tuple(group), None
+    if (
+        not isinstance(group, tuple)
+        or len(group) != _SMARTTABLE_PAIR_LEN
+        or not (group[0] is None or isinstance(group[0], Path))
+        or not isinstance(group[1], tuple)
+        or not all(isinstance(path, Path) for path in group[1])
+    ):
+        msg = f"smarttable tile {idx} must be a (row_csv | None, user_files) pair; got {group!r}"
+        raise TypeError(msg)
+    return group[1], group[0]
 
 
 def _checker_config(config: RdeConfig | None) -> Config | None:

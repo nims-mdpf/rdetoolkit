@@ -39,7 +39,7 @@ Negative / error partitions (EV):
 | ``build`` | meta key absent from metadata-def | undefined metadata | same StructuredError | TC-I6-C-EV-025 |
 | ``build`` | ``variable`` metadata | unsupported mapping | same StructuredError | TC-I6-C-EV-026 |
 | ``build`` | unsupported metadata type | unsupported mapping | same StructuredError | TC-I6-C-EV-027 |
-| ``build`` | metadata-def.json missing | v1 skips the column | equals v1 | TC-I6-C-EV-028 |
+| ``build`` | metadata-def.json missing | v1.7 #496 rejects the column (UPDATED K0-iii) | same StructuredError | TC-I6-C-EV-028 |
 | ``build`` | sample attribute container is a scalar | container contract | same StructuredError | TC-I6-C-EV-029 |
 | ``build`` | header-only row CSV | no data row | equals v1, row data ``None`` | TC-I6-C-EV-030 |
 | ``build`` | missing row CSV | unreadable input | same StructuredError | TC-I6-C-EV-031 |
@@ -541,10 +541,14 @@ def test_scalar_attribute_container_is_rejected__tc_i6_c_ev_029(tmp_path: Path) 
 
 
 def test_missing_metadata_definition_skips_meta_columns__tc_i6_c_ev_028(tmp_path: Path) -> None:
-    """TC-I6-C-EV-028: without metadata-def.json v1 skips meta columns silently."""
+    """TC-I6-C-EV-028 (UPDATED, K0-iii): without metadata-def.json a meta column fails.
+
+    v1.7 (#496) replaced the silent skip with a ``StructuredError``; the oracle
+    is the merged v1.7.1 initializer, so the expectation follows it.
+    """
     # Given: a meta column but no metadata definition file
-    # When: both implementations build the tile
-    observed = _compare_with_v1(
+    # When / Then: both implementations reject the row with the same message
+    error = _compare_failure_with_v1(
         tmp_path,
         csv_text="basic/dataName,meta/comment\nrow-name,memo-a\n",
         invoice=_BASE_INVOICE,
@@ -552,9 +556,8 @@ def test_missing_metadata_definition_skips_meta_columns__tc_i6_c_ev_028(tmp_path
         metadata_def=None,
     )
 
-    # Then: the invoice is written and no metadata.json is produced
-    assert observed["invoice"]["basic"]["dataName"] == "row-name"
-    assert observed["metadata"] is None
+    # And: the message names the missing definition file
+    assert str(error).startswith("metadata-def.json not found: ")
 
 
 def test_header_only_row_csv_writes_the_base_invoice__tc_i6_c_ev_030(tmp_path: Path) -> None:

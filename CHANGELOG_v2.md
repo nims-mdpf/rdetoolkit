@@ -1,5 +1,53 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session K0-iii (v1.7.1 SmartTable contract on the unified Runner)
+
+The unified Runner now follows the SmartTable contract of rdetoolkit v1.7.0 /
+v1.7.1 (#503, #496, #515) on both entry points. Verified against the live
+v1.7.1 code path (`workflows._run_legacy`) and the re-frozen
+`expected/v1/smarttable/ok.json`.
+
+### Fixed
+
+- SmartTable runs no longer fail with `ErrorCode=1002 ... 'tuple' object has no
+  attribute 'relative_to'`: the Runner consumes v1.7's `(row_csv, user_files)`
+  tile pairs.
+- `rawfiles` (the v1 callback's `resource_paths.rawfiles` and a flow's
+  `InputPaths.rawfiles`) holds only the user's data files a row references; the
+  generated `fsmarttable_*.csv` row CSV is never part of it, so it is never
+  `rawfiles[0]` and never copied to `raw/` or `nonshared_raw/`, whatever
+  `save_raw` / `save_nonshared_raw` say.
+- With `smarttable.save_table_file: true` the original table registers first,
+  at `data/divided/0001` (its `invoice.json` seeded from `invoice_org` before
+  `basic.dataName` is set), and the data rows keep their order around it; a
+  table without data rows still occupies `data/` alone.
+- A `meta/<key>` column without `tasksupport/metadata-def.json` fails the tile
+  with v1.7's `StructuredError` (`metadata-def.json not found: ...`) instead of
+  being skipped silently.
+- A plain exception raised while tiles are discovered or executed (input
+  checker, iterator, mode planner) is reported as `3001 NodeExecutionFailed`,
+  no longer as `1002 ConfigLoadFailed`. `StructuredError` and catalogued errors
+  keep their own codes.
+- In the standard project layout (data root `<cwd>/data`) a v1 callback
+  receives CWD-relative paths (`data/temp/...`, `data/divided/0001/raw`, ...),
+  exactly as v1 handed them over; a completed tile without user files reports
+  the legacy status `target` `""` as v1 does.
+
+### Added
+
+- `InputPaths.smarttable_rawfile: Path | None` — the tile's generated SmartTable
+  row CSV (`None` outside SmartTable mode and for the original-table tile). The
+  v1 callback receives it as `resource_paths.smarttable_rawfile`; the unified
+  path never uses the deprecated `smarttable_rowfile` name, so it emits no
+  `DeprecationWarning`.
+
+### Unchanged
+
+- cp932 file names inside SmartTable zips (#515) are decoded by the v1 helper
+  the Runner already calls; pinned by `TC-K0-EP-013`.
+
+Contract record: `local/develop/v2/merge_v1/contracts.md` §K0.
+
 ## Unreleased — Session J-REVIEW (PR #542 review response)
 
 ### Fixed

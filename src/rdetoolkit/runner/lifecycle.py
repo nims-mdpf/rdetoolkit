@@ -24,6 +24,7 @@ from rdetoolkit.core.flow import derive_flow_id
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
+from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.errors import (
     ERROR_CATALOG,
     RdeConfigError,
@@ -47,6 +48,7 @@ from rdetoolkit.types import RdeConfig
 
 
 _RUN_INTERRUPTED_CODE = 3004
+_TILE_ITERATION_FAILURE_CODE = 3001
 _REQUIRED_ARTIFACT_MISSING_CODE = 4003
 
 
@@ -274,7 +276,13 @@ class Runner:
                 warnings=[],
                 error=None,
             )
-        report = self.iterate(target, mode, config)
+        try:
+            report = self.iterate(target, mode, config)
+        except Exception as exc:  # noqa: BLE001
+            iteration_error = _iteration_error(exc)
+            if iteration_error is None:
+                raise
+            raise iteration_error from exc
         self.post_validate(config, report)
         return report
 
@@ -562,6 +570,39 @@ def _run_error(exc: Exception) -> dict[str, Any]:
     if passthrough is not None:
         return passthrough
     return _exception_error(_lifecycle_error(exc))
+
+
+def _iteration_error(exc: Exception) -> RdeError | None:
+    """Return the catalogue error for a failure that escaped tile iteration.
+
+    Tiles are discovered lazily, so the input checker, the iterator and the
+    mode planners all run while ``Runner.iterate`` pulls the next tile; an
+    executor defect escapes from the same loop. A plain exception raised
+    there used to fall through to the lifecycle catch-all and was published as
+    ``1002 ConfigLoadFailed`` although the configuration had loaded long
+    before (Session K0-iii ruling #6). It is an execution failure, ``3001``;
+    no node call owns it, so the call id is ``unknown`` exactly as
+    ``runner.execute`` reports a failure outside any recorded call.
+
+    A catalogued ``RdeError`` (including ``RunInterrupted``) and a v1
+    ``StructuredError`` keep their own codes — the latter is the v1
+    ``ecode``/``emsg`` passthrough (Design §6.3).
+
+    Args:
+        exc: Exception that escaped ``Runner.iterate``.
+
+    Returns:
+        The ``3001`` error to raise instead, or ``None`` to re-raise ``exc``.
+    """
+    if isinstance(exc, (RdeError, StructuredError)):
+        return None
+    error_def = ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE]
+    reason = f"tile iteration failed ({type(exc).__name__}): {exc}"
+    message = error_def.message_template.format(call_id="unknown", reason=reason)
+    message = f"{message} Remediation: {error_def.remediation}"
+    error_cls: Any = RdeExecutionError
+    error: RdeError = error_cls(code=_TILE_ITERATION_FAILURE_CODE, name=error_def.name, message=message)
+    return error
 
 
 def _lifecycle_error(exc: Exception) -> RdeError:

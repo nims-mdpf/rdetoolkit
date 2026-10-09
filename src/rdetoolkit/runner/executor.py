@@ -474,9 +474,15 @@ def _root_relative(path: Path, *, root: Path) -> str:
     return path.as_posix()
 
 
-def _legacy_target(rawfiles: tuple[Path, ...], *, root: Path) -> str | None:
+def _legacy_target(rawfiles: tuple[Path, ...], *, root: Path) -> str:
+    """Return v1's completed-status target, ``ProcessingContext.basedir``.
+
+    v1 reports ``""`` for a tile without user files. Before v1.7 no SmartTable
+    tile was ever empty (the row CSV sat in ``rawfiles``); since #503 a row
+    that references no file has empty ``rawfiles`` and v1 publishes ``""``.
+    """
     if not rawfiles:
-        return None
+        return ""
     basedir = rawfiles[0].parent
     with contextlib.suppress(ValueError):
         basedir = basedir.relative_to(root)

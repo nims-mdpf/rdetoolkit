@@ -350,7 +350,11 @@ class TestSmartTableModeIteration:
             assert info.mode == "smarttable"
 
     def test_single_row_smarttable_yields_one_tile__boundary(self, tmp_path: Path) -> None:
-        """TC-ITER-013 (1-tile boundary): 1 mocked row mapping -> 1 tile."""
+        """TC-ITER-013 (1-tile boundary): 1 mocked row mapping -> 1 tile.
+
+        UPDATED (K0-iii, v1.7 #503): the row CSV is the tile's
+        ``smarttable_rawfile``; it is no longer ``rawfiles[0]``.
+        """
         from rdetoolkit.runner.iterator import iterate_tiles  # noqa: PLC0415
 
         inputdata, unpacked, base_output = _mk_dirs(tmp_path)
@@ -363,7 +367,10 @@ class TestSmartTableModeIteration:
         assert len(tiles) == 1
         info, paths, _out = tiles[0]
         assert info.index == 0
-        assert paths.rawfiles[0].name == "row_0.csv"
+        assert paths.smarttable_rawfile is not None
+        assert paths.smarttable_rawfile.name == "row_0.csv"
+        assert paths.rawfiles == ()
+        assert paths.raw is None
 
 
 class TestInputPathsConventionalDirs:

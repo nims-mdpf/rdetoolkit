@@ -62,10 +62,31 @@ def _iteration_targets(mode: str, observed: dict[str, Any], count: int) -> list[
     if mode in {"invoice", "multidatatile"}:
         parent = next(path.parent for path in files if path.parts[:2] == ("data", "inputdata"))
         return [parent.as_posix()] * count
-    if mode in {"excelinvoice", "smarttable"}:
+    if mode == "smarttable":
+        return [_smarttable_target(files, index) for index in range(count)]
+    if mode == "excelinvoice":
         parent = next(path.parent for path in files if path.parts[:2] == ("data", "temp") and len(path.parts) == 3)
         return [parent.as_posix()] * count
     return [f"data/temp/{index:04d}/<TILE_SUBDIR>" for index in range(count)]
+
+
+def _smarttable_target(files: list[Path], index: int) -> str:
+    """Derive one v1.7 SmartTable basedir from the frozen output inventory.
+
+    Since v1.7 (#503) ``rawfiles`` holds only the user files a row references,
+    so v1's ``ProcessingContext.basedir`` is the directory those files were
+    unpacked to (``""`` when the row references none). The tile's published
+    ``raw/`` copy names the file; the unpack location under ``data/temp`` gives
+    its directory. The generated ``fsmarttable_*`` row CSVs never count.
+    """
+    tile = ("data",) if index == 0 else ("data", "divided", f"{index:04d}")
+    published = [path.name for path in files if path.parts[:-1] == (*tile, "raw")]
+    if not published:
+        return ""
+    unpacked = next(
+        path for path in files if path.parts[:2] == ("data", "temp") and path.name == published[0]
+    )
+    return unpacked.parent.as_posix()
 
 
 @pytest.mark.parametrize(

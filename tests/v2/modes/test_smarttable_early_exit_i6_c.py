@@ -352,19 +352,26 @@ def test_table_tile_invoice_carries_the_table_name__tc_i6_c_ev_075(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-I6-C-EV-075: the EarlyExit dataName rule reaches the tile invoice."""
+    """TC-I6-C-EV-075: the EarlyExit dataName rule reaches the tile invoice.
+
+    UPDATED (K0-iii, v1.7.1 #503): the table tile is ``divided/0001``, whose
+    invoice v1 seeds from ``invoice_org`` before renaming it.
+    """
     # Given: v1's own value for the table tile
     expected = _run_v1_oracle(tmp_path / "v1")
 
     # When: running v2 with the same configuration
     _run_v2(tmp_path / "v2", monkeypatch, save_table_file=True)
 
-    # Then: the run-level invoice names the table file, as v1's EarlyExit does
-    observed = observe_v2_run(tmp_path / "v2")["invoices"]["data/invoice/invoice.json"]
+    # Then: the divided/0001 invoice names the table file, as v1's EarlyExit does
+    table_invoice = "data/divided/0001/invoice/invoice.json"
+    observed = observe_v2_run(tmp_path / "v2")["invoices"][table_invoice]
     assert observed["basic"]["dataName"] == "smarttable_full.xlsx"
-    assert observed == expected["invoices"]["data/invoice/invoice.json"]
-    # And: the table itself was published as raw material
-    assert "data/raw/smarttable_full.xlsx" in observe_v2_run(tmp_path / "v2")["raw_sha256"]
+    assert observed == expected["invoices"][table_invoice]
+    # And: the run-level invoice is the last row's, not the table's
+    assert observe_v2_run(tmp_path / "v2")["invoices"]["data/invoice/invoice.json"]["basic"]["dataName"] != "smarttable_full.xlsx"
+    # And: the table itself was published as raw material of its own tile
+    assert "data/divided/0001/raw/smarttable_full.xlsx" in observe_v2_run(tmp_path / "v2")["raw_sha256"]
 
 
 def test_default_configuration_has_no_precompleted_tile__tc_i6_c_ev_074(

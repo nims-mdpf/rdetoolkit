@@ -83,7 +83,8 @@ class _SmartTableProbeRunner(Runner):
                 inputdata=data_root / "inputdata",
                 invoice=data_root / "invoice",
                 tasksupport=data_root / "tasksupport",
-                rawfiles=(rowfile,),
+                # v1.7 tile shape (K0-iii): the row CSV is carried explicitly.
+                smarttable_rawfile=rowfile,
             ),
             invoice_dir=data_root / "output" / "invoice",
             iteration_index=0,
