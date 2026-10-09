@@ -286,7 +286,7 @@
           "run_id": "0000",
           "stacktrace": "<TRACEBACK>",
           "status": "success",
-          "target": "data/temp",
+          "target": "",
           "title": "smarttable_value_2"
         },
         {
@@ -296,7 +296,7 @@
           "run_id": "0001",
           "stacktrace": "<TRACEBACK>",
           "status": "success",
-          "target": "data/temp",
+          "target": "data/temp/measurements",
           "title": "smarttable_value_0"
         },
         {
@@ -306,7 +306,7 @@
           "run_id": "0002",
           "stacktrace": "<TRACEBACK>",
           "status": "success",
-          "target": "data/temp",
+          "target": "data/temp/測定",
           "title": "smarttable_value_1"
         }
       ]
@@ -388,7 +388,7 @@
     }
   },
   "source": {
-    "commit": "7279adc055fa",
+    "commit": "29a80893e5b9",
     "tag": "v2.0.0a1"
   }
 }
