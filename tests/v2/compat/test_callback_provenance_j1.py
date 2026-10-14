@@ -48,14 +48,12 @@ Divergence table — the one *published* value J1 changes (audit Finding 1):
 | API | Case | Expected | Test ID |
 | --- | --- | --- | --- |
 | ``Runner.run`` (callback) | callback raises a non-``StructuredError`` | ``job.failed`` / ``RunReport.error`` / ``to_legacy_statuses()`` all carry E3001 and the catalogue message, which contains the original text | TC-J1-CBP-EV-010 |
-| v1 vs v2 | same fixture, same plain-raising callback | measured divergence: v1 ``ErrorCode=999`` + ``Unexpected error in Invoice mode: boom``; v2 ``ErrorCode=3001`` + catalogue text; both contain ``boom`` | TC-J1-CBP-EV-011 |
+| frozen v1 vs v2 | same fixture, same plain-raising callback | measured divergence: v1 ``ErrorCode=999`` + ``Unexpected error in Invoice mode: boom``; v2 ``ErrorCode=3001`` + catalogue text; both contain ``boom`` | TC-J1-CBP-EV-011 |
 """
 
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -87,6 +85,7 @@ from rdetoolkit.types import (
     V2RecordingSettings,
 )
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 
 _RUN_INTERRUPTED_CODE = 3004
 _USER_ERROR_CODE = 999
@@ -473,34 +472,8 @@ _PLAIN_FAILURE_MESSAGE = "boom"
 _V1_PLAIN_FAILURE_CODE = "ErrorCode=999"
 _V2_PLAIN_FAILURE_CODE = "ErrorCode=3001"
 
-_V1_PLAIN_ORACLE_WORKER = """
-import json, os, sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-sys.path.insert(0, os.getcwd())
-from rdetoolkit.workflows import _run_legacy as v1_run
-from tests.v2.contract.fixtures import _generate
-
-
-def boom(srcpaths, resource_paths):
-    raise ValueError("boom")
-
-
-os.chdir(root)
-exit_code = 0
-try:
-    v1_run(custom_dataset_function=boom, config=_generate.oracle_config("invoice"))
-except SystemExit as error:
-    exit_code = int(error.code or 0)
-
-job_failed = root / "data" / "job.failed"
-text = job_failed.read_text(encoding="utf-8") if job_failed.exists() else None
-(root / ".plain_failure_observation.json").write_text(
-    json.dumps({"exit_code": exit_code, "job_failed_text": text}),
-    encoding="utf-8",
-)
-"""
+#: The registered v1 case freezing the same plain-raising callback (K1 ruling #6 item 12).
+_V1_PLAIN_CASE = "v1/invoice/plainerr"
 
 
 def _callback_plain_error(srcpaths: object, resource_paths: object) -> None:
@@ -575,25 +548,14 @@ def test_plain_exception_divergence_from_v1_is_a_checked_contract__tc_j1_cbp_ev_
 
     ``contracts.md`` §J1-5 lists this as an intentional divergence. A claimed
     divergence that nothing measures is indistinguishable from drift, so this
-    cell runs v1 itself -- in its own process, on the same fixture, with the same
-    callback -- and asserts both sides of the difference.
+    cell asserts both sides of the difference. The v1 side used to be a live
+    v1 run in its own process; since Session K1 it is the frozen generator case
+    ``invoice/plainerr`` -- the same fixture and the same plain-raising callback.
     """
-    # Given: the same invoice fixture and the same plain-raising callback
-    v1_root = tmp_path / "v1"
+    # Given: v1's frozen run of the same invoice fixture and callback
+    v1_observation = frozen_observed(_V1_PLAIN_CASE)
+    assert _generate.PLAIN_FAILURE_MESSAGE == _PLAIN_FAILURE_MESSAGE
     v2_root = tmp_path / "v2"
-    _generate.materialize_sut_case("invoice", v1_root)
-    completed = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", _V1_PLAIN_ORACLE_WORKER, str(v1_root)],
-        cwd=_generate.REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = v1_root / ".plain_failure_observation.json"
-    if not observation_path.exists():
-        message = f"v1 plain-failure oracle failed: {completed.stderr[-1500:]}"
-        raise RuntimeError(message)
-    v1_observation = json.loads(observation_path.read_text(encoding="utf-8"))
 
     # When: running the same callback through the unified Runner
     report = _run_callback_through_runner(v2_root, _callback_plain_error, monkeypatch)

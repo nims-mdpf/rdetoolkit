@@ -372,8 +372,69 @@ def test_invoice_references_resolve_without_copying_assets__tc_g1_009(
     assert all(path.is_file() for path in resolved)
 
 
+#: The snapshots Session K1 registered (ruling #6 plus the K0 extras). Spelled
+#: out rather than derived, so the inventory below is a declaration the
+#: registry has to meet, not a restatement of it.
+_K1_REGISTERED = frozenset(
+    {
+        *(f"expected/v1/{mode}/tilefail.json" for mode in ("excelinvoice", "multidatatile", "smarttable")),
+        "expected/v1/multidatatile/tilefail__ignore_errors.json",
+        *(
+            f"expected/v1/{mode}/usererr__ignore_errors.json"
+            for mode in ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
+        ),
+        "expected/v1/rdeformat/ok__magic_structured.json",
+        "expected/v1/smarttable/ok__save_table_file.json",
+        "expected/v1/smarttable/valerr__broken_metadata__save_table_file.json",
+        "expected/v1/smarttable/valerr__data_name_too_long__save_table_file.json",
+        "expected/v1/smarttable/valerr__missing_metadata_def.json",
+        "expected/v1/smarttable/valerr__meta_column_without_def.json",
+        *(
+            f"expected/v1/{mode}/usererr__first_tile__ignore_errors.json"
+            for mode in ("excelinvoice", "rdeformat", "smarttable")
+        ),
+        *(
+            f"expected/v1/{mode}/{outcome}.json"
+            for mode in ("invoice", "multidatatile", "excelinvoice")
+            for outcome in ("magicfail", "structfail")
+        ),
+        *(
+            f"expected/v1/excelinvoice/ok__{variant}.json"
+            for variant in (
+                "no_archive",
+                "single_group",
+                "group_per_row",
+                "workbook_in_archive",
+                "extra_group",
+                "blank_row",
+                "two_workbooks",
+                "stray_workbook",
+            )
+        ),
+        *(
+            f"expected/v1/multidatatile/ok__{variant}.json"
+            for variant in ("empty_inputdata", "three_inputs", "excel_workbook_present")
+        ),
+        *(
+            f"expected/v1/smarttable/ok__{variant}.json"
+            for variant in ("header_only__save_table_file", "single_row", "cp932_zip")
+        ),
+        "expected/v1/invoice/ok__config_extras.json",
+        "expected/v1/invoice/ok__tasksupport_extras.json",
+        "expected/v1/invoice/cfgerr__broken_yaml.json",
+        "expected/v1/invoice/plainerr.json",
+    },
+)
+
+
 def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -> None:
-    """TC-G1-010: frozen v1 observations cover 15 callback cells plus zero rows."""
+    """TC-G1-010 (UPDATED, Session K1): the registry declares the whole v1 inventory.
+
+    The 15 callback cells plus the Excel zero-row boundary are the frozen core
+    and must exist. The cases Session K1 registered are part of the same
+    inventory; until the freeze ritual has run they may be absent -- only them,
+    and only while ``ALLOW_PENDING_SNAPSHOTS`` holds.
+    """
     # Given: the generator's declared frozen-snapshot inventory
     snapshots = _generate.expected_snapshot_paths()
 
@@ -383,24 +444,38 @@ def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -
         for path in snapshots
     }
 
-    # Then: every mode/outcome callback cell and the Excel zero-row BV exist
-    expected = {
+    # Then: every mode/outcome callback cell, the Excel zero-row BV and every
+    # K1 case are declared, each exactly once
+    core = {
         f"expected/v1/{mode}/{outcome}.json"
         for mode in ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
         for outcome in ("ok", "usererr", "valerr")
     }
-    expected.add("expected/v1/excelinvoice/zero_rows.json")
-    assert relative == expected
-    assert all(path.is_file() for path in snapshots)
+    core.add("expected/v1/excelinvoice/zero_rows.json")
+    assert relative == core | _K1_REGISTERED
+    assert len(snapshots) == len(relative) == 16 + len(_K1_REGISTERED)
+    assert all(
+        path.is_file()
+        for path in snapshots
+        if path.relative_to(_generate.FIXTURE_ROOT).as_posix() in core
+    )
+    pending = {
+        path.relative_to(_generate.FIXTURE_ROOT).as_posix() for path in snapshots if not path.exists()
+    }
+    assert pending <= _K1_REGISTERED
+    if not _generate.ALLOW_PENDING_SNAPSHOTS:
+        assert pending == set()
 
     # And: each value records clean generator provenance and observed v1 result.
     # source.commit is the revision that WROTE each snapshot. Between the H4
     # PII remediation (SmartTable only) and the I-REVIEW-B re-freeze the corpus
-    # carried two cohorts; the 2026-09-23 re-freeze rewrote all 16 on one clean
-    # tree, so a single recorded revision now covers the whole corpus. It
+    # carried two cohorts; every re-freeze since rewrites the whole inventory on
+    # one clean tree, so a single recorded revision covers the whole corpus. It
     # intentionally need not match the checked-out revision.
     commits: set[str] = set()
     for path in snapshots:
+        if not path.exists():
+            continue
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["source"]["tag"] == _generate.SOURCE_TAG
         commit = payload["source"]["commit"]

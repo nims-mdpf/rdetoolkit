@@ -14,9 +14,12 @@ raw stage still runs, which is what copies the table (the generic
 ``RawArtifactService`` already keeps the original table when
 ``save_table_file`` is on, exactly like v1's EarlyExit copy).
 
-The expectation is not written by hand: this module runs **v1 itself** in an
-isolated worker process with ``save_table_file=True`` and compares the frozen
-observation keys. ``_generate.py`` and ``fixtures/expected/**`` are untouched.
+The expectation is not written by hand: it is the v1 observation of the same
+input with ``save_table_file=True``. Until Session K1 this module ran v1 itself
+in an isolated worker; that run is now the registered generator case
+``smarttable/ok__save_table_file`` (K1 ruling #6 item 7, the v1.7.1 #503
+semantics: the table registers first at ``divided/0001``), frozen like every
+other v1 observation.
 
 Equivalence partitions (EP):
 
@@ -24,7 +27,7 @@ Equivalence partitions (EP):
 | --- | --- | --- | --- | --- |
 | ``TileExecutor.execute`` | ``precompleted`` tile | EarlyExit seam | no invoke, no post-invoke, completed | TC-I6-C-EP-070 |
 | ``TileExecutor.execute`` | ordinary tile | default keeps old behavior | invoke and post-invoke both run | TC-I6-C-EP-071 |
-| ``Runner.run`` | ``save_table_file=True`` | full v1 parity | artifacts equal the v1 oracle | TC-I6-C-EP-072 |
+| ``Runner.run`` | ``save_table_file=True`` | full v1 parity | artifacts equal the frozen v1 case | TC-I6-C-EP-072 |
 | ``Runner.run`` | ``save_table_file=True`` | tile vs callback counts | iterations == v1 tiles, flow calls == v1 callbacks | TC-I6-C-EP-073 |
 
 Boundary values / negatives (EV):
@@ -38,8 +41,6 @@ Boundary values / negatives (EV):
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -56,62 +57,14 @@ from rdetoolkit.runner.paths import resolve_tile_paths
 from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext, RdeConfig
 from tests.v2.contract.fixtures import _generate
-from tests.v2.contract.observe import observe_v2_run, parity_view
+from tests.v2.contract.frozen import frozen_observed
+from tests.v2.contract.observe import observe_v2_run, parity_pair
 
 _MODE = "smarttable"
 _FLOW_CALLS: list[tuple[str, ...]] = []
 
-#: Runs v1 with ``save_table_file=True`` in its own process, exactly as the
-#: frozen-fixture generator isolates its own oracle runs, and dumps the same
-#: observation keys. ``_generate`` supplies the walkers so both sides of the
-#: comparison use one implementation.
-_V1_ORACLE_WORKER = """
-import json, os, sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-sys.path.insert(0, os.getcwd())
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import _run_legacy as v1_run
-from tests.v2.contract.fixtures import _generate
-
-calls = []
-
-
-def callback(srcpaths, resource_paths):
-    calls.append(str(getattr(resource_paths, "rawfiles", ())))
-
-
-config = Config(
-    system=SystemSettings(
-        extended_mode=None,
-        save_raw=True,
-        save_nonshared_raw=True,
-        save_thumbnail_image=False,
-        magic_variable=False,
-    ),
-    multidata_tile=MultiDataTileSettings(ignore_errors=False),
-    smarttable=SmartTableSettings(save_table_file=True),
-)
-
-os.chdir(root)
-exit_code = 0
-try:
-    v1_run(custom_dataset_function=callback, config=config)
-except SystemExit as error:
-    exit_code = int(error.code or 0)
-
-data_root = root / "data"
-observation = {
-    "output_tree": _generate._output_tree(data_root),
-    "invoices": _generate._invoice_outputs(data_root),
-    "raw_sha256": _generate._raw_hashes(data_root),
-    "artifact_sha256": _generate._artifact_hashes(data_root),
-    "callback_count": len(calls),
-    "exit_code": exit_code,
-}
-(root / ".oracle_savetable.json").write_text(json.dumps(observation), encoding="utf-8")
-"""
+#: The registered v1 case this module's oracle is frozen as.
+_CASE_ID = "v1/smarttable/ok__save_table_file"
 
 
 @flow
@@ -121,27 +74,8 @@ def _counting_flow(paths: InputPaths, invoice: InvoiceData) -> None:
     _FLOW_CALLS.append(tuple(path.name for path in paths.rawfiles))
 
 
-def _run_v1_oracle(root: Path) -> dict[str, Any]:
-    """Execute v1 with ``save_table_file=True`` and return its observation."""
-    _generate._materialize_oracle_case(_MODE, root)  # noqa: SLF001 -- frozen v1 assembly is the contract
-    completed = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", _V1_ORACLE_WORKER, str(root)],
-        cwd=_generate.REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = root / ".oracle_savetable.json"
-    if completed.returncode != 0 or not observation_path.exists():
-        message = f"v1 save_table_file oracle failed: exit={completed.returncode}; stderr={completed.stderr[-1000:]}"
-        raise RuntimeError(message)
-    observed: dict[str, Any] = json.loads(observation_path.read_text(encoding="utf-8"))
-    normalized: dict[str, Any] = _generate.normalize_snapshot(observed, roots=(root,))
-    return normalized
-
-
 def _v2_overrides(*, save_table_file: bool) -> dict[str, Any]:
-    """Return the v2 configuration the oracle worker ran v1 with."""
+    """Return the v2 configuration the frozen v1 case ran with."""
     return {
         "system": {
             "extended_mode": "invoice",
@@ -324,16 +258,18 @@ def test_save_table_file_matches_the_v1_oracle__tc_i6_c_ep_072_073(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-I6-C-EP-072/073: artifacts and both counts equal a live v1 run."""
-    # Given: v1 executed on the same fixture with save_table_file=True
-    expected = _run_v1_oracle(tmp_path / "v1")
+    """TC-I6-C-EP-072/073: artifacts and both counts equal the frozen v1 run."""
+    # Given: v1's observation of the same fixture with save_table_file=True
+    expected = frozen_observed(_CASE_ID)
+    assert expected["exit_code"] == 0
 
     # When: the v2 Runner executes the same input and configuration
     report = _run_v2(tmp_path / "v2", monkeypatch, save_table_file=True)
 
-    # Then: every compared artifact matches the live oracle
+    # Then: every compared artifact matches the frozen oracle
     assert report.status == "success"
-    assert observe_v2_run(tmp_path / "v2") == parity_view(expected)
+    actual, expected_view = parity_pair(tmp_path / "v2", expected)
+    assert actual == expected_view
 
     # And: the table tile is an iteration, but it never invoked the flow
     assert len(report.iterations) == len(expected["invoices"])
@@ -358,7 +294,7 @@ def test_table_tile_invoice_carries_the_table_name__tc_i6_c_ev_075(
     invoice v1 seeds from ``invoice_org`` before renaming it.
     """
     # Given: v1's own value for the table tile
-    expected = _run_v1_oracle(tmp_path / "v1")
+    expected = frozen_observed(_CASE_ID)
 
     # When: running v2 with the same configuration
     _run_v2(tmp_path / "v2", monkeypatch, save_table_file=True)

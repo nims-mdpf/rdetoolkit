@@ -15,16 +15,21 @@ v1's pipelines (``processing/factories.py``):
   StructuredInvoiceSaver -> DescriptionUpdater
 * RDEFormat: Thumbnail -> DescriptionUpdater (no structured export, no magic)
 
+The v1 side of every failure cell is the frozen generator case
+``<mode>/magicfail`` / ``<mode>/structfail`` (Session K1 ruling #6 item 9); until
+K1 it was a live v1 run in a worker process. The scenario builders (magic
+template injection, the structured-sabotaging callback) live in ``_generate.py``.
+
 EP table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-IRA-5-EP-030 | handler order | 5 modes | the v1 stage sequence, ordered |
-| TC-IRA-5-EP-031 | magic failure | multidatatile | v1 oracle: no ``structured/invoice.json`` |
-| TC-IRA-5-EP-032 | magic failure | excelinvoice | v1 oracle: no ``structured/invoice.json`` |
-| TC-IRA-5-EP-033 | magic failure | invoice | v1 oracle: ``structured/invoice.json`` present |
-| TC-IRA-5-EP-036 | structured failure | multidatatile | v1 oracle: magic already expanded in the tile invoice |
-| TC-IRA-5-EP-037 | structured failure | excelinvoice | v1 oracle: magic already expanded in the tile invoice |
-| TC-IRA-5-EP-038 | structured failure | invoice | v1 oracle: magic never ran (structured comes first) |
+| TC-IRA-5-EP-031 | magic failure | multidatatile | frozen v1: no ``structured/invoice.json`` |
+| TC-IRA-5-EP-032 | magic failure | excelinvoice | frozen v1: no ``structured/invoice.json`` |
+| TC-IRA-5-EP-033 | magic failure | invoice | frozen v1: ``structured/invoice.json`` present |
+| TC-IRA-5-EP-036 | structured failure | multidatatile | frozen v1: magic already expanded in the tile invoice |
+| TC-IRA-5-EP-037 | structured failure | excelinvoice | frozen v1: magic already expanded in the tile invoice |
+| TC-IRA-5-EP-038 | structured failure | invoice | frozen v1: magic never ran (structured comes first) |
 
 BV / negative table:
 | TC | Class | Input | Expected |
@@ -35,72 +40,19 @@ BV / negative table:
 
 from __future__ import annotations
 
-import json
 import shutil
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
-from openpyxl import load_workbook
 
 from rdetoolkit.core.flow import flow
 from rdetoolkit.runner.executor import artifact_stage_order
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, OutputContext
 from tests.v2.contract.fixtures import _generate
-
-#: ``${metadata:constant:...}`` with no metadata.json is a framework-side magic
-#: failure: the flow succeeds and only artifact publication fails.
-_MAGIC_TEMPLATE = "${metadata:constant:missing_key}"
-
-_V1_ORACLE_WORKER = """
-import json, os, sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-mode = sys.argv[2]
-sys.path.insert(0, os.getcwd())
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import _run_legacy as v1_run
-
-extended = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
-config = Config(
-    system=SystemSettings(
-        extended_mode=extended,
-        save_raw=True,
-        save_nonshared_raw=True,
-        save_thumbnail_image=False,
-        magic_variable=True,
-        save_invoice_to_structured=True,
-    ),
-    multidata_tile=MultiDataTileSettings(ignore_errors=False),
-    smarttable=SmartTableSettings(save_table_file=False),
-)
-
-os.chdir(root)
-exit_code = 0
-try:
-    v1_run(custom_dataset_function=lambda a, b: None, config=config)
-except SystemExit as error:
-    exit_code = int(error.code or 0)
-
-data_root = root / "data"
-job_failed = data_root / "job.failed"
-observation = {
-    "exit_code": exit_code,
-    "job_failed_code": (
-        job_failed.read_text(encoding="utf-8").splitlines()[0] if job_failed.exists() else None
-    ),
-    "structured_invoices": sorted(
-        path.relative_to(data_root).as_posix()
-        for path in data_root.rglob("structured/invoice.json")
-    ),
-}
-(root / ".stage_order_observation.json").write_text(json.dumps(observation), encoding="utf-8")
-"""
-
+from tests.v2.contract.frozen import frozen_observed
+from tests.v2.contract.observe import observe_v2_run
 
 @flow
 def _noop_flow(paths: InputPaths) -> None:
@@ -124,68 +76,35 @@ def _v2_overrides(mode: str) -> dict[str, Any]:
     }
 
 
-def _inject_magic_failure(mode: str, root: Path) -> None:
-    """Make every tile's ``basic.dataName`` an unresolvable magic variable."""
-    data_root = root / "data"
-    invoice_path = data_root / "invoice" / "invoice.json"
-    invoice = json.loads(invoice_path.read_text(encoding="utf-8"))
-    invoice.setdefault("basic", {})["dataName"] = _MAGIC_TEMPLATE
-    invoice_path.write_text(json.dumps(invoice), encoding="utf-8")
-    if mode != "excelinvoice":
-        return
-    # The ExcelInvoice tile invoice takes dataName from the workbook row, so the
-    # template has to live there instead.
-    workbook_path = data_root / "inputdata" / "contract_excel_invoice.xlsx"
-    workbook = load_workbook(workbook_path)
-    for sheet in workbook.worksheets:
-        for row in sheet.iter_rows():
-            for cell in row:
-                if cell.value in {"test1", "test2"}:
-                    cell.value = _MAGIC_TEMPLATE
-    workbook.save(workbook_path)
+def _structured_invoices(observation: dict[str, Any]) -> list[str]:
+    """Return the ``structured/invoice.json`` exports of one observation's tree."""
+    return [path for path in observation["output_tree"]["files"] if path.endswith("structured/invoice.json")]
 
 
-def _observe_v1(mode: str, root: Path) -> dict[str, Any]:
-    """Run v1 on the same prepared case in its own process."""
-    _generate.materialize_sut_case(mode, root)
-    _inject_magic_failure(mode, root)
-    completed = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", _V1_ORACLE_WORKER, str(root), mode],
-        cwd=_generate.REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = root / ".stage_order_observation.json"
-    if not observation_path.exists():
-        message = f"v1 stage-order oracle failed for {mode}: {completed.stderr[-1500:]}"
-        raise RuntimeError(message)
-    result: dict[str, Any] = json.loads(observation_path.read_text(encoding="utf-8"))
-    return result
+def _invoice_data_names(observation: dict[str, Any]) -> dict[str, Any]:
+    """Return ``basic.dataName`` per written tile invoice of one observation."""
+    return {path: invoice["basic"]["dataName"] for path, invoice in observation["invoices"].items()}
 
 
-def _observe_v2(mode: str, root: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
-    """Run the v2 Runner on the same prepared case."""
-    _generate.materialize_sut_case(mode, root)
-    _inject_magic_failure(mode, root)
+def _observe_v2(case_id: str, root: Path, monkeypatch: pytest.MonkeyPatch, flow_target: Any) -> dict[str, Any]:
+    """Run the v2 Runner on the registered case's input; observe it."""
+    case = _generate.oracle_case(case_id)
+    _generate.materialize_case(case, root)
     monkeypatch.chdir(root)
     runner = Runner(
         root=root,
         inputdata_path=root / "data" / "inputdata",
         unpacked_dir_path=root / "data" / "temp",
     )
-    report = runner.run(_noop_flow, **_v2_overrides(mode))
-    data_root = root / "data"
-    job_failed = data_root / "job.failed"
+    report = runner.run(flow_target, **_v2_overrides(case.mode))
+    job_failed = root / "data" / "job.failed"
     return {
         "status": report.status,
+        "error_code": (report.error or {}).get("code"),
         "job_failed_code": (
             job_failed.read_text(encoding="utf-8").splitlines()[0] if job_failed.exists() else None
         ),
-        "structured_invoices": sorted(
-            path.relative_to(data_root).as_posix()
-            for path in data_root.rglob("structured/invoice.json")
-        ),
+        **observe_v2_run(root),
     }
 
 
@@ -259,77 +178,23 @@ def test_magic_failure_leaves_the_v1_artifacts__tc_ira_5_ep_031_032_033(
     expands the magic variable *first*, so the structured export never happens;
     for invoice mode the export precedes it and therefore survives.
     """
-    # Given: v1 executed on the same input with an unresolvable magic variable
-    expected = _observe_v1(mode, tmp_path / "v1")
+    # Given: v1's frozen run of the same input with an unresolvable magic variable
+    expected = frozen_observed(f"v1/{mode}/magicfail")
 
     # When: the v2 Runner executes the same input and configuration
-    actual = _observe_v2(mode, tmp_path / "v2", monkeypatch)
+    actual = _observe_v2(f"v1/{mode}/magicfail", tmp_path / "v2", monkeypatch, _noop_flow)
 
     # Then: the run failed with the v1 code and left exactly v1's artifacts
-    assert expected["job_failed_code"] is not None
+    assert expected["job_failed_error_code"] is not None
     assert actual["status"] == "failed"
-    assert actual["job_failed_code"] == expected["job_failed_code"]
-    assert actual["structured_invoices"] == expected["structured_invoices"]
+    assert actual["job_failed_code"] == expected["job_failed_error_code"]
+    assert _structured_invoices(actual) == _structured_invoices(expected)
+    assert (mode == "invoice") is bool(_structured_invoices(expected))
 
 
 #: ``${filename}`` resolves from the tile's first raw file, so a completed magic
 #: step is visible as a concrete file name in the tile invoice.
-_FILENAME_TEMPLATE = "${filename}"
-
-_V1_STRUCTURED_FAILURE_WORKER = """
-import json, os, shutil, sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-mode = sys.argv[2]
-sys.path.insert(0, os.getcwd())
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import _run_legacy as v1_run
-
-extended = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
-config = Config(
-    system=SystemSettings(
-        extended_mode=extended,
-        save_raw=True,
-        save_nonshared_raw=True,
-        save_thumbnail_image=False,
-        magic_variable=True,
-        save_invoice_to_structured=True,
-    ),
-    multidata_tile=MultiDataTileSettings(ignore_errors=False),
-    smarttable=SmartTableSettings(save_table_file=False),
-)
-
-
-def sabotage_structured(srcpaths, resource_paths):
-    # The dataset callback succeeds but leaves ``structured`` as a plain file,
-    # so the StructuredInvoiceSaver that follows cannot create its directory.
-    shutil.rmtree(resource_paths.struct)
-    resource_paths.struct.write_text("not a directory", encoding="utf-8")
-
-
-os.chdir(root)
-exit_code = 0
-try:
-    v1_run(custom_dataset_function=sabotage_structured, config=config)
-except SystemExit as error:
-    exit_code = int(error.code or 0)
-
-data_root = root / "data"
-observation = {
-    "exit_code": exit_code,
-    "job_failed": (data_root / "job.failed").exists(),
-    "structured_invoices": sorted(
-        path.relative_to(data_root).as_posix()
-        for path in data_root.rglob("structured/invoice.json")
-    ),
-    "invoice_data_names": {
-        path.relative_to(data_root).as_posix(): json.loads(path.read_text(encoding="utf-8"))["basic"]["dataName"]
-        for path in sorted(data_root.rglob("invoice/invoice.json"))
-    },
-}
-(root / ".structured_failure_observation.json").write_text(json.dumps(observation), encoding="utf-8")
-"""
+_FILENAME_TEMPLATE = _generate.FILENAME_TEMPLATE
 
 
 @flow
@@ -338,69 +203,6 @@ def _structured_sabotaging_flow(paths: InputPaths, out: OutputContext) -> None:
     assert paths.inputdata.is_dir()
     shutil.rmtree(out.struct)
     out.struct.write_text("not a directory", encoding="utf-8")
-
-
-def _inject_template(mode: str, root: Path, template: str) -> None:
-    """Put ``template`` into every tile's ``basic.dataName``."""
-    data_root = root / "data"
-    invoice_path = data_root / "invoice" / "invoice.json"
-    invoice = json.loads(invoice_path.read_text(encoding="utf-8"))
-    invoice.setdefault("basic", {})["dataName"] = template
-    invoice_path.write_text(json.dumps(invoice), encoding="utf-8")
-    if mode != "excelinvoice":
-        return
-    workbook_path = data_root / "inputdata" / "contract_excel_invoice.xlsx"
-    workbook = load_workbook(workbook_path)
-    for sheet in workbook.worksheets:
-        for row in sheet.iter_rows():
-            for cell in row:
-                if cell.value in {"test1", "test2"}:
-                    cell.value = template
-    workbook.save(workbook_path)
-
-
-def _observe_v1_structured_failure(mode: str, root: Path) -> dict[str, Any]:
-    _generate.materialize_sut_case(mode, root)
-    _inject_template(mode, root, _FILENAME_TEMPLATE)
-    completed = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", _V1_STRUCTURED_FAILURE_WORKER, str(root), mode],
-        cwd=_generate.REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = root / ".structured_failure_observation.json"
-    if not observation_path.exists():
-        message = f"v1 structured-failure oracle failed for {mode}: {completed.stderr[-1500:]}"
-        raise RuntimeError(message)
-    result: dict[str, Any] = json.loads(observation_path.read_text(encoding="utf-8"))
-    return result
-
-
-def _observe_v2_structured_failure(mode: str, root: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
-    _generate.materialize_sut_case(mode, root)
-    _inject_template(mode, root, _FILENAME_TEMPLATE)
-    monkeypatch.chdir(root)
-    runner = Runner(
-        root=root,
-        inputdata_path=root / "data" / "inputdata",
-        unpacked_dir_path=root / "data" / "temp",
-    )
-    report = runner.run(_structured_sabotaging_flow, **_v2_overrides(mode))
-    data_root = root / "data"
-    return {
-        "status": report.status,
-        "error_code": (report.error or {}).get("code"),
-        "job_failed": (data_root / "job.failed").exists(),
-        "structured_invoices": sorted(
-            path.relative_to(data_root).as_posix()
-            for path in data_root.rglob("structured/invoice.json")
-        ),
-        "invoice_data_names": {
-            path.relative_to(data_root).as_posix(): json.loads(path.read_text(encoding="utf-8"))["basic"]["dataName"]
-            for path in sorted(data_root.rglob("invoice/invoice.json"))
-        },
-    }
 
 
 @pytest.mark.parametrize(
@@ -427,23 +229,23 @@ def test_structured_failure_after_magic_keeps_the_expanded_invoice__tc_ira_5_ep_
     different catalog codes by contract, so only the presence of ``job.failed``
     is compared.
     """
-    # Given: v1 executed with a callback that sabotages the structured directory
-    expected = _observe_v1_structured_failure(mode, tmp_path / "v1")
+    # Given: v1's frozen run with a callback that sabotages the structured directory
+    expected = frozen_observed(f"v1/{mode}/structfail")
 
     # When: the v2 Runner executes a flow that does the same
-    actual = _observe_v2_structured_failure(mode, tmp_path / "v2", monkeypatch)
+    actual = _observe_v2(f"v1/{mode}/structfail", tmp_path / "v2", monkeypatch, _structured_sabotaging_flow)
 
     # Then: both runs failed and left the same invoices, structured export absent
     assert expected["exit_code"] == 1
-    assert expected["job_failed"] is True
+    assert expected["job_failed_text"] is not None
     assert actual["status"] == "failed"
-    assert actual["job_failed"] is True
+    assert actual["job_failed_code"] is not None
     assert actual["error_code"] == 3006
-    assert actual["structured_invoices"] == expected["structured_invoices"] == []
-    assert actual["invoice_data_names"] == expected["invoice_data_names"]
+    assert _structured_invoices(actual) == _structured_invoices(expected) == []
+    assert _invoice_data_names(actual) == _invoice_data_names(expected)
 
     # And: whether magic completed before the failure is exactly v1's order
-    data_names = set(actual["invoice_data_names"].values())
+    data_names = set(_invoice_data_names(actual).values())
     assert data_names
     if magic_completed:
         assert _FILENAME_TEMPLATE not in data_names

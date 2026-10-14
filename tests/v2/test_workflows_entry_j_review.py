@@ -1,11 +1,13 @@
-"""PR #542 review response: the public v1 callback entry vs live ``_run_legacy``.
+"""PR #542 review response: the public v1 callback entry vs the frozen v1 oracle.
 
 Session J-REVIEW (contracts.md §J-REVIEW) answers the interrogate review of
-2026-10-05. Every scenario the review reproduced is re-run here against a
-**live** ``workflows._run_legacy`` oracle, in-process, over the same static
-contract inputs (``tests/v2/contract/fixtures/_generate.py``), so a difference
-between the v1 API and the unified Runner shows up as an unequal pair of
-observations rather than as a hand-written expectation.
+2026-10-05. Every scenario the review reproduced was pinned against the live v1
+orchestration loop; Session K1 (ruling #4) froze those v1 observations as
+registered ``_generate.py`` cases, so each cell now runs the public entry on the
+case's static input and compares it with the frozen snapshot -- a difference
+between the v1 API and the unified Runner still shows up as an unequal pair of
+observations rather than as a hand-written expectation. A case whose snapshot is
+not frozen yet skips as "pending freeze".
 
 EP / BV table:
 
@@ -14,8 +16,8 @@ EP / BV table:
 | TC-JREV-P1-001     | EP valid | ``RdeConfig.custom`` scalar + nested                          | restored as v1 ``Config`` extras, deep-copied     |
 | TC-JREV-P1-002     | EP inval | custom keys named like v1 top-level fields                    | not restored; structured v1 fields win            |
 | TC-JREV-P1-003     | BV empty | empty ``custom`` / ``None`` config                            | ``model_extra == {}``                             |
-| TC-JREV-P1-004     | EP valid | explicit v1 ``Config(threshold=0.5)`` through ``run()``       | callback sees ``0.5`` exactly as ``_run_legacy``  |
-| TC-JREV-P1-005     | EP valid | tasksupport ``rdeconfig.yaml`` with top-level ``threshold``   | callback sees ``0.5`` exactly as ``_run_legacy``  |
+| TC-JREV-P1-004     | EP valid | explicit v1 ``Config(threshold=0.5)`` through ``run()``       | callback sees ``0.5`` = the frozen v1 case      |
+| TC-JREV-P1-005     | EP valid | tasksupport ``rdeconfig.yaml`` with top-level ``threshold``   | callback sees ``0.5`` = the frozen v1 case      |
 | TC-JREV-P2-001     | EP valid | MDT, ``ignore_errors=True``, every tile fails, public entry   | statuses all failed, exit 0, no job.failed = v1   |
 | TC-JREV-P2-002     | EP valid | same, ``Runner.run(LegacyCallbackTarget)``                    | ``report.status == "partial"``                    |
 | TC-JREV-P2-003     | EP inval | same, ``ignore_errors=False`` (fail-fast)                     | ``SystemExit(1)`` + job.failed = v1               |
@@ -27,11 +29,11 @@ EP / BV table:
 | TC-JREV-P3-002     | BV       | the CWD itself is named ``data``                              | log in ``<cwd>/logs``, no ``data/data``           |
 | TC-JREV-P3-003     | EP inval | alias-flat root with ``StorageDir`` sabotaged                 | ``StorageDir`` never consulted                    |
 | TC-JREV-P3-004     | EP valid | standard layout with ``StorageDir`` redirected (v1 seam)      | the redirect is honoured                          |
-| TC-JREV-F1 (×4)    | EP inval | non-MDT, ``ignore_errors=True``, every tile fails             | exit 1 / job.failed / 1 call = ``_run_legacy``    |
+| TC-JREV-F1 (×4)    | EP inval | non-MDT, ``ignore_errors=True``, every tile fails             | exit 1 / job.failed / 1 call = frozen v1        |
 | TC-JREV-F2 (×3)    | EP inval | non-MDT ≥2 tiles, ``ignore_errors=True``, tile 0 fails        | v1 stops at tile 0: exit 1, 1 call = v1           |
 | TC-JREV-F1-005..7  | EP/BV    | planner policy: callback × mode × configured policy           | continue only for callback + MDT; flow unchanged  |
 | TC-JREV-F3-001     | EP inval | callback succeeds, post-invoke stage fails                    | failed entry target = raw-file list               |
-| TC-JREV-C-001      | EP inval | malformed tasksupport YAML, standard layout                   | job.failed 999 text and exit 1 = ``_run_legacy``  |
+| TC-JREV-C-001      | EP inval | malformed tasksupport YAML, standard layout                   | job.failed 999 text and exit 1 = frozen v1     |
 | TC-JREV-C-002      | EP inval | malformed tasksupport YAML, alias-flat root                   | job.failed under the data root, no ``data/``      |
 """
 
@@ -54,7 +56,9 @@ from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.models.config import Config
 from rdetoolkit.runner.lifecycle import Runner, _run_status
 from rdetoolkit.types import IterationInfo, RdeConfig
+from tests.v2.contract.entry_observation import entry_parity_view, observe_public_entry
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 
 #: v1 ``handle_generic_error``'s fixed ``job.failed`` text (``errors.py``).
 _V1_GENERIC_JOB_FAILED = "ErrorCode=999\nErrorMessage=Error: Please check the logs and code, then try again.\n"
@@ -72,8 +76,8 @@ def _invoke(
 ) -> tuple[Any, int]:
     """Run one entry point with ``root`` as the CWD and capture its exit status.
 
-    Both v1 and the unified entry read their inputs from the CWD and report a
-    failure through ``sys.exit(1)``, so the pair is observed identically.
+    The public entry reads its inputs from the CWD and reports a failure
+    through ``sys.exit(1)``, exactly as v1 did.
     """
     monkeypatch.chdir(root)
     try:
@@ -82,51 +86,24 @@ def _invoke(
         return None, int(error.code or 0)
 
 
-def _legacy_entry(callback: Any, config: Any) -> Any:
-    return workflows._run_legacy(callback, config)  # noqa: SLF001 -- the live v1 oracle
-
-
 def _public_entry(callback: Any, config: Any) -> Any:
     return workflows.run(custom_dataset_function=callback, config=config)
 
 
-def _statuses(result: Any, root: Path) -> Any:
-    """Normalize a legacy JSON payload exactly as the contract observations do."""
-    if result is None:
-        return None
-    return _generate.normalize_snapshot(json.loads(result), roots=(root,))
+def _frozen_entry_pair(case_id: str, root: Path, *, keys: tuple[str, ...] = (), callback: str | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Return (public-entry observation, frozen v1 observation) of one registered case.
 
-
-def _job_failed(root: Path) -> str | None:
-    path = root / "data" / "job.failed"
-    return path.read_text(encoding="utf-8") if path.exists() else None
+    The frozen side is read first, so a pending snapshot skips before the SUT
+    runs at all.
+    """
+    expected = frozen_observed(case_id, keys=keys)
+    actual = observe_public_entry(case_id, root, callback=callback)
+    return actual, expected
 
 
 def _runner(root: Path) -> Runner:
     """Build the Runner exactly as ``workflows._run_callback_entry`` does."""
     return Runner(root=root, inputdata_path=root / "data" / "inputdata", unpacked_dir_path=root / "data" / "temp")
-
-
-def _config_with_extras(mode: str, *, ignore_errors: bool = False, **extras: Any) -> Config:
-    """Return the oracle v1 ``Config`` carrying user-defined top-level fields."""
-    base = _generate.oracle_config(mode, ignore_errors=ignore_errors)
-    return Config(**base.model_dump(), **extras)
-
-
-class _ThresholdProbe:
-    """v1 callback recording what ``srcpaths.config`` exposes for custom fields."""
-
-    def __init__(self) -> None:
-        self.seen: list[tuple[Any, Any]] = []
-
-    def __call__(self, srcpaths: Any, resource_paths: Any) -> None:
-        del resource_paths
-        self.seen.append(
-            (
-                getattr(srcpaths.config, "threshold", "MISSING"),
-                getattr(srcpaths.config, "nested", "MISSING"),
-            ),
-        )
 
 
 def _all_tiles_fail(srcpaths: Any, resource_paths: Any) -> None:
@@ -199,59 +176,41 @@ class TestToLegacyConfigRestoresCustom:
 
 
 class TestCustomConfigRoundTripMatchesLegacy:
-    """TC-JREV-P1-004/005: the review's P1 reproduction against live ``_run_legacy``."""
+    """TC-JREV-P1-004/005: the review's P1 reproduction against the frozen v1 oracle."""
 
-    def test_explicit_v1_config_custom_fields_reach_the_callback__tc_jrev_p1_004(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_explicit_v1_config_custom_fields_reach_the_callback__tc_jrev_p1_004(self, tmp_path: Path) -> None:
         """TC-JREV-P1-004: explicit v1 config custom fields reach the callback."""
-        # Given: the same invoice input and an explicit v1 Config with extras
-        observations = {}
-        for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-            root = tmp_path / side
-            _generate.materialize_sut_case("invoice", root)
-            probe = _ThresholdProbe()
+        # Given: the invoice input and an explicit v1 Config carrying extras,
+        # frozen from v1 as ``invoice/ok__config_extras``
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair(
+            "v1/invoice/ok__config_extras",
+            tmp_path / "public",
+            keys=("callback_config_extras",),
+        )
 
-            # When: each entry point runs it
-            result, exit_code = _invoke(
-                root,
-                monkeypatch,
-                entry,
-                probe,
-                _config_with_extras("invoice", threshold=0.5, nested={"a": 1}),
-            )
-            observations[side] = (probe.seen, exit_code, _statuses(result, root))
+        # Then: v1's callback saw the user's own fields ...
+        assert expected["callback_config_extras"] == [{"threshold": 0.5, "nested": {"a": 1}}]
+        assert expected["exit_code"] == 0
+        # ... and so did the unified entry, with every other observable equal
+        assert actual["callback_config_extras"] == expected["callback_config_extras"]
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
-        # Then: the callback saw the user's own fields, as v1 delivered them
-        assert observations["legacy"][0] == [(0.5, {"a": 1})]
-        assert observations["public"] == observations["legacy"]
-
-    def test_tasksupport_custom_fields_reach_the_callback__tc_jrev_p1_005(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_tasksupport_custom_fields_reach_the_callback__tc_jrev_p1_005(self, tmp_path: Path) -> None:
         """TC-JREV-P1-005: tasksupport custom fields reach the callback."""
-        # Given: a tasksupport rdeconfig.yaml with top-level custom keys
-        observations = {}
-        for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-            root = tmp_path / side
-            _generate.materialize_sut_case("invoice", root)
-            (root / "data" / "tasksupport" / "rdeconfig.yaml").write_text(
-                yaml.safe_dump({"system": {"save_raw": True}, "threshold": 0.5, "nested": {"a": 1}}),
-                encoding="utf-8",
-            )
-            probe = _ThresholdProbe()
-
-            # When: each entry point runs with config=None
-            result, exit_code = _invoke(root, monkeypatch, entry, probe, None)
-            observations[side] = (probe.seen, exit_code, _statuses(result, root))
+        # Given: a tasksupport rdeconfig.yaml with top-level custom keys and
+        # config=None, frozen from v1 as ``invoice/ok__tasksupport_extras``
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair(
+            "v1/invoice/ok__tasksupport_extras",
+            tmp_path / "public",
+            keys=("callback_config_extras",),
+        )
 
         # Then: both delivered the file's custom keys to the callback
-        assert observations["legacy"][0] == [(0.5, {"a": 1})]
-        assert observations["public"] == observations["legacy"]
+        assert expected["callback_config_extras"] == [{"threshold": 0.5, "nested": {"a": 1}}]
+        assert actual["callback_config_extras"] == expected["callback_config_extras"]
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
 
 # ---------------------------------------------------------------------------
@@ -262,82 +221,36 @@ class TestCustomConfigRoundTripMatchesLegacy:
 class TestAllTilesFailedUnderIgnoreErrors:
     """TC-JREV-P2-001..004: v1 API parity for the callback, §7.2 for the flow."""
 
-    def test_public_entry_matches_legacy_when_every_tile_fails__tc_jrev_p2_001(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_public_entry_matches_legacy_when_every_tile_fails__tc_jrev_p2_001(self, tmp_path: Path) -> None:
         """TC-JREV-P2-001: public entry matches legacy when every tile fails."""
-        # Given: the two-tile MultiDataTile family under ignore_errors=True
-        observations = {}
-        for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-            root = tmp_path / side
-            _generate.materialize_sut_case("multidatatile", root)
-
-            # When: every callback raises StructuredError("all failed", 999)
-            result, exit_code = _invoke(
-                root,
-                monkeypatch,
-                entry,
-                _all_tiles_fail,
-                _generate.oracle_config("multidatatile", ignore_errors=True),
-            )
-            observations[side] = {
-                "exit_code": exit_code,
-                "statuses": _statuses(result, root),
-                "job_failed": _job_failed(root),
-            }
+        # Given: the two-tile MultiDataTile family under ignore_errors=True with
+        # a callback failing every tile, frozen as ``usererr__ignore_errors``
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair("v1/multidatatile/usererr__ignore_errors", tmp_path / "public")
 
         # Then: v1 returned every failed status normally and wrote no marker
-        legacy = observations["legacy"]
-        assert legacy["exit_code"] == 0
-        assert legacy["job_failed"] is None
-        assert [status["status"] for status in legacy["statuses"]["statuses"]] == ["failed", "failed"]
+        assert expected["exit_code"] == 0
+        assert expected["job_failed_text"] is None
+        assert [status["status"] for status in expected["legacy_return"]["statuses"]] == ["failed", "failed"]
         # And: the unified entry point is indistinguishable from it
-        assert observations["public"] == legacy
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
-    def test_public_entry_matches_legacy_on_a_mixed_partial_run__tc_jrev_p2_008(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_public_entry_matches_legacy_on_a_mixed_partial_run__tc_jrev_p2_008(self, tmp_path: Path) -> None:
         """The success and failed entry shapes side by side, against the oracle."""
-        # Given: the MultiDataTile family grown to three tiles, ignore_errors=True
-        observations = {}
-        for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-            root = tmp_path / side
-            _generate.materialize_sut_case("multidatatile", root)
-            (root / "data" / "inputdata" / "tile_02.txt").write_text("third tile\n", encoding="utf-8")
-            calls: list[int] = []
-
-            def _middle_tile_fails(srcpaths: Any, resource_paths: Any, calls: list[int] = calls) -> None:
-                del srcpaths, resource_paths
-                calls.append(len(calls))
-                if len(calls) == 2:
-                    raise StructuredError(_ALL_FAILED_MESSAGE, ecode=777)
-
-            # When: only the middle tile fails
-            result, exit_code = _invoke(
-                root,
-                monkeypatch,
-                entry,
-                _middle_tile_fails,
-                _generate.oracle_config("multidatatile", ignore_errors=True),
-            )
-            observations[side] = {
-                "exit_code": exit_code,
-                "statuses": _statuses(result, root),
-                "job_failed": _job_failed(root),
-                "calls": list(calls),
-            }
+        # Given: the MultiDataTile family grown to three tiles, ignore_errors=True,
+        # only the middle tile failing -- frozen as ``tilefail__ignore_errors``
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair("v1/multidatatile/tilefail__ignore_errors", tmp_path / "public")
 
         # Then: v1 returned success / failed / success and exited normally
-        legacy = observations["legacy"]
-        assert legacy["exit_code"] == 0
-        assert legacy["job_failed"] is None
-        assert [status["status"] for status in legacy["statuses"]["statuses"]] == ["success", "failed", "success"]
+        assert expected["exit_code"] == 0
+        assert expected["job_failed_text"] is None
+        assert expected["callback_count"] == 3
+        statuses = expected["legacy_return"]["statuses"]
+        assert [status["status"] for status in statuses] == ["success", "failed", "success"]
         # And: every field of every entry is identical on the unified entry
-        assert observations["public"] == legacy
+        assert actual["legacy_return"] == expected["legacy_return"]
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
     def test_runner_reports_partial_for_the_legacy_target__tc_jrev_p2_002(
         self,
@@ -367,33 +280,24 @@ class TestAllTilesFailedUnderIgnoreErrors:
         # And: finalize published no job-failure marker
         assert not (root / "data" / "job.failed").exists()
 
-    def test_fail_fast_legacy_target_still_fails_like_legacy__tc_jrev_p2_003(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_fail_fast_legacy_target_still_fails_like_legacy__tc_jrev_p2_003(self, tmp_path: Path) -> None:
         """TC-JREV-P2-003: fail fast legacy target still fails like legacy."""
-        # Given: the same family under v1's default fail-fast policy
-        observations = {}
-        for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-            root = tmp_path / side
-            _generate.materialize_sut_case("multidatatile", root)
+        # Given: the same family under v1's default fail-fast policy with every
+        # callback failing -- the frozen ``multidatatile/usererr`` cell
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair("v1/multidatatile/usererr", tmp_path / "public")
 
-            # When: every callback fails
-            result, exit_code = _invoke(
-                root,
-                monkeypatch,
-                entry,
-                _all_tiles_fail,
-                _generate.oracle_config("multidatatile", ignore_errors=False),
-            )
-            observations[side] = (exit_code, result, _job_failed(root))
-
-        # Then: both exited 1 without a payload after writing the same marker
-        assert observations["legacy"][0] == 1
-        assert observations["legacy"][1] is None
-        assert observations["legacy"][2] == f"ErrorCode=999\nErrorMessage={_ALL_FAILED_MESSAGE}\n"
-        assert observations["public"] == observations["legacy"]
+        # Then: v1 exited 1 without a payload after writing the marker
+        assert expected["exit_code"] == 1
+        assert expected["legacy_return"] is None
+        assert expected["job_failed_text"] == f"ErrorCode=999\nErrorMessage={_generate.CALLBACK_FAILURE_MESSAGE}\n"
+        # And: the unified entry point did exactly the same
+        assert (actual["exit_code"], actual["legacy_return"], actual["job_failed_text"]) == (
+            expected["exit_code"],
+            expected["legacy_return"],
+            expected["job_failed_text"],
+        )
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
     def test_flow_target_with_continue_all_failed_stays_failed__tc_jrev_p2_004(
         self,
@@ -591,28 +495,22 @@ class TestCallbackEntryLogLocation:
 class TestMalformedTasksupportConfig:
     """TC-JREV-C-001/002: the loader failure takes v1's generic failure route."""
 
-    def test_malformed_yaml_matches_legacy__tc_jrev_c_001(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_malformed_yaml_matches_legacy__tc_jrev_c_001(self, tmp_path: Path) -> None:
         """TC-JREV-C-001: malformed yaml matches legacy."""
-        # Given: the same input with an unparseable data/tasksupport/rdeconfig.yaml
-        observations = {}
-        for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-            root = tmp_path / side
-            _generate.materialize_sut_case("invoice", root)
-            (root / "data" / "tasksupport" / "rdeconfig.yaml").write_text("system: [broken\n", encoding="utf-8")
-            recorder = _CallRecorder()
-
-            # When: each entry point runs with config=None
-            result, exit_code = _invoke(root, monkeypatch, entry, recorder, None)
-            observations[side] = (exit_code, result, _job_failed(root), recorder.calls)
+        # Given: an unparseable data/tasksupport/rdeconfig.yaml and config=None,
+        # frozen from v1 as ``invoice/cfgerr__broken_yaml``
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair("v1/invoice/cfgerr__broken_yaml", tmp_path / "public")
 
         # Then: v1 exited 1 with its generic marker and never ran the callback
-        assert observations["legacy"] == (1, None, _V1_GENERIC_JOB_FAILED, 0)
+        assert (
+            expected["exit_code"],
+            expected["legacy_return"],
+            expected["job_failed_text"],
+            expected["callback_count"],
+        ) == (1, None, _V1_GENERIC_JOB_FAILED, 0)
         # And: the unified entry point is identical, marker text included
-        assert observations["public"] == observations["legacy"]
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
     def test_malformed_yaml_in_alias_flat_root_writes_below_the_data_root__tc_jrev_c_002(
         self,
@@ -730,89 +628,45 @@ class TestLegacyFailedEntryShape:
 _NON_MDT_TILE_COUNTS = {"invoice": 1, "excelinvoice": 2, "rdeformat": 2, "smarttable": 3}
 
 
-class _TileScript:
-    """v1 callback failing the tiles named in ``failing`` and counting calls."""
-
-    def __init__(self, failing: set[int] | None) -> None:
-        self.failing = failing
-        self.calls = 0
-
-    def __call__(self, srcpaths: Any, resource_paths: Any) -> None:
-        del srcpaths, resource_paths
-        index = self.calls
-        self.calls += 1
-        if self.failing is None or index in self.failing:
-            raise StructuredError(_ALL_FAILED_MESSAGE, ecode=999)
-
-
-def _observe_ignore_errors(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    mode: str,
-    failing: set[int] | None,
-) -> dict[str, Any]:
-    """Run one mode with ``ignore_errors=True`` on both entry points."""
-    observations: dict[str, Any] = {}
-    for side, entry in (("legacy", _legacy_entry), ("public", _public_entry)):
-        root = tmp_path / side
-        _generate.materialize_sut_case(mode, root)
-        script = _TileScript(failing)
-        result, exit_code = _invoke(
-            root,
-            monkeypatch,
-            entry,
-            script,
-            _generate.oracle_config(mode, ignore_errors=True),
-        )
-        observations[side] = {
-            "exit_code": exit_code,
-            "statuses": _statuses(result, root),
-            "job_failed": _job_failed(root),
-            "calls": script.calls,
-        }
-    return observations
-
-
 class TestIgnoreErrorsIsMultiDataTileOnly:
     """TC-JREV-F1-001..004 / TC-JREV-F2-001..003: non-MDT stays fail-fast, as v1."""
 
     @pytest.mark.parametrize("mode", list(_NON_MDT_TILE_COUNTS))
-    def test_every_tile_failing_exits_1_like_legacy__tc_jrev_f1(
-        self,
-        mode: str,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_every_tile_failing_exits_1_like_legacy__tc_jrev_f1(self, mode: str, tmp_path: Path) -> None:
         """TC-JREV-F1: every tile failing exits 1 like legacy."""
-        # Given / When: ignore_errors=True and a callback failing every tile
-        observations = _observe_ignore_errors(tmp_path, monkeypatch, mode, failing=None)
+        # Given: ignore_errors=True and a callback failing every tile, frozen
+        # from v1 as ``<mode>/usererr__ignore_errors``
+        # When: the public entry point runs the same case
+        actual, expected = _frozen_entry_pair(f"v1/{mode}/usererr__ignore_errors", tmp_path / "public")
 
         # Then: v1 ignored the flag outside MultiDataTile -- exit 1 after one call
-        legacy = observations["legacy"]
-        assert legacy["exit_code"] == 1
-        assert legacy["calls"] == 1
-        assert legacy["job_failed"] == f"ErrorCode=999\nErrorMessage={_ALL_FAILED_MESSAGE}\n"
+        assert expected["exit_code"] == 1
+        assert expected["callback_count"] == 1
+        assert expected["job_failed_text"] == f"ErrorCode=999\nErrorMessage={_generate.CALLBACK_FAILURE_MESSAGE}\n"
         # And: the unified entry point agrees on every observable
-        assert observations["public"] == legacy
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
     @pytest.mark.parametrize("mode", [mode for mode, count in _NON_MDT_TILE_COUNTS.items() if count >= 2])
-    def test_first_tile_failing_stops_the_run_like_legacy__tc_jrev_f2(
-        self,
-        mode: str,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """TC-JREV-F2: first tile failing stops the run like legacy."""
+    def test_first_tile_failing_stops_the_run_like_legacy__tc_jrev_f2(self, mode: str, tmp_path: Path) -> None:
+        """TC-JREV-F2: first tile failing stops the run like legacy.
+
+        The callback fails tile 0 only, so a later tile *would* succeed; the
+        expectation is v1's own run of exactly that scenario, frozen as
+        ``<mode>/usererr__first_tile__ignore_errors``.
+        """
         # Given / When: ignore_errors=True, tile 0 fails and the rest would succeed
-        observations = _observe_ignore_errors(tmp_path, monkeypatch, mode, failing={0})
+        actual, expected = _frozen_entry_pair(
+            f"v1/{mode}/usererr__first_tile__ignore_errors",
+            tmp_path / "public",
+        )
 
         # Then: v1 stopped at the first failure -- no later tile ran
-        legacy = observations["legacy"]
-        assert legacy["exit_code"] == 1
-        assert legacy["calls"] == 1
-        assert legacy["job_failed"] is not None
+        assert expected["exit_code"] == 1
+        assert expected["callback_count"] == 1
+        assert expected["job_failed_text"] is not None
         # And: the unified entry point did not keep going
-        assert observations["public"] == legacy
+        assert actual["callback_count"] == 1
+        assert entry_parity_view(actual) == entry_parity_view(expected)
 
 
 class TestLegacyTargetErrorPolicy:

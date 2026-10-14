@@ -235,9 +235,10 @@ def test_to_legacy_statuses_matches_frozen_v1_error_payload(
     assert actual_statuses[0]["error_code"] == error["code"]
     # UPDATED Session J-REVIEW ruling #2 (decision A): a failed entry is no
     # longer a v2-defined shape. v1 returns failed statuses from an
-    # ``ignore_errors`` run, and the live ``_run_legacy`` oracle
-    # (TC-JREV-P2-001/008) shows v1's ``_create_error_status`` shape: the
-    # ``Error: `` message prefix and the mode-labelled title.
+    # ``ignore_errors`` run, and the v1 oracle (TC-JREV-P2-001/008, frozen as
+    # ``multidatatile/{usererr,tilefail}__ignore_errors`` since Session K1)
+    # shows v1's ``_create_error_status`` shape: the ``Error: `` message prefix
+    # and the mode-labelled title.
     assert actual_statuses[0]["error_message"] == f"Error: {error['message']}"
     assert actual_statuses[0]["title"] == f"Structured Process Failed: {_V1_FAILURE_LABELS[mode]}"
     assert actual_statuses[0]["status"] == "failed"
@@ -245,7 +246,7 @@ def test_to_legacy_statuses_matches_frozen_v1_error_payload(
     assert actual_statuses[0]["run_id"] != report.run_id
 
 
-def test_runner_run_legacy_statuses_use_tile_indexes_not_run_uuid__tc_ep_hr2_ae_001(
+def test_runner_legacy_statuses_use_tile_indexes_not_run_uuid__tc_ep_hr2_ae_001(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

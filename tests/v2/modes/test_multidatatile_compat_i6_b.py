@@ -4,11 +4,11 @@ The frozen MultiDataTile fixture registers exactly two inputs, which cannot
 show the empty-inputdata fallback, the ``divided/`` numbering beyond one tile,
 or how the mode reacts to an ExcelInvoice workbook appearing in ``inputdata``.
 Those branches live in ``impl/input_controller.MultiFileChecker`` and in mode
-resolution, so this module runs v1 itself as a **dynamic oracle**: every
-scenario is materialized twice, observed once through the isolated v1 worker
-(``_generate._execute_v1_observation``) and once through the v2 Runner, and the
-two observations are compared. No fixture under ``fixtures/expected/`` is read
-or written here.
+resolution. Until Session K1 this module ran v1 itself as a dynamic oracle; K1
+ruling #6 item 10 registered every scenario as a generator case
+(``multidatatile/ok__<variant>``, builders in ``_generate.py``), so each cell now
+runs the same builder through the v2 Runner and compares it with the frozen v1
+observation.
 
 Session I6-B changed no MultiDataTile production code: the shared Core wiring
 installed by Session I6-1 already reproduces each scenario, and these tests
@@ -42,9 +42,6 @@ BV / negative table:
 
 from __future__ import annotations
 
-import shutil
-import tempfile
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -57,6 +54,7 @@ from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettin
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 from tests.v2.contract.observe import observe_v2_run, parity_view
 
 _MODE = "multidatatile"
@@ -76,7 +74,6 @@ _V2_OVERRIDES: dict[str, Any] = {
     "smarttable": {"save_table_file": False},
 }
 
-CaseBuilder = Callable[[Path], None]
 
 
 @flow
@@ -86,53 +83,25 @@ def _noop_flow(paths: InputPaths) -> None:
 
 
 # --------------------------------------------------------------------------
-# Scenario construction
+# Subject harness (scenario builders live in ``_generate.py``, K1 ruling #1)
 # --------------------------------------------------------------------------
-def _base_case(root: Path) -> None:
-    _generate._materialize_oracle_case(_MODE, root)  # noqa: SLF001 -- shared case assembly
+def _case_id(variant: str) -> str:
+    return f"v1/{_MODE}/ok__{variant}"
 
 
-def _build_empty_inputdata(root: Path) -> None:
-    _base_case(root)
-    for path in sorted((root / "data" / "inputdata").iterdir()):
-        path.unlink()
-
-
-def _build_three_inputs(root: Path) -> None:
-    _base_case(root)
-    (root / "data" / "inputdata" / "tile_02.txt").write_text("third tile\n", encoding="utf-8")
-
-
-def _build_with_excel_workbook(root: Path) -> None:
-    _base_case(root)
-    shutil.copy2(
-        _generate.INPUT_ROOT / "excelinvoice" / "data" / "inputdata" / "excelinvoice_multi.xlsx",
-        root / "data" / "inputdata" / "stray_excel_invoice.xlsx",
-    )
-
-
-# --------------------------------------------------------------------------
-# Oracle / subject harness
-# --------------------------------------------------------------------------
-def _observe_v1(build: CaseBuilder) -> dict[str, Any]:
-    """Run the scenario through the isolated v1 worker and observe it."""
-    with tempfile.TemporaryDirectory(prefix="i6b-mdt-oracle-") as temporary:
-        root = Path(temporary) / "case"
-        root.mkdir()
-        build(root)
-        # The same worker that froze the static fixtures; reusing it keeps the
-        # oracle's config, normalization and observation identical to theirs.
-        return _generate._execute_v1_observation(_MODE, "ok", root)  # noqa: SLF001
+def _observe_v1(variant: str) -> dict[str, Any]:
+    """Return the frozen v1 observation of one scenario (skips while pending)."""
+    return frozen_observed(_case_id(variant))
 
 
 def _observe_v2(
-    build: CaseBuilder,
+    variant: str,
     root: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> tuple[Any, dict[str, Any]]:
     """Run the same scenario through the v2 Runner and observe it."""
     root.mkdir()
-    build(root)
+    _generate.materialize_case(_generate.oracle_case(_case_id(variant)), root)
     monkeypatch.chdir(root)
     runner = Runner(
         root=root,
@@ -170,12 +139,12 @@ def test_empty_inputdata_still_yields_one_tile__tc_i6_b_ep_030(
 ) -> None:
     """TC-I6-B-EP-030: v1's ``[()]`` fallback runs the flow once with no raw input."""
     # Given: a MultiDataTile case whose inputdata directory is empty
-    oracle = _observe_v1(_build_empty_inputdata)
+    oracle = _observe_v1("empty_inputdata")
     assert oracle["exit_code"] == 0
     assert oracle["callback_count"] == 1
 
     # When: running the identical input through the v2 Runner
-    report, observed = _observe_v2(_build_empty_inputdata, tmp_path / _MODE, monkeypatch)
+    report, observed = _observe_v2("empty_inputdata", tmp_path / _MODE, monkeypatch)
 
     # Then: exactly one tile ran, published nothing, and matches v1 everywhere
     assert report.status == "success"
@@ -190,11 +159,11 @@ def test_three_inputs_number_the_divided_tiles__tc_i6_b_ep_031(
 ) -> None:
     """TC-I6-B-EP-031: tile 0 stays flat while later tiles take ``divided/000N``."""
     # Given: a MultiDataTile case with three input files
-    oracle = _observe_v1(_build_three_inputs)
+    oracle = _observe_v1("three_inputs")
     assert oracle["callback_count"] == 3
 
     # When: running the identical input through the v2 Runner
-    report, observed = _observe_v2(_build_three_inputs, tmp_path / _MODE, monkeypatch)
+    report, observed = _observe_v2("three_inputs", tmp_path / _MODE, monkeypatch)
 
     # Then: the divided numbering and every artifact match v1
     assert report.status == "success"
@@ -255,7 +224,7 @@ def test_excel_workbook_overrides_the_configured_mode__tc_i6_b_ev_034(
     MultiDataTile mode.
     """
     # Given: a MultiDataTile case that also carries an ExcelInvoice workbook
-    oracle = _observe_v1(_build_with_excel_workbook)
+    oracle = _observe_v1("excel_workbook_present")
     assert oracle["exit_code"] == 1
     assert oracle["callback_count"] == 0
     assert oracle["job_failed_text"] == (
@@ -264,7 +233,7 @@ def test_excel_workbook_overrides_the_configured_mode__tc_i6_b_ev_034(
 
     # When: running the identical input through the v2 Runner
     root = tmp_path / _MODE
-    report, observed = _observe_v2(_build_with_excel_workbook, root, monkeypatch)
+    report, observed = _observe_v2("excel_workbook_present", root, monkeypatch)
 
     # Then: v2 fails before any tile with v1's byte-identical job.failed
     assert report.status == "failed"

@@ -1,9 +1,10 @@
 """Unified callback/flow compatibility matrix for ADR-023.
 
 EP table:
-    TC-UM-*-CB-OK: v1 callback SUT succeeds and matches its frozen observation.
-    TC-UM-*-CB-USERERR: callback StructuredError exits with frozen job.failed.
-    TC-UM-*-CB-VALERR: invalid invoice exits with frozen validation artifact.
+    (The fifteen TC-UM-*-CB-OK/USERERR/VALERR cells re-ran v1's own loop
+    against its own snapshot. They were pins of the oracle, not of the
+    unification, and Session K1 ruling #4 retired them with the live oracle:
+    ``_generate.py --check`` is where a v1 re-observation is compared now.)
     TC-UM-*-FLOW-OK: eager v2 Runner succeeds against the same static input.
         For the modes listed in ``_FULL_PARITY_MODES`` this compares the full
         frozen artifact observation (output tree minus data/logs/ contents, raw
@@ -18,7 +19,6 @@ EP table:
         Runner** as the SUT — ``Runner.run(RunRequest(target=
         LegacyCallbackTarget(...)))`` driving ``LegacyCallbackInvoker`` — still
         compared with the frozen v1 observation (Session I-REVIEW-B, review F5).
-        The CB cells above deliberately stay v1-versus-v1 pins.
     TC-UM-*-CB-ENTRY-OK/USERERR/VALERR: the same three outcomes with the
         **public** entry point as the SUT — ``workflows.run(custom_dataset_function=
         ...)`` executed in a subprocess so its ``sys.exit`` and its CWD-relative
@@ -38,12 +38,12 @@ EP table:
 
 BV table:
     TC-UM-XLS/MDT/SMT-FLOW-FAIL-FAST: a three-tile family whose tile 1 raises
-        StructuredError(999); compared with a live v1 oracle (v1's default
-        ``ignore_errors=False`` is fail-fast) on tree, raw, artifact content,
-        invoices and job.failed.
+        StructuredError(999); compared with the frozen ``<mode>/tilefail``
+        observation (v1's default ``ignore_errors=False`` is fail-fast) on tree,
+        raw, artifact content, invoices and job.failed.
     TC-UM-MDT-FLOW-CONTINUE-PARTIAL: same family with
         ``multidata_tile.ignore_errors=true``, the only continue policy v1 has;
-        compared with a live v1 oracle.
+        compared with the frozen ``multidatatile/tilefail__ignore_errors``.
     TC-UM-XLS/SMT-FLOW-CONTINUE-PARTIAL: v2-only contract — v1 re-raises from
         these modes, so there is no oracle (contracts.md §I-REVIEW-B).
     TC-UM-MDT-FLOW-SIGTERM: a two-tile MultiDataTile run terminated between
@@ -53,9 +53,10 @@ BV table:
     TC-UM-MDT-CB-ENTRY-SIGTERM: the same termination through the public entry
         point, whose return code is 1 because a failed run exits non-zero.
 
-All expected callback values are static JSON produced by ``_generate.py`` at
-the ``source.commit`` recorded in each snapshot. The tests execute v1 only as
-the SUT; they never create an expected value at test time.
+All expected values are static JSON produced by ``_generate.py`` at the
+``source.commit`` recorded in each snapshot. No cell executes v1; a registered
+case whose snapshot is not frozen yet skips as "pending freeze"
+(tests/v2/contract/frozen.py, Session K1 ruling #3).
 """
 
 from __future__ import annotations
@@ -66,12 +67,10 @@ import signal
 import subprocess
 import sys
 import time
-import zipfile
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, cast
 
-import pandas as pd
 import pytest
 from typer.testing import CliRunner
 
@@ -91,12 +90,13 @@ from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo
 from tests.v2.contract.entry_observation import (
     entry_parity_view,
-    execute_entry_observation,
+    observe_public_entry,
     frontload_gap_kind,
     has_rdesys_log,
     tree_entries,
 )
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 from tests.v2.contract.observe import observe_v2_run, parity_pair, parity_view, pending_freeze_view
 from tests.v2.contract.provenance_parity import (
     archive_listing,
@@ -217,35 +217,6 @@ def _expected_invoice_sequence(invoices: dict[str, object]) -> list[object]:
 
 
 @pytest.mark.parametrize(
-    ("mode", "outcome"),
-    [
-        pytest.param(mode, outcome, id=f"TC-UM-{_MODE_IDS[mode]}-CB-{outcome.upper()}")
-        for mode in _MODES
-        for outcome in ("ok", "usererr", "valerr")
-    ],
-)
-def test_callback_entry_matches_frozen_v1_contract(mode: str, outcome: str) -> None:
-    """Callback matrix cells compare the v1 SUT with static generated expectations."""
-    # Given: the immutable snapshot generated from v1 at its recorded source.commit
-    expected = _frozen(mode, outcome)["observed"]
-
-    # When: executing the same v1 path as the subject under test in isolation
-    actual = _generate.run_v1_sut(mode, outcome)
-
-    # Then: all frozen artifacts and legacy return fields remain compatible.
-    # ``artifact_sha256`` is observed but not yet frozen (ruling #1 ritual step
-    # (a)); it starts being compared the moment the re-freeze lands.
-    assert pending_freeze_view(actual, expected) == expected
-    if outcome == "ok":
-        assert actual["exit_code"] == 0
-        assert actual["callback_count"] >= 1
-        assert actual["job_failed_error_code"] is None
-    else:
-        assert actual["exit_code"] == 1
-        assert actual["job_failed_error_code"].startswith("ErrorCode=")
-
-
-@pytest.mark.parametrize(
     "mode",
     [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-FLOW-OK") for mode in _MODES],
 )
@@ -292,11 +263,9 @@ def test_flow_entry_success_matches_frozen_v1_primary_contract(
 # --------------------------------------------------------------------------
 # CB-V2 matrix (Session I-REVIEW-B, review F5)
 #
-# The CB cells above re-run *v1's own loop* and compare it with the snapshot v1
-# produced: they pin the oracle, not the unification. The cells below make the
-# subject under test the thing the review asked for -- the unified Runner
-# driving ``LegacyCallbackInvoker`` through a ``LegacyCallbackTarget`` -- while
-# keeping the same frozen v1 observation as the expectation.
+# The cells below make the subject under test the thing the review asked for --
+# the unified Runner driving ``LegacyCallbackInvoker`` through a
+# ``LegacyCallbackTarget`` -- with the frozen v1 observation as the expectation.
 # --------------------------------------------------------------------------
 
 
@@ -473,16 +442,15 @@ def test_callback_target_smarttable_row_material_matches_the_v1_oracle__tc_um_sm
     """The SmartTable row dictionary the callback receives equals v1's.
 
     ``smarttable_row_data`` is the one callback argument the v2 Runner rebuilds
-    from its own plan (``TileMaterial``, review F1), so a frozen artifact
-    comparison cannot see a regression in it. The expectation is therefore a
-    live v1 run of the same fixture rather than a snapshot.
+    from its own plan (``TileMaterial``, review F1), so an artifact comparison
+    cannot see a regression in it. The expectation is the ``callback_rows``
+    observation frozen with ``smarttable/ok`` (Session K1 ruling #6 item 1),
+    which replaced the live v1 run this cell used to make.
     """
-    # Given: a live v1 oracle run recording what each callback invocation got
-    v1_root = tmp_path / "v1"
-    _generate.materialize_sut_case("smarttable", v1_root)
-    oracle = _generate._execute_v1_observation("smarttable", "ok", v1_root)  # noqa: SLF001
-    assert oracle["exit_code"] == 0
-    expected_rows = _generate.read_callback_row_data(v1_root)
+    # Given: the row material every v1 callback invocation received, frozen
+    expected = frozen_observed("v1/smarttable/ok", keys=("callback_rows",))
+    assert expected["exit_code"] == 0
+    expected_rows = expected["callback_rows"]
 
     # When: the same callback runs on the same fixture through the v2 Runner
     v2_root = tmp_path / "v2"
@@ -494,7 +462,7 @@ def test_callback_target_smarttable_row_material_matches_the_v1_oracle__tc_um_sm
     assert observed_rows == expected_rows
 
     # And: the material is genuinely populated, so equality is not two empties
-    assert len(observed_rows) == oracle["callback_count"]
+    assert len(observed_rows) == expected["callback_count"]
     assert all(row for row in observed_rows)
     assert {row["basic/dataName"] for row in observed_rows} == {
         "smarttable_value_0",
@@ -588,8 +556,7 @@ def test_callback_target_accepts_the_unified_signature__tc_um_inv_cb_v2_signatur
 
 def _cb_entry_observation(mode: str, outcome: str, root: Path) -> dict[str, Any]:
     """Materialize one static case and observe the public entry point on it."""
-    _generate.materialize_sut_case(mode, root)
-    return execute_entry_observation(mode, outcome, root)
+    return observe_public_entry(f"v1/{mode}/{outcome}", root)
 
 
 @pytest.mark.parametrize(
@@ -613,8 +580,10 @@ def test_public_entry_success_matches_the_frozen_v1_observation(
     # When: the public v1 entry point runs the same callback on the same input
     actual = _cb_entry_observation(mode, "ok", tmp_path / mode)
 
-    # Then: the complete observation matches, log directory contents aside
-    assert entry_parity_view(actual) == entry_parity_view(expected)
+    # Then: the complete observation matches, log directory contents aside --
+    # the case's observation extras included once they are frozen (SmartTable
+    # carries ``callback_rows`` / ``callback_paths``, Session K1 ruling #2)
+    assert entry_parity_view(pending_freeze_view(actual, expected)) == entry_parity_view(expected)
 
     # And: the run succeeded, calling the callback once per frozen tile
     assert actual["exit_code"] == 0
@@ -847,8 +816,9 @@ def test_flow_error_cells_match_the_i6_0_translation_table(
 # runs a three-tile family whose tile index 1 raises StructuredError(999):
 # that is the smallest shape in which ``continue`` and ``fail_fast`` are
 # distinguishable, because a later tile must remain to be either run or
-# skipped. The FAIL-FAST cells and the MultiDataTile CONTINUE cell compare a
-# live v1 oracle; ExcelInvoice and SmartTable have no v1 continue policy at all
+# skipped. The FAIL-FAST cells and the MultiDataTile CONTINUE cell compare the
+# frozen ``tilefail`` observations of that family (Session K1 ruling #6 items
+# 2-3); ExcelInvoice and SmartTable have no v1 continue policy at all
 # (v1 honors ``ignore_errors`` only in MultiDataTile, ``workflows._process_mode``),
 # so their CONTINUE cells state a v2-only contract.
 # --------------------------------------------------------------------------
@@ -856,9 +826,8 @@ def test_flow_error_cells_match_the_i6_0_translation_table(
 #: The three modes whose input families can produce more than one tile.
 _POLICY_MODES = ("excelinvoice", "multidatatile", "smarttable")
 
-#: Tiles each policy family produces. Three is the contract, not an accident:
-#: with two tiles a fail-fast run and a continue run are indistinguishable.
-_POLICY_TILE_COUNT = 3
+#: Tiles each policy family produces (``_generate.materialize_policy_case``).
+_POLICY_TILE_COUNT = _generate.POLICY_TILE_COUNT
 
 _POLICY_FLOW_CALLS: list[int] = []
 
@@ -872,63 +841,6 @@ def _policy_flow(paths: InputPaths, iteration: IterationInfo) -> None:
         raise StructuredError(_USERERR_MESSAGE, ecode=999)
 
 
-def _extend_excelinvoice_to_three_rows(inputdata: Path) -> None:
-    """Grow the two-row ExcelInvoice fixture into a three-tile family.
-
-    The committed workbook is read back and one data row is appended rather
-    than rebuilt from the fixture constants, so this helper cannot drift away
-    from the sheet layout ``_generate._write_excelinvoice`` produces. The file
-    archive is rewritten with deterministic member metadata for the same reason
-    the generator does: a timestamp in a ZIP entry would make the input
-    non-reproducible.
-
-    Args:
-        inputdata: The materialized ``data/inputdata`` directory.
-    """
-    workbook = inputdata / "contract_excel_invoice.xlsx"
-    sheets = pd.read_excel(workbook, sheet_name=None, header=None)
-    form = sheets["invoice_form"]
-    owner_id = form.iloc[-1].tolist()[2]
-    form.loc[len(form)] = ["test_child3.txt", "test3", owner_id]
-    with pd.ExcelWriter(workbook) as writer:
-        for name, frame in sheets.items():
-            frame.to_excel(writer, sheet_name=name, index=False, header=False)
-    with zipfile.ZipFile(inputdata / "excelinvoice_files.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for index in range(1, _POLICY_TILE_COUNT + 1):
-            info = zipfile.ZipInfo(f"test_child{index}.txt", date_time=(2026, 7, 15, 0, 0, 0))
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.external_attr = 0o100644 << 16
-            archive.writestr(info, f"excelinvoice child {index}\n".encode())
-
-
-def _materialize_policy_case(mode: str, root: Path) -> None:
-    """Materialize the three-tile input family for one policy cell.
-
-    The SmartTable fixture already carries three rows; the other two families
-    are grown here so all three modes share one tile shape.
-
-    Args:
-        mode: One of :data:`_POLICY_MODES`.
-        root: Run root to materialize into.
-    """
-    _generate.materialize_sut_case(mode, root)
-    if mode == "multidatatile":
-        (root / "data" / "inputdata" / "tile_02.txt").write_text("third tile\n", encoding="utf-8")
-    elif mode == "excelinvoice":
-        _extend_excelinvoice_to_three_rows(root / "data" / "inputdata")
-
-
-def _run_policy_v1_oracle(mode: str, root: Path, *, ignore_errors: bool = False) -> dict[str, Any]:
-    """Run the live v1 oracle over one policy family in its own process."""
-    _materialize_policy_case(mode, root)
-    return _generate._execute_v1_observation(  # noqa: SLF001 -- the generator owns the isolated worker
-        mode,
-        "tilefail",
-        root,
-        ignore_errors=ignore_errors,
-    )
-
-
 def _run_policy_v2(
     mode: str,
     root: Path,
@@ -936,8 +848,8 @@ def _run_policy_v2(
     *,
     config_source: Any,
 ) -> Any:
-    """Run the same policy family through the v2 Runner's flow entry."""
-    _materialize_policy_case(mode, root)
+    """Run the policy family through the v2 Runner's flow entry."""
+    _generate.materialize_policy_case(mode, root)
     monkeypatch.chdir(root)
     _POLICY_FLOW_CALLS.clear()
     return _cb_v2_runner(root).run(
@@ -983,17 +895,16 @@ def test_multitile_fail_fast_matches_the_v1_oracle(
 ) -> None:
     """FAIL-FAST cells: the run stops at tile 1 exactly where v1 stopped.
 
-    The expectation is a live v1 run of the same three-tile family, because v1
-    has no frozen multi-tile partial-failure snapshot (the corpus is 16 + 5
-    single-failure cases). v1's default ``ignore_errors=False`` *is* fail-fast,
-    so the oracle needs no special configuration -- only the v1 ``Config``
+    The expectation is the frozen ``<mode>/tilefail`` observation of the same
+    three-tile family. v1's default ``ignore_errors=False`` *is* fail-fast, so
+    the oracle needed no special configuration -- only the v1 ``Config``
     object, which seeds the same policy on the v2 side.
 
     That the skipped tile really exists is proven by this mode's
     CONTINUE-PARTIAL cell, which runs three iterations over the same fixture.
     """
-    # Given: v1 executed over the three-tile family with its own fail-fast policy
-    oracle = _run_policy_v1_oracle(mode, tmp_path / "v1")
+    # Given: the frozen v1 run of the three-tile family under its fail-fast policy
+    oracle = frozen_observed(f"v1/{mode}/tilefail")
     assert oracle["exit_code"] == FAILED_EXIT_CODE
     assert oracle["callback_count"] == _generate.FAILING_TILE_INDEX + 1
     assert oracle["job_failed_text"] is not None
@@ -1008,7 +919,8 @@ def test_multitile_fail_fast_matches_the_v1_oracle(
     assert _POLICY_FLOW_CALLS == [0, _generate.FAILING_TILE_INDEX]
 
     # And: every artifact, its content included, equals what v1 left behind
-    assert observe_v2_run(root) == parity_view(oracle)
+    actual, expected_view = parity_pair(root, oracle)
+    assert actual == expected_view
     assert _job_failed_text(root) == oracle["job_failed_text"]
 
     # And: the tile after the failing one was never created on either side
@@ -1027,13 +939,13 @@ def test_multitile_continue_partial_matches_the_v1_oracle(
     """CONTINUE-PARTIAL cell with a v1 counterpart: MultiDataTile.
 
     ``multidata_tile.ignore_errors: true`` is the only continue policy v1 has,
-    so MultiDataTile is the only mode whose partial run can be measured against
-    a live oracle. v1 exits 0 and writes no ``job.failed`` for a partial run;
-    v2's ``finalize`` writes ``job.failed`` only for ``failed``, so the two
-    agree without any Core change.
+    so MultiDataTile is the only mode whose partial run has a v1 observation
+    (frozen as ``multidatatile/tilefail__ignore_errors``). v1 exits 0 and writes
+    no ``job.failed`` for a partial run; v2's ``finalize`` writes ``job.failed``
+    only for ``failed``, so the two agree without any Core change.
     """
-    # Given: v1 executed with its continue policy over the three-tile family
-    oracle = _run_policy_v1_oracle(mode, tmp_path / "v1", ignore_errors=True)
+    # Given: the frozen v1 run of the three-tile family under its continue policy
+    oracle = frozen_observed(f"v1/{mode}/tilefail__ignore_errors")
     assert oracle["exit_code"] == 0
     assert oracle["callback_count"] == _POLICY_TILE_COUNT
     assert oracle["job_failed_text"] is None
@@ -1053,7 +965,8 @@ def test_multitile_continue_partial_matches_the_v1_oracle(
     assert _POLICY_FLOW_CALLS == [0, 1, 2]
 
     # And: every artifact, its content included, equals what v1 left behind
-    assert observe_v2_run(root) == parity_view(oracle)
+    actual, expected_view = parity_pair(root, oracle)
+    assert actual == expected_view
 
     # And: a partial run leaves no job.failed, exactly as v1 measured
     assert not (root / "data" / "job.failed").exists()

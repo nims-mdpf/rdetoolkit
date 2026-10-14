@@ -10,30 +10,46 @@ CSV is never copied to ``raw/`` or ``nonshared_raw/``, and with
 ``meta/`` column without ``tasksupport/metadata-def.json`` an error, and #515
 (v1.7.1) decodes cp932 zip member names.
 
-No expectation here is hand-written where an oracle exists: every end-to-end
-cell runs the **live** ``workflows._run_legacy`` (the v1.7.1 code path) and the
-unified public entry on byte-identical workspaces and compares the
-observations. ``expected/**``, ``_generate.py`` and ``observe.py`` are not used
-to produce expectations and are untouched.
+No expectation here is hand-written where an oracle exists. Session K0 ran the
+live v1.7.1 orchestration loop next to the unified public entry on identical
+workspaces; Session K1 (ruling #4) froze those v1 runs as registered generator
+cases and every end-to-end cell now runs the public entry on the case's input
+and compares it with the frozen observation (a case still awaiting the freeze
+ritual skips as "pending freeze"):
+
+* ``smarttable/ok`` with the ``callback_paths`` extra (K0 ruling #8 pin) --
+  EP-001 / EP-002 / EP-020 on the contract SmartTable workbook;
+* ``smarttable/ok__save_table_file`` -- EP-003;
+* ``smarttable/valerr__meta_column_without_def`` (#496, this module's CSV
+  workspace) -- EV-006, and ``valerr__missing_metadata_def`` (the contract
+  workbook) -- EV-006b;
+* ``smarttable/ok__{header_only__save_table_file,single_row,cp932_zip}`` --
+  BV-004 / BV-005 / EP-013 on this module's own workspace layout, whose
+  builder (``build_smarttable_workspace``) moved to ``_generate.py``.
+
+The iterator cells (EP-011 / BV-012) still compare with v1.7's own checker and
+``generate_folder_paths_iterator``, which are retained library functions, not
+the retired orchestration loop.
 
 Equivalence partitions (EP):
 
 | API | Partition | Rationale | Expected | Test ID |
 | --- | --- | --- | --- | --- |
-| ``run(custom_dataset_function=)`` | 3 rows, ``save_table_file=False`` | #503 callback material | ``rawfiles``/``smarttable_rawfile`` per call = ``_run_legacy`` | TC-K0-EP-001 |
-| ``run(custom_dataset_function=)`` | ``save_raw``/``save_nonshared_raw`` on | #503 row CSV never copied | raw listings = ``_run_legacy``, no ``fsmarttable_*`` | TC-K0-EP-002 |
-| ``run(custom_dataset_function=)`` | ``save_table_file=True``, 2 rows | #503 ``divided/0001`` first + seed | invoices/raw/calls = ``_run_legacy`` | TC-K0-EP-003 |
+| ``run(custom_dataset_function=)`` | 3 rows, ``save_table_file=False`` | #503 callback material | ``rawfiles``/``smarttable_rawfile`` per call = frozen v1 | TC-K0-EP-001 |
+| ``run(custom_dataset_function=)`` | ``save_raw``/``save_nonshared_raw`` on | #503 row CSV never copied | raw digests = frozen v1, no ``fsmarttable_*`` | TC-K0-EP-002 |
+| ``run(custom_dataset_function=)`` | ``save_table_file=True``, 3 rows | #503 ``divided/0001`` first + seed | invoices/raw/calls = frozen v1 | TC-K0-EP-003 |
 | ``iterate_tiles`` | SmartTable mode | ruling #1 tile material | ``rawfiles``/``raw``/``smarttable_rawfile`` = v1 iterator | TC-K0-EP-011 |
-| ``run(custom_dataset_function=)`` | cp932 zip member name | #515 through v1 helper | callback file name = ``_run_legacy`` | TC-K0-EP-013 |
+| ``run(custom_dataset_function=)`` | cp932 zip member name | #515 through v1 helper | callback file name = frozen v1 | TC-K0-EP-013 |
 | ``run(flow=)`` | SmartTable flow | v2 reserved type carries the row CSV | ``paths.smarttable_rawfile`` set, ``rawfiles`` user only | TC-K0-EP-015 |
 
 Negative / boundary partitions (EV / BV):
 
 | API | Partition | Rationale | Expected | Test ID |
 | --- | --- | --- | --- | --- |
-| ``run(custom_dataset_function=)`` | ``save_table_file=True``, 0 data rows | table alone occupies ``data/`` | observations = ``_run_legacy`` | TC-K0-BV-004 |
-| ``run(custom_dataset_function=)`` | 1 row | smallest table | ``raw`` = ``{"only.txt"}`` = ``_run_legacy`` | TC-K0-BV-005 |
-| ``run(custom_dataset_function=)`` | ``meta/`` column, no metadata-def.json | #496 | exit 1 + ``job.failed`` = ``_run_legacy`` | TC-K0-EV-006 |
+| ``run(custom_dataset_function=)`` | ``save_table_file=True``, 0 data rows | table alone occupies ``data/`` | observations = frozen v1 | TC-K0-BV-004 |
+| ``run(custom_dataset_function=)`` | 1 row | smallest table | ``raw`` = ``{"only.txt"}`` = frozen v1 | TC-K0-BV-005 |
+| ``run(custom_dataset_function=)`` | ``meta/`` column, no metadata-def.json | #496 | exit 1 + ``job.failed`` = frozen v1 | TC-K0-EV-006 |
+| ``run(custom_dataset_function=)`` | contract workbook, no metadata-def.json | #496 after one row | exit 1, 1 callback, ``job.failed`` = frozen v1 | TC-K0-EV-006b |
 | ``run(custom_dataset_function=)`` | any SmartTable run | ruling #2: new name only | no ``smarttable_rowfile`` DeprecationWarning | TC-K0-EV-007 |
 | ``Runner.run`` | tile preparation raises a plain exception | ruling #6 | ``3001`` (not ``1002``) in report and ``job.failed`` | TC-K0-EV-008 |
 | ``Runner.run`` | tile preparation raises ``StructuredError`` | v1 passthrough kept | ``job.failed`` carries its ``ecode``/``emsg`` | TC-K0-EV-009 |
@@ -43,19 +59,13 @@ Negative / boundary partitions (EV / BV):
 | ``iterate_tiles`` | checker group of the wrong shape | runtime-only distinction | ``TypeError`` naming the tile | TC-K0-EV-017 |
 | ``InvoiceService.prepare_tile`` | SmartTable row tile without a row CSV | no ``rawfiles[0]`` fallback | v1's ``StructuredError`` message | TC-K0-EV-018 |
 | ``to_legacy_dataset_paths`` | data root is not ``<cwd>/data`` | no v1 counterpart | absolute paths kept | TC-K0-BV-019 |
-| ``run(custom_dataset_function=)`` | standard layout | v1 path form (``StorageDir``) | every path field verbatim = ``_run_legacy`` | TC-K0-EP-020 |
+| ``run(custom_dataset_function=)`` | standard layout | v1 path form (``StorageDir``) | every path field verbatim = frozen v1 | TC-K0-EP-020 |
 """
 
 from __future__ import annotations
 
-import dataclasses
-import io
-import json
 import shutil
-import struct
 import warnings
-import zipfile
-import zlib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -77,98 +87,17 @@ from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import resolve_tile_paths
 from rdetoolkit.runner.planner import TileMaterial
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
+from tests.v2.contract.entry_observation import entry_parity_view, observe_public_entry
+from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 
 _SAMPLEFILE_DIR = Path(__file__).resolve().parents[2] / "samplefile"
-_TABLE_NAME = "smarttable_test.csv"
-_ROWS = (("sample1.txt", "Experiment_1", "25"), ("sample2.txt", "Experiment_2", "26"), ("sample3.txt", "Experiment_3", "27"))
+_TABLE_NAME = _generate.K0_TABLE_NAME
+_ROWS = _generate.K0_ROWS
 
-Rows = tuple[tuple[str, str, str], ...]
-
-
-# ---------------------------------------------------------------------------
-# Workspace construction (mirrors the v1.7 integration tests' layout)
-# ---------------------------------------------------------------------------
-
-
-def _write_cp932_zip(path: Path, members: dict[str, str]) -> None:
-    """Write a STORED zip whose member names are cp932 bytes without the UTF-8 flag.
-
-    ``zipfile`` always flags non-ASCII names as UTF-8, so a legacy Japanese
-    Windows archive can only be reproduced by writing the records by hand.
-    """
-    buf = io.BytesIO()
-    entries = [(name.encode("cp932"), content.encode("utf-8")) for name, content in members.items()]
-    offsets: list[int] = []
-    for name, data in entries:
-        offsets.append(buf.tell())
-        crc = zlib.crc32(data) & 0xFFFFFFFF
-        buf.write(struct.pack("<IHHHHHIIIHH", 0x04034B50, 20, 0, 0, 0, 0, crc, len(data), len(data), len(name), 0))
-        buf.write(name)
-        buf.write(data)
-    central_start = buf.tell()
-    for (name, data), offset in zip(entries, offsets, strict=True):
-        crc = zlib.crc32(data) & 0xFFFFFFFF
-        buf.write(
-            struct.pack(
-                "<IHHHHHHIIIHHHHHII",
-                0x02014B50, 20, 20, 0, 0, 0, 0, crc, len(data), len(data), len(name), 0, 0, 0, 0, 0, offset,
-            ),
-        )
-        buf.write(name)
-    central_size = buf.tell() - central_start
-    buf.write(struct.pack("<IHHHHIIH", 0x06054B50, 0, 0, len(entries), len(entries), central_size, central_start, 0))
-    path.write_bytes(buf.getvalue())
-
-
-def _workspace(
-    root: Path,
-    *,
-    rows: Rows = _ROWS,
-    save_table_file: bool = False,
-    meta_column: bool = False,
-    cp932_zip: bool = False,
-    with_file_column: bool = True,
-) -> Path:
-    """Build one ``data/`` workspace with a SmartTable input under ``root``."""
-    data = root / "data"
-    for name in ("inputdata", "invoice", "tasksupport"):
-        (data / name).mkdir(parents=True, exist_ok=True)
-    shutil.copy2(_SAMPLEFILE_DIR / "invoice.schema.json", data / "tasksupport" / "invoice.schema.json")
-    shutil.copy2(_SAMPLEFILE_DIR / "invoice.json", data / "invoice" / "invoice.json")
-    (data / "tasksupport" / "rdeconfig.yml").write_text(
-        "system:\n"
-        "  extended_mode: null\n"
-        "  save_raw: true\n"
-        "  save_nonshared_raw: true\n"
-        "  save_thumbnail_image: false\n"
-        "  magic_variable: false\n"
-        "smarttable:\n"
-        f"  save_table_file: {str(save_table_file).lower()}\n",
-        encoding="utf-8",
-    )
-    members = {file_name: f"content of {file_name}" for file_name, _, _ in rows}
-    if cp932_zip:
-        _write_cp932_zip(data / "inputdata" / "files.zip", members)
-    elif with_file_column and members:
-        with zipfile.ZipFile(data / "inputdata" / "files.zip", "w") as archive:
-            for name, content in members.items():
-                archive.writestr(name, content)
-
-    keys = ["basic/dataName", "custom/sample3"]
-    if with_file_column:
-        keys.insert(0, "inputdata1")
-    if meta_column:
-        keys.append("meta/comment")
-    lines = [",".join(["Display"] * len(keys)), ",".join(keys)]
-    for file_name, data_name, sample3 in rows:
-        cells = [data_name, sample3]
-        if with_file_column:
-            cells.insert(0, file_name)
-        if meta_column:
-            cells.append("memo")
-        lines.append(",".join(cells))
-    (data / "inputdata" / _TABLE_NAME).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return data
+#: The workspace builder moved to the generator (K1 ruling #1) because three of
+#: its partitions are frozen v1 cases; the unit cells below keep using it.
+_workspace = _generate.build_smarttable_workspace
 
 
 def _relative(path: Path | None, root: Path) -> str | None:
@@ -181,192 +110,148 @@ def _relative(path: Path | None, root: Path) -> str | None:
     return candidate.as_posix()
 
 
-class _Recorder:
-    """v1 callback recording the SmartTable material it receives."""
-
-    def __init__(self, root: Path) -> None:
-        self.root = root
-        self.calls: list[dict[str, Any]] = []
-
-    def __call__(self, srcpaths: Any, resource_paths: Any) -> None:
-        del srcpaths
-        self.calls.append(
-            {
-                "rawfiles": [_relative(path, self.root) for path in resource_paths.rawfiles],
-                "smarttable_rawfile": _relative(resource_paths.smarttable_rawfile, self.root),
-            },
-        )
-
-
-def _legacy_entry(callback: Any) -> Any:
-    return workflows._run_legacy(callback)  # noqa: SLF001 -- the live v1.7.1 oracle
-
-
 def _public_entry(callback: Any) -> Any:
     return workflows.run(custom_dataset_function=callback)
 
 
-def _tile_dirs(data: Path) -> list[Path]:
-    divided = data / "divided"
-    tiles = [data]
-    if divided.is_dir():
-        tiles.extend(sorted(path for path in divided.iterdir() if path.is_dir()))
-    return tiles
+def _frozen_pair(case_id: str, root: Path, *, keys: tuple[str, ...] = ()) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Return (public-entry observation, frozen v1 observation) of one registered case."""
+    expected = frozen_observed(case_id, keys=keys)
+    return observe_public_entry(case_id, root), expected
 
 
-def _observe(
-    root: Path,
-    entry: Callable[[Any], Any],
-    monkeypatch: pytest.MonkeyPatch,
-) -> dict[str, Any]:
-    """Run one entry with ``root`` as the CWD and collect the #503 observables."""
-    monkeypatch.chdir(root)
-    recorder = _Recorder(root)
-    exit_code = 0
-    try:
-        entry(recorder)
-    except SystemExit as error:
-        exit_code = int(error.code or 0)
-    data = root / "data"
-    invoices: dict[str, Any] = {}
-    raw: dict[str, dict[str, list[str]]] = {}
-    for tile in _tile_dirs(data):
-        key = tile.relative_to(data).as_posix()
-        invoice_path = tile / "invoice" / "invoice.json"
-        if invoice_path.exists():
-            invoices[key] = json.loads(invoice_path.read_text(encoding="utf-8"))
-        raw[key] = {
-            name: sorted(path.name for path in (tile / name).iterdir()) if (tile / name).is_dir() else []
-            for name in ("raw", "nonshared_raw")
-        }
-    job_failed = data / "job.failed"
-    return {
-        "exit_code": exit_code,
-        "calls": recorder.calls,
-        "invoices": invoices,
-        "raw": raw,
-        "job_failed": (
-            job_failed.read_text(encoding="utf-8").replace(str(root.resolve()), "<ROOT>").replace(str(root), "<ROOT>")
-            if job_failed.exists()
-            else None
-        ),
-    }
-
-
-def _pair(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, **workspace: Any) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Observe ``_run_legacy`` and the unified public entry on identical inputs."""
-    legacy_root = tmp_path / "legacy"
-    unified_root = tmp_path / "unified"
-    _workspace(legacy_root, **workspace)
-    _workspace(unified_root, **workspace)
-    legacy = _observe(legacy_root, _legacy_entry, monkeypatch)
-    unified = _observe(unified_root, _public_entry, monkeypatch)
-    return legacy, unified
+def _calls(observed: dict[str, Any]) -> list[tuple[list[str], str | None]]:
+    """Return ``(rawfiles, smarttable_rawfile)`` per callback invocation."""
+    return [
+        (call["output"].get("rawfiles", []), call["output"].get("smarttable_rawfile"))
+        for call in observed["callback_paths"]
+    ]
 
 
 # ---------------------------------------------------------------------------
-# End-to-end parity with the live v1.7.1 oracle
+# End-to-end parity with the frozen v1.7.1 oracle
 # ---------------------------------------------------------------------------
 
 
-def test_callback_material_matches_v171__tc_k0_ep_001(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_callback_material_matches_v171__tc_k0_ep_001(tmp_path: Path) -> None:
     """TC-K0-EP-001: rawfiles hold user files only; the row CSV is smarttable_rawfile."""
-    # Given: a three-row SmartTable with save_table_file disabled
-    # When: both entries process identical workspaces
-    legacy, unified = _pair(tmp_path, monkeypatch)
+    # Given: the three-row contract SmartTable, save_table_file disabled, as v1 ran it
+    # When: the public entry processes the same input
+    unified, legacy = _frozen_pair("v1/smarttable/ok", tmp_path / "unified", keys=("callback_paths",))
 
     # Then: the callback saw exactly what v1.7.1 handed over, tile by tile
-    assert unified["calls"] == legacy["calls"]
+    assert unified["callback_paths"] == legacy["callback_paths"]
     assert unified["exit_code"] == legacy["exit_code"] == 0
     # And: the v1.7 contract itself holds (guards against both sides regressing)
-    assert [call["rawfiles"] for call in unified["calls"]] == [
-        ["data/temp/sample3.txt"],
-        ["data/temp/sample1.txt"],
-        ["data/temp/sample2.txt"],
+    calls = _calls(unified)
+    assert [rawfiles for rawfiles, _row in calls] == [
+        [],
+        ["data/temp/measurements/row0.txt"],
+        ["data/temp/測定/行1.txt"],
     ]
-    for call in unified["calls"]:
-        assert Path(call["smarttable_rawfile"]).name.startswith("fsmarttable_")
-        assert not any(Path(name).name.startswith("fsmarttable_") for name in call["rawfiles"])
+    for rawfiles, row in calls:
+        assert row is not None
+        assert Path(row).name.startswith("fsmarttable_")
+        assert not any(Path(name).name.startswith("fsmarttable_") for name in rawfiles)
 
 
-def test_row_csv_never_reaches_raw_storage__tc_k0_ep_002(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_row_csv_never_reaches_raw_storage__tc_k0_ep_002(tmp_path: Path) -> None:
     """TC-K0-EP-002: raw/ and nonshared_raw/ never receive the generated row CSV."""
-    # Given: save_raw and save_nonshared_raw both enabled
-    # When: both entries run
-    legacy, unified = _pair(tmp_path, monkeypatch)
+    # Given: save_raw and save_nonshared_raw both enabled (the oracle config)
+    # When: the public entry runs the contract SmartTable
+    unified, legacy = _frozen_pair("v1/smarttable/ok", tmp_path / "unified")
 
-    # Then: every tile's raw listings equal v1.7.1's
-    assert unified["raw"] == legacy["raw"]
-    # And: no listing names a row CSV, and every tile still published its user file
-    for listings in unified["raw"].values():
-        for names in listings.values():
-            assert names
-            assert not any(name.startswith("fsmarttable_") for name in names)
+    # Then: every raw copy, content included, equals v1.7.1's
+    assert unified["raw_sha256"] == legacy["raw_sha256"]
+    # And: no copy is a row CSV, and every user file reached both raw stores
+    names = [Path(path).name for path in unified["raw_sha256"]]
+    assert not any(name.startswith("fsmarttable_") for name in names)
+    assert sorted(names) == sorted(["row0.txt", "row0.txt", "行1.txt", "行1.txt"])
 
 
-def test_save_table_file_registers_the_table_first__tc_k0_ep_003(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_save_table_file_registers_the_table_first__tc_k0_ep_003(tmp_path: Path) -> None:
     """TC-K0-EP-003: save_table_file puts the table at divided/0001 with a seeded invoice."""
-    # Given: a two-row SmartTable with save_table_file enabled
-    # When: both entries run
-    legacy, unified = _pair(tmp_path, monkeypatch, rows=_ROWS[:2], save_table_file=True)
+    # Given: the contract SmartTable with save_table_file enabled, as v1 ran it
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair(
+        "v1/smarttable/ok__save_table_file",
+        tmp_path / "unified",
+        keys=("callback_paths",),
+    )
 
-    # Then: invoices, raw listings, callback material and exit status equal v1.7.1
-    assert unified["invoices"] == legacy["invoices"]
-    assert unified["raw"] == legacy["raw"]
-    assert unified["calls"] == legacy["calls"]
-    assert unified["exit_code"] == legacy["exit_code"] == 0
+    # Then: invoices, raw copies, callback material and exit status equal v1.7.1
+    assert entry_parity_view(unified) == entry_parity_view(legacy)
+    assert unified["exit_code"] == 0
     # And: the original table owns divided/0001; the rows keep their order around it
-    assert unified["invoices"]["divided/0001"]["basic"]["dataName"] == _TABLE_NAME
-    assert unified["invoices"]["."]["basic"]["dataName"] == "Experiment_2"
-    assert unified["invoices"]["divided/0002"]["basic"]["dataName"] == "Experiment_1"
-    assert unified["raw"]["divided/0001"]["raw"] == [_TABLE_NAME]
-    assert len(unified["calls"]) == 2
+    invoices = unified["invoices"]
+    assert invoices["data/divided/0001/invoice/invoice.json"]["basic"]["dataName"] == "smarttable_full.xlsx"
+    assert invoices["data/invoice/invoice.json"]["basic"]["dataName"] == "smarttable_value_2"
+    assert invoices["data/divided/0002/invoice/invoice.json"]["basic"]["dataName"] == "smarttable_value_0"
+    assert "data/divided/0001/raw/smarttable_full.xlsx" in unified["raw_sha256"]
+    assert unified["callback_count"] == 3
 
 
-def test_table_without_data_rows_occupies_the_data_root__tc_k0_bv_004(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_table_without_data_rows_occupies_the_data_root__tc_k0_bv_004(tmp_path: Path) -> None:
     """TC-K0-BV-004: save_table_file with zero rows registers the table alone at data/."""
-    # Given: a header-only SmartTable with save_table_file enabled
-    # When: both entries run
-    legacy, unified = _pair(tmp_path, monkeypatch, rows=(), save_table_file=True)
+    # Given: a header-only SmartTable with save_table_file enabled, as v1 ran it
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair("v1/smarttable/ok__header_only__save_table_file", tmp_path / "unified")
 
     # Then: the whole observation equals v1.7.1's
-    assert unified == legacy
+    assert entry_parity_view(unified) == entry_parity_view(legacy)
     # And: the table is the only tile, at the data root, and no callback ran
-    assert list(unified["invoices"]) == ["."]
-    assert unified["invoices"]["."]["basic"]["dataName"] == _TABLE_NAME
-    assert unified["calls"] == []
+    assert list(unified["invoices"]) == ["data/invoice/invoice.json"]
+    assert unified["invoices"]["data/invoice/invoice.json"]["basic"]["dataName"] == _TABLE_NAME
+    assert unified["callback_count"] == 0
 
 
-def test_single_row_keeps_raw_to_the_user_file__tc_k0_bv_005(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_single_row_keeps_raw_to_the_user_file__tc_k0_bv_005(tmp_path: Path) -> None:
     """TC-K0-BV-005: the smallest table still copies only the user file."""
-    # Given: a one-row SmartTable
-    # When: both entries run
-    legacy, unified = _pair(tmp_path, monkeypatch, rows=(("only.txt", "Experiment_only", "1"),))
+    # Given: a one-row SmartTable, as v1 ran it
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair("v1/smarttable/ok__single_row", tmp_path / "unified", keys=("callback_paths",))
 
     # Then: v1.7.1 parity, and raw storage holds exactly the user file
-    assert unified == legacy
-    assert unified["raw"]["."] == {"raw": ["only.txt"], "nonshared_raw": ["only.txt"]}
+    assert entry_parity_view(unified) == entry_parity_view(legacy)
+    assert sorted(unified["raw_sha256"]) == ["data/nonshared_raw/only.txt", "data/raw/only.txt"]
 
 
-def test_meta_column_without_definition_fails_like_v171__tc_k0_ev_006(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_meta_column_without_definition_fails_like_v171__tc_k0_ev_006(tmp_path: Path) -> None:
     """TC-K0-EV-006: a meta/ column without metadata-def.json is a StructuredError (#496)."""
-    # Given: a SmartTable with a meta/comment column and no metadata-def.json
-    # When: both entries run
-    legacy, unified = _pair(tmp_path, monkeypatch, meta_column=True)
+    # Given: the K0 CSV workspace with a meta/comment column and no
+    # metadata-def.json, as v1 ran it (``valerr__meta_column_without_def``)
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair("v1/smarttable/valerr__meta_column_without_def", tmp_path / "unified")
 
-    # Then: the run fails exactly as v1.7.1 does
-    assert unified["exit_code"] == legacy["exit_code"] == 1
-    assert unified["job_failed"] == legacy["job_failed"]
-    assert unified["calls"] == legacy["calls"] == []
+    # Then: v1.7.1 failed before any callback ran, and so does the unified entry
+    assert legacy["exit_code"] == 1
+    assert legacy["callback_count"] == 0
+    assert unified["exit_code"] == 1
+    assert unified["callback_count"] == 0
+    assert unified["job_failed_text"] == legacy["job_failed_text"]
+    assert entry_parity_view(unified) == entry_parity_view(legacy)
     # And: the marker names the missing definition, not a silent skip
-    assert unified["job_failed"] is not None
-    assert "metadata-def.json not found" in unified["job_failed"]
+    assert legacy["job_failed_text"] is not None
+    assert "metadata-def.json not found" in legacy["job_failed_text"]
+
+
+def test_workbook_without_definition_fails_like_v171__tc_k0_ev_006b(tmp_path: Path) -> None:
+    """TC-K0-EV-006b: the contract workbook (meta/ columns) without metadata-def.json.
+
+    Unlike the CSV workspace, v1 runs the first row's callback before #496
+    fires; the frozen ``valerr__missing_metadata_def`` pins that count.
+    """
+    # Given: the contract SmartTable without metadata-def.json, as v1 ran it
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair("v1/smarttable/valerr__missing_metadata_def", tmp_path / "unified")
+
+    # Then: the run fails exactly as v1.7.1 does, after the same callback count
+    assert legacy["exit_code"] == 1
+    assert legacy["callback_count"] == 1
+    assert unified["callback_count"] == legacy["callback_count"]
+    assert unified["job_failed_text"] == legacy["job_failed_text"]
+    assert entry_parity_view(unified) == entry_parity_view(legacy)
+    assert "metadata-def.json not found" in legacy["job_failed_text"]
 
 
 def test_unified_entry_emits_no_rowfile_deprecation__tc_k0_ev_007(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -376,12 +261,15 @@ def test_unified_entry_emits_no_rowfile_deprecation__tc_k0_ev_007(tmp_path: Path
     _workspace(root, save_table_file=True)
 
     # When: the unified entry runs with every warning recorded
+    monkeypatch.chdir(root)
+    calls: list[int] = []
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        observed = _observe(root, _public_entry, monkeypatch)
+        result = _public_entry(lambda srcpaths, resource_paths: calls.append(1))
 
     # Then: the run succeeded and no deprecated alias was touched on the way
-    assert observed["exit_code"] == 0
+    assert isinstance(result, str)
+    assert calls
     assert not [warning for warning in caught if "smarttable_rowfile" in str(warning.message)]
 
 
@@ -532,18 +420,17 @@ def test_row_without_file_reference_has_no_raw_input__tc_k0_bv_012(
     assert all(paths.raw is None and paths.rawfiles == () for paths in observed)
 
 
-def test_cp932_member_names_reach_the_callback__tc_k0_ep_013(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cp932_member_names_reach_the_callback__tc_k0_ep_013(tmp_path: Path) -> None:
     """TC-K0-EP-013: #515 cp932 zip names are decoded on the unified path too."""
-    # Given: a zip written by a Japanese Windows tool (cp932 names, no UTF-8 flag)
-    rows = (("測定データ.txt", "Experiment_jp", "5"),)
-
-    # When: both entries run
-    legacy, unified = _pair(tmp_path, monkeypatch, rows=rows, cp932_zip=True)
+    # Given: a zip written by a Japanese Windows tool (cp932 names, no UTF-8
+    # flag), as v1 ran it
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair("v1/smarttable/ok__cp932_zip", tmp_path / "unified", keys=("callback_paths",))
 
     # Then: the callback saw the decoded name, exactly as v1.7.1 did
-    assert unified["calls"] == legacy["calls"]
-    assert unified["calls"][0]["rawfiles"] == ["data/temp/測定データ.txt"]
-    assert unified["raw"] == legacy["raw"]
+    assert unified["callback_paths"] == legacy["callback_paths"]
+    assert [rawfiles for rawfiles, _row in _calls(unified)] == [["data/temp/測定データ.txt"]]
+    assert unified["raw_sha256"] == legacy["raw_sha256"]
 
 
 def test_input_paths_row_csv_defaults_to_none__tc_k0_bv_014() -> None:
@@ -728,44 +615,20 @@ def test_non_standard_root_keeps_absolute_paths__tc_k0_bv_019(
     assert output.smarttable_rawfile == row
 
 
-def _path_fields(value: Any) -> dict[str, Any]:
-    """Return every Path-valued field of a v1 path bundle as strings."""
-    observed: dict[str, Any] = {}
-    for field in dataclasses.fields(value):
-        item = getattr(value, field.name)
-        if isinstance(item, Path):
-            observed[field.name] = str(item)
-        elif isinstance(item, tuple) and all(isinstance(part, Path) for part in item):
-            observed[field.name] = [str(part) for part in item]
-    return observed
-
-
-def test_callback_path_form_matches_v171_verbatim__tc_k0_ep_020(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_callback_path_form_matches_v171_verbatim__tc_k0_ep_020(tmp_path: Path) -> None:
     """TC-K0-EP-020: every path a v1 callback receives is v1's own string, unnormalized."""
-    # Given: identical standard-layout workspaces and a callback recording raw strings
-    observations: dict[str, list[dict[str, Any]]] = {}
-
-    def _run(name: str, entry: Callable[[Any], Any]) -> None:
-        root = tmp_path / name
-        _workspace(root, rows=_ROWS[:2], save_table_file=True)
-        seen: list[dict[str, Any]] = []
-
-        def _callback(srcpaths: Any, resource_paths: Any) -> None:
-            seen.append({"input": _path_fields(srcpaths), "output": _path_fields(resource_paths)})
-
-        monkeypatch.chdir(root)
-        entry(_callback)
-        observations[name] = seen
-
-    # When: both entries run
-    _run("legacy", _legacy_entry)
-    _run("unified", _public_entry)
+    # Given: v1's standard-layout run recording every Path field verbatim
+    # (``callback_paths``, K0 ruling #8)
+    # When: the public entry runs the same case
+    unified, legacy = _frozen_pair("v1/smarttable/ok", tmp_path / "unified", keys=("callback_paths",))
 
     # Then: the strings are identical field by field, tile by tile
-    assert observations["unified"] == observations["legacy"]
-    assert observations["unified"]
-    for seen in observations["unified"]:
-        assert not any(Path(value).is_absolute() for value in seen["output"].values() if isinstance(value, str))
+    assert unified["callback_paths"] == legacy["callback_paths"]
+    assert unified["callback_paths"]
+    # And: none of them is absolute -- the normalizer would have rewritten an
+    # absolute run-root path to ``<RUN_ROOT>``, so that marker must not appear
+    for seen in unified["callback_paths"]:
+        for value in seen["output"].values():
+            for item in value if isinstance(value, list) else [value]:
+                assert not Path(item).is_absolute()
+                assert "<RUN_ROOT>" not in item

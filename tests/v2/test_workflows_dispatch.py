@@ -278,7 +278,10 @@ class TestCustomDatasetFunctionDispatch:
             raise AssertionError(msg)
 
         monkeypatch.setattr(Runner, "run", _counting_run)
-        monkeypatch.setattr(workflows, "_run_legacy", _forbidden_legacy)
+        # UPDATED Session K1 ruling #4 (iii): ``raising=False`` keeps the guard
+        # meaningful while the v1 loop still exists and lets it survive the
+        # loop's deletion in K2, where it becomes a ``not hasattr`` check.
+        monkeypatch.setattr(workflows, "_run_legacy", _forbidden_legacy, raising=False)
 
         # When: calling the public v1 entry point
         result = v1_run(custom_dataset_function=_no_op_dataset_function, config=_v1_config())

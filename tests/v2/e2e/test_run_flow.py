@@ -1,5 +1,5 @@
 """End-to-end tests: run(flow=pipeline) across >=3 modes, compared against
-dynamically-generated v1 goldens (Session D2, TC-E2E-001..007).
+v1 goldens (Session D2, TC-E2E-001..007).
 
 Written before implementation (TDD Red phase).
 Target: make all tests pass in codex-worker Green phase.
@@ -14,9 +14,11 @@ flagged gap).
 
 Golden principle (non-negotiable, matches
 tests/v2/golden/test_dir_tree_parity.py's header comment): every "expected"
-value in this file is produced by an ACTUAL v1 run
-(``rdetoolkit.workflows.run``) against a fixture built under ``tmp_path`` --
-never a hand-written directory list or hand-written invoice.json content.
+value in this file comes from an ACTUAL v1 run -- never a hand-written directory
+list or hand-written invoice.json content. Until Session K1 the v1 run happened
+here, in-process; K1 ruling #4 retired those live "v1 halves", and the
+expectation is now the v1 observation ``_generate.py`` froze for the matching
+contract case (``tests/v2/contract/frozen.py``).
 
 Fixture helpers in this file are self-contained (no ``from tests.fixtures
 import ...``, no ``from tests.<v1 file> import ...`` -- this session's
@@ -30,7 +32,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
@@ -40,13 +41,12 @@ import pytest
 
 from rdetoolkit.core.flow import flow
 from rdetoolkit.core.node import node
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SystemSettings
-from rdetoolkit.models.rde2types import RdeOutputResourcePath
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, IterationInfo, RdeConfig
-from rdetoolkit.workflows import _run_legacy as v1_run
+from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 
 # v1 RdeOutputResourcePath field -> on-disk directory basename, matching
 # runner/paths.py's _DIRNAMES and the golden test's _OUTPUT_FIELD_TO_DIRNAME.
@@ -63,14 +63,6 @@ _OUTPUT_DIRNAMES = (
     "logs",
 )
 
-_SMARTTABLE_CONTRACT_DATA = (
-    Path(__file__).resolve().parents[1]
-    / "contract"
-    / "fixtures"
-    / "inputs"
-    / "smarttable"
-    / "data"
-)
 
 
 @contextmanager
@@ -83,15 +75,9 @@ def _chdir(path: Path) -> Generator[None, None, None]:
         os.chdir(previous)
 
 
-def _no_op_v1_fn(srcpaths: object, resource_paths: object) -> None:
-    return None
-
-
-def _v1_config(*, extended_mode: str | None = None) -> Config:
-    return Config(
-        system=SystemSettings(extended_mode=extended_mode, save_raw=True, save_thumbnail_image=True, magic_variable=False),
-        multidata_tile=MultiDataTileSettings(ignore_errors=False),
-    )
+def _frozen_directories(case_id: str) -> set[str]:
+    """Return the output-tree directories v1 created for a frozen contract case."""
+    return set(frozen_observed(case_id)["output_tree"]["directories"])
 
 
 # v1's built-in invoice_basic_and_sample.schema_.json requires top-level
@@ -116,10 +102,9 @@ def _build_data_fixture(
     invoice_json: dict | None = None,
 ) -> None:
     """Build a minimal ``data/{inputdata,invoice,tasksupport,unpacked}`` tree
-    usable by BOTH ``v1_run`` (cwd-relative ``data/...``) and the v2 Runner
-    (given explicit ``inputdata_path=root/"data"/"inputdata"``): the two
-    checker families share the same detection code
-    (``domain.mode.selected_input_checker``), so one fixture drives both.
+    for the v2 Runner (given explicit ``inputdata_path=root/"data"/"inputdata"``).
+    v1 shares the same detection code (``domain.mode.selected_input_checker``),
+    which is why the frozen v1 contract cases of the same mode are its golden.
     """
     inputdata = root / "data" / "inputdata"
     inputdata.mkdir(parents=True)
@@ -179,10 +164,8 @@ class TestTreeParityInvoiceMode:
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        v1_root = tmp_path / "v1"
-        _build_data_fixture(v1_root)
-        with _chdir(v1_root):
-            v1_run(custom_dataset_function=_no_op_v1_fn, config=_v1_config())
+        # Given: the directories v1 created for a single-tile invoice run
+        v1_directories = _frozen_directories("v1/invoice/ok")
 
         v2_root = tmp_path / "v2"
         _build_data_fixture(v2_root)
@@ -193,7 +176,7 @@ class TestTreeParityInvoiceMode:
             runner.iterate(pipeline, ModeKind.invoice, RdeConfig())
 
         for dirname in _OUTPUT_DIRNAMES:
-            assert (v1_root / "data" / dirname).is_dir(), f"v1 fixture must have produced data/{dirname}/"
+            assert f"data/{dirname}/" in v1_directories, f"v1 must have produced data/{dirname}/"
             assert (v2_root / "data" / dirname).is_dir(), f"v2 run must have produced data/{dirname}/"
 
 
@@ -206,11 +189,8 @@ class TestTreeParityMultidatatileMode:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         files = {"a.txt": "a", "b.txt": "b"}
-
-        v1_root = tmp_path / "v1"
-        _build_data_fixture(v1_root, input_files=files)
-        with _chdir(v1_root):
-            v1_run(custom_dataset_function=_no_op_v1_fn, config=_v1_config(extended_mode="MultiDataTile"))
+        # Given: the directories v1 created for a two-tile MultiDataTile run
+        v1_directories = _frozen_directories("v1/multidatatile/ok")
 
         v2_root = tmp_path / "v2"
         _build_data_fixture(v2_root, input_files=files)
@@ -223,9 +203,8 @@ class TestTreeParityMultidatatileMode:
         for idx in range(2):
             expected_relative = "data" if idx == 0 else f"data/divided/{idx:04d}"
             for dirname in _OUTPUT_DIRNAMES:
-                v1_dir = v1_root / expected_relative / dirname
                 v2_dir = v2_root / expected_relative / dirname
-                assert v1_dir.is_dir(), f"v1 fixture must have produced {v1_dir}"
+                assert f"{expected_relative}/{dirname}/" in v1_directories, f"v1 must have produced {expected_relative}/{dirname}/"
                 assert v2_dir.is_dir(), f"v2 run must have produced {v2_dir}"
 
 
@@ -366,21 +345,15 @@ class TestExcelinvoiceContentParity:
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        # Given: three Excel rows and identical v1/v2 source invoices
+        # Given: three Excel rows and the v2 source invoice
         rows = [
             ["test_child1.txt", "excel_value_0"],
             ["test_child2.txt", "excel_value_1"],
             ["test_child3.txt", "excel_value_2"],
         ]
 
-        v1_root = tmp_path / "v1"
-        # No loose files alongside the Excel file (see TC-E2E-003's comment).
-        _build_data_fixture(v1_root, input_files={})
-        _write_minimal_excel_invoice(v1_root / "data" / "inputdata" / "sample_excel_invoice.xlsx", rows)
-        with _chdir(v1_root):
-            v1_run(custom_dataset_function=_no_op_v1_fn, config=_v1_config())
-
         v2_root = tmp_path / "v2"
+        # No loose files alongside the Excel file (see TC-E2E-003's comment).
         _build_data_fixture(v2_root, input_files={})
         original_invoice = (v2_root / "data" / "invoice" / "invoice.json").read_text(encoding="utf-8")
         _write_minimal_excel_invoice(v2_root / "data" / "inputdata" / "sample_excel_invoice.xlsx", rows)
@@ -392,19 +365,46 @@ class TestExcelinvoiceContentParity:
             runner.run_id = "e2e-excelinvoice-content"
             runner.run(pipeline)
 
-        # Then: tile contents match v1 and the backed-up source stays pristine
-        v1_tile0 = json.loads((v1_root / "data" / "invoice" / "invoice.json").read_text(encoding="utf-8"))
-        v2_tile0 = json.loads((v2_root / "data" / "invoice" / "invoice.json").read_text(encoding="utf-8"))
-        assert v1_tile0["basic"]["dataName"] == v2_tile0["basic"]["dataName"] == "excel_value_0"
-
-        v1_tile1 = json.loads((v1_root / "data" / "divided" / "0001" / "invoice" / "invoice.json").read_text(encoding="utf-8"))
-        v2_tile1 = json.loads((v2_root / "data" / "divided" / "0001" / "invoice" / "invoice.json").read_text(encoding="utf-8"))
-        assert v1_tile1["basic"]["dataName"] == v2_tile1["basic"]["dataName"] == "excel_value_1"
-
-        v1_tile2 = json.loads((v1_root / "data" / "divided" / "0002" / "invoice" / "invoice.json").read_text(encoding="utf-8"))
-        v2_tile2 = json.loads((v2_root / "data" / "divided" / "0002" / "invoice" / "invoice.json").read_text(encoding="utf-8"))
-        assert v1_tile2["basic"]["dataName"] == v2_tile2["basic"]["dataName"] == "excel_value_2"
+        # Then: every row became its own tile invoice and the backed-up source
+        # stays pristine
+        for relative, expected_name in (
+            ("data/invoice/invoice.json", "excel_value_0"),
+            ("data/divided/0001/invoice/invoice.json", "excel_value_1"),
+            ("data/divided/0002/invoice/invoice.json", "excel_value_2"),
+        ):
+            v2_tile = json.loads((v2_root / relative).read_text(encoding="utf-8"))
+            assert v2_tile["basic"]["dataName"] == expected_name
         assert (v2_root / "data" / "temp" / "invoice_org.json").read_text(encoding="utf-8") == original_invoice
+
+    def test_per_tile_invoice_json_content_equals_frozen_v1__tc_e2e_006(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The v1 half of TC-E2E-006: every tile invoice equals v1's, field by field.
+
+        Session K1 replaced the in-process v1 run with the frozen
+        ``excelinvoice/ok`` observation of the contract workbook, so the
+        comparison covers the whole invoice rather than ``basic.dataName``.
+        """
+        # Given: the invoices v1 wrote for the contract ExcelInvoice workbook
+        expected = frozen_observed("v1/excelinvoice/ok")["invoices"]
+        root = tmp_path / "v2"
+        _generate.materialize_sut_case("excelinvoice", root)
+
+        # When: the v2 excelinvoice lifecycle processes the same workbook
+        with _chdir(root):
+            report = Runner(
+                root=root,
+                inputdata_path=root / "data" / "inputdata",
+                unpacked_dir_path=root / "data" / "temp",
+            ).run(_noop_pipeline("e2e006v1"))
+
+        # Then: every tile invoice is v1's
+        assert report.status == "success"
+        observed = _generate.normalize_snapshot(_generate._invoice_outputs(root / "data"), roots=(root,))  # noqa: SLF001
+        assert observed == expected
+        assert len(expected) == 2
 
 
 class TestSmarttableContentParity:
@@ -416,31 +416,22 @@ class TestSmarttableContentParity:
         self,
         tmp_path: Path,
     ) -> None:
-        # Given: the committed spec-complete workbook and zip-backed mappings
-        v1_root = tmp_path / "v1"
-        shutil.copytree(_SMARTTABLE_CONTRACT_DATA, v1_root / "data")
-        v1_rawfiles: list[set[str]] = []
-
-        def _capture_v1(
-            srcpaths: object,
-            resource_paths: RdeOutputResourcePath,
-        ) -> None:
-            del srcpaths
-            v1_rawfiles.append({path.name for path in resource_paths.rawfiles})
-
-        # When: v1 executes the real SmartTable splitter and invoice pipeline
-        with _chdir(v1_root):
-            v1_run(custom_dataset_function=_capture_v1, config=_v1_config())
+        # Given: what v1 wrote and handed its callback for the committed
+        # spec-complete workbook (frozen ``smarttable/ok``)
+        expected = frozen_observed("v1/smarttable/ok", keys=("callback_paths",))
+        v1_rawfiles = [
+            {Path(path).name for path in call["output"].get("rawfiles", [])} for call in expected["callback_paths"]
+        ]
 
         v2_root = tmp_path / "v2"
-        shutil.copytree(_SMARTTABLE_CONTRACT_DATA, v2_root / "data")
+        _generate.materialize_sut_case("smarttable", v2_root)
         v2_rawfiles: list[set[str]] = []
 
         @flow
         def _capture_v2(paths: InputPaths) -> None:
             v2_rawfiles.append({path.name for path in paths.rawfiles})
 
-        # And: v2 auto-detects and executes the same real workbook
+        # When: v2 auto-detects and executes the same real workbook
         with _chdir(v2_root):
             runner = _make_v2_runner(v2_root)
             runner.run_id = "e2e-smarttable-content"
@@ -454,13 +445,14 @@ class TestSmarttableContentParity:
         )
         expected_names = ("smarttable_value_2", "smarttable_value_0", "smarttable_value_1")
         for relative, expected_name in zip(invoice_relatives, expected_names, strict=True):
-            v1_invoice = json.loads((v1_root / relative).read_text(encoding="utf-8"))
+            v1_invoice = expected["invoices"][relative.as_posix()]
             v2_invoice = json.loads((v2_root / relative).read_text(encoding="utf-8"))
             assert v1_invoice["basic"]["dataName"] == v2_invoice["basic"]["dataName"] == expected_name
 
         # And: row splitting plus zip-backed file mapping ran in both paths
         assert report.mode == "smarttable"
         assert len(report.iterations) == 3
+        assert v2_rawfiles == v1_rawfiles
         assert len(v1_rawfiles) == len(v2_rawfiles) == 3
         assert any("row0.txt" in files for files in v1_rawfiles)
         assert any("行1.txt" in files for files in v1_rawfiles)
