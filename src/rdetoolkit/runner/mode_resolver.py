@@ -6,7 +6,7 @@ import sys
 from enum import Enum
 from pathlib import Path
 
-from rdetoolkit.domain.mode import selected_input_checker
+from rdetoolkit.domain.input_checker import selected_input_checker
 from rdetoolkit.errors import WARNING_CATALOG
 from rdetoolkit.impl.input_controller import (
     ExcelInvoiceChecker,
@@ -39,7 +39,7 @@ def resolve_mode(
 ) -> ModeKind:
     """Resolve the effective v2 mode using the v1-compatible detector.
 
-    File detection priority is delegated to ``domain.mode.selected_input_checker``.
+    File detection priority is delegated to ``domain.input_checker.selected_input_checker``.
     If file detection overrides an explicitly configured mode, W1001 is emitted
     to both the event sink and stderr.
 

@@ -1,6 +1,6 @@
 """Config passthrough to the legacy input checkers (Session I6-1, ruling #6).
 
-``domain.mode.selected_input_checker`` accepts a v1 ``Config`` and reads
+``domain.input_checker.selected_input_checker`` accepts a v1 ``Config`` and reads
 ``config.smarttable.save_table_file`` from it. The v2 iterator passed ``None``,
 so that setting was unreachable and the SmartTable tile layout could never
 follow the configuration. This session only transports the value; the

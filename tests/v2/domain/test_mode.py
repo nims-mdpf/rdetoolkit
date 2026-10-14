@@ -36,7 +36,7 @@ class TestSelectedInputChecker:
 
     def test_smarttable_file_wins__tc_ep_001(self, tmp_path: Path) -> None:
         """TC-EP-001: smarttable files select SmartTableChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import SmartTableChecker
 
         # Given: inputdata contains a SmartTable file
@@ -52,7 +52,7 @@ class TestSelectedInputChecker:
 
     def test_excel_invoice_file_wins__tc_ep_002(self, tmp_path: Path) -> None:
         """TC-EP-002: *_excel_invoice.xlsx selects ExcelInvoiceChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import ExcelInvoiceChecker
 
         # Given: inputdata contains an Excel invoice marker file
@@ -68,7 +68,7 @@ class TestSelectedInputChecker:
 
     def test_rdeformat_mode_selects_rdeformat__tc_ep_003(self, tmp_path: Path) -> None:
         """TC-EP-003: rdeformat mode selects RDEFormatChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import RDEFormatChecker
 
         # Given: no file discriminator and rdeformat mode
@@ -83,7 +83,7 @@ class TestSelectedInputChecker:
 
     def test_multidatatile_mode_selects_multifile__tc_ep_004(self, tmp_path: Path) -> None:
         """TC-EP-004: MultiDataTile mode selects MultiFileChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import MultiFileChecker
 
         # Given: no file discriminator and MultiDataTile mode
@@ -98,7 +98,7 @@ class TestSelectedInputChecker:
 
     def test_none_mode_selects_invoice__tc_bv_001(self, tmp_path: Path) -> None:
         """TC-BV-001: None mode falls back to InvoiceChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import InvoiceChecker
 
         # Given: no file discriminator and no mode
@@ -117,7 +117,7 @@ class TestSelectedInputChecker:
         v1's ``tests/test_workflow.py`` TC-EP-001 pinned this boundary on the
         mode dispatch that Phase K2 deletes; the selector is where it lives now.
         """
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import SmartTableChecker
 
         # Given: both discriminator files, plus a mode flag that would select another checker

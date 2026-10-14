@@ -362,7 +362,7 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
 
     Public because the Runner's tile iterator needs the same projection for the
     legacy input checkers, which read ``smarttable.save_table_file`` from a v1
-    ``Config`` (``domain.mode.selected_input_checker``).
+    ``Config`` (``domain.input_checker.selected_input_checker``).
 
     ``RdeConfig.custom`` is restored as v1 ``Config`` *extra* fields (Session
     J-REVIEW ruling #1). ``ConfigNormalizer`` moves every unknown top-level key

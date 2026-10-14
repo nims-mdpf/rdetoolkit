@@ -103,7 +103,7 @@ def _build_data_fixture(
 ) -> None:
     """Build a minimal ``data/{inputdata,invoice,tasksupport,unpacked}`` tree
     for the v2 Runner (given explicit ``inputdata_path=root/"data"/"inputdata"``).
-    v1 shares the same detection code (``domain.mode.selected_input_checker``),
+    v1 shares the same detection code (``domain.input_checker.selected_input_checker``),
     which is why the frozen v1 contract cases of the same mode are its golden.
     """
     inputdata = root / "data" / "inputdata"

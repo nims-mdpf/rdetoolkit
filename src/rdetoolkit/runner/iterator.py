@@ -6,7 +6,7 @@ from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Protocol
 
-from rdetoolkit.domain.mode import selected_input_checker
+from rdetoolkit.domain.input_checker import selected_input_checker
 from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import RdeInputDirPaths
 from rdetoolkit.runner.mode_resolver import ModeKind

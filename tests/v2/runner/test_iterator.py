@@ -14,7 +14,7 @@ Target import (fails until implementation exists — expected in Red phase):
 ``iterate_tiles(mode, inputdata_path, unpacked_dir_path, data_root)``
 must yield ``(IterationInfo, InputPaths, OutputContext)`` triples in tile
 order, uniformly across all 5 modes, driven by the same
-``domain.mode.selected_input_checker``-family checker classes used by
+``domain.input_checker.selected_input_checker``-family checker classes used by
 ``rdetoolkit.impl.input_controller`` (verified directly against those
 checkers below — see the module-level fixture helpers).
 
