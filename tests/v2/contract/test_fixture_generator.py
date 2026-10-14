@@ -435,14 +435,15 @@ _K2_0_REGISTERED = frozenset(
 
 
 def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -> None:
-    """TC-G1-010 (UPDATED, Session K2-0a): the registry declares the whole v1 inventory.
+    """TC-G1-010 (UPDATED, Session K2-0b): the registry declares the whole v1 inventory.
 
     The 15 callback cells plus the Excel zero-row boundary are the frozen core.
     The cases Session K1 registered are part of the same inventory. K1-a let
     those be absent until the freeze ritual; after the freeze (K1-b) every
     registered v1 and canary snapshot had to exist -- 58 + 5. Session K2-0a
-    registered three more (61 + 5); while its ritual holds the pending switch
-    open, those three -- and only those -- may still be absent.
+    registered three more and let only those be absent while its ritual held
+    the pending switch open; after that freeze (K2-0b) every registered v1 and
+    canary snapshot must exist -- 61 + 5, no exception.
     """
     # Given: the generator's declared frozen-snapshot inventory
     snapshots = _generate.expected_snapshot_paths()
@@ -464,19 +465,16 @@ def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -
     assert relative == core | _K1_REGISTERED | _K2_0_REGISTERED
     assert len(snapshots) == len(relative) == 16 + len(_K1_REGISTERED) + len(_K2_0_REGISTERED)
     assert len(snapshots) == 61
-    # And: every registered v1 and canary snapshot is a frozen file, except
-    # the K2-0 cases while their ritual holds the pending switch open
+    # And: the freeze window is closed -- every registered v1 and canary
+    # snapshot is a frozen file (a missing one is a failure, never pending)
     canaries = _generate.canary_snapshot_paths()
     assert len(canaries) == 5
-    missing = {
+    missing = [
         path.relative_to(_generate.FIXTURE_ROOT).as_posix()
         for path in (*snapshots, *canaries)
         if not path.is_file()
-    }
-    if _generate.ALLOW_PENDING_SNAPSHOTS:
-        assert missing <= _K2_0_REGISTERED
-    else:
-        assert missing == set()
+    ]
+    assert missing == []
 
     # And: each value records clean generator provenance and observed v1 result.
     # source.commit is the revision that WROTE each snapshot. Between the H4
@@ -485,7 +483,7 @@ def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -
     # one clean tree, so a single recorded revision covers the whole corpus. It
     # intentionally need not match the checked-out revision.
     commits: set[str] = set()
-    for path in (path for path in snapshots if path.is_file()):
+    for path in snapshots:
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["source"]["tag"] == _generate.SOURCE_TAG
         commit = payload["source"]["commit"]

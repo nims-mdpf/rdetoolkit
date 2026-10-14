@@ -10,11 +10,11 @@ Each port runs the v2 builder on the inputs of the original test (registered as
 family ``k2`` in ``tests/v2/modes/fixtures/smarttable_builder/_freeze.py``) and
 asserts twice:
 
-1. the original test's own expectations, transcribed literally (they run even
-   while the frozen snapshot is pending);
+1. the original test's own expectations, transcribed literally (they ran even
+   while the frozen snapshot was pending);
 2. equality with v1's frozen observation of the same inputs (invoice, metadata,
-   row dictionary or error, source invoice) -- skipped as ``pending freeze``
-   until the K2-0 freeze ritual.
+   row dictionary or error, source invoice) -- frozen in 3424839b; since
+   Session K2-0b a missing snapshot fails instead of skipping.
 
 Input deviations from the originals, none of which touches a rule under test:
 owner hashes copied from ``tests/samplefile`` are synthetic (fixture PII policy,

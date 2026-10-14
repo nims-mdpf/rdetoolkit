@@ -6,12 +6,14 @@ generator whose snapshot has not been frozen yet (the window between the two
 commits of the freeze ritual, contracts.md §I-REVIEW-B) makes the dependent
 test skip with ``pending freeze: <path>`` -- never pass -- and only while
 ``_generate.ALLOW_PENDING_SNAPSHOTS`` holds. Session K1-b turned that switch off
-after the freeze ritual; Session K2-0a reopened it for the K2-0 ritual.
+after the freeze ritual; Session K2-0a reopened it for the K2-0 ritual and
+Session K2-0b closed it again after that freeze, so a missing snapshot or
+observation key is now a test failure.
 
 The same policy covers the SmartTable builder snapshots of Session K2-0
 (``tests/v2/modes/fixtures/smarttable_builder/_freeze.py``, ruling #4):
 :func:`require_builder_snapshot` skips a not-yet-frozen one under the same
-single switch and fails otherwise.
+single switch and fails otherwise (since K2-0b: always fails).
 """
 
 from __future__ import annotations

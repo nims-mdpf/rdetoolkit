@@ -3,6 +3,8 @@
 Ruling #1 froze v1's ``SmartTableInvoiceInitializer`` as a unit-level oracle;
 ruling #4 put its snapshots under the K1 pending switch. These cells pin the
 freezer's own contract with a stubbed observation -- no cell here runs v1.
+Session K2-0b closed the window after the freeze ritual (3424839b): the
+committed corpus itself must be complete (TC-K2-0-FRZ-EV-015).
 
 EP table:
 
@@ -27,6 +29,7 @@ Negative / boundary table:
 | ``jsonable_row_data`` / ``normalize_observation`` | NaN, None, non-scalar; root and resolved root; pydantic URL version | sentinel / null / repr; ``<ROOT>``; ``<ver>`` | TC-K2-0-FRZ-BV-012 |
 | ``tests/v2`` imports | any module but ``_freeze.py`` | no ``rdetoolkit.processing`` import | TC-K2-0-FRZ-EV-013 |
 | registry inputs | owner identities | synthetic 56-digit ids only | TC-K2-0-FRZ-EV-014 |
+| committed corpus (K2-0b) | after the freeze ritual | pending off; all 71 snapshots frozen, no orphan, same inputs, one clean writer | TC-K2-0-FRZ-EV-015 |
 """
 
 from __future__ import annotations
@@ -367,3 +370,32 @@ def test_registry_owner_identities_are_synthetic__tc_k2_0_frz_ev_014() -> None:
     # Then: every owner identity is a zero-padded synthetic id
     assert values
     assert [value for value in values if re.fullmatch(r"0{55}[0-9]", value) is None] == []
+
+
+def test_the_builder_freeze_window_is_closed__tc_k2_0_frz_ev_015() -> None:
+    """TC-K2-0-FRZ-EV-015: after the K2-0 freeze every builder snapshot is committed.
+
+    Session K2-0b turned the single pending switch off: a missing builder
+    snapshot is a failure, never a skip. The committed corpus is exactly the
+    registry -- 47 ``i6c`` + 24 ``k2`` files, no orphan -- each observed from
+    the registered inputs by v1's initializer at one clean revision.
+    """
+    # Given: the registry and the committed builder corpus
+    registered = _freeze.snapshot_paths()
+    on_disk = sorted(_freeze.FIXTURE_ROOT.rglob("*.json"))
+
+    # Then: the window is closed and every registered snapshot is a frozen file
+    assert _generate.ALLOW_PENDING_SNAPSHOTS is False
+    assert len(registered) == 71
+    assert [path.relative_to(_freeze.REPOSITORY_ROOT).as_posix() for path in registered if not path.is_file()] == []
+    # And: nothing on disk is unregistered
+    assert set(on_disk) == set(registered)
+    # And: each snapshot records the registered inputs and an auditable writer
+    commits: set[str] = set()
+    for case in _freeze.BUILDER_CASES:
+        payload = json.loads(case.snapshot_path().read_text(encoding="utf-8"))
+        assert payload["case"] == _freeze.case_record(case), case.case_id
+        assert payload["source"]["oracle"] == _freeze.ORACLE
+        commits.add(payload["source"]["commit"])
+    assert len(commits) == 1
+    assert _freeze.provenance_errors() == []

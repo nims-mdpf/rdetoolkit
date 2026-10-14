@@ -12,8 +12,9 @@ processor live. Every one of those observations is now a registered case of
 from v1 by that generator; this module no longer imports
 ``rdetoolkit.processing``. The same frozen inputs also pin the merge rules the
 live oracle never exercised (``deletion_coverage.md`` §2 G2-G8: TC-I6-C-BV-046,
-EP-018..022, EV-035, the BV-040 variants and EP-009 ``overwrite``). A case not
-frozen yet skips as ``pending freeze`` after the builder has run on it.
+EP-018..022, EV-035, the BV-040 variants and EP-009 ``overwrite``). Session
+K2-0b closed the freeze window (snapshots committed in 3424839b): a missing
+snapshot now fails instead of skipping as ``pending freeze``.
 
 Equivalence partitions (EP):
 

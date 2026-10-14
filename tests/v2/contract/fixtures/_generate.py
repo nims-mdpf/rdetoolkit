@@ -1466,8 +1466,10 @@ _EXTRA_OBSERVERS: dict[str, Callable[[Path], Any]] = {
 #: (ed1a9e68). Session K2-0a reopened the window for the K2-0 ritual: the
 #: SmartTable table-type cases below and every SmartTable builder snapshot
 #: (``tests/v2/modes/fixtures/smarttable_builder/_freeze.py`` reads this same
-#: switch, ruling #4). Session K2-0b turns it off again after the freeze.
-ALLOW_PENDING_SNAPSHOTS = True
+#: switch, ruling #4). Session K2-0b turned it off again after that freeze
+#: (3424839b), so a missing run or builder snapshot is an error everywhere. A
+#: future ritual that registers new cases flips it on in its step (a) only.
+ALLOW_PENDING_SNAPSHOTS = False
 
 #: Message prefix ``--check`` uses for a registered but not-yet-frozen snapshot.
 PENDING_FREEZE_PREFIX = "pending freeze (snapshot missing): "

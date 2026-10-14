@@ -1,5 +1,41 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session K2-0 (the SmartTable initializer oracle is frozen)
+
+Test-suite only; no library code changed. The last v2 test module that ran a
+v1 processor as a live oracle — the SmartTable invoice builder comparisons
+against v1's `SmartTableInvoiceInitializer` — now compares the v2
+`SmartTableInvoiceBuilder` against frozen v1 observations, so deleting
+`rdetoolkit.processing` in K2 removes no coverage.
+
+### Changed
+
+- New unit-level oracle corpus `tests/v2/modes/fixtures/smarttable_builder/`:
+  71 frozen cases (47 merge-rule / rejection cases from the former live
+  comparisons and the newly pinned gaps, 24 ported from the v1 initializer
+  tests under their original ids), written by `_freeze.py` with one
+  subprocess per case and recorded provenance. Each snapshot holds the
+  written tile invoice, the written metadata, the row dictionary or the
+  normalized error, and the source invoice.
+- The v1 initializer tests (`tests/test_smarttable_invoice_initializer.py`,
+  `..._issue_429.py`, 25 ids) are ported onto the v2 builder in
+  `tests/v2/modes/test_smarttable_builder_contract_k2.py`, keeping their ids
+  and literal expectations.
+- Previously unpinned rules now have v2 tests: boolean casing and padding,
+  blank `sampleId`, missing `dataOwnerId`, null attribute containers,
+  multi-class specific attributes, integer fields rejecting decimals,
+  metadata key overwrite, original-table detection (CSV, TSV, upper-case
+  `.XLSX`; three new frozen runs), row data for the unified callback
+  signature, magic-variable rawfile edge cases, and SmartTable precedence
+  over an Excel invoice.
+- The pydantic version inside error URLs is normalized
+  (`errors.pydantic.dev/<ver>/`) on both sides of the builder comparison.
+- Only `_freeze.py` imports `rdetoolkit.processing` under `tests/v2`
+  (enforced by an AST check). The pending-freeze window opened for this
+  ritual is closed again: a missing run or builder snapshot fails.
+
+Contract record: `local/develop/v2/merge_v1/contracts.md` §K2-0.
+
 ## Unreleased — Session K1 (the v1 oracle becomes a frozen corpus)
 
 Test-suite only; no library code changed. Every v2 test that used to execute
