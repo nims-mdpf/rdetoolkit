@@ -1,0 +1,87 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_mdt_empty_inputdata",
+    "invalidate_invoice": false,
+    "mode": "multidatatile",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "empty_inputdata"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/temp/invoice_org.json": "15e8541de1ce43696a427a2017349f0d6d68cbcbe8d276c292457bc1cc3f9121"
+    },
+    "callback_count": 1,
+    "exit_code": 0,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "seed",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "MultiDataTile",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "",
+          "title": "seed"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "878f5cf23735",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "case": {
+    "callback": "first_tile_failure",
+    "config_overrides": {
+      "multidata_tile": {
+        "ignore_errors": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_base_case",
+    "invalidate_invoice": false,
+    "mode": "excelinvoice",
+    "observe_extras": [],
+    "outcome": "usererr",
+    "variant": "first_tile__ignore_errors"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "29e4a167a8786e8e99acad42eed3d888c500099802519d071be12bcc1bd28764",
+      "data/temp/invoice_org.json": "15e8541de1ce43696a427a2017349f0d6d68cbcbe8d276c292457bc1cc3f9121",
+      "data/temp/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/temp/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "seed",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "test1",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Contract callback failed. Remediation: inspect the fixture callback and correct its input.\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/test_child1.txt",
+        "data/nonshared_raw/test_child2.txt",
+        "data/raw/test_child1.txt",
+        "data/raw/test_child2.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json",
+        "data/temp/test_child1.txt",
+        "data/temp/test_child2.txt"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/nonshared_raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9",
+      "data/raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    }
+  },
+  "source": {
+    "commit": "878f5cf23735",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -15,6 +15,125 @@
       "data/temp/測定/行1.txt": "9703a3b6a9e44627275d53acc029faee81e02438575f343ecbd92ced236561a5"
     },
     "callback_count": 3,
+    "callback_paths": [
+      {
+        "input": {
+          "inputdata": "data/inputdata",
+          "invoice": "data/invoice",
+          "tasksupport": "data/tasksupport"
+        },
+        "output": {
+          "attachment": "data/attachment",
+          "invoice": "data/invoice",
+          "invoice_org": "data/invoice/invoice.json",
+          "invoice_patch": "data/invoice_patch",
+          "invoice_schema_json": "data/tasksupport/invoice.schema.json",
+          "logs": "data/logs",
+          "main_image": "data/main_image",
+          "meta": "data/meta",
+          "nonshared_raw": "data/nonshared_raw",
+          "other_image": "data/other_image",
+          "raw": "data/raw",
+          "rawfiles": [],
+          "smarttable_rawfile": "data/temp/fsmarttable_full_0002.csv",
+          "struct": "data/structured",
+          "temp": "data/temp",
+          "thumbnail": "data/thumbnail"
+        }
+      },
+      {
+        "input": {
+          "inputdata": "data/inputdata",
+          "invoice": "data/invoice",
+          "tasksupport": "data/tasksupport"
+        },
+        "output": {
+          "attachment": "data/divided/0001/attachment",
+          "invoice": "data/divided/0001/invoice",
+          "invoice_org": "data/invoice/invoice.json",
+          "invoice_patch": "data/divided/0001/invoice_patch",
+          "invoice_schema_json": "data/tasksupport/invoice.schema.json",
+          "logs": "data/divided/0001/logs",
+          "main_image": "data/divided/0001/main_image",
+          "meta": "data/divided/0001/meta",
+          "nonshared_raw": "data/divided/0001/nonshared_raw",
+          "other_image": "data/divided/0001/other_image",
+          "raw": "data/divided/0001/raw",
+          "rawfiles": [
+            "data/temp/measurements/row0.txt"
+          ],
+          "smarttable_rawfile": "data/temp/fsmarttable_full_0000.csv",
+          "struct": "data/divided/0001/structured",
+          "temp": "data/divided/0001/temp",
+          "thumbnail": "data/divided/0001/thumbnail"
+        }
+      },
+      {
+        "input": {
+          "inputdata": "data/inputdata",
+          "invoice": "data/invoice",
+          "tasksupport": "data/tasksupport"
+        },
+        "output": {
+          "attachment": "data/divided/0002/attachment",
+          "invoice": "data/divided/0002/invoice",
+          "invoice_org": "data/invoice/invoice.json",
+          "invoice_patch": "data/divided/0002/invoice_patch",
+          "invoice_schema_json": "data/tasksupport/invoice.schema.json",
+          "logs": "data/divided/0002/logs",
+          "main_image": "data/divided/0002/main_image",
+          "meta": "data/divided/0002/meta",
+          "nonshared_raw": "data/divided/0002/nonshared_raw",
+          "other_image": "data/divided/0002/other_image",
+          "raw": "data/divided/0002/raw",
+          "rawfiles": [
+            "data/temp/測定/行1.txt"
+          ],
+          "smarttable_rawfile": "data/temp/fsmarttable_full_0001.csv",
+          "struct": "data/divided/0002/structured",
+          "temp": "data/divided/0002/temp",
+          "thumbnail": "data/divided/0002/thumbnail"
+        }
+      }
+    ],
+    "callback_rows": [
+      {
+        "basic/dataName": "smarttable_value_2",
+        "custom/sample1": "2026-07-17 00:00:00",
+        "custom/sample2": "3",
+        "inputdata1": null,
+        "meta/comment": null,
+        "meta/temperature": null,
+        "sample/description": "third row",
+        "sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e": null,
+        "sample/names": "sample-c",
+        "sample/specificAttributes.01cb3c01-37a4-5a43-d8ca-f523ca99a75b.3250c45d-0ed6-1438-43b5-eb679918604a": "specific-c"
+      },
+      {
+        "basic/dataName": "smarttable_value_0",
+        "custom/sample1": "2026-07-15 00:00:00",
+        "custom/sample2": "1",
+        "inputdata1": "measurements/row0.txt",
+        "meta/comment": "memo-a",
+        "meta/temperature": "20.5",
+        "sample/description": "first row",
+        "sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e": "general-a",
+        "sample/names": "sample-a",
+        "sample/specificAttributes.01cb3c01-37a4-5a43-d8ca-f523ca99a75b.3250c45d-0ed6-1438-43b5-eb679918604a": "specific-a"
+      },
+      {
+        "basic/dataName": "smarttable_value_1",
+        "custom/sample1": "2026-07-16 00:00:00",
+        "custom/sample2": "2.5",
+        "inputdata1": "測定/行1.txt",
+        "meta/comment": "memo-b",
+        "meta/temperature": "21",
+        "sample/description": null,
+        "sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e": "general-b",
+        "sample/names": "sample-b",
+        "sample/specificAttributes.01cb3c01-37a4-5a43-d8ca-f523ca99a75b.3250c45d-0ed6-1438-43b5-eb679918604a": "specific-b"
+      }
+    ],
     "exit_code": 0,
     "invoice_backup": null,
     "invoice_backup_exists": false,
@@ -388,7 +507,7 @@
     }
   },
   "source": {
-    "commit": "29a80893e5b9",
+    "commit": "878f5cf23735",
     "tag": "v2.0.0a1"
   }
 }

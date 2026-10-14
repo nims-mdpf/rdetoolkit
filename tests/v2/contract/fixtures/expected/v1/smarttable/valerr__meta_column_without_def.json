@@ -1,0 +1,157 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "tasksupport",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_k0_meta_column_without_def",
+    "invalidate_invoice": false,
+    "mode": "smarttable",
+    "observe_extras": [],
+    "outcome": "valerr",
+    "variant": "meta_column_without_def"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "7b40759176e5e5185a740c1c039bbcc6b3fec168160e795d9583e4f53eb282e5",
+      "data/temp/fsmarttable_test_0000.csv": "fa2150cc07716e966847a6266ab90369b8d342761085166cd7e4d8a0c25e9029",
+      "data/temp/fsmarttable_test_0001.csv": "2efcc4f195328030b818401969dc749a355441dcc29729f477f0b798393daad1",
+      "data/temp/fsmarttable_test_0002.csv": "5d271aa279ca90c55c0b4c3aa642b88076ece592df6d4d69c15c86cf4ebe4aad",
+      "data/temp/sample1.txt": "9ae5aad1ad3de8d0e70d5615afd31cf9d9696023f83ea94b8e184fc0c91e2845",
+      "data/temp/sample2.txt": "ca833a96d06bfd34aae50364903117f8204d9691f14379de896c8fc2a8f56629",
+      "data/temp/sample3.txt": "3c8f0b02e49f6bd836e3a2e80cfa624f5015be3379fcc40eb341b4f010c77430"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "test-dataset",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": "",
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "sample1": "2023-01-01",
+          "sample10": "S10",
+          "sample2": 1.0,
+          "sample3": 1,
+          "sample4": "20:20:39",
+          "sample5": "https://sample.co",
+          "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+          "sample7": "#h1",
+          "sample8": "itemA",
+          "sample9": "II"
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": null,
+          "generalAttributes": [
+            {
+              "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+              "value": null
+            },
+            {
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+              "value": null
+            },
+            {
+              "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+              "value": null
+            },
+            {
+              "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+              "value": null
+            },
+            {
+              "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+              "value": null
+            },
+            {
+              "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+              "value": null
+            }
+          ],
+          "names": [
+            "test"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000005",
+          "referenceUrl": null,
+          "sampleId": "",
+          "specificAttributes": [
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+              "value": null
+            }
+          ]
+        }
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=metadata-def.json not found: data/tasksupport/metadata-def.json\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/"
+      ],
+      "files": [
+        "data/inputdata/files.zip",
+        "data/inputdata/smarttable_test.csv",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/rdeconfig.yml",
+        "data/temp/fsmarttable_test_0000.csv",
+        "data/temp/fsmarttable_test_0001.csv",
+        "data/temp/fsmarttable_test_0002.csv",
+        "data/temp/sample1.txt",
+        "data/temp/sample2.txt",
+        "data/temp/sample3.txt"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "878f5cf23735",
+    "tag": "v2.0.0a1"
+  }
+}

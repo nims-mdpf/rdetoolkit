@@ -1,0 +1,149 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {
+      "system": {
+        "magic_variable": true,
+        "save_invoice_to_structured": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_rdeformat_magic_data_name",
+    "invalidate_invoice": false,
+    "mode": "rdeformat",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "magic_structured"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/divided/0001/meta/metadata.json": "50baa87ce7e7b5205aab0b47556fd9a39e35adcd7c036028ba49558ba58bcde5",
+      "data/structured/result.csv": "81bf9fa83c6f7f151bd491a98cd7d933de3965289e3ebd77c6c425f7eaa16392",
+      "data/temp/0000/structured/result.csv": "81bf9fa83c6f7f151bd491a98cd7d933de3965289e3ebd77c6c425f7eaa16392",
+      "data/temp/0001/meta/metadata.json": "50baa87ce7e7b5205aab0b47556fd9a39e35adcd7c036028ba49558ba58bcde5",
+      "data/temp/invoice_org.json": "2a06bf913cdf76d90d1639377b6d40483013d90edabc9fdcb4b541e6ebf6bdf4"
+    },
+    "callback_count": 2,
+    "exit_code": 0,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "${filename}",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/divided/0001/invoice/invoice.json": {
+        "basic": {
+          "dataName": "${filename}",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      },
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "${filename}",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "rdeformat",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp/0000/<TILE_SUBDIR>",
+          "title": "${filename}"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "rdeformat",
+          "run_id": "0001",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp/0001/<TILE_SUBDIR>",
+          "title": "${filename}"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/divided/",
+        "data/divided/0001/",
+        "data/divided/0001/attachment/",
+        "data/divided/0001/invoice/",
+        "data/divided/0001/invoice_patch/",
+        "data/divided/0001/logs/",
+        "data/divided/0001/main_image/",
+        "data/divided/0001/meta/",
+        "data/divided/0001/nonshared_raw/",
+        "data/divided/0001/other_image/",
+        "data/divided/0001/raw/",
+        "data/divided/0001/structured/",
+        "data/divided/0001/temp/",
+        "data/divided/0001/thumbnail/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/temp/0000/",
+        "data/temp/0000/raw/",
+        "data/temp/0000/structured/",
+        "data/temp/0001/",
+        "data/temp/0001/meta/",
+        "data/temp/0001/raw/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/divided/0001/invoice/invoice.json",
+        "data/divided/0001/meta/metadata.json",
+        "data/divided/0001/raw/日本語データ.txt",
+        "data/inputdata/rdeformat_sample.zip",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/raw/first.txt",
+        "data/structured/result.csv",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/0000/raw/first.txt",
+        "data/temp/0000/structured/result.csv",
+        "data/temp/0001/meta/metadata.json",
+        "data/temp/0001/raw/日本語データ.txt",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/divided/0001/raw/日本語データ.txt": "39bd093e16778c9996b607c22fa629704b8b3019f834c0764891d166c232b22e",
+      "data/raw/first.txt": "792eb3a89589a4f0dfe2b89d732845c81eb8c0898965c6391b22afc4538e61d6",
+      "data/temp/0000/raw/first.txt": "792eb3a89589a4f0dfe2b89d732845c81eb8c0898965c6391b22afc4538e61d6",
+      "data/temp/0001/raw/日本語データ.txt": "39bd093e16778c9996b607c22fa629704b8b3019f834c0764891d166c232b22e"
+    }
+  },
+  "source": {
+    "commit": "878f5cf23735",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {
+      "system": {
+        "magic_variable": true,
+        "save_invoice_to_structured": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_magic_failure",
+    "invalidate_invoice": false,
+    "mode": "excelinvoice",
+    "observe_extras": [],
+    "outcome": "magicfail",
+    "variant": null
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "10c0fe1914de6f35aca45f80b6dda3c38a8c6df4ce2b99e3bff3455723984f10",
+      "data/temp/invoice_org.json": "5139560b9fe6438c4ff49fc9d156bead3069cf0a738b3b0a23bc03da89b094ff",
+      "data/temp/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/temp/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "${metadata:constant:missing_key}",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "${metadata:constant:missing_key}",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=metadata.json is required to resolve 'metadata:constant:missing_key'\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/test_child1.txt",
+        "data/nonshared_raw/test_child2.txt",
+        "data/raw/test_child1.txt",
+        "data/raw/test_child2.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json",
+        "data/temp/test_child1.txt",
+        "data/temp/test_child2.txt"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/nonshared_raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9",
+      "data/raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    }
+  },
+  "source": {
+    "commit": "878f5cf23735",
+    "tag": "v2.0.0a1"
+  }
+}
