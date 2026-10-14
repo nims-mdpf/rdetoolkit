@@ -17,7 +17,7 @@ Pinned dispatch contract (UPDATED Session J2 / merge-v1 I7, ruling #1):
         Runner**, keeping every v1 *observable*: a legacy JSON ``str`` for a
         successful or partial run, ``SystemExit(1)`` after ``data/job.failed``
         for a failed one, the ``rdesys_<ts>.log`` file logger, v1's fail-fast
-        iteration policy, and no DeprecationWarning. ``workflows._run_legacy``
+        iteration policy, and no DeprecationWarning. The v1 loop (removed in K2)
         is no longer reachable from the public entry point; it survives only as
         the dynamic oracles' subject (contracts.md §J0-1, §J2).
     run(flow=..., custom_dataset_function=...)         -> RdeConfigError(code=1001)
@@ -273,15 +273,9 @@ class TestCustomDatasetFunctionDispatch:
             runner_calls.append(request)
             return real_run(self, request, **overrides)
 
-        def _forbidden_legacy(custom_dataset_function, config=None):  # type: ignore[no-untyped-def]
-            msg = "the public entry point must not reach workflows._run_legacy"
-            raise AssertionError(msg)
-
         monkeypatch.setattr(Runner, "run", _counting_run)
-        # UPDATED Session K1 ruling #4 (iii): ``raising=False`` keeps the guard
-        # meaningful while the v1 loop still exists and lets it survive the
-        # loop's deletion in K2, where it becomes a ``not hasattr`` check.
-        monkeypatch.setattr(workflows, "_run_legacy", _forbidden_legacy, raising=False)
+        # Session K2(b): the v1 loop is gone; the entry point cannot reach it.
+        assert not hasattr(workflows, "_run_legacy")
 
         # When: calling the public v1 entry point
         result = v1_run(custom_dataset_function=_no_op_dataset_function, config=_v1_config())

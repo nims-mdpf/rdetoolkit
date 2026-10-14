@@ -155,7 +155,6 @@ def test_g1_write_freeze_covers_every_snapshot__tc_h4_pii_002(
         "expected_snapshot_paths",
         lambda: [invoice, smarttable],
     )
-    monkeypatch.setattr(_generate, "_observe_v1", lambda *args, **kwargs: {})
     monkeypatch.setattr(
         _generate,
         "_compare_or_write",
@@ -648,7 +647,7 @@ def test_check_mode_returns_nonzero_for_invalid_frozen_provenance__tc_gr_008(
     monkeypatch.setattr(
         _generate,
         "_parse_args",
-        lambda: SimpleNamespace(provenance_root=None, check=True, oracle_worker=None),
+        lambda: SimpleNamespace(provenance_root=None, check=True),
     )
     monkeypatch.setattr(
         _generate,
@@ -836,3 +835,32 @@ def test_rdeformat_targets_match_for_ascending_and_descending_discovery__tc_gr_0
     ]
     assert ascending_normalized == expected
     assert descending_normalized == expected
+
+
+def test_write_mode_is_retired_after_k2__tc_k2_gen_001(tmp_path: Path) -> None:
+    """TC-K2-GEN-001: without the v1 oracle, write mode refuses instead of writing."""
+    # Given: a snapshot target in write mode
+    target = tmp_path / "invoice" / "ok.json"
+
+    # When / Then: the generator stops with the refreeze pointer and writes nothing
+    with pytest.raises(SystemExit) as excinfo:
+        _generate._compare_or_write(target, {"case": {}}, check=False)
+    assert "refreeze_procedure" in str(excinfo.value)
+    assert not target.exists()
+
+
+def test_check_mode_validates_registry_record_and_structure__tc_k2_gen_002(tmp_path: Path) -> None:
+    """TC-K2-GEN-002: check mode flags a drifted case record or a missing contract key."""
+    # Given: a frozen snapshot whose case record and observed block are complete
+    target = tmp_path / "invoice" / "ok.json"
+    target.parent.mkdir(parents=True)
+    case = {"mode": "invoice", "outcome": "ok"}
+    observed = {key: None for key in _generate.REQUIRED_OBSERVED_KEYS}
+    target.write_text(json.dumps({"source": {}, "case": case, "observed": observed}), encoding="utf-8")
+
+    # When / Then: a matching record passes, a drifted record and a missing key do not
+    assert _generate._compare_or_write(target, {"case": case}, check=True) is None
+    assert _generate._compare_or_write(target, {"case": {"mode": "rdeformat"}}, check=True) == "frozen case record differs from the registry"
+    del observed["artifact_sha256"]
+    target.write_text(json.dumps({"source": {}, "case": case, "observed": observed}), encoding="utf-8")
+    assert "artifact_sha256" in (_generate._compare_or_write(target, {"case": case}, check=True) or "")

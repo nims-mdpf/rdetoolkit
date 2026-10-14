@@ -10,9 +10,10 @@ normalized before comparison or persistence.
 Session K1 (rulings #1-#3): every frozen observation is a registered
 ``OracleCase`` (inputs builder, configuration, callback, observation extras);
 the inventory, the snapshot paths and the ``case`` records derive from that
-registry. The worker chain in this module (``_run_oracle_worker`` ->
-``_execute_v1_observation`` -> ``_observe_v1``) is the only place left in
-``tests/v2`` that executes the v1 orchestration loop; tests compare against
+registry. Phase K2 removed the v1 orchestration loop together with the
+worker chain that executed it; the frozen snapshots are now the only record of
+the v1 observations and are regenerated only through
+``merge_v1/refreeze_procedure.md`` on the v1 maintenance line. Tests compare against
 the frozen snapshots through ``tests/v2/contract/frozen.py``. A registered case
 whose snapshot does not exist yet is "pending freeze" while
 ``ALLOW_PENDING_SNAPSHOTS`` holds: ``--check`` lists it without failing.
@@ -1970,7 +1971,7 @@ def execute_case(
     Args:
         case: The registered case.
         root: Already-materialized run root.
-        entry: ``workflows._run_legacy`` (generator) or ``workflows.run`` (SUT).
+        entry: the public ``workflows.run`` (the v1 loop was removed in K2).
         callback: Optional :data:`ORACLE_CALLBACKS` name replacing the case's.
 
     Returns:
@@ -1991,61 +1992,6 @@ def execute_case(
     finally:
         os.chdir(previous)
     return collect_case_observation(case, root, result, exit_code)
-
-
-def _run_oracle_worker(case_id: str, root: Path) -> int:
-    from rdetoolkit.workflows import _run_legacy as v1_run  # noqa: PLC0415
-
-    observation = execute_case(oracle_case(case_id), root, v1_run)
-    _write_json(root / ".oracle_observation.json", observation)
-    return 0
-
-
-def _execute_v1_observation(case: OracleCase, root: Path) -> dict[str, Any]:
-    """Run the isolated v1 worker against an already-materialized case.
-
-    Args:
-        case: The registered case.
-        root: Already-materialized run root the worker executes in.
-
-    Returns:
-        The normalized v1 observation.
-
-    Raises:
-        RuntimeError: If the worker process failed to produce an observation.
-    """
-    command = [
-        sys.executable,
-        str(Path(__file__).resolve()),
-        "--oracle-worker",
-        case.case_id,
-        str(root),
-    ]
-    completed = subprocess.run(  # noqa: S603
-        command,
-        cwd=REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = root / ".oracle_observation.json"
-    if completed.returncode != 0 or not observation_path.exists():
-        message = (
-            f"v1 oracle worker failed for {case.case_id}: "
-            f"exit={completed.returncode}; stderr={completed.stderr[-1000:]}"
-        )
-        raise RuntimeError(message)
-    observation = json.loads(observation_path.read_text(encoding="utf-8"))
-    return normalize_snapshot(observation, roots=(root,))
-
-
-def _observe_v1(case: OracleCase) -> dict[str, Any]:
-    """Observe one registered case through the isolated v1 worker."""
-    prefix = "rdetoolkit-h4-canary" if case.family == "canary" else "rdetoolkit-g1"
-    with tempfile.TemporaryDirectory(prefix=f"{prefix}-{case.mode}-") as temporary:
-        root = Path(temporary)
-        materialize_case(case, root)
-        return _execute_v1_observation(case, root)
 
 
 def _case_for_snapshot(path: Path, *, family: str = "v1") -> OracleCase:
@@ -2112,14 +2058,61 @@ def _narrow_pending_keys(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
     return {**payload, "observed": observed}
 
 
-def _compare_or_write(path: Path, payload: dict[str, Any], *, check: bool) -> str | None:
-    """Compare a check candidate or write a generated snapshot."""
-    if check:
-        if not path.exists():
-            return compare_snapshot(path, payload)
-        return compare_snapshot(path, _narrow_pending_keys(path, payload))
-    write_json_snapshot(path, payload)
+#: Observation keys every frozen run snapshot must carry (Design §G1; extras
+#: such as ``callback_rows`` are per-case and validated by their own tests).
+REQUIRED_OBSERVED_KEYS: tuple[str, ...] = (
+    "exit_code",
+    "callback_count",
+    "legacy_return",
+    "output_tree",
+    "invoices",
+    "raw_sha256",
+    "artifact_sha256",
+    "job_failed_error_code",
+    "job_failed_text",
+    "invoice_backup_exists",
+    "invoice_backup",
+)
+
+#: Write mode ended with Phase K2: the v1 orchestration this generator observed
+#: no longer exists in this tree. Re-freezing is a documented, human-run
+#: procedure on the v1 maintenance line (merge_v1/refreeze_procedure.md).
+WRITE_MODE_RETIRED = (
+    "contract snapshot regeneration needs the v1 oracle, which Phase K2 removed "
+    "from this tree; follow local/develop/v2/merge_v1/refreeze_procedure.md "
+    "(run the pre-K2 generator on the v1 maintenance line) and commit the "
+    "snapshots it writes"
+)
+
+
+def _frozen_structure_mismatch(path: Path) -> str | None:
+    """Return why a frozen snapshot is structurally invalid, or ``None``."""
+    observed = json.loads(path.read_text(encoding="utf-8")).get("observed")
+    if not isinstance(observed, dict):
+        return "frozen snapshot has no observed block"
+    missing = [key for key in REQUIRED_OBSERVED_KEYS if key not in observed]
+    if missing:
+        return f"frozen snapshot lacks observed keys: {', '.join(missing)}"
     return None
+
+
+def _compare_or_write(path: Path, payload: dict[str, Any], *, check: bool) -> str | None:
+    """Check a frozen snapshot's registry record and structure, or refuse to write.
+
+    Since Phase K2 the generator cannot re-observe v1, so ``--check`` verifies
+    what it still can: the snapshot exists, its ``case`` record equals the
+    registry's, its provenance is carried, and its ``observed`` block carries
+    every contract key. Content drift is caught by the contract tests, which
+    compare the unified Runner against these snapshots.
+    """
+    if not check:
+        raise SystemExit(WRITE_MODE_RETIRED)
+    if not path.exists():
+        return compare_snapshot(path, payload)
+    frozen = json.loads(path.read_text(encoding="utf-8"))
+    if frozen.get("case") != payload["case"]:
+        return "frozen case record differs from the registry"
+    return _frozen_structure_mismatch(path)
 
 
 def _snapshot_message(path: Path, label: str, mismatch: str) -> str:
@@ -2142,7 +2135,6 @@ def _process_v1_snapshots(*, check: bool, stamped_commit: str | None) -> list[st
         payload = {
             "source": _frozen_source(path, check=check, stamped_commit=stamped_commit),
             "case": _case_record(case),
-            "observed": _observe_v1(case),
         }
         mismatch = _compare_or_write(path, payload, check=check)
         if mismatch is not None:
@@ -2158,7 +2150,6 @@ def _process_canary_snapshots(*, check: bool, stamped_commit: str | None) -> lis
         payload = {
             "source": _frozen_source(path, check=check, stamped_commit=stamped_commit),
             "case": _case_record(case),
-            "observed": _observe_v1(case),
         }
         mismatch = _compare_or_write(path, payload, check=check)
         if mismatch is not None:
@@ -2199,7 +2190,6 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="rebuild static inputs before freezing normalized expectations",
     )
-    parser.add_argument("--oracle-worker", nargs=2, metavar=("CASE_ID", "ROOT"), help=argparse.SUPPRESS)
     parser.add_argument(
         "--provenance-root",
         type=Path,
@@ -2213,7 +2203,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _run_check() -> int:
-    """Run ``--check``: provenance, input drift, then the v1 re-observation."""
+    """Run ``--check``: provenance, input drift, then registry/structure validation of every frozen snapshot."""
     provenance_errors = [
         *source_revision_errors(),
         *source_revision_errors(root=CANARY_EXPECTED_ROOT),
@@ -2235,16 +2225,13 @@ def _run_check() -> int:
     if mismatches:
         print("\n".join(mismatches), file=sys.stderr)  # noqa: T201
         return 1
-    print("all frozen normalized v1 snapshots match their re-observation")  # noqa: T201
+    print("all frozen v1 snapshots are registered, provenance-clean and structurally complete (v1 re-observation retired in K2)")  # noqa: T201
     return 0
 
 
 def main() -> int:
     """Run fixture generation or deterministic comparison."""
     args = _parse_args()
-    if args.oracle_worker is not None:
-        case_id, root = args.oracle_worker
-        return _run_oracle_worker(case_id, Path(root))
     if args.provenance_root is not None:
         provenance_errors = source_revision_errors(root=args.provenance_root)
         if provenance_errors:

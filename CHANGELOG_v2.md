@@ -1,5 +1,24 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session K2 (Phase K / I9: the v1 orchestration is removed)
+
+### Removed
+
+- `rdetoolkit.workflows`: the v1 iteration loop (`_run_legacy`), `_process_mode`,
+  `_create_error_status` and the five `*_mode_process` shims. `run()` keeps its
+  signature and its v1 contract; every entry point runs through the unified
+  Runner, whose behaviour is pinned by the frozen v1.7.1 contract snapshots.
+- The contract fixture generator's v1 oracle worker. `_generate.py --check`
+  still verifies provenance, static-input drift, registry records and snapshot
+  structure; write mode refuses and points at the re-freeze procedure, which
+  runs on the v1 maintenance line.
+
+### Changed
+
+- `selected_input_checker` moved from `domain/mode.py` to
+  `domain/input_checker.py` (same body, same detection order); the Runner no
+  longer imports the legacy mode module.
+
 ## Unreleased — Session K2-0 (the SmartTable initializer oracle is frozen)
 
 Test-suite only; no library code changed. The last v2 test module that ran a

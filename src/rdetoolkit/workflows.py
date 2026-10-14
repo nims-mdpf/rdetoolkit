@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import sys
 import traceback
 from collections.abc import Callable, Generator
@@ -11,7 +10,6 @@ from typing import TYPE_CHECKING, Any, cast
 if TYPE_CHECKING:
     from rdetoolkit.models.config import Config
     from rdetoolkit.models.rde2types import DatasetCallback, PathTuple, RawFiles, RdeInputDirPaths, RdeOutputResourcePath, SmartTableRawFiles
-    from rdetoolkit.models.result import WorkflowExecutionStatus
     from rdetoolkit.report.run_report import RunReport
     from rdetoolkit.result import Result
     from rdetoolkit.templates import ProcessingTemplate
@@ -21,110 +19,6 @@ from rdetoolkit.exceptions import StructuredError
 
 # Expected arity of a SmartTableRawFiles element: (row_csv | None, user_files).
 _SMARTTABLE_PAIR_LEN = 2
-
-
-def excel_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
-    """Run the Excel invoice workflow.
-
-    Args:
-        *args: Positional arguments forwarded to the mode processor.
-        **kwargs: Keyword arguments forwarded to the mode processor.
-
-    Returns:
-        WorkflowExecutionStatus: Execution status for the workflow.
-    """
-    from rdetoolkit.modeproc import excel_invoice_mode_process as _impl
-
-    return _impl(*args, **kwargs)
-
-
-def invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
-    """Run the invoice workflow.
-
-    Args:
-        *args: Positional arguments forwarded to the mode processor.
-        **kwargs: Keyword arguments forwarded to the mode processor.
-
-    Returns:
-        WorkflowExecutionStatus: Execution status for the workflow.
-    """
-    from rdetoolkit.modeproc import invoice_mode_process as _impl
-
-    return _impl(*args, **kwargs)
-
-
-def multifile_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
-    """Run the multifile workflow.
-
-    Args:
-        *args: Positional arguments forwarded to the mode processor.
-        **kwargs: Keyword arguments forwarded to the mode processor.
-
-    Returns:
-        WorkflowExecutionStatus: Execution status for the workflow.
-    """
-    from rdetoolkit.modeproc import multifile_mode_process as _impl
-
-    return _impl(*args, **kwargs)
-
-
-def rdeformat_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
-    """Run the RDE format workflow.
-
-    Args:
-        *args: Positional arguments forwarded to the mode processor.
-        **kwargs: Keyword arguments forwarded to the mode processor.
-
-    Returns:
-        WorkflowExecutionStatus: Execution status for the workflow.
-    """
-    from rdetoolkit.modeproc import rdeformat_mode_process as _impl
-
-    return _impl(*args, **kwargs)
-
-
-def smarttable_invoice_mode_process(*args: Any, **kwargs: Any) -> WorkflowExecutionStatus:
-    """Run the smart table invoice workflow.
-
-    Args:
-        *args: Positional arguments forwarded to the mode processor.
-        **kwargs: Keyword arguments forwarded to the mode processor.
-
-    Returns:
-        WorkflowExecutionStatus: Execution status for the workflow.
-    """
-    from rdetoolkit.modeproc import smarttable_invoice_mode_process as _impl
-
-    return _impl(*args, **kwargs)
-
-
-def _create_error_status(
-    idx: int,
-    error_info: dict[str, Any],
-    rdeoutput_resource: RdeOutputResourcePath,
-    mode: str,
-) -> WorkflowExecutionStatus:
-    """Create error status from error information."""
-    from rdetoolkit.models.result import WorkflowExecutionStatus
-
-    _code = error_info.get("code")
-    code = 999
-    if isinstance(_code, int):
-        code = _code
-    elif isinstance(_code, str):
-        with contextlib.suppress(ValueError):
-            code = int(_code)
-
-    return WorkflowExecutionStatus(
-        run_id=str(idx),
-        title=f"Structured Process Failed: {mode}",
-        status="failed",
-        mode=mode,
-        error_code=code,
-        error_message=error_info.get("message"),
-        stacktrace=error_info.get("stacktrace"),
-        target=",".join(str(file) for file in rdeoutput_resource.rawfiles),
-    )
 
 
 def check_files_result(srcpaths: RdeInputDirPaths, *, mode: str | None, config: Config | None = None) -> Result[tuple[RawFiles | SmartTableRawFiles, Path | None, Path | None], StructuredError]:
@@ -352,175 +246,6 @@ def generate_folder_paths_iterator(
         yield rdeoutput_resource_path
 
 
-def _process_mode(  # noqa: C901 PLR0912
-    idx: int,
-    srcpaths: RdeInputDirPaths,
-    rdeoutput_resource: RdeOutputResourcePath,
-    config: Config,
-    excel_invoice_files: Path | None,
-    smarttable_file: Path | None,
-    custom_dataset_function: DatasetCallback | None,
-    logger: Any,
-) -> tuple[WorkflowExecutionStatus, dict[str, Any] | None, str]:
-    """Process a single data tile based on the appropriate mode.
-
-    Returns:
-        tuple[WorkflowExecutionStatus, dict | None, str]: Status, error info if any, and mode
-    """
-    from rdetoolkit.errors import skip_exception_context
-
-    error_info = None
-    status: WorkflowExecutionStatus | None = None
-
-    # Execute processing
-    try:
-        if smarttable_file is not None:
-            mode = "SmartTableInvoice"
-            status = smarttable_invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, smarttable_file, custom_dataset_function)
-        elif excel_invoice_files is not None:
-            mode = "Excelinvoice"
-            status = excel_invoice_mode_process(srcpaths, rdeoutput_resource, excel_invoice_files, idx, custom_dataset_function)
-        elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "rdeformat":
-            mode = "rdeformat"
-            status = rdeformat_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-        elif config.system.extended_mode is not None and config.system.extended_mode.lower() == "multidatatile":
-            mode = "MultiDataTile"
-            ignore_error = config.multidata_tile.ignore_errors if config.multidata_tile else False
-            if ignore_error:
-                # Catch exceptions only when ignore_error is enabled
-                with skip_exception_context(Exception, logger=logger, enabled=True) as error_info:
-                    status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-                if status is None:
-                    if any(value is not None for value in error_info.values()):
-                        return status, error_info, mode
-                    emsg = "MultiDataTile mode did not return a workflow status"
-                    raise StructuredError(emsg)
-                return status, error_info, mode
-            status = multifile_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-        else:
-            mode = "Invoice"
-            status = invoice_mode_process(str(idx), srcpaths, rdeoutput_resource, custom_dataset_function)
-
-        if status is None:
-            emsg = f"Processing mode {mode} did not return a workflow status"
-            raise StructuredError(emsg)
-
-        if status.status == "failed":
-            if hasattr(status, "exception_object"):
-                if isinstance(status.exception_object, StructuredError):
-                    raise status.exception_object
-                logger.error(f"Non-StructuredError exception object encountered: {status.exception_object}")
-            emsg = f"Processing failed in {mode} mode: {status.error_message}"
-            raise StructuredError(emsg, status.error_code or 999)
-
-        return status, error_info, mode
-
-    except StructuredError:
-        raise
-    except Exception as e:
-        emsg = f"Unexpected error in {mode} mode: {str(e)}"
-        raise StructuredError(emsg, 999) from e
-
-
-def _run_legacy(custom_dataset_function: DatasetCallback | None, config: Any = None) -> str:  # pragma: no cover
-    """Run the v1 orchestration loop and return the v1 legacy JSON string.
-
-    Session J0 moved this body out of :func:`run` verbatim (Phase J ruling #1):
-    the v1 orchestration is kept alive for the dynamic oracles that still
-    compare v2 against it, while the public entry point stops being the only
-    place it can be reached from. Phase K deletes this function together with
-    those oracles, so nothing here is refactored -- statement order and local
-    names are exactly what ``run`` used to execute.
-
-    Args:
-        custom_dataset_function: Optional v1 dataset callback, invoked once per
-            data tile by the mode processors.
-        config: Optional v1 ``Config``; ``None`` loads it from
-            ``tasksupport/``.
-
-    Returns:
-        JSON string carrying one ``WorkflowExecutionStatus`` per data tile.
-    """
-    from rdetoolkit.config import load_config
-    from rdetoolkit.errors import handle_and_exit_on_structured_error, handle_generic_error
-    from rdetoolkit.invoicefile import backup_invoice_json_files
-    from rdetoolkit.models.result import WorkflowResultManager
-    from rdetoolkit.models.rde2types import RdeInputDirPaths
-    from rdetoolkit.rde2util import StorageDir
-    from rdetoolkit.rdelogger import get_logger, generate_log_timestamp
-
-    log_timestamp = generate_log_timestamp()
-    log_filename = f"rdesys_{log_timestamp}.log"
-    log_path = StorageDir.get_specific_outputdir(True, "logs").joinpath(log_filename)
-    get_logger("rdetoolkit", file_path=log_path)
-    logger = get_logger(__name__)
-
-    wf_manager = WorkflowResultManager()
-    error_info = None
-    __config: Config | None = None
-
-    try:
-        # Enabling mode flag and validating input file
-        srcpaths = RdeInputDirPaths(
-            inputdata=StorageDir.get_specific_outputdir(False, "inputdata"),
-            invoice=StorageDir.get_specific_outputdir(False, "invoice"),
-            tasksupport=StorageDir.get_specific_outputdir(False, "tasksupport"),
-        )
-
-        # Loading configuration file
-        __config = load_config(str(srcpaths.tasksupport), config=config)
-        srcpaths.config = __config
-
-        raw_files_group, excel_invoice_files, smarttable_file = check_files(
-            srcpaths,
-            mode=__config.system.extended_mode,
-            config=__config,
-        )
-        if smarttable_file is not None:
-            from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
-
-            SmartTableInvoiceInitializer.clear_base_invoice_cache()
-
-        # Backup of invoice.json
-        invoice_org_filepath = backup_invoice_json_files(
-            excel_invoice_files,
-            __config.system.extended_mode,
-        )
-        invoice_schema_filepath = srcpaths.tasksupport.joinpath("invoice.schema.json")
-
-        # Execution of data set structuring process based on various modes
-        # Use iterator directly to avoid loading all items into memory at once
-        rde_data_tiles_iterator = generate_folder_paths_iterator(
-            raw_files_group,
-            invoice_org_filepath,
-            invoice_schema_filepath,
-            smarttable_mode=smarttable_file is not None,
-        )
-
-        for idx, rdeoutput_resource in enumerate(rde_data_tiles_iterator):
-            status, error_info, mode = _process_mode(
-                idx,
-                srcpaths,
-                rdeoutput_resource,
-                __config,
-                excel_invoice_files,
-                smarttable_file,
-                custom_dataset_function,
-                logger,
-            )
-            if error_info and any(value is not None for value in error_info.values()):
-                status = _create_error_status(idx, error_info, rdeoutput_resource, mode)
-
-            wf_manager.add_status(status)
-
-    except StructuredError as e:
-        handle_and_exit_on_structured_error(e, logger, config=__config)
-    except Exception as e:
-        handle_generic_error(e, logger, config=__config)
-
-    return wf_manager.to_json()
-
-
 #: Single stderr line the v1 callback entry writes before exiting non-zero.
 #: v1 printed the failure through its ``handle_*_error`` helpers; the unified
 #: entry's failure detail already reached ``data/job.failed`` and the RunReport,
@@ -535,8 +260,8 @@ def _callback_entry_log_path(root: Path, data_root: Path) -> Path:
 
     Decided **after** ``resolve_data_root`` (Session J-REVIEW ruling #3). For
     the standard layout -- ``data_root == <cwd>/data`` -- the path is taken
-    through v1's own ``StorageDir``, the identical ritual ``_run_legacy``
-    performs: it is the only seam a v1 caller (or a v1 test) can redirect, and
+    through v1's own ``StorageDir``, the identical ritual the v1 loop
+    performed: it is the only seam a v1 caller (or a v1 test) can redirect, and
     there it names the same directory. For any other data root (an alias-flat
     project, or a CWD that already is ``data``) ``StorageDir`` would create
     ``<cwd>/data``, and an existing ``data`` child outranks the RDE markers in
@@ -568,7 +293,8 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     calls the single Runner exactly once while keeping every observable half of
     the v1 contract — the ``rdesys_<ts>.log`` file logger, the legacy JSON return
     value, ``SystemExit(1)`` for a failed run, and v1's fail-fast iteration
-    policy. ``_run_legacy`` stays in this module for the dynamic oracles only.
+    policy. The v1 orchestration itself was removed in Phase K2; the frozen
+    contract fixtures carry its observable behaviour.
 
     Order matters (Session J-REVIEW ruling #3): the data root is resolved
     before anything is created, so neither the log directory nor any later
@@ -614,7 +340,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     # material a structured program ships, while Design §7.2 contracts the v1
     # API as fail-fast. v1's own loader answers both questions at once -- it
     # honours ``system.extended_mode`` and ``multidata_tile.ignore_errors`` from
-    # ``data/tasksupport``, exactly as ``_run_legacy`` does, and the v1
+    # ``data/tasksupport``, exactly as the v1 loop did, and the v1
     # ``Config`` it returns reaches ``ConfigNormalizer`` with ``origin="v1"``
     # (Phase J ruling #2c, amended by the Session J2 B-ruling #1b). It runs
     # before the Runner's failure route exists, so its failure takes v1's
