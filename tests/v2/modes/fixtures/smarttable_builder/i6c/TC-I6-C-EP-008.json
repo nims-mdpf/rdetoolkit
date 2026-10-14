@@ -1,0 +1,44 @@
+{
+  "case": {
+    "family": "i6c",
+    "id": "i6c/TC-I6-C-EP-008",
+    "inputs_sha256": {
+      "invoice": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "beb12f3dda5fe684051f53ab07cdd35b0c290426c2030ca50337ec886f78304b",
+      "schema": "55b09a75d99677319d7cfc124e9ac0c25543853347b6aa29fa22924e68c1248a"
+    },
+    "steps": [
+      {
+        "csv_text": "basic/dataName\nno-base\n",
+        "dist": "tile",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-I6-C-EP-008",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": null,
+    "steps": [
+      {
+        "invoice": {
+          "basic": {
+            "dataName": "no-base"
+          },
+          "custom": {},
+          "sample": {}
+        },
+        "metadata": null,
+        "row_data": {
+          "basic/dataName": "no-base"
+        }
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

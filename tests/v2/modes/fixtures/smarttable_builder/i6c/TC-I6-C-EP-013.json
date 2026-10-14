@@ -1,0 +1,56 @@
+{
+  "case": {
+    "family": "i6c",
+    "id": "i6c/TC-I6-C-EP-013",
+    "inputs_sha256": {
+      "invoice": "2cf758c912d561052dbdddecc35c7417d160a8d409bbbafceb034b60d8c4a43b",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "beb12f3dda5fe684051f53ab07cdd35b0c290426c2030ca50337ec886f78304b",
+      "schema": "55b09a75d99677319d7cfc124e9ac0c25543853347b6aa29fa22924e68c1248a"
+    },
+    "steps": [
+      {
+        "csv_text": "sample/sampleId\n00000000-0000-0000-0000-000000000009\n",
+        "dist": "tile",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-I6-C-EP-013",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": {
+      "custom": {},
+      "datasetId": "seed-dataset",
+      "sample": {
+        "names": [
+          "inherited-sample"
+        ]
+      }
+    },
+    "steps": [
+      {
+        "invoice": {
+          "basic": {},
+          "custom": {},
+          "datasetId": "seed-dataset",
+          "sample": {
+            "names": [
+              "inherited-sample"
+            ],
+            "sampleId": "00000000-0000-0000-0000-000000000009"
+          }
+        },
+        "metadata": null,
+        "row_data": {
+          "sample/sampleId": "00000000-0000-0000-0000-000000000009"
+        }
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

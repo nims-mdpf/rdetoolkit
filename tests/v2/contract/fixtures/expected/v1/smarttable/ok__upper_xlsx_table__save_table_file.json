@@ -1,0 +1,601 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {
+      "smarttable": {
+        "save_table_file": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_upper_xlsx_table",
+    "invalidate_invoice": false,
+    "mode": "smarttable",
+    "observe_extras": [
+      "callback_paths"
+    ],
+    "outcome": "ok",
+    "variant": "upper_xlsx_table__save_table_file"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/divided/0002/meta/metadata.json": "c3fbb237061a87a45cd037e93bb822bf59f2ee0809c30da1646a26b28133e0b8",
+      "data/divided/0003/meta/metadata.json": "d82f70072b27f1dcb4fb9eaf5885ac95e5e618238e1fd20a9ffefaa0fdb843ea",
+      "data/temp/fsmarttable_full_0000.csv": "18df0ac0a066691cf6b338fac3e813291ca16440268b8f760e5df053e982172d",
+      "data/temp/fsmarttable_full_0001.csv": "eee7b8e396ed13d5948232349909c0713e1308b7e61957cd5b694f77676208d4",
+      "data/temp/fsmarttable_full_0002.csv": "7adc8f4f19802a8621a4649c34f0ea58d523f7d9bceda6f52385dbeb4abf9bc5",
+      "data/temp/measurements/row0.txt": "692db41f1adebbf0b021bcbaa9f977fc7f99bea4ef8e4490ecc6f2160fafe804",
+      "data/temp/測定/行1.txt": "9703a3b6a9e44627275d53acc029faee81e02438575f343ecbd92ced236561a5"
+    },
+    "callback_count": 3,
+    "callback_paths": [
+      {
+        "input": {
+          "inputdata": "data/inputdata",
+          "invoice": "data/invoice",
+          "tasksupport": "data/tasksupport"
+        },
+        "output": {
+          "attachment": "data/attachment",
+          "invoice": "data/invoice",
+          "invoice_org": "data/invoice/invoice.json",
+          "invoice_patch": "data/invoice_patch",
+          "invoice_schema_json": "data/tasksupport/invoice.schema.json",
+          "logs": "data/logs",
+          "main_image": "data/main_image",
+          "meta": "data/meta",
+          "nonshared_raw": "data/nonshared_raw",
+          "other_image": "data/other_image",
+          "raw": "data/raw",
+          "rawfiles": [],
+          "smarttable_rawfile": "data/temp/fsmarttable_full_0002.csv",
+          "struct": "data/structured",
+          "temp": "data/temp",
+          "thumbnail": "data/thumbnail"
+        }
+      },
+      {
+        "input": {
+          "inputdata": "data/inputdata",
+          "invoice": "data/invoice",
+          "tasksupport": "data/tasksupport"
+        },
+        "output": {
+          "attachment": "data/divided/0002/attachment",
+          "invoice": "data/divided/0002/invoice",
+          "invoice_org": "data/invoice/invoice.json",
+          "invoice_patch": "data/divided/0002/invoice_patch",
+          "invoice_schema_json": "data/tasksupport/invoice.schema.json",
+          "logs": "data/divided/0002/logs",
+          "main_image": "data/divided/0002/main_image",
+          "meta": "data/divided/0002/meta",
+          "nonshared_raw": "data/divided/0002/nonshared_raw",
+          "other_image": "data/divided/0002/other_image",
+          "raw": "data/divided/0002/raw",
+          "rawfiles": [
+            "data/temp/measurements/row0.txt"
+          ],
+          "smarttable_rawfile": "data/temp/fsmarttable_full_0000.csv",
+          "struct": "data/divided/0002/structured",
+          "temp": "data/divided/0002/temp",
+          "thumbnail": "data/divided/0002/thumbnail"
+        }
+      },
+      {
+        "input": {
+          "inputdata": "data/inputdata",
+          "invoice": "data/invoice",
+          "tasksupport": "data/tasksupport"
+        },
+        "output": {
+          "attachment": "data/divided/0003/attachment",
+          "invoice": "data/divided/0003/invoice",
+          "invoice_org": "data/invoice/invoice.json",
+          "invoice_patch": "data/divided/0003/invoice_patch",
+          "invoice_schema_json": "data/tasksupport/invoice.schema.json",
+          "logs": "data/divided/0003/logs",
+          "main_image": "data/divided/0003/main_image",
+          "meta": "data/divided/0003/meta",
+          "nonshared_raw": "data/divided/0003/nonshared_raw",
+          "other_image": "data/divided/0003/other_image",
+          "raw": "data/divided/0003/raw",
+          "rawfiles": [
+            "data/temp/測定/行1.txt"
+          ],
+          "smarttable_rawfile": "data/temp/fsmarttable_full_0001.csv",
+          "struct": "data/divided/0003/structured",
+          "temp": "data/divided/0003/temp",
+          "thumbnail": "data/divided/0003/thumbnail"
+        }
+      }
+    ],
+    "exit_code": 0,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/divided/0001/invoice/invoice.json": {
+        "basic": {
+          "dataName": "smarttable_full.XLSX",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": "",
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "sample1": "2026-07-17",
+          "sample10": "S10",
+          "sample2": 3,
+          "sample3": 1,
+          "sample4": "20:20:39",
+          "sample5": "https://sample.co",
+          "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+          "sample7": "#h1",
+          "sample8": "itemA",
+          "sample9": "II"
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": "third row",
+          "generalAttributes": [
+            {
+              "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+              "value": null
+            },
+            {
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+              "value": null
+            },
+            {
+              "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+              "value": null
+            },
+            {
+              "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+              "value": null
+            },
+            {
+              "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+              "value": null
+            },
+            {
+              "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+              "value": null
+            }
+          ],
+          "names": [
+            "sample-c"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "referenceUrl": null,
+          "sampleId": null,
+          "specificAttributes": [
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+              "value": "specific-c"
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+              "value": null
+            }
+          ]
+        }
+      },
+      "data/divided/0002/invoice/invoice.json": {
+        "basic": {
+          "dataName": "smarttable_value_0",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": "",
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "sample1": "2026-07-15",
+          "sample10": "S10",
+          "sample2": 1,
+          "sample3": 1,
+          "sample4": "20:20:39",
+          "sample5": "https://sample.co",
+          "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+          "sample7": "#h1",
+          "sample8": "itemA",
+          "sample9": "II"
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": "first row",
+          "generalAttributes": [
+            {
+              "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+              "value": "general-a"
+            },
+            {
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+              "value": null
+            },
+            {
+              "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+              "value": null
+            },
+            {
+              "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+              "value": null
+            },
+            {
+              "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+              "value": null
+            },
+            {
+              "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+              "value": null
+            }
+          ],
+          "names": [
+            "sample-a"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "referenceUrl": null,
+          "sampleId": null,
+          "specificAttributes": [
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+              "value": "specific-a"
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+              "value": null
+            }
+          ]
+        }
+      },
+      "data/divided/0003/invoice/invoice.json": {
+        "basic": {
+          "dataName": "smarttable_value_1",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": "",
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "sample1": "2026-07-16",
+          "sample10": "S10",
+          "sample2": 2.5,
+          "sample3": 1,
+          "sample4": "20:20:39",
+          "sample5": "https://sample.co",
+          "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+          "sample7": "#h1",
+          "sample8": "itemA",
+          "sample9": "II"
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": null,
+          "generalAttributes": [
+            {
+              "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+              "value": "general-b"
+            },
+            {
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+              "value": null
+            },
+            {
+              "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+              "value": null
+            },
+            {
+              "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+              "value": null
+            },
+            {
+              "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+              "value": null
+            },
+            {
+              "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+              "value": null
+            }
+          ],
+          "names": [
+            "sample-b"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "referenceUrl": null,
+          "sampleId": null,
+          "specificAttributes": [
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+              "value": "specific-b"
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+              "value": null
+            }
+          ]
+        }
+      },
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "smarttable_value_2",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": "",
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "sample1": "2026-07-17",
+          "sample10": "S10",
+          "sample2": 3,
+          "sample3": 1,
+          "sample4": "20:20:39",
+          "sample5": "https://sample.co",
+          "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+          "sample7": "#h1",
+          "sample8": "itemA",
+          "sample9": "II"
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": "third row",
+          "generalAttributes": [
+            {
+              "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+              "value": null
+            },
+            {
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+              "value": null
+            },
+            {
+              "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+              "value": null
+            },
+            {
+              "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+              "value": null
+            },
+            {
+              "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+              "value": null
+            },
+            {
+              "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+              "value": null
+            }
+          ],
+          "names": [
+            "sample-c"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "referenceUrl": null,
+          "sampleId": null,
+          "specificAttributes": [
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+              "value": "specific-c"
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+              "value": null
+            }
+          ]
+        }
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "SmartTableInvoice",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "",
+          "title": "smarttable_value_2"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "SmartTableInvoice",
+          "run_id": "0001",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/inputdata",
+          "title": "smarttable_full.XLSX"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "SmartTableInvoice",
+          "run_id": "0002",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp/measurements",
+          "title": "smarttable_value_0"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "SmartTableInvoice",
+          "run_id": "0003",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp/測定",
+          "title": "smarttable_value_1"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/divided/",
+        "data/divided/0001/",
+        "data/divided/0001/attachment/",
+        "data/divided/0001/invoice/",
+        "data/divided/0001/invoice_patch/",
+        "data/divided/0001/logs/",
+        "data/divided/0001/main_image/",
+        "data/divided/0001/meta/",
+        "data/divided/0001/nonshared_raw/",
+        "data/divided/0001/other_image/",
+        "data/divided/0001/raw/",
+        "data/divided/0001/structured/",
+        "data/divided/0001/temp/",
+        "data/divided/0001/thumbnail/",
+        "data/divided/0002/",
+        "data/divided/0002/attachment/",
+        "data/divided/0002/invoice/",
+        "data/divided/0002/invoice_patch/",
+        "data/divided/0002/logs/",
+        "data/divided/0002/main_image/",
+        "data/divided/0002/meta/",
+        "data/divided/0002/nonshared_raw/",
+        "data/divided/0002/other_image/",
+        "data/divided/0002/raw/",
+        "data/divided/0002/structured/",
+        "data/divided/0002/temp/",
+        "data/divided/0002/thumbnail/",
+        "data/divided/0003/",
+        "data/divided/0003/attachment/",
+        "data/divided/0003/invoice/",
+        "data/divided/0003/invoice_patch/",
+        "data/divided/0003/logs/",
+        "data/divided/0003/main_image/",
+        "data/divided/0003/meta/",
+        "data/divided/0003/nonshared_raw/",
+        "data/divided/0003/other_image/",
+        "data/divided/0003/raw/",
+        "data/divided/0003/structured/",
+        "data/divided/0003/temp/",
+        "data/divided/0003/thumbnail/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/temp/measurements/",
+        "data/temp/測定/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/divided/0001/invoice/invoice.json",
+        "data/divided/0001/nonshared_raw/smarttable_full.XLSX",
+        "data/divided/0001/raw/smarttable_full.XLSX",
+        "data/divided/0002/invoice/invoice.json",
+        "data/divided/0002/meta/metadata.json",
+        "data/divided/0002/nonshared_raw/row0.txt",
+        "data/divided/0002/raw/row0.txt",
+        "data/divided/0003/invoice/invoice.json",
+        "data/divided/0003/meta/metadata.json",
+        "data/divided/0003/nonshared_raw/行1.txt",
+        "data/divided/0003/raw/行1.txt",
+        "data/inputdata/smarttable_full.XLSX",
+        "data/inputdata/smarttable_inputs.zip",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/fsmarttable_full_0000.csv",
+        "data/temp/fsmarttable_full_0001.csv",
+        "data/temp/fsmarttable_full_0002.csv",
+        "data/temp/measurements/row0.txt",
+        "data/temp/測定/行1.txt"
+      ]
+    },
+    "raw_sha256": {
+      "data/divided/0001/nonshared_raw/smarttable_full.XLSX": "8012c00ea77817d55fe143b552d4ff091acac8cada4b28611bf057f623d683fc",
+      "data/divided/0001/raw/smarttable_full.XLSX": "8012c00ea77817d55fe143b552d4ff091acac8cada4b28611bf057f623d683fc",
+      "data/divided/0002/nonshared_raw/row0.txt": "692db41f1adebbf0b021bcbaa9f977fc7f99bea4ef8e4490ecc6f2160fafe804",
+      "data/divided/0002/raw/row0.txt": "692db41f1adebbf0b021bcbaa9f977fc7f99bea4ef8e4490ecc6f2160fafe804",
+      "data/divided/0003/nonshared_raw/行1.txt": "9703a3b6a9e44627275d53acc029faee81e02438575f343ecbd92ced236561a5",
+      "data/divided/0003/raw/行1.txt": "9703a3b6a9e44627275d53acc029faee81e02438575f343ecbd92ced236561a5"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}
