@@ -34,7 +34,7 @@ Negative / boundary table:
 | ``_snapshot_message`` | file exists, or pending off | the mismatch, not "pending" | TC-K1-REG-EV-013 |
 | ``_path_fields`` / ``_config_extras`` | non-dataclass / no config | ``{}`` | TC-K1-REG-BV-014 |
 | ``execute_case`` | entry exits 1 / returns a non-str | exit code recorded / ``legacy_return`` null | TC-K1-REG-BV-015 |
-| K1-b final state | after the freeze ritual | pending off, no pending key, every registered snapshot frozen | TC-K1-REG-EV-016 |
+| K1-b final state (UPDATED K2-0a) | after the K1 freeze ritual | no pending key; only K2-0's own cases may be missing while the switch is on | TC-K1-REG-EV-016 |
 """
 
 from __future__ import annotations
@@ -320,18 +320,32 @@ def test_execute_case_records_exit_code_and_string_returns_only__tc_k1_reg_bv_01
     assert returned["callback_count"] == 0
 
 
+#: The v1 cases Session K2-0a registered (ruling #3, G9). Spelled out, not derived.
+_K2_0_REGISTERED = frozenset(
+    f"v1/smarttable/ok__{variant}__save_table_file" for variant in ("csv_table", "tsv_table", "upper_xlsx_table")
+)
+
+
 def test_the_freeze_window_is_closed_after_k1__tc_k1_reg_ev_016() -> None:
-    """TC-K1-REG-EV-016: after the K1 freeze nothing may be pending any more.
+    """TC-K1-REG-EV-016 (UPDATED, K2-0a): only the open ritual's own cases may be pending.
 
-    Session K1-b ends the window ruling #3 opened: a missing snapshot or a
-    missing observation key is a failure, never a skip, and every registered
-    v1 and canary case has its frozen snapshot.
+    Session K1-b ended the K1 window: a missing snapshot or observation key is
+    a failure, never a skip. Session K2-0a reopened the switch for the K2-0
+    ritual (ruling #4); while it is on, the only registered v1 snapshots that
+    may be missing are the three K2-0 table-type cases -- every K1 case stays
+    frozen. With the switch off (K1-b, and again after K2-0b) nothing may be
+    missing.
     """
-    # Given / When: the generator and observer as committed after K1-b
+    # Given / When: the generator and observer as committed
     cases = (*_generate.ORACLE_CASES, *_generate.CANARY_CASES)
+    missing = {case.case_id for case in cases if not case.snapshot_path().is_file()}
 
-    # Then: the pending switches are off and the whole registry is frozen
-    assert _generate.ALLOW_PENDING_SNAPSHOTS is False
+    # Then: no observation key is pending and the registry has the declared size
     assert observe.PENDING_FREEZE_KEYS == ()
-    assert [case.case_id for case in cases if not case.snapshot_path().is_file()] == []
-    assert (len(_generate.ORACLE_CASES), len(_generate.CANARY_CASES)) == (58, 5)
+    assert (len(_generate.ORACLE_CASES), len(_generate.CANARY_CASES)) == (58 + len(_K2_0_REGISTERED), 5)
+    assert _K2_0_REGISTERED <= {case.case_id for case in _generate.ORACLE_CASES}
+    # And: missing snapshots are confined to the open ritual's cases
+    if _generate.ALLOW_PENDING_SNAPSHOTS:
+        assert missing <= _K2_0_REGISTERED
+    else:
+        assert missing == set()

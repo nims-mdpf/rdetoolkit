@@ -6,8 +6,12 @@ generator whose snapshot has not been frozen yet (the window between the two
 commits of the freeze ritual, contracts.md §I-REVIEW-B) makes the dependent
 test skip with ``pending freeze: <path>`` -- never pass -- and only while
 ``_generate.ALLOW_PENDING_SNAPSHOTS`` holds. Session K1-b turned that switch off
-after the freeze ritual, so a missing snapshot or observation key is now a test
-failure.
+after the freeze ritual; Session K2-0a reopened it for the K2-0 ritual.
+
+The same policy covers the SmartTable builder snapshots of Session K2-0
+(``tests/v2/modes/fixtures/smarttable_builder/_freeze.py``, ruling #4):
+:func:`require_builder_snapshot` skips a not-yet-frozen one under the same
+single switch and fails otherwise.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ import pytest
 
 from tests.v2.contract import observe
 from tests.v2.contract.fixtures import _generate
+from tests.v2.modes.fixtures.smarttable_builder import _freeze
 
 
 def snapshot_relpath(case_id: str) -> str:
@@ -61,3 +66,31 @@ def frozen_observed(case_id: str, *, keys: Sequence[str] = ()) -> dict[str, Any]
     """Return the ``observed`` mapping of a registered case (see :func:`require_snapshot`)."""
     observed: dict[str, Any] = require_snapshot(case_id, keys=keys)["observed"]
     return observed
+
+
+def require_builder_snapshot(case_id: str) -> dict[str, Any]:
+    """Return the frozen payload of a registered SmartTable builder case.
+
+    Skips with ``pending freeze: <path>`` while the snapshot is missing and
+    ``_generate.ALLOW_PENDING_SNAPSHOTS`` holds, and fails otherwise. A snapshot
+    whose ``case`` record no longer equals the registry's (a row, a step or an
+    input digest changed after the freeze) is a failure: it was observed from
+    different inputs.
+
+    Args:
+        case_id: ``<family>/<stem>``, e.g. ``i6c/TC-I6-C-EP-001``.
+
+    Returns:
+        The parsed snapshot (``source`` / ``case`` / ``observed``).
+    """
+    case = _freeze.builder_case(case_id)
+    relpath = _freeze.snapshot_relpath(case_id)
+    path = case.snapshot_path()
+    if not path.exists():
+        if _generate.ALLOW_PENDING_SNAPSHOTS:
+            pytest.skip(f"pending freeze: {relpath}")
+        pytest.fail(f"missing frozen builder snapshot: {relpath}")
+    payload: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    if payload["case"] != _freeze.case_record(case):
+        pytest.fail(f"frozen builder snapshot {relpath} was observed from other inputs; re-freeze it")
+    return payload

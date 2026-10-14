@@ -13,6 +13,7 @@ BV Table:
 | API                    | Boundary        | Rationale        | Expected            | Test ID   |
 |------------------------|-----------------|------------------|---------------------|-----------|
 | selected_input_checker | mode is None    | default boundary | InvoiceChecker      | TC-BV-001 |
+| selected_input_checker | SmartTable file and ``*_excel_invoice.xlsx`` together (K2-0 G12) | SmartTable precedes ExcelInvoice | SmartTableChecker | TC-BV-002 |
 """
 
 from __future__ import annotations
@@ -109,3 +110,24 @@ class TestSelectedInputChecker:
 
         # Then: invoice mode is selected
         assert isinstance(checker, InvoiceChecker)
+
+    def test_smarttable_precedes_excel_invoice__tc_bv_002(self, tmp_path: Path) -> None:
+        """TC-BV-002 (K2-0 G12): a SmartTable file wins over an Excel invoice, as in v1.
+
+        v1's ``tests/test_workflow.py`` TC-EP-001 pinned this boundary on the
+        mode dispatch that Phase K2 deletes; the selector is where it lives now.
+        """
+        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.impl.input_controller import SmartTableChecker
+
+        # Given: both discriminator files, plus a mode flag that would select another checker
+        srcpaths = _srcpaths(tmp_path)
+        srcpaths.inputdata.mkdir(parents=True)
+        (srcpaths.inputdata / "smarttable_data.xlsx").touch()
+        (srcpaths.inputdata / "case_excel_invoice.xlsx").touch()
+
+        # When: selecting the checker with and without that mode flag
+        checkers = [selected_input_checker(srcpaths, tmp_path / "unpacked", mode) for mode in (None, "rdeformat")]
+
+        # Then: SmartTable mode is selected both times
+        assert all(isinstance(checker, SmartTableChecker) for checker in checkers)

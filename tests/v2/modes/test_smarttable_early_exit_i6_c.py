@@ -36,6 +36,23 @@ Boundary values / negatives (EV):
 | --- | --- | --- | --- | --- |
 | ``Runner.run`` | ``save_table_file=False`` | the default must not change | no pre-completed tile, flow runs per tile | TC-I6-C-EV-074 |
 | ``SmartTableModeHandler`` | table tile invoice | EarlyExit dataName rule | ``basic.dataName`` is the table filename | TC-I6-C-EV-075 |
+
+Session K2-0 (``deletion_coverage.md`` §2 G9): the original-table detection and
+the EarlyExit invoice, pinned without v1's ``SmartTableEarlyExitProcessor``.
+The unit cells transcribe the literal expectations of
+``tests/test_smarttable_early_exit_processor.py`` and of the dataName tests in
+``tests/processing/processors/test_invoice_smarttable.py``; the run cells
+compare the full v2 run with the frozen v1 runs of the same family whose table
+is a ``.csv``, a ``.tsv`` or an upper-case ``.XLSX`` (K1 registry, ruling #3).
+
+| API | Partition / boundary | Expected | Test ID |
+| --- | --- | --- | --- |
+| ``_original_smarttable_file`` | ``smarttable_*`` xlsx/csv/tsv under ``inputdata`` (any depth, any case) | that path | TC-I6-C-EV-076 |
+| ``_original_smarttable_file`` | ``fsmarttable_*``, outside ``inputdata``, no prefix, other suffix | ``None`` | TC-I6-C-EV-077 |
+| ``_original_smarttable_file`` | several tables / no rawfile | the first table / ``None`` | TC-I6-C-BV-078 |
+| ``_early_exit_invoice`` | csv / tsv / xlsx table, tile invoice present | ``dataName`` := file name, nothing else changes | TC-I6-C-EV-079 |
+| ``_early_exit_invoice`` | tile invoice absent | seeded from ``invoice_org``, then renamed | TC-I6-C-EV-080 |
+| ``Runner.run`` | csv / tsv / ``.XLSX`` table with ``save_table_file=True`` | equals the frozen v1 run | TC-I6-C-EP-081 |
 """
 
 from __future__ import annotations
@@ -48,6 +65,7 @@ import pytest
 
 from rdetoolkit.api.request import FlowTarget
 from rdetoolkit.core.flow import flow
+from rdetoolkit.modes.smarttable import _early_exit_invoice, _original_smarttable_file
 from rdetoolkit.report.events import MemoryEventSink
 from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.executor import TileExecutor
@@ -325,3 +343,161 @@ def test_default_configuration_has_no_precompleted_tile__tc_i6_c_ev_074(
     # And: no raw file of the original table exists, because v1 does not copy
     # it when the table is not saved.
     assert not any("smarttable_full.xlsx" in path for path in observe_v2_run(tmp_path / "v2")["raw_sha256"])
+
+
+# --------------------------------------------------------------------------
+# Session K2-0 G9: original-table detection and the EarlyExit invoice
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        # tests/test_smarttable_early_exit_processor.py: true, edge and case-insensitive cases
+        Path("/data/inputdata/smarttable_test.xlsx"),
+        Path("/data/inputdata/smarttable_experiment.csv"),
+        Path("/project/data/inputdata/smarttable_data.tsv"),
+        Path("/path/to/inputdata/smarttable_sample.XLSX"),
+        Path("/data/inputdata/smarttable_.xlsx"),
+        Path("/data/inputdata/smarttable_a.csv"),
+        Path("/inputdata/smarttable_test.xlsx"),
+        Path("/data/inputdata/nested/smarttable_test.xlsx"),
+        Path("/data/inputdata/smarttable_test.Csv"),
+        Path("/data/inputdata/smarttable_test.TSV"),
+    ],
+    ids=lambda path: path.as_posix(),
+)
+def test_original_table_is_detected__tc_i6_c_ev_076(path: Path) -> None:
+    """TC-I6-C-EV-076: a ``smarttable_*`` xlsx/csv/tsv below ``inputdata`` is the original table."""
+    # Given: a tile whose only rawfile is that path
+    # When: the mode looks for the original table
+    # Then: the path itself is returned
+    assert _original_smarttable_file((path,)) == path
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        Path("/data/temp/fsmarttable_test_0000.csv"),
+        Path("/data/inputdata/fsmarttable_test_0000.csv"),
+        Path("/data/raw/smarttable_test.xlsx"),
+        Path("/data/inputdata/table_test.xlsx"),
+        Path("/data/inputdata/smarttable_test.txt"),
+        Path("/data/inputdata/other_file.csv"),
+        Path("/data/output/smarttable_test.xlsx"),
+    ],
+    ids=lambda path: path.as_posix(),
+)
+def test_other_files_are_not_the_original_table__tc_i6_c_ev_077(path: Path) -> None:
+    """TC-I6-C-EV-077: row CSVs, other directories, prefixes and suffixes never match."""
+    # Given / When: a tile whose only rawfile is not an original table
+    # Then: no original table is found
+    assert _original_smarttable_file((path,)) is None
+
+
+def test_first_table_wins_and_no_rawfile_is_none__tc_i6_c_bv_078() -> None:
+    """TC-I6-C-BV-078: the first matching table wins; an empty tile has none."""
+    # Given: two tables and a generated row CSV, in rawfile order
+    rawfiles = (
+        Path("/data/inputdata/smarttable_first.xlsx"),
+        Path("/data/inputdata/smarttable_second.csv"),
+        Path("/data/temp/fsmarttable_extracted.csv"),
+    )
+
+    # When / Then: the first table is the original; no rawfile means none
+    assert _original_smarttable_file(rawfiles) == rawfiles[0]
+    assert _original_smarttable_file(rawfiles[::-1]) == rawfiles[1]
+    assert _original_smarttable_file(()) is None
+
+
+@pytest.mark.parametrize(
+    "table_name",
+    ["smarttable_experiment_data.xlsx", "smarttable_results.csv", "smarttable_measurements.tsv"],
+)
+def test_early_exit_invoice_renames_only_the_data_name__tc_i6_c_ev_079(tmp_path: Path, table_name: str) -> None:
+    """TC-I6-C-EV-079: ``basic.dataName`` becomes the table's file name; nothing else changes."""
+    # Given: an existing tile invoice (the v1 dataName tests' initial invoice)
+    initial = {
+        "datasetId": "test-dataset-id",
+        "basic": {"dateSubmitted": "", "dataOwnerId": "0" * 56, "dataName": "original_data_name", "description": None},
+        "custom": {"existing": "value", "field2": 123},
+        "sample": {"sampleId": "", "names": ["test sample"], "generalAttributes": []},
+    }
+    invoice_dir = tmp_path / "divided" / "0001" / "invoice"
+    invoice_dir.mkdir(parents=True)
+    (invoice_dir / "invoice.json").write_text(json.dumps(initial), encoding="utf-8")
+
+    # When: the EarlyExit invoice is published for that table
+    prepared = _early_exit_invoice(
+        table=Path("/data/inputdata") / table_name,
+        invoice_dir=invoice_dir,
+        invoice_org=tmp_path / "absent-source.json",
+    )
+
+    # Then: only the dataName differs, on disk and in the returned invoice
+    expected = json.loads(json.dumps(initial))
+    expected["basic"]["dataName"] = table_name
+    assert json.loads((invoice_dir / "invoice.json").read_text(encoding="utf-8")) == expected
+    assert prepared.invoice is not None
+    assert prepared.invoice.raw == expected
+
+
+def test_early_exit_invoice_seeds_an_absent_tile_invoice__tc_i6_c_ev_080(tmp_path: Path) -> None:
+    """TC-I6-C-EV-080: a table tile without an invoice is seeded from ``invoice_org`` first."""
+    # Given: the run's source invoice and an empty tile invoice directory
+    source = tmp_path / "invoice" / "invoice.json"
+    source.parent.mkdir()
+    source.write_text(json.dumps({"basic": {"dataName": "from-source", "description": "kept"}}), encoding="utf-8")
+    invoice_dir = tmp_path / "divided" / "0001" / "invoice"
+
+    # When: the EarlyExit invoice is published
+    _early_exit_invoice(table=Path("/data/inputdata/smarttable_seed.csv"), invoice_dir=invoice_dir, invoice_org=source)
+
+    # Then: the tile invoice is the source with the table's name; the source is untouched
+    assert json.loads((invoice_dir / "invoice.json").read_text(encoding="utf-8")) == {
+        "basic": {"dataName": "smarttable_seed.csv", "description": "kept"},
+    }
+    assert json.loads(source.read_text(encoding="utf-8"))["basic"]["dataName"] == "from-source"
+
+
+_TABLE_TYPE_CASES = {
+    "csv_table__save_table_file": "smarttable_full.csv",
+    "tsv_table__save_table_file": "smarttable_full.tsv",
+    "upper_xlsx_table__save_table_file": "smarttable_full.XLSX",
+}
+
+
+@pytest.mark.parametrize(("variant", "table_name"), list(_TABLE_TYPE_CASES.items()), ids=list(_TABLE_TYPE_CASES))
+def test_every_table_type_matches_the_frozen_v1_run__tc_i6_c_ep_081(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    variant: str,
+    table_name: str,
+) -> None:
+    """TC-I6-C-EP-081: csv, tsv and ``.XLSX`` tables behave as v1's EarlyExit did."""
+    # Given: the SmartTable family whose table is a csv, tsv or upper-case xlsx
+    case = _generate.oracle_case(f"v1/smarttable/ok__{variant}")
+    root = tmp_path / "v2"
+    _generate.materialize_case(case, root)
+    monkeypatch.chdir(root)
+    _FLOW_CALLS.clear()
+
+    # When: the v2 Runner executes it with save_table_file on
+    report = Runner(
+        root=root,
+        inputdata_path=root / "data" / "inputdata",
+        unpacked_dir_path=root / "data" / "temp",
+    ).run(_counting_flow, **_v2_overrides(save_table_file=True))
+
+    # Then: the table tile is pre-completed and named after the table (G9)
+    assert report.status == "success"
+    observed = observe_v2_run(root)
+    assert observed["invoices"]["data/divided/0001/invoice/invoice.json"]["basic"]["dataName"] == table_name
+    assert f"data/divided/0001/raw/{table_name}" in observed["raw_sha256"]
+    assert len(report.iterations) == len(_FLOW_CALLS) + 1
+
+    # And: every compared artifact and the flow count equal the frozen v1 run
+    expected = frozen_observed(case.case_id)
+    actual, expected_view = parity_pair(root, expected)
+    assert actual == expected_view
+    assert len(_FLOW_CALLS) == expected["callback_count"]

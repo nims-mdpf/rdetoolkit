@@ -21,6 +21,8 @@ Equivalence partitions (EP):
 | ``InvoiceService.apply_step`` | feature updater fails | suppresses the exception | TC-H3-EP-014 |
 | ``InvoiceService.apply_step`` | structured source absent | raises ``FileNotFoundError`` like v1 | TC-H3-EV-015 |
 | ``InvoiceService.apply_step`` | source already is the destination | copy is skipped, file untouched | TC-H3-EV-016 |
+| ``InvoiceService.apply_step`` | magic variable on, tile without rawfiles (K2-0 G11) | step skipped, invoice untouched | TC-H3-EV-018 |
+| ``InvoiceService.apply_step`` | magic variable on, several rawfiles (K2-0 G11) | ``${filename}`` is ``rawfiles[0]``'s name | TC-H3-EV-019 |
 
 Boundary values (BV):
 
@@ -30,7 +32,7 @@ Boundary values (BV):
 | ``IterationFactory.files`` | empty directory | empty tuple | TC-H3-BV-002 |
 | ``InvoiceService.backup`` | source absent | returns source path without creating backup | TC-H3-BV-003 |
 
-Negative/abnormal rows (8) outnumber positive rows (6). Every ``RdeConfig`` v1
+Negative/abnormal rows (10) outnumber positive rows (6). Every ``RdeConfig`` v1
 compatibility key is observed by a service: raw, nonshared raw, thumbnail,
 magic variable, structured invoice, feature description, and SmartTable table.
 """
@@ -406,3 +408,57 @@ def test_invoice_service_runs_only_the_selected_steps__tc_h3_ev_017(
     assert magic_calls == []
     assert not (tmp_path / "structured" / "invoice.json").exists()
     assert description_calls == [1]
+
+
+def test_magic_step_skips_a_tile_without_rawfiles__tc_h3_ev_018(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-H3-EV-018 (K2-0 G11): no rawfile, no magic-variable expansion (v1 ``VariableApplier``)."""
+    # Given: the magic-variable gate on, a template in the tile invoice and no rawfile
+    invoice = tmp_path / "invoice" / "invoice.json"
+    invoice.parent.mkdir()
+    invoice.write_text('{"basic": {"dataName": "${filename}"}}', encoding="utf-8")
+    calls: list[object] = []
+    monkeypatch.setattr(
+        "rdetoolkit.domain.invoice_service.apply_magic_variable",
+        lambda *args, **kwargs: calls.append(args) or {},
+    )
+
+    # When: the magic step runs
+    InvoiceService().apply_step(
+        "magic",
+        config=RdeConfig(system={"magic_variable": True}),
+        dataset_paths=_dataset_paths(tmp_path, invoice_org=invoice, rawfiles=()),
+    )
+
+    # Then: the expander was never called and the template is left as written
+    assert calls == []
+    assert json.loads(invoice.read_text(encoding="utf-8")) == {"basic": {"dataName": "${filename}"}}
+
+
+def test_magic_step_uses_the_first_rawfile__tc_h3_ev_019(tmp_path: Path) -> None:
+    """TC-H3-EV-019 (K2-0 G11): with several rawfiles ``${filename}`` names ``rawfiles[0]``.
+
+    The rawfiles are deliberately out of name order: the first *given* file
+    wins, as in v1's ``VariableApplier`` -- not the alphabetically first one.
+    """
+    # Given: the magic-variable gate on and two rawfiles, the later name first
+    invoice = tmp_path / "invoice" / "invoice.json"
+    invoice.parent.mkdir()
+    invoice.write_text('{"basic": {"dataName": "${filename}"}}', encoding="utf-8")
+    inputdata = tmp_path / "inputdata"
+    inputdata.mkdir()
+    rawfiles = (inputdata / "zeta.dat", inputdata / "alpha.dat")
+    for rawfile in rawfiles:
+        rawfile.write_text("raw", encoding="utf-8")
+
+    # When: the real magic step expands the template
+    InvoiceService().apply_step(
+        "magic",
+        config=RdeConfig(system={"magic_variable": True}),
+        dataset_paths=_dataset_paths(tmp_path, invoice_org=invoice, rawfiles=rawfiles),
+    )
+
+    # Then: the dataName is the first rawfile's name
+    assert json.loads(invoice.read_text(encoding="utf-8"))["basic"]["dataName"] == "zeta.dat"

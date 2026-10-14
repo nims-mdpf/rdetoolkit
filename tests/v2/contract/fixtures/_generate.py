@@ -1279,6 +1279,39 @@ def build_missing_metadata_def(case: OracleCase, root: Path) -> None:
     (root / "data" / "tasksupport" / "metadata-def.json").unlink()
 
 
+def _replace_smarttable_table(root: Path, name: str, content: bytes) -> None:
+    """Swap the family's ``smarttable_full.xlsx`` for another table file."""
+    inputdata = root / "data" / "inputdata"
+    (inputdata / "smarttable_full.xlsx").unlink()
+    (inputdata / name).write_bytes(content)
+
+
+def build_csv_table(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with its table as ``smarttable_full.csv`` (K2-0 G9)."""
+    _materialize_oracle_case(case.mode, root)
+    _replace_smarttable_table(root, "smarttable_full.csv", (INPUT_ROOT / "smarttable" / "smarttable_full.csv").read_bytes())
+
+
+def build_tsv_table(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with its table as ``smarttable_full.tsv`` (K2-0 G9).
+
+    The committed CSV equivalent quotes no cell, so a tab per comma is exact.
+    """
+    _materialize_oracle_case(case.mode, root)
+    text = (INPUT_ROOT / "smarttable" / "smarttable_full.csv").read_text(encoding="utf-8")
+    _replace_smarttable_table(root, "smarttable_full.tsv", text.replace(",", "\t").encode("utf-8"))
+
+
+def build_upper_xlsx_table(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with an upper-case ``.XLSX`` table extension (K2-0 G9)."""
+    _materialize_oracle_case(case.mode, root)
+    _replace_smarttable_table(
+        root,
+        "smarttable_full.XLSX",
+        (INPUT_ROOT / "smarttable" / "data" / "inputdata" / "smarttable_full.xlsx").read_bytes(),
+    )
+
+
 def build_tasksupport_extras(case: OracleCase, root: Path) -> None:
     """A tasksupport ``rdeconfig.yaml`` carrying top-level user-defined keys."""
     _materialize_oracle_case(case.mode, root)
@@ -1430,9 +1463,11 @@ _EXTRA_OBSERVERS: dict[str, Callable[[Path], Any]] = {
 #: freeze" -- ``--check`` lists it without failing and ``frozen.require_snapshot``
 #: skips. Session K1-a set it for the window between registering the new cases
 #: and the human freeze ritual; Session K1-b turned it off after the freeze
-#: (ed1a9e68), so a missing snapshot is now an error everywhere. A future
-#: ritual that registers new cases flips it on in its step (a) only.
-ALLOW_PENDING_SNAPSHOTS = False
+#: (ed1a9e68). Session K2-0a reopened the window for the K2-0 ritual: the
+#: SmartTable table-type cases below and every SmartTable builder snapshot
+#: (``tests/v2/modes/fixtures/smarttable_builder/_freeze.py`` reads this same
+#: switch, ruling #4). Session K2-0b turns it off again after the freeze.
+ALLOW_PENDING_SNAPSHOTS = True
 
 #: Message prefix ``--check`` uses for a registered but not-yet-frozen snapshot.
 PENDING_FREEZE_PREFIX = "pending freeze (snapshot missing): "
@@ -1632,6 +1667,24 @@ def _mode_cases() -> list[OracleCase]:
             observe_extras=("callback_paths",),
         )
         for name, builder in k0_builders.items()
+    )
+    # Session K2-0 ruling #3 (G9): the EarlyExit table detection for every
+    # table type v1 accepts, observed end to end with save_table_file on.
+    table_builders = {
+        "csv_table__save_table_file": build_csv_table,
+        "tsv_table__save_table_file": build_tsv_table,
+        "upper_xlsx_table__save_table_file": build_upper_xlsx_table,
+    }
+    cases.extend(
+        OracleCase(
+            "smarttable",
+            "ok",
+            variant=name,
+            inputs_builder=builder,
+            config_overrides=_SAVE_TABLE_FILE,
+            observe_extras=("callback_paths",),
+        )
+        for name, builder in table_builders.items()
     )
     return cases
 

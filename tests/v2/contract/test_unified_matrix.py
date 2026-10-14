@@ -19,6 +19,11 @@ EP table:
         Runner** as the SUT — ``Runner.run(RunRequest(target=
         LegacyCallbackTarget(...)))`` driving ``LegacyCallbackInvoker`` — still
         compared with the frozen v1 observation (Session I-REVIEW-B, review F5).
+    TC-UM-SMT-CB-V2-ROWDATA(-UNIFIED): the SmartTable row dictionary each
+        callback invocation receives equals the frozen ``callback_rows`` of
+        ``smarttable/ok`` -- through the legacy signature's ``resource_paths``
+        and (Session K2-0, G10) through the unified signature's
+        ``paths.smarttable_row_data`` (#207).
     TC-UM-*-CB-ENTRY-OK/USERERR/VALERR: the same three outcomes with the
         **public** entry point as the SUT — ``workflows.run(custom_dataset_function=
         ...)`` executed in a subprocess so its ``sys.exit`` and its CWD-relative
@@ -469,6 +474,38 @@ def test_callback_target_smarttable_row_material_matches_the_v1_oracle__tc_um_sm
         "smarttable_value_1",
         "smarttable_value_2",
     }
+
+
+def test_unified_callback_receives_the_v1_row_material__tc_um_smt_cb_v2_rowdata_unified(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A one-argument callback reads ``paths.smarttable_row_data`` (#207) equal to v1's rows.
+
+    Session K2-0 (``deletion_coverage.md`` §2 G10): the cell above proves the
+    row dictionary through the legacy ``(srcpaths, resource_paths)`` signature.
+    v1's dataset processor also offered it to the unified ``RdeDatasetPaths``
+    signature as ``paths.smarttable_row_data`` (#207); this cell reads it
+    there -- not through ``as_legacy_args`` -- and compares it with the same
+    frozen ``callback_rows`` of ``smarttable/ok``.
+    """
+    # Given: the frozen row material and a unified-signature callback recording it
+    expected = frozen_observed("v1/smarttable/ok", keys=("callback_rows",))
+    received: list[dict[str, Any] | None] = []
+
+    def unified_callback(paths: Any) -> None:
+        received.append(_generate._jsonable_row_data(paths.smarttable_row_data))  # noqa: SLF001
+
+    assert accepts_unified_argument(unified_callback) is True
+
+    # When: the same SmartTable fixture runs through the v2 callback path
+    report = _run_cb_v2(tmp_path / "v2", "smarttable", unified_callback, monkeypatch)
+
+    # Then: one populated row per callback invocation, each equal to v1's
+    assert report.status == "success"
+    assert len(received) == expected["callback_count"]
+    assert all(row for row in received)
+    assert received == expected["callback_rows"]
 
 
 def test_callback_target_error_policy_comes_from_the_v1_config__tc_um_mdt_cb_v2_policy(
