@@ -159,17 +159,12 @@ def test_a_missing_mandatory_parity_key_is_fatal__tc_irb_f4_bv_005(missing: str)
     """TC-IRB-F4-BV-005: every parity key is mandatory once the corpus is frozen.
 
     ``artifact_sha256`` was the pending key between ritual steps (a) and (c);
-    after the 2026-09-23 re-freeze no parity key is pending, so a frozen
-    observation that lacks *any* parity key -- the new one included -- is an
-    error, never a silently narrower comparison.
-
-    UPDATED (Session K1 ruling #2): the K1 freeze ritual lists the per-case
-    observation extras in ``PENDING_FREEZE_KEYS`` between its two commits. None
-    of them is a parity key, so the precondition this cell needs -- no parity
-    key is pending -- is stated directly instead of as "the tuple is empty".
+    after the 2026-09-23 re-freeze nothing is pending, so a frozen observation
+    that lacks *any* parity key -- the new one included -- is an error, never a
+    silently narrower comparison.
     """
-    # Given: no parity key is pending and a frozen observation lost one of them
-    assert set(PARITY_KEYS).isdisjoint(PENDING_FREEZE_KEYS)
+    # Given: nothing is pending and a frozen observation lost one parity key
+    assert PENDING_FREEZE_KEYS == ()
     frozen: dict[str, object] = {
         key: ({"directories": [], "files": []} if key == "output_tree" else {})
         for key in PARITY_KEYS

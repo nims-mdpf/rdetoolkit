@@ -5,7 +5,10 @@ Ruling #1 made every frozen v1 observation a registered ``OracleCase``; ruling
 ``observe.PENDING_FREEZE_KEYS``); ruling #3 made a not-yet-frozen snapshot skip
 -- never pass -- through ``frozen.require_snapshot``, and ``--check`` report it
 as "pending freeze" rather than as an error, both only while
-``_generate.ALLOW_PENDING_SNAPSHOTS`` holds.
+``_generate.ALLOW_PENDING_SNAPSHOTS`` holds. Session K1-b closed that window
+after the freeze ritual (switch off, ``PENDING_FREEZE_KEYS == ()``); the pending
+machinery stays for a future ritual, so its cells inject a synthetic pending
+key through :func:`_pending_key` instead of reading a live tuple entry.
 
 EP table:
 
@@ -31,6 +34,7 @@ Negative / boundary table:
 | ``_snapshot_message`` | file exists, or pending off | the mismatch, not "pending" | TC-K1-REG-EV-013 |
 | ``_path_fields`` / ``_config_extras`` | non-dataclass / no config | ``{}`` | TC-K1-REG-BV-014 |
 | ``execute_case`` | entry exits 1 / returns a non-str | exit code recorded / ``legacy_return`` null | TC-K1-REG-BV-015 |
+| K1-b final state | after the freeze ritual | pending off, no pending key, every registered snapshot frozen | TC-K1-REG-EV-016 |
 """
 
 from __future__ import annotations
@@ -42,9 +46,11 @@ from typing import Any
 
 import pytest
 
-from tests.v2.contract import frozen
+from tests.v2.contract import frozen, observe
 from tests.v2.contract.fixtures import _generate
-from tests.v2.contract.observe import PENDING_FREEZE_KEYS
+
+#: Stand-in for an observation extra a future freeze ritual lists as pending.
+_SYNTHETIC_PENDING_KEY = "callback_rows"
 
 
 def _point_registry_at(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -53,6 +59,12 @@ def _point_registry_at(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(_generate, "REPOSITORY_ROOT", tmp_path)
     monkeypatch.setattr(_generate, "EXPECTED_ROOT", expected_root)
     return expected_root
+
+
+def _pending_key(monkeypatch: pytest.MonkeyPatch) -> str:
+    """List one synthetic key as pending, as step (a) of a freeze ritual would."""
+    monkeypatch.setattr(observe, "PENDING_FREEZE_KEYS", (_SYNTHETIC_PENDING_KEY,))
+    return _SYNTHETIC_PENDING_KEY
 
 
 def _write_snapshot(path: Path, observed: dict[str, Any]) -> None:
@@ -123,12 +135,15 @@ def test_require_snapshot_returns_a_frozen_payload__tc_k1_reg_ep_004() -> None:
     assert frozen.frozen_observed("v1/invoice/ok") == payload["observed"]
 
 
-def test_narrow_pending_keys_drops_only_missing_pending_keys__tc_k1_reg_ep_005(tmp_path: Path) -> None:
+def test_narrow_pending_keys_drops_only_missing_pending_keys__tc_k1_reg_ep_005(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TC-K1-REG-EP-005: a not-yet-frozen extra does not fail ``--check``."""
     # Given: a frozen snapshot without the pending extra
     path = tmp_path / "ok.json"
     _write_snapshot(path, {"exit_code": 0})
-    pending_key = PENDING_FREEZE_KEYS[0]
+    pending_key = _pending_key(monkeypatch)
 
     # When: narrowing a candidate carrying the extra
     narrowed = _generate._narrow_pending_keys(path, {"observed": {"exit_code": 0, pending_key: []}})  # noqa: SLF001
@@ -181,7 +196,7 @@ def test_missing_snapshot_fails_once_pending_is_off__tc_k1_reg_ev_009(
 @pytest.mark.parametrize(
     ("key", "outcome"),
     [
-        pytest.param(PENDING_FREEZE_KEYS[0], pytest.skip.Exception, id="pending-key-skips"),
+        pytest.param(_SYNTHETIC_PENDING_KEY, pytest.skip.Exception, id="pending-key-skips"),
         pytest.param("legacy_return", pytest.fail.Exception, id="frozen-key-fails"),
     ],
 )
@@ -195,6 +210,7 @@ def test_missing_observed_key_skips_only_when_pending__tc_k1_reg_ev_010(
     # Given: a frozen snapshot lacking the requested key
     expected_root = _point_registry_at(tmp_path, monkeypatch)
     monkeypatch.setattr(_generate, "ALLOW_PENDING_SNAPSHOTS", True)
+    _pending_key(monkeypatch)
     _write_snapshot(expected_root / "invoice" / "ok.json", {"exit_code": 0})
 
     # When / Then: a pending extra skips, an already-frozen key is a defect
@@ -202,11 +218,14 @@ def test_missing_observed_key_skips_only_when_pending__tc_k1_reg_ev_010(
         frozen.require_snapshot("v1/invoice/ok", keys=(key,))
 
 
-def test_narrow_pending_keys_keeps_everything_else__tc_k1_reg_ev_011(tmp_path: Path) -> None:
+def test_narrow_pending_keys_keeps_everything_else__tc_k1_reg_ev_011(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TC-K1-REG-EV-011: a new non-pending key, or a frozen extra, is still compared."""
     # Given: a frozen snapshot that already carries one pending extra
     path = tmp_path / "ok.json"
-    pending_key = PENDING_FREEZE_KEYS[0]
+    pending_key = _pending_key(monkeypatch)
     _write_snapshot(path, {"exit_code": 0, pending_key: []})
     candidate = {"observed": {"exit_code": 0, pending_key: ["changed"], "unexpected": 1}}
 
@@ -299,3 +318,20 @@ def test_execute_case_records_exit_code_and_string_returns_only__tc_k1_reg_bv_01
     assert returned["exit_code"] == 0
     assert returned["legacy_return"] is None
     assert returned["callback_count"] == 0
+
+
+def test_the_freeze_window_is_closed_after_k1__tc_k1_reg_ev_016() -> None:
+    """TC-K1-REG-EV-016: after the K1 freeze nothing may be pending any more.
+
+    Session K1-b ends the window ruling #3 opened: a missing snapshot or a
+    missing observation key is a failure, never a skip, and every registered
+    v1 and canary case has its frozen snapshot.
+    """
+    # Given / When: the generator and observer as committed after K1-b
+    cases = (*_generate.ORACLE_CASES, *_generate.CANARY_CASES)
+
+    # Then: the pending switches are off and the whole registry is frozen
+    assert _generate.ALLOW_PENDING_SNAPSHOTS is False
+    assert observe.PENDING_FREEZE_KEYS == ()
+    assert [case.case_id for case in cases if not case.snapshot_path().is_file()] == []
+    assert (len(_generate.ORACLE_CASES), len(_generate.CANARY_CASES)) == (58, 5)

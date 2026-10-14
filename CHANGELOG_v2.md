@@ -1,5 +1,33 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session K1 (the v1 oracle becomes a frozen corpus)
+
+Test-suite only; no library code changed. Every v2 test that used to execute
+the v1 orchestration loop (`workflows._run_legacy`) as a live oracle now
+compares the unified Runner against a frozen v1.7.1 observation, so deleting
+the v1 loop in K2 removes no coverage.
+
+### Changed
+
+- The contract fixture generator (`tests/v2/contract/fixtures/_generate.py`)
+  declares every frozen v1 observation as a registered `OracleCase`: 58
+  synthetic cases (16 pre-existing + 42 new: error policies, artifact-stage
+  failures, SmartTable `save_table_file` / metadata / encoding variants,
+  ExcelInvoice and MultiDataTile input layouts, configuration extras, a
+  plain-exception callback) and 5 real canaries. Snapshot paths and the
+  inventory derive from the registry.
+- New observation extras `callback_rows`, `callback_paths` and
+  `callback_config_extras` on the cases that need them; the eleven base keys
+  and every previously frozen value are unchanged.
+- Tests read the corpus through `tests/v2/contract/frozen.py`; a missing
+  snapshot or observation key is a failure (the K1-a "pending freeze" skip
+  window is closed).
+- The 15 v1-versus-v1 callback cells of the unified matrix and the golden
+  ExcelInvoice stub are removed; the v1 loop now runs only inside the
+  generator's worker chain (write mode and `--check`).
+
+Contract record: `local/develop/v2/merge_v1/contracts.md` §K1.
+
 ## Unreleased — Session K0-iii (v1.7.1 SmartTable contract on the unified Runner)
 
 The unified Runner now follows the SmartTable contract of rdetoolkit v1.7.0 /

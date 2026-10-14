@@ -1428,9 +1428,11 @@ _EXTRA_OBSERVERS: dict[str, Callable[[Path], Any]] = {
 
 #: While ``True`` a registered snapshot that does not exist yet is "pending
 #: freeze" -- ``--check`` lists it without failing and ``frozen.require_snapshot``
-#: skips. Session K1-b turns it off once the human freeze ritual has run, after
-#: which a missing snapshot is an error everywhere.
-ALLOW_PENDING_SNAPSHOTS = True
+#: skips. Session K1-a set it for the window between registering the new cases
+#: and the human freeze ritual; Session K1-b turned it off after the freeze
+#: (ed1a9e68), so a missing snapshot is now an error everywhere. A future
+#: ritual that registers new cases flips it on in its step (a) only.
+ALLOW_PENDING_SNAPSHOTS = False
 
 #: Message prefix ``--check`` uses for a registered but not-yet-frozen snapshot.
 PENDING_FREEZE_PREFIX = "pending freeze (snapshot missing): "

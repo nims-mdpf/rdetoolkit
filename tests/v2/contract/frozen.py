@@ -5,8 +5,9 @@ froze from the v1 oracle; no test executes v1 itself. A case registered in the
 generator whose snapshot has not been frozen yet (the window between the two
 commits of the freeze ritual, contracts.md §I-REVIEW-B) makes the dependent
 test skip with ``pending freeze: <path>`` -- never pass -- and only while
-``_generate.ALLOW_PENDING_SNAPSHOTS`` holds. Session K1-b turns that switch off,
-after which a missing snapshot or observation key is a test failure.
+``_generate.ALLOW_PENDING_SNAPSHOTS`` holds. Session K1-b turned that switch off
+after the freeze ritual, so a missing snapshot or observation key is now a test
+failure.
 """
 
 from __future__ import annotations
@@ -17,8 +18,8 @@ from typing import Any
 
 import pytest
 
+from tests.v2.contract import observe
 from tests.v2.contract.fixtures import _generate
-from tests.v2.contract.observe import PENDING_FREEZE_KEYS
 
 
 def snapshot_relpath(case_id: str) -> str:
@@ -48,7 +49,8 @@ def require_snapshot(case_id: str, *, keys: Sequence[str] = ()) -> dict[str, Any
     payload: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     missing = [key for key in keys if key not in payload["observed"]]
     if missing:
-        pending = _generate.ALLOW_PENDING_SNAPSHOTS and all(key in PENDING_FREEZE_KEYS for key in missing)
+        # Read through the module so a future ritual's tuple is seen at call time.
+        pending = _generate.ALLOW_PENDING_SNAPSHOTS and all(key in observe.PENDING_FREEZE_KEYS for key in missing)
         if pending:
             pytest.skip(f"pending freeze: {relpath} (observed {', '.join(missing)})")
         pytest.fail(f"frozen snapshot {relpath} lacks observed key(s): {missing}")

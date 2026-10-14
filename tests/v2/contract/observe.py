@@ -36,10 +36,11 @@ PARITY_KEYS = ("output_tree", "raw_sha256", "invoices", "artifact_sha256")
 #: frozen observation may lack it and it is skipped. Every other parity key
 #: stays mandatory, so this is not a general escape hatch.
 #: ``artifact_sha256`` was listed here until the 2026-09-23 re-freeze.
-#: Session K1 (ruling #2) lists the per-case observation extras the registry
-#: adds -- none of them a parity key -- until the K1 freeze ritual has run;
-#: K1-b empties the tuple again.
-PENDING_FREEZE_KEYS: tuple[str, ...] = ("callback_rows", "callback_paths", "callback_config_extras")
+#: Session K1-a (ruling #2) listed the per-case observation extras the
+#: registry adds (``callback_rows`` / ``callback_paths`` /
+#: ``callback_config_extras``, none of them a parity key) until the K1 freeze
+#: ritual (ed1a9e68); Session K1-b emptied the tuple again.
+PENDING_FREEZE_KEYS: tuple[str, ...] = ()
 
 
 def observe_v2_run(root: Path, *, exclude_logs: bool = True) -> dict[str, Any]:
