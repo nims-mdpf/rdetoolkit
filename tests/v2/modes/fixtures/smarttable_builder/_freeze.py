@@ -12,11 +12,11 @@ definition, pre-existing metadata) -> the written tile ``invoice.json``, the
 written ``meta/metadata.json``, the returned row dictionary, or the normalized
 error, plus the source invoice after the last step.
 
-This module is the **only** place in ``tests/v2`` that imports
-``rdetoolkit.processing``, and it does so only inside the oracle worker
-(:func:`_v1_step_runner`): each case runs in its own subprocess because v1
-keeps the base invoice in a process-global class cache (``_BASE_INVOICE_CACHE``),
-so two cases in one interpreter could observe each other.
+Phase K2 removed ``rdetoolkit.processing`` and, with it, this module's v1
+oracle worker. The frozen corpus is now the only record of those observations;
+``--check`` validates registry records, provenance and structure, and any
+re-freeze runs the pre-K2 version of this module on the v1 maintenance line
+(``merge_v1/refreeze_procedure.md``).
 
 The materialization (:func:`materialize_case` / :func:`step_paths`) and the
 observation (:func:`observe_case`) are shared verbatim by the freezer and by
@@ -48,7 +48,6 @@ import io
 import json
 import math
 import re
-import subprocess
 import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
@@ -818,91 +817,6 @@ def observe_case(case: BuilderCase, root: Path, run_step: StepRunner) -> dict[st
 # --------------------------------------------------------------------------
 
 
-def _v1_step_runner() -> StepRunner:
-    """Return a step runner over v1's initializer (imports ``rdetoolkit.processing``)."""
-    from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath  # noqa: PLC0415
-    from rdetoolkit.processing.context import ProcessingContext  # noqa: PLC0415
-    from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer  # noqa: PLC0415
-
-    def _run_v1_oracle(paths: StepPaths) -> dict[str, Any] | None:
-        tile = paths.tile_dir
-        resource_paths = RdeOutputResourcePath(
-            raw=tile / "raw",
-            nonshared_raw=tile / "nonshared_raw",
-            rawfiles=(paths.rowfile,) if paths.rowfile is not None else (),
-            struct=tile / "structured",
-            main_image=tile / "main_image",
-            other_image=tile / "other_image",
-            meta=paths.metadata_path.parent,
-            thumbnail=tile / "thumbnail",
-            logs=tile / "logs",
-            invoice=paths.dist_path.parent,
-            invoice_schema_json=paths.schema_path,
-            invoice_org=paths.invoice_org,
-            smarttable_rawfile=paths.rowfile,
-            attachment=tile / "attachment",
-        )
-        context = ProcessingContext(
-            index="0001",
-            srcpaths=RdeInputDirPaths(
-                inputdata=paths.root / "temp",
-                invoice=paths.invoice_org.parent,
-                tasksupport=paths.schema_path.parent,
-            ),
-            resource_paths=resource_paths,
-            datasets_function=None,
-            mode_name="smarttable",
-            # Only its presence matters to the initializer (SmartTable mode).
-            smarttable_file=paths.root / "inputdata" / "smarttable_case.xlsx",
-        )
-        # A fresh instance per row, as v1's pipeline built one per tile; the
-        # class cache is what spans the rows of one run (one worker process).
-        SmartTableInvoiceInitializer().process(context)
-        row_data: dict[str, Any] | None = resource_paths.smarttable_row_data
-        return row_data
-
-    return _run_v1_oracle
-
-
-def _run_oracle_worker(case_id: str, root: Path) -> int:
-    observation = observe_case(builder_case(case_id), root, _v1_step_runner())
-    (root / _OBSERVATION_NAME).write_text(json.dumps(observation, ensure_ascii=False), encoding="utf-8")
-    return 0
-
-
-def observe_v1(case: BuilderCase) -> dict[str, Any]:
-    """Observe one case through v1 in an isolated worker process.
-
-    Raises:
-        RuntimeError: If the worker failed to produce an observation.
-    """
-    with tempfile.TemporaryDirectory(prefix="rdetoolkit-k2-builder-") as temporary:
-        root = Path(temporary) / "case"
-        root.mkdir()
-        command = [sys.executable, str(Path(__file__).resolve()), "--oracle-worker", case.case_id, str(root)]
-        completed = subprocess.run(  # noqa: S603
-            command,
-            cwd=REPOSITORY_ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        observation_path = root / _OBSERVATION_NAME
-        if completed.returncode != 0 or not observation_path.exists():
-            message = (
-                f"v1 oracle worker failed for {case.case_id}: "
-                f"exit={completed.returncode}; stderr={completed.stderr[-1000:]}"
-            )
-            raise RuntimeError(message)
-        observed: dict[str, Any] = json.loads(observation_path.read_text(encoding="utf-8"))
-        return observed
-
-
-# --------------------------------------------------------------------------
-# Snapshots, provenance and the CLI
-# --------------------------------------------------------------------------
-
-
 def _digest(value: Any) -> str:
     canonical = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -1008,36 +922,66 @@ def _snapshot_message(case: BuilderCase, mismatch: str) -> str:
     return f"{case.case_id}: {mismatch}"
 
 
-def freeze(*, check: bool, observe: Callable[[BuilderCase], dict[str, Any]] = observe_v1) -> list[str]:
-    """Write (or, with ``check``, compare) every registered builder snapshot.
+#: Write mode ended with Phase K2: ``rdetoolkit.processing`` (and with it the v1
+#: ``SmartTableInvoiceInitializer`` this freezer observed) no longer exists in
+#: this tree. Re-freezing follows merge_v1/refreeze_procedure.md on the v1
+#: maintenance line, with the pre-K2 version of this module.
+WRITE_MODE_RETIRED = (
+    "builder snapshot regeneration needs the v1 SmartTableInvoiceInitializer, "
+    "which Phase K2 removed from this tree; follow "
+    "local/develop/v2/merge_v1/refreeze_procedure.md (run the pre-K2 freezer on "
+    "the v1 maintenance line) and commit the snapshots it writes"
+)
+
+
+def _frozen_structure_mismatch(path: Path) -> str | None:
+    """Return why a frozen builder snapshot is structurally invalid, or ``None``."""
+    observed = json.loads(path.read_text(encoding="utf-8")).get("observed")
+    if not isinstance(observed, dict) or "steps" not in observed:
+        return "frozen snapshot has no observed.steps block"
+    return None
+
+
+def freeze(*, check: bool, observe: Callable[[BuilderCase], dict[str, Any]] | None = None) -> list[str]:
+    """Check every registered builder snapshot (write mode is retired).
 
     Args:
-        check: Compare only; never write.
-        observe: The v1 observation (a test seam; the default runs the worker).
+        check: Must be ``True``; write mode raises :data:`WRITE_MODE_RETIRED`.
+        observe: Optional observation seam (tests). Without it, ``--check``
+            validates what remains verifiable after K2: the snapshot exists,
+            its ``case`` record equals the registry's and its ``observed``
+            block carries the step records. Content drift is caught by the
+            contract tests comparing ``SmartTableInvoiceBuilder`` against the
+            frozen files.
 
     Returns:
         Mismatch messages; a pending one starts with :data:`PENDING_FREEZE_PREFIX`.
     """
-    stamped_commit = None if check else _generate._git_revision()  # noqa: SLF001
+    if not check:
+        raise SystemExit(WRITE_MODE_RETIRED)
     messages: list[str] = []
     for case in BUILDER_CASES:
         path = case.snapshot_path()
-        payload = {
-            "source": _frozen_source(path, check=check, stamped_commit=stamped_commit),
+        payload: dict[str, Any] = {
+            "source": _frozen_source(path, check=True, stamped_commit=None),
             "case": case_record(case),
-            "observed": observe(case),
         }
-        if not check:
-            _generate.write_json_snapshot(path, payload)
-            continue
-        mismatch = _generate.compare_snapshot(path, payload)
+        if observe is not None:
+            payload["observed"] = observe(case)
+            mismatch = _generate.compare_snapshot(path, payload)
+        elif not path.exists():
+            mismatch = _generate.compare_snapshot(path, payload)
+        elif json.loads(path.read_text(encoding="utf-8")).get("case") != payload["case"]:
+            mismatch = "frozen case record differs from the registry"
+        else:
+            mismatch = _frozen_structure_mismatch(path)
         if mismatch is not None:
             messages.append(_snapshot_message(case, mismatch))
     return messages
 
 
-def run_check(*, observe: Callable[[BuilderCase], dict[str, Any]] = observe_v1) -> int:
-    """Run ``--check``: provenance, then the v1 re-observation of every case."""
+def run_check(*, observe: Callable[[BuilderCase], dict[str, Any]] | None = None) -> int:
+    """Run ``--check``: provenance, then registry/structure validation of every case."""
     errors = provenance_errors()
     if errors:
         print("\n".join(errors), file=sys.stderr)  # noqa: T201
@@ -1054,29 +998,22 @@ def run_check(*, observe: Callable[[BuilderCase], dict[str, Any]] = observe_v1) 
     if mismatches:
         print("\n".join(mismatches), file=sys.stderr)  # noqa: T201
         return 1
-    print("all frozen builder snapshots match their v1 re-observation")  # noqa: T201
+    print("all frozen builder snapshots are registered, provenance-clean and structurally complete (v1 re-observation retired in K2)")  # noqa: T201
     return 0
 
 
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="re-observe v1 and compare only")
-    parser.add_argument("--oracle-worker", nargs=2, metavar=("CASE_ID", "ROOT"), help=argparse.SUPPRESS)
+    parser.add_argument("--check", action="store_true", help="validate the frozen corpus (write mode is retired)")
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Freeze, check, or (internally) observe one case in a worker."""
+    """Check the frozen corpus; write mode is retired since Phase K2."""
     args = _parse_args(argv)
-    if args.oracle_worker is not None:
-        case_id, root = args.oracle_worker
-        return _run_oracle_worker(case_id, Path(root))
     if args.check:
         return run_check()
-    require_write_tree_hygiene()
-    freeze(check=False)
-    print(f"froze {len(BUILDER_CASES)} v1 SmartTable initializer snapshot(s)")  # noqa: T201
-    return 0
+    raise SystemExit(WRITE_MODE_RETIRED)
 
 
 if __name__ == "__main__":

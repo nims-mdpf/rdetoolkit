@@ -47,7 +47,7 @@ def check_files_result(srcpaths: RdeInputDirPaths, *, mode: str | None, config: 
         ...     error = result.error
         ...     print(f"Error: {error.emsg}")
     """
-    from rdetoolkit.modeproc import selected_input_checker
+    from rdetoolkit.domain.input_checker import selected_input_checker
     from rdetoolkit.rde2util import StorageDir
     from rdetoolkit.result import Success, Failure
 

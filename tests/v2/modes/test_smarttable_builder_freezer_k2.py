@@ -13,7 +13,7 @@ EP table:
 | registry | every registered case | unique ids, inventory derived, 47 ``i6c`` + 24 ``k2`` | TC-K2-0-FRZ-EP-001 |
 | registry | the R3 port | every original TC id but TC-BV-002 is a ``k2`` case | TC-K2-0-FRZ-EP-002 |
 | ``observe_case`` | multi-step case with a source mutation | the mutation lands between the steps; dist per step | TC-K2-0-FRZ-EP-003 |
-| ``freeze`` | write mode | every snapshot written with the stamped provenance | TC-K2-0-FRZ-EP-004 |
+| ``freeze`` | write mode | refused with the refreeze pointer (K2) | TC-K2-0-FRZ-EP-004 |
 | ``require_builder_snapshot`` | frozen snapshot of the same inputs | the parsed payload | TC-K2-0-FRZ-EP-005 |
 
 Negative / boundary table:
@@ -25,9 +25,8 @@ Negative / boundary table:
 | ``freeze(check=True)`` | missing / pending allowed, pending off, differing | pending / mismatch / mismatch | TC-K2-0-FRZ-EV-008 |
 | ``run_check`` | pending only / a mismatch / unauditable provenance | exit 0 / 1 / 1 | TC-K2-0-FRZ-EV-009 |
 | ``require_builder_snapshot`` | missing (pending, off) / other inputs | skip / fail / fail | TC-K2-0-FRZ-EV-010 |
-| ``observe_v1`` | the worker exits non-zero | ``RuntimeError`` | TC-K2-0-FRZ-EV-011 |
 | ``jsonable_row_data`` / ``normalize_observation`` | NaN, None, non-scalar; root and resolved root; pydantic URL version | sentinel / null / repr; ``<ROOT>``; ``<ver>`` | TC-K2-0-FRZ-BV-012 |
-| ``tests/v2`` imports | any module but ``_freeze.py`` | no ``rdetoolkit.processing`` import | TC-K2-0-FRZ-EV-013 |
+| ``tests/v2`` imports | every module | no ``rdetoolkit.processing`` import | TC-K2-0-FRZ-EV-013 |
 | registry inputs | owner identities | synthetic 56-digit ids only | TC-K2-0-FRZ-EV-014 |
 | committed corpus (K2-0b) | after the freeze ritual | pending off; all 71 snapshots frozen, no orphan, same inputs, one clean writer | TC-K2-0-FRZ-EV-015 |
 """
@@ -131,25 +130,21 @@ def test_multi_step_case_mutates_the_source_between_steps__tc_k2_0_frz_ep_003(tm
     assert [step["row_data"] for step in observed["steps"]] == [{"cell": _freeze.NAN_CELL}] * 2
 
 
-def test_write_mode_writes_every_snapshot_with_provenance__tc_k2_0_frz_ep_004(
+def test_write_mode_is_retired_after_k2__tc_k2_0_frz_ep_004(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-K2-0-FRZ-EP-004: write mode owns the whole inventory and stamps the revision."""
-    # Given: the corpus redirected to tmp_path and a stamped revision
+    """TC-K2-0-FRZ-EP-004 (UPDATED K2(c)): write mode refuses; the corpus is regenerated only on the v1 line."""
+    # Given: the corpus redirected to tmp_path
     _point_at(tmp_path, monkeypatch)
-    monkeypatch.setattr(_generate, "_git_revision", lambda: "0123456789ab")
 
-    # When: freezing with a stubbed observation
-    messages = _freeze.freeze(check=False, observe=_stub_observation)
-
-    # Then: every registered snapshot exists with oracle, revision, case record and observation
-    assert messages == []
-    for case in _freeze.BUILDER_CASES:
-        payload = json.loads(case.snapshot_path().read_text(encoding="utf-8"))
-        assert payload["source"] == {"oracle": _freeze.ORACLE, "commit": "0123456789ab"}
-        assert payload["case"] == _freeze.case_record(case)
-        assert payload["observed"] == _stub_observation(case)
+    # When / Then: write mode stops with the refreeze pointer and writes nothing
+    with pytest.raises(SystemExit) as excinfo:
+        _freeze.freeze(check=False, observe=_stub_observation)
+    assert "refreeze_procedure" in str(excinfo.value)
+    assert not any(case.snapshot_path().exists() for case in _freeze.BUILDER_CASES)
+    with pytest.raises(SystemExit):
+        _freeze.main([])
 
 
 def test_require_builder_snapshot_returns_a_frozen_payload__tc_k2_0_frz_ep_005(
@@ -282,19 +277,6 @@ def test_require_builder_snapshot_pending_and_failures__tc_k2_0_frz_ev_010(
         frozen.require_builder_snapshot(case.case_id)
 
 
-def test_worker_failure_is_a_runtime_error__tc_k2_0_frz_ev_011(monkeypatch: pytest.MonkeyPatch) -> None:
-    """TC-K2-0-FRZ-EV-011: a worker that leaves no observation is an error, not an empty value."""
-    # Given: a worker process that exits 1 without writing anything
-    def _failed(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
-        return subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="boom")
-
-    monkeypatch.setattr(_freeze.subprocess, "run", _failed)
-
-    # When / Then: the observation raises with the case id and the stderr tail
-    with pytest.raises(RuntimeError, match=r"v1 oracle worker failed for i6c/TC-I6-C-EP-001: exit=1; stderr=boom"):
-        _freeze.observe_v1(_freeze.builder_case("i6c/TC-I6-C-EP-001"))
-
-
 def test_row_data_and_root_normalization__tc_k2_0_frz_bv_012(tmp_path: Path) -> None:
     """TC-K2-0-FRZ-BV-012: NaN stays distinguishable from None; both root spellings normalize."""
     # Given: a row with a NaN, a None, a string and a non-scalar cell
@@ -332,9 +314,10 @@ def _imports_processing(path: Path) -> bool:
 
 
 def test_only_the_freezer_imports_v1_processing__tc_k2_0_frz_ev_013() -> None:
-    """TC-K2-0-FRZ-EV-013: ``rdetoolkit.processing`` is imported by ``_freeze.py`` alone.
+    """TC-K2-0-FRZ-EV-013 (UPDATED K2(c)): nothing under tests/v2 imports ``rdetoolkit.processing``.
 
-    Docstrings may still name the module; only real ``import`` statements count.
+    The package was removed in K2; docstrings may still name it, only real
+    ``import`` statements count.
     """
     # Given: every Python module below tests/v2
     modules = sorted(_TESTS_V2.rglob("*.py"))
@@ -343,7 +326,7 @@ def test_only_the_freezer_imports_v1_processing__tc_k2_0_frz_ev_013() -> None:
     importers = [path.relative_to(_TESTS_V2).as_posix() for path in modules if _imports_processing(path)]
 
     # Then: the freezer is the only one
-    assert importers == ["modes/fixtures/smarttable_builder/_freeze.py"]
+    assert importers == []
 
 
 def test_registry_owner_identities_are_synthetic__tc_k2_0_frz_ev_014() -> None:

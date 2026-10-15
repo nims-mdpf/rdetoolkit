@@ -12,6 +12,18 @@
   still verifies provenance, static-input drift, registry records and snapshot
   structure; write mode refuses and points at the re-freeze procedure, which
   runs on the v1 maintenance line.
+- `rdetoolkit.modeproc` and the `rdetoolkit.processing` package (pipeline,
+  factories, context and the v1 processors). Their behaviour survives in the
+  unified Runner's domain services and mode handlers, pinned by the frozen
+  v1.7.1 contract corpus and by the SmartTable builder snapshots. The
+  `rdetoolkit.impl` and `rdetoolkit.interfaces` modules remain in the package
+  as internals and are no longer exported from `rdetoolkit`.
+- The SmartTable builder freezer's v1 runner; its `--check` validates the
+  frozen corpus like the contract generator does.
+- The v1 test tree loses the tests whose only subject was the removed
+  pipeline (about 340 tests, listed with their v2 coverage in
+  `local/develop/v2/merge_v1/deletion_coverage.md`); the contract tests and
+  every test of a surviving function stay.
 
 ### Changed
 
