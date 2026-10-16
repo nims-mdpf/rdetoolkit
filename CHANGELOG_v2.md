@@ -1,5 +1,27 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session K4-impl (Phase K: rc1 preparation)
+
+### Changed
+
+- The bare `rdetoolkit init` golden comparison normalizes the generated
+  `rdetoolkit==<version>` pin on both sides and checks the generated pin against
+  the runtime `__version__` exactly, so a version bump no longer turns the
+  golden RED. The frozen golden file is unchanged.
+- CI: new `wheel-install-gate` job builds the wheel, installs it into a clean
+  venv and runs the unreachability, Tier-1 surface, package-data and
+  wheel-layout tests against the installed package. Existing jobs unchanged.
+
+### Docs
+
+- `docs/migration_v1_to_v2.md`: the provisional v1 compatibility section is
+  final for 2.0.0rc1 — what is kept, what was removed, deprecated helpers,
+  behaviour changes (v1.7 #503/#496, the default events log and its 64 MiB cap,
+  `logs/iterations/` clearing), the intentional differences from v1, rollback
+  targets (`2.0.0a1`, `1.7.1`) and the schedule (`2.0.0rc1` → GA `2.0.1`).
+- New English twin `docs/migration_v1_to_v2.en.md`, linked from the English
+  navigation. Both languages run the same executed examples.
+
 ## Unreleased — Session K3 (Phase K / I10: non-functional hardening)
 
 ### Added
