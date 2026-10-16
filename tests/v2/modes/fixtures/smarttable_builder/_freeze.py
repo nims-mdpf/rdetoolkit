@@ -33,8 +33,8 @@ environment the full ``tox -e py312-module`` suite compares in), and after
 ``_generate.py`` in the same ritual (its hygiene gate rejects dirty builder
 snapshots; this one accepts dirty K1 snapshots)::
 
-    .tox/py312-module/bin/python tests/v2/modes/fixtures/smarttable_builder/_freeze.py          # write (clean tree)
-    .tox/py312-module/bin/python tests/v2/modes/fixtures/smarttable_builder/_freeze.py --check  # re-observe and compare
+    .tox/py312-module/bin/python tests/v2/modes/fixtures/smarttable_builder/_freeze.py          # refused since K2 (see refreeze_procedure.md)
+    .tox/py312-module/bin/python tests/v2/modes/fixtures/smarttable_builder/_freeze.py --check  # validate the frozen corpus
 """
 
 from __future__ import annotations

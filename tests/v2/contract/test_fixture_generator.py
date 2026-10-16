@@ -17,12 +17,8 @@ EP table:
         relative fixture path instead of being ignored by snapshot checking.
     TC-GR-005 (abnormal): ascending and descending rdeformat file discovery
         normalize order-dependent status targets to the same stable value.
-    TC-GR-006 (abnormal): the real write CLI rejects code-tree dirtiness
-        before any input or snapshot write, with two-commit remediation.
-    TC-GR-007 (normal): the real write CLI defaults to snapshot freeze only;
-        snapshot-only dirtiness remains writable for an interrupted rerun.
-    TC-H0-GEN-EP-001 (normal): ``--rebuild-inputs`` opts into rebuilding
-        static inputs before snapshot freeze.
+    TC-K2-GEN-003 (abnormal, replaces TC-GR-006/007 and TC-H0-GEN-EP-001): the write CLI
+        refuses before any side effect since Phase K2.
     TC-GR-008 (abnormal): ``--check`` rejects dirty or unrecorded frozen
         provenance instead of treating it as a stale-revision warning.
     TC-GR-009 (normal): every frozen snapshot has clean non-empty provenance;
@@ -50,7 +46,6 @@ BV table:
         and replace only the nondeterministic subdirectory component.
     TC-GR-007 (only generated paths): the maximum allowed dirty-tree boundary
         contains paths exclusively below ``expected/``.
-    TC-H0-GEN-BV-001 (zero flags): write mode performs no input rebuild.
     TC-GR-008 (invalid markers): dirty, unrecorded, and empty revisions are
         fatal provenance values and make the CLI process exit nonzero.
     TC-GR-009 (16 snapshots): the complete inventory has one clean SHA per
@@ -565,7 +560,7 @@ def test_source_revision_warning_is_explicit_and_non_failing__tc_gr_003(
     # Then: the warning names both revisions and embeds the regeneration remedy
     assert warnings == [
         "warning: frozen source.commit old-revision differs from current revision "
-        "new-revision; remediation: regenerate all contract snapshots with _generate.py",
+        "new-revision; remediation: re-freeze on the v1 maintenance line (merge_v1/refreeze_procedure.md)",
     ]
 
 
@@ -693,103 +688,29 @@ def test_check_script_propagates_fatal_provenance_exit_code__tc_gr_008(
     assert "commit code changes first" in completed.stderr
 
 
-def test_write_mode_checks_hygiene_before_rebuilding_inputs__tc_gr_006(
+def test_write_mode_cli_refuses_before_any_side_effect__tc_k2_gen_003(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-GR-006: the real dirty write CLI refuses before every write."""
-    # Given: the real zero-argument CLI, a dirty refusal, and observable writers
-    writes: list[str] = []
-    monkeypatch.setattr(sys, "argv", [str(_generate.__file__)])
+    """TC-K2-GEN-003 (replaces TC-GR-006/007, H0-GEN-BV-001/EP-001): write mode stops first.
 
-    def _reject_dirty_tree() -> None:
-        msg = "commit code changes first"
-        raise RuntimeError(msg)
-
-    def _record_input_build() -> dict[str, object]:
-        writes.append("inputs")
-        return {}
-
-    def _record_snapshot_freeze(*, check: bool) -> list[str]:
-        writes.append(f"snapshots-check={check}")
-        return []
-
-    monkeypatch.setattr(_generate, "_require_write_tree_hygiene", _reject_dirty_tree)
-    monkeypatch.setattr(_generate, "build_static_inputs", _record_input_build)
-    monkeypatch.setattr(_generate, "freeze_expected_outputs", _record_snapshot_freeze)
-
-    # When: starting a write-mode generation attempt
-    with pytest.raises(RuntimeError, match="commit code changes first"):
-        _generate.main()
-
-    # Then: refusal occurs before any static input or snapshot is written
-    assert writes == []
-
-
-def test_write_mode_defaults_to_freeze_only__tc_gr_007_h0_gen_bv_001(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """TC-GR-007/BV-001: zero CLI flags freeze snapshots without rebuilding inputs."""
-    # Given: the real zero-argument write CLI with observable operations
+    Since Phase K2 the generator has no v1 oracle. The CLI must refuse before
+    the hygiene gate, before any input rebuild and before any freeze call, with
+    or without ``--rebuild-inputs``.
+    """
+    # Given: every side-effecting step records itself
     operations: list[str] = []
-    monkeypatch.setattr(sys, "argv", [str(_generate.__file__)])
-    monkeypatch.setattr(
-        _generate,
-        "_require_write_tree_hygiene",
-        lambda: operations.append("hygiene"),
-    )
+    monkeypatch.setattr(_generate, "_require_write_tree_hygiene", lambda: operations.append("hygiene"))
+    monkeypatch.setattr(_generate, "build_static_inputs", lambda *a, **k: operations.append("inputs"))
+    monkeypatch.setattr(_generate, "freeze_expected_outputs", lambda *, check: operations.append(f"freeze-check={check}"))
 
-    def _unexpected_input_build() -> dict[str, object]:
-        raise AssertionError("zero-argument write mode must not rebuild inputs")
-
-    def _record_snapshot_freeze(*, check: bool) -> list[str]:
-        operations.append(f"freeze-check={check}")
-        return []
-
-    monkeypatch.setattr(_generate, "build_static_inputs", _unexpected_input_build)
-    monkeypatch.setattr(_generate, "freeze_expected_outputs", _record_snapshot_freeze)
-
-    # When: executing the default write CLI path
-    exit_code = _generate.main()
-
-    # Then: hygiene precedes one write-mode snapshot freeze and no input build
-    assert exit_code == 0
-    assert operations == ["hygiene", "freeze-check=False"]
-
-
-def test_rebuild_inputs_flag_opts_in_before_freeze__tc_h0_gen_ep_001(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """TC-H0-GEN-EP-001: --rebuild-inputs rebuilds inputs before freezing."""
-    # Given: the real opt-in CLI path with every operation observable
-    operations: list[str] = []
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [str(_generate.__file__), "--rebuild-inputs"],
-    )
-    monkeypatch.setattr(
-        _generate,
-        "_require_write_tree_hygiene",
-        lambda: operations.append("hygiene"),
-    )
-
-    def _record_input_build() -> dict[str, object]:
-        operations.append("inputs")
-        return {"invoice": {}}
-
-    def _record_snapshot_freeze(*, check: bool) -> list[str]:
-        operations.append(f"freeze-check={check}")
-        return []
-
-    monkeypatch.setattr(_generate, "build_static_inputs", _record_input_build)
-    monkeypatch.setattr(_generate, "freeze_expected_outputs", _record_snapshot_freeze)
-
-    # When: executing write mode with input rebuilding explicitly requested
-    exit_code = _generate.main()
-
-    # Then: one hygiene gate precedes both writes in their required order
-    assert exit_code == 0
-    assert operations == ["hygiene", "inputs", "freeze-check=False"]
+    for argv in ([str(_generate.__file__)], [str(_generate.__file__), "--rebuild-inputs"]):
+        monkeypatch.setattr(sys, "argv", argv)
+        # When: running the write CLI
+        with pytest.raises(SystemExit) as excinfo:
+            _generate.main()
+        # Then: it refuses with the refreeze pointer and touched nothing
+        assert "refreeze_procedure" in str(excinfo.value)
+    assert operations == []
 
 
 def test_static_input_check_detects_deterministic_manifest_drift__tc_gr_004(
@@ -855,7 +776,7 @@ def test_check_mode_validates_registry_record_and_structure__tc_k2_gen_002(tmp_p
     target = tmp_path / "invoice" / "ok.json"
     target.parent.mkdir(parents=True)
     case = {"mode": "invoice", "outcome": "ok"}
-    observed = {key: None for key in _generate.REQUIRED_OBSERVED_KEYS}
+    observed = dict.fromkeys(_generate.REQUIRED_OBSERVED_KEYS)
     target.write_text(json.dumps({"source": {}, "case": case, "observed": observed}), encoding="utf-8")
 
     # When / Then: a matching record passes, a drifted record and a missing key do not

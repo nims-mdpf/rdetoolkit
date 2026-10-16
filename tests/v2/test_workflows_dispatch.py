@@ -19,7 +19,7 @@ Pinned dispatch contract (UPDATED Session J2 / merge-v1 I7, ruling #1):
         for a failed one, the ``rdesys_<ts>.log`` file logger, v1's fail-fast
         iteration policy, and no DeprecationWarning. The v1 loop (removed in K2)
         is no longer reachable from the public entry point; it survives only as
-        the dynamic oracles' subject (contracts.md §J0-1, §J2).
+        removed in Phase K2; the frozen contract corpus carries its behaviour (contracts.md §K2).
     run(flow=..., custom_dataset_function=...)         -> RdeConfigError(code=1001)
     run()  (neither specified)                         -> v1-compatible behavior maintained
         (Design §11: "Python API でどちらも未指定 -> v1 互換のため既存

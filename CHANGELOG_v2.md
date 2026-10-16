@@ -20,6 +20,8 @@
   as internals and are no longer exported from `rdetoolkit`.
 - The SmartTable builder freezer's v1 runner; its `--check` validates the
   frozen corpus like the contract generator does.
+- Deprecated, kept for the append-only error contract: `errors.handle_and_exit_on_structured_error`
+  and `models.result.WorkflowResultManager` have no caller left in the package.
 - The v1 test tree loses the tests whose only subject was the removed
   pipeline (about 340 tests, listed with their v2 coverage in
   `local/develop/v2/merge_v1/deletion_coverage.md`); the contract tests and

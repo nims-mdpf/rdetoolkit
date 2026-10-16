@@ -561,7 +561,7 @@ def source_revision_warnings(
     return [
         (
             f"warning: frozen source.commit {commit} differs from current revision {current}; "
-            "remediation: regenerate all contract snapshots with _generate.py"
+            "remediation: re-freeze on the v1 maintenance line (merge_v1/refreeze_procedure.md)"
         )
         for commit in sorted(recorded)
         if commit not in {current, "<unrecorded>"} and "-dirty" not in commit
@@ -2230,7 +2230,7 @@ def _run_check() -> int:
 
 
 def main() -> int:
-    """Run fixture generation or deterministic comparison."""
+    """Run the deterministic check; write mode is retired since Phase K2."""
     args = _parse_args()
     if args.provenance_root is not None:
         provenance_errors = source_revision_errors(root=args.provenance_root)
@@ -2241,16 +2241,8 @@ def main() -> int:
         return 0
     if args.check:
         return _run_check()
-    _require_write_tree_hygiene()
-    manifest = build_static_inputs() if args.rebuild_inputs else None
-    freeze_expected_outputs(check=False)
-    message = (
-        f"built inputs and froze v1 outputs for {', '.join(sorted(manifest))}"
-        if manifest is not None
-        else "froze v1 outputs (static inputs unchanged)"
-    )
-    print(message)  # noqa: T201
-    return 0
+    # Phase K2: refuse before touching anything (no hygiene gate, no input rebuild).
+    raise SystemExit(WRITE_MODE_RETIRED)
 
 
 if __name__ == "__main__":
