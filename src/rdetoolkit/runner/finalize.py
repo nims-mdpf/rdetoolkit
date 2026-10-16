@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import uuid
 from pathlib import Path
 from collections.abc import Callable
 from typing import Any
@@ -115,7 +117,36 @@ def write_run_report(report: RunReport, *, data_root: Path) -> None:
     logs_dir = data_root / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     report_path = logs_dir / f"run_report_{report.run_id}.json"
-    report_path.write_text(report.to_json(), encoding="utf-8")
+    atomic_write_text(report_path, report.to_json())
+
+
+def atomic_write_text(path: Path, text: str) -> None:
+    """Replace ``path`` with ``text`` so readers never observe a partial file.
+
+    The text is written to a uniquely named temporary file in the **same
+    directory** and moved into place with ``os.replace``, which is atomic
+    within one filesystem. Any failure -- including a ``BaseException`` such as
+    the Runner's SIGTERM interruption -- removes the temporary file and leaves
+    the previous ``path`` untouched (Session K3 ruling #3).
+
+    The temporary file is opened with ``"x"`` rather than ``mkstemp`` so that
+    it, and therefore the published file, keeps the process umask's default
+    permissions instead of ``mkstemp``'s owner-only mode. No fsync is issued:
+    the contract is atomicity against an interrupted process, and an fsync per
+    tile would dominate a 1000-tile run.
+
+    Args:
+        path: Destination file; its parent directory must exist.
+        text: Complete UTF-8 content.
+    """
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temporary.open("x", encoding="utf-8") as handle:
+            handle.write(text)
+        os.replace(temporary, path)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def _failure_error(report: RunReport) -> tuple[int, str]:

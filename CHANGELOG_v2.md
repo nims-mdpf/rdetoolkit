@@ -1,5 +1,41 @@
 # rdetoolkit v2 changelog
 
+## Unreleased — Session K3 (Phase K / I10: non-functional hardening)
+
+### Added
+
+- Every Runner run now records its events to
+  `<data_root>/logs/events_<run_id>.jsonl` by default (`FileEventSink`). This
+  covers `rdetoolkit run --flow` (including `--validate-only`, so the W1001
+  mode-override warning is now visible on disk), `workflows.run(flow=...)`, the
+  v1 callback entry `workflows.run(custom_dataset_function=...)` and a
+  `Runner` built directly. An injected `event_sink=` still replaces the file.
+  `data/logs/**` is not part of the v1 artifact contract.
+- Events-log size cap: `FileEventSink(max_bytes=...)`, default
+  `DEFAULT_EVENTS_MAX_BYTES` = 64 MiB. The first node-level event that would
+  cross it is replaced by one `warning` event with the new code **W1002**
+  `EventsLogTruncated` and one stderr line; later `node.*` events of that run
+  are dropped while `run.*`, `iteration.*` and `warning` events continue. No
+  new event name, RunReport schema stays "2".
+- `rdetoolkit.runner.finalize.atomic_write_text` (same-directory temporary file
+  + `os.replace`).
+- `scripts/bench_runner.py`: non-gating wall-clock baseline (five canary cases
+  through the public entry, one 1000-tile MultiDataTile run). The CI coverage
+  job prints `--durations=25`.
+
+### Changed
+
+- The run report and `logs/iterations/iteration_{i}.json` are written
+  atomically; an interrupted write leaves the previous file intact. The events
+  file is flushed per line and fsynced on close, so after SIGTERM it is a
+  prefix of complete JSON lines ending in `run.completed`. `job.failed` is
+  still written by v1's `write_job_errorlog_file`.
+- `<data_root>/logs/iterations/` is emptied when tile iteration starts, so a
+  shorter re-run no longer leaves a longer run's high-index files behind.
+  `job.failed`, `run_report_*` and `events_*` are kept across runs, as before.
+- A value in an event payload that is not JSON is written as its `str()`
+  instead of failing the run.
+
 ## Unreleased — Session K2 (Phase K / I9: the v1 orchestration is removed)
 
 ### Removed

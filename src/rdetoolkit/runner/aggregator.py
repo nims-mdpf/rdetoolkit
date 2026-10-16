@@ -9,6 +9,7 @@ from typing import Any
 
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.execute import ExecutionResult
+from rdetoolkit.runner.finalize import atomic_write_text
 
 
 class RunAggregator:
@@ -91,7 +92,8 @@ class RunAggregator:
 
     def _write_iteration(self, iteration_index: int, payload: dict[str, Any]) -> None:
         path = self._iterations_dir / f"iteration_{iteration_index}.json"
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        # Atomic so a reader (or a SIGTERM mid-write) never sees half a tile.
+        atomic_write_text(path, json.dumps(payload, ensure_ascii=False, indent=2))
 
 
 def _result_payload(result: ExecutionResult) -> dict[str, Any]:

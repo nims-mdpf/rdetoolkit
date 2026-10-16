@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import shutil
 import signal
 import sys
 import time
@@ -34,7 +35,7 @@ from rdetoolkit.errors import (
     RdeValidationError,
 )
 from rdetoolkit.models.config import Config
-from rdetoolkit.report.events import Event, EventSink, MemoryEventSink
+from rdetoolkit.report.events import Event, EventSink, FileEventSink
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
@@ -74,7 +75,9 @@ class Runner:
             root: Project or data root used for config loading.
             inputdata_path: Input data directory for mode resolution.
             unpacked_dir_path: Legacy unpack directory for input checkers.
-            event_sink: Event sink owned by this run.
+            event_sink: Event sink owned by this run. When omitted the run is
+                recorded to ``<data_root>/logs/events_<run_id>.jsonl``
+                (Session K3 ruling #1); an injected sink replaces that file.
             run_id_factory: Optional factory for deterministic tests.
             planner: Optional request-to-plan collaborator.
             executor: Optional common tile executor.
@@ -89,7 +92,9 @@ class Runner:
         self.root = root or Path.cwd()
         self.inputdata_path = inputdata_path or self.root / "inputdata"
         self.unpacked_dir_path = unpacked_dir_path or self.root / "unpacked"
-        self.event_sink = event_sink or MemoryEventSink()
+        # The default must exist before the data root does (the executor below
+        # captures it), so it resolves its directory only when a run opens it.
+        self.event_sink = event_sink or _RunScopedFileEventSink(lambda: self.data_root / "logs")
         self._run_id_factory = run_id_factory or (lambda: uuid.uuid4().hex)
         self._invoice_service = invoice_service or InvoiceService()
         self.run_id = ""
@@ -380,6 +385,10 @@ class Runner:
             target=execution_target,
             config_source=config,
         )
+        # Before any tile is prepared: iteration files are not run-scoped, so a
+        # shorter re-run would otherwise sit beside a longer run's high indices
+        # (Session K3 ruling #4). Run-scoped logs and job.failed are kept.
+        _clear_iterations_dir(self.data_root / "logs" / "iterations")
         plan = self._planner.create(request, config=config, mode=mode, data_root=self.data_root)
         aggregator = RunAggregator(
             run_id=self.run_id,
@@ -493,6 +502,40 @@ class Runner:
             write_run_report(report, data_root=self.data_root)
             return
         self._finalizer.finalize(report, config)
+
+
+class _RunScopedFileEventSink:
+    """The Runner's default sink: one ``FileEventSink`` per opened run.
+
+    The Runner is constructed before its data root is resolved, so the file
+    sink is created at ``open`` time from the root the run settled on. A
+    Runner driven step by step (``iterate`` without ``run``) never opens a
+    run; there is no run log to append to, so its events are discarded rather
+    than raising the ``FileEventSink`` "open before emit" error.
+    """
+
+    def __init__(self, logs_dir: Callable[[], Path]) -> None:
+        self._logs_dir = logs_dir
+        self._sink: FileEventSink | None = None
+
+    def open(self, run_id: str) -> None:
+        self._sink = FileEventSink(self._logs_dir())
+        self._sink.open(run_id)
+
+    def emit(self, event: Event) -> None:
+        if self._sink is not None:
+            self._sink.emit(event)
+
+    def close(self) -> None:
+        if self._sink is not None:
+            self._sink.close()
+            self._sink = None
+
+
+def _clear_iterations_dir(iterations_dir: Path) -> None:
+    """Remove a previous run's per-tile files; the aggregator recreates the directory."""
+    if iterations_dir.is_dir() and not iterations_dir.is_symlink():
+        shutil.rmtree(iterations_dir)
 
 
 def _flow_id(flow_fn: Callable[..., Any]) -> str:

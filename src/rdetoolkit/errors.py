@@ -646,6 +646,10 @@ WARNING_CATALOG: dict[int, WarningDef] = {
         name="ModeOverriddenByFileDetection",
         message_template="Configured mode was overridden by input file detection: {mode}",
     ),
+    1002: WarningDef(
+        name="EventsLogTruncated",
+        message_template="events log truncated at the size cap; node-level events are no longer recorded for this run",
+    ),
     1101: WarningDef(
         name="TemplateSelfStateUsage",
         message_template="Template slot or hook uses hidden self state: {qualified_name}.{attribute_name}",
