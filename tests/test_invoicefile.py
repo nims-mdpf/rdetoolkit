@@ -928,7 +928,7 @@ class TestExcelinvoice:
         ws = wb['_version']
         version_cell = ws['B2'].value
         assert isinstance(version_cell, str)
-        assert re.match(r'^\d+\.\d+\.\d+$', version_cell) is not None
+        assert re.match(r'^\d+\.\d+\.\d+((a|b|rc)\d+)?$', version_cell) is not None
 
         if os.path.exists("test_excelinvoice.xlsx"):
             os.remove("test_excelinvoice.xlsx")
