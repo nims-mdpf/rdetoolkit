@@ -1,8 +1,38 @@
 # rdetoolkit v2 changelog
 
-## Unreleased — Session K4-impl (Phase K: rc1 preparation)
+## 2.0.0rc1 — 2026-10-19
 
-### Changed
+First release candidate of the unified runtime. The version number 2.0.0 is
+skipped (it is unusable on PyPI); general availability will be 2.0.1.
+
+Highlights since 2.0.0a1:
+
+- One Runner behind every entry point. `run(custom_dataset_function=...)`
+  keeps the v1 return value, exit status, fail-fast policy, directory tree,
+  `data/job.failed` and `rdesys_<ts>.log`; its behaviour is pinned by a frozen
+  corpus observed from the v1 code path (61 contract runs, 5 real-data canary
+  runs, 71 SmartTable builder cases).
+- The v1 orchestration is removed: `rdetoolkit.modeproc`, `rdetoolkit.processing`
+  and the mode shims of `rdetoolkit.workflows` no longer exist; `impl` and
+  `interfaces` are internal. The installed package proves this in its own test
+  suite and in a CI job that installs the built wheel into a clean environment.
+- The v1.7 line is merged in: the SmartTable raw-file contract (#503), the
+  metadata-definition requirement for `meta/` columns (#496), cp932 archive
+  names (#515), and the csv2graph additions.
+- Every run writes `data/logs/events_<run_id>.jsonl` (64 MiB soft cap, warning
+  W1002), run reports are written atomically, per-iteration summaries are
+  cleared at the start of a run, and a 1000-tile run is part of the test suite.
+- Migration guide (Japanese and English) with the intentional behaviour
+  differences D1–D9, deprecated helpers, rollback to 1.7.1, and the release plan.
+
+Rollback: pin `rdetoolkit==1.7.1`. The `v2.0.0a1` git tag remains a source-only
+reference for the dual-path build.
+
+The sections below are the per-session records folded into this release.
+
+### Session K4-impl (Phase K: rc1 preparation)
+
+#### Changed
 
 - The bare `rdetoolkit init` golden comparison normalizes the generated
   `rdetoolkit==<version>` pin on both sides and checks the generated pin against
@@ -12,7 +42,7 @@
   venv and runs the unreachability, Tier-1 surface, package-data and
   wheel-layout tests against the installed package. Existing jobs unchanged.
 
-### Docs
+#### Docs
 
 - `docs/migration_v1_to_v2.md`: the provisional v1 compatibility section is
   final for 2.0.0rc1 — what is kept, what was removed, deprecated helpers,
@@ -22,9 +52,9 @@
 - New English twin `docs/migration_v1_to_v2.en.md`, linked from the English
   navigation. Both languages run the same executed examples.
 
-## Unreleased — Session K3 (Phase K / I10: non-functional hardening)
+### Session K3 (Phase K / I10: non-functional hardening)
 
-### Added
+#### Added
 
 - Every Runner run now records its events to
   `<data_root>/logs/events_<run_id>.jsonl` by default (`FileEventSink`). This
@@ -45,7 +75,7 @@
   through the public entry, one 1000-tile MultiDataTile run). The CI coverage
   job prints `--durations=25`.
 
-### Changed
+#### Changed
 
 - The run report and `logs/iterations/iteration_{i}.json` are written
   atomically; an interrupted write leaves the previous file intact. The events
@@ -58,9 +88,9 @@
 - A value in an event payload that is not JSON is written as its `str()`
   instead of failing the run.
 
-## Unreleased — Session K2 (Phase K / I9: the v1 orchestration is removed)
+### Session K2 (Phase K / I9: the v1 orchestration is removed)
 
-### Removed
+#### Removed
 
 - `rdetoolkit.workflows`: the v1 iteration loop (`_run_legacy`), `_process_mode`,
   `_create_error_status` and the five `*_mode_process` shims. `run()` keeps its
@@ -85,13 +115,13 @@
   `local/develop/v2/merge_v1/deletion_coverage.md`); the contract tests and
   every test of a surviving function stay.
 
-### Changed
+#### Changed
 
 - `selected_input_checker` moved from `domain/mode.py` to
   `domain/input_checker.py` (same body, same detection order); the Runner no
   longer imports the legacy mode module.
 
-## Unreleased — Session K2-0 (the SmartTable initializer oracle is frozen)
+### Session K2-0 (the SmartTable initializer oracle is frozen)
 
 Test-suite only; no library code changed. The last v2 test module that ran a
 v1 processor as a live oracle — the SmartTable invoice builder comparisons
@@ -99,7 +129,7 @@ against v1's `SmartTableInvoiceInitializer` — now compares the v2
 `SmartTableInvoiceBuilder` against frozen v1 observations, so deleting
 `rdetoolkit.processing` in K2 removes no coverage.
 
-### Changed
+#### Changed
 
 - New unit-level oracle corpus `tests/v2/modes/fixtures/smarttable_builder/`:
   71 frozen cases (47 merge-rule / rejection cases from the former live
@@ -127,14 +157,14 @@ against v1's `SmartTableInvoiceInitializer` — now compares the v2
 
 Contract record: `local/develop/v2/merge_v1/contracts.md` §K2-0.
 
-## Unreleased — Session K1 (the v1 oracle becomes a frozen corpus)
+### Session K1 (the v1 oracle becomes a frozen corpus)
 
 Test-suite only; no library code changed. Every v2 test that used to execute
 the v1 orchestration loop (`workflows._run_legacy`) as a live oracle now
 compares the unified Runner against a frozen v1.7.1 observation, so deleting
 the v1 loop in K2 removes no coverage.
 
-### Changed
+#### Changed
 
 - The contract fixture generator (`tests/v2/contract/fixtures/_generate.py`)
   declares every frozen v1 observation as a registered `OracleCase`: 58
@@ -155,14 +185,14 @@ the v1 loop in K2 removes no coverage.
 
 Contract record: `local/develop/v2/merge_v1/contracts.md` §K1.
 
-## Unreleased — Session K0-iii (v1.7.1 SmartTable contract on the unified Runner)
+### Session K0-iii (v1.7.1 SmartTable contract on the unified Runner)
 
 The unified Runner now follows the SmartTable contract of rdetoolkit v1.7.0 /
 v1.7.1 (#503, #496, #515) on both entry points. Verified against the live
 v1.7.1 code path (`workflows._run_legacy`) and the re-frozen
 `expected/v1/smarttable/ok.json`.
 
-### Fixed
+#### Fixed
 
 - SmartTable runs no longer fail with `ErrorCode=1002 ... 'tuple' object has no
   attribute 'relative_to'`: the Runner consumes v1.7's `(row_csv, user_files)`
@@ -188,7 +218,7 @@ v1.7.1 code path (`workflows._run_legacy`) and the re-frozen
   exactly as v1 handed them over; a completed tile without user files reports
   the legacy status `target` `""` as v1 does.
 
-### Added
+#### Added
 
 - `InputPaths.smarttable_rawfile: Path | None` — the tile's generated SmartTable
   row CSV (`None` outside SmartTable mode and for the original-table tile). The
@@ -196,16 +226,16 @@ v1.7.1 code path (`workflows._run_legacy`) and the re-frozen
   path never uses the deprecated `smarttable_rowfile` name, so it emits no
   `DeprecationWarning`.
 
-### Unchanged
+#### Unchanged
 
 - cp932 file names inside SmartTable zips (#515) are decoded by the v1 helper
   the Runner already calls; pinned by `TC-K0-EP-013`.
 
 Contract record: `local/develop/v2/merge_v1/contracts.md` §K0.
 
-## Unreleased — Session J-REVIEW (PR #542 review response)
+### Session J-REVIEW (PR #542 review response)
 
-### Fixed
+#### Fixed
 
 - `workflows.run(custom_dataset_function=...)`: user-defined top-level keys of a
   v1 `Config` (explicit or from `data/tasksupport/rdeconfig.yaml`) reach the
@@ -232,7 +262,7 @@ Contract record: `local/develop/v2/merge_v1/contracts.md` §K0.
 
 Contract record: `local/develop/v2/merge_v1/contracts.md` §J-REVIEW (D9).
 
-## Unreleased — Session J2 (Phase J / I7: one Runner behind every entry point)
+### Session J2 (Phase J / I7: one Runner behind every entry point)
 
 `rdetoolkit.workflows.run(custom_dataset_function=...)` — the call every existing
 RDE structured program makes — now executes through the **single v2 Runner**.
@@ -242,7 +272,7 @@ partial one, the `data/logs/rdesys_<ts>.log` file logger, v1's fail-fast
 iteration policy, and the configuration a program ships in
 `data/tasksupport/rdeconfig.yaml`. `RunReport.schema_version` stays `"2"`.
 
-### Changed
+#### Changed
 
 - **`workflows.run(custom_dataset_function=...)` goes through the unified
   Runner** (`workflows._run_callback_entry`). The old v1 orchestration loop,
@@ -280,7 +310,7 @@ iteration policy, and the configuration a program ships in
   argument, and `rdetoolkit.runner.finalize.write_run_report` is new (both
   internal APIs).
 
-### Added
+#### Added
 
 - **`TC-UM-MDT-FLOW-SIGTERM` and `TC-UM-MDT-CB-ENTRY-SIGTERM`** — the last xfail
   seat of the unified matrix is now two real tests. A two-tile MultiDataTile run
@@ -293,7 +323,7 @@ iteration policy, and the configuration a program ships in
 - `tests/v2/contract/entry_observation.py` — the public-entry subprocess worker
   and its observation normalizers.
 
-### Intentional divergences from v1
+#### Intentional divergences from v1
 
 | Case | v1 | Unified entry point |
 |---|---|---|
@@ -311,14 +341,14 @@ contract instead (`ErrorCode=4001`, callback not invoked, `SystemExit(1)`).
 Full contract text, including the authoritative D1–D8 divergence table and the
 Phase K deletion list: `local/develop/v2/merge_v1/contracts.md` §J2.
 
-## Unreleased — Session J1 (Phase J / I8: the v1 callback becomes observable)
+### Session J1 (Phase J / I8: the v1 callback becomes observable)
 
 Mostly an observability session: no artifact file changes, no exit code changes,
 and `schema_version` stays `"2"`. **One published value does change** — a callback
 that raises something other than `StructuredError` now reports catalog code
 `3001`; see "Intentional divergence" below.
 
-### Added
+#### Added
 
 - **A v1 dataset callback now produces the same execution history a `@flow`
   produces.** `LegacyCallbackInvoker.invoke` runs the callback inside the same
@@ -335,7 +365,7 @@ that raises something other than `StructuredError` now reports catalog code
   **`rdetoolkit.compat.v1.callback.callback_flow_id(callback)`** — the single
   derivation for a run's `flow_id`.
 
-### Changed
+#### Changed
 
 - **`RunReport.flow_id` honours an explicit `@flow(id=...)`.** It used to be
   recomputed as `module.qualname`, which disagreed with the `FlowSpec.id` that
@@ -359,7 +389,7 @@ that raises something other than `StructuredError` now reports catalog code
   `provenance.repr_head` / `repr_head_len` / `execution.type_check` now come from
   the effective run configuration; the parameter used to be discarded.
 
-### Intentional divergence — how a failing callback is reported
+#### Intentional divergence — how a failing callback is reported
 
 | Callback raises | Pre-J1 v2 | Post-J1 v2 | v1 (`workflows._run_legacy`) |
 |---|---|---|---|
@@ -378,7 +408,7 @@ that raises something other than `StructuredError` now reports catalog code
   exactly), so it is a checked contract rather than unnoticed drift. Session J2
   extends this table when the public `workflows.run` entry is unified.
 
-### Tests
+#### Tests
 
 - `TC-UM-{INV,XLS,MDT,RDF,SMT}-CB-OBS` are real parity cells (xfail **6 → 1**;
   only `TC-UM-MDT-FLOW-SIGTERM` remains, for Session J2). Each runs one mode
@@ -398,12 +428,12 @@ that raises something other than `StructuredError` now reports catalog code
 - `contract_matrix.md` open item **#3** (v1-path Events/Provenance expectations)
   is closed; see `merge_v1/contracts.md` §J1.
 
-## Unreleased — Session J0 (Phase J groundwork: the legacy loop goes private)
+### Session J0 (Phase J groundwork: the legacy loop goes private)
 
 Behaviour-preserving session. The public `workflows.run` contract is byte-for-byte
 unchanged; Session J2 is what unifies it onto the Runner.
 
-### Changed
+#### Changed
 
 - **`workflows.run`'s v1 orchestration loop moved verbatim into the private
   `workflows._run_legacy(custom_dataset_function, config)`.** The public v1
@@ -431,7 +461,7 @@ unchanged; Session J2 is what unifies it onto the Runner.
   data root, so an alias-flat project gets `<root>/temp`. No frozen fixture
   changed — they already carried `data/temp/`.
 
-### Fixed
+#### Fixed
 
 - **`Runner._apply_request_root` now drops the cached data root.** The
   one-run-one-data-root answer (§I-REVIEW-A ruling 1) was cached but survived a
@@ -450,20 +480,20 @@ unchanged; Session J2 is what unifies it onto the Runner.
   `data/logs/rdesys_*.log` and per-tile `raw/` copies, neither of which the stub
   can create). Pre-existing since Session B2; tests only, no production code.
 
-### Note for maintainers
+#### Note for maintainers
 
 Reserved seats are unchanged at **6 xfail** (`TC-UM-MDT-FLOW-SIGTERM` plus the
 five `TC-UM-*-CB-OBS`) and **5 skip**; RunReport `schema_version` stays `"2"`.
 `_run_legacy` is private and must not be re-exported: after Session J2 it is
 reachable only from the dynamic oracles, and Phase K removes both.
 
-## Unreleased — Session I-REVIEW-B (PR #539 review response: contracts & tests)
+### Session I-REVIEW-B (PR #539 review response: contracts & tests)
 
 Test-and-contract response to review findings F4, F5 and F7. No
 `src/rdetoolkit` file changes in this session; the behavior described below
 already existed and is now protected by tests that can fail.
 
-### Added
+#### Added
 
 - **Artifact content is part of parity.** The contract observation gained an
   `artifact_sha256` key covering every run-produced non-raw file —
@@ -492,7 +522,7 @@ already existed and is now protected by tests that can fail.
   a v2-only contract because v1 honors `ignore_errors` in MultiDataTile alone.
   Reserved xfail seats drop from 12 to 6 (SIGTERM 1 + callback observability 5).
 
-### Changed
+#### Changed
 
 - Thumbnail and main-image **bytes** are now compared. The former exclusion
   assumed an image-library re-encode; both v1 `ThumbnailGenerator` and v2
@@ -504,7 +534,7 @@ already existed and is now protected by tests that can fail.
 - `tests/v2/modes/canary_support.py` replaces the per-mode canary harness
   boilerplate (Session I-REVIEW-A debt 1).
 
-### Fixed
+#### Fixed
 
 - **Observation classification no longer depends on where a run lives.** Both
   digest walkers tested the absolute path for `raw`/`logs`/`inputdata`
@@ -514,7 +544,7 @@ already existed and is now protected by tests that can fail.
   This is the ancestor-sensitivity class reported as R1 for RDEFormat.
   The 21 frozen `raw_sha256` observations are unchanged by the fix.
 
-### Note for maintainers
+#### Note for maintainers
 
 The 21 snapshots under `tests/v2/contract/fixtures/expected/**` were re-frozen
 on a clean tree in a separate commit (two-commit ritual, see
@@ -525,12 +555,12 @@ now compares artifact contents. Keep the tuple empty unless a future session
 adds another observation key; list the key there only between the generator
 change and its re-freeze.
 
-## Unreleased — Session I-REVIEW-A (PR #539 review response)
+### Session I-REVIEW-A (PR #539 review response)
 
 Core response to the two independent PR #539 reviews. Every item below is
 backed by a regression test that reproduces the reviewers' counterexample.
 
-### Fixed
+#### Fixed
 
 - **One data root per run.** `Runner.run` resolves the data root once, before
   anything is created, and every consumer (config discovery, tile iteration,
@@ -572,7 +602,7 @@ backed by a regression test that reproduces the reviewers' counterexample.
   resolved the mode against a directory that does not exist. The v1
   `custom_dataset_function` path is unchanged.
 
-### Changed
+#### Changed
 
 - `ModeHandler` is now the minimum protocol (`kind`, `create_tiles`). The two
   artifact capabilities are separate, runtime-checkable protocols,
