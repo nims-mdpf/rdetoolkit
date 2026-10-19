@@ -386,12 +386,23 @@ class FileEventSink:
         self._write_encoded(line)
 
     def close(self) -> None:
-        """Flush, fsync and close the event log if it is open."""
-        if self._file is not None:
-            self._file.flush()
-            os.fsync(self._file.fileno())
-            self._file.close()
+        """Flush, fsync and close the event log if it is open.
+
+        The handle is closed and released even when flush or fsync fails, and
+        that failure is re-raised only afterwards: a leaked handle would keep
+        the sink "open" and turn the next close into a second fsync attempt on
+        a descriptor whose state is already unknown (Session K4-F2 ruling #1).
+        A second close is a no-op.
+        """
+        handle = self._file
+        if handle is None:
+            return
+        try:
+            handle.flush()
+            os.fsync(handle.fileno())
+        finally:
             self._file = None
+            handle.close()
 
     def _truncate(self) -> None:
         """Record W1002 once and stop accepting node-level events for this run."""

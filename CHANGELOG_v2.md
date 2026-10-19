@@ -30,6 +30,12 @@ reference for the dual-path build.
 
 The sections below are the per-session records folded into this release.
 
+### Session K4-F2 (PR #550 review F2)
+
+#### Fixed
+
+- A failure while closing the run's events file (flush or fsync) no longer escapes the Runner untranslated: the file is always closed, the failure is raised as internal error 5001 after the run report and `job.failed` were written, and it never masks an error that is already propagating (that case is reported as one stderr line).
+
 ### Session K4-impl (Phase K: rc1 preparation)
 
 #### Changed

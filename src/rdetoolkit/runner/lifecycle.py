@@ -185,6 +185,10 @@ class Runner:
             config: RdeConfig | None = None
             mode: ModeKind | None = None
             report: RunReport | None = None
+            # Set only on the normal return path, so the shutdown boundary can
+            # tell "an exception is propagating" from "a report is returned"
+            # without relying on ``sys.exc_info()`` inside ``finally``.
+            returning = False
             try:
                 previous_sigterm = signal.getsignal(signal.SIGTERM)
                 signal.signal(signal.SIGTERM, _raise_run_interrupted)
@@ -226,11 +230,10 @@ class Runner:
                     self.finalize(report, config)
                 except Exception as exc:  # noqa: BLE001
                     raise _finalize_error(exc) from exc
+                returning = True
                 return report
             finally:
-                if report is not None:
-                    self.event_sink.emit(Event.run_completed(run_id=self.run_id, status=report.status))
-                self.event_sink.close()
+                self._close_event_sink(report, primary_propagating=not returning)
         finally:
             if sigterm_installed:
                 signal.signal(signal.SIGTERM, previous_sigterm)
@@ -238,6 +241,44 @@ class Runner:
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
             self._invoice_service.end_run()
+
+    def _close_event_sink(self, report: RunReport | None, *, primary_propagating: bool) -> None:
+        """Emit ``run.completed`` and close the event sink as one error boundary.
+
+        This runs from ``run``'s ``finally``, outside the iteration and
+        finalize translation boundaries, so an untranslated sink failure would
+        otherwise replace the run's outcome (PR #550 review F2). Finalization
+        has already completed here, so nothing else is written on failure.
+
+        * No primary exception propagating: the failure is end-of-run I/O and
+          is raised as ``RdeInternalError`` 5001, mapped like
+          ``_finalize_error`` (an ``RdeError`` passes through unchanged).
+        * A primary exception propagating: it must reach the caller intact, so
+          the sink failure is recorded as one stderr line instead.
+
+        Args:
+            report: Report whose status ``run.completed`` carries, if any.
+            primary_propagating: Whether ``run`` is unwinding with an exception.
+
+        Raises:
+            RdeError: When the shutdown fails and no primary exception is
+                propagating.
+        """
+        try:
+            try:
+                if report is not None:
+                    self.event_sink.emit(Event.run_completed(run_id=self.run_id, status=report.status))
+            finally:
+                # Close even when the final emit failed, so the handle never leaks.
+                self.event_sink.close()
+        except Exception as exc:  # noqa: BLE001
+            if primary_propagating:
+                sys.stderr.write(
+                    f"rdetoolkit: event log shutdown failed while another error was propagating "
+                    f"(the original error is kept): {type(exc).__name__}: {exc}\n",
+                )
+                return
+            raise _event_log_error(exc) from exc
 
     def _execute(
         self,
@@ -527,8 +568,14 @@ class _RunScopedFileEventSink:
             self._sink.emit(event)
 
     def close(self) -> None:
-        if self._sink is not None:
-            self._sink.close()
+        sink = self._sink
+        if sink is None:
+            return
+        try:
+            sink.close()
+        finally:
+            # Released even when the inner close raises, so a second close is
+            # a no-op rather than a retry on an already-closed handle.
             self._sink = None
 
 
@@ -690,6 +737,17 @@ def _finalize_error(exc: Exception) -> RdeError:
         return exc
     error_def = ERROR_CATALOG[5001]
     message = error_def.message_template.format(reason=f"finalize I/O failed: {exc}")
+    message = f"{message} Remediation: {error_def.remediation}"
+    error_cls: Any = RdeInternalError
+    return error_cls(code=5001, name=error_def.name, message=message)
+
+
+def _event_log_error(exc: Exception) -> RdeError:
+    """Map an end-of-run event-log failure like ``_finalize_error`` does."""
+    if isinstance(exc, RdeError):
+        return exc
+    error_def = ERROR_CATALOG[5001]
+    message = error_def.message_template.format(reason=f"event log shutdown failed: {exc}")
     message = f"{message} Remediation: {error_def.remediation}"
     error_cls: Any = RdeInternalError
     return error_cls(code=5001, name=error_def.name, message=message)
