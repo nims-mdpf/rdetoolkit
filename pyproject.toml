@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "chardet>=5.2.0",
-    "charset-normalizer>=3.2.0,<3.5",  # 3.5.x misdetects UTF-8 zip entry names (tests/test_compressedfile_mode.py Japanese filenames)
+    "charset-normalizer>=3.2.0,<3.6",  # 3.5.x misdetects UTF-8 zip entry names (tests/test_compressedfile_mode.py Japanese filenames)
     "openpyxl>=3.1.2",
     "pandas>=2.2.3",
     "build>=1.0.3",
