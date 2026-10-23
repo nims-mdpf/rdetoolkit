@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.category import StrCategoryConverter
 from matplotlib.figure import Figure
 from matplotlib.ticker import (
     EngFormatter,
@@ -777,8 +779,47 @@ class MatplotlibRenderer:
         offset.set_fontsize(plt.rcParams.get("xtick.labelsize", 20))
 
     @staticmethod
+    def _uses_non_numeric_units(axis: Any) -> bool:
+        """Return True when the axis carries categorical or date units.
+
+        Matplotlib installs a unit converter (and its own formatter/locator)
+        when string or datetime data is plotted, so this must be called after
+        the data is on the axis. Numeric converters (e.g. Decimal) are not
+        exempted because ScalarFormatter is still the right formatter there.
+
+        Args:
+            axis: A Matplotlib ``Axis`` (``ax.xaxis`` / ``ax.yaxis``).
+
+        Returns:
+            True if the axis converter is categorical or date based.
+        """
+        get_converter = getattr(axis, "get_converter", None)
+        # Matplotlib < 3.10 exposes the converter only as an attribute.
+        converter = get_converter() if callable(get_converter) else getattr(axis, "converter", None)
+        if converter is None:
+            return False
+        if isinstance(converter, (StrCategoryConverter, mdates.DateConverter)):
+            return True
+        # Date converters such as _SwitchableDateConverter do not subclass
+        # DateConverter, so fall back to the defining module.
+        return type(converter).__module__ == mdates.__name__
+
+    @staticmethod
     def _apply_tick_formatting(axis: Any, axis_config: AxisConfig) -> None:
-        """Apply tick formatter based on AxisConfig.tick_format."""
+        """Apply tick formatter based on AxisConfig.tick_format.
+
+        ``"auto"`` (the default) formats numeric axes only: when Matplotlib has
+        attached categorical (string) or date units to the axis, its own
+        formatter and locator are kept so sample names and timestamps stay
+        readable. The explicit formats ``"plain"``, ``"sci"`` and ``"eng"``
+        express user intent and are applied to every non-log axis, including
+        categorical and date axes.
+
+        Args:
+            axis: A Matplotlib ``Axis`` that already holds the plotted data.
+            axis_config: Axis configuration carrying ``tick_format`` and
+                ``scilimits``.
+        """
         tick_format = axis_config.tick_format
         if tick_format == "plain":
             formatter = ScalarFormatter(useMathText=True)
@@ -796,7 +837,7 @@ class MatplotlibRenderer:
         elif tick_format == "eng":
             axis.set_major_formatter(EngFormatter(unit=axis_config.unit or ""))
             axis.set_major_locator(MaxNLocator(nbins=6))
-        else:  # "auto"
+        elif not MatplotlibRenderer._uses_non_numeric_units(axis):  # "auto"
             MatplotlibRenderer._apply_linear_axis_formatting(axis, axis_config.scilimits)
 
     @staticmethod
