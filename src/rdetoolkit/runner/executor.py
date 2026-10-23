@@ -23,7 +23,7 @@ from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
 from rdetoolkit.domain.validation import validate_tile_outputs, wrap_validation_error
 from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
-from rdetoolkit.report.events import EventSink
+from rdetoolkit.report.events import Event, EventSink, _best_effort_stderr
 from rdetoolkit.runner.execute import ExecutionResult, TileExecutionError
 from rdetoolkit.runner.finalize import structured_error_record
 from rdetoolkit.runner.invoker import FlowInvoker, TargetInvoker
@@ -41,6 +41,82 @@ _THUMBNAIL_STAGE = "thumbnail"
 _RUN_INTERRUPTED_CODE = 3004
 _ARTIFACT_PUBLICATION_FAILED_CODE = 3005
 _INVOICE_ARTIFACT_FAILED_CODE = 3006
+
+
+class _BestEffortEventSink:
+    """Runner-side guard that keeps event-log failures out of the run's outcome.
+
+    The event log is diagnostics (Session K4-F3): a failing write must never
+    replace a node's error, empty the call log, or fail a successful run. So
+    ``open`` and ``emit`` swallow ordinary exceptions, write one best-effort
+    stderr line, and mute the rest of that run's events -- a log with a hole
+    in the middle would read as a complete record of a different run. The
+    mute is keyed on the run id, so a long-lived executor that outlives one
+    broken run records the next run again.
+
+    ``emit_final`` and ``close`` deliberately stay strict: the F2 shutdown
+    contract maps a failing ``run.completed`` write or close to 5001 once the
+    report and ``job.failed`` are persisted, and the Runner owns that mapping.
+    A catalogued run interruption (3004, raised by the SIGTERM handler while a
+    write is in progress) always propagates.
+
+    Args:
+        inner: The sink receiving the events.
+    """
+
+    def __init__(self, inner: EventSink) -> None:
+        self.inner = inner
+        self._muted_run_id: str | None = None
+        self._open_failed = False
+
+    def open(self, run_id: str) -> None:
+        """Open the inner sink; a failure means "no event log for this run".
+
+        Args:
+            run_id: Run identifier.
+        """
+        self._muted_run_id = None
+        self._open_failed = False
+        try:
+            self.inner.open(run_id)
+        except Exception as exc:  # noqa: BLE001
+            if _is_run_interrupted(exc):
+                raise
+            self._open_failed = True
+            self._muted_run_id = run_id
+            _best_effort_stderr(f"rdetoolkit: event log could not be opened; this run is not recorded in it (the run continues): {type(exc).__name__}: {exc}\n")
+
+    def emit(self, event: Event) -> None:
+        """Forward an event; a failure mutes the rest of this run's events.
+
+        Args:
+            event: Event to forward.
+        """
+        if event.run_id == self._muted_run_id:
+            return
+        try:
+            self.inner.emit(event)
+        except Exception as exc:  # noqa: BLE001
+            if _is_run_interrupted(exc):
+                raise
+            self._muted_run_id = event.run_id
+            _best_effort_stderr(f"rdetoolkit: event log write failed; later events of this run are not recorded (the run continues): {type(exc).__name__}: {exc}\n")
+
+    def emit_final(self, event: Event) -> None:
+        """Forward the closing event strictly, unless this run's log is muted.
+
+        Args:
+            event: The ``run.completed`` event.
+        """
+        if event.run_id == self._muted_run_id:
+            return
+        self.inner.emit(event)
+
+    def close(self) -> None:
+        """Close the inner sink strictly, unless it never opened for this run."""
+        if self._open_failed:
+            return
+        self.inner.close()
 
 
 class TileExecutor:
@@ -64,7 +140,10 @@ class TileExecutor:
             image_artifact_service: Optional completed-tile image publisher.
             invoice_service: Run-owned invoice artifact operations.
         """
-        self._event_sink = event_sink
+        # Wrapped here because every node / iteration event of a tile is
+        # emitted below this executor (K4-F3 ruling R1); a sink the Runner
+        # already wrapped is shared so both see the same mute state.
+        self._event_sink = event_sink if isinstance(event_sink, _BestEffortEventSink) else _BestEffortEventSink(event_sink)
         self._flow_invoker = flow_invoker or FlowInvoker()
         self._raw_artifact_service = raw_artifact_service
         self._image_artifact_service = image_artifact_service

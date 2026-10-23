@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import shutil
 import signal
-import sys
 import time
 import uuid
 from collections.abc import Callable, Mapping
@@ -35,11 +34,11 @@ from rdetoolkit.errors import (
     RdeValidationError,
 )
 from rdetoolkit.models.config import Config
-from rdetoolkit.report.events import Event, EventSink, FileEventSink
+from rdetoolkit.report.events import Event, EventSink, FileEventSink, _best_effort_stderr
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
-from rdetoolkit.runner.executor import TileExecutor
+from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
 from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
@@ -95,6 +94,10 @@ class Runner:
         # The default must exist before the data root does (the executor below
         # captures it), so it resolves its directory only when a run opens it.
         self.event_sink = event_sink or _RunScopedFileEventSink(lambda: self.data_root / "logs")
+        # Every lifecycle write goes through this guard, so an event-log I/O
+        # failure is a stderr notice rather than the run's outcome (Session
+        # K4-F3). ``event_sink`` stays the caller's object for inspection.
+        self._events = _BestEffortEventSink(self.event_sink)
         self._run_id_factory = run_id_factory or (lambda: uuid.uuid4().hex)
         self._invoice_service = invoice_service or InvoiceService()
         self.run_id = ""
@@ -120,7 +123,7 @@ class Runner:
         # from the per-run config themselves, so injecting them unconditionally
         # keeps configuration -- not construction -- in charge of publication.
         self._executor = executor or TileExecutor(
-            event_sink=self.event_sink,
+            event_sink=self._events,
             flow_invoker=InvokerRegistry(),
             raw_artifact_service=RawArtifactService(),
             image_artifact_service=ImageArtifactService(),
@@ -181,7 +184,6 @@ class Runner:
         try:
             started = time.time()
             self.run_id = self._run_id_factory()
-            self.event_sink.open(self.run_id)
             config: RdeConfig | None = None
             mode: ModeKind | None = None
             report: RunReport | None = None
@@ -197,8 +199,12 @@ class Runner:
                 pass
 
             try:
+                # Inside the shutdown boundary: an open that fails is "no event
+                # log for this run" (the guard records a notice and continues),
+                # and an interrupt during open still reaches the close below.
+                self._events.open(self.run_id)
                 try:
-                    self.event_sink.emit(Event.run_started(run_id=self.run_id))
+                    self._events.emit(Event.run_started(run_id=self.run_id))
                     config = self.load_config(run_request.config_source)
                     mode = self.resolve_mode(config)
                     # v1 creates the unpack directory before it parses anything
@@ -267,13 +273,13 @@ class Runner:
         try:
             try:
                 if report is not None:
-                    self.event_sink.emit(Event.run_completed(run_id=self.run_id, status=report.status))
+                    self._events.emit_final(Event.run_completed(run_id=self.run_id, status=report.status))
             finally:
                 # Close even when the final emit failed, so the handle never leaks.
-                self.event_sink.close()
+                self._events.close()
         except Exception as exc:  # noqa: BLE001
             if primary_propagating:
-                sys.stderr.write(
+                _best_effort_stderr(
                     f"rdetoolkit: event log shutdown failed while another error was propagating "
                     f"(the original error is kept): {type(exc).__name__}: {exc}\n",
                 )
@@ -381,7 +387,7 @@ class Runner:
             config,
             self.inputdata_path,
             self.unpacked_dir_path,
-            self.event_sink,
+            self._events,
             self.run_id,
         )
 
@@ -444,7 +450,7 @@ class Runner:
         for tile in plan.tiles:
             info = tile.iteration
             iteration_status = "failed"
-            self.event_sink.emit(Event.iteration_started(run_id=self.run_id, index=info.index))
+            self._events.emit(Event.iteration_started(run_id=self.run_id, index=info.index))
             try:
                 result = self._executor.execute(plan, tile)
                 iteration_status = result.status
@@ -463,7 +469,7 @@ class Runner:
                 failed_count += 1
                 raise
             finally:
-                self.event_sink.emit(
+                self._events.emit(
                     Event(
                         run_id=self.run_id,
                         name="iteration.completed",
@@ -483,7 +489,7 @@ class Runner:
         )
         warnings = _failure_warnings(failed_count) if failed_count else []
         if failed_count:
-            sys.stderr.write(f"{failed_count} iteration(s) failed\n")
+            _best_effort_stderr(f"{failed_count} iteration(s) failed\n")
         return aggregator.build_report(
             status=status,
             started_at=_iso_timestamp(started),
@@ -560,8 +566,12 @@ class _RunScopedFileEventSink:
         self._sink: FileEventSink | None = None
 
     def open(self, run_id: str) -> None:
-        self._sink = FileEventSink(self._logs_dir())
-        self._sink.open(run_id)
+        sink = FileEventSink(self._logs_dir())
+        # Kept only once open succeeded: a sink that failed to open (its own
+        # handle already released) must not receive this run's emits or close.
+        self._sink = None
+        sink.open(run_id)
+        self._sink = sink
 
     def emit(self, event: Event) -> None:
         if self._sink is not None:

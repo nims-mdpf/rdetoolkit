@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import sys
@@ -352,6 +353,9 @@ class FileEventSink:
     def open(self, run_id: str) -> None:
         """Open the per-run event log and write the run metadata header.
 
+        If the header cannot be written the file is closed and the sink is
+        left unopened before the error is re-raised.
+
         Args:
             run_id: Run identifier.
         """
@@ -361,14 +365,28 @@ class FileEventSink:
         # The cap and its one-warning budget belong to a run, not to the sink.
         self._bytes_written = 0
         self._truncated = False
-        self._file = self._path.open("w", encoding="utf-8")
+        handle = self._path.open("w", encoding="utf-8")
+        self._file = handle
         header = {
             "schema_version": "1",
             "type": "run.meta",
             "run_id": run_id,
             "timestamp": time.time(),
         }
-        self._write_line(header)
+        try:
+            self._write_line(header)
+        except BaseException:
+            # A header that cannot be written (ENOSPC) must not leave an open
+            # handle behind a sink the caller will treat as unopened
+            # (Session K4-F3 ruling R2). BaseException: an interrupt during
+            # the header write releases the handle too.
+            # Closing re-flushes the line still buffered and may fail the same
+            # way; the descriptor is released regardless, and the header error
+            # is the one worth reporting.
+            self._file = None
+            with contextlib.suppress(Exception):
+                handle.close()
+            raise
 
     def emit(self, event: Event) -> None:
         """Append an event JSON line, honoring the node-level size cap.
@@ -411,7 +429,7 @@ class FileEventSink:
         run_id = self._run_id or "unknown"
         message = warning_def.message_template
         self._write_encoded(_encode_line(Event.warning(run_id=run_id, code=_EVENTS_TRUNCATED_CODE, message=message).to_dict()))
-        sys.stderr.write(f"W{_EVENTS_TRUNCATED_CODE} {warning_def.name}: {message} ({self._path}, cap {self.max_bytes} bytes)\n")
+        _best_effort_stderr(f"W{_EVENTS_TRUNCATED_CODE} {warning_def.name}: {message} ({self._path}, cap {self.max_bytes} bytes)\n")
 
     def _write_line(self, data: dict[str, Any]) -> None:
         self._write_encoded(_encode_line(data))
@@ -423,6 +441,27 @@ class FileEventSink:
         self._file.write(line)
         self._file.flush()
         self._bytes_written += len(line.encode("utf-8"))
+
+
+def _best_effort_stderr(message: str) -> None:
+    """Write one diagnostic line to stderr, never raising.
+
+    Every stderr line the Runner and the event log write is a notice about
+    something already decided -- a truncated log, a failed event write, a
+    shutdown failure kept behind a primary error. A failing stderr (closed,
+    ENOSPC on a redirected file) must not turn that notice into the run's
+    outcome (Session K4-F3 ruling R3).
+
+    No explicit flush: ``sys.stderr`` is line-buffered (Python 3.9+), and
+    forcing one would reorder the notice ahead of a command's already-echoed
+    stdout in captured output (``rdetoolkit run --flow`` prints its RunReport
+    JSON first, and callers parse that leading document).
+
+    Args:
+        message: Text to write, including its trailing newline.
+    """
+    with contextlib.suppress(Exception):
+        sys.stderr.write(message)
 
 
 def _encode_line(data: dict[str, Any]) -> str:

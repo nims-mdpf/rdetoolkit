@@ -30,6 +30,12 @@ reference for the dual-path build.
 
 The sections below are the per-session records folded into this release.
 
+### Session K4-F3 (PR #550 re-review)
+
+#### Fixed
+
+- Event-log and diagnostic stderr failures no longer change a run's outcome: a failing event write is reported as one stderr line and the rest of that run's events are skipped (a node's own error, its call log and `job.failed` are kept), an events file that cannot be created or whose header cannot be written means "no event log for this run" (the handle is closed and the run continues), and every Runner stderr notice (including W1001, W1002 and "N iteration(s) failed") is best-effort; the only event-log failure that still fails a run is the end-of-run shutdown described under K4-F2 (so a disk that fills up mid-run still surfaces as 5001 at shutdown, after the report and `job.failed` were written).
+
 ### Session K4-F2 (PR #550 review F2)
 
 #### Fixed

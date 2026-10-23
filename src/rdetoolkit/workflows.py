@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 
 from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.report.events import _best_effort_stderr
 
 # Expected arity of a SmartTableRawFiles element: (row_csv | None, user_files).
 _SMARTTABLE_PAIR_LEN = 2
@@ -357,7 +358,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
             # below ``<cwd>/data``, which an alias-flat project does not have.
             from rdetoolkit.errors import handle_exception, write_job_errorlog_file
 
-            sys.stderr.write((handle_exception(error, verbose=True).traceback_info or "") + "\n")
+            _best_effort_stderr((handle_exception(error, verbose=True).traceback_info or "") + "\n")
             data_root.mkdir(parents=True, exist_ok=True)
             write_job_errorlog_file(
                 999,
@@ -378,7 +379,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
         ),
     )
     if report.status == "failed":
-        sys.stderr.write(_CALLBACK_ENTRY_FAILURE_NOTICE)
+        _best_effort_stderr(_CALLBACK_ENTRY_FAILURE_NOTICE)
         sys.exit(1)
     return report.to_legacy_statuses()
 
