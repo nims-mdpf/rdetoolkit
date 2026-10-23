@@ -232,7 +232,11 @@ def test_v1_callback_receives_this_runs_invoice_org__tc_ira_3_ev_015(
 
     # Then: the callback saw this run's invoice, never the leftover backup
     assert report.status == "success", report.error
-    assert seen == [data_root / "invoice" / "invoice.json"]
+    # UPDATED (K0-iii): in the standard layout the v1 callback receives the
+    # CWD-relative path v1 itself handed over (``StorageDir`` form); it still
+    # resolves to this run's invoice.
+    assert seen == [Path("data") / "invoice" / "invoice.json"]
+    assert (root / seen[0]).resolve() == (data_root / "invoice" / "invoice.json").resolve()
 
 
 def test_filesystem_probing_resolver_is_gone__tc_ira_3_ev_016() -> None:

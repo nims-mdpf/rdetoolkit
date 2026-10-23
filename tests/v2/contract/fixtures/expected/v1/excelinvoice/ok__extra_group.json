@@ -1,0 +1,69 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_xls_extra_group",
+    "invalidate_invoice": false,
+    "mode": "excelinvoice",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "extra_group"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "6b13bf2719f2baf24bbdc57969b005bdc1cbde3508280c4bb8dff6433d4206dd",
+      "data/temp/dirA/test_child1.txt": "f071070d3f99947036e27fbfb34b76e388c56f1566478bcb02ba52907ed87b7a",
+      "data/temp/dirB/test_child2.txt": "5dd22030dbe66d38eea6332a96a46210baea1a2198c7ee0f85c97aae88d7d0a4",
+      "data/temp/dirC/unregistered.txt": "4b19366e72076887bd9ae18660d1bfdf14abcc188d55ce1cd4778be96b478714"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=Error! The input file and the description in the ExcelInvoice are not consistent.\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/inputdata/",
+        "data/invoice/",
+        "data/logs/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/temp/dirA/",
+        "data/temp/dirB/",
+        "data/temp/dirC/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/dirA/test_child1.txt",
+        "data/temp/dirB/test_child2.txt",
+        "data/temp/dirC/unregistered.txt"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from rdetoolkit.models.rde2types import (
     RawFiles,
+    SmartTableRawFiles,
     UnZipFilesPathList,
     ZipFilesPathList,
 )
@@ -72,7 +73,7 @@ class IInputFileChecker(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def parse(self, src_input_path: Path) -> tuple[RawFiles, Path | None]:
+    def parse(self, src_input_path: Path) -> tuple[RawFiles | SmartTableRawFiles, Path | None]:
         """Parses the given source input path and extracts relevant information.
 
         This method should analyze the file or files located at the specified path and extract
@@ -82,13 +83,16 @@ class IInputFileChecker(ABC):
             src_input_path (Path): The path to the source input file(s).
 
         Returns:
-            tuple[RawFiles, Optional[Path]]: A tuple where the first element is the extracted raw file data,
-                                            and the second element is an optional path to additional relevant data.
+            tuple[RawFiles | SmartTableRawFiles, Optional[Path]]: A tuple where the first element is the
+                                            extracted raw file data, and the second element is an optional
+                                            path to additional relevant data.
 
         Note:
             This method uses legacy RawFiles type for backward compatibility.
             Future implementations may consider FileGroup and ProcessedFileGroup for
             enhanced type safety. Migration path: RawFiles -> list[FileGroup] in future version.
+            ``SmartTableRawFiles`` is used by ``SmartTableChecker.parse()``, whose tiles are
+            ``(row_csv, user_files)`` pairs rather than flat path tuples.
         """
         raise NotImplementedError
 

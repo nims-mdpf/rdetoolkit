@@ -1,0 +1,61 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_xls_two_workbooks",
+    "invalidate_invoice": false,
+    "mode": "excelinvoice",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "two_workbooks"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "dfd5359ed7b7885d9fec26f845f10b958aa18f60946a5b3e9a61b0c96e26e8cf"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=ERROR: more than 1 excelinvoice file list. file num: 2\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/inputdata/",
+        "data/invoice/",
+        "data/logs/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/inputdata/second_excel_invoice.xlsx",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -666,6 +666,30 @@ def csv2graph(
     invert_y: Annotated[bool, typer.Option("--invert-y", help="Invert y-axis")] = False,
     no_individual: Annotated[bool | None, typer.Option("--no-individual/--individual", help="Skip individual plots; defaults to auto for single-series overlay.")] = None,
     max_legend_items: Annotated[int | None, typer.Option("--max-legend-items", help="Maximum legend items")] = None,
+    legend_policy: Annotated[
+        str,
+        typer.Option(
+            "--legend-policy",
+            help="Legend placement policy: legacy, auto, inside, outside_right, outside_bottom, hide",
+        ),
+    ] = "legacy",
+    legend_outside_threshold: Annotated[
+        int,
+        typer.Option("--legend-outside-threshold", help="Item-count threshold for 'auto' placement (default: 8)"),
+    ] = 8,
+    legend_bottom_threshold: Annotated[
+        int,
+        typer.Option(
+            "--legend-bottom-threshold",
+            help="Item count at or above which 'auto' places the legend below the graph (default: 21; 0 or less disables)",
+        ),
+    ] = 21,
+    legend_ncol: Annotated[
+        int | None,
+        typer.Option("--legend-ncol", help="Number of legend columns for 'outside_bottom' placement"),
+    ] = None,
+    x_tick_format: Annotated[str, typer.Option("--x-tick-format", help="X-axis tick label format: auto, plain, sci, or eng")] = "auto",
+    y_tick_format: Annotated[str, typer.Option("--y-tick-format", help="Y-axis tick label format: auto, plain, sci, or eng")] = "auto",
 ) -> None:
     """Generate graphs from CSV files."""
     # Lazy imports
@@ -687,6 +711,26 @@ def csv2graph(
             msg,
             param_hint="--mode",
         )
+
+    # Validate legend_policy
+    valid_legend_policies = [
+        "legacy", "auto", "inside", "outside_right", "outside_bottom", "hide",
+    ]
+    if legend_policy not in valid_legend_policies:
+        msg = f"Invalid legend-policy: {legend_policy}. Choose from {valid_legend_policies}"
+        raise typer.BadParameter(
+            msg,
+            param_hint="--legend-policy",
+        )
+    # Validate x_tick_format
+    if x_tick_format not in ["auto", "plain", "sci", "eng"]:
+        msg = f"Invalid x-tick-format: {x_tick_format}. Choose from ['auto', 'plain', 'sci', 'eng']"
+        raise typer.BadParameter(msg, param_hint="--x-tick-format")
+
+    # Validate y_tick_format
+    if y_tick_format not in ["auto", "plain", "sci", "eng"]:
+        msg = f"Invalid y-tick-format: {y_tick_format}. Choose from ['auto', 'plain', 'sci', 'eng']"
+        raise typer.BadParameter(msg, param_hint="--y-tick-format")
 
     # Parse column specifications
     parsed_x_col = [parse_column(c) for c in x_col] if x_col else None
@@ -728,6 +772,15 @@ def csv2graph(
         invert_y=invert_y,
         no_individual=no_individual,
         max_legend_items=max_legend_items,
+        legend_policy=cast(
+            Literal["legacy", "auto", "inside", "outside_right", "outside_bottom", "hide"],
+            legend_policy,
+        ),
+        legend_outside_threshold=legend_outside_threshold,
+        legend_bottom_threshold=legend_bottom_threshold if legend_bottom_threshold > 0 else None,
+        legend_ncol=legend_ncol,
+        x_tick_format=cast(Literal["auto", "plain", "sci", "eng"], x_tick_format),
+        y_tick_format=cast(Literal["auto", "plain", "sci", "eng"], y_tick_format),
     )
     cmd.invoke()
 

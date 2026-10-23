@@ -29,7 +29,7 @@ Processors: Validation → Files → Invoice → Thumbnails → Description → 
 - `invoice/invoice_schema_json/invoice_org: Path` - Invoice paths
 
 **Optional:**
-- `smarttable_rowfile/smarttable_row_data: Path | dict | None`
+- `smarttable_rawfile/smarttable_row_data: Path | dict | None`
 - `temp/invoice_patch/attachment: Path | None`
 
 ### RdeDatasetPaths
@@ -189,26 +189,29 @@ def test_error(tmp_path):
         custom_dataset(srcpaths, RdeOutputResourcePath(rawfiles=(), ...))
 ```
 
-## Processor Development
+## Node Development (v2)
 
 ```python
-from rdetoolkit.processing import Processor, ProcessingContext
+from rdetoolkit import node, flow
+from rdetoolkit.types import InputPaths, OutputContext
 
-class MyProcessor(Processor):
-    def process(self, context: ProcessingContext) -> None:
-        for f in context.paths.rawfiles:
-            self._process(f, context.paths.struct, context.config)
+@node(tags=["io"], version="1.0.0")
+def read_raw(paths: InputPaths) -> list[str]:
+    return [p.read_text() for p in paths.rawfiles]
 
-    def _process(self, file, output, config):
-        pass  # Implementation
+@flow
+def my_pipeline(paths: InputPaths, out: OutputContext) -> None:
+    rows = read_raw(paths)
+    (out.struct / "result.csv").write_text("\n".join(rows))
 ```
 
 Test:
 ```python
-def test_processor(tmp_path):
-    context = ProcessingContext(config=cfg, paths=paths)
-    MyProcessor().process(context)
-    assert (tmp_path / "result.csv").exists()
+def test_node(tmp_path):
+    (tmp_path / "a.txt").write_text("x")
+    paths = InputPaths(inputdata=tmp_path, invoice=tmp_path, tasksupport=tmp_path,
+                       raw=None, rawfiles=(tmp_path / "a.txt",))
+    assert read_raw(paths) == ["x"]
 ```
 
 ## API Reference

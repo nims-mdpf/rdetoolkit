@@ -843,3 +843,675 @@ ImportError: Plotly is required for HTML output but is not installed. Install it
 🔥 Unexpected error: Plotly is required for HTML output but is not installed. Install it with: pip install plotly
 Aborted!
 ```
+
+## サンプル14: 凡例配置ポリシー（legend_policy）の使い分け
+
+12系列・3系列のダミーデータを使い、`legend_policy` の各値（`legacy` / `auto` / `inside` / `outside_right` / `outside_bottom` / `hide`）で凡例の配置がどう変わるかを比較するサンプルです。オプションの詳細は [csvをグラフ化する](./csv2graph.ja.md) の「凡例配置ポリシー」セクションを参照してください。
+
+`outside_right` / `outside_bottom` では、プロット領域を縮小して凡例スペースを作るのではなく、凡例のサイズに応じてキャンバス側が拡張されます。系列数が多くてもグラフ本体の描画サイズは維持されます。
+
+### データの概要
+
+12系列の `data.csv` と、3系列の `data_few.csv` を使用します。いずれも単調増加のダミー系列です。
+
+```bash
+x,series_01,series_02,series_03,series_04,series_05,series_06,series_07,series_08,series_09,series_10,series_11,series_12
+0,0.0,0.4,1.0,1.5,1.9,2.4,3.0,3.5,4.0,4.5,5.0,5.5
+1,0.6,1.2,1.6,2.1,2.6,3.1,3.6,4.1,4.6,5.1,5.7,6.1
+...
+```
+
+- [data.csv](./csv2graph_samples/sample14/data.csv)（12系列）
+- [data_few.csv](./csv2graph_samples/sample14/data_few.csv)（3系列）
+
+### 準備: ダミーデータの生成
+
+CSV は上記リンクからダウンロードできます。手元で生成する場合は、以下のスクリプトを実行してください（掲載データ・グラフはこのスクリプトで生成したものです）。
+
+=== "Python"
+    ```python
+    # make_data.py
+    # Generate dummy CSV files for the legend_policy samples.
+    # data.csv: 12 increasing series / data_few.csv: 3 increasing series
+    from pathlib import Path
+
+    import numpy as np
+
+    BASE = Path(__file__).parent
+    RNG = np.random.default_rng(42)
+
+
+    def make_series_csv(path: Path, columns: list[str], offsets: list[float], slopes: list[float]) -> None:
+        x = np.arange(11)
+        header = ",".join(["x", *columns])
+        lines = [header]
+        for xi in x:
+            values = [
+                offset + slope * xi + RNG.normal(0, 0.05)
+                for offset, slope in zip(offsets, slopes)
+            ]
+            lines.append(",".join([str(xi), *[f"{v:.1f}" for v in values]]))
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+    if __name__ == "__main__":
+        make_series_csv(
+            BASE / "data.csv",
+            columns=[f"series_{i:02d}" for i in range(1, 13)],
+            offsets=[0.5 * i for i in range(12)],
+            slopes=[0.6] * 12,
+        )
+        make_series_csv(
+            BASE / "data_few.csv",
+            columns=["series_alpha", "series_beta", "series_gamma"],
+            offsets=[0.0, 1.0, 2.0],
+            slopes=[0.8, 0.8, 0.8],
+        )
+        print("generated: data.csv, data_few.csv")
+    ```
+
+=== "実行コマンド"
+    ```bash
+    python sample14/make_data.py
+    ```
+
+### ディレクトリ構成
+
+```bash
+sample14/
+├── data.csv
+├── data_few.csv
+├── make_data.py
+└── sample_legend_policy.py
+```
+
+同梱の [sample_legend_policy.py](./csv2graph_samples/sample14/sample_legend_policy.py) を実行すると、以下の全ケースの PNG をまとめて生成できます。以降は各ケースを個別に実行する例です。
+
+### ケース1: legacy（従来動作）
+
+`legend_policy` を指定しない場合のデフォルトです。`legend_loc` と `max_legend_items` による従来の凡例制御が維持され、凡例はプロット領域内に描画されます。
+
+=== "生成グラフ"
+    ![legacy_many](./csv2graph_samples/sample14/legacy_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="legacy_many",
+            legend_policy="legacy",
+            legend_loc="upper right",
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title legacy_many \
+      --legend-policy legacy \
+      --legend-loc "upper right" \
+      --max-legend-items 30
+    ```
+
+### ケース2: auto × 3系列（プロット内に表示）
+
+`auto` は凡例項目数で配置を自動選択します。3系列は `legend_outside_threshold`（デフォルト8）以下なので、凡例はプロット領域内（inside）に置かれます。
+
+=== "生成グラフ"
+    ![auto_inside_few](./csv2graph_samples/sample14/auto_inside_few.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data_few.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_inside_few",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=20,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data_few.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_inside_few \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 20
+    ```
+
+### ケース3: auto × 12系列（右外側に自動切り替え）
+
+12系列は `legend_outside_threshold=8` を超えるため、`auto` が凡例を右外側（outside_right）へ自動的に移動します。プロット領域のサイズは維持され、キャンバスが右へ拡張されます。
+
+=== "生成グラフ"
+    ![auto_outside_right_many](./csv2graph_samples/sample14/auto_outside_right_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_outside_right_many",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_outside_right_many \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 30
+    ```
+
+### ケース4: outside_right を強制
+
+項目数に関係なく、凡例を常にプロット右外側へ配置します。
+
+=== "生成グラフ"
+    ![outside_right_many](./csv2graph_samples/sample14/outside_right_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="outside_right_many",
+            legend_policy="outside_right",
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title outside_right_many \
+      --legend-policy outside_right \
+      --max-legend-items 30
+    ```
+
+### ケース5: outside_bottom + legend_ncol=4
+
+凡例をグラフ下側に4列で配置します。段数は `列数 = legend_ncol` から自動的に決まります（12項目 ÷ 4列 = 3段）。
+
+=== "生成グラフ"
+    ![outside_bottom_many](./csv2graph_samples/sample14/outside_bottom_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="outside_bottom_many",
+            legend_policy="outside_bottom",
+            legend_ncol=4,
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title outside_bottom_many \
+      --legend-policy outside_bottom \
+      --legend-ncol 4 \
+      --max-legend-items 30
+    ```
+
+### ケース6: hide（凡例を表示しない）
+
+=== "生成グラフ"
+    ![hide_many](./csv2graph_samples/sample14/hide_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="hide_many",
+            legend_policy="hide",
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title hide_many \
+      --legend-policy hide \
+      --max-legend-items 30
+    ```
+
+### ケース7: auto × max_legend_items 超過（自動非表示）
+
+12系列に対して `max_legend_items=5` を指定すると、上限超過により `auto` が凡例を非表示にします。
+
+=== "生成グラフ"
+    ![auto_hide_over_max](./csv2graph_samples/sample14/auto_hide_over_max.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_hide_over_max",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=5,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_hide_over_max \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 5
+    ```
+
+### オプションの説明
+
+- `legend_policy`, `--legend-policy` : 凡例の配置ポリシー。`legacy`（デフォルト・従来動作）/ `auto`（項目数で自動選択）/ `inside` / `outside_right` / `outside_bottom` / `hide` から選択します。
+- `legend_outside_threshold`, `--legend-outside-threshold` : `auto` がプロット内から右外側配置へ切り替える項目数のしきい値（デフォルト8。この値を超えると切り替え）。
+- `legend_ncol`, `--legend-ncol` : `outside_bottom` の凡例列数（未指定時は3列）。
+- `max_legend_items`, `--max-legend-items` : 凡例の最大表示項目数。超過すると凡例が非表示になります（`auto` 以外の明示ポリシーでも適用）。
+- `x_col="x"`, `--x-col x` : X 軸列を列名で指定。`y_cols` を省略すると残りの全列が Y 系列になります。
+
+## サンプル15: 30系列以上の高密度凡例と自動配置
+
+32系列のダミーデータを使い、凡例項目が非常に多い場合の配置制御を確認するサンプルです。`legend_bottom_threshold`（デフォルト21）により、21項目以上では `auto` が凡例をグラフ下側へ自動配置します。
+
+いずれのケースでも**グラフ本体（プロット領域）のサイズは維持され**、凡例のサイズに応じてキャンバス側が拡張されます。保存された PNG/SVG で凡例が見切れることはありません。
+
+### データの概要
+
+32系列の直線データです。各系列は `series_i(x) = i + 0.1 × x`（x = 0〜10）で完全に再現できます。
+
+```bash
+x,series_01,series_02,...,series_32
+0,1.0,2.0,3.0,...,32.0
+1,1.1,2.1,3.1,...,32.1
+...
+```
+
+- [data.csv](./csv2graph_samples/sample15/data.csv)（32系列）
+
+### 準備: ダミーデータの生成
+
+以下のスクリプトで掲載データと同一の CSV を生成できます。
+
+=== "Python"
+    ```python
+    # make_data.py
+    # Generate a dummy CSV with 32 series for dense-legend samples.
+    # Each series is a straight line: series_i(x) = i + 0.1 * x  (x = 0..10)
+    from pathlib import Path
+
+    BASE = Path(__file__).parent
+
+    if __name__ == "__main__":
+        columns = [f"series_{i:02d}" for i in range(1, 33)]
+        lines = [",".join(["x", *columns])]
+        for x in range(11):
+            values = [i + 0.1 * x for i in range(1, 33)]
+            lines.append(",".join([str(x), *[f"{v:.1f}" for v in values]]))
+        (BASE / "data.csv").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        print("generated: data.csv")
+    ```
+
+=== "実行コマンド"
+    ```bash
+    python sample15/make_data.py
+    ```
+
+### ディレクトリ構成
+
+```bash
+sample15/
+├── data.csv
+├── make_data.py
+└── sample_dense_legend.py
+```
+
+同梱の [sample_dense_legend.py](./csv2graph_samples/sample15/sample_dense_legend.py) を実行すると、以下の全ケースの PNG をまとめて生成できます。
+
+### ケース1: auto のデフォルト動作（21項目以上 → 下側配置）
+
+32系列はデフォルトの `legend_bottom_threshold=21` 以上なので、`auto` が凡例をグラフ下側へ配置します。列数はデフォルト3列、`legend_ncol=8` を指定すると4段に圧縮できます。
+
+=== "生成グラフ（ncol デフォルト3）"
+    ![auto_32_outside_bottom_default](./csv2graph_samples/sample15/auto_32_outside_bottom_default.png){ width="700" }
+
+=== "生成グラフ（legend_ncol=8）"
+    ![auto_32_outside_bottom_ncol8](./csv2graph_samples/sample15/auto_32_outside_bottom_ncol8.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_32_outside_bottom_default",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=40,
+            # legend_ncol=8,  # 8列（4段）にする場合
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_outside_bottom_default \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 40
+      # --legend-ncol 8  # 8列（4段）にする場合
+    ```
+
+### ケース2: 下側切り替えを無効化して右外側に置く
+
+`legend_bottom_threshold=None`（CLI では `--legend-bottom-threshold 0`）を指定すると下側への自動切り替えが無効になり、従来どおり右外側（outside_right）に配置されます。32項目の縦長凡例でも、キャンバスが上下にも拡張されるため見切れません。
+
+=== "生成グラフ"
+    ![auto_32_outside_right](./csv2graph_samples/sample15/auto_32_outside_right.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_32_outside_right",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            legend_bottom_threshold=None,
+            max_legend_items=40,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_outside_right \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --legend-bottom-threshold 0 \
+      --max-legend-items 40
+    ```
+
+### ケース3: legend_outside_threshold の境界動作
+
+右外側への切り替えは「しきい値を**超えたら**」です。32系列に対してしきい値32なら inside のまま、31なら右外側へ切り替わります（下側切り替えは無効化して確認）。
+
+> しきい値32（inside のまま）のグラフは、32項目がプロット内に収まらず溢れる様子を示しています。多系列で `inside` 相当の配置を使うべきでない実例として掲載しています。
+
+=== "しきい値32（inside のまま）"
+    ![auto_32_inside_boundary_threshold_32](./csv2graph_samples/sample15/auto_32_inside_boundary_threshold_32.png){ width="700" }
+
+=== "しきい値31（右外側へ切り替え）"
+    ![auto_32_outside_right_boundary_threshold_31](./csv2graph_samples/sample15/auto_32_outside_right_boundary_threshold_31.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        for threshold in (32, 31):
+            csv2graph(
+                csv_path=Path("sample15/data.csv"),
+                output_dir=Path("sample15"),
+                x_col="x",
+                no_individual=True,
+                grid=True,
+                title=f"auto_32_boundary_threshold_{threshold}",
+                legend_policy="auto",
+                legend_outside_threshold=threshold,
+                legend_bottom_threshold=None,
+                max_legend_items=40,
+            )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_boundary_threshold_32 \
+      --legend-policy auto \
+      --legend-outside-threshold 32 \
+      --legend-bottom-threshold 0 \
+      --max-legend-items 40
+    ```
+
+### ケース4: legend_bottom_threshold の境界動作
+
+下側への切り替えは「しきい値**以上**」です。32系列に対してしきい値32なら下側へ、33なら右外側になります。
+
+=== "しきい値32（下側へ切り替え）"
+    ![auto_32_bottom_boundary_threshold_32](./csv2graph_samples/sample15/auto_32_bottom_boundary_threshold_32.png){ width="700" }
+
+=== "しきい値33（右外側のまま）"
+    ![auto_32_right_boundary_bottom_threshold_33](./csv2graph_samples/sample15/auto_32_right_boundary_bottom_threshold_33.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        for bottom_threshold in (32, 33):
+            csv2graph(
+                csv_path=Path("sample15/data.csv"),
+                output_dir=Path("sample15"),
+                x_col="x",
+                no_individual=True,
+                grid=True,
+                title=f"auto_32_bottom_boundary_{bottom_threshold}",
+                legend_policy="auto",
+                legend_outside_threshold=8,
+                legend_bottom_threshold=bottom_threshold,
+                max_legend_items=40,
+            )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_bottom_boundary_32 \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --legend-bottom-threshold 32 \
+      --max-legend-items 40
+    ```
+
+### ケース5: 配置を強制する（outside_right / outside_bottom）
+
+`auto` を使わず配置を明示指定する例です。`outside_bottom` は `legend_ncol` で列数（＝段数）を制御できます。
+
+=== "outside_right"
+    ![outside_right_32](./csv2graph_samples/sample15/outside_right_32.png){ width="700" }
+
+=== "outside_bottom + ncol=8"
+    ![outside_bottom_32_ncol8](./csv2graph_samples/sample15/outside_bottom_32_ncol8.png){ width="700" }
+
+=== "outside_bottom + ncol=4"
+    ![outside_bottom_32_ncol4](./csv2graph_samples/sample15/outside_bottom_32_ncol4.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="outside_bottom_32_ncol8",
+            legend_policy="outside_bottom",
+            legend_ncol=8,
+            max_legend_items=40,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title outside_bottom_32_ncol8 \
+      --legend-policy outside_bottom \
+      --legend-ncol 8 \
+      --max-legend-items 40
+    ```
+
+### ケース6: 凡例を表示しない（hide / max_legend_items 超過）
+
+`hide` の明示指定と、`max_legend_items=30` を32系列が超過して自動的に非表示になるケースです。出力画像は同等になります。
+
+=== "hide を明示指定"
+    ![hide_32](./csv2graph_samples/sample15/hide_32.png){ width="700" }
+
+=== "auto × max_legend_items 超過"
+    ![auto_32_hide_over_max_30](./csv2graph_samples/sample15/auto_32_hide_over_max_30.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="hide_32",
+            legend_policy="hide",
+            max_legend_items=40,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title hide_32 \
+      --legend-policy hide \
+      --max-legend-items 40
+    ```
+
+### オプションの説明
+
+- `legend_bottom_threshold`, `--legend-bottom-threshold` : `auto` が下側配置へ切り替える項目数のしきい値（デフォルト21。この値**以上**で切り替え）。Python では `None`、CLI では `0` 以下を指定すると無効化できます。
+- `legend_outside_threshold`, `--legend-outside-threshold` : `auto` が右外側配置へ切り替えるしきい値（この値を**超えたら**切り替え）。デフォルト値（8 / 21）では「1〜8件 → inside、9〜20件 → outside_right、21件以上 → outside_bottom」となります。
+- `legend_ncol`, `--legend-ncol` : 下側配置の列数。項目数 ÷ 列数で段数が決まります（32項目 × 8列 = 4段）。
+- 外側配置ではプロット領域を維持したままキャンバスが拡張されるため、系列数が多くてもグラフ本体は潰れません。

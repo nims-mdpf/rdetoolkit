@@ -42,6 +42,14 @@ class Csv2GraphCommand:
         invert_y: bool = False,
         no_individual: Optional[bool] = None,
         max_legend_items: Optional[int] = None,
+        legend_policy: Literal[
+            "legacy", "auto", "inside", "outside_right", "outside_bottom", "hide",
+        ] = "legacy",
+        legend_outside_threshold: int = 8,
+        legend_bottom_threshold: Optional[int] = 21,
+        legend_ncol: Optional[int] = None,
+        x_tick_format: Literal["auto", "plain", "sci", "eng"] = "auto",
+        y_tick_format: Literal["auto", "plain", "sci", "eng"] = "auto",
     ) -> None:
         """Initialize Csv2GraphCommand.
 
@@ -70,6 +78,14 @@ class Csv2GraphCommand:
             invert_y: Invert y-axis
             no_individual: Skip individual plots (None enables auto-detection)
             max_legend_items: Maximum legend items
+            legend_policy: Legend placement policy ("legacy", "auto",
+                "inside", "outside_right", "outside_bottom", "hide")
+            legend_outside_threshold: Item-count threshold for "auto" placement
+            legend_bottom_threshold: Item count at or above which "auto" uses
+                outside-bottom placement (None disables the switch)
+            legend_ncol: Number of legend columns for "outside_bottom" placement
+            x_tick_format: X-axis tick label format ("auto", "plain", "sci", or "eng")
+            y_tick_format: Y-axis tick label format ("auto", "plain", "sci", or "eng")
         """
         self.csv_path = csv_path
         self.output_dir = output_dir
@@ -95,6 +111,12 @@ class Csv2GraphCommand:
         self.invert_y = invert_y
         self.no_individual = no_individual
         self.max_legend_items = max_legend_items
+        self.legend_policy = legend_policy
+        self.legend_outside_threshold = legend_outside_threshold
+        self.legend_bottom_threshold = legend_bottom_threshold
+        self.legend_ncol = legend_ncol
+        self.x_tick_format = x_tick_format
+        self.y_tick_format = y_tick_format
 
     def invoke(self) -> None:
         """Execute the csv2graph command.
@@ -141,6 +163,12 @@ class Csv2GraphCommand:
                 invert_y=self.invert_y,
                 no_individual=self.no_individual,
                 max_legend_items=self.max_legend_items,
+                legend_policy=self.legend_policy,
+                legend_outside_threshold=self.legend_outside_threshold,
+                legend_bottom_threshold=self.legend_bottom_threshold,
+                legend_ncol=self.legend_ncol,
+                x_tick_format=self.x_tick_format,
+                y_tick_format=self.y_tick_format,
             )
 
             output_location = self.output_dir if self.output_dir else self.csv_path.parent

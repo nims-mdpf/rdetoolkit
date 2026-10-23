@@ -14,7 +14,7 @@ if sys.version_info < (3, 10):  # noqa: UP036
 from importlib import import_module
 from typing import Any
 
-__version__ = "2.0.0"
+__version__ = "2.0.0rc1"
 
 _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "DirectoryOps": ("rdetoolkit.core", "DirectoryOps"),
@@ -39,11 +39,9 @@ _LAZY_MODULES: dict[str, str] = {
     "exceptions": "rdetoolkit.exceptions",
     "img2thumb": "rdetoolkit.img2thumb",
     "invoicefile": "rdetoolkit.invoicefile",
-    "modeproc": "rdetoolkit.modeproc",
     "rde2util": "rdetoolkit.rde2util",
     "rdelogger": "rdetoolkit.rdelogger",
     "workflows": "rdetoolkit.workflows",
-    "processing": "rdetoolkit.processing",
     "storage": "rdetoolkit.storage",
     "traceback": "rdetoolkit.traceback",
     "config": "rdetoolkit.models.config",
@@ -51,8 +49,6 @@ _LAZY_MODULES: dict[str, str] = {
     "invoice_schema": "rdetoolkit.models.invoice_schema",
     "metadata": "rdetoolkit.models.metadata",
     "rde2types": "rdetoolkit.models.rde2types",
-    "impl": "rdetoolkit.impl",
-    "interfaces": "rdetoolkit.interfaces",
     "models": "rdetoolkit.models",
 }
 
@@ -72,11 +68,9 @@ __all__ = [
     "get_agent_guide",
     "img2thumb",
     "invoicefile",
-    "modeproc",
     "rde2util",
     "rdelogger",
     "workflows",
-    "processing",
     "storage",
     "traceback",
     "config",
@@ -84,8 +78,6 @@ __all__ = [
     "invoice_schema",
     "metadata",
     "rde2types",
-    "impl",
-    "interfaces",
     "models",
     "as_node",
 ]
@@ -102,13 +94,6 @@ def __getattr__(name: str) -> Any:
         module = import_module(_LAZY_MODULES[name])
         globals()[name] = module
         return module
-
-    for module_name in ("rdetoolkit.impl", "rdetoolkit.interfaces"):
-        module = import_module(module_name)
-        if hasattr(module, name):
-            value = getattr(module, name)
-            globals()[name] = value
-            return value
 
     emsg = f"module {__name__!r} has no attribute {name!r}"
     raise AttributeError(emsg)

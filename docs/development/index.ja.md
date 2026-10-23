@@ -149,24 +149,25 @@ def process_data(
 
 ```python title="test_example.py"
 import pytest
-from rdetoolkit.processing import process_data
+from rdetoolkit import node
 
-class TestProcessData:
+
+@node(tags=["example"])
+def to_kelvin(celsius: float) -> float:
+    if celsius < -273.15:
+        raise ValueError("below absolute zero")
+    return celsius + 273.15
+
+
+class TestToKelvin:
     def test_valid_input(self):
-        """正常な入力データのテスト"""
-        data = [{"key": "value"}]
-        result = process_data(data)
-        assert result.status == "success"
-
-    def test_empty_input(self):
-        """空の入力データのテスト"""
-        with pytest.raises(ValueError):
-            process_data([])
+        """A @node is a plain function: call it directly."""
+        assert to_kelvin(0.0) == 273.15
 
     def test_invalid_input(self):
-        """無効な入力データのテスト"""
-        with pytest.raises(TypeError):
-            process_data("invalid")
+        """Domain errors propagate unchanged."""
+        with pytest.raises(ValueError):
+            to_kelvin(-300.0)
 ```
 
 ## 品質保証

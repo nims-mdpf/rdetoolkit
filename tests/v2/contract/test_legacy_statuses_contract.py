@@ -62,10 +62,31 @@ def _iteration_targets(mode: str, observed: dict[str, Any], count: int) -> list[
     if mode in {"invoice", "multidatatile"}:
         parent = next(path.parent for path in files if path.parts[:2] == ("data", "inputdata"))
         return [parent.as_posix()] * count
-    if mode in {"excelinvoice", "smarttable"}:
+    if mode == "smarttable":
+        return [_smarttable_target(files, index) for index in range(count)]
+    if mode == "excelinvoice":
         parent = next(path.parent for path in files if path.parts[:2] == ("data", "temp") and len(path.parts) == 3)
         return [parent.as_posix()] * count
     return [f"data/temp/{index:04d}/<TILE_SUBDIR>" for index in range(count)]
+
+
+def _smarttable_target(files: list[Path], index: int) -> str:
+    """Derive one v1.7 SmartTable basedir from the frozen output inventory.
+
+    Since v1.7 (#503) ``rawfiles`` holds only the user files a row references,
+    so v1's ``ProcessingContext.basedir`` is the directory those files were
+    unpacked to (``""`` when the row references none). The tile's published
+    ``raw/`` copy names the file; the unpack location under ``data/temp`` gives
+    its directory. The generated ``fsmarttable_*`` row CSVs never count.
+    """
+    tile = ("data",) if index == 0 else ("data", "divided", f"{index:04d}")
+    published = [path.name for path in files if path.parts[:-1] == (*tile, "raw")]
+    if not published:
+        return ""
+    unpacked = next(
+        path for path in files if path.parts[:2] == ("data", "temp") and path.name == published[0]
+    )
+    return unpacked.parent.as_posix()
 
 
 @pytest.mark.parametrize(
@@ -214,9 +235,10 @@ def test_to_legacy_statuses_matches_frozen_v1_error_payload(
     assert actual_statuses[0]["error_code"] == error["code"]
     # UPDATED Session J-REVIEW ruling #2 (decision A): a failed entry is no
     # longer a v2-defined shape. v1 returns failed statuses from an
-    # ``ignore_errors`` run, and the live ``_run_legacy`` oracle
-    # (TC-JREV-P2-001/008) shows v1's ``_create_error_status`` shape: the
-    # ``Error: `` message prefix and the mode-labelled title.
+    # ``ignore_errors`` run, and the v1 oracle (TC-JREV-P2-001/008, frozen as
+    # ``multidatatile/{usererr,tilefail}__ignore_errors`` since Session K1)
+    # shows v1's ``_create_error_status`` shape: the ``Error: `` message prefix
+    # and the mode-labelled title.
     assert actual_statuses[0]["error_message"] == f"Error: {error['message']}"
     assert actual_statuses[0]["title"] == f"Structured Process Failed: {_V1_FAILURE_LABELS[mode]}"
     assert actual_statuses[0]["status"] == "failed"
@@ -224,7 +246,7 @@ def test_to_legacy_statuses_matches_frozen_v1_error_payload(
     assert actual_statuses[0]["run_id"] != report.run_id
 
 
-def test_runner_run_legacy_statuses_use_tile_indexes_not_run_uuid__tc_ep_hr2_ae_001(
+def test_runner_legacy_statuses_use_tile_indexes_not_run_uuid__tc_ep_hr2_ae_001(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

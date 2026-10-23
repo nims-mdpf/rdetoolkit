@@ -52,12 +52,13 @@ class StubScatter:
 class StubLayout:
     """Simplified layout container replicating attribute access."""
 
-    def __init__(self, *, title: str | None = None, xaxis: dict[str, Any] | None = None, yaxis: dict[str, Any] | None = None, showlegend: bool = True, updatemenus: list[dict[str, Any]] | None = None) -> None:
+    def __init__(self, *, title: str | None = None, xaxis: dict[str, Any] | None = None, yaxis: dict[str, Any] | None = None, showlegend: bool = True, updatemenus: list[dict[str, Any]] | None = None, legend: dict[str, Any] | None = None) -> None:
         self.title = AttrDict({"text": title})
         self.xaxis = AttrDict(xaxis or {})
         self.yaxis = AttrDict(yaxis or {})
         self.showlegend = showlegend
         self.updatemenus = updatemenus or []
+        self.legend = AttrDict(legend) if legend is not None else None
 
 
 class StubFigure:
@@ -147,6 +148,130 @@ def test_plotly_renderer_adds_annotations_when_legend_info_present() -> None:
     assert fig.annotations[0]["text"] == "Line1"
 
 
+def test_plotly_renderer_legacy_policy_keeps_legend_visible() -> None:
+    """policy="legacy" (default) preserves the pre-policy Plotly behavior."""
+    df = pd.DataFrame({"X": [0, 1], "Y1": [1, 2], "Y2": [2, 3]})
+    config = build_config(y_cols=[1, 2])
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is True
+    assert fig.layout.legend is None
+
+
+def test_plotly_renderer_legacy_policy_hides_legend_beyond_max_items() -> None:
+    """Regression: legacy policy must still honor max_items (matches Matplotlib)."""
+    y_cols = list(range(1, 4))
+    df = pd.DataFrame({"X": [0, 1], **{f"Y{i}": [i, i + 1] for i in y_cols}})
+    config = build_config(y_cols=y_cols)
+    config.legend.max_items = 2
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is False
+
+
+def test_plotly_renderer_hide_policy_disables_legend() -> None:
+    """Regression: legend_policy="hide" must disable the legend in HTML output."""
+    df = pd.DataFrame({"X": [0, 1], "Y1": [1, 2], "Y2": [2, 3]})
+    config = build_config(y_cols=[1, 2])
+    config.legend.policy = "hide"
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is False
+
+
+def test_plotly_renderer_outside_bottom_policy_uses_horizontal_legend() -> None:
+    """policy="outside_bottom" maps to a horizontal legend below the plot."""
+    df = pd.DataFrame({"X": [0, 1], "Y1": [1, 2], "Y2": [2, 3]})
+    config = build_config(y_cols=[1, 2])
+    config.legend.policy = "outside_bottom"
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is True
+    assert fig.layout.legend["orientation"] == "h"
+    assert fig.layout.legend["y"] < 0
+
+
+def test_plotly_renderer_inside_policy_places_legend_in_plot_area() -> None:
+    """policy="inside" anchors the legend inside the plot area."""
+    df = pd.DataFrame({"X": [0, 1], "Y1": [1, 2]})
+    config = build_config()
+    config.legend.policy = "inside"
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is True
+    assert fig.layout.legend["x"] <= 1.0
+    assert fig.layout.legend["xanchor"] == "right"
+
+
+def test_plotly_renderer_auto_policy_hides_legend_over_max_items() -> None:
+    """policy="auto" hides the Plotly legend when max_items is exceeded."""
+    data: dict[str, list[int]] = {"X": [0, 1]}
+    for i in range(6):
+        data[f"Y{i}"] = [i, i + 1]
+    df = pd.DataFrame(data)
+    config = build_config(y_cols=list(range(1, 7)))
+    config.legend.policy = "auto"
+    config.legend.max_items = 5
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is False
+
+
+def test_plotly_renderer_max_items_caps_explicit_policy() -> None:
+    """max_items remains a hard cap for explicit non-auto policies in HTML output."""
+    data: dict[str, list[int]] = {"X": [0, 1]}
+    for i in range(6):
+        data[f"Y{i}"] = [i, i + 1]
+    df = pd.DataFrame(data)
+    config = build_config(y_cols=list(range(1, 7)))
+    config.legend.policy = "outside_right"
+    config.legend.max_items = 5
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    assert fig.layout.showlegend is False
+
+
+def test_plotly_renderer_auto_policy_counts_rendered_traces_not_series() -> None:
+    """Legend visibility must follow actually rendered legend-visible traces.
+
+    Three series are configured, but the direction filter leaves only one
+    rendered trace. With max_items=2 the legend must stay visible: basing the
+    decision on len(y_cols) (3 > 2) would wrongly hide it.
+    """
+    df = pd.DataFrame({
+        "X": [0, 1, 2, 3],
+        "Y0": [1, 2, 3, 4],
+        "Y1": [2, 3, 4, 5],
+        "Y2": [3, 4, 5, 6],
+        "D0": ["A", "A", "A", "A"],
+        "D1": ["B", "B", "B", "B"],
+        "D2": ["B", "B", "B", "B"],
+    })
+    config = build_config(
+        y_cols=[1, 2, 3],
+        direction=DirectionConfig(filters=["A"]),
+        direction_cols=[4, 5, 6],
+    )
+    config.legend.policy = "auto"
+    config.legend.max_items = 2
+
+    fig = PlotlyRenderer().render_html(df, config)
+
+    legend_visible = [
+        trace for trace in fig.data
+        if getattr(trace, "showlegend", True) is not False
+    ]
+    assert len(legend_visible) == 1
+    assert fig.layout.showlegend is True
+
+
 def test_plotly_renderer_respects_direction_filtering() -> None:
     df = pd.DataFrame({
         "X": [0, 1, 2, 3],
@@ -177,7 +302,7 @@ def test_plotly_renderer_no_plotly_dependency(monkeypatch: pytest.MonkeyPatch) -
         renderer.render_html(df, config)
 
 
-def test_overlay_strategy_html_output(tmp_path):
+def test_overlay_strategy_html_output(tmp_path, monkeypatch):
     df = pd.DataFrame({'time': [0, 1], 'value': [1, 2]})
     builder = PlotConfigBuilder()
     builder.set_mode(PlotMode.OVERLAY)
@@ -192,11 +317,14 @@ def test_overlay_strategy_html_output(tmp_path):
         ],
         individual=[]
     )
-    PathValidator.ensure_directory = lambda self, p: Path(p)
+    # Patch via monkeypatch so the class-level stubs are restored after this
+    # test; permanent assignment used to silently disable file output for
+    # every test that ran afterwards.
+    monkeypatch.setattr(PathValidator, "ensure_directory", lambda self, p: Path(p))
     saved = []
     def fake_save(self, figure, output_dir, filename, format_type, **kwargs):
         saved.append((Path(output_dir), filename, format_type))
-    FileWriter.save_figure = fake_save
+    monkeypatch.setattr(FileWriter, "save_figure", fake_save)
     _save_render_results(collections, tmp_path, tmp_path / 'main')
     assert saved[0][0] == tmp_path / 'main'
     assert saved[1][0] == tmp_path

@@ -1,0 +1,59 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "tasksupport",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_broken_tasksupport_yaml",
+    "invalidate_invoice": false,
+    "mode": "invoice",
+    "observe_extras": [],
+    "outcome": "cfgerr",
+    "variant": "broken_yaml"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "b8a8250a73d43ffedce1f9417e7fee97ff3731d5c86e8dd885e862ecd9cbe096"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Error: Please check the logs and code, then try again.\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/inputdata/",
+        "data/invoice/",
+        "data/logs/",
+        "data/tasksupport/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/invoice_input.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/tasksupport/rdeconfig.yaml"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

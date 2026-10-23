@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import sys
 from enum import Enum
 from pathlib import Path
 
-from rdetoolkit.domain.mode import selected_input_checker
+from rdetoolkit.domain.input_checker import selected_input_checker
 from rdetoolkit.errors import WARNING_CATALOG
 from rdetoolkit.impl.input_controller import (
     ExcelInvoiceChecker,
@@ -16,7 +15,7 @@ from rdetoolkit.impl.input_controller import (
     SmartTableChecker,
 )
 from rdetoolkit.models.rde2types import RdeInputDirPaths
-from rdetoolkit.report.events import Event, EventSink
+from rdetoolkit.report.events import Event, EventSink, _best_effort_stderr
 from rdetoolkit.types import RdeConfig
 
 
@@ -39,7 +38,7 @@ def resolve_mode(
 ) -> ModeKind:
     """Resolve the effective v2 mode using the v1-compatible detector.
 
-    File detection priority is delegated to ``domain.mode.selected_input_checker``.
+    File detection priority is delegated to ``domain.input_checker.selected_input_checker``.
     If file detection overrides an explicitly configured mode, W1001 is emitted
     to both the event sink and stderr.
 
@@ -126,4 +125,6 @@ def _emit_mode_override_warning(
     warning_def = WARNING_CATALOG[1001]
     message = warning_def.message_template.format(mode=detected_mode.value)
     event_sink.emit(Event.warning(run_id=run_id, code=1001, message=message))
-    sys.stderr.write(f"{warning_def.name}: {message}\n")
+    # Best-effort: resolve_mode runs inside the lifecycle's failure boundary,
+    # so a failing stderr would otherwise fail the run with 1002 (K4-F3).
+    _best_effort_stderr(f"{warning_def.name}: {message}\n")

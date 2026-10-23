@@ -72,6 +72,19 @@ def test_gen_config_full_template(cli_runner: CliRunner, tmp_path: Path) -> None
     assert config_path.read_text(encoding="utf-8") == STATIC_TEMPLATES["full"]
 
 
+def test_gen_config_smarttable_template(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Verify the smarttable template defaults save_table_file to false."""
+    # Given: a clean output directory and explicit smarttable template selection
+    output_dir = tmp_path / "smarttable"
+    # When: generating the smarttable template
+    result = cli_runner.invoke(app, ["gen-config", str(output_dir), "--template", "smarttable"])
+    # Then: command succeeds and save_table_file defaults to false
+    assert result.exit_code == 0
+    config_path = output_dir / CONFIG_FILE_NAME
+    assert config_path.read_text(encoding="utf-8") == STATIC_TEMPLATES["smarttable"]
+    assert "save_table_file: false" in config_path.read_text(encoding="utf-8")
+
+
 def test_gen_config_interactive_overwrite_and_lang(cli_runner: CliRunner, tmp_path: Path) -> None:
     """TC-EP-003 / TC-BV-003"""
     # Given: an existing rdeconfig.yaml that should be replaced interactively

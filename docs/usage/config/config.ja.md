@@ -193,6 +193,13 @@ smarttable:
   save_table_file: true
 ```
 
+!!! note
+    v1.7.0時点で、`rdetoolkit gen-config smarttable`が生成するテンプレートも
+    このデフォルトに合わせて`save_table_file: false`となっています。
+    `true`に設定した場合の登録先変更（`divided/0001`）については
+    [SmartTableInvoiceモード](../mode/mode_smarttableinvoice.ja.md)の
+    「テーブルデータファイルをRDEに登録する場合」の節を参照してください。
+
 ### 5. ログやスタックトレースに関する設定を追加する
 
 #### Traceback設定

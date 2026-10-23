@@ -9,17 +9,16 @@ do, and this module owns their subject under test.
 Why a subprocess: the public entry's failure contract is ``sys.exit(1)`` and its
 inputs are the process CWD, so an in-process call would both pollute the test
 session's working directory and make the exit code unobservable. The worker is
-therefore shaped exactly like ``_generate._run_oracle_worker`` — same callbacks,
-same ``_collect_oracle_observation`` keys, same ``normalize_snapshot`` rules — so
-the two observations are comparable field by field. ``_generate.py`` itself is
-frozen and is only imported here (Session J2 boundary).
+therefore the generator's own ``_generate.execute_case`` with the public entry in
+place of the v1 oracle — same registered case, same callbacks, same observation
+keys and extras, same ``normalize_snapshot`` rules — so the observation is
+comparable field by field with the frozen snapshot of that case (Session K1).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from collections.abc import Mapping
@@ -42,14 +41,16 @@ OBSERVATION_FILENAME = ".entry_observation.json"
 RDESYS_LOG_ENTRY = "data/logs/rdesys_<LOG_TIMESTAMP>.log"
 
 
-def run_entry_worker(mode: str, outcome: str, root: Path) -> int:
+def run_entry_worker(case_id: str, root: Path, callback: str | None = None) -> int:
     """Execute the public v1 entry point once, in this process, and observe it.
 
     Args:
-        mode: One of the five unified execution modes.
-        outcome: ``ok`` / ``usererr`` / ``valerr``.
+        case_id: Registered ``_generate`` case; its configuration source and
+            callback are the ones the frozen v1 observation was made with.
         root: Already-materialized run root; it becomes the process CWD, because
             the public entry resolves its data root from the CWD.
+        callback: Optional ``_generate.ORACLE_CALLBACKS`` name replacing the
+            case's own callback.
 
     Returns:
         ``0`` — the worker's own exit status says nothing about the run, whose
@@ -57,25 +58,7 @@ def run_entry_worker(mode: str, outcome: str, root: Path) -> int:
     """
     from rdetoolkit.workflows import run as public_run  # noqa: PLC0415
 
-    if outcome == "valerr":
-        _generate._invalidate_invoice(root)  # noqa: SLF001 -- the generator owns the defect
-    callback = _generate._ORACLE_CALLBACKS.get(outcome, _generate._oracle_callback_ok)  # noqa: SLF001
-    previous = Path.cwd()
-    result: str | None = None
-    exit_code = 0
-    try:
-        os.chdir(root)
-        try:
-            returned = public_run(
-                custom_dataset_function=callback,
-                config=_generate.oracle_config(mode),
-            )
-            result = returned if isinstance(returned, str) else None
-        except SystemExit as error:
-            exit_code = int(error.code or 0)
-    finally:
-        os.chdir(previous)
-    observation = _generate._collect_oracle_observation(root, result, exit_code)  # noqa: SLF001
+    observation = _generate.execute_case(_generate.oracle_case(case_id), root, public_run, callback=callback)
     (root / OBSERVATION_FILENAME).write_text(
         json.dumps(observation, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -83,13 +66,14 @@ def run_entry_worker(mode: str, outcome: str, root: Path) -> int:
     return 0
 
 
-def execute_entry_observation(mode: str, outcome: str, root: Path) -> dict[str, Any]:
+def execute_entry_observation(case_id: str, root: Path, *, callback: str | None = None) -> dict[str, Any]:
     """Run the isolated public-entry worker against a materialized case.
 
     Args:
-        mode: One of the five unified execution modes.
-        outcome: ``ok`` / ``usererr`` / ``valerr``.
+        case_id: Registered ``_generate`` case.
         root: Already-materialized run root the worker executes in.
+        callback: Optional ``_generate.ORACLE_CALLBACKS`` name replacing the
+            case's own callback.
 
     Returns:
         The normalized observation of the public entry point.
@@ -101,10 +85,11 @@ def execute_entry_observation(mode: str, outcome: str, root: Path) -> dict[str, 
         sys.executable,
         str(Path(__file__).resolve()),
         "--entry-worker",
-        mode,
-        outcome,
+        case_id,
         str(root),
     ]
+    if callback is not None:
+        command.extend(["--callback", callback])
     completed = subprocess.run(  # noqa: S603
         command,
         cwd=REPOSITORY_ROOT,
@@ -115,12 +100,23 @@ def execute_entry_observation(mode: str, outcome: str, root: Path) -> dict[str, 
     observation_path = root / OBSERVATION_FILENAME
     if completed.returncode != 0 or not observation_path.exists():
         message = (
-            f"public entry worker failed for {mode}/{outcome}: "
+            f"public entry worker failed for {case_id}: "
             f"exit={completed.returncode}; stderr={completed.stderr[-1000:]}"
         )
         raise RuntimeError(message)
     observation = json.loads(observation_path.read_text(encoding="utf-8"))
     return dict(_generate.normalize_snapshot(observation, roots=(root,)))
+
+
+def observe_public_entry(case_id: str, root: Path, *, callback: str | None = None) -> dict[str, Any]:
+    """Materialize a registered case into ``root`` and observe the public entry on it.
+
+    The SUT-side counterpart of the generator's frozen v1 observation: same
+    inputs, same configuration, same callback (unless ``callback`` names
+    another), same observation keys including the case's extras.
+    """
+    _generate.materialize_case(_generate.oracle_case(case_id), root)
+    return execute_entry_observation(case_id, root, callback=callback)
 
 
 def entry_parity_view(observation: Mapping[str, Any]) -> dict[str, Any]:
@@ -223,18 +219,19 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--entry-worker",
-        nargs=3,
-        metavar=("MODE", "OUTCOME", "ROOT"),
+        nargs=2,
+        metavar=("CASE_ID", "ROOT"),
         required=True,
     )
+    parser.add_argument("--callback", default=None)
     return parser.parse_args()
 
 
 def main() -> int:
     """Run the isolated public-entry worker for one case."""
     args = _parse_args()
-    mode, outcome, root = args.entry_worker
-    return run_entry_worker(mode, outcome, Path(root))
+    case_id, root = args.entry_worker
+    return run_entry_worker(case_id, Path(root), args.callback)
 
 
 if __name__ == "__main__":

@@ -5,23 +5,37 @@ Generated on: 2026-07-15. Re-run this script; never hand-edit snapshots.
 
 The generator owns both static input construction and expected-output
 freezing. Expected values are observed from isolated v1 executions, then
-normalized before comparison or persistence. Tests may execute v1 as the
-subject under test, but they must never use v1 to create expected values.
+normalized before comparison or persistence.
+
+Session K1 (rulings #1-#3): every frozen observation is a registered
+``OracleCase`` (inputs builder, configuration, callback, observation extras);
+the inventory, the snapshot paths and the ``case`` records derive from that
+registry. Phase K2 removed the v1 orchestration loop together with the
+worker chain that executed it; the frozen snapshots are now the only record of
+the v1 observations and are regenerated only through
+``merge_v1/refreeze_procedure.md`` on the v1 maintenance line. Tests compare against
+the frozen snapshots through ``tests/v2/contract/frozen.py``. A registered case
+whose snapshot does not exist yet is "pending freeze" while
+``ALLOW_PENDING_SNAPSHOTS`` holds: ``--check`` lists it without failing.
 """
 
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
+import io
 import json
 import math
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 import zipfile
+import zlib
 from collections.abc import Callable, Mapping, Sequence
 from datetime import date
 from pathlib import Path
@@ -547,7 +561,7 @@ def source_revision_warnings(
     return [
         (
             f"warning: frozen source.commit {commit} differs from current revision {current}; "
-            "remediation: regenerate all contract snapshots with _generate.py"
+            "remediation: re-freeze on the v1 maintenance line (merge_v1/refreeze_procedure.md)"
         )
         for commit in sorted(recorded)
         if commit not in {current, "<unrecorded>"} and "-dirty" not in commit
@@ -573,20 +587,6 @@ def source_revision_errors(*, root: Path = EXPECTED_ROOT) -> list[str]:
         for commit in sorted(_recorded_source_commits(root))
         if not commit or commit == "<unrecorded>" or "-dirty" in commit
     ]
-
-
-def expected_snapshot_paths(root: Path = EXPECTED_ROOT) -> list[Path]:
-    """Return the complete frozen v1 snapshot inventory."""
-    modes = ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
-    outcomes = ("ok", "usererr", "valerr")
-    snapshots = [root / mode / f"{outcome}.json" for mode in modes for outcome in outcomes]
-    snapshots.append(root / "excelinvoice" / "zero_rows.json")
-    return snapshots
-
-
-def canary_snapshot_paths(root: Path = CANARY_EXPECTED_ROOT) -> list[Path]:
-    """Return the five OK-only real-canary snapshot paths in sorted order."""
-    return [root / mode / "ok.json" for mode in CANARY_MODES]
 
 
 def _materialize_oracle_case(mode: str, root: Path, *, zero_rows: bool = False) -> None:
@@ -723,7 +723,6 @@ def canary_effective_config_record(mode: str) -> dict[str, Any]:
         "config": config.model_dump(mode="json"),
     }
 
-
 #: Marker the oracle callbacks append one line to per invocation. It lives in
 #: the run root (the process CWD), never below ``data/``, so it can never
 #: appear in an observed output tree.
@@ -731,9 +730,17 @@ CALLBACK_MARKER_NAME = ".callback_calls"
 
 #: Marker recording the ``RdeOutputResourcePath.smarttable_row_data`` each
 #: invocation received, one JSON document per line, aligned with the call
-#: marker. Session I-REVIEW-B ruling #2 compares the v1 and the v2 callback
-#: material dynamically instead of freezing it.
+#: marker. Frozen as the ``callback_rows`` observation extra (Session K1).
 ROW_DATA_MARKER_NAME = ".callback_row_data.jsonl"
+
+#: Marker recording every ``Path``-valued field of the two v1 callback
+#: arguments as the exact string the callback received (Session K0 ruling #8,
+#: frozen as the ``callback_paths`` observation extra in Session K1).
+PATHS_MARKER_NAME = ".callback_paths.jsonl"
+
+#: Marker recording the user-defined ``Config`` extras (``model_extra``) the
+#: callback saw on ``srcpaths.config`` (``callback_config_extras``).
+CONFIG_EXTRAS_MARKER_NAME = ".callback_config_extras.jsonl"
 
 #: The message ``_oracle_callback_usererr`` raises. The v2 contract tests raise
 #: a byte-identical one, so ``job.failed`` parity is a real comparison.
@@ -742,10 +749,17 @@ CALLBACK_FAILURE_MESSAGE = (
     "and correct its input."
 )
 
+#: The message the plain-exception oracle callback raises (``ValueError``).
+PLAIN_FAILURE_MESSAGE = "boom"
+
 #: Tile the multi-tile policy callbacks fail (Session I-REVIEW-B ruling #3).
 #: Index 1 is the only choice that distinguishes ``continue`` from
 #: ``fail_fast`` on a three-tile run: a later tile must remain to be skipped.
 FAILING_TILE_INDEX = 1
+
+#: Tiles every policy family produces. Three is the contract, not an accident:
+#: with two tiles a fail-fast run and a continue run are indistinguishable.
+POLICY_TILE_COUNT = 3
 
 
 def _record_callback_call() -> None:
@@ -789,12 +803,57 @@ def _jsonable_row_data(row_data: Any) -> dict[str, Any] | None:
     return normalized
 
 
-def _record_row_data(resource_paths: object) -> None:
-    """Append this invocation's SmartTable row material to the row marker."""
-    row_data = _jsonable_row_data(getattr(resource_paths, "smarttable_row_data", None))
-    marker = Path(ROW_DATA_MARKER_NAME)
-    with marker.open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps(row_data, ensure_ascii=False, sort_keys=True) + "\n")
+def _path_fields(value: object) -> dict[str, Any]:
+    """Return every ``Path``-valued field of a v1 path bundle as strings.
+
+    The strings are recorded verbatim: v1 handed its callback CWD-relative
+    paths in the standard layout, and that form is itself contract
+    (contracts.md §K0-2). Non-dataclass values record nothing.
+    """
+    observed: dict[str, Any] = {}
+    if not dataclasses.is_dataclass(value):
+        return observed
+    for item in dataclasses.fields(value):
+        field_value = getattr(value, item.name, None)
+        if isinstance(field_value, Path):
+            observed[item.name] = str(field_value)
+        elif isinstance(field_value, tuple) and all(isinstance(part, Path) for part in field_value):
+            observed[item.name] = [str(part) for part in field_value]
+    return observed
+
+
+def _config_extras(srcpaths: object) -> Any:
+    """Return the user-defined ``Config`` extras a callback can read."""
+    config = getattr(srcpaths, "config", None)
+    extras = getattr(config, "model_extra", None)
+    return json.loads(json.dumps(dict(extras or {}), ensure_ascii=False, default=str, sort_keys=True))
+
+
+def _append_marker(name: str, value: Any) -> None:
+    with Path(name).open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(value, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def _record_invocation(srcpaths: object, resource_paths: object) -> None:
+    """Record everything one oracle callback invocation received.
+
+    Every marker is appended unconditionally, in call order, so the
+    observation extras of a case are a pure read-out of the run root.
+    """
+    _record_callback_call()
+    _append_marker(
+        ROW_DATA_MARKER_NAME,
+        _jsonable_row_data(getattr(resource_paths, "smarttable_row_data", None)),
+    )
+    _append_marker(PATHS_MARKER_NAME, {"input": _path_fields(srcpaths), "output": _path_fields(resource_paths)})
+    _append_marker(CONFIG_EXTRAS_MARKER_NAME, _config_extras(srcpaths))
+
+
+def _read_marker_lines(root: Path, name: str) -> list[Any]:
+    marker = root / name
+    if not marker.exists():
+        return []
+    return [json.loads(line) for line in marker.read_text(encoding="utf-8").splitlines() if line]
 
 
 def read_callback_row_data(root: Path) -> list[dict[str, Any] | None]:
@@ -807,28 +866,27 @@ def read_callback_row_data(root: Path) -> list[dict[str, Any] | None]:
         One entry per invocation, in call order; ``None`` for a tile with no
         SmartTable row.
     """
-    marker = root / ROW_DATA_MARKER_NAME
-    if not marker.exists():
-        return []
-    return [
-        json.loads(line)
-        for line in marker.read_text(encoding="utf-8").splitlines()
-        if line
-    ]
+    return _read_marker_lines(root, ROW_DATA_MARKER_NAME)
+
+
+def read_callback_paths(root: Path) -> list[dict[str, Any]]:
+    """Return the verbatim path fields every oracle callback invocation received."""
+    return _read_marker_lines(root, PATHS_MARKER_NAME)
+
+
+def read_callback_config_extras(root: Path) -> list[dict[str, Any]]:
+    """Return the ``Config`` extras every oracle callback invocation saw."""
+    return _read_marker_lines(root, CONFIG_EXTRAS_MARKER_NAME)
 
 
 def _oracle_callback_ok(srcpaths: object, resource_paths: object) -> None:
-    del srcpaths
-    _record_callback_call()
-    _record_row_data(resource_paths)
+    _record_invocation(srcpaths, resource_paths)
 
 
 def _oracle_callback_usererr(srcpaths: object, resource_paths: object) -> None:
     from rdetoolkit.exceptions import StructuredError  # noqa: PLC0415
 
-    del srcpaths
-    _record_callback_call()
-    _record_row_data(resource_paths)
+    _record_invocation(srcpaths, resource_paths)
     raise StructuredError(CALLBACK_FAILURE_MESSAGE, ecode=999)
 
 
@@ -849,19 +907,898 @@ def oracle_callback_tile_failure(srcpaths: object, resource_paths: object) -> No
     """
     from rdetoolkit.exceptions import StructuredError  # noqa: PLC0415
 
-    del srcpaths
-    _record_callback_call()
-    _record_row_data(resource_paths)
+    _record_invocation(srcpaths, resource_paths)
     if _callback_call_count() == FAILING_TILE_INDEX + 1:
         raise StructuredError(CALLBACK_FAILURE_MESSAGE, ecode=999)
 
 
-#: Outcome-to-callback dispatch for the isolated v1 worker. Unlisted outcomes
-#: (``ok``, ``valerr``) run the success callback, as they always have.
-_ORACLE_CALLBACKS: dict[str, Callable[[object, object], None]] = {
+def oracle_callback_first_tile_failure(srcpaths: object, resource_paths: object) -> None:
+    """Fail tile 0 only, with the user-error message; later tiles would succeed.
+
+    Frozen as ``<mode>/usererr__first_tile__ignore_errors`` (TC-JREV-F2): v1
+    stops at the first failure even though a later tile would have succeeded.
+    """
+    from rdetoolkit.exceptions import StructuredError  # noqa: PLC0415
+
+    _record_invocation(srcpaths, resource_paths)
+    if _callback_call_count() == 1:
+        raise StructuredError(CALLBACK_FAILURE_MESSAGE, ecode=999)
+
+
+def oracle_callback_plain_error(srcpaths: object, resource_paths: object) -> None:
+    """Fail with an ordinary exception, the way a buggy v1 callback does."""
+    _record_invocation(srcpaths, resource_paths)
+    raise ValueError(PLAIN_FAILURE_MESSAGE)
+
+
+def oracle_callback_sabotage_structured(srcpaths: object, resource_paths: object) -> None:
+    """Succeed, but leave ``structured`` as a plain file for the stage after.
+
+    The structured-invoice export that follows the callback can then not
+    create its directory, which is how the artifact stage order becomes
+    observable (Session I-REVIEW-A ruling #5).
+    """
+    _record_invocation(srcpaths, resource_paths)
+    struct = Path(getattr(resource_paths, "struct"))  # noqa: B009 -- v1 attribute name
+    shutil.rmtree(struct)
+    struct.write_text("not a directory", encoding="utf-8")
+
+
+#: Every callback a case or a SUT-side test may name, keyed by a stable name.
+ORACLE_CALLBACKS: dict[str, Callable[[object, object], None]] = {
+    "ok": _oracle_callback_ok,
     "usererr": _oracle_callback_usererr,
-    "tilefail": oracle_callback_tile_failure,
+    "tile_failure": oracle_callback_tile_failure,
+    "first_tile_failure": oracle_callback_first_tile_failure,
+    "plain_error": oracle_callback_plain_error,
+    "sabotage_structured": oracle_callback_sabotage_structured,
 }
+
+# --------------------------------------------------------------------------
+# Scenario builders (Session K1 ruling #1: moved out of the test modules)
+#
+# Each builder materializes one run root from the committed static inputs.
+# Nothing here writes below ``INPUT_ROOT``: every variant is derived in the
+# isolated root, so ``check_static_input_drift`` is unaffected.
+# --------------------------------------------------------------------------
+
+_EXCELINVOICE_WORKBOOK = "data/inputdata/contract_excel_invoice.xlsx"
+_EXCELINVOICE_ARCHIVE = "data/inputdata/excelinvoice_files.zip"
+
+#: The three header rows every registration sheet carries before its data rows.
+_SHEET_HEADER: list[list[str | None]] = [
+    ["", "basic", "basic"],
+    ["name", "dataName", "dataOwnerId"],
+    ["Input filename", "Data name", "Data owner ID"],
+]
+
+#: ``${metadata:constant:...}`` with no metadata.json is a framework-side magic
+#: failure: the callback succeeds and only artifact publication fails.
+MAGIC_FAILURE_TEMPLATE = "${metadata:constant:missing_key}"
+
+#: ``${filename}`` resolves from the tile's first raw file, so a completed magic
+#: step is visible as a concrete file name in the tile invoice.
+FILENAME_TEMPLATE = "${filename}"
+
+#: Longest ``basic.dataName`` the constrained SmartTable schema accepts. The
+#: seed invoice's ``"test-dataset"`` (12) and the row names
+#: ``"smarttable_value_N"`` (18) fit; ``"smarttable_full.xlsx"`` (20) does not.
+DATA_NAME_MAX_LENGTH = 19
+
+#: The table name and rows of the Session K0 SmartTable workspace.
+K0_TABLE_NAME = "smarttable_test.csv"
+K0_ROWS: tuple[tuple[str, str, str], ...] = (
+    ("sample1.txt", "Experiment_1", "25"),
+    ("sample2.txt", "Experiment_2", "26"),
+    ("sample3.txt", "Experiment_3", "27"),
+)
+
+
+def materialize_sut_case(mode: str, root: Path) -> None:
+    """Copy a committed mode input into an isolated SUT working directory."""
+    _materialize_oracle_case(mode, root)
+
+
+def _rewrite_json(path: Path, update: Callable[[dict[str, Any]], None], *, indent: int | None = None) -> None:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    update(value)
+    text = json.dumps(value, ensure_ascii=False, indent=indent)
+    path.write_text(text + ("\n" if indent is not None else ""), encoding="utf-8")
+
+
+def rewrite_excelinvoice_archive(root: Path, members: Mapping[str, bytes]) -> None:
+    """Replace the ExcelInvoice file archive with deterministic members."""
+    path = root / _EXCELINVOICE_ARCHIVE
+    path.unlink(missing_ok=True)
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, payload in sorted(members.items()):
+            info = zipfile.ZipInfo(name, date_time=(2026, 7, 15, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, payload)
+
+
+def write_excelinvoice_registration_sheet(path: Path, rows: Sequence[Sequence[str | None]]) -> None:
+    """Rewrite sheet 1 of the committed workbook, keeping the term sheets."""
+    general = pd.DataFrame(EXCELINVOICE_ENTRYDATA_SHEET2, columns=["term_id", "key_name"])
+    specific = pd.DataFrame(
+        EXCELINVOICE_ENTRYDATA_SHEET3,
+        columns=["sample_class_id", "term_id", "key_name"],
+    )
+    with pd.ExcelWriter(path) as writer:
+        pd.DataFrame([list(row) for row in rows], columns=["invoiceList_format_id", "Sample_RDE_DataSet", ""]).to_excel(
+            writer,
+            sheet_name="invoice_form",
+            index=False,
+        )
+        general.to_excel(writer, sheet_name="generalTerm", index=False)
+        specific.to_excel(writer, sheet_name="specificTerm", index=False)
+
+
+def extend_excelinvoice_to_three_rows(inputdata: Path) -> None:
+    """Grow the two-row ExcelInvoice fixture into a three-tile family.
+
+    The committed workbook is read back and one data row is appended rather
+    than rebuilt from the fixture constants, so this helper cannot drift away
+    from the sheet layout ``_write_excelinvoice`` produces. The file archive is
+    rewritten with deterministic member metadata for the same reason the
+    generator does: a timestamp in a ZIP entry would make the input
+    non-reproducible.
+
+    Args:
+        inputdata: The materialized ``data/inputdata`` directory.
+    """
+    workbook = inputdata / "contract_excel_invoice.xlsx"
+    sheets = pd.read_excel(workbook, sheet_name=None, header=None)
+    form = sheets["invoice_form"]
+    owner_id = form.iloc[-1].tolist()[2]
+    form.loc[len(form)] = ["test_child3.txt", "test3", owner_id]
+    with pd.ExcelWriter(workbook) as writer:
+        for name, frame in sheets.items():
+            frame.to_excel(writer, sheet_name=name, index=False, header=False)
+    with zipfile.ZipFile(inputdata / "excelinvoice_files.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for index in range(1, POLICY_TILE_COUNT + 1):
+            info = zipfile.ZipInfo(f"test_child{index}.txt", date_time=(2026, 7, 15, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, f"excelinvoice child {index}\n".encode())
+
+
+def materialize_policy_case(mode: str, root: Path) -> None:
+    """Materialize the three-tile input family of one policy mode.
+
+    The SmartTable fixture already carries three rows; the ExcelInvoice and
+    MultiDataTile families are grown here so all three modes share one shape.
+
+    Args:
+        mode: ``excelinvoice``, ``multidatatile`` or ``smarttable``.
+        root: Run root to materialize into.
+    """
+    _materialize_oracle_case(mode, root)
+    if mode == "multidatatile":
+        (root / "data" / "inputdata" / "tile_02.txt").write_text("third tile\n", encoding="utf-8")
+    elif mode == "excelinvoice":
+        extend_excelinvoice_to_three_rows(root / "data" / "inputdata")
+
+
+def inject_data_name_template(mode: str, root: Path, template: str) -> None:
+    """Put ``template`` into every tile's ``basic.dataName``.
+
+    The ExcelInvoice tile invoice takes ``dataName`` from the workbook row, so
+    the template is written there too.
+    """
+    from openpyxl import load_workbook  # noqa: PLC0415
+
+    def _set_name(invoice: dict[str, Any]) -> None:
+        invoice.setdefault("basic", {})["dataName"] = template
+
+    data_root = root / "data"
+    _rewrite_json(data_root / "invoice" / "invoice.json", _set_name)
+    if mode != "excelinvoice":
+        return
+    workbook_path = data_root / "inputdata" / "contract_excel_invoice.xlsx"
+    workbook = load_workbook(workbook_path)
+    for sheet in workbook.worksheets:
+        for row in sheet.iter_rows():
+            for cell in row:
+                if cell.value in {"test1", "test2"}:
+                    cell.value = template
+    workbook.save(workbook_path)
+
+
+def break_table_tile_metadata(root: Path) -> None:
+    """Leave a schema-invalid ``meta/metadata.json`` on the EarlyExit tile.
+
+    With ``save_table_file`` on, the v1.7 SmartTable checker registers the
+    original table as tile 1, so ``data/divided/0001/meta`` is that tile's
+    metadata directory.
+    """
+    metadata = root / "data" / "divided" / "0001" / "meta" / "metadata.json"
+    metadata.parent.mkdir(parents=True, exist_ok=True)
+    metadata.write_text(json.dumps({"constant": {}, "variable": "not-a-list"}), encoding="utf-8")
+
+
+def constrain_data_name(root: Path) -> None:
+    """Make the EarlyExit rewrite -- and only it -- produce an invalid tile.
+
+    The run's source invoice stays valid; the EarlyExit rewrite of
+    ``basic.dataName`` to the table's filename is what this schema rejects.
+    """
+
+    def _constrain(schema: dict[str, Any]) -> None:
+        schema["properties"]["basic"] = {
+            "type": "object",
+            "properties": {"dataName": {"type": "string", "maxLength": DATA_NAME_MAX_LENGTH}},
+        }
+
+    _rewrite_json(root / "data" / "tasksupport" / "invoice.schema.json", _constrain)
+
+
+def write_cp932_zip(path: Path, members: Mapping[str, str]) -> None:
+    """Write a STORED zip whose member names are cp932 bytes without the UTF-8 flag.
+
+    ``zipfile`` always flags non-ASCII names as UTF-8, so a legacy Japanese
+    Windows archive can only be reproduced by writing the records by hand.
+    """
+    buf = io.BytesIO()
+    entries = [(name.encode("cp932"), content.encode("utf-8")) for name, content in members.items()]
+    offsets: list[int] = []
+    for name, data in entries:
+        offsets.append(buf.tell())
+        crc = zlib.crc32(data) & 0xFFFFFFFF
+        buf.write(struct.pack("<IHHHHHIIIHH", 0x04034B50, 20, 0, 0, 0, 0, crc, len(data), len(data), len(name), 0))
+        buf.write(name)
+        buf.write(data)
+    central_start = buf.tell()
+    for (name, data), offset in zip(entries, offsets, strict=True):
+        crc = zlib.crc32(data) & 0xFFFFFFFF
+        buf.write(
+            struct.pack(
+                "<IHHHHHHIIIHHHHHII",
+                0x02014B50, 20, 20, 0, 0, 0, 0, crc, len(data), len(data), len(name), 0, 0, 0, 0, 0, offset,
+            ),
+        )
+        buf.write(name)
+    central_size = buf.tell() - central_start
+    buf.write(struct.pack("<IHHHHIIH", 0x06054B50, 0, 0, len(entries), len(entries), central_size, central_start, 0))
+    path.write_bytes(buf.getvalue())
+
+
+def build_smarttable_workspace(  # noqa: PLR0913 -- one switch per K0 partition
+    root: Path,
+    *,
+    rows: Sequence[tuple[str, str, str]] = K0_ROWS,
+    save_table_file: bool = False,
+    meta_column: bool = False,
+    cp932_zip: bool = False,
+    with_file_column: bool = True,
+) -> Path:
+    """Build the Session K0 SmartTable workspace (v1.7 integration-test layout).
+
+    The invoice is the repository-safe ``_smarttable_invoice`` (synthetic owner
+    identities), because a workspace built here may be frozen into the public
+    contract corpus.
+
+    Returns:
+        The workspace's ``data`` directory.
+    """
+    data = root / "data"
+    for name in ("inputdata", "invoice", "tasksupport"):
+        (data / name).mkdir(parents=True, exist_ok=True)
+    _write_json(data / "tasksupport" / "invoice.schema.json", _smarttable_schema())
+    _write_json(data / "invoice" / "invoice.json", _smarttable_invoice())
+    (data / "tasksupport" / "rdeconfig.yml").write_text(
+        "system:\n"
+        "  extended_mode: null\n"
+        "  save_raw: true\n"
+        "  save_nonshared_raw: true\n"
+        "  save_thumbnail_image: false\n"
+        "  magic_variable: false\n"
+        "smarttable:\n"
+        f"  save_table_file: {str(save_table_file).lower()}\n",
+        encoding="utf-8",
+    )
+    members = {file_name: f"content of {file_name}" for file_name, _, _ in rows}
+    if cp932_zip:
+        write_cp932_zip(data / "inputdata" / "files.zip", members)
+    elif with_file_column and members:
+        _write_deterministic_zip(data / "inputdata" / "files.zip", members)
+    keys = ["basic/dataName", "custom/sample3"]
+    if with_file_column:
+        keys.insert(0, "inputdata1")
+    if meta_column:
+        keys.append("meta/comment")
+    lines = [",".join(["Display"] * len(keys)), ",".join(keys)]
+    for file_name, data_name, sample3 in rows:
+        cells = [data_name, sample3]
+        if with_file_column:
+            cells.insert(0, file_name)
+        if meta_column:
+            cells.append("memo")
+        lines.append(",".join(cells))
+    (data / "inputdata" / K0_TABLE_NAME).write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return data
+
+
+def build_base_case(case: OracleCase, root: Path) -> None:
+    """Materialize the committed input family of ``case.mode`` unchanged."""
+    _materialize_oracle_case(case.mode, root)
+
+
+def build_zero_rows(case: OracleCase, root: Path) -> None:
+    """Select the ExcelInvoice workbook without any registration row."""
+    _materialize_oracle_case(case.mode, root, zero_rows=True)
+
+
+def build_canary_case(case: OracleCase, root: Path) -> None:
+    """Assemble one repository-owned real-canary input family."""
+    _materialize_canary_case(case.mode, root)
+
+
+def build_three_tile_family(case: OracleCase, root: Path) -> None:
+    """The three-tile policy family (Session I-REVIEW-B ruling #3)."""
+    materialize_policy_case(case.mode, root)
+
+
+def build_rdeformat_magic_data_name(case: OracleCase, root: Path) -> None:
+    """Seed ``basic.dataName`` with ``${filename}`` for the magic-variable gate."""
+    _materialize_oracle_case(case.mode, root)
+
+    def _seed(invoice: dict[str, Any]) -> None:
+        invoice["basic"]["dataName"] = FILENAME_TEMPLATE
+
+    _rewrite_json(root / "data" / "invoice" / "invoice.json", _seed, indent=2)
+
+
+def build_magic_failure(case: OracleCase, root: Path) -> None:
+    """Make every tile's ``basic.dataName`` an unresolvable magic variable."""
+    _materialize_oracle_case(case.mode, root)
+    inject_data_name_template(case.mode, root, MAGIC_FAILURE_TEMPLATE)
+
+
+def build_filename_template(case: OracleCase, root: Path) -> None:
+    """Make every tile's ``basic.dataName`` the resolvable ``${filename}``."""
+    _materialize_oracle_case(case.mode, root)
+    inject_data_name_template(case.mode, root, FILENAME_TEMPLATE)
+
+
+def build_broken_table_metadata(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with a schema-invalid EarlyExit tile metadata."""
+    _materialize_oracle_case(case.mode, root)
+    break_table_tile_metadata(root)
+
+
+def build_constrained_data_name(case: OracleCase, root: Path) -> None:
+    """The SmartTable family whose schema rejects the EarlyExit dataName."""
+    _materialize_oracle_case(case.mode, root)
+    constrain_data_name(root)
+
+
+def build_missing_metadata_def(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with ``meta/`` columns but no metadata-def.json (#496)."""
+    _materialize_oracle_case(case.mode, root)
+    (root / "data" / "tasksupport" / "metadata-def.json").unlink()
+
+
+def _replace_smarttable_table(root: Path, name: str, content: bytes) -> None:
+    """Swap the family's ``smarttable_full.xlsx`` for another table file."""
+    inputdata = root / "data" / "inputdata"
+    (inputdata / "smarttable_full.xlsx").unlink()
+    (inputdata / name).write_bytes(content)
+
+
+def build_csv_table(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with its table as ``smarttable_full.csv`` (K2-0 G9)."""
+    _materialize_oracle_case(case.mode, root)
+    _replace_smarttable_table(root, "smarttable_full.csv", (INPUT_ROOT / "smarttable" / "smarttable_full.csv").read_bytes())
+
+
+def build_tsv_table(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with its table as ``smarttable_full.tsv`` (K2-0 G9).
+
+    The committed CSV equivalent quotes no cell, so a tab per comma is exact.
+    """
+    _materialize_oracle_case(case.mode, root)
+    text = (INPUT_ROOT / "smarttable" / "smarttable_full.csv").read_text(encoding="utf-8")
+    _replace_smarttable_table(root, "smarttable_full.tsv", text.replace(",", "\t").encode("utf-8"))
+
+
+def build_upper_xlsx_table(case: OracleCase, root: Path) -> None:
+    """The SmartTable family with an upper-case ``.XLSX`` table extension (K2-0 G9)."""
+    _materialize_oracle_case(case.mode, root)
+    _replace_smarttable_table(
+        root,
+        "smarttable_full.XLSX",
+        (INPUT_ROOT / "smarttable" / "data" / "inputdata" / "smarttable_full.xlsx").read_bytes(),
+    )
+
+
+def build_tasksupport_extras(case: OracleCase, root: Path) -> None:
+    """A tasksupport ``rdeconfig.yaml`` carrying top-level user-defined keys."""
+    _materialize_oracle_case(case.mode, root)
+    (root / "data" / "tasksupport" / "rdeconfig.yaml").write_text(
+        yaml.safe_dump({"system": {"save_raw": True}, "threshold": 0.5, "nested": {"a": 1}}),
+        encoding="utf-8",
+    )
+
+
+def build_broken_tasksupport_yaml(case: OracleCase, root: Path) -> None:
+    """An unparseable tasksupport ``rdeconfig.yaml``."""
+    _materialize_oracle_case(case.mode, root)
+    (root / "data" / "tasksupport" / "rdeconfig.yaml").write_text("system: [broken\n", encoding="utf-8")
+
+
+def build_xls_no_archive(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: the workbook alone (every tile ``rawfiles=()``)."""
+    _materialize_oracle_case(case.mode, root)
+    (root / _EXCELINVOICE_ARCHIVE).unlink()
+
+
+def build_xls_single_group(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: one unpacked group broadcast to every row."""
+    _materialize_oracle_case(case.mode, root)
+    rewrite_excelinvoice_archive(root, {"test_child1.txt": b"only registered child\n"})
+
+
+def build_xls_group_per_row(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: one unpacked folder per registered row."""
+    _materialize_oracle_case(case.mode, root)
+    rewrite_excelinvoice_archive(
+        root,
+        {"dirA/test_child1.txt": b"child one\n", "dirB/test_child2.txt": b"child two\n"},
+    )
+
+
+def build_xls_extra_group(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: three unpacked folders for two rows (count mismatch)."""
+    _materialize_oracle_case(case.mode, root)
+    rewrite_excelinvoice_archive(
+        root,
+        {
+            "dirA/test_child1.txt": b"child one\n",
+            "dirB/test_child2.txt": b"child two\n",
+            "dirC/unregistered.txt": b"child three\n",
+        },
+    )
+
+
+def build_xls_workbook_in_archive(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: an ``.xlsx`` member arriving through the archive."""
+    _materialize_oracle_case(case.mode, root)
+    rewrite_excelinvoice_archive(
+        root,
+        {
+            # Deliberately sorts before the registered children so a candidate
+            # list ordered by name alone would offer it first.
+            "aaa_decoy.xlsx": b"not a workbook, only an extension\n",
+            "test_child1.txt": b"excelinvoice child 1\n",
+            "test_child2.txt": b"excelinvoice child 2\n",
+        },
+    )
+
+
+def build_xls_blank_row(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: an empty row between two registration rows."""
+    _materialize_oracle_case(case.mode, root)
+    owner_id = "0" * 56
+    write_excelinvoice_registration_sheet(
+        root / _EXCELINVOICE_WORKBOOK,
+        [
+            *_SHEET_HEADER,
+            ["test_child1.txt", "test1", owner_id],
+            [None, None, None],
+            ["test_child2.txt", "test2", owner_id],
+        ],
+    )
+
+
+def build_xls_two_workbooks(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: two ``*_excel_invoice.xlsx`` workbooks in inputdata."""
+    _materialize_oracle_case(case.mode, root)
+    shutil.copy2(root / _EXCELINVOICE_WORKBOOK, root / "data/inputdata/second_excel_invoice.xlsx")
+
+
+def build_xls_stray_workbook(case: OracleCase, root: Path) -> None:
+    """ExcelInvoice: a stray non-invoice ``.xlsx`` in inputdata."""
+    _materialize_oracle_case(case.mode, root)
+    shutil.copy2(root / _EXCELINVOICE_WORKBOOK, root / "data/inputdata/aaa_stray.xlsx")
+
+
+def build_mdt_empty_inputdata(case: OracleCase, root: Path) -> None:
+    """MultiDataTile: no input file at all (v1's ``[()]`` fallback)."""
+    _materialize_oracle_case(case.mode, root)
+    for path in sorted((root / "data" / "inputdata").iterdir()):
+        path.unlink()
+
+
+def build_mdt_excel_workbook_present(case: OracleCase, root: Path) -> None:
+    """MultiDataTile: an ExcelInvoice workbook appears in inputdata."""
+    _materialize_oracle_case(case.mode, root)
+    shutil.copy2(
+        INPUT_ROOT / "excelinvoice" / "data" / "inputdata" / "excelinvoice_multi.xlsx",
+        root / "data" / "inputdata" / "stray_excel_invoice.xlsx",
+    )
+
+
+def build_k0_header_only_table(case: OracleCase, root: Path) -> None:
+    """K0 workspace: a header-only table with ``save_table_file`` on."""
+    del case
+    build_smarttable_workspace(root, rows=(), save_table_file=True)
+
+
+def build_k0_single_row(case: OracleCase, root: Path) -> None:
+    """K0 workspace: the smallest table, one row and one user file."""
+    del case
+    build_smarttable_workspace(root, rows=(("only.txt", "Experiment_only", "1"),))
+
+
+def build_k0_meta_column_without_def(case: OracleCase, root: Path) -> None:
+    """K0 workspace: a ``meta/`` column and no metadata-def.json (#496, fails before any callback)."""
+    del case
+    build_smarttable_workspace(root, meta_column=True)
+
+
+def build_k0_cp932_zip(case: OracleCase, root: Path) -> None:
+    """K0 workspace: a cp932 member name without the UTF-8 flag (#515)."""
+    del case
+    build_smarttable_workspace(root, rows=(("測定データ.txt", "Experiment_jp", "5"),), cp932_zip=True)
+
+
+# --------------------------------------------------------------------------
+# Case registry (Session K1 ruling #1)
+# --------------------------------------------------------------------------
+
+#: The outcomes whose snapshots predate the registry; their ``case`` record
+#: keeps its original three keys so no frozen value changes.
+_LEGACY_OUTCOMES = frozenset({"ok", "usererr", "valerr", "zero_rows"})
+
+#: Observation extras a case may request, by name (ruling #2). The observed
+#: values are read out of the run-root markers every oracle callback appends.
+_EXTRA_OBSERVERS: dict[str, Callable[[Path], Any]] = {
+    "callback_rows": read_callback_row_data,
+    "callback_paths": read_callback_paths,
+    "callback_config_extras": read_callback_config_extras,
+}
+
+#: While ``True`` a registered snapshot that does not exist yet is "pending
+#: freeze" -- ``--check`` lists it without failing and ``frozen.require_snapshot``
+#: skips. Session K1-a set it for the window between registering the new cases
+#: and the human freeze ritual; Session K1-b turned it off after the freeze
+#: (ed1a9e68). Session K2-0a reopened the window for the K2-0 ritual: the
+#: SmartTable table-type cases below and every SmartTable builder snapshot
+#: (``tests/v2/modes/fixtures/smarttable_builder/_freeze.py`` reads this same
+#: switch, ruling #4). Session K2-0b turned it off again after that freeze
+#: (3424839b), so a missing run or builder snapshot is an error everywhere. A
+#: future ritual that registers new cases flips it on in its step (a) only.
+ALLOW_PENDING_SNAPSHOTS = False
+
+#: Message prefix ``--check`` uses for a registered but not-yet-frozen snapshot.
+PENDING_FREEZE_PREFIX = "pending freeze (snapshot missing): "
+
+
+@dataclasses.dataclass(frozen=True)
+class OracleCase:
+    """One frozen v1 observation: inputs, configuration, callback, extras.
+
+    Attributes:
+        mode: One of the five unified execution modes.
+        outcome: The outcome family (``ok``, ``usererr``, ``valerr``,
+            ``tilefail``, ``magicfail``, ``structfail``, ``plainerr``,
+            ``cfgerr``, ``zero_rows``).
+        variant: Optional scenario name; the snapshot stem is
+            ``<outcome>__<variant>``.
+        config_overrides: Deep-merged into ``oracle_config(mode)``; only used
+            when ``config_source == "oracle"``.
+        callback: Name in :data:`ORACLE_CALLBACKS`.
+        inputs_builder: Materializes the run root.
+        observe_extras: Names in :data:`_EXTRA_OBSERVERS` appended to ``observed``.
+        family: ``v1`` (``expected/v1``) or ``canary`` (``expected/canary``).
+        config_source: ``oracle`` (explicit v1 ``Config``), ``tasksupport``
+            (``config=None``: the entry reads ``data/tasksupport``) or
+            ``canary`` (the imported canary YAML).
+        invalidate_invoice: Null ``basic`` in the source invoice before running.
+    """
+
+    mode: str
+    outcome: str
+    variant: str | None = None
+    config_overrides: Mapping[str, Any] = dataclasses.field(default_factory=dict)
+    callback: str = "ok"
+    inputs_builder: Callable[[OracleCase, Path], None] = build_base_case
+    observe_extras: tuple[str, ...] = ()
+    family: str = "v1"
+    config_source: str = "oracle"
+    invalidate_invoice: bool = False
+
+    @property
+    def stem(self) -> str:
+        """Snapshot file stem: ``<outcome>[__<variant>]``."""
+        return self.outcome if self.variant is None else f"{self.outcome}__{self.variant}"
+
+    @property
+    def case_id(self) -> str:
+        """Stable identifier ``<family>/<mode>/<stem>``."""
+        return f"{self.family}/{self.mode}/{self.stem}"
+
+    def snapshot_path(self, root: Path | None = None) -> Path:
+        """Return the frozen snapshot path below ``root`` (default: the family root)."""
+        base = root if root is not None else (CANARY_EXPECTED_ROOT if self.family == "canary" else EXPECTED_ROOT)
+        return base / self.mode / f"{self.stem}.json"
+
+
+_IGNORE_ERRORS = {"multidata_tile": {"ignore_errors": True}}
+_GATES_ON = {"system": {"magic_variable": True, "save_invoice_to_structured": True}}
+_SAVE_TABLE_FILE = {"smarttable": {"save_table_file": True}}
+_MODES = ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
+_LEGACY_CALLBACKS = {"ok": "ok", "usererr": "usererr", "valerr": "ok"}
+
+
+def _legacy_cases() -> list[OracleCase]:
+    """The 16 synthetic cases frozen before the registry existed (G1)."""
+    cases = [
+        OracleCase(
+            mode,
+            outcome,
+            callback=_LEGACY_CALLBACKS[outcome],
+            invalidate_invoice=outcome == "valerr",
+            # Session K1 ruling #2 / K0 ruling #8: the SmartTable success run
+            # additionally freezes the callback material v2 rebuilds itself.
+            observe_extras=("callback_rows", "callback_paths") if (mode, outcome) == ("smarttable", "ok") else (),
+        )
+        for mode in _MODES
+        for outcome in ("ok", "usererr", "valerr")
+    ]
+    cases.append(OracleCase("excelinvoice", "zero_rows", inputs_builder=build_zero_rows))
+    return cases
+
+
+def _policy_cases() -> list[OracleCase]:
+    """Ruling #6 items 2-5: multi-tile policy and ``ignore_errors`` cases."""
+    cases = [
+        OracleCase(mode, "tilefail", callback="tile_failure", inputs_builder=build_three_tile_family)
+        for mode in ("excelinvoice", "multidatatile", "smarttable")
+    ]
+    cases.append(
+        OracleCase(
+            "multidatatile",
+            "tilefail",
+            variant="ignore_errors",
+            callback="tile_failure",
+            inputs_builder=build_three_tile_family,
+            config_overrides=_IGNORE_ERRORS,
+        ),
+    )
+    cases.extend(
+        OracleCase(mode, "usererr", variant="ignore_errors", callback="usererr", config_overrides=_IGNORE_ERRORS)
+        for mode in _MODES
+    )
+    # TC-JREV-F2: tile 0 fails while the later tiles would succeed; only the
+    # multi-tile non-MultiDataTile modes, where v1 ignores ``ignore_errors``.
+    cases.extend(
+        OracleCase(
+            mode,
+            "usererr",
+            variant="first_tile__ignore_errors",
+            callback="first_tile_failure",
+            config_overrides=_IGNORE_ERRORS,
+        )
+        for mode in ("excelinvoice", "rdeformat", "smarttable")
+    )
+    return cases
+
+
+def _mode_cases() -> list[OracleCase]:
+    """Ruling #6 items 6-10 and the K0 extras: mode-specific v1 behaviour."""
+    xls_builders = {
+        "no_archive": build_xls_no_archive,
+        "single_group": build_xls_single_group,
+        "group_per_row": build_xls_group_per_row,
+        "workbook_in_archive": build_xls_workbook_in_archive,
+        "extra_group": build_xls_extra_group,
+        "blank_row": build_xls_blank_row,
+        "two_workbooks": build_xls_two_workbooks,
+        "stray_workbook": build_xls_stray_workbook,
+    }
+    mdt_builders = {
+        "empty_inputdata": build_mdt_empty_inputdata,
+        "three_inputs": build_three_tile_family,
+        "excel_workbook_present": build_mdt_excel_workbook_present,
+    }
+    cases = [
+        OracleCase(
+            "rdeformat",
+            "ok",
+            variant="magic_structured",
+            inputs_builder=build_rdeformat_magic_data_name,
+            config_overrides=_GATES_ON,
+        ),
+        OracleCase(
+            "smarttable",
+            "ok",
+            variant="save_table_file",
+            config_overrides=_SAVE_TABLE_FILE,
+            observe_extras=("callback_paths",),
+        ),
+        OracleCase(
+            "smarttable",
+            "valerr",
+            variant="broken_metadata__save_table_file",
+            inputs_builder=build_broken_table_metadata,
+            config_overrides=_SAVE_TABLE_FILE,
+        ),
+        OracleCase(
+            "smarttable",
+            "valerr",
+            variant="data_name_too_long__save_table_file",
+            inputs_builder=build_constrained_data_name,
+            config_overrides=_SAVE_TABLE_FILE,
+        ),
+        OracleCase("smarttable", "valerr", variant="missing_metadata_def", inputs_builder=build_missing_metadata_def),
+        OracleCase(
+            "smarttable",
+            "valerr",
+            variant="meta_column_without_def",
+            inputs_builder=build_k0_meta_column_without_def,
+            config_source="tasksupport",
+        ),
+    ]
+    for mode in ("invoice", "multidatatile", "excelinvoice"):
+        cases.append(OracleCase(mode, "magicfail", inputs_builder=build_magic_failure, config_overrides=_GATES_ON))
+        cases.append(
+            OracleCase(
+                mode,
+                "structfail",
+                callback="sabotage_structured",
+                inputs_builder=build_filename_template,
+                config_overrides=_GATES_ON,
+            ),
+        )
+    cases.extend(OracleCase("excelinvoice", "ok", variant=name, inputs_builder=builder) for name, builder in xls_builders.items())
+    cases.extend(OracleCase("multidatatile", "ok", variant=name, inputs_builder=builder) for name, builder in mdt_builders.items())
+    k0_builders = {
+        "header_only__save_table_file": build_k0_header_only_table,
+        "single_row": build_k0_single_row,
+        "cp932_zip": build_k0_cp932_zip,
+    }
+    cases.extend(
+        OracleCase(
+            "smarttable",
+            "ok",
+            variant=name,
+            inputs_builder=builder,
+            config_source="tasksupport",
+            observe_extras=("callback_paths",),
+        )
+        for name, builder in k0_builders.items()
+    )
+    # Session K2-0 ruling #3 (G9): the EarlyExit table detection for every
+    # table type v1 accepts, observed end to end with save_table_file on.
+    table_builders = {
+        "csv_table__save_table_file": build_csv_table,
+        "tsv_table__save_table_file": build_tsv_table,
+        "upper_xlsx_table__save_table_file": build_upper_xlsx_table,
+    }
+    cases.extend(
+        OracleCase(
+            "smarttable",
+            "ok",
+            variant=name,
+            inputs_builder=builder,
+            config_overrides=_SAVE_TABLE_FILE,
+            observe_extras=("callback_paths",),
+        )
+        for name, builder in table_builders.items()
+    )
+    return cases
+
+
+def _entry_cases() -> list[OracleCase]:
+    """Ruling #6 items 11-12: configuration sources and the plain exception."""
+    return [
+        OracleCase(
+            "invoice",
+            "ok",
+            variant="config_extras",
+            config_overrides={"threshold": 0.5, "nested": {"a": 1}},
+            observe_extras=("callback_config_extras",),
+        ),
+        OracleCase(
+            "invoice",
+            "ok",
+            variant="tasksupport_extras",
+            inputs_builder=build_tasksupport_extras,
+            config_source="tasksupport",
+            observe_extras=("callback_config_extras",),
+        ),
+        OracleCase(
+            "invoice",
+            "cfgerr",
+            variant="broken_yaml",
+            inputs_builder=build_broken_tasksupport_yaml,
+            config_source="tasksupport",
+        ),
+        OracleCase("invoice", "plainerr", callback="plain_error"),
+    ]
+
+
+#: Every frozen synthetic v1 case, legacy inventory first.
+ORACLE_CASES: tuple[OracleCase, ...] = (*_legacy_cases(), *_policy_cases(), *_mode_cases(), *_entry_cases())
+
+#: The five OK-only real-canary cases.
+CANARY_CASES: tuple[OracleCase, ...] = tuple(
+    OracleCase(mode, "ok", family="canary", inputs_builder=build_canary_case, config_source="canary")
+    for mode in CANARY_MODES
+)
+
+_CASES_BY_ID: dict[str, OracleCase] = {case.case_id: case for case in (*ORACLE_CASES, *CANARY_CASES)}
+
+
+def oracle_case(case_id: str) -> OracleCase:
+    """Return the registered case ``<family>/<mode>/<stem>``.
+
+    Raises:
+        KeyError: If no such case is registered.
+    """
+    return _CASES_BY_ID[case_id]
+
+
+def expected_snapshot_paths(root: Path = EXPECTED_ROOT) -> list[Path]:
+    """Return the complete frozen v1 snapshot inventory, derived from the registry."""
+    return [case.snapshot_path(root) for case in ORACLE_CASES]
+
+
+def canary_snapshot_paths(root: Path = CANARY_EXPECTED_ROOT) -> list[Path]:
+    """Return the five OK-only real-canary snapshot paths in sorted order."""
+    return [case.snapshot_path(root) for case in CANARY_CASES]
+
+
+def _deep_merge(base: Mapping[str, Any], overrides: Mapping[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in overrides.items():
+        current = merged.get(key)
+        if isinstance(value, Mapping) and isinstance(current, Mapping):
+            merged[key] = _deep_merge(current, value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def case_config(case: OracleCase, root: Path | None = None) -> Any:
+    """Return the configuration object a case hands the entry point.
+
+    Args:
+        case: The registered case.
+        root: Materialized run root; required for the canary family, whose
+            configuration is read from the assembled ``data/tasksupport``.
+
+    Returns:
+        A v1 ``Config``, or ``None`` when the entry must read ``tasksupport``.
+    """
+    from rdetoolkit.models.config import Config  # noqa: PLC0415
+
+    if case.config_source == "tasksupport":
+        return None
+    if case.config_source == "canary":
+        if root is None:
+            msg = f"{case.case_id}: a canary configuration is read from its run root"
+            raise ValueError(msg)
+        return _effective_canary_config(case.mode, root / "data/tasksupport/rdeconfig.yaml")[0]
+    base = oracle_config(case.mode)
+    if not case.config_overrides:
+        return base
+    return Config(**_deep_merge(base.model_dump(), case.config_overrides))
+
+
+def case_callback(case: OracleCase) -> Callable[[object, object], None]:
+    """Return the oracle callback a case runs."""
+    return ORACLE_CALLBACKS[case.callback]
+
+
+def materialize_case(case: OracleCase, root: Path) -> None:
+    """Materialize one registered case into ``root``, defects included."""
+    case.inputs_builder(case, root)
+    if case.invalidate_invoice:
+        _invalidate_invoice(root)
 
 
 def _normalize_output_path(path: str) -> str:
@@ -1009,162 +1946,88 @@ def _collect_oracle_observation(root: Path, result: str | None, exit_code: int) 
     }
 
 
-def _run_oracle_worker(
-    mode: str,
-    outcome: str,
-    root: Path,
-    *,
-    canary: bool = False,
-    ignore_errors: bool = False,
-) -> int:
-    from rdetoolkit.workflows import _run_legacy as v1_run  # noqa: PLC0415
+def collect_case_observation(case: OracleCase, root: Path, result: str | None, exit_code: int) -> dict[str, Any]:
+    """Return the eleven-key observation of a run plus the case's extras."""
+    observation = _collect_oracle_observation(root, result, exit_code)
+    for name in case.observe_extras:
+        observation[name] = _EXTRA_OBSERVERS[name](root)
+    return observation
 
-    if outcome == "valerr":
-        _invalidate_invoice(root)
-    callback = _ORACLE_CALLBACKS.get(outcome, _oracle_callback_ok)
+
+def execute_case(
+    case: OracleCase,
+    root: Path,
+    entry: Callable[..., Any],
+    *,
+    callback: str | None = None,
+) -> dict[str, Any]:
+    """Run one entry point over a materialized case, in this process, and observe it.
+
+    The entry is called as ``entry(custom_dataset_function=..., config=...)``
+    with ``root`` as the process CWD -- both the v1 oracle and the public
+    ``workflows.run`` read their inputs from the CWD and report a failure via
+    ``sys.exit(1)``, so the two are observed identically.
+
+    Args:
+        case: The registered case.
+        root: Already-materialized run root.
+        entry: the public ``workflows.run`` (the v1 loop was removed in K2).
+        callback: Optional :data:`ORACLE_CALLBACKS` name replacing the case's.
+
+    Returns:
+        The raw (not yet normalized) observation.
+    """
+    config = case_config(case, root)
+    function = ORACLE_CALLBACKS[callback] if callback is not None else case_callback(case)
     previous = Path.cwd()
     result: str | None = None
     exit_code = 0
     try:
         os.chdir(root)
         try:
-            effective_config = (
-                _effective_canary_config(
-                    mode,
-                    root / "data/tasksupport/rdeconfig.yaml",
-                )[0]
-                if canary
-                else oracle_config(mode, ignore_errors=ignore_errors)
-            )
-            result = v1_run(
-                custom_dataset_function=callback,
-                config=effective_config,
-            )
+            returned = entry(custom_dataset_function=function, config=config)
+            result = returned if isinstance(returned, str) else None
         except SystemExit as error:
             exit_code = int(error.code or 0)
     finally:
         os.chdir(previous)
-    observation = _collect_oracle_observation(root, result, exit_code)
-    _write_json(root / ".oracle_observation.json", observation)
-    return 0
+    return collect_case_observation(case, root, result, exit_code)
 
 
-def _execute_v1_observation(
-    mode: str,
-    outcome: str,
-    root: Path,
-    *,
-    canary: bool = False,
-    ignore_errors: bool = False,
-) -> dict[str, Any]:
-    """Run the isolated v1 worker against an already-materialized case.
+def _case_for_snapshot(path: Path, *, family: str = "v1") -> OracleCase:
+    return oracle_case(f"{family}/{path.parent.name}/{path.stem}")
 
-    Args:
-        mode: One of the five unified execution modes.
-        outcome: ``ok`` / ``usererr`` / ``valerr`` / ``tilefail``.
-        root: Already-materialized run root the worker executes in.
-        canary: Read the effective configuration from the assembled canary
-            ``data/tasksupport/rdeconfig.yaml`` instead of the oracle config.
-        ignore_errors: Run with v1 ``multidata_tile.ignore_errors=True``, the
-            only v1 continue-on-error policy there is (``workflows._process_mode``).
 
-    Returns:
-        The normalized v1 observation.
+def _case_record(case: OracleCase) -> dict[str, Any]:
+    """Return the ``case`` block of a snapshot.
 
-    Raises:
-        RuntimeError: If the worker process failed to produce an observation.
+    The cases that predate the registry keep exactly their original keys, so
+    the registry changes no frozen value; every newer case also records how it
+    was built, which is what makes it reproducible from the snapshot alone.
     """
-    command = [
-        sys.executable,
-        str(Path(__file__).resolve()),
-        "--oracle-worker",
-        mode,
-        outcome,
-        str(root),
-    ]
-    if canary:
-        command.append("--canary")
-    if ignore_errors:
-        command.append("--ignore-errors")
-    completed = subprocess.run(  # noqa: S603
-        command,
-        cwd=REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
+    record: dict[str, Any] = {
+        "mode": case.mode,
+        "outcome": case.outcome,
+        "entry": "custom_dataset_function",
+    }
+    if case.family == "canary":
+        record["family"] = "canary"
+        record["effective_config"] = canary_effective_config_record(case.mode)
+        return record
+    if case.variant is None and case.outcome in _LEGACY_OUTCOMES:
+        return record
+    record.update(
+        {
+            "variant": case.variant,
+            "callback": case.callback,
+            "inputs_builder": case.inputs_builder.__name__,
+            "config_source": case.config_source,
+            "config_overrides": dict(case.config_overrides),
+            "invalidate_invoice": case.invalidate_invoice,
+            "observe_extras": list(case.observe_extras),
+        },
     )
-    observation_path = root / ".oracle_observation.json"
-    if completed.returncode != 0 or not observation_path.exists():
-        message = (
-            f"v1 oracle worker failed for {mode}/{outcome}: "
-            f"exit={completed.returncode}; stderr={completed.stderr[-1000:]}"
-        )
-        raise RuntimeError(message)
-    observation = json.loads(observation_path.read_text(encoding="utf-8"))
-    return normalize_snapshot(observation, roots=(root,))
-
-
-def _observe_materialized_v1(
-    mode: str,
-    outcome: str,
-    *,
-    prefix: str,
-    materialize: Callable[[str, Path], None],
-    canary: bool = False,
-) -> dict[str, Any]:
-    """Observe one case family through the shared isolated worker path."""
-    with tempfile.TemporaryDirectory(prefix=f"{prefix}-{mode}-") as temporary:
-        root = Path(temporary)
-        materialize(mode, root)
-        return _execute_v1_observation(mode, outcome, root, canary=canary)
-
-
-def _observe_v1(mode: str, outcome: str, *, zero_rows: bool = False) -> dict[str, Any]:
-    def materialize(selected_mode: str, root: Path) -> None:
-        _materialize_oracle_case(selected_mode, root, zero_rows=zero_rows)
-
-    return _observe_materialized_v1(
-        mode,
-        outcome,
-        prefix="rdetoolkit-g1",
-        materialize=materialize,
-    )
-
-
-def _observe_canary_v1(mode: str) -> dict[str, Any]:
-    return _observe_materialized_v1(
-        mode,
-        "ok",
-        prefix="rdetoolkit-h4-canary",
-        materialize=_materialize_canary_case,
-        canary=True,
-    )
-
-
-def materialize_sut_case(mode: str, root: Path) -> None:
-    """Copy a committed mode input into an isolated SUT working directory."""
-    _materialize_oracle_case(mode, root)
-
-
-def run_v1_sut(mode: str, outcome: str) -> dict[str, Any]:
-    """Execute v1 as the SUT and return a normalized observation.
-
-    Expected values are deliberately not read or written here. Contract tests
-    compare this observation with already-frozen JSON snapshots.
-    """
-    return _observe_v1(mode, outcome)
-
-
-def run_v1_canary_sut(mode: str) -> dict[str, Any]:
-    """Execute v1 against an imported real-canary input family."""
-    return _observe_canary_v1(mode)
-
-
-def _snapshot_case_from_path(path: Path) -> tuple[str, str, bool]:
-    mode = path.parent.name
-    outcome = path.stem
-    zero_rows = outcome == "zero_rows"
-    return mode, "ok" if zero_rows else outcome, zero_rows
+    return record
 
 
 def _frozen_source(path: Path, *, check: bool, stamped_commit: str | None) -> dict[str, Any]:
@@ -1177,37 +2040,105 @@ def _frozen_source(path: Path, *, check: bool, stamped_commit: str | None) -> di
     return {"tag": SOURCE_TAG, "commit": stamped_commit}
 
 
-def _compare_or_write(path: Path, payload: dict[str, Any], *, check: bool) -> str | None:
-    """Compare a check candidate or write a generated snapshot."""
-    if check:
-        return compare_snapshot(path, payload)
-    write_json_snapshot(path, payload)
+def _narrow_pending_keys(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    """Drop not-yet-frozen observation keys a frozen snapshot does not carry.
+
+    Mirrors ``observe.pending_freeze_view`` for ``--check``: only keys listed in
+    ``observe.PENDING_FREEZE_KEYS`` are ever dropped, and only while the frozen
+    file lacks them, so every already-frozen key keeps being compared.
+    """
+    from tests.v2.contract.observe import PENDING_FREEZE_KEYS  # noqa: PLC0415 -- observe imports this module
+
+    frozen_observed = json.loads(path.read_text(encoding="utf-8")).get("observed", {})
+    observed = {
+        key: value
+        for key, value in payload["observed"].items()
+        if key in frozen_observed or key not in PENDING_FREEZE_KEYS
+    }
+    return {**payload, "observed": observed}
+
+
+#: Observation keys every frozen run snapshot must carry (Design §G1; extras
+#: such as ``callback_rows`` are per-case and validated by their own tests).
+REQUIRED_OBSERVED_KEYS: tuple[str, ...] = (
+    "exit_code",
+    "callback_count",
+    "legacy_return",
+    "output_tree",
+    "invoices",
+    "raw_sha256",
+    "artifact_sha256",
+    "job_failed_error_code",
+    "job_failed_text",
+    "invoice_backup_exists",
+    "invoice_backup",
+)
+
+#: Write mode ended with Phase K2: the v1 orchestration this generator observed
+#: no longer exists in this tree. Re-freezing is a documented, human-run
+#: procedure on the v1 maintenance line (merge_v1/refreeze_procedure.md).
+WRITE_MODE_RETIRED = (
+    "contract snapshot regeneration needs the v1 oracle, which Phase K2 removed "
+    "from this tree; follow local/develop/v2/merge_v1/refreeze_procedure.md "
+    "(run the pre-K2 generator on the v1 maintenance line) and commit the "
+    "snapshots it writes"
+)
+
+
+def _frozen_structure_mismatch(path: Path) -> str | None:
+    """Return why a frozen snapshot is structurally invalid, or ``None``."""
+    observed = json.loads(path.read_text(encoding="utf-8")).get("observed")
+    if not isinstance(observed, dict):
+        return "frozen snapshot has no observed block"
+    missing = [key for key in REQUIRED_OBSERVED_KEYS if key not in observed]
+    if missing:
+        return f"frozen snapshot lacks observed keys: {', '.join(missing)}"
     return None
 
 
+def _compare_or_write(path: Path, payload: dict[str, Any], *, check: bool) -> str | None:
+    """Check a frozen snapshot's registry record and structure, or refuse to write.
+
+    Since Phase K2 the generator cannot re-observe v1, so ``--check`` verifies
+    what it still can: the snapshot exists, its ``case`` record equals the
+    registry's, its provenance is carried, and its ``observed`` block carries
+    every contract key. Content drift is caught by the contract tests, which
+    compare the unified Runner against these snapshots.
+    """
+    if not check:
+        raise SystemExit(WRITE_MODE_RETIRED)
+    if not path.exists():
+        return compare_snapshot(path, payload)
+    frozen = json.loads(path.read_text(encoding="utf-8"))
+    if frozen.get("case") != payload["case"]:
+        return "frozen case record differs from the registry"
+    return _frozen_structure_mismatch(path)
+
+
+def _snapshot_message(path: Path, label: str, mismatch: str) -> str:
+    if not path.exists() and ALLOW_PENDING_SNAPSHOTS:
+        return f"{PENDING_FREEZE_PREFIX}{path.relative_to(REPOSITORY_ROOT).as_posix()}"
+    return f"{label}: {mismatch}"
+
+
 def _process_v1_snapshots(*, check: bool, stamped_commit: str | None) -> list[str]:
-    """Check or regenerate every G1 snapshot.
+    """Check or regenerate every registered synthetic v1 snapshot.
 
     Session H4 narrowed write mode to the SmartTable subset because that PII
     re-freeze was the only authorized rewrite at the time. Session I-REVIEW-B
-    adds the ``artifact_sha256`` observation key to every mode, so write mode
-    owns the whole inventory again (ruling #1 ritual step (b)).
+    made write mode own the whole inventory again, and Session K1 derives that
+    inventory from the case registry.
     """
     mismatches: list[str] = []
     for path in expected_snapshot_paths():
-        mode, outcome, zero_rows = _snapshot_case_from_path(path)
+        case = _case_for_snapshot(path)
         payload = {
             "source": _frozen_source(path, check=check, stamped_commit=stamped_commit),
-            "case": {
-                "mode": mode,
-                "outcome": "zero_rows" if zero_rows else outcome,
-                "entry": "custom_dataset_function",
-            },
-            "observed": _observe_v1(mode, outcome, zero_rows=zero_rows),
+            "case": _case_record(case),
         }
         mismatch = _compare_or_write(path, payload, check=check)
         if mismatch is not None:
-            mismatches.append(f"{mode}/{path.stem}: {mismatch}")
+            mismatches.append(_snapshot_message(path, f"{case.mode}/{path.stem}", mismatch))
     return mismatches
 
 
@@ -1215,21 +2146,14 @@ def _process_canary_snapshots(*, check: bool, stamped_commit: str | None) -> lis
     """Write or compare the five real-canary OK snapshots."""
     mismatches: list[str] = []
     for path in canary_snapshot_paths():
-        mode = path.parent.name
+        case = _case_for_snapshot(path, family="canary")
         payload = {
             "source": _frozen_source(path, check=check, stamped_commit=stamped_commit),
-            "case": {
-                "mode": mode,
-                "outcome": "ok",
-                "entry": "custom_dataset_function",
-                "family": "canary",
-                "effective_config": canary_effective_config_record(mode),
-            },
-            "observed": _observe_canary_v1(mode),
+            "case": _case_record(case),
         }
         mismatch = _compare_or_write(path, payload, check=check)
         if mismatch is not None:
-            mismatches.append(f"canary/{mode}/ok: {mismatch}")
+            mismatches.append(_snapshot_message(path, f"canary/{case.mode}/ok", mismatch))
     return mismatches
 
 
@@ -1242,8 +2166,10 @@ def freeze_expected_outputs(*, check: bool) -> list[str]:
     staleness is surfaced by the non-failing ``source_revision_warnings``
     instead. Only a real regeneration (check=False) stamps a new revision.
 
-    Write mode freezes the complete G1 inventory and ``expected/canary``;
-    check mode regenerates and compares the same two families.
+    Write mode freezes the complete registry (``expected/v1`` and
+    ``expected/canary``); check mode regenerates and compares the same cases,
+    reporting a registered-but-unfrozen snapshot with
+    :data:`PENDING_FREEZE_PREFIX` while :data:`ALLOW_PENDING_SNAPSHOTS` holds.
     """
     stamped_commit = None if check else _git_revision()
     return [
@@ -1264,9 +2190,6 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="rebuild static inputs before freezing normalized expectations",
     )
-    parser.add_argument("--oracle-worker", nargs=3, metavar=("MODE", "OUTCOME", "ROOT"), help=argparse.SUPPRESS)
-    parser.add_argument("--canary", action="store_true", help=argparse.SUPPRESS)
-    parser.add_argument("--ignore-errors", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
         "--provenance-root",
         type=Path,
@@ -1279,18 +2202,36 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:  # noqa: PLR0911
-    """Run fixture generation or deterministic comparison."""
+def _run_check() -> int:
+    """Run ``--check``: provenance, input drift, then registry/structure validation of every frozen snapshot."""
+    provenance_errors = [
+        *source_revision_errors(),
+        *source_revision_errors(root=CANARY_EXPECTED_ROOT),
+    ]
+    if provenance_errors:
+        print("\n".join(provenance_errors), file=sys.stderr)  # noqa: T201
+        return 1
+    for root in (EXPECTED_ROOT, CANARY_EXPECTED_ROOT):
+        for warning in source_revision_warnings(root=root):
+            print(warning, file=sys.stderr)  # noqa: T201
+    input_mismatches, xlsx_note = check_static_input_drift()
+    print(xlsx_note)  # noqa: T201
+    messages = [*input_mismatches, *freeze_expected_outputs(check=True)]
+    pending = [message for message in messages if message.startswith(PENDING_FREEZE_PREFIX)]
+    mismatches = [message for message in messages if not message.startswith(PENDING_FREEZE_PREFIX)]
+    if pending:
+        print(f"{len(pending)} registered snapshot(s) await the freeze ritual:")  # noqa: T201
+        print("\n".join(pending))  # noqa: T201
+    if mismatches:
+        print("\n".join(mismatches), file=sys.stderr)  # noqa: T201
+        return 1
+    print("all frozen v1 snapshots are registered, provenance-clean and structurally complete (v1 re-observation retired in K2)")  # noqa: T201
+    return 0
+
+
+def main() -> int:
+    """Run the deterministic check; write mode is retired since Phase K2."""
     args = _parse_args()
-    if args.oracle_worker is not None:
-        mode, outcome, root = args.oracle_worker
-        return _run_oracle_worker(
-            mode,
-            outcome,
-            Path(root),
-            canary=args.canary,
-            ignore_errors=args.ignore_errors,
-        )
     if args.provenance_root is not None:
         provenance_errors = source_revision_errors(root=args.provenance_root)
         if provenance_errors:
@@ -1299,34 +2240,9 @@ def main() -> int:  # noqa: PLR0911
         print("provenance ok")  # noqa: T201
         return 0
     if args.check:
-        provenance_errors = [
-            *source_revision_errors(),
-            *source_revision_errors(root=CANARY_EXPECTED_ROOT),
-        ]
-        if provenance_errors:
-            print("\n".join(provenance_errors), file=sys.stderr)  # noqa: T201
-            return 1
-        for root in (EXPECTED_ROOT, CANARY_EXPECTED_ROOT):
-            for warning in source_revision_warnings(root=root):
-                print(warning, file=sys.stderr)  # noqa: T201
-        input_mismatches, xlsx_note = check_static_input_drift()
-        print(xlsx_note)  # noqa: T201
-        mismatches = [*input_mismatches, *freeze_expected_outputs(check=True)]
-        if mismatches:
-            print("\n".join(mismatches), file=sys.stderr)  # noqa: T201
-            return 1
-        print("all normalized v1 snapshots match frozen expectations")  # noqa: T201
-        return 0
-    _require_write_tree_hygiene()
-    manifest = build_static_inputs() if args.rebuild_inputs else None
-    freeze_expected_outputs(check=False)
-    message = (
-        f"built inputs and froze v1 outputs for {', '.join(sorted(manifest))}"
-        if manifest is not None
-        else "froze v1 outputs (static inputs unchanged)"
-    )
-    print(message)  # noqa: T201
-    return 0
+        return _run_check()
+    # Phase K2: refuse before touching anything (no hygiene gate, no input rebuild).
+    raise SystemExit(WRITE_MODE_RETIRED)
 
 
 if __name__ == "__main__":

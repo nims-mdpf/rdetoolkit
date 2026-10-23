@@ -26,6 +26,13 @@ class InputPaths:
         invoice: Path to the invoice directory.
         tasksupport: Path to the task support directory.
         raw: Optional raw input directory for tile-oriented modes.
+        rawfiles: The tile's user input files. In SmartTable mode these are
+            only the files the row references (v1.7 #503): the generated row
+            CSV is never part of this tuple.
+        smarttable_rawfile: The generated per-row SmartTable CSV of this tile,
+            or ``None`` outside SmartTable mode and for the tile holding the
+            original table (``save_table_file``). Mirrors v1.7
+            ``RdeOutputResourcePath.smarttable_rawfile``.
     """
 
     inputdata: Path
@@ -33,6 +40,7 @@ class InputPaths:
     tasksupport: Path
     raw: Path | None = None
     rawfiles: tuple[Path, ...] = ()
+    smarttable_rawfile: Path | None = None
 
 
 OutputKind = Literal[

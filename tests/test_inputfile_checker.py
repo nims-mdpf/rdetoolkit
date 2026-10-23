@@ -27,7 +27,7 @@ from rdetoolkit.impl.input_controller import (
     RDEFormatChecker,
 )
 from rdetoolkit.models.rde2types import RdeInputDirPaths
-from rdetoolkit.modeproc import selected_input_checker
+from rdetoolkit.domain.input_checker import selected_input_checker
 from rdetoolkit.models.config import Config
 
 

@@ -1,0 +1,88 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {
+      "system": {
+        "magic_variable": true,
+        "save_invoice_to_structured": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_magic_failure",
+    "invalidate_invoice": false,
+    "mode": "multidatatile",
+    "observe_extras": [],
+    "outcome": "magicfail",
+    "variant": null
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "10c0fe1914de6f35aca45f80b6dda3c38a8c6df4ce2b99e3bff3455723984f10",
+      "data/temp/invoice_org.json": "5139560b9fe6438c4ff49fc9d156bead3069cf0a738b3b0a23bc03da89b094ff"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "${metadata:constant:missing_key}",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "${metadata:constant:missing_key}",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=metadata.json is required to resolve 'metadata:constant:missing_key'\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/tile_00.txt",
+        "data/inputdata/tile_日本語.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/tile_00.txt",
+        "data/raw/tile_00.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/tile_00.txt": "d7c3c3ac877ee9d017b9a025166545e673c7e67367f3b45d5a080f0ee9371516",
+      "data/raw/tile_00.txt": "d7c3c3ac877ee9d017b9a025166545e673c7e67367f3b45d5a080f0ee9371516"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "case": {
+    "callback": "usererr",
+    "config_overrides": {
+      "multidata_tile": {
+        "ignore_errors": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_base_case",
+    "invalidate_invoice": false,
+    "mode": "invoice",
+    "observe_extras": [],
+    "outcome": "usererr",
+    "variant": "ignore_errors"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "29e4a167a8786e8e99acad42eed3d888c500099802519d071be12bcc1bd28764"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Contract callback failed. Remediation: inspect the fixture callback and correct its input.\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/invoice_input.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/invoice_input.txt",
+        "data/raw/invoice_input.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/invoice_input.txt": "720f6bcfd8521751382d7c5bfdcf48bf3f0d650ee0b290d1562d7329b849cb25",
+      "data/raw/invoice_input.txt": "720f6bcfd8521751382d7c5bfdcf48bf3f0d650ee0b290d1562d7329b849cb25"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -1,0 +1,208 @@
+{
+  "case": {
+    "family": "k2",
+    "id": "k2/TC-EP-429-006",
+    "inputs_sha256": {
+      "invoice": "1dca696dec199f44c11955bb0cbe66efdd4cf443d1bf6df705a9442141246a58",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "schema": "2bc92903e3c7bdbaa0798b17feefcfdb59d861c17c0b49e95a628d371bfed6c0"
+    },
+    "steps": [
+      {
+        "csv_text": "custom/process_key_temperature\r\n30.1\r\n",
+        "dist": "source",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-EP-429-006",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": {
+      "basic": {
+        "dataName": "test-dataset",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+        "dateSubmitted": "",
+        "description": null,
+        "experimentId": null,
+        "instrumentId": null
+      },
+      "custom": {
+        "sample1": "2023-01-01",
+        "sample10": "S10",
+        "sample2": 1.0,
+        "sample3": 1,
+        "sample4": "20:20:39",
+        "sample5": "https://sample.co",
+        "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+        "sample7": "#h1",
+        "sample8": "itemA",
+        "sample9": "II"
+      },
+      "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+      "sample": {
+        "composition": null,
+        "description": null,
+        "generalAttributes": [
+          {
+            "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+            "value": null
+          },
+          {
+            "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+            "value": null
+          },
+          {
+            "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+            "value": null
+          },
+          {
+            "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+            "value": null
+          },
+          {
+            "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+            "value": null
+          },
+          {
+            "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+            "value": null
+          },
+          {
+            "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+            "value": null
+          }
+        ],
+        "names": [
+          "test"
+        ],
+        "ownerId": "00000000000000000000000000000000000000000000000000000005",
+        "referenceUrl": null,
+        "sampleId": "",
+        "specificAttributes": [
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+            "value": null
+          },
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+            "value": null
+          },
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+            "value": null
+          },
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+            "value": null
+          }
+        ]
+      }
+    },
+    "steps": [
+      {
+        "error": {
+          "ecode": 1,
+          "message": "Value for invoice.json field 'custom.process_key_temperature' does not match the type defined in invoice.schema.json (expected: integer).",
+          "type": "StructuredError"
+        },
+        "invoice": {
+          "basic": {
+            "dataName": "test-dataset",
+            "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+            "dateSubmitted": "",
+            "description": null,
+            "experimentId": null,
+            "instrumentId": null
+          },
+          "custom": {
+            "sample1": "2023-01-01",
+            "sample10": "S10",
+            "sample2": 1.0,
+            "sample3": 1,
+            "sample4": "20:20:39",
+            "sample5": "https://sample.co",
+            "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+            "sample7": "#h1",
+            "sample8": "itemA",
+            "sample9": "II"
+          },
+          "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+          "sample": {
+            "composition": null,
+            "description": null,
+            "generalAttributes": [
+              {
+                "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+                "value": null
+              },
+              {
+                "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+                "value": null
+              },
+              {
+                "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+                "value": null
+              },
+              {
+                "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+                "value": null
+              },
+              {
+                "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+                "value": null
+              },
+              {
+                "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+                "value": null
+              },
+              {
+                "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+                "value": null
+              }
+            ],
+            "names": [
+              "test"
+            ],
+            "ownerId": "00000000000000000000000000000000000000000000000000000005",
+            "referenceUrl": null,
+            "sampleId": "",
+            "specificAttributes": [
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+                "value": null
+              },
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+                "value": null
+              },
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+                "value": null
+              },
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+                "value": null
+              }
+            ]
+          }
+        },
+        "metadata": null
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

@@ -57,9 +57,6 @@ if TYPE_CHECKING:
 NO_CALLBACK_FLOW_ID = "rdetoolkit.compat.v1.callback.none"
 
 _LEGACY_ARG_COUNT = 2
-# v1's own threshold (``workflows._select_smarttable_rowfile``): a row CSV stem
-# splits into at least ["fsmarttable", "<index>"].
-_SMARTTABLE_ROWFILE_MIN_PARTS = 2
 # v1 ``Config.system.extended_mode`` accepts only these two spellings; every
 # other v2 mode name (including the canonical default "invoice") is None in v1.
 _V1_EXTENDED_MODES = frozenset({"rdeformat", "MultiDataTile"})
@@ -129,67 +126,92 @@ def to_legacy_dataset_paths(context: RunContext, *, material: TileMaterial) -> R
         msg = "RunContext.paths and RunContext.out are required to build v1 callback arguments."
         raise ValueError(msg)
 
+    # v1 handed its callback CWD-relative paths (``StorageDir`` /
+    # ``DirectoryOps("data")``); a template comparing ``rawfiles`` against
+    # ``Path("data/...")`` relies on it (v1.7 #503 integration tests). The
+    # unified Runner works on absolute paths, so the standard layout is
+    # projected back here, exactly where the v1 surface is built.
+    v1 = _V1PathForm.for_tile(paths.invoice.parent)
     input_paths = RdeInputDirPaths(
-        inputdata=paths.inputdata,
-        invoice=paths.invoice,
-        tasksupport=paths.tasksupport,
+        inputdata=v1.path(paths.inputdata),
+        invoice=v1.path(paths.invoice),
+        tasksupport=v1.path(paths.tasksupport),
         config=to_legacy_config(context.config),
     )
     tile_root = out.invoice.parent
-    smarttable_rowfile = _select_smarttable_rowfile(paths.rawfiles)
+    # v1.7 (#503): the row CSV is carried explicitly by the tile, never
+    # inferred from ``rawfiles``, and is handed over under the new name only —
+    # the ``smarttable_rowfile=`` keyword would raise v1's DeprecationWarning.
+    smarttable_rawfile = paths.smarttable_rawfile
     output_paths = RdeOutputResourcePath(
-        raw=out.raw,
-        nonshared_raw=out.nonshared_raw,
-        rawfiles=paths.rawfiles,
-        struct=out.struct,
-        main_image=out.main_image,
-        other_image=out.other_image,
-        meta=out.meta,
-        thumbnail=out.thumbnail,
-        logs=out.logs,
-        invoice=out.invoice,
-        invoice_schema_json=paths.tasksupport / "invoice.schema.json",
-        invoice_org=material.invoice_source,
+        raw=v1.path(out.raw),
+        nonshared_raw=v1.path(out.nonshared_raw),
+        rawfiles=tuple(v1.path(path) for path in paths.rawfiles),
+        struct=v1.path(out.struct),
+        main_image=v1.path(out.main_image),
+        other_image=v1.path(out.other_image),
+        meta=v1.path(out.meta),
+        thumbnail=v1.path(out.thumbnail),
+        logs=v1.path(out.logs),
+        invoice=v1.path(out.invoice),
+        invoice_schema_json=v1.path(paths.tasksupport / "invoice.schema.json"),
+        invoice_org=v1.path(material.invoice_source),
         # OutputContext deliberately omits these two directories (Design §6.3
         # addendum), so the tile root they share with invoice/ resolves them.
-        temp=tile_root / "temp",
-        invoice_patch=tile_root / "invoice_patch",
-        smarttable_rowfile=smarttable_rowfile,
+        temp=v1.path(tile_root / "temp"),
+        invoice_patch=v1.path(tile_root / "invoice_patch"),
+        smarttable_rawfile=None if smarttable_rawfile is None else v1.path(smarttable_rawfile),
         smarttable_row_data=(
             dict(material.smarttable_row_data)
-            if smarttable_rowfile is not None and material.smarttable_row_data is not None
+            if smarttable_rawfile is not None and material.smarttable_row_data is not None
             else None
         ),
-        attachment=out.attachment,
+        attachment=v1.path(out.attachment),
     )
     return RdeDatasetPaths(input_paths=input_paths, output_paths=output_paths)
 
 
-def _select_smarttable_rowfile(rawfiles: tuple[Path, ...]) -> Path | None:
-    """Return the generated SmartTable row CSV, using the v1 selection rule.
+class _V1PathForm:
+    """Project Runner paths onto the form a v1 callback received.
 
-    Ported from ``workflows._select_smarttable_rowfile``: only the first raw
-    file is considered, and it must be an ``fsmarttable_*_<digits>.csv`` file
-    produced by the SmartTable checker.
-
-    Args:
-        rawfiles: The tile's input files, in checker order.
-
-    Returns:
-        The row CSV, or ``None`` when this tile has none.
+    v1 built every path from the relative ``data`` directory, so its callback
+    saw ``data/inputdata/...``, ``data/divided/0001/raw`` and so on, relative to
+    the CWD. That holds for the standard layout only — the data root is
+    ``<cwd>/data``, the same condition under which the callback entry keeps
+    v1's ``StorageDir`` log seam (contracts.md §J-REVIEW-3). Any other root
+    (alias-flat, or a Runner rooted elsewhere) has no v1 counterpart and keeps
+    absolute paths.
     """
-    if not rawfiles:
-        return None
-    candidate = rawfiles[0]
-    if candidate.suffix.lower() != ".csv":
-        return None
-    stem = candidate.stem
-    if not stem.startswith("fsmarttable_"):
-        return None
-    parts = stem.split("_")
-    if len(parts) < _SMARTTABLE_ROWFILE_MIN_PARTS:
-        return None
-    return candidate if parts[-1].isdigit() else None
+
+    def __init__(self, base: Path | None) -> None:
+        self._base = base
+
+    @classmethod
+    def for_tile(cls, data_root: Path) -> _V1PathForm:
+        """Return the projection for a tile below ``data_root``.
+
+        Args:
+            data_root: The run's data root (``InputPaths.invoice.parent``).
+
+        Returns:
+            A CWD-relative projection for the standard layout, else identity.
+        """
+        cwd = Path.cwd()
+        return cls(cwd if data_root == cwd / "data" else None)
+
+    def path(self, path: Path) -> Path:
+        """Return ``path`` as v1 would have handed it to the callback.
+
+        Args:
+            path: An absolute Runner path.
+
+        Returns:
+            The CWD-relative path when the projection applies and ``path`` lies
+            below the CWD; ``path`` unchanged otherwise.
+        """
+        if self._base is None or not path.is_relative_to(self._base):
+            return path
+        return path.relative_to(self._base)
 
 
 def callback_flow_id(callback: Callable[..., Any] | None) -> str:
@@ -340,7 +362,7 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
 
     Public because the Runner's tile iterator needs the same projection for the
     legacy input checkers, which read ``smarttable.save_table_file`` from a v1
-    ``Config`` (``domain.mode.selected_input_checker``).
+    ``Config`` (``domain.input_checker.selected_input_checker``).
 
     ``RdeConfig.custom`` is restored as v1 ``Config`` *extra* fields (Session
     J-REVIEW ruling #1). ``ConfigNormalizer`` moves every unknown top-level key

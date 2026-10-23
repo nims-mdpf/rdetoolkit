@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import math
+import shutil
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import replace
 from functools import partial
@@ -13,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import pandas as pd
 
 from rdetoolkit.domain.invoice import load_invoice
+from rdetoolkit.domain.invoice_service import invoice_source_for
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
@@ -79,7 +81,7 @@ class SmartTableModeHandler:
         tiles = create_common_tiles(self.kind, context)
         if context.config is None or not context.config.smarttable.save_table_file:
             return tiles
-        return _with_early_exit_tile(tiles)
+        return _with_early_exit_tile(tiles, invoice_org=invoice_source_for(self.kind, data_root=context.data_root))
 
     def raw_copy_strategy(self, plan: ExecutionPlan) -> RawCopyStrategy | None:
         """Return no mode-specific raw copy strategy.
@@ -106,8 +108,13 @@ class SmartTableModeHandler:
         return None
 
 
-def _with_early_exit_tile(tiles: Iterable[TilePlan]) -> Iterator[TilePlan]:
-    """Mark the tile whose raw input is the original SmartTable file."""
+def _with_early_exit_tile(tiles: Iterable[TilePlan], *, invoice_org: Path) -> Iterator[TilePlan]:
+    """Mark the tile whose raw input is the original SmartTable file.
+
+    Since v1.7 (#503) that tile is ``divided/0001`` whenever the table has
+    data rows (``data/`` only for a header-only table); the checker decides
+    the position, so the tile is found by its content, not by its index.
+    """
     for tile in tiles:
         table = _original_smarttable_file(tile.paths.rawfiles)
         if table is None:
@@ -116,7 +123,12 @@ def _with_early_exit_tile(tiles: Iterable[TilePlan]) -> Iterator[TilePlan]:
         yield replace(
             tile,
             precompleted=True,
-            prepare_invoice=partial(_early_exit_invoice, table=table, invoice_dir=tile.out.invoice),
+            prepare_invoice=partial(
+                _early_exit_invoice,
+                table=table,
+                invoice_dir=tile.out.invoice,
+                invoice_org=invoice_org,
+            ),
         )
 
 
@@ -133,22 +145,30 @@ def _original_smarttable_file(rawfiles: tuple[Path, ...]) -> Path | None:
     return None
 
 
-def _early_exit_invoice(*, table: Path, invoice_dir: Path) -> TilePreparation:
+def _early_exit_invoice(*, table: Path, invoice_dir: Path, invoice_org: Path) -> TilePreparation:
     """Publish the EarlyExit invoice of the original SmartTable tile.
 
-    v1 rewrites ``basic.dataName`` of the tile's own ``invoice.json`` — for the
-    tile the checker registers at index 0 that file is the run's source invoice
-    — and performs no other invoice work for this tile.
+    v1 rewrites ``basic.dataName`` of the tile's own ``invoice.json`` and
+    performs no other invoice work for this tile. Since v1.7.1 the tile is
+    ``divided/0001``, whose ``invoice/`` starts empty, so v1's
+    ``SmartTableEarlyExitProcessor._seed_tile_invoice`` first copies the
+    run's ``invoice_org`` there — read at that moment, i.e. after the tiles
+    registered before it wrote their invoices. For a header-only table the
+    tile is ``data/`` and its invoice already exists, so nothing is seeded.
 
     Args:
         table: Original SmartTable file registered as this tile's raw input.
         invoice_dir: This tile's invoice directory.
+        invoice_org: The run-level source invoice v1 seeds the tile from.
 
     Returns:
         The published tile invoice. The EarlyExit tile has no SmartTable row,
         so it carries no row data for the callback.
     """
     invoice_path = invoice_dir / "invoice.json"
+    if not invoice_path.exists():
+        invoice_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(invoice_org, invoice_path)
     invoice_data = readf_json(invoice_path)
     invoice_data["basic"]["dataName"] = table.name
     writef_json(invoice_path, invoice_data)
@@ -341,11 +361,10 @@ def _apply_meta_column(
 ) -> dict[str, Any] | None:
     """Collect one ``meta/`` column and return the definition in use.
 
-    A missing ``metadata-def.json`` makes v1 skip the column rather than fail,
-    because the file is optional for modes that declare no metadata.
+    Since v1.7 (#496) a ``meta/`` column requires ``metadata-def.json``: its
+    absence fails the tile in :func:`_load_metadata_definition` instead of
+    skipping the column silently.
     """
-    if not metadata_def_path.exists():
-        return metadata_def
     loaded = metadata_def if metadata_def is not None else _load_metadata_definition(metadata_def_path)
     meta_key, meta_entry = _process_meta_mapping(column, value, loaded)
     metadata_updates[meta_key] = meta_entry
@@ -619,18 +638,38 @@ def _set_sample_owner_id(invoice_data: dict[str, Any]) -> None:
 def _load_metadata_definition(metadata_def_path: Path) -> dict[str, Any]:
     """Load ``metadata-def.json`` for ``meta/`` mapping columns.
 
-    The caller only reaches this once the file exists, so v1's redundant
-    existence guard is not ported; a file that disappears in between still
-    fails as a ``StructuredError`` through ``readf_json``.
-
     Raises:
-        StructuredError: If the file is not a JSON object.
+        StructuredError: If the file is missing (v1.7 #496, v1's message) or
+            is not a JSON object.
     """
+    if not metadata_def_path.exists():
+        emsg = f"metadata-def.json not found: {_v1_message_path(metadata_def_path)}"
+        raise StructuredError(emsg)
     metadata_def = readf_json(metadata_def_path)
     if not isinstance(metadata_def, dict):
         emsg = "metadata-def.json must contain an object at the top level"
         raise StructuredError(emsg)
     return metadata_def
+
+
+def _v1_message_path(tasksupport_file: Path) -> Path:
+    """Return a ``tasksupport`` file path in the form v1's messages quote it.
+
+    The message reaches ``job.failed`` verbatim (StructuredError passthrough).
+    v1 built ``tasksupport`` from the relative ``data`` directory, so in the
+    standard layout (data root ``<cwd>/data``) it quoted a CWD-relative path;
+    any other root has no v1 counterpart and is quoted as is.
+
+    Args:
+        tasksupport_file: A file directly below the run's ``tasksupport``.
+
+    Returns:
+        The CWD-relative path in the standard layout, else the path unchanged.
+    """
+    cwd = Path.cwd()
+    if tasksupport_file.parent.parent == cwd / "data":
+        return tasksupport_file.relative_to(cwd)
+    return tasksupport_file
 
 
 def _process_meta_mapping(

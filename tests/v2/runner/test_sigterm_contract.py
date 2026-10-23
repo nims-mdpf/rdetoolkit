@@ -5,6 +5,8 @@ Design authority: Design §6.3 and §7.2; Phase E Session E0.
 EP table:
     TC-E0-001 | SIGTERM during a tile | interrupted run | failed artifacts use 3004
     TC-E0-002 | ordinary completed run | installed handler | original handler restored
+    TC-K3-SIG-001 | SIGTERM during a tile, default sink | events JSONL | every line parses,
+                  run.meta first, run.completed(failed) last, no temp file left (K3 ruling #6)
 
 BV table:
     TC-E0-003 | run outside main thread | signal API unavailable | run remains usable
@@ -236,3 +238,95 @@ class TestSigtermHandlerScope:
         assert not thread.is_alive()
         assert failures == []
         assert [report.status for report in reports] == ["success"]
+
+
+_SIGTERM_DEFAULT_SINK_SCRIPT = textwrap.dedent(
+    """
+    import json
+    import time
+    import sysconfig
+    from pathlib import Path
+
+    import rdetoolkit
+    rdetoolkit.__path__.append(str(Path(sysconfig.get_paths()["purelib"]) / "rdetoolkit"))
+
+    from rdetoolkit import flow, node
+    from rdetoolkit.runner.lifecycle import Runner
+    from rdetoolkit.types import IterationInfo
+
+    root = Path.cwd()
+    data = root / "data"
+    inputdata = data / "inputdata"
+    inputdata.mkdir(parents=True)
+    for index in range(4):
+        (inputdata / f"tile_{index}.txt").write_text(str(index), encoding="utf-8")
+    (data / "temp").mkdir()
+    (data / "invoice").mkdir()
+    (data / "tasksupport").mkdir()
+    (data / "invoice" / "invoice.json").write_text(json.dumps({
+        "datasetId": "sigterm-k3",
+        "basic": {"dateSubmitted": "2026-10-16", "dataOwnerId": "0" * 56, "dataName": "sigterm-k3"},
+    }), encoding="utf-8")
+    (data / "tasksupport" / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
+    sentinel = root / "tile-1-complete"
+
+    @node(id="sigterm_k3_step")
+    def step(iteration: IterationInfo) -> int:
+        return iteration.index
+
+    @flow
+    def pipeline(iteration: IterationInfo) -> None:
+        step(iteration)
+        if iteration.index == 1:
+            sentinel.write_text("complete", encoding="utf-8")
+        if iteration.index == 2:
+            time.sleep(30)
+
+    Runner(
+        root=root,
+        inputdata_path=inputdata,
+        unpacked_dir_path=data / "temp",
+        run_id_factory=lambda: "sigterm-k3",
+    ).run(pipeline, system={"extended_mode": "MultiDataTile"})
+    """,
+)
+
+
+class TestSigtermEventsCompleteness:
+    def test_sigterm_leaves_complete_events_jsonl__tc_k3_sig_001(self, tmp_path: Path) -> None:
+        """TC-K3-SIG-001: the default events file survives SIGTERM as complete JSON lines."""
+        # Given: a child process recording to the Runner's default events file
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(Path(__file__).parents[3] / "src")
+        proc = subprocess.Popen([sys.executable, "-c", _SIGTERM_DEFAULT_SINK_SCRIPT], cwd=tmp_path, env=env)
+        sentinel = tmp_path / "tile-1-complete"
+        deadline = time.monotonic() + 30
+        while not sentinel.exists() and proc.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert sentinel.exists(), "child did not reach its second tile"
+
+        # When: SIGTERM arrives while the third tile sleeps
+        time.sleep(0.25)
+        proc.send_signal(signal.SIGTERM)
+        return_code = proc.wait(timeout=10)
+
+        # Then: every line of the events file is a complete JSON object
+        assert return_code == 0
+        logs = tmp_path / "data" / "logs"
+        raw = (logs / "events_sigterm-k3.jsonl").read_text(encoding="utf-8")
+        assert raw.endswith("\n")
+        events = [json.loads(line) for line in raw.splitlines()]
+        # And: the stream is framed by the header and the failed run.completed
+        assert events[0]["type"] == "run.meta"
+        assert events[-1]["name"] == "run.completed"
+        assert events[-1]["payload"] == {"status": "failed"}
+        names = [event.get("name") for event in events[1:]]
+        assert names[0] == "run.started"
+        # And: tiles 0 and 1 completed before the interrupted tile 2 closed
+        completed = [event["payload"]["iteration_index"] for event in events if event.get("name") == "iteration.completed"]
+        assert completed[:2] == [0, 1]
+        assert 3 not in completed
+        # And: the persisted report agrees and no temporary file was left
+        report = json.loads((logs / "run_report_sigterm-k3.json").read_text(encoding="utf-8"))
+        assert report["error"]["code"] == 3004
+        assert sorted(path.name for path in logs.rglob("*.tmp")) == []

@@ -838,3 +838,675 @@ ImportError: Plotly is required for HTML output but is not installed. Install it
 Unexpected error: Plotly is required for HTML output but is not installed. Install it with: pip install plotly
 Aborted!
 ```
+
+## Sample 14: Choosing a Legend Placement Policy (legend_policy)
+
+This sample compares how each `legend_policy` value (`legacy` / `auto` / `inside` / `outside_right` / `outside_bottom` / `hide`) places the legend, using dummy data with 12 and 3 series. See the "Legend placement policy" section in [Visualizing CSV as Graphs](./csv2graph.en.md) for option details.
+
+With `outside_right` / `outside_bottom`, the canvas is enlarged to fit the legend instead of shrinking the plot area, so the graph itself keeps its size even with many series.
+
+### Data Overview
+
+The sample uses `data.csv` (12 series) and `data_few.csv` (3 series). Both contain monotonically increasing dummy series.
+
+```bash
+x,series_01,series_02,series_03,series_04,series_05,series_06,series_07,series_08,series_09,series_10,series_11,series_12
+0,0.0,0.4,1.0,1.5,1.9,2.4,3.0,3.5,4.0,4.5,5.0,5.5
+1,0.6,1.2,1.6,2.1,2.6,3.1,3.6,4.1,4.6,5.1,5.7,6.1
+...
+```
+
+- [data.csv](./csv2graph_samples/sample14/data.csv) (12 series)
+- [data_few.csv](./csv2graph_samples/sample14/data_few.csv) (3 series)
+
+### Preparation: Generating the Dummy Data
+
+The CSV files can be downloaded from the links above. To generate them locally, run the script below (the published data and figures were generated with it).
+
+=== "Python"
+    ```python
+    # make_data.py
+    # Generate dummy CSV files for the legend_policy samples.
+    # data.csv: 12 increasing series / data_few.csv: 3 increasing series
+    from pathlib import Path
+
+    import numpy as np
+
+    BASE = Path(__file__).parent
+    RNG = np.random.default_rng(42)
+
+
+    def make_series_csv(path: Path, columns: list[str], offsets: list[float], slopes: list[float]) -> None:
+        x = np.arange(11)
+        header = ",".join(["x", *columns])
+        lines = [header]
+        for xi in x:
+            values = [
+                offset + slope * xi + RNG.normal(0, 0.05)
+                for offset, slope in zip(offsets, slopes)
+            ]
+            lines.append(",".join([str(xi), *[f"{v:.1f}" for v in values]]))
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+    if __name__ == "__main__":
+        make_series_csv(
+            BASE / "data.csv",
+            columns=[f"series_{i:02d}" for i in range(1, 13)],
+            offsets=[0.5 * i for i in range(12)],
+            slopes=[0.6] * 12,
+        )
+        make_series_csv(
+            BASE / "data_few.csv",
+            columns=["series_alpha", "series_beta", "series_gamma"],
+            offsets=[0.0, 1.0, 2.0],
+            slopes=[0.8, 0.8, 0.8],
+        )
+        print("generated: data.csv, data_few.csv")
+    ```
+
+=== "Command"
+    ```bash
+    python sample14/make_data.py
+    ```
+
+### Directory Layout
+
+```bash
+sample14/
+|-- data.csv
+|-- data_few.csv
+|-- make_data.py
+`-- sample_legend_policy.py
+```
+
+Running the bundled [sample_legend_policy.py](./csv2graph_samples/sample14/sample_legend_policy.py) generates the PNGs for all cases below at once. The following sections show how to run each case individually.
+
+### Case 1: legacy (previous behavior)
+
+This is the default when `legend_policy` is not specified. The legend is rendered inside the plot area and controlled by `legend_loc` and `max_legend_items` as before.
+
+=== "Generated Plot"
+    ![legacy_many](./csv2graph_samples/sample14/legacy_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="legacy_many",
+            legend_policy="legacy",
+            legend_loc="upper right",
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title legacy_many \
+      --legend-policy legacy \
+      --legend-loc "upper right" \
+      --max-legend-items 30
+    ```
+
+### Case 2: auto with 3 series (kept inside)
+
+`auto` picks the placement from the item count. Three series is at or below `legend_outside_threshold` (default 8), so the legend stays inside the plot area.
+
+=== "Generated Plot"
+    ![auto_inside_few](./csv2graph_samples/sample14/auto_inside_few.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data_few.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_inside_few",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=20,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data_few.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_inside_few \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 20
+    ```
+
+### Case 3: auto with 12 series (switches to outside right)
+
+Twelve series exceeds `legend_outside_threshold=8`, so `auto` moves the legend outside the plot on the right. The plot area keeps its size; the canvas grows to the right.
+
+=== "Generated Plot"
+    ![auto_outside_right_many](./csv2graph_samples/sample14/auto_outside_right_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_outside_right_many",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_outside_right_many \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 30
+    ```
+
+### Case 4: Force outside_right
+
+Places the legend outside the plot on the right regardless of the item count.
+
+=== "Generated Plot"
+    ![outside_right_many](./csv2graph_samples/sample14/outside_right_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="outside_right_many",
+            legend_policy="outside_right",
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title outside_right_many \
+      --legend-policy outside_right \
+      --max-legend-items 30
+    ```
+
+### Case 5: outside_bottom with legend_ncol=4
+
+Places the legend below the graph in 4 columns. The number of rows follows from the column count (12 items / 4 columns = 3 rows).
+
+=== "Generated Plot"
+    ![outside_bottom_many](./csv2graph_samples/sample14/outside_bottom_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="outside_bottom_many",
+            legend_policy="outside_bottom",
+            legend_ncol=4,
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title outside_bottom_many \
+      --legend-policy outside_bottom \
+      --legend-ncol 4 \
+      --max-legend-items 30
+    ```
+
+### Case 6: hide (no legend)
+
+=== "Generated Plot"
+    ![hide_many](./csv2graph_samples/sample14/hide_many.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="hide_many",
+            legend_policy="hide",
+            max_legend_items=30,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title hide_many \
+      --legend-policy hide \
+      --max-legend-items 30
+    ```
+
+### Case 7: auto exceeding max_legend_items (hidden automatically)
+
+With `max_legend_items=5` and 12 series, `auto` hides the legend because the cap is exceeded.
+
+=== "Generated Plot"
+    ![auto_hide_over_max](./csv2graph_samples/sample14/auto_hide_over_max.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample14/data.csv"),
+            output_dir=Path("sample14"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_hide_over_max",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=5,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample14/data.csv \
+      --output-dir sample14 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_hide_over_max \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 5
+    ```
+
+### Option Details
+
+- `legend_policy`, `--legend-policy`: Legend placement policy. Choose from `legacy` (default, previous behavior) / `auto` (chosen from the item count) / `inside` / `outside_right` / `outside_bottom` / `hide`.
+- `legend_outside_threshold`, `--legend-outside-threshold`: Item-count threshold at which `auto` switches from inside to outside-right placement (default 8; switches when exceeded).
+- `legend_ncol`, `--legend-ncol`: Number of legend columns for `outside_bottom` (3 when omitted).
+- `max_legend_items`, `--max-legend-items`: Maximum number of legend items. The legend is hidden when exceeded (also applies to explicit non-`auto` policies).
+- `x_col="x"`, `--x-col x`: Selects the X column by name. When `y_cols` is omitted, all remaining columns become Y series.
+
+## Sample 15: Dense Legends with 30+ Series and Automatic Placement
+
+This sample uses dummy data with 32 series to demonstrate legend control when there are very many legend items. With `legend_bottom_threshold` (default 21), `auto` automatically places the legend below the graph at 21 or more items.
+
+In every case **the plot area keeps its size**; the canvas is enlarged to fit the legend, and the legend is never clipped in the saved PNG/SVG files.
+
+### Data Overview
+
+Straight-line data with 32 series. Each series is exactly `series_i(x) = i + 0.1 * x` (x = 0..10).
+
+```bash
+x,series_01,series_02,...,series_32
+0,1.0,2.0,3.0,...,32.0
+1,1.1,2.1,3.1,...,32.1
+...
+```
+
+- [data.csv](./csv2graph_samples/sample15/data.csv) (32 series)
+
+### Preparation: Generating the Dummy Data
+
+The script below reproduces the published CSV exactly.
+
+=== "Python"
+    ```python
+    # make_data.py
+    # Generate a dummy CSV with 32 series for dense-legend samples.
+    # Each series is a straight line: series_i(x) = i + 0.1 * x  (x = 0..10)
+    from pathlib import Path
+
+    BASE = Path(__file__).parent
+
+    if __name__ == "__main__":
+        columns = [f"series_{i:02d}" for i in range(1, 33)]
+        lines = [",".join(["x", *columns])]
+        for x in range(11):
+            values = [i + 0.1 * x for i in range(1, 33)]
+            lines.append(",".join([str(x), *[f"{v:.1f}" for v in values]]))
+        (BASE / "data.csv").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        print("generated: data.csv")
+    ```
+
+=== "Command"
+    ```bash
+    python sample15/make_data.py
+    ```
+
+### Directory Layout
+
+```bash
+sample15/
+|-- data.csv
+|-- make_data.py
+`-- sample_dense_legend.py
+```
+
+Running the bundled [sample_dense_legend.py](./csv2graph_samples/sample15/sample_dense_legend.py) generates the PNGs for all cases below at once.
+
+### Case 1: Default auto behavior (21+ items go below the graph)
+
+Thirty-two series is at or above the default `legend_bottom_threshold=21`, so `auto` places the legend below the graph. The column count defaults to 3; pass `legend_ncol=8` to compact it into 4 rows.
+
+=== "Generated Plot (default ncol=3)"
+    ![auto_32_outside_bottom_default](./csv2graph_samples/sample15/auto_32_outside_bottom_default.png){ width="700" }
+
+=== "Generated Plot (legend_ncol=8)"
+    ![auto_32_outside_bottom_ncol8](./csv2graph_samples/sample15/auto_32_outside_bottom_ncol8.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_32_outside_bottom_default",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            max_legend_items=40,
+            # legend_ncol=8,  # for 8 columns (4 rows)
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_outside_bottom_default \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --max-legend-items 40
+      # --legend-bottom-threshold 21 is the default
+    ```
+
+### Case 2: Disable the bottom switch and keep the legend on the right
+
+Passing `legend_bottom_threshold=None` (`--legend-bottom-threshold 0` on the CLI) disables the automatic switch to bottom placement, so the legend goes outside on the right as before. Even a tall 32-item legend is not clipped because the canvas also grows vertically.
+
+=== "Generated Plot"
+    ![auto_32_outside_right](./csv2graph_samples/sample15/auto_32_outside_right.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="auto_32_outside_right",
+            legend_policy="auto",
+            legend_outside_threshold=8,
+            legend_bottom_threshold=None,
+            max_legend_items=40,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_outside_right \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --legend-bottom-threshold 0 \
+      --max-legend-items 40
+    ```
+
+### Case 3: Boundary behavior of legend_outside_threshold
+
+The switch to outside-right happens when the item count **exceeds** the threshold. With 32 series, threshold 32 keeps the legend inside while threshold 31 moves it outside (the bottom switch is disabled for this check).
+
+> The threshold-32 plot (legend kept inside) shows 32 items overflowing the plot area. It is included as a real example of why inside placement should not be used with many series.
+
+=== "Threshold 32 (stays inside)"
+    ![auto_32_inside_boundary_threshold_32](./csv2graph_samples/sample15/auto_32_inside_boundary_threshold_32.png){ width="700" }
+
+=== "Threshold 31 (moves outside right)"
+    ![auto_32_outside_right_boundary_threshold_31](./csv2graph_samples/sample15/auto_32_outside_right_boundary_threshold_31.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        for threshold in (32, 31):
+            csv2graph(
+                csv_path=Path("sample15/data.csv"),
+                output_dir=Path("sample15"),
+                x_col="x",
+                no_individual=True,
+                grid=True,
+                title=f"auto_32_boundary_threshold_{threshold}",
+                legend_policy="auto",
+                legend_outside_threshold=threshold,
+                legend_bottom_threshold=None,
+                max_legend_items=40,
+            )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_boundary_threshold_32 \
+      --legend-policy auto \
+      --legend-outside-threshold 32 \
+      --legend-bottom-threshold 0 \
+      --max-legend-items 40
+    ```
+
+### Case 4: Boundary behavior of legend_bottom_threshold
+
+The switch to bottom placement happens **at or above** the threshold. With 32 series, threshold 32 places the legend below the graph while threshold 33 keeps it on the right.
+
+=== "Threshold 32 (goes below)"
+    ![auto_32_bottom_boundary_threshold_32](./csv2graph_samples/sample15/auto_32_bottom_boundary_threshold_32.png){ width="700" }
+
+=== "Threshold 33 (stays on the right)"
+    ![auto_32_right_boundary_bottom_threshold_33](./csv2graph_samples/sample15/auto_32_right_boundary_bottom_threshold_33.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        for bottom_threshold in (32, 33):
+            csv2graph(
+                csv_path=Path("sample15/data.csv"),
+                output_dir=Path("sample15"),
+                x_col="x",
+                no_individual=True,
+                grid=True,
+                title=f"auto_32_bottom_boundary_{bottom_threshold}",
+                legend_policy="auto",
+                legend_outside_threshold=8,
+                legend_bottom_threshold=bottom_threshold,
+                max_legend_items=40,
+            )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title auto_32_bottom_boundary_32 \
+      --legend-policy auto \
+      --legend-outside-threshold 8 \
+      --legend-bottom-threshold 32 \
+      --max-legend-items 40
+    ```
+
+### Case 5: Forcing a placement (outside_right / outside_bottom)
+
+These examples pin the placement explicitly instead of using `auto`. With `outside_bottom`, `legend_ncol` controls the number of columns (and therefore rows).
+
+=== "outside_right"
+    ![outside_right_32](./csv2graph_samples/sample15/outside_right_32.png){ width="700" }
+
+=== "outside_bottom + ncol=8"
+    ![outside_bottom_32_ncol8](./csv2graph_samples/sample15/outside_bottom_32_ncol8.png){ width="700" }
+
+=== "outside_bottom + ncol=4"
+    ![outside_bottom_32_ncol4](./csv2graph_samples/sample15/outside_bottom_32_ncol4.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="outside_bottom_32_ncol8",
+            legend_policy="outside_bottom",
+            legend_ncol=8,
+            max_legend_items=40,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title outside_bottom_32_ncol8 \
+      --legend-policy outside_bottom \
+      --legend-ncol 8 \
+      --max-legend-items 40
+    ```
+
+### Case 6: Hiding the legend (hide / exceeding max_legend_items)
+
+An explicit `hide`, and an `auto` case where 32 series exceeds `max_legend_items=30` so the legend is hidden automatically. The output images are equivalent.
+
+=== "Explicit hide"
+    ![hide_32](./csv2graph_samples/sample15/hide_32.png){ width="700" }
+
+=== "auto exceeding max_legend_items"
+    ![auto_32_hide_over_max_30](./csv2graph_samples/sample15/auto_32_hide_over_max_30.png){ width="700" }
+
+=== "Python"
+    ```python
+    from pathlib import Path
+    from rdetoolkit.graph import csv2graph
+
+    if __name__ == "__main__":
+        csv2graph(
+            csv_path=Path("sample15/data.csv"),
+            output_dir=Path("sample15"),
+            x_col="x",
+            no_individual=True,
+            grid=True,
+            title="hide_32",
+            legend_policy="hide",
+            max_legend_items=40,
+        )
+    ```
+
+=== "CLI"
+    ```bash
+    rdetoolkit csv2graph sample15/data.csv \
+      --output-dir sample15 \
+      --x-col x \
+      --no-individual --grid \
+      --title hide_32 \
+      --legend-policy hide \
+      --max-legend-items 40
+    ```
+
+### Option Details
+
+- `legend_bottom_threshold`, `--legend-bottom-threshold`: Item-count threshold at which `auto` switches to bottom placement (default 21; switches **at or above** this value). Pass `None` in Python or `0` or less on the CLI to disable.
+- `legend_outside_threshold`, `--legend-outside-threshold`: Threshold at which `auto` switches to outside-right placement (switches when **exceeded**). With the defaults (8 / 21): 1-8 items stay inside, 9-20 items go outside right, and 21+ items go below the graph.
+- `legend_ncol`, `--legend-ncol`: Number of columns for bottom placement. The row count follows from items / columns (32 items x 8 columns = 4 rows).
+- With outside placements the canvas is enlarged while the plot area keeps its size, so the graph itself is never crushed no matter how many series there are.

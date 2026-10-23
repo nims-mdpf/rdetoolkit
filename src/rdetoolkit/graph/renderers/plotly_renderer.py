@@ -17,6 +17,7 @@ except ImportError:  # pragma: no cover - exercised in environments without plot
 else:
     _PLOTLY_IMPORT_ERROR = ""
 
+from rdetoolkit.graph.legend_policy import resolve_legend_policy
 from rdetoolkit.graph.models import Direction, PlotConfig
 from rdetoolkit.graph.textutils import parse_header, titleize
 
@@ -96,10 +97,25 @@ class PlotlyRenderer:
             use_custom_direction_colors=use_custom_direction_colors,
         )
 
-        layout = self._build_layout(df, config, y_cols)
+        legend_item_count = self._count_legend_visible_traces(traces)
+        layout = self._build_layout(df, config, y_cols, legend_item_count)
         fig = go.Figure(data=traces, layout=layout)
         self._apply_legend_annotation(fig, config.legend.info)
         return fig
+
+    @staticmethod
+    def _count_legend_visible_traces(traces: list[Any]) -> int:
+        """Count traces that will appear as legend entries.
+
+        Direction filtering can drop configured series entirely, and split
+        series mark only their first segment with showlegend=True, so the
+        legend size must be derived from the built traces rather than the
+        configured series count.
+        """
+        return sum(
+            1 for trace in traces
+            if getattr(trace, "showlegend", True) is not False
+        )
 
     def _ensure_plotly_available(self) -> None:
         if go is None:  # pragma: no cover - hit only when plotly missing
@@ -310,6 +326,7 @@ class PlotlyRenderer:
         df: pd.DataFrame,
         config: PlotConfig,
         y_cols: list[int | str],
+        legend_item_count: int,
     ) -> Any:
         y_reference = y_cols[0]
         default_title = (
@@ -318,13 +335,61 @@ class PlotlyRenderer:
             else str(y_reference)
         )
         title = config.title if config.title else default_title
-        return go.Layout(
-            title=title,
-            xaxis=self._build_axis_layout(config.x_axis, default_label="X"),
-            yaxis=self._build_axis_layout(config.y_axis, default_label="Y"),
-            showlegend=True,
-            updatemenus=self._build_update_menus(config),
+        showlegend, legend_layout = self._resolve_legend_layout(config, legend_item_count)
+        layout_kwargs: dict[str, Any] = {
+            "title": title,
+            "xaxis": self._build_axis_layout(config.x_axis, default_label="X"),
+            "yaxis": self._build_axis_layout(config.y_axis, default_label="Y"),
+            "showlegend": showlegend,
+            "updatemenus": self._build_update_menus(config),
+        }
+        if legend_layout is not None:
+            layout_kwargs["legend"] = legend_layout
+        return go.Layout(**layout_kwargs)
+
+    def _resolve_legend_layout(
+        self,
+        config: PlotConfig,
+        legend_item_count: int,
+    ) -> tuple[bool, dict[str, Any] | None]:
+        """Map config.legend.policy onto Plotly's showlegend/legend layout.
+
+        "legacy" preserves the pre-policy Plotly behavior (legend shown at
+        Plotly's default position, suppressed once max_items is exceeded).
+        Other policies mirror the Matplotlib renderer: "hide" and any
+        placement whose item count exceeds max_items suppress the legend,
+        while the concrete placements map to the corresponding Plotly
+        legend positions.
+        """
+        max_items = config.legend.max_items
+        over_limit = max_items is not None and legend_item_count > max_items
+
+        policy = config.legend.policy
+        if policy == "legacy":
+            return not over_limit, None
+
+        resolved = resolve_legend_policy(
+            policy,
+            legend_item_count,
+            config.legend.outside_threshold,
+            max_items,
+            bottom_threshold=config.legend.bottom_threshold,
         )
+        if resolved == "hide" or over_limit:
+            return False, None
+
+        if resolved == "inside":
+            return True, {"x": 0.98, "xanchor": "right", "y": 0.98, "yanchor": "top"}
+        if resolved == "outside_bottom":
+            return True, {
+                "orientation": "h",
+                "x": 0.5,
+                "xanchor": "center",
+                "y": -0.2,
+                "yanchor": "top",
+            }
+        # resolved == "outside_right"
+        return True, {"x": 1.02, "xanchor": "left", "y": 1.0, "yanchor": "top"}
 
     def _build_axis_layout(self, axis_config: Any, *, default_label: str) -> dict[str, Any]:
         axis_layout = {

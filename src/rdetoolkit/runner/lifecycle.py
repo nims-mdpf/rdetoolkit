@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import hashlib
+import shutil
 import signal
-import sys
 import time
 import uuid
 from collections.abc import Callable, Mapping
@@ -24,6 +24,7 @@ from rdetoolkit.core.flow import derive_flow_id
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
+from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.errors import (
     ERROR_CATALOG,
     RdeConfigError,
@@ -33,11 +34,11 @@ from rdetoolkit.errors import (
     RdeValidationError,
 )
 from rdetoolkit.models.config import Config
-from rdetoolkit.report.events import Event, EventSink, MemoryEventSink
+from rdetoolkit.report.events import Event, EventSink, FileEventSink, _best_effort_stderr
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
-from rdetoolkit.runner.executor import TileExecutor
+from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
 from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
@@ -47,6 +48,7 @@ from rdetoolkit.types import RdeConfig
 
 
 _RUN_INTERRUPTED_CODE = 3004
+_TILE_ITERATION_FAILURE_CODE = 3001
 _REQUIRED_ARTIFACT_MISSING_CODE = 4003
 
 
@@ -72,7 +74,9 @@ class Runner:
             root: Project or data root used for config loading.
             inputdata_path: Input data directory for mode resolution.
             unpacked_dir_path: Legacy unpack directory for input checkers.
-            event_sink: Event sink owned by this run.
+            event_sink: Event sink owned by this run. When omitted the run is
+                recorded to ``<data_root>/logs/events_<run_id>.jsonl``
+                (Session K3 ruling #1); an injected sink replaces that file.
             run_id_factory: Optional factory for deterministic tests.
             planner: Optional request-to-plan collaborator.
             executor: Optional common tile executor.
@@ -87,7 +91,13 @@ class Runner:
         self.root = root or Path.cwd()
         self.inputdata_path = inputdata_path or self.root / "inputdata"
         self.unpacked_dir_path = unpacked_dir_path or self.root / "unpacked"
-        self.event_sink = event_sink or MemoryEventSink()
+        # The default must exist before the data root does (the executor below
+        # captures it), so it resolves its directory only when a run opens it.
+        self.event_sink = event_sink or _RunScopedFileEventSink(lambda: self.data_root / "logs")
+        # Every lifecycle write goes through this guard, so an event-log I/O
+        # failure is a stderr notice rather than the run's outcome (Session
+        # K4-F3). ``event_sink`` stays the caller's object for inspection.
+        self._events = _BestEffortEventSink(self.event_sink)
         self._run_id_factory = run_id_factory or (lambda: uuid.uuid4().hex)
         self._invoice_service = invoice_service or InvoiceService()
         self.run_id = ""
@@ -113,7 +123,7 @@ class Runner:
         # from the per-run config themselves, so injecting them unconditionally
         # keeps configuration -- not construction -- in charge of publication.
         self._executor = executor or TileExecutor(
-            event_sink=self.event_sink,
+            event_sink=self._events,
             flow_invoker=InvokerRegistry(),
             raw_artifact_service=RawArtifactService(),
             image_artifact_service=ImageArtifactService(),
@@ -174,10 +184,13 @@ class Runner:
         try:
             started = time.time()
             self.run_id = self._run_id_factory()
-            self.event_sink.open(self.run_id)
             config: RdeConfig | None = None
             mode: ModeKind | None = None
             report: RunReport | None = None
+            # Set only on the normal return path, so the shutdown boundary can
+            # tell "an exception is propagating" from "a report is returned"
+            # without relying on ``sys.exc_info()`` inside ``finally``.
+            returning = False
             try:
                 previous_sigterm = signal.getsignal(signal.SIGTERM)
                 signal.signal(signal.SIGTERM, _raise_run_interrupted)
@@ -186,8 +199,12 @@ class Runner:
                 pass
 
             try:
+                # Inside the shutdown boundary: an open that fails is "no event
+                # log for this run" (the guard records a notice and continues),
+                # and an interrupt during open still reaches the close below.
+                self._events.open(self.run_id)
                 try:
-                    self.event_sink.emit(Event.run_started(run_id=self.run_id))
+                    self._events.emit(Event.run_started(run_id=self.run_id))
                     config = self.load_config(run_request.config_source)
                     mode = self.resolve_mode(config)
                     # v1 creates the unpack directory before it parses anything
@@ -219,11 +236,10 @@ class Runner:
                     self.finalize(report, config)
                 except Exception as exc:  # noqa: BLE001
                     raise _finalize_error(exc) from exc
+                returning = True
                 return report
             finally:
-                if report is not None:
-                    self.event_sink.emit(Event.run_completed(run_id=self.run_id, status=report.status))
-                self.event_sink.close()
+                self._close_event_sink(report, primary_propagating=not returning)
         finally:
             if sigterm_installed:
                 signal.signal(signal.SIGTERM, previous_sigterm)
@@ -231,6 +247,44 @@ class Runner:
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
             self._invoice_service.end_run()
+
+    def _close_event_sink(self, report: RunReport | None, *, primary_propagating: bool) -> None:
+        """Emit ``run.completed`` and close the event sink as one error boundary.
+
+        This runs from ``run``'s ``finally``, outside the iteration and
+        finalize translation boundaries, so an untranslated sink failure would
+        otherwise replace the run's outcome (PR #550 review F2). Finalization
+        has already completed here, so nothing else is written on failure.
+
+        * No primary exception propagating: the failure is end-of-run I/O and
+          is raised as ``RdeInternalError`` 5001, mapped like
+          ``_finalize_error`` (an ``RdeError`` passes through unchanged).
+        * A primary exception propagating: it must reach the caller intact, so
+          the sink failure is recorded as one stderr line instead.
+
+        Args:
+            report: Report whose status ``run.completed`` carries, if any.
+            primary_propagating: Whether ``run`` is unwinding with an exception.
+
+        Raises:
+            RdeError: When the shutdown fails and no primary exception is
+                propagating.
+        """
+        try:
+            try:
+                if report is not None:
+                    self._events.emit_final(Event.run_completed(run_id=self.run_id, status=report.status))
+            finally:
+                # Close even when the final emit failed, so the handle never leaks.
+                self._events.close()
+        except Exception as exc:  # noqa: BLE001
+            if primary_propagating:
+                _best_effort_stderr(
+                    f"rdetoolkit: event log shutdown failed while another error was propagating "
+                    f"(the original error is kept): {type(exc).__name__}: {exc}\n",
+                )
+                return
+            raise _event_log_error(exc) from exc
 
     def _execute(
         self,
@@ -274,7 +328,13 @@ class Runner:
                 warnings=[],
                 error=None,
             )
-        report = self.iterate(target, mode, config)
+        try:
+            report = self.iterate(target, mode, config)
+        except Exception as exc:  # noqa: BLE001
+            iteration_error = _iteration_error(exc)
+            if iteration_error is None:
+                raise
+            raise iteration_error from exc
         self.post_validate(config, report)
         return report
 
@@ -327,7 +387,7 @@ class Runner:
             config,
             self.inputdata_path,
             self.unpacked_dir_path,
-            self.event_sink,
+            self._events,
             self.run_id,
         )
 
@@ -372,6 +432,10 @@ class Runner:
             target=execution_target,
             config_source=config,
         )
+        # Before any tile is prepared: iteration files are not run-scoped, so a
+        # shorter re-run would otherwise sit beside a longer run's high indices
+        # (Session K3 ruling #4). Run-scoped logs and job.failed are kept.
+        _clear_iterations_dir(self.data_root / "logs" / "iterations")
         plan = self._planner.create(request, config=config, mode=mode, data_root=self.data_root)
         aggregator = RunAggregator(
             run_id=self.run_id,
@@ -386,7 +450,7 @@ class Runner:
         for tile in plan.tiles:
             info = tile.iteration
             iteration_status = "failed"
-            self.event_sink.emit(Event.iteration_started(run_id=self.run_id, index=info.index))
+            self._events.emit(Event.iteration_started(run_id=self.run_id, index=info.index))
             try:
                 result = self._executor.execute(plan, tile)
                 iteration_status = result.status
@@ -405,7 +469,7 @@ class Runner:
                 failed_count += 1
                 raise
             finally:
-                self.event_sink.emit(
+                self._events.emit(
                     Event(
                         run_id=self.run_id,
                         name="iteration.completed",
@@ -425,7 +489,7 @@ class Runner:
         )
         warnings = _failure_warnings(failed_count) if failed_count else []
         if failed_count:
-            sys.stderr.write(f"{failed_count} iteration(s) failed\n")
+            _best_effort_stderr(f"{failed_count} iteration(s) failed\n")
         return aggregator.build_report(
             status=status,
             started_at=_iso_timestamp(started),
@@ -485,6 +549,50 @@ class Runner:
             write_run_report(report, data_root=self.data_root)
             return
         self._finalizer.finalize(report, config)
+
+
+class _RunScopedFileEventSink:
+    """The Runner's default sink: one ``FileEventSink`` per opened run.
+
+    The Runner is constructed before its data root is resolved, so the file
+    sink is created at ``open`` time from the root the run settled on. A
+    Runner driven step by step (``iterate`` without ``run``) never opens a
+    run; there is no run log to append to, so its events are discarded rather
+    than raising the ``FileEventSink`` "open before emit" error.
+    """
+
+    def __init__(self, logs_dir: Callable[[], Path]) -> None:
+        self._logs_dir = logs_dir
+        self._sink: FileEventSink | None = None
+
+    def open(self, run_id: str) -> None:
+        sink = FileEventSink(self._logs_dir())
+        # Kept only once open succeeded: a sink that failed to open (its own
+        # handle already released) must not receive this run's emits or close.
+        self._sink = None
+        sink.open(run_id)
+        self._sink = sink
+
+    def emit(self, event: Event) -> None:
+        if self._sink is not None:
+            self._sink.emit(event)
+
+    def close(self) -> None:
+        sink = self._sink
+        if sink is None:
+            return
+        try:
+            sink.close()
+        finally:
+            # Released even when the inner close raises, so a second close is
+            # a no-op rather than a retry on an already-closed handle.
+            self._sink = None
+
+
+def _clear_iterations_dir(iterations_dir: Path) -> None:
+    """Remove a previous run's per-tile files; the aggregator recreates the directory."""
+    if iterations_dir.is_dir() and not iterations_dir.is_symlink():
+        shutil.rmtree(iterations_dir)
 
 
 def _flow_id(flow_fn: Callable[..., Any]) -> str:
@@ -564,6 +672,39 @@ def _run_error(exc: Exception) -> dict[str, Any]:
     return _exception_error(_lifecycle_error(exc))
 
 
+def _iteration_error(exc: Exception) -> RdeError | None:
+    """Return the catalogue error for a failure that escaped tile iteration.
+
+    Tiles are discovered lazily, so the input checker, the iterator and the
+    mode planners all run while ``Runner.iterate`` pulls the next tile; an
+    executor defect escapes from the same loop. A plain exception raised
+    there used to fall through to the lifecycle catch-all and was published as
+    ``1002 ConfigLoadFailed`` although the configuration had loaded long
+    before (Session K0-iii ruling #6). It is an execution failure, ``3001``;
+    no node call owns it, so the call id is ``unknown`` exactly as
+    ``runner.execute`` reports a failure outside any recorded call.
+
+    A catalogued ``RdeError`` (including ``RunInterrupted``) and a v1
+    ``StructuredError`` keep their own codes — the latter is the v1
+    ``ecode``/``emsg`` passthrough (Design §6.3).
+
+    Args:
+        exc: Exception that escaped ``Runner.iterate``.
+
+    Returns:
+        The ``3001`` error to raise instead, or ``None`` to re-raise ``exc``.
+    """
+    if isinstance(exc, (RdeError, StructuredError)):
+        return None
+    error_def = ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE]
+    reason = f"tile iteration failed ({type(exc).__name__}): {exc}"
+    message = error_def.message_template.format(call_id="unknown", reason=reason)
+    message = f"{message} Remediation: {error_def.remediation}"
+    error_cls: Any = RdeExecutionError
+    error: RdeError = error_cls(code=_TILE_ITERATION_FAILURE_CODE, name=error_def.name, message=message)
+    return error
+
+
 def _lifecycle_error(exc: Exception) -> RdeError:
     if isinstance(exc, RdeError):
         return exc
@@ -606,6 +747,17 @@ def _finalize_error(exc: Exception) -> RdeError:
         return exc
     error_def = ERROR_CATALOG[5001]
     message = error_def.message_template.format(reason=f"finalize I/O failed: {exc}")
+    message = f"{message} Remediation: {error_def.remediation}"
+    error_cls: Any = RdeInternalError
+    return error_cls(code=5001, name=error_def.name, message=message)
+
+
+def _event_log_error(exc: Exception) -> RdeError:
+    """Map an end-of-run event-log failure like ``_finalize_error`` does."""
+    if isinstance(exc, RdeError):
+        return exc
+    error_def = ERROR_CATALOG[5001]
+    message = error_def.message_template.format(reason=f"event log shutdown failed: {exc}")
     message = f"{message} Remediation: {error_def.remediation}"
     error_cls: Any = RdeInternalError
     return error_cls(code=5001, name=error_def.name, message=message)

@@ -77,7 +77,7 @@ STATIC_TEMPLATES: dict[str, str] = {
         "  save_invoice_to_structured: false\n"
         "  extended_mode: null\n\n"
         "smarttable:\n"
-        "  save_table_file: true\n\n"
+        "  save_table_file: false\n\n"
         "traceback: # custom traceback settings\n"
         "  enabled: false\n"
     ),

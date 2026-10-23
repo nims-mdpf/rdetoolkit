@@ -6,6 +6,10 @@ from collections.abc import Iterator
 
 import pytest
 
+# The frozen-oracle comparison helpers assert outside a test module; rewriting
+# them makes a mismatch show its diff instead of a bare AssertionError.
+pytest.register_assert_rewrite("tests.v2.modes.smarttable_builder_support")
+
 from rdetoolkit.modes.install import install_default_handlers
 from rdetoolkit.modes.registry import clear
 

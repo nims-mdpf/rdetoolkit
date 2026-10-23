@@ -13,25 +13,34 @@ policy, v1 failed with 0 callbacks while v2 executed every row's flow first.
 The per-tile validation is now a domain function used by both the executor's
 pre-completion check and ``post_validate``.
 
+Session K0-iii UPDATED every cell to the v1.7.1 layout (#503): with
+``save_table_file`` the original table is tile 1 (``divided/0001``, registered
+first) and the last data row is tile 0 (``data/``). The table tile is therefore
+reached after exactly one row callback, and the property under test becomes
+"no tile after the failing EarlyExit tile runs" -- ``divided/0002`` is never
+materialized and the callback count stays at the one row before it. Both
+counterexamples were pinned against the live v1.7.1 oracle; Session K1 froze
+those two v1 runs as the generator cases
+``smarttable/valerr__broken_metadata__save_table_file`` (ruling #6 item 8) and
+``smarttable/valerr__data_name_too_long__save_table_file``, whose builders live
+in ``_generate.py``.
+
 EP table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-IRA-6-EP-040 | pre-completion | broken metadata on the table tile | the tile fails with 4002 |
-| TC-IRA-6-EP-041 | oracle | same input through v1 | v1 also fails with zero callbacks |
+| TC-IRA-6-EP-041 | oracle | same input, frozen v1 run | v1 also fails after the one row before the table tile |
 
 BV / negative table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
-| TC-IRA-6-EV-042 | fail_fast | same input | no flow call and no later-tile artifacts |
+| TC-IRA-6-EV-042 | fail_fast | same input | only the tile-0 row flow ran, no later-tile artifacts |
 | TC-IRA-6-EV-043 | healthy tile | untouched fixture | the pre-completed tile still completes |
-| TC-IRA-6-EV-044 | invoice | tile invoice invalidated by the EarlyExit rewrite | the tile fails with 4001, iterations == 1 |
+| TC-IRA-6-EV-044 | invoice | tile invoice invalidated by the EarlyExit rewrite | the table tile fails with 4001, iterations == 2, = frozen v1 run |
 """
 
 from __future__ import annotations
 
-import json
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -41,52 +50,12 @@ from rdetoolkit.core.flow import flow
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.frozen import frozen_observed
 
 _FLOW_CALLS: list[int] = []
 
-_V1_ORACLE_WORKER = """
-import json, os, sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-sys.path.insert(0, os.getcwd())
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import _run_legacy as v1_run
-
-calls = []
-config = Config(
-    system=SystemSettings(
-        extended_mode=None,
-        save_raw=True,
-        save_nonshared_raw=True,
-        save_thumbnail_image=False,
-        magic_variable=False,
-    ),
-    multidata_tile=MultiDataTileSettings(ignore_errors=False),
-    smarttable=SmartTableSettings(save_table_file=True),
-)
-
-os.chdir(root)
-exit_code = 0
-try:
-    v1_run(custom_dataset_function=lambda a, b: calls.append(1), config=config)
-except SystemExit as error:
-    exit_code = int(error.code or 0)
-
-data_root = root / "data"
-job_failed = data_root / "job.failed"
-observation = {
-    "exit_code": exit_code,
-    "callback_count": len(calls),
-    "job_failed_code": (
-        job_failed.read_text(encoding="utf-8").splitlines()[0] if job_failed.exists() else None
-    ),
-    "divided": sorted(path.name for path in (data_root / "divided").iterdir())
-    if (data_root / "divided").exists()
-    else [],
-}
-(root / ".early_exit_observation.json").write_text(json.dumps(observation), encoding="utf-8")
-"""
+_BROKEN_METADATA_CASE = "v1/smarttable/valerr__broken_metadata__save_table_file"
+_LONG_DATA_NAME_CASE = "v1/smarttable/valerr__data_name_too_long__save_table_file"
 
 
 @flow
@@ -110,39 +79,20 @@ def _overrides() -> dict[str, Any]:
     }
 
 
-def _break_table_tile_metadata(root: Path) -> None:
-    """Leave a schema-invalid ``meta/metadata.json`` on the EarlyExit tile.
-
-    With ``save_table_file`` on, the SmartTable checker registers the original
-    table as tile 0, so ``data/meta`` is that tile's metadata directory.
-    """
-    metadata = root / "data" / "meta" / "metadata.json"
-    metadata.parent.mkdir(parents=True, exist_ok=True)
-    metadata.write_text(json.dumps({"constant": {}, "variable": "not-a-list"}), encoding="utf-8")
+def _materialize(case_id: str, root: Path) -> None:
+    """Materialize the registered case's input, defect included."""
+    _generate.materialize_case(_generate.oracle_case(case_id), root)
 
 
-#: Longest ``basic.dataName`` the constrained fixture schema accepts. The seed
-#: invoice's ``"test-dataset"`` (12) fits; the table filename
-#: ``"smarttable_full.xlsx"`` (20) does not.
-_DATA_NAME_MAX_LENGTH = 15
-
-
-def _constrain_data_name(root: Path) -> None:
-    """Make the EarlyExit rewrite -- and only it -- produce an invalid tile.
-
-    The run's source invoice is valid, so ``Runner.pre_validate`` passes. v1's
-    EarlyExit then rewrites ``basic.dataName`` to the table's filename, which
-    this schema rejects: the tile becomes invalid *between* run-level
-    validation and the tile's completion, which is exactly the boundary
-    ruling #6 moved.
-    """
-    schema_path = root / "data" / "tasksupport" / "invoice.schema.json"
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    schema["properties"]["basic"] = {
-        "type": "object",
-        "properties": {"dataName": {"type": "string", "maxLength": _DATA_NAME_MAX_LENGTH}},
-    }
-    schema_path.write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")
+def _divided(observed: dict[str, Any]) -> list[str]:
+    """Return the ``divided/NNNN`` tile directories of one frozen observation."""
+    return sorted(
+        {
+            path.split("/")[2]
+            for path in observed["output_tree"]["directories"]
+            if path.startswith("data/divided/") and path.count("/") >= 3
+        },
+    )
 
 
 def _run_v2(root: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
@@ -156,22 +106,6 @@ def _run_v2(root: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     return runner.run(_counting_flow, **_overrides())
 
 
-def _observe_v1(root: Path) -> dict[str, Any]:
-    completed = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", _V1_ORACLE_WORKER, str(root)],
-        cwd=_generate.REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = root / ".early_exit_observation.json"
-    if not observation_path.exists():
-        message = f"v1 EarlyExit oracle failed: {completed.stderr[-1500:]}"
-        raise RuntimeError(message)
-    result: dict[str, Any] = json.loads(observation_path.read_text(encoding="utf-8"))
-    return result
-
-
 def test_broken_table_metadata_fails_the_tile__tc_ira_6_ep_040_ev_042(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -179,8 +113,7 @@ def test_broken_table_metadata_fails_the_tile__tc_ira_6_ep_040_ev_042(
     """TC-IRA-6-EP-040/EV-042: the EarlyExit tile is validated before completing."""
     # Given: a SmartTable case whose table tile carries broken metadata
     root = tmp_path / "smarttable"
-    _generate.materialize_sut_case("smarttable", root)
-    _break_table_tile_metadata(root)
+    _materialize(_BROKEN_METADATA_CASE, root)
 
     # When: running with save_table_file and an explicit fail-fast policy
     report = _run_v2(root, monkeypatch)
@@ -190,25 +123,22 @@ def test_broken_table_metadata_fails_the_tile__tc_ira_6_ep_040_ev_042(
     job_failed = (root / "data" / "job.failed").read_text(encoding="utf-8")
     assert job_failed.splitlines()[0] == "ErrorCode=4002"
 
-    # And: no user flow ran, and no later tile produced artifacts
-    assert _FLOW_CALLS == []
-    assert not (root / "data" / "divided").exists()
+    # And: only the row registered before the table tile ran its flow, and no
+    # later tile produced artifacts
+    assert _FLOW_CALLS == [1]
+    assert not (root / "data" / "divided" / "0002").exists()
 
 
-def test_v1_also_fails_with_zero_callbacks__tc_ira_6_ep_041(tmp_path: Path) -> None:
-    """TC-IRA-6-EP-041: the oracle confirms v1 never reaches a callback."""
-    # Given: the identical broken case
-    root = tmp_path / "v1"
-    _generate.materialize_sut_case("smarttable", root)
-    _break_table_tile_metadata(root)
+def test_v1_also_fails_after_the_row_before_the_table__tc_ira_6_ep_041() -> None:
+    """TC-IRA-6-EP-041: the oracle confirms v1 fails on the table tile after one row (v1.7 order)."""
+    # Given / When: v1's frozen run of the identical broken case
+    observed = frozen_observed(_BROKEN_METADATA_CASE)
 
-    # When: running v1 itself in an isolated process
-    observed = _observe_v1(root)
-
-    # Then: v1 fails before any dataset callback and leaves no divided tiles
+    # Then: v1 fails on the table tile, after the one row before it, and never
+    # reaches divided/0002
     assert observed["exit_code"] == 1
-    assert observed["callback_count"] == 0
-    assert observed["divided"] == []
+    assert observed["callback_count"] == 1
+    assert _divided(observed) == ["0001"]
 
 
 def test_healthy_table_tile_still_completes__tc_ira_6_ev_043(
@@ -242,20 +172,25 @@ def test_invoice_invalidated_by_early_exit_fails_the_tile__tc_ira_6_ev_044(
     """
     # Given: a SmartTable case whose EarlyExit rewrite will break its own tile
     root = tmp_path / "smarttable"
-    _generate.materialize_sut_case("smarttable", root)
-    _constrain_data_name(root)
+    _materialize(_LONG_DATA_NAME_CASE, root)
 
     # When: running with save_table_file and fail-fast
     report = _run_v2(root, monkeypatch)
 
-    # Then: the tile -- not the run-level pre-validation -- failed
+    # Then: the table tile -- not the run-level pre-validation -- failed
     assert report.status == "failed"
-    assert len(report.iterations) == 1
-    assert report.iterations[0]["status"] == "failed"
-    assert report.iterations[0]["error"]["code"] == 4001
+    assert [iteration["status"] for iteration in report.iterations] == ["completed", "failed"]
+    assert report.iterations[1]["index"] == 1
+    assert report.iterations[1]["error"]["code"] == 4001
 
-    # And: no user flow ran and no later tile was materialized
-    assert _FLOW_CALLS == []
-    assert not (root / "data" / "divided").exists()
+    # And: only the row before the table ran its flow; no later tile was materialized
+    assert _FLOW_CALLS == [1]
+    assert not (root / "data" / "divided" / "0002").exists()
     job_failed = (root / "data" / "job.failed").read_text(encoding="utf-8")
     assert job_failed.splitlines()[0] == "ErrorCode=4001"
+
+    # And: v1.7.1 stops at the same tile with the same callback count
+    observed = frozen_observed(_LONG_DATA_NAME_CASE)
+    assert observed["exit_code"] == 1
+    assert observed["callback_count"] == len(_FLOW_CALLS)
+    assert _divided(observed) == ["0001"]

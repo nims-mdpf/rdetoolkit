@@ -13,6 +13,7 @@ BV Table:
 | API                    | Boundary        | Rationale        | Expected            | Test ID   |
 |------------------------|-----------------|------------------|---------------------|-----------|
 | selected_input_checker | mode is None    | default boundary | InvoiceChecker      | TC-BV-001 |
+| selected_input_checker | SmartTable file and ``*_excel_invoice.xlsx`` together (K2-0 G12) | SmartTable precedes ExcelInvoice | SmartTableChecker | TC-BV-002 |
 """
 
 from __future__ import annotations
@@ -35,7 +36,7 @@ class TestSelectedInputChecker:
 
     def test_smarttable_file_wins__tc_ep_001(self, tmp_path: Path) -> None:
         """TC-EP-001: smarttable files select SmartTableChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import SmartTableChecker
 
         # Given: inputdata contains a SmartTable file
@@ -51,7 +52,7 @@ class TestSelectedInputChecker:
 
     def test_excel_invoice_file_wins__tc_ep_002(self, tmp_path: Path) -> None:
         """TC-EP-002: *_excel_invoice.xlsx selects ExcelInvoiceChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import ExcelInvoiceChecker
 
         # Given: inputdata contains an Excel invoice marker file
@@ -67,7 +68,7 @@ class TestSelectedInputChecker:
 
     def test_rdeformat_mode_selects_rdeformat__tc_ep_003(self, tmp_path: Path) -> None:
         """TC-EP-003: rdeformat mode selects RDEFormatChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import RDEFormatChecker
 
         # Given: no file discriminator and rdeformat mode
@@ -82,7 +83,7 @@ class TestSelectedInputChecker:
 
     def test_multidatatile_mode_selects_multifile__tc_ep_004(self, tmp_path: Path) -> None:
         """TC-EP-004: MultiDataTile mode selects MultiFileChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import MultiFileChecker
 
         # Given: no file discriminator and MultiDataTile mode
@@ -97,7 +98,7 @@ class TestSelectedInputChecker:
 
     def test_none_mode_selects_invoice__tc_bv_001(self, tmp_path: Path) -> None:
         """TC-BV-001: None mode falls back to InvoiceChecker."""
-        from rdetoolkit.domain.mode import selected_input_checker
+        from rdetoolkit.domain.input_checker import selected_input_checker
         from rdetoolkit.impl.input_controller import InvoiceChecker
 
         # Given: no file discriminator and no mode
@@ -109,3 +110,24 @@ class TestSelectedInputChecker:
 
         # Then: invoice mode is selected
         assert isinstance(checker, InvoiceChecker)
+
+    def test_smarttable_precedes_excel_invoice__tc_bv_002(self, tmp_path: Path) -> None:
+        """TC-BV-002 (K2-0 G12): a SmartTable file wins over an Excel invoice, as in v1.
+
+        v1's ``tests/test_workflow.py`` TC-EP-001 pinned this boundary on the
+        mode dispatch that Phase K2 deletes; the selector is where it lives now.
+        """
+        from rdetoolkit.domain.input_checker import selected_input_checker
+        from rdetoolkit.impl.input_controller import SmartTableChecker
+
+        # Given: both discriminator files, plus a mode flag that would select another checker
+        srcpaths = _srcpaths(tmp_path)
+        srcpaths.inputdata.mkdir(parents=True)
+        (srcpaths.inputdata / "smarttable_data.xlsx").touch()
+        (srcpaths.inputdata / "case_excel_invoice.xlsx").touch()
+
+        # When: selecting the checker with and without that mode flag
+        checkers = [selected_input_checker(srcpaths, tmp_path / "unpacked", mode) for mode in (None, "rdeformat")]
+
+        # Then: SmartTable mode is selected both times
+        assert all(isinstance(checker, SmartTableChecker) for checker in checkers)

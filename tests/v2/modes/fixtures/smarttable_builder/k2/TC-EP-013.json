@@ -1,0 +1,84 @@
+{
+  "case": {
+    "family": "k2",
+    "id": "k2/TC-EP-013",
+    "inputs_sha256": {
+      "invoice": "bd04a974b6ecdad10a95420af11509fb25a436b1359dbb796d123bd0f69fc433",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "schema": "fe8b333205d8dab5997307d1b54b1ae45b765ac678db252bae55cc8a8470036d"
+    },
+    "steps": [
+      {
+        "csv_text": "sample/specificAttributes.01cb3c01-37a4-5a43-d8ca-f523ca99a75b.3250c45d-0ed6-1438-43b5-eb679918604a\r\nsingle crystal\r\n",
+        "dist": "source",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-EP-013",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": {
+      "basic": {
+        "dataName": "Restructured Test Data",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000002",
+        "dateSubmitted": "2024-01-15"
+      },
+      "datasetId": "test-dataset-restructured",
+      "sample": {
+        "composition": null,
+        "description": null,
+        "generalAttributes": null,
+        "names": null,
+        "ownerId": "00000000000000000000000000000000000000000000000000000002",
+        "referenceUrl": null,
+        "sampleId": "019a6150-6f3b-4384-8f12-8f8950f51098",
+        "specificAttributes": [
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+            "value": "single crystal"
+          }
+        ]
+      }
+    },
+    "steps": [
+      {
+        "invoice": {
+          "basic": {
+            "dataName": "Restructured Test Data",
+            "dataOwnerId": "00000000000000000000000000000000000000000000000000000002",
+            "dateSubmitted": "2024-01-15"
+          },
+          "datasetId": "test-dataset-restructured",
+          "sample": {
+            "composition": null,
+            "description": null,
+            "generalAttributes": null,
+            "names": null,
+            "ownerId": "00000000000000000000000000000000000000000000000000000002",
+            "referenceUrl": null,
+            "sampleId": "019a6150-6f3b-4384-8f12-8f8950f51098",
+            "specificAttributes": [
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+                "value": "single crystal"
+              }
+            ]
+          }
+        },
+        "metadata": null,
+        "row_data": {
+          "sample/specificAttributes.01cb3c01-37a4-5a43-d8ca-f523ca99a75b.3250c45d-0ed6-1438-43b5-eb679918604a": "single crystal"
+        }
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

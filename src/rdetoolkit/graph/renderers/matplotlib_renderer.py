@@ -1,20 +1,33 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
-from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter, NullLocator
+from matplotlib.ticker import (
+    EngFormatter,
+    LogFormatterMathtext,
+    LogLocator,
+    MaxNLocator,
+    NullFormatter,
+    NullLocator,
+    ScalarFormatter,
+)
 
-from rdetoolkit.graph.models import Direction, PlotConfig
+from rdetoolkit.graph.models import AxisConfig, Direction, PlotConfig
 from rdetoolkit.graph.config import apply_matplotlib_config
+from rdetoolkit.graph.legend_policy import (
+    resolve_legend_policy as _resolve_legend_policy,
+)
 from rdetoolkit.graph.textutils import parse_header, titleize
 
 CENTER_POSITION = 0.5
 LEGEND_RIGHT_THRESHOLD = 0.7
 TEXT_Y_THRESHOLD = 0.9
+DEFAULT_OUTSIDE_LEGEND_NCOL = 3
+OUTSIDE_LEGEND_MARGIN_INCHES = 0.2
 
 
 class MatplotlibRenderer:
@@ -238,15 +251,19 @@ class MatplotlibRenderer:
         return legend_handles, legend_labels
 
     def _configure_axes(self, ax: Any, config: PlotConfig, title: str | None) -> None:
-        ax.set_xlabel(config.x_axis.label or "X")
-        ax.set_ylabel(config.y_axis.label or "Y")
+        ax.set_xlabel(self._compose_axis_label(config.x_axis, "X"))
+        ax.set_ylabel(self._compose_axis_label(config.y_axis, "Y"))
 
         if config.x_axis.scale == "log":
             ax.set_xscale("log")
             self._apply_log_axis_formatting(ax.xaxis)
+        else:
+            self._apply_tick_formatting(ax.xaxis, config.x_axis)
         if config.y_axis.scale == "log":
             ax.set_yscale("log")
             self._apply_log_axis_formatting(ax.yaxis)
+        else:
+            self._apply_tick_formatting(ax.yaxis, config.y_axis)
 
         if config.x_axis.lim:
             ax.set_xlim(config.x_axis.lim)
@@ -275,8 +292,19 @@ class MatplotlibRenderer:
         labels: list[str],
         config: PlotConfig,
     ) -> None:
-        legend_obj = None
+        filtered_handles, filtered_labels = self._filter_legend_entries(handles, labels)
 
+        legend_obj = self._render_legend(ax, filtered_handles, filtered_labels, config)
+
+        if config.legend.info:
+            self._add_legend_info(ax, legend_obj, config.legend.info)
+
+    def _filter_legend_entries(
+        self,
+        handles: list[Any],
+        labels: list[str],
+    ) -> tuple[list[Any], list[str]]:
+        """De-duplicate legend entries and drop empty/hidden labels."""
         filtered_handles: list[Any] = []
         filtered_labels: list[str] = []
         seen_labels: set[str] = set()
@@ -290,28 +318,180 @@ class MatplotlibRenderer:
             filtered_handles.append(handle)
             filtered_labels.append(label)
 
-        should_render = False
-        if filtered_labels:
-            show_threshold = len(filtered_labels) > 1
-            if config.legend.loc is not None:
-                show_threshold = True
+        return filtered_handles, filtered_labels
 
-            max_items = config.legend.max_items
-            within_limit = (
-                max_items is None
-                or len(filtered_labels) <= max_items
-            )
+    def _render_legend(
+        self,
+        ax: Any,
+        filtered_handles: list[Any],
+        filtered_labels: list[str],
+        config: PlotConfig,
+    ) -> Any:
+        """Render the legend according to config.legend.policy and return the Legend object."""
+        if config.legend.policy == "legacy":
+            return self._render_legend_legacy(ax, filtered_handles, filtered_labels, config)
 
-            should_render = show_threshold and within_limit
+        resolved_policy = _resolve_legend_policy(
+            config.legend.policy,
+            len(filtered_labels),
+            config.legend.outside_threshold,
+            config.legend.max_items,
+            bottom_threshold=config.legend.bottom_threshold,
+        )
 
-        if should_render:
+        if resolved_policy == "hide" or not filtered_labels:
+            return None
+
+        max_items = config.legend.max_items
+        if max_items is not None and len(filtered_labels) > max_items:
+            return None
+
+        if resolved_policy == "inside":
             legend_kwargs: dict[str, Any] = {}
             if config.legend.loc is not None:
                 legend_kwargs["loc"] = config.legend.loc
-            legend_obj = ax.legend(filtered_handles, filtered_labels, **legend_kwargs)
+            return ax.legend(filtered_handles, filtered_labels, **legend_kwargs)
 
-        if config.legend.info:
-            self._add_legend_info(ax, legend_obj, config.legend.info)
+        if resolved_policy == "outside_right":
+            self._freeze_axes_layout(ax)
+            anchor_x = self._outside_anchor_beyond_decorations(ax, side="right")
+            legend_obj = ax.legend(
+                filtered_handles,
+                filtered_labels,
+                loc="center left",
+                bbox_to_anchor=(anchor_x, 0.5),
+                borderaxespad=0.0,
+            )
+            self._expand_figure_for_outside_legend(ax, legend_obj)
+            return legend_obj
+
+        # resolved_policy == "outside_bottom"
+        self._freeze_axes_layout(ax)
+        anchor_y = self._outside_anchor_beyond_decorations(ax, side="bottom")
+        legend_obj = ax.legend(
+            filtered_handles,
+            filtered_labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, anchor_y),
+            ncol=config.legend.ncol or DEFAULT_OUTSIDE_LEGEND_NCOL,
+        )
+        self._expand_figure_for_outside_legend(ax, legend_obj)
+        return legend_obj
+
+    def _outside_anchor_beyond_decorations(
+        self,
+        ax: Any,
+        side: Literal["right", "bottom"],
+    ) -> float:
+        """Compute an axes-fraction anchor just outside the axes decorations.
+
+        Tick labels and axis labels spill past the axes edge, so a fixed
+        anchor offset (e.g. 1.02) can overlap them. Measure the actual
+        decoration extent and place the legend beyond it, never closer to
+        the axes than the fixed default offset.
+        """
+        default = 1.02 if side == "right" else -0.12
+        fig = ax.figure
+        canvas = getattr(fig, "canvas", None)
+        if canvas is None:
+            return default
+        try:
+            renderer = canvas.get_renderer()
+        except AttributeError:
+            return default
+
+        axes_bbox = ax.get_window_extent(renderer=renderer)
+        tight_bbox = ax.get_tightbbox(renderer)
+        if tight_bbox is None or axes_bbox.width <= 0 or axes_bbox.height <= 0:
+            return default
+
+        if side == "right":
+            spill = max(tight_bbox.x1 - axes_bbox.x1, 0.0)
+            return max(1.0 + spill / axes_bbox.width + 0.02, default)
+
+        spill = max(axes_bbox.y0 - tight_bbox.y0, 0.0)
+        return min(-(spill / axes_bbox.height) - 0.02, default)
+
+    def _freeze_axes_layout(self, ax: Any) -> None:
+        """Finalize the axes geometry before an outside legend is added.
+
+        tight_layout re-runs on every draw and includes the legend in the
+        axes decorations it tries to fit into the fixed figure size, which
+        crushes the plot area when a large legend sits outside the axes.
+        Drawing once while no legend exists locks in the geometry derived
+        from labels/titles only; disabling the layout engine afterwards
+        keeps the plot area at that size.
+        """
+        fig = ax.figure
+        canvas = getattr(fig, "canvas", None)
+        if canvas is not None:
+            canvas.draw()
+        fig.set_layout_engine("none")
+
+    def _expand_figure_for_outside_legend(self, ax: Any, legend_obj: Any) -> None:
+        """Grow the figure by the legend overflow instead of shrinking the axes.
+
+        The legend is anchored to the axes, so enlarging the canvas and
+        shifting the subplot fractions by the same physical amount keeps
+        both the plot area size and the legend-to-axes attachment intact.
+        """
+        fig = ax.figure
+        renderer = self._prepare_renderer(ax, legend_obj)
+        if renderer is None:
+            return
+
+        bbox = legend_obj.get_window_extent(renderer=renderer)
+        dpi = fig.dpi
+        fig_w, fig_h = fig.get_size_inches()
+        overflows = (
+            max(-bbox.x0 / dpi, 0.0),           # left
+            max(bbox.x1 / dpi - fig_w, 0.0),    # right
+            max(-bbox.y0 / dpi, 0.0),           # bottom
+            max(bbox.y1 / dpi - fig_h, 0.0),    # top
+        )
+        if not any(overflows):
+            return
+
+        extra_left, extra_right, extra_bottom, extra_top = (
+            overflow + OUTSIDE_LEGEND_MARGIN_INCHES if overflow else 0.0
+            for overflow in overflows
+        )
+        new_w = fig_w + extra_left + extra_right
+        new_h = fig_h + extra_bottom + extra_top
+        subplot_pars = fig.subplotpars
+        fig.set_size_inches(new_w, new_h)
+        fig.subplots_adjust(
+            left=(subplot_pars.left * fig_w + extra_left) / new_w,
+            right=(subplot_pars.right * fig_w + extra_left) / new_w,
+            bottom=(subplot_pars.bottom * fig_h + extra_bottom) / new_h,
+            top=(subplot_pars.top * fig_h + extra_bottom) / new_h,
+        )
+
+    def _render_legend_legacy(
+        self,
+        ax: Any,
+        filtered_handles: list[Any],
+        filtered_labels: list[str],
+        config: PlotConfig,
+    ) -> Any:
+        """Preserve the pre-#497 legend behavior driven by loc/max_items only."""
+        if not filtered_labels:
+            return None
+
+        show_threshold = len(filtered_labels) > 1
+        if config.legend.loc is not None:
+            show_threshold = True
+
+        max_items = config.legend.max_items
+        within_limit = max_items is None or len(filtered_labels) <= max_items
+
+        if not (show_threshold and within_limit):
+            return None
+
+        legend_kwargs: dict[str, Any] = {}
+        if config.legend.loc is not None:
+            legend_kwargs["loc"] = config.legend.loc
+        return ax.legend(filtered_handles, filtered_labels, **legend_kwargs)
 
     def _add_legend_info(
         self,
@@ -582,6 +762,54 @@ class MatplotlibRenderer:
         axis.set_minor_locator(NullLocator())
         axis.set_major_formatter(LogFormatterMathtext(base=10, labelOnlyBase=True))
         axis.set_minor_formatter(NullFormatter())
+
+    @staticmethod
+    def _apply_linear_axis_formatting(
+        axis: Any,
+        scilimits: tuple[int, int] = (-3, 4),
+    ) -> None:
+        """Readable tick labels regardless of data magnitude."""
+        formatter = ScalarFormatter(useMathText=True)
+        formatter.set_powerlimits(scilimits)   # out-of-range magnitudes use ×10^n notation
+        axis.set_major_formatter(formatter)
+        axis.set_major_locator(MaxNLocator(nbins=6))
+        offset = axis.get_offset_text()
+        offset.set_fontsize(plt.rcParams.get("xtick.labelsize", 20))
+
+    @staticmethod
+    def _apply_tick_formatting(axis: Any, axis_config: AxisConfig) -> None:
+        """Apply tick formatter based on AxisConfig.tick_format."""
+        tick_format = axis_config.tick_format
+        if tick_format == "plain":
+            formatter = ScalarFormatter(useMathText=True)
+            formatter.set_scientific(False)
+            formatter.set_useOffset(False)
+            axis.set_major_formatter(formatter)
+            axis.set_major_locator(MaxNLocator(nbins=6))
+        elif tick_format == "sci":
+            formatter = ScalarFormatter(useMathText=True)
+            formatter.set_powerlimits((0, 0))
+            axis.set_major_formatter(formatter)
+            axis.set_major_locator(MaxNLocator(nbins=6))
+            offset = axis.get_offset_text()
+            offset.set_fontsize(plt.rcParams.get("xtick.labelsize", 20))
+        elif tick_format == "eng":
+            axis.set_major_formatter(EngFormatter(unit=axis_config.unit or ""))
+            axis.set_major_locator(MaxNLocator(nbins=6))
+        else:  # "auto"
+            MatplotlibRenderer._apply_linear_axis_formatting(axis, axis_config.scilimits)
+
+    @staticmethod
+    def _compose_axis_label(axis_config: AxisConfig, default_label: str) -> str:
+        """Compose axis label with unit suffix, avoiding double-composition."""
+        label = axis_config.label or default_label
+        unit = axis_config.unit
+        if not unit:
+            return label
+        # Already contains the unit (e.g. derived label already has "(V)") -> no-op
+        if f"({unit})" in label:
+            return label
+        return f"{label} ({unit})"
 
 
 def _resolve_column_index(df: pd.DataFrame, column: int | str) -> int:

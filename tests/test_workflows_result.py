@@ -34,7 +34,7 @@ def test_check_files_result_success_invoice_mode():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker),
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker),
     ):
         mock_storage.return_value = Path("/data/temp")
 
@@ -60,7 +60,7 @@ def test_check_files_result_success_excel_invoice_mode():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker),
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker),
     ):
         mock_storage.return_value = Path("/data/temp")
 
@@ -78,15 +78,17 @@ def test_check_files_result_success_smarttable_mode():
     srcpaths = Mock(spec=RdeInputDirPaths)
     srcpaths.inputdata = Path("/data/inputdata")
 
-    # Mock the input checker to return smarttable mode result
+    # Mock the input checker to return smarttable mode result using the
+    # SmartTableRawFiles shape: a list of (row_csv | None, user_files) pairs.
     mock_checker = Mock()
     mock_checker.checker_type = "smarttable"
     smarttable_file = Path("/data/inputdata/smarttable.csv")
-    mock_checker.parse.return_value = ([("file1.txt",)], smarttable_file)
+    smarttable_rawfiles = [(Path("fsmarttable_x_0000.csv"), (Path("file1.txt"),))]
+    mock_checker.parse.return_value = (smarttable_rawfiles, smarttable_file)
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker),
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker),
     ):
         mock_storage.return_value = Path("/data/temp")
 
@@ -94,7 +96,7 @@ def test_check_files_result_success_smarttable_mode():
 
         assert isinstance(result, Success)
         rawfiles, excel_invoice, smarttable = result.unwrap()
-        assert rawfiles == [("file1.txt",)]
+        assert rawfiles == smarttable_rawfiles
         assert excel_invoice is None
         assert smarttable == smarttable_file
 
@@ -108,7 +110,7 @@ def test_check_files_result_failure_structured_error():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker") as mock_selected,
+        patch("rdetoolkit.domain.input_checker.selected_input_checker") as mock_selected,
     ):
         mock_storage.return_value = Path("/data/temp")
         mock_selected.side_effect = error
@@ -128,7 +130,7 @@ def test_check_files_result_failure_unexpected_exception():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker") as mock_selected,
+        patch("rdetoolkit.domain.input_checker.selected_input_checker") as mock_selected,
     ):
         mock_storage.return_value = Path("/data/temp")
         mock_selected.side_effect = RuntimeError("Unexpected error")
@@ -152,7 +154,7 @@ def test_check_files_result_with_none_mode():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker) as mock_selected,
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker) as mock_selected,
     ):
         mock_storage.return_value = Path("/data/temp")
 
@@ -176,7 +178,7 @@ def test_check_files_result_with_config():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker) as mock_selected,
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker) as mock_selected,
     ):
         mock_storage.return_value = Path("/data/temp")
 
@@ -204,7 +206,7 @@ def test_check_files_backward_compatibility_success():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker),
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker),
     ):
         mock_storage.return_value = Path("/data/temp")
 
@@ -225,7 +227,7 @@ def test_check_files_backward_compatibility_raises_exception():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker") as mock_selected,
+        patch("rdetoolkit.domain.input_checker.selected_input_checker") as mock_selected,
     ):
         mock_storage.return_value = Path("/data/temp")
         mock_selected.side_effect = error
@@ -247,7 +249,7 @@ def test_check_files_delegates_to_check_files_result():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker),
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker),
         patch("rdetoolkit.workflows.check_files_result") as mock_result_fn,
     ):
         mock_storage.return_value = Path("/data/temp")
@@ -273,7 +275,7 @@ def test_result_pattern_enables_explicit_error_handling():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker") as mock_selected,
+        patch("rdetoolkit.domain.input_checker.selected_input_checker") as mock_selected,
     ):
         mock_storage.return_value = Path("/data/temp")
         mock_selected.side_effect = error
@@ -299,7 +301,7 @@ def test_migration_path_from_exception_to_result():
 
     with (
         patch("rdetoolkit.rde2util.StorageDir.get_specific_outputdir") as mock_storage,
-        patch("rdetoolkit.modeproc.selected_input_checker", return_value=mock_checker),
+        patch("rdetoolkit.domain.input_checker.selected_input_checker", return_value=mock_checker),
     ):
         mock_storage.return_value = Path("/data/temp")
 

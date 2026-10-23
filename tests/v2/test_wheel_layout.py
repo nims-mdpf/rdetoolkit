@@ -105,3 +105,11 @@ class TestWheelContents:
         assert old_ext == [], f"wheel must not contain the old core.cpython extension: {old_ext}"
         assert "rdetoolkit/_core.pyi" in names, "wheel must ship the _core.pyi stub"
         assert "rdetoolkit/core.pyi" not in names, "wheel must not ship the lying core.pyi"
+        # Phase K2: the v1 orchestration must not ship in the wheel.
+        legacy = [
+            name
+            for name in names
+            if name.startswith(("rdetoolkit/processing/", "rdetoolkit/modeproc.", "rdetoolkit/domain/mode."))
+            or name in ("rdetoolkit/processing.pyi", "rdetoolkit/processing/processors.pyi")
+        ]
+        assert legacy == [], f"wheel must not contain the removed v1 orchestration: {legacy}"
