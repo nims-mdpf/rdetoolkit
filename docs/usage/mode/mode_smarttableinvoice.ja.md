@@ -60,7 +60,7 @@ basic/dataName,inputdata1,custom/cycle,custom/thickness,custom/temperature,sampl
 - `sample/<invoice.jsonのキー名>`: invoice.jsonのsampleセクションにマッピングされます。
 - `sample/generalAttributes.<termId>`: `generalAttributes`配列内の該当する`termId`の`value`にマッピング
 - `sample/specificAttributes.<classId>.<termId>`: `specificAttributes`配列内の該当する`classId`と`termId`の`value`にマッピング
-- `meta/<metadata-defのキー>`: `metadata-def.json`の定義に従って`metadata.json`の`constant`セクションへ書き込み（`schema.type`で型変換し、`unit`があれば付与）。`variable`定義は現時点では対応しません。`metadata-def.json`が存在しない場合は従来どおり書き込みをスキップします。
+- `meta/<metadata-defのキー>`: `metadata-def.json`の定義に従って`metadata.json`の`constant`セクションへ書き込み（`schema.type`で型変換し、`unit`があれば付与）。`variable`定義は現時点では対応しません。`meta/`列を1つでも指定する場合は`tasksupport/metadata-def.json`ファイルの配置が必須です。ファイル自体が存在しない場合や、指定したキーが定義に存在しない場合はエラー（`StructuredError`）となります。
 - `inputdataX`: zipファイル内のファイルパスを指定（X=1,2,3...）
 
 > 現在自動でテーブルデータの情報が展開される先は、invoice.json と metadata.json（`meta/`列）です。それ以外のデータは、構造化処理で使用できるように展開されます。
@@ -131,7 +131,9 @@ data/
 
 ## テーブルデータの1行分のデータを構造化処理で取得する
 
-構造化処理を以下のように定義した場合、`RdeOutputResourcePath.rawfiles`からcsvのパスを取得できます。上記のディレクトリ構造の例では、`temp/fsmarttable_experiment_0001.csv`等になります。
+`RdeOutputResourcePath.rawfiles`には、その行に紐づく**ユーザーのデータファイルのみ**（例: `file1.txt`、`file2.txt`）が含まれ、自動生成される行CSV（`fsmarttable_*.csv`）は含まれません。これにより、Invoiceモード向けに書かれた構造化処理プログラム（拡張子・件数・`rawfiles[0]`を前提に`rawfiles`を走査するもの）を、SmartTableInvoiceモードでも改修なしに流用できます。
+
+生成された行CSV自体のパスを取得したい場合は、`RdeOutputResourcePath.smarttable_rawfile`（`Path | None`、SmartTableInvoiceモード以外では`None`）を使用します。上記のディレクトリ構造の例では、`temp/fsmarttable_experiment_0001.csv`等になります。
 
 ```python
 def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
@@ -150,8 +152,19 @@ def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourceP
     Note:
         The actual function names and processing details may vary depending on the project.
     """
+    # resource_paths.rawfiles contains only the user's data files
+    # (e.g. file1.txt, file2.txt), never the generated row CSV.
+    row_csv = resource_paths.smarttable_rawfile  # e.g. temp/fsmarttable_experiment_0001.csv
     ...
 ```
+
+!!! note "v1.7.0での破壊的変更"
+    v1.7.0より前は、自動生成される行CSVが`RdeOutputResourcePath.rawfiles`の
+    先頭要素として含まれており、アクセサ名も`smarttable_rowfile`でした。
+    v1.7.0以降、`rawfiles`に行CSVは含まれなくなり、アクセサ名は
+    `smarttable_rawfile`に変更されました。旧名`smarttable_rowfile`は
+    `DeprecationWarning`付きの非推奨エイリアスとして引き続き利用できますが、
+    v2.0で削除される予定です。
 
 ## テーブルデータファイルをRDEに登録する場合
 
@@ -161,6 +174,13 @@ def custom_module(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourceP
 smarttable:
     save_table_file: true
 ```
+
+!!! note "v1.7.0での破壊的変更"
+    `save_table_file: true`を設定した場合、元のテーブルデータファイルの登録先が
+    `data/`ルート（最後のタイル）から**`divided/0001`**（最初のタイル）に
+    変更されました。それに伴い、データ行は`divided/0002`以降にずれ、
+    最後のデータ行が`data/`ルートに登録されるようになります。
+    データ行同士の順序自体は変わりません。
 
 ## 試料フィールドの自動クリアルール（新規試料登録）
 

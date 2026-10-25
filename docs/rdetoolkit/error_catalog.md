@@ -40,4 +40,5 @@ Authority: `local/develop/v2/Design.md` §9.
 | Code | Name | Message template |
 |------|------|------------------|
 | W1001 | ModeOverriddenByFileDetection | Configured mode was overridden by input file detection: {mode} |
+| W1002 | EventsLogTruncated | events log truncated at the size cap; node-level events are no longer recorded for this run |
 | W1101 | TemplateSelfStateUsage | Template slot or hook uses hidden self state: {qualified_name}.{attribute_name} |

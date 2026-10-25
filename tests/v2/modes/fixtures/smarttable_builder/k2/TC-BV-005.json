@@ -1,0 +1,207 @@
+{
+  "case": {
+    "family": "k2",
+    "id": "k2/TC-BV-005",
+    "inputs_sha256": {
+      "invoice": "5b847aa7ef9f7fc804d2a364418921af3fc74b43f5c11972ad1b0099b88448e7",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "schema": "55b09a75d99677319d7cfc124e9ac0c25543853347b6aa29fa22924e68c1248a"
+    },
+    "steps": [
+      {
+        "csv_text": "sample/names,sample/sampleId\r\nSample BV-005,fedcba98-7654-3210-fedc-ba9876543210\r\n",
+        "dist": "source",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-BV-005",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": {
+      "basic": {
+        "dataName": "test-dataset",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+        "dateSubmitted": "",
+        "description": null,
+        "experimentId": null,
+        "instrumentId": null
+      },
+      "custom": {
+        "sample1": "2023-01-01",
+        "sample10": "S10",
+        "sample2": 1.0,
+        "sample3": 1,
+        "sample4": "20:20:39",
+        "sample5": "https://sample.co",
+        "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+        "sample7": "#h1",
+        "sample8": "itemA",
+        "sample9": "II"
+      },
+      "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+      "sample": {
+        "composition": "Dummy composition",
+        "description": "Dummy description",
+        "generalAttributes": [
+          {
+            "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+            "value": "dummy_value"
+          },
+          {
+            "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+            "value": "dummy_value"
+          },
+          {
+            "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+            "value": "dummy_value"
+          },
+          {
+            "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+            "value": "dummy_value"
+          },
+          {
+            "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+            "value": "dummy_value"
+          },
+          {
+            "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+            "value": "dummy_value"
+          },
+          {
+            "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+            "value": "dummy_value"
+          }
+        ],
+        "names": [
+          "Sample BV-005"
+        ],
+        "ownerId": "00000000000000000000000000000000000000000000000000000001",
+        "referenceUrl": "https://dummy.example.com",
+        "sampleId": "fedcba98-7654-3210-fedc-ba9876543210",
+        "specificAttributes": [
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+            "value": "dummy_value"
+          },
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+            "value": "dummy_value"
+          },
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+            "value": "dummy_value"
+          },
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+            "value": "dummy_value"
+          }
+        ]
+      }
+    },
+    "steps": [
+      {
+        "invoice": {
+          "basic": {
+            "dataName": "test-dataset",
+            "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+            "dateSubmitted": "",
+            "description": null,
+            "experimentId": null,
+            "instrumentId": null
+          },
+          "custom": {
+            "sample1": "2023-01-01",
+            "sample10": "S10",
+            "sample2": 1.0,
+            "sample3": 1,
+            "sample4": "20:20:39",
+            "sample5": "https://sample.co",
+            "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+            "sample7": "#h1",
+            "sample8": "itemA",
+            "sample9": "II"
+          },
+          "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+          "sample": {
+            "composition": "Dummy composition",
+            "description": "Dummy description",
+            "generalAttributes": [
+              {
+                "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+                "value": "dummy_value"
+              },
+              {
+                "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+                "value": "dummy_value"
+              },
+              {
+                "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+                "value": "dummy_value"
+              },
+              {
+                "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+                "value": "dummy_value"
+              },
+              {
+                "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+                "value": "dummy_value"
+              },
+              {
+                "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+                "value": "dummy_value"
+              },
+              {
+                "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+                "value": "dummy_value"
+              }
+            ],
+            "names": [
+              "Sample BV-005"
+            ],
+            "ownerId": "00000000000000000000000000000000000000000000000000000001",
+            "referenceUrl": "https://dummy.example.com",
+            "sampleId": "fedcba98-7654-3210-fedc-ba9876543210",
+            "specificAttributes": [
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+                "value": "dummy_value"
+              },
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+                "value": "dummy_value"
+              },
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+                "value": "dummy_value"
+              },
+              {
+                "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+                "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+                "value": "dummy_value"
+              }
+            ]
+          }
+        },
+        "metadata": null,
+        "row_data": {
+          "sample/names": "Sample BV-005",
+          "sample/sampleId": "fedcba98-7654-3210-fedc-ba9876543210"
+        }
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

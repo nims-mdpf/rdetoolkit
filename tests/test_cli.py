@@ -899,6 +899,69 @@ def test_csv2graph_with_options(sample_csv_file, csv_output_dir):
     assert "✨ Graphs generated successfully" in result.output
 
 
+def test_csv2graph_legend_policy_outside_right(sample_csv_file, csv_output_dir):
+    """Test csv2graph command with --legend-policy outside_right."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--legend-policy", "outside_right",
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_csv2graph_legend_policy_auto_with_threshold(sample_csv_file, csv_output_dir):
+    """Test csv2graph command with --legend-policy auto and --legend-outside-threshold."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--legend-policy", "auto",
+            "--legend-outside-threshold", "3",
+            "--max-legend-items", "20",
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_csv2graph_legend_policy_outside_bottom_with_ncol(sample_csv_file, csv_output_dir):
+    """Test csv2graph command with --legend-policy outside_bottom and --legend-ncol."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--legend-policy", "outside_bottom",
+            "--legend-ncol", "2",
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_csv2graph_invalid_legend_policy_raises_bad_parameter(sample_csv_file, csv_output_dir):
+    """Test csv2graph command rejects invalid --legend-policy values."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--legend-policy", "not_a_real_policy",
+        ],
+    )
+    assert result.exit_code != 0
+
+
 def test_csv2graph_individual_mode(sample_csv_file, csv_output_dir):
     """Test csv2graph command in individual plotting mode."""
     runner = CliRunner()
@@ -945,6 +1008,60 @@ def test_csv2graph_main_image_dir(sample_csv_file, csv_output_dir, tmp_path: Pat
 
     individual_files = list(csv_output_dir.glob(f"{sample_csv_file.stem}_*.png"))
     assert individual_files, "Individual plots were not written to output directory"
+
+
+def test_csv2graph_cli_tick_format_success__tc_ep_cli_005(sample_csv_file, csv_output_dir):
+    """Explicit --x-tick-format/--y-tick-format values should be accepted and produce output."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--x-tick-format", "eng",
+            "--y-tick-format", "plain",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "✨ Graphs generated successfully" in result.output
+    output_files = list(csv_output_dir.glob("*.png"))
+    assert len(output_files) > 0, "No PNG files were generated"
+
+
+def test_csv2graph_cli_invalid_x_tick_format__tc_ep_cli_006(sample_csv_file, csv_output_dir):
+    """An unsupported --x-tick-format value should be rejected with a BadParameter error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--x-tick-format", "invalid_value",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid x-tick-format" in result.output
+
+
+def test_csv2graph_cli_invalid_y_tick_format__tc_ep_cli_007(sample_csv_file, csv_output_dir):
+    """An unsupported --y-tick-format value should be rejected with a BadParameter error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "csv2graph",
+            str(sample_csv_file),
+            "--output-dir", str(csv_output_dir),
+            "--y-tick-format", "invalid_value",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid y-tick-format" in result.output
 
 
 def test_csv2graph_file_not_found():

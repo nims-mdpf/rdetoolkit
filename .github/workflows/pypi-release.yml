@@ -11,16 +11,37 @@ on:
       - main
 
 jobs:
+  # Gate: every version declaration (pyproject.toml, __init__.py, and — on tag
+  # builds — the tag itself) must agree before anything is built or published.
+  check-version:
+    name: Check version consistency
+    runs-on: ubuntu-latest
+    if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
+      startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Verify pyproject.toml / __version__ / tag agreement
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            python scripts/check_version_consistency.py --tag "${GITHUB_REF_NAME}"
+          else
+            python scripts/check_version_consistency.py
+          fi
+
   linux:
     runs-on: ubuntu-latest
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
       matrix:
-        target: [x86_64, i686]
+        target: [x86_64]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Build wheels
@@ -38,6 +59,7 @@ jobs:
 
   linux-cross:
     runs-on: ubuntu-latest
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
@@ -45,7 +67,7 @@ jobs:
         target: [aarch64, armv7, s390x, ppc64le]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -63,6 +85,7 @@ jobs:
 
   musllinux:
     runs-on: ubuntu-latest
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
@@ -72,7 +95,7 @@ jobs:
           - i686-unknown-linux-musl
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -90,6 +113,7 @@ jobs:
 
   musllinux-cross:
     runs-on: ubuntu-latest
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
@@ -101,7 +125,7 @@ jobs:
             arch: armv7
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - name: Build wheels
@@ -119,6 +143,7 @@ jobs:
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
@@ -131,7 +156,7 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
@@ -150,6 +175,7 @@ jobs:
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
@@ -161,7 +187,7 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - name: Build wheels
@@ -179,6 +205,7 @@ jobs:
 
   sdist:
     runs-on: ubuntu-latest
+    needs: [check-version]
     if: ${{ !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     steps:
@@ -218,10 +245,13 @@ jobs:
   release-to-testpypi:
     name: Release to TestPyPI
     runs-on: ubuntu-latest
+    # Publishing waits for approval by the required reviewers of the
+    # 'testpypi' GitHub Environment.
+    environment: testpypi
     if: ${{ startsWith(github.ref, 'refs/tags/v') && !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     needs:
-      [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
+      [check-version, test-dist, linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -232,6 +262,17 @@ jobs:
           echo "Files prepared for upload:"
           find dist -name "*.whl" -o -name "*.tar.gz" | head -20
           echo "Total files: $(find dist -name "*.whl" -o -name "*.tar.gz" | wc -l)"
+      - name: Verify artifact versions match the tag
+        run: |
+          EXPECTED="${GITHUB_REF_NAME#v}"
+          MISMATCH=$(find dist -type f \( -name "*.whl" -o -name "*.tar.gz" \) \
+            ! -name "rdetoolkit-${EXPECTED}-*" ! -name "rdetoolkit-${EXPECTED}.tar.gz")
+          if [ -n "$MISMATCH" ]; then
+            echo "::error::These artifacts do not match tag ${GITHUB_REF_NAME} (expected version ${EXPECTED}):"
+            echo "$MISMATCH"
+            exit 1
+          fi
+          echo "All artifacts match version ${EXPECTED}."
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -243,10 +284,15 @@ jobs:
   release-to-pypi:
     name: Release to PyPI
     runs-on: ubuntu-latest
+    # Publishing waits for approval by the required reviewers of the
+    # 'pypi' GitHub Environment.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/rdetoolkit/
     if: ${{ startsWith(github.ref, 'refs/tags/v') && !(github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') ||
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     needs:
-      [linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
+      [check-version, test-dist, linux, linux-cross, musllinux, musllinux-cross, windows, macos, sdist]
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -257,6 +303,17 @@ jobs:
           echo "Files prepared for upload:"
           find dist -name "*.whl" -o -name "*.tar.gz" | head -20
           echo "Total files: $(find dist -name "*.whl" -o -name "*.tar.gz" | wc -l)"
+      - name: Verify artifact versions match the tag
+        run: |
+          EXPECTED="${GITHUB_REF_NAME#v}"
+          MISMATCH=$(find dist -type f \( -name "*.whl" -o -name "*.tar.gz" \) \
+            ! -name "rdetoolkit-${EXPECTED}-*" ! -name "rdetoolkit-${EXPECTED}.tar.gz")
+          if [ -n "$MISMATCH" ]; then
+            echo "::error::These artifacts do not match tag ${GITHUB_REF_NAME} (expected version ${EXPECTED}):"
+            echo "$MISMATCH"
+            exit 1
+          fi
+          echo "All artifacts match version ${EXPECTED}."
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -280,7 +337,7 @@ jobs:
         with:
           path: dist/
       - name: Sign the distribution 📦 with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.4.0
+        uses: sigstore/gh-action-sigstore-python@v3.5.0
         with:
           inputs: >-
             dist/**/*.whl

@@ -55,6 +55,12 @@ GOLDEN_OUTPUT_TEMPLATE = (GOLDEN_DIR / "output_template.txt").read_text(encoding
 
 _IGNORED_FILENAMES = {".gitkeep"}
 _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
+# ``init`` writes ``rdetoolkit==<__version__>`` into container/requirements.txt.
+# The golden froze one release's value; the pin is normalized on both sides so a
+# version bump does not turn the byte-identity golden RED (Session K4-2). The
+# pattern is anchored to a whole line so comments and other specifiers survive.
+_VERSION_PIN_RE = re.compile(r"^rdetoolkit==\S+$", re.MULTILINE)
+VERSION_PLACEHOLDER = "rdetoolkit==<VERSION>"
 
 
 @pytest.fixture
@@ -72,9 +78,13 @@ def _collect_dirs(root: Path) -> set[str]:
     return {str(p.relative_to(root).as_posix()) for p in root.rglob("*") if p.is_dir()}
 
 
+def _normalize_version_pin(text: str) -> str:
+    return _VERSION_PIN_RE.sub(VERSION_PLACEHOLDER, text)
+
+
 def _collect_files(root: Path) -> dict[str, str]:
     return {
-        str(p.relative_to(root).as_posix()): p.read_text(encoding="utf-8")
+        str(p.relative_to(root).as_posix()): _normalize_version_pin(p.read_text(encoding="utf-8"))
         for p in root.rglob("*")
         if p.is_file() and p.name not in _IGNORED_FILENAMES
     }
@@ -90,11 +100,17 @@ class TestBareInitMatchesPreF2Golden:
     byte-identity requirement)."""
 
     def test_bare_init_produces_the_pre_f2_golden_tree(self, cli_runner: CliRunner, isolated_root: Path) -> None:
+        from rdetoolkit.cmd import command
+
         result = cli_runner.invoke(app, ["init"])
 
         assert result.exit_code == 0, result.output
         assert _collect_dirs(isolated_root) == _collect_dirs(GOLDEN_TREE)
         assert _collect_files(isolated_root) == _collect_files(GOLDEN_TREE)
+        # The normalized pin is compared exactly against the runtime version, so
+        # the normalization cannot hide a wrong or missing pin (K4-2).
+        requirements = (isolated_root / "container" / "requirements.txt").read_text(encoding="utf-8")
+        assert requirements.splitlines()[-1] == f"rdetoolkit=={command.__version__}"
 
     def test_bare_init_produces_the_pre_f2_golden_output(self, cli_runner: CliRunner, isolated_root: Path) -> None:
         result = cli_runner.invoke(app, ["init"])
@@ -115,6 +131,129 @@ class TestBareInitMatchesPreF2Golden:
         result = cli_runner.invoke(app, ["init", "--tasksupport", str(tasksupport_dir)])
 
         assert result.exit_code == 0, result.output
+
+
+class TestBareInitGoldenIsVersionIndependent:
+    """TC-CLI-INIT-TPL-VER-*: the bare-init golden survives a version bump.
+
+    Session K4-2. The frozen golden pins
+    ``rdetoolkit==2.0.0`` in ``container/requirements.txt``; the comparison
+    normalizes that one pin on both sides so a version bump (rc1, GA) cannot
+    turn the golden RED, while the generated pin is checked against the
+    runtime ``__version__`` exactly.
+
+    EP table:
+    | TC | Partition | Expected |
+    |----|-----------|----------|
+    | VER-EP-001 | bare init under a monkeypatched version | golden tree equal; pin == patched version |
+    | VER-EP-002 | exact pin line ``rdetoolkit==<release>`` | normalized to the placeholder |
+    | VER-EP-003 | other requirement lines (``pandas==``, ``>=``, comment) | untouched |
+    | VER-EP-004 | generated tree lacking the pin / with a changed line | still differs from the golden |
+
+    BV table:
+    | TC | Boundary | Expected |
+    |----|----------|----------|
+    | VER-BV-001 | pre-release / dev+local versions | normalized |
+    | VER-BV-002 | empty version ``rdetoolkit==`` | untouched (not a pin) |
+    | VER-BV-003 | name prefix/suffix (``xrdetoolkit==``, ``rdetoolkit-extra==``) | untouched |
+    | VER-BV-004 | pin not at line start (``# rdetoolkit==2.0.0``) | untouched |
+    """
+
+    def test_golden_tree_matches_under_a_patched_version__tc_cli_init_tpl_ver_ep_001(
+        self,
+        cli_runner: CliRunner,
+        isolated_root: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-CLI-INIT-TPL-VER-EP-001: a patched version still matches the golden."""
+        # Given: a release version that differs from the one frozen in the golden.
+        # ``rdetoolkit.cmd.command`` binds ``__version__`` at import time, so the
+        # value the generator reads is patched where it is read, plus the
+        # package attribute for consistency.
+        monkeypatch.setattr("rdetoolkit.__version__", "9.9.9rc1")
+        monkeypatch.setattr("rdetoolkit.cmd.command.__version__", "9.9.9rc1")
+
+        # When: running bare init
+        result = cli_runner.invoke(app, ["init"])
+
+        # Then: the golden still matches and the pin carries the patched version
+        assert result.exit_code == 0, result.output
+        assert _collect_files(isolated_root) == _collect_files(GOLDEN_TREE)
+        requirements = (isolated_root / "container" / "requirements.txt").read_text(encoding="utf-8")
+        assert requirements.splitlines()[-1] == "rdetoolkit==9.9.9rc1"
+
+    @pytest.mark.parametrize(
+        "line",
+        [
+            "rdetoolkit==2.0.0",  # EP-002
+            "rdetoolkit==2.0.1",  # EP-002
+            "rdetoolkit==2.0.0rc1",  # BV-001
+            "rdetoolkit==2.0.1.dev3+g1234abc",  # BV-001
+        ],
+    )
+    def test_pin_line_is_normalized__tc_cli_init_tpl_ver_ep_002_bv_001(self, line: str) -> None:
+        """TC-CLI-INIT-TPL-VER-EP-002/BV-001: an exact pin becomes the placeholder."""
+        # Given: a requirements text whose last line is an exact rdetoolkit pin
+        text = f"# numpy\n{line}\n"
+        # When: normalizing it
+        normalized = _normalize_version_pin(text)
+        # Then: only the pin is replaced by the placeholder
+        assert normalized == "# numpy\nrdetoolkit==<VERSION>\n"
+
+    @pytest.mark.parametrize(
+        "line",
+        [
+            "pandas==2.0.3",  # EP-003
+            "rdetoolkit>=2.0.0",  # EP-003
+            "# pandas==2.0.3",  # EP-003
+            "rdetoolkit==",  # BV-002
+            "xrdetoolkit==2.0.0",  # BV-003
+            "rdetoolkit-extra==2.0.0",  # BV-003
+            "# rdetoolkit==2.0.0",  # BV-004
+            " rdetoolkit==2.0.0",  # BV-004
+        ],
+    )
+    def test_non_pin_lines_are_untouched__tc_cli_init_tpl_ver_ep_003_bv_002_004(self, line: str) -> None:
+        """TC-CLI-INIT-TPL-VER-EP-003/BV-002..004: anything but an exact pin is kept."""
+        # Given: a line that is not an exact rdetoolkit pin at line start
+        text = f"{line}\n"
+        # When: normalizing it
+        normalized = _normalize_version_pin(text)
+        # Then: the text is returned unchanged
+        assert normalized == text
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("rdetoolkit==2.0.0", ""),  # the pin disappears
+            ("rdetoolkit==2.0.0", "rdetoolkit>=2.0.0"),  # the pin loosens
+            ("# numpy", "# scipy"),  # an unrelated line changes
+        ],
+    )
+    def test_normalization_does_not_mask_other_drift__tc_cli_init_tpl_ver_ep_004(
+        self,
+        isolated_root: Path,
+        old: str,
+        new: str,
+    ) -> None:
+        """TC-CLI-INIT-TPL-VER-EP-004: normalization cannot mask other drift."""
+        # Given: a copy of the golden tree whose requirements.txt drifted
+        golden_files = _collect_files(GOLDEN_TREE)
+        for relative in (p.relative_to(GOLDEN_TREE) for p in GOLDEN_TREE.rglob("*") if p.is_file()):
+            target = isolated_root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((GOLDEN_TREE / relative).read_bytes())
+        requirements = isolated_root / "container" / "requirements.txt"
+        original = requirements.read_text(encoding="utf-8")
+        assert old in original
+        requirements.write_text(original.replace(old, new), encoding="utf-8")
+
+        # When: comparing it to the golden through the normalized collector
+        drifted_files = _collect_files(isolated_root)
+
+        # Then: the drift is still visible
+        assert drifted_files != golden_files
+        assert drifted_files["container/requirements.txt"] != golden_files["container/requirements.txt"]
 
 
 class TestV1TemplateOptionUntouched:

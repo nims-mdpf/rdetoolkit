@@ -1,7 +1,7 @@
 import abc
 from abc import ABC, abstractmethod
 from pathlib import Path
-from rdetoolkit.models.rde2types import RawFiles as RawFiles, UnZipFilesPathList as UnZipFilesPathList, ZipFilesPathList as ZipFilesPathList
+from rdetoolkit.models.rde2types import RawFiles as RawFiles, SmartTableRawFiles as SmartTableRawFiles, UnZipFilesPathList as UnZipFilesPathList, ZipFilesPathList as ZipFilesPathList
 
 class IInputFileHelper(ABC, metaclass=abc.ABCMeta):
     @abstractmethod
@@ -14,7 +14,7 @@ class IInputFileChecker(ABC, metaclass=abc.ABCMeta):
     @abstractmethod
     def checker_type(self) -> str: ...
     @abstractmethod
-    def parse(self, src_input_path: Path) -> tuple[RawFiles, Path | None]: ...
+    def parse(self, src_input_path: Path) -> tuple[RawFiles | SmartTableRawFiles, Path | None]: ...
 
 class ICompressedFileStructParser(ABC, metaclass=abc.ABCMeta):
     @abstractmethod

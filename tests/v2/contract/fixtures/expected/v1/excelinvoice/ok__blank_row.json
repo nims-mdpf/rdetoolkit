@@ -1,0 +1,60 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_xls_blank_row",
+    "invalidate_invoice": false,
+    "mode": "excelinvoice",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "blank_row"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "587834ee85a5cd13373a3533fad0848bce419fd708d5e88e7618879fb882def1"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=Error! Blank lines exist between lines\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/inputdata/",
+        "data/invoice/",
+        "data/logs/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

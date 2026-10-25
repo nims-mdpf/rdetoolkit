@@ -102,7 +102,11 @@ def test_callback_receives_the_prepared_row_dictionary__tc_ira_2_ep_021(tmp_path
 
     # Then: the callback sees exactly the dictionary the builder computed
     assert legacy.output_paths.smarttable_row_data == preparation.smarttable_row_data
-    assert legacy.output_paths.smarttable_rowfile == paths.rawfiles[0]
+    # And (UPDATED, K0-iii / v1.7 #503): the row CSV arrives under the canonical
+    # name, from the tile's explicit field -- never as rawfiles[0]
+    assert paths.smarttable_rawfile is not None
+    assert legacy.output_paths.smarttable_rawfile == paths.smarttable_rawfile
+    assert paths.smarttable_rawfile not in legacy.output_paths.rawfiles
 
 
 def test_a_concurrent_run_cannot_erase_the_row_data__tc_ira_2_ev_022(tmp_path: Path) -> None:

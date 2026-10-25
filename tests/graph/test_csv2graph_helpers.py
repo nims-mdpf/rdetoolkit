@@ -175,6 +175,14 @@ Table 19: RenderCollections.all_results - Equivalence Partitioning
 │ EP-RENDER-004 │ Overlay + individual results   │ TC-EP-RENDER-007 │
 │ EP-RENDER-005 │ Both empty lists               │ TC-EP-RENDER-008 │
 └────────────┴───────────────────────────────────┴──────────────────┘
+
+Table 20: _build_plot_config tick_format pass-through (Issue #483 Task 04) - Equivalence Partitioning
+┌────────────┬───────────────────────────────────┬──────────────────┐
+│ EP Class   │ Test Condition                    │ Test Case ID     │
+├────────────┼───────────────────────────────────┼──────────────────┤
+│ EP-TICK-001 │ x/y_tick_format omitted           │ TC-EP-TICK-001   │
+│ EP-TICK-002 │ x_tick_format="eng", y="plain"    │ TC-EP-TICK-002   │
+└────────────┴───────────────────────────────────┴──────────────────┘
 """
 
 from __future__ import annotations
@@ -183,6 +191,7 @@ import pandas as pd
 import pytest
 
 from rdetoolkit.graph.api.csv2graph import (
+    _build_plot_config,
     _format_axis_label,
     _normalize_y_specs,
     _parse_headers,
@@ -1025,3 +1034,73 @@ class TestRenderCollectionsAllResults:
 
         # Then: Returns empty list
         assert result == []
+
+
+class TestBuildPlotConfigTickFormat:
+    """Test _build_plot_config() x_tick_format/y_tick_format pass-through.
+
+    Issue #483 Task 04: verifies AxisConfig.tick_format is populated from
+    the newly added _build_plot_config() keyword arguments.
+    """
+
+    @staticmethod
+    def _make_kwargs(**overrides: object) -> dict[str, object]:
+        normalized = NormalizedColumns(
+            x_col=0,
+            y_cols=[1],
+            direction_cols=[],
+            derived_x_label="X",
+            derived_y_label="Y",
+        )
+        direction_config = build_direction_config(filters=[], direction_colors=None)
+        kwargs: dict[str, object] = {
+            "plot_mode": PlotMode.OVERLAY,
+            "normalized": normalized,
+            "direction_config": direction_config,
+            "display_title": None,
+            "x_label": None,
+            "y_label": None,
+            "logx": False,
+            "logy": False,
+            "x_tick_format": "auto",
+            "y_tick_format": "auto",
+            "xlim": None,
+            "ylim": None,
+            "grid": False,
+            "invert_x": False,
+            "invert_y": False,
+            "legend_info": None,
+            "legend_loc": None,
+            "max_legend_items": None,
+            "formats": ["png"],
+            "no_individual": False,
+            "return_fig": False,
+            "base_filename": "test",
+            "main_image_dir_path": None,
+        }
+        kwargs.update(overrides)
+        return kwargs
+
+    def test_tick_format_defaults_to_auto__tc_ep_tick_001(self):
+        """Omitting x_tick_format/y_tick_format yields 'auto' on both axes."""
+        # Given: kwargs without explicit tick_format overrides (default "auto")
+        kwargs = self._make_kwargs()
+
+        # When: Building PlotConfig
+        config = _build_plot_config(**kwargs)
+
+        # Then: Both axes default to "auto"
+        assert config.x_axis.tick_format == "auto"
+        assert config.y_axis.tick_format == "auto"
+
+    def test_tick_format_explicit_values_pass_through__tc_ep_tick_002(self):
+        """Explicit x_tick_format='eng', y_tick_format='plain' are passed through."""
+        # Given: kwargs with explicit, distinct tick_format values per axis
+        kwargs = self._make_kwargs(x_tick_format="eng", y_tick_format="plain")
+
+        # When: Building PlotConfig
+        config = _build_plot_config(**kwargs)
+
+        # Then: Each axis reflects its own explicit tick_format value
+        assert config.x_axis.tick_format == "eng"
+        assert config.y_axis.tick_format == "plain"

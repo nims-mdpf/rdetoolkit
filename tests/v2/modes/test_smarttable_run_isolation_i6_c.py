@@ -82,7 +82,8 @@ def _prepare(service: InvoiceService, root: Path, destination: str) -> Path:
             inputdata=data_root / "inputdata",
             invoice=data_root / "invoice",
             tasksupport=data_root / "tasksupport",
-            rawfiles=(data_root / "inputdata" / "fsmarttable_shared_0000.csv",),
+            # v1.7 tile shape (K0-iii): the row CSV is carried explicitly.
+            smarttable_rawfile=data_root / "inputdata" / "fsmarttable_shared_0000.csv",
         ),
         invoice_dir=data_root / destination / "invoice",
         iteration_index=0,

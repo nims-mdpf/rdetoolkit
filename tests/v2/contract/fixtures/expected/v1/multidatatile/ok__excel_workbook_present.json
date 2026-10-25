@@ -1,0 +1,61 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_mdt_excel_workbook_present",
+    "invalidate_invoice": false,
+    "mode": "multidatatile",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "excel_workbook_present"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "9bae0b312dfa2dac22b040a6674a25d9c3892a7830f5b07b416218aea1f65c95"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=ERROR: input file should be EXCEL or ZIP file\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/inputdata/",
+        "data/invoice/",
+        "data/logs/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/stray_excel_invoice.xlsx",
+        "data/inputdata/tile_00.txt",
+        "data/inputdata/tile_日本語.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

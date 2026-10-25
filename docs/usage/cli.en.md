@@ -177,7 +177,7 @@ Available templates:
 - `full`: Includes `multidata_tile` defaults.
 - `multitile`: Enables `extended_mode: "MultiDataTile"`.
 - `rdeformat`: Enables `extended_mode: "rdeformat"`.
-- `smarttable`: Adds SmartTable settings with `save_table_file: true`.
+- `smarttable`: Adds SmartTable settings with `save_table_file: false`.
 - `interactive`: Guides you through each option. Use `--lang ja` for Japanese prompts.
 
 #### Options

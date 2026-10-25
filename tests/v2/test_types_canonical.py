@@ -173,7 +173,12 @@ class TestInputPathsRawField:
         """TC-TYPES-007: InputPaths.raw exists with None default; total field count
         is 5 (updated per Decision D1-A: additive rawfiles: tuple[Path, ...] = ()
         field, decisions_pre_D.md — this replaces the prior 4-field pin, which
-        predates D1's need to carry a tile's raw file tuple)."""
+        predates D1's need to carry a tile's raw file tuple).
+
+        UPDATED (Session K0-iii ruling #1): 6 fields -- the append-only
+        ``smarttable_rawfile: Path | None = None`` carries the v1.7 SmartTable
+        row CSV that ``rawfiles`` no longer holds (#503); its name and default
+        are pinned here as well."""
         from rdetoolkit.types import InputPaths  # noqa: PLC0415
 
         field_names = {f.name for f in dataclasses.fields(InputPaths)}
@@ -184,8 +189,19 @@ class TestInputPathsRawField:
             "InputPaths must have a rawfiles: tuple[Path, ...] field per "
             "Decision D1-A (decisions_pre_D.md)"
         )
-        assert len(dataclasses.fields(InputPaths)) == 5, (
-            f"InputPaths must have exactly 5 fields (D1-A adds rawfiles), got "
+        assert "smarttable_rawfile" in field_names, (
+            "InputPaths must have a smarttable_rawfile: Path | None field per "
+            "Session K0-iii ruling #1 (v1.7 #503)"
+        )
+        assert [f.name for f in dataclasses.fields(InputPaths)] == [
+            "inputdata",
+            "invoice",
+            "tasksupport",
+            "raw",
+            "rawfiles",
+            "smarttable_rawfile",
+        ], (
+            f"InputPaths must have exactly 6 fields in append-only order, got "
             f"{len(dataclasses.fields(InputPaths))}: {field_names}"
         )
         # Omitting raw/rawfiles must work (defaults: None / ())
@@ -196,6 +212,7 @@ class TestInputPathsRawField:
         )
         assert paths.raw is None
         assert paths.rawfiles == ()
+        assert paths.smarttable_rawfile is None
 
     def test_input_paths_raw_accepts_path_value__tc_types_008(self) -> None:
         """TC-TYPES-008: InputPaths.raw can be set to a Path (non-None)."""

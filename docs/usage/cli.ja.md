@@ -176,7 +176,7 @@ Created: /private/tmp/rdt-init-check/input/invoice/invoice.json
 - `full`: `multidata_tile`設定を含む完全なテンプレート。
 - `multitile`: `extended_mode: "MultiDataTile"`を有効化したテンプレート。
 - `rdeformat`: `extended_mode: "rdeformat"`を有効化したテンプレート。
-- `smarttable`: SmartTable設定を追加し、`save_table_file: true`を設定。
+- `smarttable`: SmartTable設定を追加し、`save_table_file: false`を設定。
 - `interactive`: 対話形式で各設定項目を確認。`--lang ja`で日本語プロンプトに切り替え可能。
 
 #### オプション

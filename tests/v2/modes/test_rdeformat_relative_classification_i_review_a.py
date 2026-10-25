@@ -28,19 +28,22 @@ this fixture (every file's own component outranks it). EP-055 is kept as the
 review asked for it and pins the correct outcome; EP-051/054/056 are the seats
 that go red when the relative classification is lost.
 
+The expectation is v1's: the frozen ``rdeformat/ok`` observation. v1's entry
+point works from a CWD-relative ``data/`` tree, so its output is the same under
+any ancestor; until Session K1 each cell re-ran v1 below the same ancestor to
+show it, and K1 ruling #4 replaced that live "v1 half" with the frozen snapshot.
+The comparison is the full parity observation (tree, raw digests, invoices,
+artifact digests), which is stronger than the per-file digest walk it replaced.
+
 BV / negative table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
-| TC-IRA-7-EV-052 | oracle | v1 on the ancestor layout | v2 matches v1 exactly |
+| TC-IRA-7-EV-052 | oracle | the ancestor layout | v2 matches the frozen v1 observation exactly |
 | TC-IRA-7-EV-053 | outside the root | a source that is not below ``data_root`` | no classification, nothing copied |
 """
 
 from __future__ import annotations
 
-import hashlib
-import json
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -51,40 +54,8 @@ from rdetoolkit.modes.rdeformat import RdeFormatRawCopyStrategy
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, RdeConfig
 from tests.v2.contract.fixtures import _generate
-
-_V1_ORACLE_WORKER = """
-import json, os, sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-sys.path.insert(0, os.getcwd())
-from rdetoolkit.models.config import Config, MultiDataTileSettings, SmartTableSettings, SystemSettings
-from rdetoolkit.workflows import _run_legacy as v1_run
-
-config = Config(
-    system=SystemSettings(
-        extended_mode="rdeformat",
-        save_raw=True,
-        save_nonshared_raw=True,
-        save_thumbnail_image=False,
-        magic_variable=False,
-    ),
-    multidata_tile=MultiDataTileSettings(ignore_errors=False),
-    smarttable=SmartTableSettings(save_table_file=False),
-)
-
-os.chdir(root)
-exit_code = 0
-try:
-    v1_run(custom_dataset_function=lambda a, b: None, config=config)
-except SystemExit as error:
-    exit_code = int(error.code or 0)
-
-(root / ".rdeformat_observation.json").write_text(
-    json.dumps({"exit_code": exit_code}), encoding="utf-8",
-)
-"""
-
+from tests.v2.contract.frozen import frozen_observed
+from tests.v2.contract.observe import parity_pair
 
 @flow
 def _noop_flow(paths: InputPaths) -> None:
@@ -105,16 +76,9 @@ def _overrides() -> dict[str, Any]:
     }
 
 
-def _observe_tree(data_root: Path) -> dict[str, str]:
-    """Hash every published file below the data root, keyed by relative path."""
-    return {
-        path.relative_to(data_root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in sorted(data_root.rglob("*"))
-        if path.is_file() and "logs" not in path.relative_to(data_root).parts
-    }
-
-
-def _run_v2(case_root: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
+def _run_v2(case_root: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Run the RDEFormat case through the v2 Runner; return (actual, expected) parity views."""
+    expected = frozen_observed("v1/rdeformat/ok")
     _generate.materialize_sut_case("rdeformat", case_root)
     monkeypatch.chdir(case_root)
     runner = Runner(
@@ -124,25 +88,12 @@ def _run_v2(case_root: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     )
     report = runner.run(_noop_flow, **_overrides())
     assert report.status == "success", report.error
-    return _observe_tree(case_root / "data")
+    return parity_pair(case_root, expected)
 
 
-def _run_v1(case_root: Path) -> dict[str, str]:
-    _generate.materialize_sut_case("rdeformat", case_root)
-    completed = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", _V1_ORACLE_WORKER, str(case_root)],
-        cwd=_generate.REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    observation_path = case_root / ".rdeformat_observation.json"
-    if not observation_path.exists():
-        message = f"v1 RDEFormat oracle failed: {completed.stderr[-1500:]}"
-        raise RuntimeError(message)
-    assert json.loads(observation_path.read_text(encoding="utf-8"))["exit_code"] == 0
-    observation_path.unlink()
-    return _observe_tree(case_root / "data")
+def _published(view: dict[str, Any]) -> set[str]:
+    """Return the ``data``-relative paths of every published file of a parity view."""
+    return {path.removeprefix("data/") for path in view["output_tree"]["files"]}
 
 
 def test_plain_layout_matches_v1__tc_ira_7_ep_050(
@@ -151,12 +102,10 @@ def test_plain_layout_matches_v1__tc_ira_7_ep_050(
 ) -> None:
     """TC-IRA-7-EP-050: with no misleading ancestor, v2 reproduces v1's tree."""
     # Given: the RDEFormat fixture under an ordinary project directory
-    expected = _run_v1(tmp_path / "v1" / "project")
+    # When: the v2 Runner processes it
+    actual, expected = _run_v2(tmp_path / "v2" / "project", monkeypatch)
 
-    # When: the v2 Runner processes the same input
-    actual = _run_v2(tmp_path / "v2" / "project", monkeypatch)
-
-    # Then: every published file matches, path and content
+    # Then: every published file matches the frozen v1 run, path and content
     assert actual == expected
 
 
@@ -184,18 +133,17 @@ def test_ancestor_named_like_a_component_does_not_reclassify__tc_ira_7_ep_051_05
     the *absolute* path won.
     """
     # Given: the same fixture below an ancestor directory named like a component
-    expected = _run_v1(tmp_path / "v1" / ancestor / "project")
-
     # When: the v2 Runner processes it from that misleading location
-    actual = _run_v2(tmp_path / "v2" / ancestor / "project", monkeypatch)
+    actual, expected = _run_v2(tmp_path / "v2" / ancestor / "project", monkeypatch)
 
     # Then: the tree is v1's, not the ancestor's
     assert actual == expected
 
     # And: each artifact sits in the component its own path names ...
-    assert "structured/result.csv" in actual
-    assert "divided/0001/meta/metadata.json" in actual
-    assert "raw/first.txt" in actual
+    published = _published(actual)
+    assert "structured/result.csv" in published
+    assert "divided/0001/meta/metadata.json" in published
+    assert "raw/first.txt" in published
 
     # ... and nowhere else: the ancestor's component hijacked nothing
     hijacked = {
@@ -214,7 +162,7 @@ def test_ancestor_named_like_a_component_does_not_reclassify__tc_ira_7_ep_051_05
         "divided/0001/main_image/日本語データ.txt",
         "divided/0001/main_image/metadata.json",
     }
-    assert hijacked.isdisjoint(actual)
+    assert hijacked.isdisjoint(published)
 
 
 def test_source_outside_the_data_root_is_not_classified__tc_ira_7_ev_053(tmp_path: Path) -> None:

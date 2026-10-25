@@ -12,7 +12,6 @@ This section provides comprehensive API documentation for RDEToolKit modules. Th
 - [rde2util](./rde2util.md): Module providing RDE-related utility functions.
 - [invoicefile](./invoicefile.md): Module for processing invoice files.
 - [validation](./validation.md): Module for data validation and verification.
-- [modeproc](./modeproc.md): Module for mode processing operations.
 - [img2thumb](./img2thumb.md): Module for converting images to thumbnails.
 - [rdelogger](./rdelogger.md): Module providing logging functionality.
 - [exceptions](./exceptions.md): Module for exception handling.

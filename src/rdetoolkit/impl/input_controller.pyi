@@ -1,11 +1,8 @@
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from collections.abc import Sequence
 from pathlib import Path
-from rdetoolkit.exceptions import StructuredError as StructuredError
-from rdetoolkit.impl import compressed_controller as compressed_controller
 from rdetoolkit.interfaces.filechecker import IInputFileChecker as IInputFileChecker
-from rdetoolkit.invoicefile import ExcelInvoiceFile as ExcelInvoiceFile, SmartTableFile as SmartTableFile
-from rdetoolkit.models.rde2types import ExcelInvoicePathList as ExcelInvoicePathList, InputFilesGroup as InputFilesGroup, OtherFilesPathList as OtherFilesPathList, RawFiles as RawFiles, ZipFilesPathList as ZipFilesPathList
+from rdetoolkit.models.rde2types import RawFiles as RawFiles, SmartTableRawFiles as SmartTableRawFiles
 
 class InvoiceChecker(IInputFileChecker):
     out_dir_temp: Incomplete
@@ -39,7 +36,7 @@ class MultiFileChecker(IInputFileChecker):
 class SmartTableChecker(IInputFileChecker):
     out_dir_temp: Incomplete
     save_table_file: Incomplete
-    def __init__(self, unpacked_dir_basename: Path, save_table_file: bool = True) -> None: ...
+    def __init__(self, unpacked_dir_basename: Path, save_table_file: bool = False) -> None: ...
     @property
     def checker_type(self) -> str: ...
-    def parse(self, src_dir_input: Path) -> tuple[RawFiles, Path | None]: ...
+    def parse(self, src_dir_input: Path) -> tuple[SmartTableRawFiles, Path | None]: ...

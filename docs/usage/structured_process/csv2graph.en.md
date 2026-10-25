@@ -160,6 +160,39 @@ csv2graph(
 )
 ```
 
+## Tick Label Format
+
+When plotted values span several orders of magnitude, matplotlib's default
+tick labels can display a small offset multiplier (e.g. `x10^-5`) near the
+top of the axis, which can be visually misleading. csv2graph automatically
+applies readable tick formatting (limited to 6 major ticks, with the
+multiplier rendered at the same font size as the tick labels) for any axis
+that is not explicitly configured otherwise.
+
+For finer control, specify `x_tick_format` / `y_tick_format`:
+
+- `auto` (default): Automatically switch to `x10^n` notation only when
+  values fall outside the `-3` to `4` power-of-ten range.
+- `plain`: Always display plain (non-scientific) numbers.
+- `sci`: Always display scientific (`x10^n`) notation.
+- `eng`: Display engineering notation with an SI-like suffix (e.g. `3.6 M`).
+
+```python
+csv2graph(
+    "data.csv",
+    y_tick_format="eng",
+)
+```
+
+```bash
+rdetoolkit csv2graph data.csv --y-tick-format eng
+```
+
+If an axis `label` already includes a unit (e.g. `Voltage (V)`), the unit is
+rendered as specified without duplication; see
+[Automatic Header Conversion](#automatic-header-conversion) below for how
+axis labels and units are derived from CSV headers.
+
 ## Automatic Header Conversion
 
 When CSV headers are in snake_case format, they are automatically converted to Title Case in axis labels and legends.
@@ -245,6 +278,74 @@ csv2graph(
 ```
 
 When the number of legend items exceeds `max_legend_items`, the legend is automatically hidden.
+
+#### Legend Placement Policy
+
+When overlaying many series, the legend can overlap the plot area. Use
+`legend_policy` to control where the legend is placed:
+
+| policy           | Behavior                                                                |
+| ---------------- | ------------------------------------------------------------------------ |
+| `legacy` (default) | Preserve the existing behavior driven by `legend_loc` and `max_legend_items` |
+| `auto`           | Automatically choose placement based on the number of legend items       |
+| `inside`         | Show the legend inside the plot area, using `legend_loc`                 |
+| `outside_right`  | Place the legend outside the plot area, on the right                     |
+| `outside_bottom` | Place the legend outside the plot area, below the graph                  |
+| `hide`           | Do not show the legend                                                   |
+
+`auto` switches the placement based on the item count:
+
+| Condition (with default values) | Placement |
+| ------------------------------- | --------- |
+| 1-8 items (up to `legend_outside_threshold`) | `inside` |
+| 9-20 items | `outside_right` |
+| 21+ items (at or above `legend_bottom_threshold`) | `outside_bottom` |
+| more than `max_legend_items` | `hide` |
+
+```python
+# Automatically move the legend outside the plot when there are many series
+csv2graph(
+    "data.csv",
+    legend_policy="auto",
+    legend_outside_threshold=8,   # switch to outside-right placement above 8 items
+    legend_bottom_threshold=21,   # switch to bottom placement at 21+ items (None disables)
+    max_legend_items=30,
+)
+
+# Force the legend outside the plot, on the right
+csv2graph(
+    "data.csv",
+    legend_policy="outside_right",
+)
+
+# Force the legend below the graph, arranged in 3 columns
+csv2graph(
+    "data.csv",
+    legend_policy="outside_bottom",
+    legend_ncol=3,
+)
+
+# Arrange ~30 legend items below the graph in 10 columns (about 3 rows)
+csv2graph(
+    "data.csv",
+    legend_policy="outside_bottom",
+    legend_ncol=10,
+)
+```
+
+With `outside_right` / `outside_bottom`, the figure (canvas) is enlarged to fit
+the legend instead of shrinking the plot area, so the graph itself keeps its
+size even with many series.
+
+`legend_policy` is also honored by the Plotly HTML output (`--html`): `hide`
+disables the legend, and `inside` / `outside_right` / `outside_bottom` map to
+the corresponding Plotly legend positions (`legacy` keeps Plotly's default
+placement as before).
+
+Passing an unsupported `legend_policy` value raises a `ValueError`.
+
+`legend_policy` defaults to `"legacy"`, so existing code is unaffected unless
+this option is set explicitly.
 
 ## Python Examples
 
@@ -519,6 +620,20 @@ python -m rdetoolkit.graph.api.csv2graph multi_series_data.csv \
     --output_dir plots \
     --max_legend_items 10 \
     --legend_loc "upper right"
+
+# Automatically place the legend outside the plot when there are many series
+python -m rdetoolkit.graph.api.csv2graph multi_series_data.csv \
+    --output_dir plots \
+    --legend-policy auto \
+    --legend-outside-threshold 8 \
+    --legend-bottom-threshold 21 \
+    --max-legend-items 30
+
+# Force the legend below the graph in 3 columns
+python -m rdetoolkit.graph.api.csv2graph multi_series_data.csv \
+    --output_dir plots \
+    --legend-policy outside_bottom \
+    --legend-ncol 3
 
 # Skip individual plots
 python -m rdetoolkit.graph.api.csv2graph data.csv \

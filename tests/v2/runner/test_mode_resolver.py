@@ -307,21 +307,23 @@ class TestW1001Emission:
 
 
 # ---------------------------------------------------------------------------
-# domain/mode.py zero-diff guard
+# domain/input_checker.py zero-diff guard
 # ---------------------------------------------------------------------------
 
-class TestDomainModePyZeroDiff:
-    """Verify that domain/mode.py is not modified by the mode_resolver implementation."""
+class TestInputCheckerZeroDiff:
+    """Verify that the checker-selection contract is not modified by the mode_resolver implementation."""
 
-    def test_domain_mode_py_has_no_uncommitted_changes(self) -> None:
-        """TC-MODE-011: git diff HEAD -- src/rdetoolkit/domain/mode.py must be empty.
+    def test_input_checker_py_has_no_uncommitted_changes(self) -> None:
+        """TC-MODE-011: git diff HEAD -- src/rdetoolkit/domain/input_checker.py must be empty.
 
-        domain/mode.py is a v1-compat file and MUST NOT be modified.
-        mode_resolver.py wraps it; it does not rewrite it.
+        ``selected_input_checker`` carries the v1 detection order (SmartTable,
+        Excel invoice, RDEFormat, MultiDataTile, invoice). Session K2(a) moved
+        it from ``domain/mode.py`` into ``domain/input_checker.py``; the
+        mode resolver wraps that function and must never rewrite it.
         """
         project_root = Path(__file__).parents[3]
         result = subprocess.run(
-            ["git", "diff", "HEAD", "--", "src/rdetoolkit/domain/mode.py"],
+            ["git", "diff", "HEAD", "--", "src/rdetoolkit/domain/input_checker.py"],
             capture_output=True,
             text=True,
             cwd=project_root,

@@ -15,6 +15,7 @@ from rdetoolkit.domain.invoice import (
     smarttable_invoice_builder,
 )
 from rdetoolkit.domain.service_errors import validation_error
+from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.invoicefile import apply_magic_variable, update_description_with_features
 from rdetoolkit.models.rde2types import RdeDatasetPaths, RdeInputDirPaths, RdeOutputResourcePath
 from rdetoolkit.types import InputPaths, InvoiceData, RdeConfig
@@ -135,7 +136,7 @@ class InvoiceService:
             )
         if mode_value == "smarttable":
             return build_smarttable_tile_invoice(
-                smarttable_rowfile=_first_matching(paths.rawfiles, prefixes=("fsmarttable_",), suffixes=(".csv",)),
+                smarttable_rowfile=_smarttable_rawfile(paths),
                 invoice_org=invoice_source,
                 invoice_schema_path=schema,
                 dist_path=destination,
@@ -296,6 +297,7 @@ def build_tile_dataset_paths(
         invoice=out.invoice,
         invoice_schema_json=paths.tasksupport / "invoice.schema.json",
         invoice_org=invoice_org,
+        smarttable_rawfile=paths.smarttable_rawfile,
         attachment=out.attachment,
     )
     return RdeDatasetPaths(
@@ -354,6 +356,22 @@ def _first_matching(
             return path
     message = f"No input file matched suffixes {suffixes}"
     raise validation_error(4003, message)
+
+
+def _smarttable_rawfile(paths: InputPaths) -> Path:
+    """Return the tile's generated row CSV, as v1.7's initializer reads it.
+
+    The iterator carries it explicitly (v1.7 #503); there is no fallback to
+    ``rawfiles``, which never holds it. A row tile without one fails with the
+    v1 ``SmartTableInvoiceInitializer`` message.
+
+    Raises:
+        StructuredError: If the tile carries no row CSV.
+    """
+    if paths.smarttable_rawfile is None:
+        error_msg = "No SmartTable row CSV file found"
+        raise StructuredError(error_msg)
+    return paths.smarttable_rawfile
 
 
 def _copy_invoice(source: Path, destination: Path) -> None:

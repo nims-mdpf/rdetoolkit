@@ -1,11 +1,20 @@
-"""Session I6-C: the v2 SmartTable invoice builder against the v1 oracle.
+"""Session I6-C: the v2 SmartTable invoice builder against the frozen v1 oracle.
 
 The subject is ``rdetoolkit.modes.smarttable.SmartTableInvoiceBuilder``, the v2
 port of v1's ``SmartTableInvoiceInitializer``. Every merge rule is asserted by
-running the v1 processor on byte-identical inputs in a sibling directory and
-comparing the three observable results: the written tile ``invoice.json``, the
-written ``meta/metadata.json`` and the returned row dictionary. The v1 class is
-used **only here, as the oracle** — the v2 code path no longer references it.
+comparing the three observable results -- the written tile ``invoice.json``,
+the written ``meta/metadata.json`` and the returned row dictionary, or the
+normalized error -- with v1's observation of byte-identical inputs.
+
+UPDATED (Session K2-0, ruling #1): until K2-0 this module executed the v1
+processor live. Every one of those observations is now a registered case of
+``tests/v2/modes/fixtures/smarttable_builder/_freeze.py`` (family ``i6c``), frozen
+from v1 by that generator; this module no longer imports
+``rdetoolkit.processing``. The same frozen inputs also pin the merge rules the
+live oracle never exercised (``deletion_coverage.md`` §2 G2-G8: TC-I6-C-BV-046,
+EP-018..022, EV-035, the BV-040 variants and EP-009 ``overwrite``). Session
+K2-0b closed the freeze window (snapshots committed in 3424839b): a missing
+snapshot now fails instead of skipping as ``pending freeze``.
 
 Equivalence partitions (EP):
 
@@ -20,12 +29,18 @@ Equivalence partitions (EP):
 | ``build`` | no ``sample/ownerId`` column | ownerId := dataOwnerId | equals v1 | TC-I6-C-EP-007 |
 | ``build`` | missing ``invoice_org`` | empty invoice template | equals v1 | TC-I6-C-EP-008 |
 | ``build`` | existing ``metadata.json`` | constant section merge | equals v1 | TC-I6-C-EP-009 |
+| ``build`` | existing ``metadata.json`` holding the same key (G8) | value and unit replaced, rest kept | equals v1 | TC-I6-C-EP-009[overwrite] |
 | ``build`` | row dictionary | callback material | equals v1 | TC-I6-C-EP-010 |
 | ``build`` | empty attribute cells while linking a sample | attribute clearing | equals v1 | TC-I6-C-EP-011 |
 | ``build`` | base invoice without attribute containers | container creation | equals v1 | TC-I6-C-EP-012 |
 | ``build`` | base invoice without ``basic`` | required-section repair | equals v1 | TC-I6-C-EP-013 |
 | ``build`` | malformed specific-attribute key | ignored, not an error | equals v1 | TC-I6-C-EP-014 |
 | ``build`` | metadata definition without a type | raw string stored | equals v1 | TC-I6-C-EP-015 |
+| ``build`` | ``sample/sampleId`` empty (G3) | absent: new-sample clearing | equals v1 | TC-I6-C-EP-018 |
+| ``build`` | ``sample/sampleId`` blank (G3) | absent: new-sample clearing | equals v1 | TC-I6-C-EP-019 |
+| ``build`` | base ``basic.dataOwnerId`` missing / empty (G4) | inherited ``sample.ownerId`` kept | equals v1 | TC-I6-C-EP-020 |
+| ``build`` | base attribute containers ``null`` (G5) | containers become lists | equals v1 | TC-I6-C-EP-021 |
+| ``build`` | two classIds x two termIds (G6) | three distinct entries | equals v1 | TC-I6-C-EP-022 |
 
 Negative / error partitions (EV):
 
@@ -39,24 +54,30 @@ Negative / error partitions (EV):
 | ``build`` | meta key absent from metadata-def | undefined metadata | same StructuredError | TC-I6-C-EV-025 |
 | ``build`` | ``variable`` metadata | unsupported mapping | same StructuredError | TC-I6-C-EV-026 |
 | ``build`` | unsupported metadata type | unsupported mapping | same StructuredError | TC-I6-C-EV-027 |
-| ``build`` | metadata-def.json missing | v1 skips the column | equals v1 | TC-I6-C-EV-028 |
+| ``build`` | metadata-def.json missing | v1.7 #496 rejects the column (UPDATED K0-iii) | same StructuredError | TC-I6-C-EV-028 |
 | ``build`` | sample attribute container is a scalar | container contract | same StructuredError | TC-I6-C-EV-029 |
 | ``build`` | header-only row CSV | no data row | equals v1, row data ``None`` | TC-I6-C-EV-030 |
 | ``build`` | missing row CSV | unreadable input | same StructuredError | TC-I6-C-EV-031 |
 | ``build`` | non-numeric ``number`` cell | strict SmartTable casting | same StructuredError | TC-I6-C-EV-032 |
 | ``build`` | metadata value of the wrong type | metadata-def contract | same StructuredError | TC-I6-C-EV-033 |
 | ``build`` | metadata-def.json is not an object | file contract | same StructuredError | TC-I6-C-EV-034 |
+| ``build`` | ``integer`` column holding ``"30.1"`` (G7) | decimal rejected | same StructuredError | TC-I6-C-EV-035 |
 
 Boundary values (BV):
 
 | API | Boundary | Rationale | Expected | Test ID |
 | --- | --- | --- | --- | --- |
 | ``build`` | ``number`` column holding ``"3"`` | int-before-float rule | ``3`` not ``3.0`` | TC-I6-C-BV-040 |
+| ``build`` | ``"-1"`` / ``"0"`` / ``"0.0"`` number, ``"-1"`` integer (G7) | low magnitudes keep their type | equals v1 | TC-I6-C-BV-040[...] |
 | ``build`` | two tiles of one run | later tiles must not inherit tile 0 | base invoice read once | TC-I6-C-BV-041 |
 | ``build`` | new builder after content change | run boundary reloads | changed value observed | TC-I6-C-BV-042 |
 | ``build`` | two builders, same path, changed content | same-root concurrency | independent snapshots | TC-I6-C-BV-043 |
 | ``build`` | ``reset`` between two runs of one builder | run boundary | source is re-read | TC-I6-C-BV-044 |
 | ``build`` | two tiles, two destinations, one run | snapshot is copied per tile | tile 0's row cannot reach tile 1 | TC-I6-C-BV-045 |
+| ``build`` | boolean cells in mixed case / padded with blanks (G2) | case and blanks ignored | equals v1 | TC-I6-C-BV-046 |
+
+BV-041..045 are v2-only run-ownership properties of the builder (v1 had a
+class cache instead); they never had a v1 oracle and run as before.
 """
 
 from __future__ import annotations
@@ -67,67 +88,20 @@ from typing import Any
 
 import pytest
 
-from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
-from rdetoolkit.processing.context import ProcessingContext
-from rdetoolkit.processing.processors.invoice import SmartTableInvoiceInitializer
-
-_REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-_SAMPLE_SCHEMA = json.loads(
-    (_REPOSITORY_ROOT / "tests" / "samplefile" / "invoice.schema.json").read_text(encoding="utf-8"),
+from tests.v2.modes.fixtures.smarttable_builder import _freeze
+from tests.v2.modes.smarttable_builder_support import (
+    assert_matches_frozen,
+    failure_error,
+    observe_v2,
+    success_step,
 )
-_OWNER_ID = "0" * 55 + "1"
-_GENERAL_TERM = "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e"
-_CLASS_ID = "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
-_SPECIFIC_TERM = "3250c45d-0ed6-1438-43b5-eb679918604a"
 
-_BASE_INVOICE: dict[str, Any] = {
-    "datasetId": "seed-dataset",
-    "basic": {
-        "dateSubmitted": "2026-09-01",
-        "dataOwnerId": _OWNER_ID,
-        "dataName": "inherited-name",
-        "instrumentId": "inherited-instrument",
-    },
-    "custom": {"sample9": "inherited-custom"},
-    "sample": {
-        "sampleId": "00000000-0000-0000-0000-000000000001",
-        "names": ["inherited-sample"],
-        "description": "inherited description",
-        "composition": "inherited composition",
-        "referenceUrl": "https://example.invalid/inherited",
-        "ownerId": "0" * 55 + "5",
-        "generalAttributes": [{"termId": _GENERAL_TERM, "value": "inherited-general"}],
-        "specificAttributes": [
-            {"classId": _CLASS_ID, "termId": _SPECIFIC_TERM, "value": "inherited-specific"},
-        ],
-    },
-}
-
-#: A base invoice whose sample declares neither attribute container.
-_NO_SAMPLE_ATTRIBUTE_INVOICE: dict[str, Any] = {
-    "basic": {"dateSubmitted": "2026-09-01", "dataOwnerId": _OWNER_ID, "dataName": "inherited-name"},
-    "custom": {},
-    "sample": {"sampleId": "00000000-0000-0000-0000-000000000001"},
-}
-
-#: A base invoice with no ``basic`` section, which v1 tolerates.
-_NO_BASIC_INVOICE: dict[str, Any] = {
-    "datasetId": "seed-dataset",
-    "custom": {},
-    "sample": {"names": ["inherited-sample"]},
-}
-
-_METADATA_DEF: dict[str, Any] = {
-    "comment": {"name": {"ja": "コメント", "en": "Comment"}, "schema": {"type": "string"}},
-    "temperature": {
-        "name": {"ja": "温度", "en": "Temperature"},
-        "schema": {"type": "number"},
-        "unit": "C",
-    },
-    # A definition that declares no type: v1 stores the raw string.
-    "untyped": {"name": {"ja": "型なし", "en": "Untyped"}, "schema": {}},
-}
+_SAMPLE_SCHEMA = _freeze.SAMPLE_SCHEMA
+_BASE_INVOICE = _freeze.BASE_INVOICE
+_METADATA_DEF = _freeze.METADATA_DEF
+_GENERAL_TERM = _freeze.GENERAL_TERM
+_CLASS_ID = _freeze.CLASS_ID
+_SPECIFIC_TERM = _freeze.SPECIFIC_TERM
 
 
 def _materialize(
@@ -179,412 +153,270 @@ def _materialize(
     }
 
 
-def _run_v1_oracle(paths: dict[str, Path]) -> dict[str, Any] | None:
-    """Execute the v1 initializer on the same inputs and return its row dict."""
-    # The v1 class cache is process-global; clearing it keeps every oracle call
-    # independent of the order tests run in.
-    SmartTableInvoiceInitializer.clear_base_invoice_cache()
-    tile = paths["dist_path"].parents[1]
-    resource_paths = RdeOutputResourcePath(
-        raw=tile / "raw",
-        nonshared_raw=tile / "nonshared_raw",
-        rawfiles=(paths["rowfile"],),
-        struct=tile / "structured",
-        main_image=tile / "main_image",
-        other_image=tile / "other_image",
-        meta=tile / "meta",
-        thumbnail=tile / "thumbnail",
-        logs=tile / "logs",
-        invoice=paths["dist_path"].parent,
-        invoice_schema_json=paths["schema_path"],
-        invoice_org=paths["invoice_org"],
-        smarttable_rowfile=paths["rowfile"],
-        attachment=tile / "attachment",
-    )
-    context = ProcessingContext(
-        index="0001",
-        srcpaths=RdeInputDirPaths(
-            inputdata=paths["rowfile"].parent,
-            invoice=paths["invoice_org"].parent,
-            tasksupport=paths["schema_path"].parent,
-        ),
-        resource_paths=resource_paths,
-        datasets_function=None,
-        mode_name="smarttable",
-        smarttable_file=paths["rowfile"],
-    )
-    try:
-        SmartTableInvoiceInitializer().process(context)
-    finally:
-        SmartTableInvoiceInitializer.clear_base_invoice_cache()
-    return resource_paths.smarttable_row_data
-
-
-def _run_v2_builder(paths: dict[str, Path]) -> dict[str, Any] | None:
-    from rdetoolkit.modes.smarttable import SmartTableInvoiceBuilder  # noqa: PLC0415
-
-    return SmartTableInvoiceBuilder().build(
-        rowfile=paths["rowfile"],
-        invoice_org=paths["invoice_org"],
-        invoice_schema_path=paths["schema_path"],
-        dist_path=paths["dist_path"],
-        metadata_def_path=paths["metadata_def_path"],
-        metadata_path=paths["metadata_path"],
-    )
-
-
-def _observe(paths: dict[str, Path], row_data: dict[str, Any] | None) -> dict[str, Any]:
-    def _read(path: Path) -> Any:
-        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
-
-    return {
-        "invoice": _read(paths["dist_path"]),
-        "metadata": _read(paths["metadata_path"]),
-        "row_data": row_data,
-    }
-
-
-def _compare_with_v1(tmp_path: Path, **material: Any) -> dict[str, Any]:
-    """Run both implementations on identical trees and assert they agree."""
-    v1_paths = _materialize(tmp_path / "v1", **material)
-    v2_paths = _materialize(tmp_path / "v2", **material)
-    v1_observed = _observe(v1_paths, _run_v1_oracle(v1_paths))
-    v2_observed = _observe(v2_paths, _run_v2_builder(v2_paths))
-    assert v2_observed == v1_observed
-    return v2_observed
-
-
-def _compare_failure_with_v1(tmp_path: Path, **material: Any) -> StructuredError:
-    """Assert both implementations reject identical inputs the same way."""
-    v1_root = tmp_path / "v1"
-    v2_root = tmp_path / "v2"
-    v1_paths = _materialize(v1_root, **material)
-    v2_paths = _materialize(v2_root, **material)
-    with pytest.raises(StructuredError) as v1_error:
-        _run_v1_oracle(v1_paths)
-    with pytest.raises(StructuredError) as v2_error:
-        _run_v2_builder(v2_paths)
-    # The two trees differ only by their root directory, which a message may
-    # legitimately quote; everything else must be byte-identical.
-    assert str(v2_error.value).replace(str(v2_root), "<ROOT>") == str(v1_error.value).replace(str(v1_root), "<ROOT>")
-    assert not v2_paths["dist_path"].exists() or v1_paths["dist_path"].exists()
-    return v2_error.value
-
-
-_HEADER_FULL = (
-    "basic/dataName,custom/sample2,custom/sample3,custom/invert_phase_axis,"
-    f"sample/names,sample/description,sample/generalAttributes.{_GENERAL_TERM},"
-    f"sample/specificAttributes.{_CLASS_ID}.{_SPECIFIC_TERM},meta/comment,meta/temperature,inputdata1"
-)
-
-_MERGE_CASES: tuple[tuple[str, str, dict[str, Any] | None], ...] = (
-    (
-        "TC-I6-C-EP-001",
-        "basic/dataName\nrow-name\n",
-        _BASE_INVOICE,
-    ),
-    (
-        "TC-I6-C-EP-002",
-        "custom/sample2,custom/sample3,custom/invert_phase_axis,custom/sample9\n2.5,7,true,text\n",
-        _BASE_INVOICE,
-    ),
-    (
-        "TC-I6-C-EP-003",
-        "sample/names,sample/description\nnew-sample,fresh\n",
-        _BASE_INVOICE,
-    ),
-    (
-        "TC-I6-C-EP-004",
-        f"sample/sampleId,sample/generalAttributes.{_GENERAL_TERM},"
-        f"sample/specificAttributes.{_CLASS_ID}.{_SPECIFIC_TERM}\n"
-        "00000000-0000-0000-0000-000000000009,general-a,specific-a\n",
-        _BASE_INVOICE,
-    ),
-    (
-        "TC-I6-C-EP-006",
-        "basic/dataName,basic/instrumentId,custom/sample9\nkept,,\n",
-        _BASE_INVOICE,
-    ),
-    (
-        "TC-I6-C-EP-007",
-        "sample/ownerId,basic/dataName\n" + "0" * 55 + "7,owned\n",
-        _BASE_INVOICE,
-    ),
-    (
-        "TC-I6-C-EP-008",
-        "basic/dataName\nno-base\n",
-        None,
-    ),
-    (
-        "TC-I6-C-EP-010",
-        _HEADER_FULL + "\nrow-name,2.5,7,false,new-sample,fresh,general-a,specific-a,memo,20.5,input/row.txt\n",
-        _BASE_INVOICE,
-    ),
-    (
-        # Empty attribute cells on a sample-linking row drop the inherited
-        # entries instead of preserving them (no new-sample clearing applies).
-        "TC-I6-C-EP-011",
-        f"sample/sampleId,sample/generalAttributes.{_GENERAL_TERM},"
-        f"sample/specificAttributes.{_CLASS_ID}.{_SPECIFIC_TERM},sample/composition\n"
-        "00000000-0000-0000-0000-000000000009,,,\n",
-        _BASE_INVOICE,
-    ),
-    (
-        # A base invoice that declares no attribute containers at all.
-        "TC-I6-C-EP-012",
-        f"sample/sampleId,sample/generalAttributes.{_GENERAL_TERM},"
-        f"sample/specificAttributes.{_CLASS_ID}.{_SPECIFIC_TERM}\n"
-        "00000000-0000-0000-0000-000000000009,general-new,specific-new\n",
-        _NO_SAMPLE_ATTRIBUTE_INVOICE,
-    ),
-    (
-        # A base invoice with no ``basic`` section at all.
-        "TC-I6-C-EP-013",
-        "sample/sampleId\n00000000-0000-0000-0000-000000000009\n",
-        _NO_BASIC_INVOICE,
-    ),
-    (
-        # Malformed specific-attribute keys (no ``.<termId>``) are ignored,
-        # both when they carry a value and when they are empty.
-        "TC-I6-C-EP-014",
-        "sample/sampleId,sample/specificAttributes.classonly,sample/specificAttributes.emptyonly\n"
-        "00000000-0000-0000-0000-000000000009,specific-x,\n",
-        _BASE_INVOICE,
-    ),
-    (
-        # New-sample registration keeps its cleared fields cleared even when the
-        # row leaves them empty, instead of re-running the empty-cell clearing.
-        "TC-I6-C-EP-016",
-        f"sample/names,sample/description,sample/composition,"
-        f"sample/generalAttributes.{_GENERAL_TERM}\n"
-        "new-sample,,,\n",
-        _BASE_INVOICE,
-    ),
-    (
-        # Attributes that do not match any inherited entry are appended after
-        # the entries already present.
-        "TC-I6-C-EP-017",
-        "sample/sampleId,sample/generalAttributes.11111111-1111-1111-1111-111111111111,"
-        f"sample/specificAttributes.{_CLASS_ID}.22222222-2222-2222-2222-222222222222\n"
-        "00000000-0000-0000-0000-000000000009,general-added,specific-added\n",
-        _BASE_INVOICE,
-    ),
-    (
-        # A metadata definition without a declared type passes the raw string.
-        "TC-I6-C-EP-015",
-        "meta/untyped\nraw-value\n",
-        _BASE_INVOICE,
-    ),
-)
+def _i6c(test_id: str, variant: str | None = None) -> str:
+    """Return the builder case id of an I6-C test (family ``i6c``)."""
+    return f"i6c/{test_id}" if variant is None else f"i6c/{test_id}__{variant}"
 
 
 @pytest.mark.parametrize(
-    ("csv_text", "invoice"),
-    [pytest.param(csv_text, invoice, id=case_id) for case_id, csv_text, invoice in _MERGE_CASES],
+    "test_id",
+    [pytest.param(test_id, id=test_id) for test_id, _csv_text, _invoice in _freeze.I6C_MERGE_ROWS],
 )
-def test_merge_rules_match_the_v1_initializer(
-    tmp_path: Path,
-    csv_text: str,
-    invoice: dict[str, Any] | None,
-) -> None:
-    """TC-I6-C-EP-001..010: every merge rule reproduces the v1 result exactly."""
-    # Given: one SmartTable row and the base invoice v1 would inherit from
-    # When: both implementations build the tile invoice
-    # Then: invoice, metadata and row dictionary are identical
-    _compare_with_v1(
-        tmp_path,
-        csv_text=csv_text,
-        invoice=invoice,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-    )
+def test_merge_rules_match_the_v1_initializer(tmp_path: Path, test_id: str) -> None:
+    """TC-I6-C-EP-001..017: every merge rule reproduces the frozen v1 result exactly."""
+    # Given: one SmartTable row and the base invoice v1 inherited from (frozen case)
+    # When: the v2 builder builds the tile on the same inputs
+    observed = observe_v2(tmp_path, _i6c(test_id))
+
+    # Then: no step failed, and invoice, metadata and row dictionary equal v1's
+    success_step(observed)
+    assert_matches_frozen(_i6c(test_id), observed)
 
 
 def test_meta_columns_match_the_v1_metadata_file__tc_i6_c_ep_005(tmp_path: Path) -> None:
     """TC-I6-C-EP-005: meta/ columns produce v1's metadata.json entries."""
     # Given: two meta columns, one of which declares a unit
-    # When: both implementations build the tile
-    observed = _compare_with_v1(
-        tmp_path,
-        csv_text="meta/comment,meta/temperature\nmemo-a,20.5\n",
-        invoice=_BASE_INVOICE,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-    )
+    # When: the builder builds the tile
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EP-005"))
 
     # Then: the typed values and the unit survive the port
-    assert observed["metadata"]["constant"] == {
+    step = success_step(observed)
+    assert step["metadata"]["constant"] == {
         "comment": {"value": "memo-a"},
         "temperature": {"value": 20.5, "unit": "C"},
     }
-    assert observed["metadata"]["variable"] == []
+    assert step["metadata"]["variable"] == []
+    # And: the whole observation is v1's
+    assert_matches_frozen(_i6c("TC-I6-C-EP-005"), observed)
 
 
 def test_existing_metadata_is_merged_not_replaced__tc_i6_c_ep_009(tmp_path: Path) -> None:
     """TC-I6-C-EP-009: an existing metadata.json keeps its other keys."""
     # Given: a metadata.json a node already wrote for this tile
-    # When: both implementations apply one meta column
-    observed = _compare_with_v1(
-        tmp_path,
-        csv_text="meta/comment\nmemo-a\n",
-        invoice=_BASE_INVOICE,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-        metadata={"constant": {"existing": {"value": "keep"}}, "variable": [{"seq": 1}]},
-    )
+    # When: the builder applies one meta column
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EP-009"))
 
     # Then: the pre-existing constant and variable sections survive
-    assert observed["metadata"]["constant"]["existing"] == {"value": "keep"}
-    assert observed["metadata"]["variable"] == [{"seq": 1}]
+    step = success_step(observed)
+    assert step["metadata"]["constant"]["existing"] == {"value": "keep"}
+    assert step["metadata"]["variable"] == [{"seq": 1}]
+    assert_matches_frozen(_i6c("TC-I6-C-EP-009"), observed)
+
+
+def test_existing_metadata_key_is_overwritten_with_its_unit__tc_i6_c_ep_009_overwrite(tmp_path: Path) -> None:
+    """TC-I6-C-EP-009[overwrite] (G8): the same key is replaced, value and unit."""
+    # Given: a metadata.json already holding ``comment`` with another unit
+    # When: the builder applies a ``meta/comment`` column whose definition has a unit
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EP-009", "overwrite"))
+
+    # Then: value and unit are both the new ones, every other key is kept
+    step = success_step(observed)
+    assert step["metadata"]["constant"]["comment"] == {"value": "new comment", "unit": "updated-unit"}
+    assert step["metadata"]["constant"]["other"] == {"value": "preserve"}
+    assert step["metadata"]["variable"] == [{"cycle": {"value": "A"}}]
+    assert_matches_frozen(_i6c("TC-I6-C-EP-009", "overwrite"), observed)
 
 
 def test_number_column_prefers_integers__tc_i6_c_bv_040(tmp_path: Path) -> None:
     """TC-I6-C-BV-040: a number-typed column holding an int stays an int."""
     # Given: a schema field typed ``number`` and an integral cell
-    # When: both implementations cast the value
-    observed = _compare_with_v1(
-        tmp_path,
-        csv_text="custom/sample2\n3\n",
-        invoice=_BASE_INVOICE,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-    )
+    # When: the builder casts the value
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-BV-040"))
 
     # Then: v1's int-before-float rule is preserved
-    assert observed["invoice"]["custom"]["sample2"] == 3
-    assert isinstance(observed["invoice"]["custom"]["sample2"], int)
-
-
-_FAILURE_CASES: tuple[tuple[str, str, dict[str, Any], Any], ...] = (
-    ("TC-I6-C-EV-020", "custom/unknown_field\nvalue\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    (
-        # ``type`` is required by ``InvoiceSchemaJson``, so a custom field that
-        # omits it makes schema parsing itself fail — v1's separate "does not
-        # define a type" guard is unreachable through a parsed schema.
-        "TC-I6-C-EV-021",
-        "custom/untyped\nvalue\n",
-        {
-            "properties": {
-                "custom": {"type": "object", "label": {"ja": "c", "en": "c"}, "properties": {"untyped": {"label": {"ja": "u", "en": "u"}}}},
-            },
-        },
-        _METADATA_DEF,
-    ),
-    ("TC-I6-C-EV-022", "custom/sample3\nnot-an-int\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    ("TC-I6-C-EV-023", "custom/invert_phase_axis\nyes\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    ("TC-I6-C-EV-024", "custom/sample2\ninf\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    ("TC-I6-C-EV-025", "meta/undefined\nvalue\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    (
-        "TC-I6-C-EV-026",
-        "meta/comment\nvalue\n",
-        _SAMPLE_SCHEMA,
-        {"comment": {"variable": True, "schema": {"type": "string"}}},
-    ),
-    (
-        "TC-I6-C-EV-027",
-        "meta/comment\nvalue\n",
-        _SAMPLE_SCHEMA,
-        {"comment": {"schema": {"type": "array"}}},
-    ),
-    # A ``number`` cell that is not a number at all (neither int nor float).
-    ("TC-I6-C-EV-032", "custom/sample2\nnot-a-number\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    # A metadata value that does not match its declared type.
-    ("TC-I6-C-EV-033", "meta/temperature\nnot-a-number\n", _SAMPLE_SCHEMA, _METADATA_DEF),
-    # metadata-def.json is valid JSON but not an object.
-    ("TC-I6-C-EV-034", "meta/comment\nvalue\n", _SAMPLE_SCHEMA, ["not", "an", "object"]),
-)
+    value = success_step(observed)["invoice"]["custom"]["sample2"]
+    assert value == 3
+    assert isinstance(value, int)
+    assert_matches_frozen(_i6c("TC-I6-C-BV-040"), observed)
 
 
 @pytest.mark.parametrize(
-    ("csv_text", "schema", "metadata_def"),
+    ("variant", "field", "expected"),
     [
-        pytest.param(csv_text, schema, metadata_def, id=case_id)
-        for case_id, csv_text, schema, metadata_def in _FAILURE_CASES
+        pytest.param("number_minus_one", "sample2", -1, id="number_minus_one"),
+        pytest.param("number_zero", "sample2", 0, id="number_zero"),
+        pytest.param("number_zero_point_zero", "sample2", 0.0, id="number_zero_point_zero"),
+        pytest.param("integer_minus_one", "sample3", -1, id="integer_minus_one"),
     ],
 )
-def test_rejected_rows_fail_exactly_like_v1(
+def test_low_magnitude_numbers_keep_their_type__tc_i6_c_bv_040(
     tmp_path: Path,
-    csv_text: str,
-    schema: dict[str, Any],
-    metadata_def: Any,
+    variant: str,
+    field: str,
+    expected: float,
 ) -> None:
-    """TC-I6-C-EV-020..027: rejected rows raise v1's StructuredError message."""
-    # Given: a row v1 refuses to merge
-    # When: both implementations process it
-    # Then: the same StructuredError text reaches the caller
-    _compare_failure_with_v1(
-        tmp_path,
-        csv_text=csv_text,
-        invoice=_BASE_INVOICE,
-        schema=schema,
-        metadata_def=metadata_def,
+    """TC-I6-C-BV-040[...] (G7): values around zero keep v1's numeric type."""
+    # Given: a numeric cell at the zero boundary
+    # When: the builder casts it
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-BV-040", variant))
+
+    # Then: the value and its Python type are v1's (int stays int, 0.0 stays float)
+    value = success_step(observed)["invoice"]["custom"][field]
+    assert value == expected
+    assert type(value) is type(expected)
+    assert_matches_frozen(_i6c("TC-I6-C-BV-040", variant), observed)
+
+
+@pytest.mark.parametrize(
+    ("variant", "expected"),
+    [
+        pytest.param(
+            "mixed_case",
+            {"invert_phase_axis": False, "enable_feature": True, "flag_lowercase": True, "flag_mixed": False},
+            id="mixed_case",
+        ),
+        pytest.param("padded", {"invert_phase_axis": True, "enable_feature": False}, id="padded"),
+    ],
+)
+def test_boolean_cells_ignore_case_and_blanks__tc_i6_c_bv_046(
+    tmp_path: Path,
+    variant: str,
+    expected: dict[str, bool],
+) -> None:
+    """TC-I6-C-BV-046 (G2, #292/#429): boolean cells are case- and blank-insensitive."""
+    # Given: boolean cells as Excel writes them (TRUE/FALSE) or padded with blanks
+    # When: the builder casts them
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-BV-046", variant))
+
+    # Then: each is a real bool -- "FALSE" is not truthy text
+    custom = success_step(observed)["invoice"]["custom"]
+    for field, value in expected.items():
+        assert custom[field] is value
+    assert_matches_frozen(_i6c("TC-I6-C-BV-046", variant), observed)
+
+
+@pytest.mark.parametrize("test_id", ["TC-I6-C-EP-018", "TC-I6-C-EP-019"])
+def test_empty_or_blank_sample_id_registers_a_new_sample__tc_i6_c_ep_018_019(tmp_path: Path, test_id: str) -> None:
+    """TC-I6-C-EP-018/019 (G3): an empty or blank sampleId is no sample reference."""
+    # Given: ``sample/names`` with a ``sample/sampleId`` cell that is "" or blanks
+    # When: the builder builds the tile
+    observed = observe_v2(tmp_path, _i6c(test_id))
+
+    # Then: the inherited sample is cleared and the new name registered
+    sample = success_step(observed)["invoice"]["sample"]
+    assert sample["sampleId"] is None
+    assert sample["description"] is None
+    assert sample["names"] == ["new-sample"]
+    assert_matches_frozen(_i6c(test_id), observed)
+
+
+@pytest.mark.parametrize("variant", ["missing", "empty"])
+def test_missing_data_owner_keeps_the_inherited_sample_owner__tc_i6_c_ep_020(tmp_path: Path, variant: str) -> None:
+    """TC-I6-C-EP-020 (G4): without ``basic.dataOwnerId`` the sample owner is not touched."""
+    # Given: a base invoice whose dataOwnerId is absent or ""
+    # When: the builder registers a new sample
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EP-020", variant))
+
+    # Then: the inherited sample.ownerId survives
+    assert success_step(observed)["invoice"]["sample"]["ownerId"] == _freeze.SAMPLE_OWNER_ID
+    assert_matches_frozen(_i6c("TC-I6-C-EP-020", variant), observed)
+
+
+def test_null_attribute_containers_become_lists__tc_i6_c_ep_021(tmp_path: Path) -> None:
+    """TC-I6-C-EP-021 (G5): ``null`` attribute containers are normalized before writing."""
+    # Given: a base invoice whose two attribute containers are null
+    # When: the row sets one general and one specific attribute
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EP-021"))
+
+    # Then: both containers are lists holding exactly the written entries
+    sample = success_step(observed)["invoice"]["sample"]
+    assert sample["generalAttributes"] == [{"termId": _GENERAL_TERM, "value": "general-n"}]
+    assert sample["specificAttributes"] == [{"classId": _CLASS_ID, "termId": _SPECIFIC_TERM, "value": "specific-n"}]
+    assert_matches_frozen(_i6c("TC-I6-C-EP-021"), observed)
+
+
+def test_specific_attributes_map_class_and_term__tc_i6_c_ep_022(tmp_path: Path) -> None:
+    """TC-I6-C-EP-022 (G6): two classIds x two termIds give three distinct entries."""
+    # Given: three specific-attribute columns over two classes
+    # When: the builder applies them to a sample without attributes
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EP-022"))
+
+    # Then: each (classId, termId) pair is its own entry, in column order
+    assert success_step(observed)["invoice"]["sample"]["specificAttributes"] == [
+        {"classId": "class1", "termId": "term1", "value": "value1"},
+        {"classId": "class1", "termId": "term2", "value": "value2"},
+        {"classId": "class2", "termId": "term1", "value": "value3"},
+    ]
+    assert_matches_frozen(_i6c("TC-I6-C-EP-022"), observed)
+
+
+@pytest.mark.parametrize(
+    "test_id",
+    [pytest.param(test_id, id=test_id) for test_id, *_rest in _freeze.I6C_FAILURE_ROWS],
+)
+def test_rejected_rows_fail_exactly_like_v1(tmp_path: Path, test_id: str) -> None:
+    """TC-I6-C-EV-020..034: rejected rows raise v1's StructuredError message."""
+    # Given: a row v1 refused to merge (frozen case)
+    # When: the builder processes it
+    observed = observe_v2(tmp_path, _i6c(test_id))
+
+    # Then: a StructuredError, with v1's text, code and written files
+    failure_error(observed)
+    assert_matches_frozen(_i6c(test_id), observed)
+
+
+def test_integer_column_rejects_a_decimal__tc_i6_c_ev_035(tmp_path: Path) -> None:
+    """TC-I6-C-EV-035 (G7): an ``integer`` column refuses ``"30.1"``."""
+    # Given / When: a decimal cell in an integer-typed custom column
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EV-035"))
+
+    # Then: the v1 type-mismatch message names the field and the type
+    assert failure_error(observed)["message"] == (
+        "Value for invoice.json field 'custom.sample3' does not match the type "
+        "defined in invoice.schema.json (expected: integer)."
     )
+    assert_matches_frozen(_i6c("TC-I6-C-EV-035"), observed)
 
 
 def test_scalar_attribute_container_is_rejected__tc_i6_c_ev_029(tmp_path: Path) -> None:
     """TC-I6-C-EV-029: a non-list attribute container is a StructuredError."""
     # Given: an inherited sample whose generalAttributes is not a list
-    broken = json.loads(json.dumps(_BASE_INVOICE))
-    broken["sample"]["generalAttributes"] = "not-a-list"
-
     # When: a general attribute column targets that container
-    error = _compare_failure_with_v1(
-        tmp_path,
-        csv_text=f"sample/sampleId,sample/generalAttributes.{_GENERAL_TERM}\nkeep,general-a\n",
-        invoice=broken,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-    )
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EV-029"))
 
     # Then: the container contract is reported, not a TypeError
-    assert "generalAttributes" in str(error)
+    assert "generalAttributes" in failure_error(observed)["message"]
+    assert_matches_frozen(_i6c("TC-I6-C-EV-029"), observed)
 
 
 def test_missing_metadata_definition_skips_meta_columns__tc_i6_c_ev_028(tmp_path: Path) -> None:
-    """TC-I6-C-EV-028: without metadata-def.json v1 skips meta columns silently."""
-    # Given: a meta column but no metadata definition file
-    # When: both implementations build the tile
-    observed = _compare_with_v1(
-        tmp_path,
-        csv_text="basic/dataName,meta/comment\nrow-name,memo-a\n",
-        invoice=_BASE_INVOICE,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=None,
-    )
+    """TC-I6-C-EV-028 (UPDATED, K0-iii): without metadata-def.json a meta column fails.
 
-    # Then: the invoice is written and no metadata.json is produced
-    assert observed["invoice"]["basic"]["dataName"] == "row-name"
-    assert observed["metadata"] is None
+    v1.7 (#496) replaced the silent skip with a ``StructuredError``; the frozen
+    oracle is the merged v1.7.1 initializer, so the expectation follows it.
+    """
+    # Given: a meta column but no metadata definition file
+    # When: the builder processes the row
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EV-028"))
+
+    # Then: the message names the missing definition file, as v1's does
+    assert failure_error(observed)["message"].startswith("metadata-def.json not found: ")
+    assert_matches_frozen(_i6c("TC-I6-C-EV-028"), observed)
 
 
 def test_header_only_row_csv_writes_the_base_invoice__tc_i6_c_ev_030(tmp_path: Path) -> None:
     """TC-I6-C-EV-030: a CSV without data rows yields no row dictionary."""
     # Given: a row CSV containing only its header
-    # When: both implementations build the tile
-    observed = _compare_with_v1(
-        tmp_path,
-        csv_text="basic/dataName\n",
-        invoice=_BASE_INVOICE,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-    )
+    # When: the builder builds the tile
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EV-030"))
 
     # Then: the inherited invoice is written unchanged and no row data exists
-    assert observed["row_data"] is None
-    assert observed["invoice"]["basic"]["dataName"] == "inherited-name"
+    step = success_step(observed)
+    assert step["row_data"] is None
+    assert step["invoice"]["basic"]["dataName"] == "inherited-name"
+    assert_matches_frozen(_i6c("TC-I6-C-EV-030"), observed)
 
 
 def test_missing_row_csv_is_rejected__tc_i6_c_ev_031(tmp_path: Path) -> None:
     """TC-I6-C-EV-031: an unreadable row CSV fails like v1."""
-    # Given / When / Then: both implementations raise the same StructuredError
-    _compare_failure_with_v1(
-        tmp_path,
-        csv_text="basic/dataName\nrow-name\n",
-        invoice=_BASE_INVOICE,
-        schema=_SAMPLE_SCHEMA,
-        metadata_def=_METADATA_DEF,
-        write_rowfile=False,
-    )
+    # Given / When: a row CSV reference whose file does not exist
+    observed = observe_v2(tmp_path, _i6c("TC-I6-C-EV-031"))
+
+    # Then: v1's generic wrapper message is kept and nothing was written
+    step = observed["steps"][-1]
+    assert failure_error(observed)["message"].startswith("Failed to initialize invoice from SmartTable: ")
+    assert step["invoice"] is None
+    assert_matches_frozen(_i6c("TC-I6-C-EV-031"), observed)
 
 
 def test_one_run_reads_the_base_invoice_once__tc_i6_c_bv_041(tmp_path: Path) -> None:

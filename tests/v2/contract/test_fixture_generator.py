@@ -17,12 +17,8 @@ EP table:
         relative fixture path instead of being ignored by snapshot checking.
     TC-GR-005 (abnormal): ascending and descending rdeformat file discovery
         normalize order-dependent status targets to the same stable value.
-    TC-GR-006 (abnormal): the real write CLI rejects code-tree dirtiness
-        before any input or snapshot write, with two-commit remediation.
-    TC-GR-007 (normal): the real write CLI defaults to snapshot freeze only;
-        snapshot-only dirtiness remains writable for an interrupted rerun.
-    TC-H0-GEN-EP-001 (normal): ``--rebuild-inputs`` opts into rebuilding
-        static inputs before snapshot freeze.
+    TC-K2-GEN-003 (abnormal, replaces TC-GR-006/007 and TC-H0-GEN-EP-001): the write CLI
+        refuses before any side effect since Phase K2.
     TC-GR-008 (abnormal): ``--check`` rejects dirty or unrecorded frozen
         provenance instead of treating it as a stale-revision warning.
     TC-GR-009 (normal): every frozen snapshot has clean non-empty provenance;
@@ -50,7 +46,6 @@ BV table:
         and replace only the nondeterministic subdirectory component.
     TC-GR-007 (only generated paths): the maximum allowed dirty-tree boundary
         contains paths exclusively below ``expected/``.
-    TC-H0-GEN-BV-001 (zero flags): write mode performs no input rebuild.
     TC-GR-008 (invalid markers): dirty, unrecorded, and empty revisions are
         fatal provenance values and make the CLI process exit nonzero.
     TC-GR-009 (16 snapshots): the complete inventory has one clean SHA per
@@ -155,7 +150,6 @@ def test_g1_write_freeze_covers_every_snapshot__tc_h4_pii_002(
         "expected_snapshot_paths",
         lambda: [invoice, smarttable],
     )
-    monkeypatch.setattr(_generate, "_observe_v1", lambda *args, **kwargs: {})
     monkeypatch.setattr(
         _generate,
         "_compare_or_write",
@@ -372,8 +366,79 @@ def test_invoice_references_resolve_without_copying_assets__tc_g1_009(
     assert all(path.is_file() for path in resolved)
 
 
+#: The snapshots Session K1 registered (ruling #6 plus the K0 extras). Spelled
+#: out rather than derived, so the inventory below is a declaration the
+#: registry has to meet, not a restatement of it.
+_K1_REGISTERED = frozenset(
+    {
+        *(f"expected/v1/{mode}/tilefail.json" for mode in ("excelinvoice", "multidatatile", "smarttable")),
+        "expected/v1/multidatatile/tilefail__ignore_errors.json",
+        *(
+            f"expected/v1/{mode}/usererr__ignore_errors.json"
+            for mode in ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
+        ),
+        "expected/v1/rdeformat/ok__magic_structured.json",
+        "expected/v1/smarttable/ok__save_table_file.json",
+        "expected/v1/smarttable/valerr__broken_metadata__save_table_file.json",
+        "expected/v1/smarttable/valerr__data_name_too_long__save_table_file.json",
+        "expected/v1/smarttable/valerr__missing_metadata_def.json",
+        "expected/v1/smarttable/valerr__meta_column_without_def.json",
+        *(
+            f"expected/v1/{mode}/usererr__first_tile__ignore_errors.json"
+            for mode in ("excelinvoice", "rdeformat", "smarttable")
+        ),
+        *(
+            f"expected/v1/{mode}/{outcome}.json"
+            for mode in ("invoice", "multidatatile", "excelinvoice")
+            for outcome in ("magicfail", "structfail")
+        ),
+        *(
+            f"expected/v1/excelinvoice/ok__{variant}.json"
+            for variant in (
+                "no_archive",
+                "single_group",
+                "group_per_row",
+                "workbook_in_archive",
+                "extra_group",
+                "blank_row",
+                "two_workbooks",
+                "stray_workbook",
+            )
+        ),
+        *(
+            f"expected/v1/multidatatile/ok__{variant}.json"
+            for variant in ("empty_inputdata", "three_inputs", "excel_workbook_present")
+        ),
+        *(
+            f"expected/v1/smarttable/ok__{variant}.json"
+            for variant in ("header_only__save_table_file", "single_row", "cp932_zip")
+        ),
+        "expected/v1/invoice/ok__config_extras.json",
+        "expected/v1/invoice/ok__tasksupport_extras.json",
+        "expected/v1/invoice/cfgerr__broken_yaml.json",
+        "expected/v1/invoice/plainerr.json",
+    },
+)
+
+
+#: The snapshots Session K2-0a registered (ruling #3, G9), spelled out.
+_K2_0_REGISTERED = frozenset(
+    f"expected/v1/smarttable/ok__{variant}__save_table_file.json"
+    for variant in ("csv_table", "tsv_table", "upper_xlsx_table")
+)
+
+
 def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -> None:
-    """TC-G1-010: frozen v1 observations cover 15 callback cells plus zero rows."""
+    """TC-G1-010 (UPDATED, Session K2-0b): the registry declares the whole v1 inventory.
+
+    The 15 callback cells plus the Excel zero-row boundary are the frozen core.
+    The cases Session K1 registered are part of the same inventory. K1-a let
+    those be absent until the freeze ritual; after the freeze (K1-b) every
+    registered v1 and canary snapshot had to exist -- 58 + 5. Session K2-0a
+    registered three more and let only those be absent while its ritual held
+    the pending switch open; after that freeze (K2-0b) every registered v1 and
+    canary snapshot must exist -- 61 + 5, no exception.
+    """
     # Given: the generator's declared frozen-snapshot inventory
     snapshots = _generate.expected_snapshot_paths()
 
@@ -383,21 +448,33 @@ def test_frozen_v1_scenarios_cover_matrix_and_excel_zero_boundary__tc_g1_010() -
         for path in snapshots
     }
 
-    # Then: every mode/outcome callback cell and the Excel zero-row BV exist
-    expected = {
+    # Then: every mode/outcome callback cell, the Excel zero-row BV and every
+    # K1 case are declared, each exactly once
+    core = {
         f"expected/v1/{mode}/{outcome}.json"
         for mode in ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
         for outcome in ("ok", "usererr", "valerr")
     }
-    expected.add("expected/v1/excelinvoice/zero_rows.json")
-    assert relative == expected
-    assert all(path.is_file() for path in snapshots)
+    core.add("expected/v1/excelinvoice/zero_rows.json")
+    assert relative == core | _K1_REGISTERED | _K2_0_REGISTERED
+    assert len(snapshots) == len(relative) == 16 + len(_K1_REGISTERED) + len(_K2_0_REGISTERED)
+    assert len(snapshots) == 61
+    # And: the freeze window is closed -- every registered v1 and canary
+    # snapshot is a frozen file (a missing one is a failure, never pending)
+    canaries = _generate.canary_snapshot_paths()
+    assert len(canaries) == 5
+    missing = [
+        path.relative_to(_generate.FIXTURE_ROOT).as_posix()
+        for path in (*snapshots, *canaries)
+        if not path.is_file()
+    ]
+    assert missing == []
 
     # And: each value records clean generator provenance and observed v1 result.
     # source.commit is the revision that WROTE each snapshot. Between the H4
     # PII remediation (SmartTable only) and the I-REVIEW-B re-freeze the corpus
-    # carried two cohorts; the 2026-09-23 re-freeze rewrote all 16 on one clean
-    # tree, so a single recorded revision now covers the whole corpus. It
+    # carried two cohorts; every re-freeze since rewrites the whole inventory on
+    # one clean tree, so a single recorded revision covers the whole corpus. It
     # intentionally need not match the checked-out revision.
     commits: set[str] = set()
     for path in snapshots:
@@ -483,7 +560,7 @@ def test_source_revision_warning_is_explicit_and_non_failing__tc_gr_003(
     # Then: the warning names both revisions and embeds the regeneration remedy
     assert warnings == [
         "warning: frozen source.commit old-revision differs from current revision "
-        "new-revision; remediation: regenerate all contract snapshots with _generate.py",
+        "new-revision; remediation: re-freeze on the v1 maintenance line (merge_v1/refreeze_procedure.md)",
     ]
 
 
@@ -565,7 +642,7 @@ def test_check_mode_returns_nonzero_for_invalid_frozen_provenance__tc_gr_008(
     monkeypatch.setattr(
         _generate,
         "_parse_args",
-        lambda: SimpleNamespace(provenance_root=None, check=True, oracle_worker=None),
+        lambda: SimpleNamespace(provenance_root=None, check=True),
     )
     monkeypatch.setattr(
         _generate,
@@ -611,103 +688,29 @@ def test_check_script_propagates_fatal_provenance_exit_code__tc_gr_008(
     assert "commit code changes first" in completed.stderr
 
 
-def test_write_mode_checks_hygiene_before_rebuilding_inputs__tc_gr_006(
+def test_write_mode_cli_refuses_before_any_side_effect__tc_k2_gen_003(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-GR-006: the real dirty write CLI refuses before every write."""
-    # Given: the real zero-argument CLI, a dirty refusal, and observable writers
-    writes: list[str] = []
-    monkeypatch.setattr(sys, "argv", [str(_generate.__file__)])
+    """TC-K2-GEN-003 (replaces TC-GR-006/007, H0-GEN-BV-001/EP-001): write mode stops first.
 
-    def _reject_dirty_tree() -> None:
-        msg = "commit code changes first"
-        raise RuntimeError(msg)
-
-    def _record_input_build() -> dict[str, object]:
-        writes.append("inputs")
-        return {}
-
-    def _record_snapshot_freeze(*, check: bool) -> list[str]:
-        writes.append(f"snapshots-check={check}")
-        return []
-
-    monkeypatch.setattr(_generate, "_require_write_tree_hygiene", _reject_dirty_tree)
-    monkeypatch.setattr(_generate, "build_static_inputs", _record_input_build)
-    monkeypatch.setattr(_generate, "freeze_expected_outputs", _record_snapshot_freeze)
-
-    # When: starting a write-mode generation attempt
-    with pytest.raises(RuntimeError, match="commit code changes first"):
-        _generate.main()
-
-    # Then: refusal occurs before any static input or snapshot is written
-    assert writes == []
-
-
-def test_write_mode_defaults_to_freeze_only__tc_gr_007_h0_gen_bv_001(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """TC-GR-007/BV-001: zero CLI flags freeze snapshots without rebuilding inputs."""
-    # Given: the real zero-argument write CLI with observable operations
+    Since Phase K2 the generator has no v1 oracle. The CLI must refuse before
+    the hygiene gate, before any input rebuild and before any freeze call, with
+    or without ``--rebuild-inputs``.
+    """
+    # Given: every side-effecting step records itself
     operations: list[str] = []
-    monkeypatch.setattr(sys, "argv", [str(_generate.__file__)])
-    monkeypatch.setattr(
-        _generate,
-        "_require_write_tree_hygiene",
-        lambda: operations.append("hygiene"),
-    )
+    monkeypatch.setattr(_generate, "_require_write_tree_hygiene", lambda: operations.append("hygiene"))
+    monkeypatch.setattr(_generate, "build_static_inputs", lambda *a, **k: operations.append("inputs"))
+    monkeypatch.setattr(_generate, "freeze_expected_outputs", lambda *, check: operations.append(f"freeze-check={check}"))
 
-    def _unexpected_input_build() -> dict[str, object]:
-        raise AssertionError("zero-argument write mode must not rebuild inputs")
-
-    def _record_snapshot_freeze(*, check: bool) -> list[str]:
-        operations.append(f"freeze-check={check}")
-        return []
-
-    monkeypatch.setattr(_generate, "build_static_inputs", _unexpected_input_build)
-    monkeypatch.setattr(_generate, "freeze_expected_outputs", _record_snapshot_freeze)
-
-    # When: executing the default write CLI path
-    exit_code = _generate.main()
-
-    # Then: hygiene precedes one write-mode snapshot freeze and no input build
-    assert exit_code == 0
-    assert operations == ["hygiene", "freeze-check=False"]
-
-
-def test_rebuild_inputs_flag_opts_in_before_freeze__tc_h0_gen_ep_001(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """TC-H0-GEN-EP-001: --rebuild-inputs rebuilds inputs before freezing."""
-    # Given: the real opt-in CLI path with every operation observable
-    operations: list[str] = []
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [str(_generate.__file__), "--rebuild-inputs"],
-    )
-    monkeypatch.setattr(
-        _generate,
-        "_require_write_tree_hygiene",
-        lambda: operations.append("hygiene"),
-    )
-
-    def _record_input_build() -> dict[str, object]:
-        operations.append("inputs")
-        return {"invoice": {}}
-
-    def _record_snapshot_freeze(*, check: bool) -> list[str]:
-        operations.append(f"freeze-check={check}")
-        return []
-
-    monkeypatch.setattr(_generate, "build_static_inputs", _record_input_build)
-    monkeypatch.setattr(_generate, "freeze_expected_outputs", _record_snapshot_freeze)
-
-    # When: executing write mode with input rebuilding explicitly requested
-    exit_code = _generate.main()
-
-    # Then: one hygiene gate precedes both writes in their required order
-    assert exit_code == 0
-    assert operations == ["hygiene", "inputs", "freeze-check=False"]
+    for argv in ([str(_generate.__file__)], [str(_generate.__file__), "--rebuild-inputs"]):
+        monkeypatch.setattr(sys, "argv", argv)
+        # When: running the write CLI
+        with pytest.raises(SystemExit) as excinfo:
+            _generate.main()
+        # Then: it refuses with the refreeze pointer and touched nothing
+        assert "refreeze_procedure" in str(excinfo.value)
+    assert operations == []
 
 
 def test_static_input_check_detects_deterministic_manifest_drift__tc_gr_004(
@@ -753,3 +756,32 @@ def test_rdeformat_targets_match_for_ascending_and_descending_discovery__tc_gr_0
     ]
     assert ascending_normalized == expected
     assert descending_normalized == expected
+
+
+def test_write_mode_is_retired_after_k2__tc_k2_gen_001(tmp_path: Path) -> None:
+    """TC-K2-GEN-001: without the v1 oracle, write mode refuses instead of writing."""
+    # Given: a snapshot target in write mode
+    target = tmp_path / "invoice" / "ok.json"
+
+    # When / Then: the generator stops with the refreeze pointer and writes nothing
+    with pytest.raises(SystemExit) as excinfo:
+        _generate._compare_or_write(target, {"case": {}}, check=False)
+    assert "refreeze_procedure" in str(excinfo.value)
+    assert not target.exists()
+
+
+def test_check_mode_validates_registry_record_and_structure__tc_k2_gen_002(tmp_path: Path) -> None:
+    """TC-K2-GEN-002: check mode flags a drifted case record or a missing contract key."""
+    # Given: a frozen snapshot whose case record and observed block are complete
+    target = tmp_path / "invoice" / "ok.json"
+    target.parent.mkdir(parents=True)
+    case = {"mode": "invoice", "outcome": "ok"}
+    observed = dict.fromkeys(_generate.REQUIRED_OBSERVED_KEYS)
+    target.write_text(json.dumps({"source": {}, "case": case, "observed": observed}), encoding="utf-8")
+
+    # When / Then: a matching record passes, a drifted record and a missing key do not
+    assert _generate._compare_or_write(target, {"case": case}, check=True) is None
+    assert _generate._compare_or_write(target, {"case": {"mode": "rdeformat"}}, check=True) == "frozen case record differs from the registry"
+    del observed["artifact_sha256"]
+    target.write_text(json.dumps({"source": {}, "case": case, "observed": observed}), encoding="utf-8")
+    assert "artifact_sha256" in (_generate._compare_or_write(target, {"case": case}, check=True) or "")

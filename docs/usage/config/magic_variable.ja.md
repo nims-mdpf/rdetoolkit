@@ -17,7 +17,7 @@ RDEToolKitのMagic Variable機能について説明します。ファイル名�
 
 ## Magic Variableの使い方
 
-RDEデータ登録時に、`サポートされる変数`記載の変数を指定すると、ルールに従ってRDE構造化処理内でデータセット名が自動補完されます。
+RDEデータ登録時に、`サポートされる変数`記載の変数を指定すると、ルールに従ってRDE構造化処理内でデータ名（拡張モードではデータタイル名）が自動補完されます。
 
 ローカルでテストする際は、invoice.jsonに事前にMagic Variableを設定してください。(後述)
 
@@ -27,7 +27,7 @@ RDEデータ登録時に、`サポートされる変数`記載の変数を指定
 
 | 変数名                           | 説明                                                                                | 例                                             |
 | -------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `${filename}`                    | 拡張子を含んだ元ファイル名                                                          | `sample.csv` → `sample.csv`                    |
+| `${filename}`                    | 拡張子を含んだ元ファイル名                                                          | `${filename}` → `sample.csv`                   |
 | `${invoice:basic:<field>}`       | `invoice_org` の `basic` 配下の値                                                   | `${invoice:basic:experimentId}` → `EXP-42`     |
 | `${invoice:custom:<field>}`      | `invoice_org` の `custom` 配下の値                                                  | `${invoice:custom:batch}` → `B-9`              |
 | `${invoice:sample:names}`        | `sample.names` に含まれる空でない文字列を `_` で連結                                | `["alpha", "", "beta"]` → `alpha_beta`         |
