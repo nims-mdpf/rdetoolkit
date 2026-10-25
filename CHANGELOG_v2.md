@@ -18,7 +18,13 @@ Highlights since 2.0.0a1:
   suite and in a CI job that installs the built wheel into a clean environment.
 - The v1.7 line is merged in: the SmartTable raw-file contract (#503), the
   metadata-definition requirement for `meta/` columns (#496), cp932 archive
-  names (#515), and the csv2graph additions.
+  names (#515), and the csv2graph additions, including the fix that keeps
+  categorical and datetime tick labels under the default axis formatting
+  (#551).
+- Wheels: the manylinux i686 wheel is no longer built (its CentOS 7 build
+  image can no longer reach its package repositories and pypa publishes no
+  newer glibc image for i686, #552). 32-bit x86 Linux keeps the musllinux
+  i686 wheel and the sdist; every other wheel target is unchanged.
 - Every run writes `data/logs/events_<run_id>.jsonl` (64 MiB soft cap, warning
   W1002), run reports are written atomically, per-iteration summaries are
   cleared at the start of a run, and a 1000-tile run is part of the test suite.
