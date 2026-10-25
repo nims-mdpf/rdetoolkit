@@ -148,11 +148,18 @@ def test_request_dataclasses_are_frozen__tc_ep_g2_105(
     ],
 )
 def test_request_dataclasses_use_slots__tc_ep_g2_106(instance: Any) -> None:
-    """TC-EP-G2-106: Every request dataclass rejects undeclared attributes."""
+    """TC-EP-G2-106: Every request dataclass rejects undeclared attributes.
+
+    The contract is the rejection, not the exception class: a frozen slotted
+    dataclass raises ``TypeError`` up to CPython 3.14.3 and
+    ``dataclasses.FrozenInstanceError`` from 3.14.8 (the frozen ``__setattr__``
+    now runs before the slots check).
+    """
     # Given: an instance of a slotted public request dataclass
     # When / Then: adding an undeclared attribute is forbidden
-    with pytest.raises(TypeError):
-        setattr(instance, "unexpected", True)
+    with pytest.raises((TypeError, FrozenInstanceError)):
+        instance.unexpected = True
+    assert not hasattr(instance, "unexpected")
 
 
 def test_neither_entry_point_preserves_v1_compatibility__tc_bv_g2_101() -> None:
