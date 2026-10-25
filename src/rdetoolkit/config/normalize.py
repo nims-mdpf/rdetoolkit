@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-import tomllib
+import sys
 import warnings
 from collections.abc import Mapping
 from pathlib import Path
@@ -15,6 +15,12 @@ from pydantic import ValidationError
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
 from rdetoolkit.models.config import Config
 from rdetoolkit.types import RdeConfig
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 
 
 ConfigOrigin = Literal["v1", "v2"]

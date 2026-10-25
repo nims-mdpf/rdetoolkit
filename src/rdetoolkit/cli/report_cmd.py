@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
-from typing import Annotated, Any, Never
+from typing import Annotated, Any
 
 import typer
 
 from rdetoolkit.report.run_report import RUN_REPORT_SCHEMA_VERSION, RunReport
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
+
 
 app = typer.Typer(help="Inspect run reports.")
 

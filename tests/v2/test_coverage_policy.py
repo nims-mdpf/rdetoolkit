@@ -17,7 +17,13 @@ BV table:
 """
 
 from pathlib import Path
-import tomllib
+import sys
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 
 
 def test_branch_coverage_is_enabled__tc_ep_hr_f6_001() -> None:

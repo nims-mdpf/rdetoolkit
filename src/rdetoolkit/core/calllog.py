@@ -9,11 +9,18 @@ import warnings
 from collections.abc import Callable
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
-from datetime import UTC, datetime
-from typing import Any, Literal, Self
+import sys
+from datetime import datetime, timezone
+from typing import Any, Literal
 
 from rdetoolkit.core.flow import current_flow_id
 from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,13 +56,42 @@ def get_active_recorder() -> CallLogRecorder | None:
     return _active_recorder.get()
 
 
-def _type_name(value: Any) -> str:
-    target = type(value)
+def _public_module(target: type) -> str:
+    """Return the public module a class is exported from.
+
+    Some stdlib classes live in a private submodule that differs between
+    Python versions (``pathlib.Path`` is ``pathlib._local.Path`` on 3.13 and
+    ``pathlib.Path`` elsewhere). Type names are recorded in node specs and
+    call logs, so they must not change with the interpreter: when a public
+    ancestor module re-exports the class under its qualname, that module is
+    reported instead.
+    """
+    module = getattr(target, "__module__", "") or ""
+    qualname = getattr(target, "__qualname__", "")
+    parts = module.split(".")
+    for index in range(1, len(parts)):
+        if not parts[index].startswith("_"):
+            continue
+        public = ".".join(parts[:index])
+        exported = sys.modules.get(public)
+        if exported is not None and "." not in qualname and getattr(exported, qualname, None) is target:
+            return public
+    return module
+
+
+def type_name_of(target: type) -> str:
+    """Return the canonical type-name string of a class (C1 convention)."""
     if target is type(None):
         return "None"
-    if target.__module__ == "builtins":
-        return target.__qualname__
-    return f"{target.__module__}.{target.__qualname__}"
+    module = _public_module(target)
+    qualname = getattr(target, "__qualname__", getattr(target, "__name__", repr(target)))
+    if module == "builtins":
+        return qualname
+    return f"{module}.{qualname}"
+
+
+def _type_name(value: Any) -> str:
+    return type_name_of(type(value))
 
 
 def _safe_repr_head(value: Any, *, enabled: bool, length: int) -> str | None:
@@ -189,7 +225,7 @@ class CallLogRecorder:
     def call_node(self, spec: Any, fn: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:
         """Execute ``fn`` and append a call-log record."""
         self._check_types(spec.id, fn, args, kwargs)
-        started_at = datetime.now(UTC).isoformat()
+        started_at = datetime.now(timezone.utc).isoformat()
         start = time.perf_counter()
         inputs = self._summarize_inputs(fn, args, kwargs)
         try:

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import wraps
 from typing import Any, TypeVar, overload
 
-from rdetoolkit.core.calllog import get_active_recorder
+from rdetoolkit.core.calllog import get_active_recorder, type_name_of
 from rdetoolkit.core.registry import register_node
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -57,13 +57,7 @@ def _resolve_type_hints(func: Callable[..., Any]) -> dict[str, Any]:
 def type_name(value: Any) -> str:
     """Return the C1 canonical type-name string for annotations and values."""
     target = type(value) if not isinstance(value, type) else value
-    if target is type(None):
-        return "None"
-    module = getattr(target, "__module__", "")
-    qualname = getattr(target, "__qualname__", getattr(target, "__name__", repr(target)))
-    if module == "builtins":
-        return qualname
-    return f"{module}.{qualname}"
+    return type_name_of(target)
 
 
 def _annotation_type_name(annotation: Any) -> str:
