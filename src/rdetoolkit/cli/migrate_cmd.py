@@ -8,12 +8,19 @@ from __future__ import annotations
 
 import ast
 import shutil
+import sys
 import tokenize
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Never
+from typing import Annotated
 
 import typer
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
+
 
 app = typer.Typer(help="Inspect Python source for v1 migration points.")
 _HANDLER_POSITIONAL_ARGUMENTS = 3

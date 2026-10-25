@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -2576,6 +2576,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "rpds-py" },
     { name = "toml" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "tomlkit" },
     { name = "typer" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
@@ -2642,6 +2643,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.1" },
     { name = "rpds-py", specifier = ">=0.26" },
     { name = "toml", specifier = ">=0.10.2" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.1" },
     { name = "tomlkit", specifier = ">=0.12.4" },
     { name = "typer", specifier = ">=0.9.0" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.12.2" },

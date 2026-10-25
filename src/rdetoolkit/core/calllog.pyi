@@ -22,6 +22,7 @@ class NodeCallRecord:
     error: dict[str, Any] | None
 
 def get_active_recorder() -> CallLogRecorder | None: ...
+def type_name_of(target: type) -> str: ...
 
 class CallLogRecorder:
     repr_head: Literal["on", "off"]

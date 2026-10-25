@@ -21,8 +21,13 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-import tomllib
 from pathlib import Path
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = REPO_ROOT / "pyproject.toml"

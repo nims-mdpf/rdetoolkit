@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
-from typing import Annotated, Never
+from typing import Annotated
 
 import typer
 
 from rdetoolkit.report.graph_render import render_call_sequence
 from rdetoolkit.report.run_report import RunReport
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
+
 
 app = typer.Typer(
     help="Render a recorded Call Sequence.",

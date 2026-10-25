@@ -7,13 +7,20 @@ recorded calls and the run's sibling input directories.
 from __future__ import annotations
 
 import json
+import sys
 import zipfile
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Never
+from typing import Annotated
 
 import typer
 
 from rdetoolkit.report.run_report import RunReport
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
+
 
 app = typer.Typer(help="Export and import reproducible run inputs.")
 _INPUT_DIRS = ("inputdata", "invoice", "tasksupport")
