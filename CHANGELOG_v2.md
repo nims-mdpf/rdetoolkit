@@ -41,7 +41,7 @@ The sections below are the per-session records folded into this release.
 #### Fixed
 
 - The package imports again on Python 3.10, which `requires-python` still declares: the call log used `datetime.UTC` and `typing.Self`, four CLI commands used `typing.Never`, and the config loader used `tomllib` — all 3.11-only. They now fall back to `typing_extensions` and `tomli` below 3.11 (`tomli` is a new conditional dependency). The v2 test matrix had only run on 3.12 and 3.13 before the branch was opened against `main`.
-- Type names in node specs and call-log records no longer depend on the interpreter: a class exported from a private stdlib submodule is named by its public module (`pathlib.Path`, not the `pathlib._local.Path` Python 3.13 reports).
+- Type names in node specs and call-log records no longer depend on the interpreter: a class exported from a private stdlib submodule is named by its public module (`pathlib.Path`, not the `pathlib._local.Path` Python 3.13 reports). This covers bare class annotations and recorded values; generic and union annotations (`list[Path]`, `Path | None`) are still rendered from `str()` and keep the interpreter's spelling. Recording a value's type never evaluates the class's `repr()`.
 - CI: the develop build test no longer builds the manylinux i686 wheel (same cause as #552).
 
 ### Session K4-F4 (CI on ubuntu-26.04)

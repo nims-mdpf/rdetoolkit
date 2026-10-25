@@ -84,7 +84,10 @@ def type_name_of(target: type) -> str:
     if target is type(None):
         return "None"
     module = _public_module(target)
-    qualname = getattr(target, "__qualname__", getattr(target, "__name__", repr(target)))
+    # No repr() fallback: this runs for every recorded input and output, and a
+    # class whose metaclass __repr__ raises must not turn a completed node
+    # into a failure (PR #554 review R1). Every class has __qualname__.
+    qualname = getattr(target, "__qualname__", None) or getattr(target, "__name__", None) or "<anonymous>"
     if module == "builtins":
         return qualname
     return f"{module}.{qualname}"
