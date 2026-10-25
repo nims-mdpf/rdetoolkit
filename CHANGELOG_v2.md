@@ -36,6 +36,12 @@ reference for the dual-path build.
 
 The sections below are the per-session records folded into this release.
 
+### Session K4-F4 (CI on ubuntu-26.04)
+
+#### Fixed
+
+- Archive extraction in ExcelInvoice mode no longer depends on the filesystem's directory-listing order: the archive parsers sort the extracted files (and, for folder archives, the folders), so a tile's first raw file — what `${filename}` expands to — is the same on every machine. The order was inherited from v1 and surfaced when the GitHub runner image moved from ubuntu-24.04 to ubuntu-26.04 and the frozen v1 oracle no longer matched.
+
 ### Session K4-F3 (PR #550 re-review)
 
 #### Fixed

@@ -206,7 +206,10 @@ class CompressedFlatFileParser(ICompressedFileStructParser):
         if removed_paths:
             logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
 
-        return [f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f)]
+        # Sorted: the directory listing order differs between filesystems (and
+        # between runner images), and the first raw file of a tile decides
+        # ``${filename}``; the tile contents must not depend on it.
+        return sorted(f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f))
 
     def _extract_zip_with_encoding(self, zip_path: Path | str, extract_path: Path | str) -> None:
         """Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.
@@ -287,7 +290,10 @@ class CompressedFolderParser(ICompressedFileStructParser):
         if removed_paths:
             logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
 
-        return [f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f)]
+        # Sorted: the directory listing order differs between filesystems (and
+        # between runner images), and the first raw file of a tile decides
+        # ``${filename}``; the tile contents must not depend on it.
+        return sorted(f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f))
 
     def _extract_zip_with_encoding(self, zip_path: Path | str, extract_path: Path | str) -> None:
         """Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.
@@ -351,11 +357,14 @@ class CompressedFolderParser(ICompressedFileStructParser):
         """
         verification_files: dict[str, list[Path]] = {}
         unique_dirname_set = set()
-        for d, _, fnames in os.walk(target_path):
+        for d, dirs, fnames in os.walk(target_path):
+            # Walk and group in sorted order so the tile tuples (and their first
+            # raw file) do not depend on the filesystem's listing order.
+            dirs.sort()
             if not fnames:
                 continue
             # check file
-            _filered_paths = [Path(d) / Path(f) for f in fnames if f not in exclude_names]
+            _filered_paths = [Path(d) / Path(f) for f in sorted(fnames) if f not in exclude_names]
             for f in _filered_paths:
                 if str(f).lower() in unique_dirname_set:
                     emsg = "ERROR: folder paths and file paths stored in a zip file must always have unique names."
