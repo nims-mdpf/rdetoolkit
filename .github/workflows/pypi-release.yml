@@ -38,7 +38,7 @@ jobs:
       startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) }}
     strategy:
       matrix:
-        target: [x86_64, i686]
+        target: [x86_64]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
