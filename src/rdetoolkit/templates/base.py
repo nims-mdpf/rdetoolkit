@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import typing
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeGuard, TypeVar, cast
@@ -63,6 +64,20 @@ def _annotations_match(declared: Any, implemented: Any) -> bool:
     return declared == implemented
 
 
+def _resolved_hints(fn: Callable[..., Any]) -> dict[str, Any]:
+    """Evaluate a function's annotations; empty when they cannot be resolved.
+
+    Both the skeleton and a generated implementation usually carry string
+    annotations (``from __future__ import annotations``), and the same type
+    can be spelled differently (``Optional[Path]`` / ``Path | None``), so the
+    shallow check compares the resolved objects, not the text (K4-F6 review).
+    """
+    try:
+        return typing.get_type_hints(fn, include_extras=False)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def _signatures_match(declared: Callable[..., Any], implemented: Callable[..., Any]) -> bool:
     declared_signature = inspect.signature(declared)
     implemented_signature = inspect.signature(implemented)
@@ -70,12 +85,20 @@ def _signatures_match(declared: Callable[..., Any], implemented: Callable[..., A
     implemented_parameters = tuple(implemented_signature.parameters.values())
     if len(declared_parameters) != len(implemented_parameters):
         return False
+    declared_hints = _resolved_hints(declared)
+    implemented_hints = _resolved_hints(implemented)
     for expected, actual in zip(declared_parameters, implemented_parameters, strict=True):
         if expected.name != actual.name or expected.kind is not actual.kind:
             return False
-        if not _annotations_match(expected.annotation, actual.annotation):
+        if not _annotations_match(
+            declared_hints.get(expected.name, expected.annotation),
+            implemented_hints.get(actual.name, actual.annotation),
+        ):
             return False
-    return _annotations_match(declared_signature.return_annotation, implemented_signature.return_annotation)
+    return _annotations_match(
+        declared_hints.get("return", declared_signature.return_annotation),
+        implemented_hints.get("return", implemented_signature.return_annotation),
+    )
 
 
 def _validate_concrete_class(cls: type[Any], skeleton: type[Any]) -> None:

@@ -151,6 +151,7 @@ def _convert_source(path: Path) -> str:
     callback_names = _callback_names(tree)
     transformer = _ApplyTransformer(callback_names)
     converted = transformer.visit(tree)
+    _repair_empty_bodies(converted)
     ast.fix_missing_locations(converted)
     _insert_v2_imports(converted)
     text = ast.unparse(converted) + "\n"
@@ -236,6 +237,22 @@ class _ApplyTransformer(ast.NodeTransformer):
         # An expression statement wraps its call: the keyword lives on
         # ``node.value``, never on the ``ast.Expr`` itself.
         return None if _has_custom_dataset_keyword(node.value) else self.generic_visit(node)
+
+
+def _repair_empty_bodies(tree: ast.AST) -> None:
+    """Keep the converted module syntactically valid after statement removal.
+
+    Removing ``run(custom_dataset_function=...)`` from a wrapper such as
+    ``def main(): run(...)`` leaves a block with no statements, which
+    ``ast.unparse`` renders as a bare header (an IndentationError on import).
+    Every emptied block gets a ``pass``.
+    """
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Module):
+            continue
+        body = getattr(node, "body", None)
+        if isinstance(body, list) and not body:
+            node.body = [ast.Pass()]  # type: ignore[attr-defined]
 
 
 def _is_main_guard(node: ast.If) -> bool:

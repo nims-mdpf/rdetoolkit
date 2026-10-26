@@ -87,6 +87,8 @@ def _identifier(value: str) -> str:
 
 
 _NONE_TYPE_NAMES = frozenset({"None", "NoneType", "builtins.NoneType"})
+# A (possibly dotted) identifier that is not part of a string literal.
+_DOTTED_NAME = re.compile(r"(?<![\w'\"])[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?![\w'\"])")
 
 # Module -> names the generated module must import, filled while rendering.
 _Imports = dict[str, set[str]]
@@ -97,17 +99,28 @@ def _annotation(type_name: str, imports: _Imports) -> str:
 
     ``typing.get_type_hints`` resolves a ``-> None`` declaration to
     ``NoneType``, which is not a name a module can use, so every spelling of
-    it renders as ``None``. A dotted name (``typing.`` ones included) renders
-    as its last segment and records ``from <module> import <Name>``: the
-    generated subclass must define the same annotation text the skeleton
-    declares, and those names have to resolve when the module is imported.
+    it renders as ``None``. Every dotted name inside the expression
+    (``typing.`` ones included) renders as its last segment and records
+    ``from <module> import <Name>``: the generated subclass must define the
+    same annotation text the skeleton declares, and those names have to
+    resolve when the module is imported.
     """
     if type_name in _NONE_TYPE_NAMES:
         return "None"
-    module, _, name = type_name.rpartition(".")
-    if module:
-        imports.setdefault(module, set()).add(name)
-    return name
+
+    def replace(match: re.Match[str]) -> str:
+        token = match.group(0)
+        if token in _NONE_TYPE_NAMES:
+            return "None"
+        module, _, name = token.rpartition(".")
+        if module:
+            imports.setdefault(module, set()).add(name)
+        return name
+
+    # The annotation may be an expression (``pathlib.Path | None``,
+    # ``list[pkg.X]``): only its dotted names are imported; the operators,
+    # brackets and literals around them are kept verbatim.
+    return _DOTTED_NAME.sub(replace, type_name)
 
 
 def _render_slot(method: TemplateMethodSpec, imports: _Imports) -> str:

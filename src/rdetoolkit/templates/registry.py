@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import types
 import typing
 from dataclasses import dataclass
 from typing import Any
@@ -63,22 +64,56 @@ _concrete_classes: list[type[Any]] = []
 
 
 def _annotation_name(annotation: Any) -> str:
+    """Render an annotation as a canonical, fully-qualified type expression.
+
+    Unions and generics are rendered structurally (``pathlib.Path | None``,
+    ``list[rdetoolkit.types.InputPaths]``, ``typing.Optional[...]`` becomes
+    the union form) and every class is named through its public module
+    (``pathlib.Path``, not the ``pathlib._local.Path`` Python 3.13 reports),
+    so the generated template imports on every interpreter (K4-F6 review).
+    """
     if annotation is inspect.Signature.empty:
         return "typing.Any"
-    if annotation is None:
+    if annotation is None or annotation is type(None):
         return "None"
     if isinstance(annotation, str):
         return annotation
+    composite = _composite_annotation_name(annotation)
+    if composite is not None:
+        return composite
     if isinstance(annotation, type):
-        # Public-module naming (K4-F5): ``pathlib.Path``, not the
-        # ``pathlib._local.Path`` Python 3.13 reports, so a template generated
-        # on one interpreter imports on every other.
         return type_name_of(annotation)
+    return _fallback_annotation_name(annotation)
+
+
+def _fallback_annotation_name(annotation: Any) -> str:
+    """Name a non-class, non-composite annotation object (special forms, aliases)."""
     module = getattr(annotation, "__module__", "")
     qualname = getattr(annotation, "__qualname__", None)
     if qualname is not None:
         return qualname if module == "builtins" else f"{module}.{qualname}"
-    return str(annotation).replace("typing.", "")
+    return str(annotation)
+
+
+def _composite_annotation_name(annotation: Any) -> str | None:
+    """Render a union or a parametrized generic; ``None`` for anything else."""
+    origin = typing.get_origin(annotation)
+    args = typing.get_args(annotation)
+    if origin is typing.Union or origin is types.UnionType:
+        return " | ".join(_annotation_name(arg) for arg in args)
+    if origin is not None and args:
+        rendered = ", ".join(_annotation_arg_name(arg) for arg in args)
+        return f"{_annotation_name(origin)}[{rendered}]"
+    return None
+
+
+def _annotation_arg_name(arg: Any) -> str:
+    """Render one generic argument; literals (``Literal["a"]``) keep their repr."""
+    if arg is Ellipsis:
+        return "..."
+    if isinstance(arg, (str, bytes, int, float, bool)):
+        return repr(arg)
+    return _annotation_name(arg)
 
 
 def _method_spec(name: str, method: Any) -> TemplateMethodSpec:

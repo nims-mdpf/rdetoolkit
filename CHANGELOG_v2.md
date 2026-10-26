@@ -46,6 +46,8 @@ The sections below are the per-session records folded into this release.
 - `rdetoolkit migrate apply` removes a top-level `run(custom_dataset_function=...)` call that is not under an `if __name__ == "__main__":` guard. Before, the call survived while the callback was renamed to `pipeline`, so the migrated module failed with `NameError` on import.
 - `rdetoolkit templates describe` and `rdetoolkit init --processing-template` load installed plugins the same way `templates list` does, so a plugin-provided template that `list` shows is no longer reported as unknown by the other two commands.
 - Template slot type names use the public module of a class (`pathlib.Path`, not the `pathlib._local.Path` Python 3.13 reports), so a processing template generated on one interpreter imports on every other.
+- Union and generic slot annotations (`Path | None`, `Optional[Path]`, `list[InputPaths]`) render correctly in generated processing templates: the registry names them structurally and the renderer imports only the classes they reference, instead of emitting `from pathlib import Path | None`. A concrete implementation may spell an equivalent type differently (`Path | None` for a skeleton's `Optional[Path]`): slot signatures are now compared as resolved types, not as annotation text.
+- `rdetoolkit migrate apply` keeps a wrapper such as `def main(): run(custom_dataset_function=...)` syntactically valid after removing the call (the emptied body gets `pass`) instead of producing an IndentationError.
 
 ### Session K4-F5 (release PR #553 CI: Python 3.10)
 

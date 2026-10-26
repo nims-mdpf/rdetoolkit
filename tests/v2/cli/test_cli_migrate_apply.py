@@ -333,3 +333,31 @@ def test_apply_keeps_other_top_level_calls__tc_mig_apply_ep_012(tmp_path: Path) 
     # Then: only the callback run call was removed
     converted = converted_path.read_text(encoding="utf-8")
     assert "MARKERS.append('kept')" in converted
+
+
+def test_apply_keeps_a_wrapper_function_syntactically_valid__tc_mig_apply_ep_013(tmp_path: Path) -> None:
+    """TC-MIG-APPLY-EP-013: removing the run call from ``def main():`` leaves a ``pass`` body.
+
+    PR #556 review R2: the emptied wrapper was rendered as a bare ``def main():``
+    header, an IndentationError on import.
+    """
+    # Given: a v1 script whose workflows.run call is the only statement of a wrapper function
+    text = (
+        "from rdetoolkit import workflows\n\n"
+        "def process(srcpaths, resource_paths):\n"
+        "    return None\n\n"
+        "def main():\n"
+        "    workflows.run(custom_dataset_function=process)\n\n"
+        "if __name__ == '__main__':\n"
+        "    main()\n"
+    )
+
+    # When: apply converts it
+    converted_path = Path(_apply_single(tmp_path, text))
+
+    # Then: the call is gone, the wrapper keeps a body, and the module imports
+    converted = converted_path.read_text(encoding="utf-8")
+    assert "custom_dataset_function" not in converted
+    assert "def main():\n    pass\n" in converted
+    compile(converted, str(converted_path), "exec")
+    assert callable(_load_pipeline(converted_path, "migrated_wrapper_ep_013"))

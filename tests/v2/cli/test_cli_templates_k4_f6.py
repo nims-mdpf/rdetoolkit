@@ -277,3 +277,69 @@ def test_slot_type_names_use_the_public_module__tc_k4f6_tpl_ep_007() -> None:
     source = _render_processing_module(spec)
     assert "from pathlib import Path\n" in source
     assert "_local" not in source
+
+
+_UNION_SOURCE = '''"""Skeleton whose slots use union and generic annotations (PR #556 review R1)."""
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Optional, final
+
+from rdetoolkit.templates import ProcessingTemplate, slot
+from rdetoolkit.types import InputPaths
+
+
+class K4F6UnionTemplate(ProcessingTemplate):
+    @slot
+    def locate(self, paths: InputPaths | None, items: list[InputPaths]) -> Path | None: ...
+
+    @slot
+    def pick(self, root: Optional[Path]) -> dict[str, InputPaths | None]: ...
+
+    @final
+    def __flow__(self, paths: InputPaths) -> None:
+        self.locate(paths, [paths])
+'''
+
+
+def test_union_and_generic_slots_generate_an_importable_module__tc_k4f6_tpl_ep_008(
+    tmp_path: Path,
+    isolated_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-K4F6-TPL-EP-008: ``Path | None``, ``Optional[...]`` and ``list[X]`` slots render valid imports.
+
+    PR #556 review R1: the renderer treated the whole annotation expression as
+    one dotted name and emitted ``from pathlib import Path | None``.
+    """
+    # Given: a skeleton with union, Optional and generic slot annotations, importable as a module
+    provider_dir = tmp_path / "site"
+    provider_dir.mkdir()
+    (provider_dir / "k4f6_union_provider.py").write_text(_UNION_SOURCE, encoding="utf-8")
+    monkeypatch.syspath_prepend(str(provider_dir))
+
+    # When: generating its processing template
+    result = CliRunner().invoke(app, ["init", "--processing-template", "K4F6UnionTemplate", "--module", "k4f6_union_provider"])
+
+    # Then: the registry names the annotations structurally with public modules
+    assert result.exit_code == 0, result.output
+    spec = template_registry.get_template("k4f6_union_provider.K4F6UnionTemplate")
+    locate = next(slot for slot in spec.slots if slot.name == "locate")
+    assert [parameter.type_name for parameter in locate.parameters] == [
+        "rdetoolkit.types.InputPaths | None",
+        "list[rdetoolkit.types.InputPaths]",
+    ]
+    assert locate.return_type == "pathlib.Path | None"
+    pick = next(slot for slot in spec.slots if slot.name == "pick")
+    assert pick.parameters[0].type_name == "pathlib.Path | None"
+    assert pick.return_type == "dict[str, rdetoolkit.types.InputPaths | None]"
+
+    # Then: the import lines name classes only, and the generated module imports
+    source = (isolated_root / "processing.py").read_text(encoding="utf-8")
+    import_lines = [line for line in source.splitlines() if line.startswith("from ")]
+    assert "from pathlib import Path" in import_lines
+    assert "from rdetoolkit.types import InputPaths" in import_lines
+    assert all("|" not in line and "[" not in line for line in import_lines), import_lines
+    assert "def locate(self, paths: InputPaths | None, items: list[InputPaths]) -> Path | None:" in source
+    module = _import_generated(isolated_root / "processing.py", "k4f6_generated_union_processing")
+    assert hasattr(module, "K4F6UnionProcessing")
