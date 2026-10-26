@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from rdetoolkit.api.request import ExecutionTarget, RunRequest
+from rdetoolkit.core.calllog import CallSequence
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.runner.mode_resolver import ModeKind
@@ -34,11 +35,13 @@ class ExecutionPlan:
     tiles: Iterable[TilePlan]
     data_root: Path
     invoice_source: Path
+    call_sequence: CallSequence = ...
 
 @dataclass(frozen=True, slots=True)
 class TileMaterial:
     invoice_source: Path
     smarttable_row_data: Mapping[str, Any] | None = ...
+    call_sequence: CallSequence | None = ...
 
 PathProvider = Path | Callable[[], Path]
 

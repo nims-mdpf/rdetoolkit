@@ -233,7 +233,9 @@ class _ApplyTransformer(ast.NodeTransformer):
         return self.generic_visit(node)
 
     def visit_Expr(self, node: ast.Expr) -> ast.AST | None:  # noqa: N802
-        return None if _has_custom_dataset_keyword(node) else self.generic_visit(node)
+        # An expression statement wraps its call: the keyword lives on
+        # ``node.value``, never on the ``ast.Expr`` itself.
+        return None if _has_custom_dataset_keyword(node.value) else self.generic_visit(node)
 
 
 def _is_main_guard(node: ast.If) -> bool:

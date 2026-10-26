@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import inspect
 import json
-from typing import Any
 
 import pytest
 
@@ -43,23 +42,6 @@ from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.testing.builders import make_invoice
 from rdetoolkit.types import Metadata, OutputContext
 from tests.v2.nodes.conftest import FIXTURES_DIR
-
-
-def _json_tree_contains_pair(obj: Any, key: str, value: Any) -> bool:
-    """Recursively search a decoded JSON value for a matching key/value pair
-    anywhere in the structure (the exact top-level JSON schema for saved
-    metadata is Codex's implementation choice, per this session's Conflict
-    resolutions -- this helper avoids over-pinning that shape)."""
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k == key and (v == value or str(v) == str(value)):
-                return True
-            if _json_tree_contains_pair(v, key, value):
-                return True
-        return False
-    if isinstance(obj, list):
-        return any(_json_tree_contains_pair(item, key, value) for item in obj)
-    return False
 
 
 class TestParseInvoiceMeta:
@@ -124,7 +106,40 @@ class TestSaveMeta:
         assert result_path.parent == output_context.meta
         assert result_path.suffix == ".json"
         decoded = json.loads(result_path.read_text(encoding="utf-8"))
-        assert _json_tree_contains_pair(decoded, "sample.key1", "value1")
+        # K4-F6 F6-1: the RDE metadata.json contract (constant/variable,
+        # MetaValue = {value, unit?}) replaces the former custom/basic shape.
+        assert decoded == {"constant": {"sample.key1": {"value": "value1"}}, "variable": []}
+
+    def test_written_file_passes_metadata_validate__tc_k4f6_meta_001(self, output_context: OutputContext) -> None:
+        """TC-K4F6-META-001: the written file satisfies the Runner's metadata.json validator."""
+        from rdetoolkit.domain.validation import metadata_validate
+        from rdetoolkit.nodes.meta import save_meta
+
+        # Given: metadata with one numeric custom field
+        metadata = Metadata(custom={"temperature": 300})
+
+        # When: saving it
+        result_path = save_meta(metadata, output_context)
+
+        # Then: the file validates and carries the value under constant
+        metadata_validate(result_path)
+        decoded = json.loads(result_path.read_text(encoding="utf-8"))
+        assert decoded["constant"]["temperature"]["value"] == 300
+        assert decoded["variable"] == []
+
+    def test_basic_is_not_written__tc_k4f6_meta_002(self, output_context: OutputContext) -> None:
+        """TC-K4F6-META-002: invoice basic info has no metadata.json slot and is not written."""
+        from rdetoolkit.nodes.meta import save_meta
+
+        # Given: metadata carrying basic info and no custom fields
+        metadata = Metadata(custom={}, basic={"dataName": "x"})
+
+        # When: saving it
+        result_path = save_meta(metadata, output_context)
+
+        # Then: only the empty constant/variable contract is written
+        decoded = json.loads(result_path.read_text(encoding="utf-8"))
+        assert decoded == {"constant": {}, "variable": []}
 
     def test_delegates_to_output_context_write_api(self) -> None:
         """Delegation guard: save_meta's source calls write_bytes or path_for."""
@@ -156,5 +171,6 @@ class TestParseInvoiceMetaThenSaveMetaRoundTrip:
         result_path = save_meta(metadata, output_context)
         decoded = json.loads(result_path.read_text(encoding="utf-8"))
 
-        assert _json_tree_contains_pair(decoded, "sample.key1", "value1")
-        assert _json_tree_contains_pair(decoded, "sample.key2", 42)
+        assert decoded["constant"]["sample.key1"] == {"value": "value1"}
+        assert decoded["constant"]["sample.key2"] == {"value": 42}
+        assert decoded["variable"] == []

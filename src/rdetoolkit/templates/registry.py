@@ -7,6 +7,8 @@ import typing
 from dataclasses import dataclass
 from typing import Any
 
+from rdetoolkit.core.calllog import type_name_of
+
 
 @dataclass(frozen=True, slots=True)
 class TemplateParameterSpec:
@@ -67,6 +69,11 @@ def _annotation_name(annotation: Any) -> str:
         return "None"
     if isinstance(annotation, str):
         return annotation
+    if isinstance(annotation, type):
+        # Public-module naming (K4-F5): ``pathlib.Path``, not the
+        # ``pathlib._local.Path`` Python 3.13 reports, so a template generated
+        # on one interpreter imports on every other.
+        return type_name_of(annotation)
     module = getattr(annotation, "__module__", "")
     qualname = getattr(annotation, "__qualname__", None)
     if qualname is not None:

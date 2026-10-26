@@ -36,6 +36,17 @@ reference for the dual-path build.
 
 The sections below are the per-session records folded into this release.
 
+### Session K4-F6 (release PR #553 review)
+
+#### Fixed
+
+- The builtin `save_meta` node writes the RDE `metadata.json` contract the Runner validates (`{"constant": {key: {"value": ...}}, "variable": []}`, the shape v1 `Meta.writefile` produced), so a flow that saves its metadata with it no longer fails with 4002. `Metadata.basic` is not written: `metadata.json` has no slot for invoice basic information.
+- Call-log numbering is run-global again: `seq` keeps increasing across tiles and `call_id` is unique within a run, on both the flow entry and `run(custom_dataset_function=...)`. Before, every tile restarted at 1, so a MultiDataTile or ExcelInvoice run repeated `call_id`s such as `read#1`.
+- `rdetoolkit init --processing-template` generates a `processing.py` that imports: `None` return annotations are written as `None` (not `NoneType`), and the annotation types used by the slots are imported from their modules.
+- `rdetoolkit migrate apply` removes a top-level `run(custom_dataset_function=...)` call that is not under an `if __name__ == "__main__":` guard. Before, the call survived while the callback was renamed to `pipeline`, so the migrated module failed with `NameError` on import.
+- `rdetoolkit templates describe` and `rdetoolkit init --processing-template` load installed plugins the same way `templates list` does, so a plugin-provided template that `list` shows is no longer reported as unknown by the other two commands.
+- Template slot type names use the public module of a class (`pathlib.Path`, not the `pathlib._local.Path` Python 3.13 reports), so a processing template generated on one interpreter imports on every other.
+
 ### Session K4-F5 (release PR #553 CI: Python 3.10)
 
 #### Fixed

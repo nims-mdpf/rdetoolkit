@@ -293,6 +293,7 @@ class LegacyCallbackInvoker:
             repr_head_len=config.provenance.repr_head_len,
             type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
             iteration_index=iteration.index,
+            sequence=material.call_sequence,
         )
         datatile_id = _datatile_id(context, iteration.index)
         try:

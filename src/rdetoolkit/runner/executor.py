@@ -345,6 +345,7 @@ def _tile_material(plan: ExecutionPlan, preparation: TilePreparation) -> TileMat
     return TileMaterial(
         invoice_source=plan.invoice_source,
         smarttable_row_data=preparation.smarttable_row_data,
+        call_sequence=plan.call_sequence,
     )
 
 

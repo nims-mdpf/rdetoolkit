@@ -48,6 +48,23 @@ class NodeCallRecord:
     error: dict[str, Any] | None
 
 
+class CallSequence:
+    """Run-scoped counter that hands out the run-global call order (Design §3.4).
+
+    The Runner creates one per run and every tile's ``CallLogRecorder`` draws
+    from it, so ``seq`` keeps increasing across tiles and ``call_id`` (which
+    embeds ``seq``) stays unique within the run.
+    """
+
+    def __init__(self) -> None:
+        self._last = 0
+
+    def next(self) -> int:
+        """Return the next sequence number, starting at 1."""
+        self._last += 1
+        return self._last
+
+
 _active_recorder: ContextVar[CallLogRecorder | None] = ContextVar("rdetoolkit_calllog_recorder", default=None)
 
 
@@ -154,12 +171,25 @@ class CallLogRecorder:
         repr_head_len: int = 80,
         type_check: Literal["off", "warn", "strict"] = "off",
         iteration_index: int = 0,
+        sequence: CallSequence | None = None,
     ) -> None:
+        """Create a recorder.
+
+        Args:
+            repr_head: Whether value reprs are captured in the call log.
+            repr_head_len: Maximum captured repr length.
+            type_check: Opt-in runtime type-check mode.
+            iteration_index: Tile index stamped on every record.
+            sequence: Run-scoped counter shared by every tile of one run.
+                ``None`` gives this recorder a private counter, which is what
+                a standalone recorder outside a Runner run wants.
+        """
         self.repr_head = repr_head
         self.repr_head_len = repr_head_len
         self.type_check = type_check
         self.iteration_index = iteration_index
         self._records: list[NodeCallRecord] = []
+        self._sequence = sequence if sequence is not None else CallSequence()
         self._token: Token[CallLogRecorder | None] | None = None
 
     @property
@@ -238,7 +268,7 @@ class CallLogRecorder:
             # seq is allocated at append time: nested @node calls append their
             # records first, so pre-computing seq would duplicate numbers (R2:
             # the call log must be a deterministic, uniquely-ordered sequence).
-            seq = len(self._records) + 1
+            seq = self._sequence.next()
             self._records.append(
                 NodeCallRecord(
                     call_id=f"{spec.id}#{seq}",
@@ -257,7 +287,7 @@ class CallLogRecorder:
             raise
         duration_ms = (time.perf_counter() - start) * 1000
         self._check_return_type(spec.id, fn, result)
-        seq = len(self._records) + 1
+        seq = self._sequence.next()
         self._records.append(
             NodeCallRecord(
                 call_id=f"{spec.id}#{seq}",
