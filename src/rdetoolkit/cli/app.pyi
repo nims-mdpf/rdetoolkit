@@ -7,11 +7,22 @@ from typing import Literal, Optional, Union
 import typer
 
 app: typer.Typer
+nodes_app: typer.Typer
+flows_app: typer.Typer
+templates_app: typer.Typer
+formats_app: typer.Typer
+graph_app: typer.Typer
+report_app: typer.Typer
+repro_app: typer.Typer
+migrate_app: typer.Typer
 
 def validate_json_file(value: pathlib.Path) -> pathlib.Path: ...
 def parse_column(col: str) -> Union[int, str]: ...
 def init(
     template: pathlib.Optional[Path] = None,
+    processing_template: Optional[str] = None,
+    template_modules: Optional[list[str]] = None,
+    force: bool = False,
     entry_point: pathlib.Optional[Path] = None,
     modules: pathlib.Optional[Path] = None,
     tasksupport: pathlib.Optional[Path] = None,
@@ -19,7 +30,12 @@ def init(
     other: Optional[list[pathlib.Path]] = None,
 ) -> None: ...
 def version() -> None: ...
-def run(target: str) -> None: ...
+def run(
+    target: Optional[str] = None,
+    flow: Optional[str] = None,
+    validate_only: bool = False,
+    config: Optional[pathlib.Path] = None,
+) -> None: ...
 def gen_config(
     output_dir: pathlib.Optional[Path] = None,
     template_name: str = "minimal",

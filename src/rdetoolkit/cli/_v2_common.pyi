@@ -1,0 +1,3 @@
+from collections.abc import Sequence
+
+def load_modules(module_names: Sequence[str]) -> None: ...

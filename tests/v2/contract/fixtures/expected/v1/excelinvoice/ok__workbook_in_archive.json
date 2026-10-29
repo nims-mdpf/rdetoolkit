@@ -1,0 +1,153 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_xls_workbook_in_archive",
+    "invalidate_invoice": false,
+    "mode": "excelinvoice",
+    "observe_extras": [],
+    "outcome": "ok",
+    "variant": "workbook_in_archive"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/temp/aaa_decoy.xlsx": "5267371bb2636309e4656ff2dee8542a1aa9ce7004f037ba0c9e28e69613098b",
+      "data/temp/invoice_org.json": "15e8541de1ce43696a427a2017349f0d6d68cbcbe8d276c292457bc1cc3f9121",
+      "data/temp/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/temp/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    },
+    "callback_count": 2,
+    "exit_code": 0,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "seed",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/divided/0001/invoice/invoice.json": {
+        "basic": {
+          "dataName": "test2",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      },
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "test1",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "Excelinvoice",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp",
+          "title": "test1"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "Excelinvoice",
+          "run_id": "0001",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp",
+          "title": "test2"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/divided/",
+        "data/divided/0001/",
+        "data/divided/0001/attachment/",
+        "data/divided/0001/invoice/",
+        "data/divided/0001/invoice_patch/",
+        "data/divided/0001/logs/",
+        "data/divided/0001/main_image/",
+        "data/divided/0001/meta/",
+        "data/divided/0001/nonshared_raw/",
+        "data/divided/0001/other_image/",
+        "data/divided/0001/raw/",
+        "data/divided/0001/structured/",
+        "data/divided/0001/temp/",
+        "data/divided/0001/thumbnail/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/divided/0001/invoice/invoice.json",
+        "data/divided/0001/nonshared_raw/aaa_decoy.xlsx",
+        "data/divided/0001/nonshared_raw/test_child1.txt",
+        "data/divided/0001/nonshared_raw/test_child2.txt",
+        "data/divided/0001/raw/aaa_decoy.xlsx",
+        "data/divided/0001/raw/test_child1.txt",
+        "data/divided/0001/raw/test_child2.txt",
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/aaa_decoy.xlsx",
+        "data/nonshared_raw/test_child1.txt",
+        "data/nonshared_raw/test_child2.txt",
+        "data/raw/aaa_decoy.xlsx",
+        "data/raw/test_child1.txt",
+        "data/raw/test_child2.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/aaa_decoy.xlsx",
+        "data/temp/invoice_org.json",
+        "data/temp/test_child1.txt",
+        "data/temp/test_child2.txt"
+      ]
+    },
+    "raw_sha256": {
+      "data/divided/0001/nonshared_raw/aaa_decoy.xlsx": "5267371bb2636309e4656ff2dee8542a1aa9ce7004f037ba0c9e28e69613098b",
+      "data/divided/0001/nonshared_raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/divided/0001/nonshared_raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9",
+      "data/divided/0001/raw/aaa_decoy.xlsx": "5267371bb2636309e4656ff2dee8542a1aa9ce7004f037ba0c9e28e69613098b",
+      "data/divided/0001/raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/divided/0001/raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9",
+      "data/nonshared_raw/aaa_decoy.xlsx": "5267371bb2636309e4656ff2dee8542a1aa9ce7004f037ba0c9e28e69613098b",
+      "data/nonshared_raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/nonshared_raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9",
+      "data/raw/aaa_decoy.xlsx": "5267371bb2636309e4656ff2dee8542a1aa9ce7004f037ba0c9e28e69613098b",
+      "data/raw/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/raw/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

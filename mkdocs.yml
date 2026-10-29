@@ -43,6 +43,8 @@ plugins:
                 - クイックスタート: quick-start.ja.md
             - ユーザーガイド:
                 - ガイド概要: user-guide/index.ja.md
+                - v2 チュートリアル: tutorial_v2.md
+                - v1 から v2 への移行: migration_v1_to_v2.md
                 - 設定ガイド: user-guide/config.ja.md
                 - 構造化処理ガイド: user-guide/structured-processing.ja.md
                 - 構造化処理開発:
@@ -82,7 +84,6 @@ plugins:
                     - 設定: rdetoolkit/config.md
                     - コア機能: rdetoolkit/core.md
                     - ワークフロー: rdetoolkit/workflows.md
-                    - モード処理: rdetoolkit/modeproc.md
                     - Invoiceファイル: rdetoolkit/invoicefile.md
                     - Invoice生成: rdetoolkit/invoice_generator.md
                     - ユーティリティ: rdetoolkit/rde2util.md
@@ -92,21 +93,8 @@ plugins:
                     - 検証: rdetoolkit/validation.md
                     - 例外: rdetoolkit/exceptions.md
                     - エラーハンドリング: rdetoolkit/errors.md
+                    - エラーカタログ: rdetoolkit/error_catalog.md
                     - ファイル操作: rdetoolkit/fileops.md
-                - 処理パイプライン:
-                    - 概要: rdetoolkit/processing/index.md
-                    - コンテキスト: rdetoolkit/processing/context.md
-                    - ファクトリ: rdetoolkit/processing/factories.md
-                    - パイプライン: rdetoolkit/processing/pipeline.md
-                    - プロセッサ:
-                        - 概要: rdetoolkit/processing/processors/index.md
-                        - データセット: rdetoolkit/processing/processors/datasets.md
-                        - 説明: rdetoolkit/processing/processors/descriptions.md
-                        - ファイル: rdetoolkit/processing/processors/files.md
-                        - 送り状: rdetoolkit/processing/processors/invoice.md
-                        - サムネイル: rdetoolkit/processing/processors/thumbnails.md
-                        - 検証: rdetoolkit/processing/processors/validation.md
-                        - 変数: rdetoolkit/processing/processors/variables.md
                 - トレースバック:
                     - 概要: rdetoolkit/traceback/index.md
                     - フォーマッター: rdetoolkit/traceback/formatter.md
@@ -154,6 +142,8 @@ plugins:
                 - Quick Start: quick-start.en.md
             - User Guide:
                 - Guide Overview: user-guide/index.en.md
+                - v2 Tutorial: tutorial_v2.md
+                - Migrating from v1 to v2: migration_v1_to_v2.en.md
                 - Configuration Guide: user-guide/config.en.md
                 - Structuring Processing Guide: user-guide/structured-processing.en.md
                 - Structuring Processing:
@@ -193,7 +183,6 @@ plugins:
                     - Configuration: rdetoolkit/config.md
                     - Core Functions: rdetoolkit/core.md
                     - Workflows: rdetoolkit/workflows.md
-                    - Mode Processing: rdetoolkit/modeproc.md
                     - Invoice Files: rdetoolkit/invoicefile.md
                     - Invoice Generator: rdetoolkit/invoice_generator.md
                     - Utilities: rdetoolkit/rde2util.md
@@ -203,21 +192,8 @@ plugins:
                     - Validation: rdetoolkit/validation.md
                     - Exceptions: rdetoolkit/exceptions.md
                     - Error Handling: rdetoolkit/errors.md
+                    - Error Catalog: rdetoolkit/error_catalog.md
                     - File Operations: rdetoolkit/fileops.md
-                - Processing Pipeline:
-                    - Overview: rdetoolkit/processing/index.md
-                    - Context: rdetoolkit/processing/context.md
-                    - Factories: rdetoolkit/processing/factories.md
-                    - Pipeline: rdetoolkit/processing/pipeline.md
-                    - Processors:
-                        - Overview: rdetoolkit/processing/processors/index.md
-                        - Datasets: rdetoolkit/processing/processors/datasets.md
-                        - Descriptions: rdetoolkit/processing/processors/descriptions.md
-                        - Files: rdetoolkit/processing/processors/files.md
-                        - Invoice: rdetoolkit/processing/processors/invoice.md
-                        - Thumbnails: rdetoolkit/processing/processors/thumbnails.md
-                        - Validation: rdetoolkit/processing/processors/validation.md
-                        - Variables: rdetoolkit/processing/processors/variables.md
                 - Traceback:
                     - Overview: rdetoolkit/traceback/index.md
                     - Formatter: rdetoolkit/traceback/formatter.md
@@ -266,6 +242,8 @@ plugins:
             merge_init_into_class: true
             show_root_heading: true
             docstring_style: google
+            docstring_options:
+              returns_named_value: false
             show_if_no_docstring: true
             signature_crossrefs: true
 

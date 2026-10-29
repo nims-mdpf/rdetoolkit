@@ -1,0 +1,6 @@
+import typer
+
+app: typer.Typer
+
+def list_flows(as_json: bool = False, modules: list[str] | None = None) -> None: ...
+def describe(flow_id: str, as_json: bool = False, modules: list[str] | None = None) -> None: ...

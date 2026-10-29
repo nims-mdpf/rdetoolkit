@@ -1,0 +1,222 @@
+{
+    "machine": {
+        "name": {
+            "ja": "装置名",
+            "en": "Machine"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 1
+    },
+    "date": {
+        "name": {
+            "ja": "データ取得日",
+            "en": "Date"
+        },
+        "schema": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "order": 2
+    },
+    "raw_file_name": {
+        "name": {
+            "ja": "元ファイル名",
+            "en": "Raw File Name"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 3
+    },
+    "imaging_mode": {
+        "name": {
+            "ja": "像モード",
+            "en": "Imaging Mode"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 4
+    },
+    "acc_voltage": {
+        "name": {
+            "ja": "加速電圧",
+            "en": "Acc. Voltage"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 5,
+        "unit": "V"
+    },
+    "aperture_size": {
+        "name": {
+            "ja": "絞りサイズ",
+            "en": "Aperture Size"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 6,
+        "unit": "m"
+    },
+    "esb_grid": {
+        "name": {
+            "ja": "EsBグリッドの値",
+            "en": "EsB Grid "
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 7
+    },
+    "wd": {
+        "name": {
+            "ja": "ワークディスタンス",
+            "en": "WD"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 8
+    },
+    "scan_speed": {
+        "name": {
+            "ja": "スキャンスピード",
+            "en": "Scan speed"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 9
+    },
+    "dwel_time": {
+        "name": {
+            "ja": "デュエルタイム",
+            "en": "Dwel Time"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 10,
+        "unit": "s"
+    },
+    "noise_reduction": {
+        "name": {
+            "ja": "Noise reduction",
+            "en": "Noise reduction"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 11
+    },
+    "noise_reduction_value": {
+        "name": {
+            "ja": "Noise reductionの値",
+            "en": "Noise reduction value"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 12
+    },
+    "frame_time": {
+        "name": {
+            "ja": "像取得時間",
+            "en": "Frame Time"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 13
+    },
+    "image_size_x": {
+        "name": {
+            "ja": "像サイズ (X方向)",
+            "en": "Image Size (X)"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 14,
+        "original_name": "DP_WIDTH"
+    },
+    "image_size_y": {
+        "name": {
+            "ja": "像サイズ (Y方向)",
+            "en": "Image Size (Y)"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 15,
+        "original_name": "DP_HEIGHT"
+    },
+    "pixel_resolution": {
+        "name": {
+            "ja": "ピクセル分解能",
+            "en": "Pixel Resolution"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 16,
+        "unit": "m"
+    },
+    "image_width": {
+        "name": {
+            "ja": "像サイズ（幅）",
+            "en": "Image Width"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 17,
+        "unit": "m"
+    },
+    "image_height": {
+        "name": {
+            "ja": "像サイズ（高さ）",
+            "en": "Image Height"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 18,
+        "unit": "m"
+    },
+    "magnification": {
+        "name": {
+            "ja": "倍率",
+            "en": "Magnification"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 19,
+        "unit": "X"
+    },
+    "row": {
+        "name": {
+            "ja": "行",
+            "en": "row"
+        },
+        "schema": {
+            "type": "integer"
+        },
+        "order": 20
+    },
+    "column": {
+        "name": {
+            "ja": "列",
+            "en": "column"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 21
+    }
+}

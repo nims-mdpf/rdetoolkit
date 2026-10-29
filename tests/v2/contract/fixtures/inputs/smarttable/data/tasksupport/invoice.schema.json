@@ -1,0 +1,315 @@
+{
+  "$id": "https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "RDEデータセットテンプレートサンプル固有情報invoice",
+  "properties": {
+    "custom": {
+      "label": {
+        "en": "Custom Information",
+        "ja": "固有情報"
+      },
+      "properties": {
+        "enable_feature": {
+          "description": "Flag to enable an experimental SmartTable feature.",
+          "label": {
+            "en": "Enable Feature",
+            "ja": "機能を有効化"
+          },
+          "type": "boolean"
+        },
+        "flag_lowercase": {
+          "description": "Boolean flag used for lowercase TRUE/FALSE conversion tests.",
+          "label": {
+            "en": "Flag Lowercase",
+            "ja": "フラグ（小文字）"
+          },
+          "type": "boolean"
+        },
+        "flag_mixed": {
+          "description": "Boolean flag used for mixed-case TRUE/FALSE conversion tests.",
+          "label": {
+            "en": "Flag Mixed",
+            "ja": "フラグ（大小混在）"
+          },
+          "type": "boolean"
+        },
+        "invert_phase_axis": {
+          "description": "Whether to invert the phase axis when processing results.",
+          "label": {
+            "en": "Invert Phase Axis",
+            "ja": "反転フェーズ軸"
+          },
+          "type": "boolean"
+        },
+        "sample1": {
+          "format": "date",
+          "label": {
+            "en": "sample1",
+            "ja": "サンプル１"
+          },
+          "options": {
+            "unit": "A"
+          },
+          "type": "string"
+        },
+        "sample10": {
+          "const": "S10",
+          "default": "S10",
+          "label": {
+            "en": "sample10",
+            "ja": "サンプル１０"
+          },
+          "type": "string"
+        },
+        "sample2": {
+          "label": {
+            "en": "sample2",
+            "ja": "サンプル２"
+          },
+          "options": {
+            "unit": "b"
+          },
+          "type": "number"
+        },
+        "sample3": {
+          "label": {
+            "en": "sample3",
+            "ja": "サンプル３"
+          },
+          "options": {
+            "placeholder": {
+              "en": "Please Enter text",
+              "ja": "Please Enter text"
+            },
+            "unit": "c"
+          },
+          "type": "integer"
+        },
+        "sample4": {
+          "format": "time",
+          "label": {
+            "en": "sample4",
+            "ja": "サンプル４"
+          },
+          "type": "string"
+        },
+        "sample5": {
+          "format": "uri",
+          "label": {
+            "en": "sample5",
+            "ja": "サンプル５"
+          },
+          "type": "string"
+        },
+        "sample6": {
+          "format": "uuid",
+          "label": {
+            "en": "sample6",
+            "ja": "サンプル６"
+          },
+          "type": "string"
+        },
+        "sample7": {
+          "format": "markdown",
+          "label": {
+            "en": "sample7",
+            "ja": "サンプル７"
+          },
+          "type": "string"
+        },
+        "sample8": {
+          "default": "S8",
+          "description": "select item",
+          "enum": [
+            "itemA",
+            "itemB",
+            "itemC",
+            "itemD",
+            "itemE"
+          ],
+          "examples": [
+            "S8"
+          ],
+          "label": {
+            "en": "sample8",
+            "ja": "サンプル８"
+          },
+          "type": "string"
+        },
+        "sample9": {
+          "label": {
+            "en": "sample9",
+            "ja": "サンプル９"
+          },
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample1",
+        "sample2"
+      ],
+      "type": "object"
+    },
+    "sample": {
+      "label": {
+        "en": "Sample Information",
+        "ja": "試料情報"
+      },
+      "properties": {
+        "generalAttributes": {
+          "items": [
+            {
+              "properties": {
+                "termId": {
+                  "const": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "termId": {
+                  "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "termId": {
+                  "const": "efcf34e7-4308-c195-6691-6f4d28ffc9bb"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "termId": {
+                  "const": "1e70d11d-cbdd-bfd1-9301-9612c29b4060"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "termId": {
+                  "const": "5e166ac4-bfcd-457a-84bc-8626abe9188f"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "termId": {
+                  "const": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "termId": {
+                  "const": "efc6a0d5-313e-1871-190c-baaff7d1bf6c"
+                }
+              },
+              "required": [
+                "termId"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "array"
+        },
+        "specificAttributes": {
+          "items": [
+            {
+              "properties": {
+                "classId": {
+                  "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                },
+                "termId": {
+                  "const": "3250c45d-0ed6-1438-43b5-eb679918604a"
+                }
+              },
+              "required": [
+                "classId",
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "classId": {
+                  "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                },
+                "termId": {
+                  "const": "70c2c751-5404-19b7-4a5e-981e6cebbb15"
+                }
+              },
+              "required": [
+                "classId",
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "classId": {
+                  "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                },
+                "termId": {
+                  "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057"
+                }
+              },
+              "required": [
+                "classId",
+                "termId"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "classId": {
+                  "const": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b"
+                },
+                "termId": {
+                  "const": "518e26a0-4262-86f5-3598-80e18e6ff2af"
+                }
+              },
+              "required": [
+                "classId",
+                "termId"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "custom",
+    "sample"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,6 @@
+key,value
+common.data_origin,experiments
+common.technical_category,measurement
+measurement.method_category,分光法
+measurement.method_sub_category,X線光電子分光法
+measurement.measurement_environment,真空中

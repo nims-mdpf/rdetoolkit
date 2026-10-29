@@ -1,0 +1,74 @@
+{
+  "case": {
+    "family": "i6c",
+    "id": "i6c/TC-I6-C-EV-027",
+    "inputs_sha256": {
+      "invoice": "00144e281e28f1135f4199e960a3e82af8676d2dc2f632be0bace70d452afe93",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "ca83368ab04e0674e7b1e7bfa785ddce82ba2518f5e36273a5d466f09d1c403b",
+      "schema": "55b09a75d99677319d7cfc124e9ac0c25543853347b6aa29fa22924e68c1248a"
+    },
+    "steps": [
+      {
+        "csv_text": "meta/comment\nvalue\n",
+        "dist": "tile",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-I6-C-EV-027",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": {
+      "basic": {
+        "dataName": "inherited-name",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+        "dateSubmitted": "2026-09-01",
+        "instrumentId": "inherited-instrument"
+      },
+      "custom": {
+        "sample9": "inherited-custom"
+      },
+      "datasetId": "seed-dataset",
+      "sample": {
+        "composition": "inherited composition",
+        "description": "inherited description",
+        "generalAttributes": [
+          {
+            "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+            "value": "inherited-general"
+          }
+        ],
+        "names": [
+          "inherited-sample"
+        ],
+        "ownerId": "00000000000000000000000000000000000000000000000000000005",
+        "referenceUrl": "https://example.invalid/inherited",
+        "sampleId": "00000000-0000-0000-0000-000000000001",
+        "specificAttributes": [
+          {
+            "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+            "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+            "value": "inherited-specific"
+          }
+        ]
+      }
+    },
+    "steps": [
+      {
+        "error": {
+          "ecode": 1,
+          "message": "Unsupported metadata type for key comment: array",
+          "type": "StructuredError"
+        },
+        "invoice": null,
+        "metadata": null
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "references": [
+    "tests/samplefile/invoice.json",
+    "tests/samplefile/invoice.schema.json",
+    "tests/samplefile/invoice.schema.full.json",
+    "tests/samplefile/invoice.schema.basic.json"
+  ]
+}

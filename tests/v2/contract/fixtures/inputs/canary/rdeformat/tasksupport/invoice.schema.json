@@ -1,0 +1,360 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://rde.nims.go.jp/rde/dataset-templates/m015-3_afm/invoice.schema.json",
+    "description": ": 送状定義",
+    "type": "object",
+    "required": [
+        "custom",
+        "sample"
+    ],
+    "properties": {
+        "custom": {
+            "type": "object",
+            "label": {
+                "ja": "固有情報",
+                "en": "Custom Information"
+            },
+            "required": [
+                "common_data_type",
+                "sample_id",
+                "point"
+            ],
+            "properties": {
+                "common_data_type": {
+                    "label": {
+                        "ja": "登録データタイプ",
+                        "en": "Data type"
+                    },
+                    "type": "string",
+                    "default": "AFM"
+                },
+                "sample_id": {
+                    "label": {
+                        "ja": "サンプルID",
+                        "en": "Sample ID"
+                    },
+                    "type": "string"
+                },
+                "point": {
+                    "label": {
+                        "ja": "多点ポイント",
+                        "en": "Point"
+                    },
+                    "type": "string"
+                },
+                "surface_roughness": {
+                    "label": {
+                        "ja": "表面粗さ",
+                        "en": "Surface roughness"
+                    },
+                    "type": "string"
+                },
+                "peak_to_valley": {
+                    "label": {
+                        "ja": "最大最小差",
+                        "en": "Peak to valley"
+                    },
+                    "type": "string"
+                },
+                "main_image": {
+                    "label": {
+                        "ja": "代表画像ファイル名",
+                        "en": "main_image_filename"
+                    },
+                    "type": "string"
+                },
+                "key1": {
+                    "label": {
+                        "ja": "キー1",
+                        "en": "key1"
+                    },
+                    "type": "string"
+                },
+                "key2": {
+                    "label": {
+                        "ja": "キー2",
+                        "en": "key2"
+                    },
+                    "type": "string"
+                },
+                "key3": {
+                    "label": {
+                        "ja": "キー3",
+                        "en": "key3"
+                    },
+                    "type": "string"
+                },
+                "key4": {
+                    "label": {
+                        "ja": "キー4",
+                        "en": "key4"
+                    },
+                    "type": "string"
+                },
+                "key5": {
+                    "label": {
+                        "ja": "キー5",
+                        "en": "key5"
+                    },
+                    "type": "string"
+                },
+                "key6": {
+                    "label": {
+                        "ja": "キー6",
+                        "en": "key6"
+                    },
+                    "type": "string"
+                },
+                "key7": {
+                    "label": {
+                        "ja": "キー7",
+                        "en": "key7"
+                    },
+                    "type": "string"
+                },
+                "key8": {
+                    "label": {
+                        "ja": "キー8",
+                        "en": "key8"
+                    },
+                    "type": "string"
+                },
+                "key9": {
+                    "label": {
+                        "ja": "キー9",
+                        "en": "key9"
+                    },
+                    "type": "string"
+                },
+                "key10": {
+                    "label": {
+                        "ja": "キー10",
+                        "en": "key10"
+                    },
+                    "type": "string"
+                },
+                "measurement_method_category": {
+                    "label": {
+                        "ja": "計測法カテゴリー",
+                        "en": "Method category"
+                    },
+                    "type": "string"
+                },
+                "measurement_method_sub_category": {
+                    "label": {
+                        "ja": "計測法サブカテゴリー",
+                        "en": "Method sub-category"
+                    },
+                    "type": "string"
+                },
+                "measurement_analysis_field": {
+                    "label": {
+                        "ja": "分析分野",
+                        "en": "Analysis field"
+                    },
+                    "type": "string"
+                },
+                "measurement_measurement_environment": {
+                    "label": {
+                        "ja": "測定環境",
+                        "en": "Measurement environment"
+                    },
+                    "type": "string"
+                },
+                "measurement_energy_level_transition_structure_etc_of_interst": {
+                    "label": {
+                        "ja": "対象準位_遷移_構造",
+                        "en": "Energy Level_Transition_Structure etc. of interest"
+                    },
+                    "type": "string"
+                },
+                "measurement_measured_date": {
+                    "label": {
+                        "ja": "分析年月日",
+                        "en": "Measured date"
+                    },
+                    "type": "string"
+                },
+                "measurement_standardized_procedure": {
+                    "label": {
+                        "ja": "標準手順",
+                        "en": "Standardized procedure"
+                    },
+                    "type": "string"
+                },
+                "measurement_instrumentation_site": {
+                    "label": {
+                        "ja": "装置設置場所",
+                        "en": "Instrumentation site"
+                    },
+                    "type": "string"
+                },
+                "common_data_origin": {
+                    "label": {
+                        "ja": "データの起源",
+                        "en": "Data Origin"
+                    },
+                    "type": "string"
+                },
+                "common_technical_category": {
+                    "label": {
+                        "ja": "技術カテゴリー",
+                        "en": "Technical Category"
+                    },
+                    "type": "string"
+                },
+                "common_reference": {
+                    "label": {
+                        "ja": "参考文献",
+                        "en": "Reference"
+                    },
+                    "type": "string"
+                },
+                "process_processed_date": {
+                    "label": {
+                        "ja": "処理年月日",
+                        "en": "Processed date"
+                    },
+                    "type": "string",
+                    "format": "date"
+                },
+                "process_process_category": {
+                    "label": {
+                        "ja": "プロセスカテゴリー",
+                        "en": "Process category"
+                    },
+                    "type": "string"
+                },
+                "process_process_technique": {
+                    "label": {
+                        "ja": "プロセス手法",
+                        "en": "Process technique"
+                    },
+                    "type": "string"
+                },
+                "process_processing_environment": {
+                    "label": {
+                        "ja": "処理環境",
+                        "en": "Processing environment"
+                    },
+                    "type": "string"
+                },
+                "process_key_temperature": {
+                    "label": {
+                        "ja": "主となる処理温度",
+                        "en": "Key temperature"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "C"
+                    }
+                },
+                "process_instrumentation_site": {
+                    "label": {
+                        "ja": "装置設置場所",
+                        "en": "Instrumentation site"
+                    },
+                    "type": "string"
+                },
+                "process_standardized_procedure": {
+                    "label": {
+                        "ja": "標準手順",
+                        "en": "Standardized procedure"
+                    },
+                    "type": "string"
+                }
+            }
+        },
+        "sample": {
+            "type": "object",
+            "label": {
+                "ja": "試料情報",
+                "en": "Sample Information"
+            },
+            "properties": {
+                "generalAttributes": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "efcf34e7-4308-c195-6691-6f4d28ffc9bb"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "1e70d11d-cbdd-bfd1-9301-9612c29b4060"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "5e166ac4-bfcd-457a-84bc-8626abe9188f"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "termId"
+                            ],
+                            "properties": {
+                                "termId": {
+                                    "const": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

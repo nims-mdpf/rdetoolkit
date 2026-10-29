@@ -1,0 +1,6 @@
+from pathlib import Path
+
+from rdetoolkit.types import InvoiceData, Metadata, OutputContext
+
+def parse_invoice_meta(invoice: InvoiceData, metadef_path: Path) -> Metadata: ...
+def save_meta(metadata: Metadata, out: OutputContext) -> Path: ...

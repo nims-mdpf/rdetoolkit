@@ -4,7 +4,8 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
-| v1.7.0  | unreleased   | **BREAKING**: SmartTable row CSV excluded from `rawfiles` / `smarttable_rowfile` renamed to `smarttable_rawfile` / `save_table_file: true` original file now registers at `divided/0001` / SmartTable `meta/` columns now require `metadata-def.json` / csv2graph legend placement policy and axis tick label formatting added | [v1.7.0](#v170-unreleased) |
+| v1.7.1  | unreleased   | Decode cp932 filenames correctly when extracting ZIP archives created on Japanese Windows / Protect ZIP extraction from path traversal | [v1.7.1](#v171-unreleased) |
+| v1.7.0  | 2026-07-13   | **BREAKING**: SmartTable row CSV excluded from `rawfiles` / `smarttable_rowfile` renamed to `smarttable_rawfile` / `save_table_file: true` original file now registers at `divided/0001` / SmartTable `meta/` columns now require `metadata-def.json` / csv2graph legend placement policy and axis tick label formatting added | [v1.7.0](#v170-2026-07-13) |
 | v1.6.4  | 2026-06-03   | Fix SmartTable data registration order to follow table row order / Remove direct click dependency from CLI | [v1.6.4](#v164-2026-06-03) |
 | v1.6.3  | 2026-04-13   | Fix SmartTable new sample `sampleId` set to None instead of empty string / Support uppercase image extensions in thumbnail copy | [v1.6.3](#v163-2026-04-13) |
 | v1.6.2  | 2026-03-16   | Fix silent inheritance of dummy sampleId when SmartTable specifies `sample/names` / Improve error messages for missing SmartTable file references in zip | [v1.6.2](#v162-2026-03-16) |
@@ -26,7 +27,43 @@
 
 # Release Details
 
-## v1.7.0 (unreleased)
+## v1.7.1 (unreleased)
+
+!!! info "References"
+    - Key issue: [#515](https://github.com/nims-mdpf/rdetoolkit/issues/515)
+    - Pull request: [#518](https://github.com/nims-mdpf/rdetoolkit/pull/518)
+
+#### Highlights
+
+- Fixed garbled filenames when extracting ZIP archives created on Japanese
+  Windows with cp932-encoded entry names and no UTF-8 language-encoding flag
+- Applied the filename recovery consistently across SmartTable, RDEFormat,
+  MultiFile, and ExcelInvoice file/folder extraction paths
+- Preserved UTF-8 and ASCII filenames, including archives that mix flagged
+  UTF-8 entries with unflagged cp932 entries
+- Added path validation to ZIP extraction; entries that resolve outside the
+  destination directory are logged and skipped to prevent path traversal
+
+### Bug Fixes
+
+#### Decode cp932 ZIP Filenames Correctly (Issue #515)
+
+**Problem**: Python's `zipfile` decodes entry names as cp437 when the ZIP
+language-encoding flag is absent. ZIP archives created on Japanese Windows may
+store those names as cp932 without setting the flag, causing SmartTable file
+references containing Japanese or multibyte characters to become garbled and
+fail validation.
+
+**Changes**:
+
+- Recover the original filename bytes from `zipfile`'s cp437 representation
+  and decode them as cp932
+- Fall back to encoding detection only when cp932 decoding fails
+- Use one shared extraction helper for every affected input mode
+- Verify each resolved entry remains inside the extraction directory before
+  writing it
+
+## v1.7.0 (2026-07-13)
 
 !!! warning "Breaking Changes"
     In SmartTable invoice mode, `paths.rawfiles` no longer contains the

@@ -1,0 +1,167 @@
+{
+  "case": {
+    "effective_config": {
+      "config": {
+        "multidata_tile": {
+          "ignore_errors": false
+        },
+        "smarttable": null,
+        "system": {
+          "extended_mode": "rdeformat",
+          "feature_description": true,
+          "magic_variable": false,
+          "save_invoice_to_structured": false,
+          "save_nonshared_raw": false,
+          "save_raw": true,
+          "save_thumbnail_image": true
+        },
+        "traceback": null
+      },
+      "source": {
+        "normalizations": [
+          "system.extended_mode overlaid as rdeformat"
+        ],
+        "path": "data/tasksupport/rdeconfig.yaml"
+      }
+    },
+    "entry": "custom_dataset_function",
+    "family": "canary",
+    "mode": "rdeformat",
+    "outcome": "ok"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/main_image/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563",
+      "data/temp/invoice_org.json": "9afff64f54d433b8b857f7ee82c238e8a3ec5f4668ffd9d816e32f8d0a6faf16",
+      "data/temp/main_image/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563",
+      "data/thumbnail/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563"
+    },
+    "callback_count": 1,
+    "exit_code": 0,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "AFM Test Data",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+        "dateSubmitted": "<DATE>"
+      },
+      "custom": {
+        "common_data_origin": "experiments",
+        "common_data_type": "AFM",
+        "common_technical_category": "measurement",
+        "main_image": "1.jpg",
+        "measurement_method_category": "顕微法",
+        "measurement_method_sub_category": "原子間力顕微鏡",
+        "point": "1",
+        "sample_id": "test"
+      },
+      "datasetId": "test-dataset-001",
+      "sample": {
+        "generalAttributes": [],
+        "names": [
+          {
+            "en": "Test Sample",
+            "ja": "テストサンプル"
+          }
+        ],
+        "ownerId": "00000000000000000000000000000000000000000000000000000001",
+        "sampleId": ""
+      }
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "AFM Test Data",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>"
+        },
+        "custom": {
+          "common_data_origin": "experiments",
+          "common_data_type": "AFM",
+          "common_technical_category": "measurement",
+          "main_image": "1.jpg",
+          "measurement_method_category": "顕微法",
+          "measurement_method_sub_category": "原子間力顕微鏡",
+          "point": "1",
+          "sample_id": "test"
+        },
+        "datasetId": "test-dataset-001",
+        "sample": {
+          "generalAttributes": [],
+          "names": [
+            {
+              "en": "Test Sample",
+              "ja": "テストサンプル"
+            }
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "sampleId": ""
+        }
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "rdeformat",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp/main_image",
+          "title": "AFM Test Data"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/temp/main_image/",
+        "data/temp/meta/",
+        "data/temp/nonshared_raw/",
+        "data/temp/other_image/",
+        "data/temp/raw/",
+        "data/temp/structured/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/afm_rdeformat.zip",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/main_image/1.jpg",
+        "data/raw/1.jpg",
+        "data/tasksupport/default_value.csv",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/tasksupport/rdeconfig.yaml",
+        "data/temp/invoice_org.json",
+        "data/temp/main_image/1.jpg",
+        "data/temp/raw/1.jpg",
+        "data/thumbnail/1.jpg"
+      ]
+    },
+    "raw_sha256": {
+      "data/raw/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563",
+      "data/temp/raw/1.jpg": "f565459b09b4f58f629aa102a75e317f8f578efbdcee9c03902230b895f65563"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

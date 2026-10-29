@@ -1,0 +1,79 @@
+{
+  "case": {
+    "callback": "sabotage_structured",
+    "config_overrides": {
+      "system": {
+        "magic_variable": true,
+        "save_invoice_to_structured": true
+      }
+    },
+    "config_source": "oracle",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_filename_template",
+    "invalidate_invoice": false,
+    "mode": "invoice",
+    "observe_extras": [],
+    "outcome": "structfail",
+    "variant": null
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "014f9d45ef911711cf5355dc249435384ab5dc4b7032452aba7f8140b3a5152d",
+      "data/structured": "3b2a43e3a5b13459006960eac2534b6a71bf7170ea998dc49b1990f23508a6d6"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "${filename}",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Unexpected error in Invoice mode: [Errno 17] File exists: 'data/structured'\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/invoice_input.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/invoice_input.txt",
+        "data/raw/invoice_input.txt",
+        "data/structured",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/invoice_input.txt": "720f6bcfd8521751382d7c5bfdcf48bf3f0d650ee0b290d1562d7329b849cb25",
+      "data/raw/invoice_input.txt": "720f6bcfd8521751382d7c5bfdcf48bf3f0d650ee0b290d1562d7329b849cb25"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

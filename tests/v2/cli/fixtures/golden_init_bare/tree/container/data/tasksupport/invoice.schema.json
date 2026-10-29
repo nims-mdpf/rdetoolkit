@@ -1,0 +1,46 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://rde.nims.go.jp/rde/dataset-templates/dataset_template_custom_sample/invoice.schema.json",
+    "description": "RDEデータセットテンプレートテスト用ファイル",
+    "type": "object",
+    "required": [
+        "custom",
+        "sample"
+    ],
+    "properties": {
+        "custom": {
+            "type": "object",
+            "label": {
+                "ja": "固有情報",
+                "en": "Custom Information"
+            },
+            "required": [
+                "toy_data1"
+            ],
+            "properties": {
+                "toy_data1": {
+                    "label": {
+                        "ja": "トイデータ１",
+                        "en": "toy_data1"
+                    },
+                    "type": "string"
+                },
+                "sample2": {
+                    "label": {
+                        "ja": "トイデータ２",
+                        "en": "toy_data2"
+                    },
+                    "type": "number"
+                }
+            }
+        },
+        "sample": {
+            "type": "object",
+            "label": {
+                "ja": "試料情報",
+                "en": "Sample Information"
+            },
+            "properties": {}
+        }
+    }
+}

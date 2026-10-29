@@ -1,0 +1,124 @@
+{
+  "case": {
+    "entry": "custom_dataset_function",
+    "mode": "multidatatile",
+    "outcome": "ok"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/temp/invoice_org.json": "15e8541de1ce43696a427a2017349f0d6d68cbcbe8d276c292457bc1cc3f9121"
+    },
+    "callback_count": 2,
+    "exit_code": 0,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "seed",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/divided/0001/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      },
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "MultiDataTile",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/inputdata",
+          "title": "seed"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "MultiDataTile",
+          "run_id": "0001",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/inputdata",
+          "title": "seed"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/divided/",
+        "data/divided/0001/",
+        "data/divided/0001/attachment/",
+        "data/divided/0001/invoice/",
+        "data/divided/0001/invoice_patch/",
+        "data/divided/0001/logs/",
+        "data/divided/0001/main_image/",
+        "data/divided/0001/meta/",
+        "data/divided/0001/nonshared_raw/",
+        "data/divided/0001/other_image/",
+        "data/divided/0001/raw/",
+        "data/divided/0001/structured/",
+        "data/divided/0001/temp/",
+        "data/divided/0001/thumbnail/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/divided/0001/invoice/invoice.json",
+        "data/divided/0001/nonshared_raw/tile_日本語.txt",
+        "data/divided/0001/raw/tile_日本語.txt",
+        "data/inputdata/tile_00.txt",
+        "data/inputdata/tile_日本語.txt",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/tile_00.txt",
+        "data/raw/tile_00.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/divided/0001/nonshared_raw/tile_日本語.txt": "2fa9407edccea114cc428242080daf948cb72379efda9d3d84a2e0ff69a5f250",
+      "data/divided/0001/raw/tile_日本語.txt": "2fa9407edccea114cc428242080daf948cb72379efda9d3d84a2e0ff69a5f250",
+      "data/nonshared_raw/tile_00.txt": "d7c3c3ac877ee9d017b9a025166545e673c7e67367f3b45d5a080f0ee9371516",
+      "data/raw/tile_00.txt": "d7c3c3ac877ee9d017b9a025166545e673c7e67367f3b45d5a080f0ee9371516"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

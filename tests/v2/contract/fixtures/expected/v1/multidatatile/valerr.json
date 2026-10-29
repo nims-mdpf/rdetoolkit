@@ -1,0 +1,68 @@
+{
+  "case": {
+    "entry": "custom_dataset_function",
+    "mode": "multidatatile",
+    "outcome": "valerr"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "9f97a4bbf6a12ed0a461e751e52324e11aded0e59fd4d8a411f64e54e2747b3f",
+      "data/temp/invoice_org.json": "cfc86918510cca708b6f0735b36ac2b275cd799c4d7fc30296dbc68d2e0bc647"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": {
+      "basic": null,
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": null,
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Unexpected error in MultiDataTile mode: Error in validating system standard field.\nPlease correct the following fields in invoice.json\nField: \nType: required\nContext: 'basic' is a required property\n\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/tile_00.txt",
+        "data/inputdata/tile_日本語.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/tile_00.txt",
+        "data/raw/tile_00.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/tile_00.txt": "d7c3c3ac877ee9d017b9a025166545e673c7e67367f3b45d5a080f0ee9371516",
+      "data/raw/tile_00.txt": "d7c3c3ac877ee9d017b9a025166545e673c7e67367f3b45d5a080f0ee9371516"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

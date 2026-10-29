@@ -197,5 +197,15 @@ launch.json
 claudedocs
 
 # Repo tooling scripts — the [Ss]cripts rule above targets Windows venv dirs,
-# not the repository scripts/ directory (check_version_consistency.py must be tracked).
+# not the repository scripts/ directory (gen_error_docs.py / check_version_consistency.py must be tracked).
 !/scripts/
+
+# B6 guard: the Rust extension is rdetoolkit._core — a stale core.cpython-*.so
+# from the pre-rename era must never reappear in the source tree.
+src/rdetoolkit/core.cpython-*.so
+
+# Machine-generated codex/agmsg hook config (absolute local paths)
+.codex/
+
+# test-suite cwd leak artifacts (see merge_v1 debt: data/ pollution)
+data/logs/

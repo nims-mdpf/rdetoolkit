@@ -1,0 +1,32 @@
+{
+  "excelinvoice": {
+    "multi_workbook": "data/inputdata/excelinvoice_multi.xlsx",
+    "raw_archive": "excelinvoice_files.zip",
+    "source_rows": "tests/fixtures/excelinvoice.py:EXCELINVOICE_ENTRYDATA_SHEET1_MULTI",
+    "zero_row_workbook": "data/inputdata/excelinvoice_zero_rows.xlsx"
+  },
+  "invoice": {
+    "references": [
+      "tests/samplefile/invoice.json",
+      "tests/samplefile/invoice.schema.json",
+      "tests/samplefile/invoice.schema.full.json",
+      "tests/samplefile/invoice.schema.basic.json"
+    ]
+  },
+  "multidatatile": {
+    "expected_tree": "../../expected/multidatatile/ok.json",
+    "files": [
+      "data/inputdata/tile_00.txt",
+      "data/inputdata/tile_日本語.txt"
+    ]
+  },
+  "rdeformat": {
+    "archive": "data/inputdata/rdeformat_sample.zip"
+  },
+  "smarttable": {
+    "csv_equivalent": "smarttable_full.csv",
+    "file_archive": "data/inputdata/smarttable_inputs.zip",
+    "rows": 3,
+    "workbook": "data/inputdata/smarttable_full.xlsx"
+  }
+}

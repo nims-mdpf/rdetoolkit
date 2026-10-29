@@ -23,6 +23,9 @@ app = typer.Typer(
 
 DEFAULT_EXCEL_INVOICE_TEMPLATE = "template_excel_invoice.xlsx"
 
+#: Exit status for a run whose report is ``failed`` (Design §9.3).
+_FAILED_EXIT_CODE = 1
+
 
 def validate_json_file(value: Path) -> Path:
     """Validate that the provided file is a properly formatted JSON file.
@@ -160,6 +163,18 @@ def init(
             resolve_path=True,
         ),
     ] = None,
+    processing_template: Annotated[
+        str | None,
+        typer.Option("--processing-template", help="Registered ProcessingTemplate skeleton name."),
+    ] = None,
+    template_modules: Annotated[
+        list[str] | None,
+        typer.Option("--module", help="Import a template provider module; repeatable."),
+    ] = None,
+    force: Annotated[
+        bool,
+        typer.Option("--force", help="Overwrite existing processing-template output files."),
+    ] = False,
     entry_point: Annotated[
         Path | None,
         typer.Option(
@@ -217,6 +232,12 @@ def init(
     ] = None,
 ) -> None:
     """Output files needed to build RDE structured programs."""
+    if processing_template is not None:
+        from rdetoolkit.cli.templates_cmd import generate_processing_template
+
+        generate_processing_template(processing_template, template_modules or [], Path.cwd(), force=force)
+        return
+
     # Lazy import to minimize startup cost
     from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig
 
@@ -245,19 +266,49 @@ def version() -> None:
 
 
 @app.command()
-def run(target: Annotated[str, typer.Argument(metavar="<module_or_file::attr>")]) -> None:
+def run(
+    target: Annotated[str | None, typer.Argument(metavar="<module_or_file::attr>")] = None,
+    flow: Annotated[str | None, typer.Option("--flow", help="Dotted v2 flow reference (pkg.mod:callable).")] = None,
+    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config and mode without calling the flow.")] = False,
+    config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides.")] = None,
+) -> None:
     """Run rdetoolkit workflows with a user-defined dataset function."""
-    func = _load_target_function(target)
+    from rdetoolkit.cli.run_cmd import legacy_exit_code, run_flow, usage_error
+
+    if (target is None) == (flow is None):
+        usage_error("Provide exactly one of TARGET or --flow")
+    if validate_only and flow is None:
+        usage_error("--validate-only requires --flow")
+    if config is not None and flow is None:
+        usage_error("--config requires --flow")
+    if flow is not None:
+        run_flow(flow, validate_only_requested=validate_only, config_path=config)
+        return
+    func = _load_target_function(cast(str, target))
     from rdetoolkit import cli as cli_module
 
     try:
+        # Looked up on the module object at call time, never bound at import
+        # time: the v2 CLI tests spy on ``rdetoolkit.workflows.run`` itself.
         workflow_run = cast(Callable[..., str], cli_module.workflows.run)
         result = workflow_run(custom_dataset_function=func)
+    except SystemExit as exc:
+        # The v1 Python contract for a failed run is ``sys.exit(1)``, and
+        # ``SystemExit`` is a BaseException -- it would sail straight through the
+        # handler below and surface as a traceback. Design §9.3 wants one
+        # uniform CLI code for every ``run`` form, so it is mapped here
+        # (Session J2 ruling #3).
+        raise typer.Exit(code=_FAILED_EXIT_CODE if exc.code else 0) from exc
     except Exception as exc:
         typer.echo("An error occurred while running the workflow.", err=True)
-        raise typer.Exit(code=1) from exc
+        raise typer.Exit(code=_FAILED_EXIT_CODE) from exc
     if result is not None:
         typer.echo(result)
+    # A partial run returns normally from the v1 API (process status 0 by the
+    # v1 contract) but is exit code 2 for every ``run`` CLI form.
+    exit_code = legacy_exit_code(result)
+    if exit_code:
+        raise typer.Exit(code=exit_code)
 
 
 @app.command("gen-config")
@@ -780,3 +831,46 @@ def _register_validate_commands() -> typer.Typer:
 
 
 validate_app = _register_validate_commands()
+
+
+def _register_v2_inspection_commands() -> tuple[typer.Typer, typer.Typer, typer.Typer]:
+    """Register v2 node and flow inspection subcommands."""
+    from rdetoolkit.cli.flows_cmd import app as flows_app_local
+    from rdetoolkit.cli.nodes_cmd import app as nodes_app_local
+    from rdetoolkit.cli.templates_cmd import app as templates_app_local
+
+    app.add_typer(nodes_app_local, name="nodes")
+    app.add_typer(flows_app_local, name="flows")
+    app.add_typer(templates_app_local, name="templates")
+    return nodes_app_local, flows_app_local, templates_app_local
+
+
+nodes_app, flows_app, templates_app = _register_v2_inspection_commands()
+
+
+def _register_v2_format_commands() -> typer.Typer:
+    """Register plugin format inspection subcommands."""
+    from rdetoolkit.cli.formats_cmd import app as formats_app_local
+
+    app.add_typer(formats_app_local, name="formats")
+    return formats_app_local
+
+
+formats_app = _register_v2_format_commands()
+
+
+def _register_v2_reporting_commands() -> tuple[typer.Typer, typer.Typer, typer.Typer, typer.Typer]:
+    """Register v2 reporting subcommands."""
+    from rdetoolkit.cli.graph_cmd import app as graph_app_local
+    from rdetoolkit.cli.migrate_cmd import app as migrate_app_local
+    from rdetoolkit.cli.report_cmd import app as report_app_local
+    from rdetoolkit.cli.repro_cmd import app as repro_app_local
+
+    app.add_typer(graph_app_local, name="graph")
+    app.add_typer(report_app_local, name="report")
+    app.add_typer(repro_app_local, name="repro")
+    app.add_typer(migrate_app_local, name="migrate")
+    return graph_app_local, report_app_local, repro_app_local, migrate_app_local
+
+
+graph_app, report_app, repro_app, migrate_app = _register_v2_reporting_commands()

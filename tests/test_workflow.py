@@ -10,31 +10,16 @@ import yaml
 
 import rdetoolkit.rdelogger as rdelogger
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.workflows import run, _process_mode, _create_error_status
+from rdetoolkit.workflows import run
 from rdetoolkit.models.config import Config, SystemSettings, MultiDataTileSettings
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
-from rdetoolkit.models.result import WorkflowExecutionStatus
 
 # Equivalence Partitioning Table
 # | API           | Input/State Partition                              | Rationale                                  | Expected Outcome                             | Test ID   |
 # | ------------- | -------------------------------------------------- | ------------------------------------------ | -------------------------------------------- | --------- |
-# | _process_mode | smarttable file present                            | SmartTable branch has highest precedence   | SmartTableInvoice mode executes              | TC-EP-001 |
-# | _process_mode | excel invoice present, extended_mode also set      | Excelinvoice should precede extended_mode  | Excelinvoice mode executes                   | TC-EP-002 |
-# | _process_mode | extended_mode="rdeformat"                          | Valid extended_mode value                  | rdeformat mode executes                      | TC-EP-003 |
-# | _process_mode | extended_mode="MultiDataTile", ignore_errors=False | Multidata tile failure should bubble       | StructuredError is raised                    | TC-EP-004 |
-# | _process_mode | downstream handler returns None                    | Guard against missing status               | StructuredError is raised                    | TC-EP-005 |
-# | _process_mode | downstream handler returns status.failed           | Failures must raise StructuredError        | StructuredError with error_code propagates   | TC-EP-006 |
-# | _process_mode | downstream handler raises generic Exception        | Unexpected errors are wrapped              | StructuredError is raised with wrapped msg   | TC-EP-007 |
 #
 # Boundary Value Table
 # | API           | Boundary Scenario                                     | Rationale                                        | Expected Outcome                            | Test ID   |
 # | ------------- | ----------------------------------------------------- | ------------------------------------------------ | ------------------------------------------- | --------- |
-# | _process_mode | smarttable vs excel inputs present                    | Confirms first-branch priority boundary          | SmartTableInvoice chosen (not Excelinvoice) | TC-EP-001 |
-# | _process_mode | excel present while extended_mode also configured     | Confirms second/third priority boundary          | Excelinvoice chosen (not extended_mode)     | TC-EP-002 |
-# | _process_mode | extended_mode set to allowed value                    | Boundary between valid extended_mode and default | rdeformat branch executes                   | TC-EP-003 |
-# | _process_mode | MultiDataTile ignore_errors=False                     | Boundary between handled/unhandled exceptions    | StructuredError raised                      | TC-EP-004 |
-# | _process_mode | handler returns None vs valid WorkflowExecutionStatus | Boundary between valid/invalid status responses  | StructuredError raised on None              | TC-EP-005 |
-# | _process_mode | handler returns status.failed                         | Boundary between success and explicit failure    | StructuredError raised                      | TC-EP-006 |
 
 
 @pytest.fixture
@@ -147,79 +132,6 @@ def test_run_config_file_multifile_mode(
     assert config.multidata_tile.ignore_errors is False
 
 
-def test_multidatatitle_ignore_errors_collects_structured_error(monkeypatch, tmp_path):
-    """ignore_errors=True の MultiDataTile で StructuredError が捕捉され、ジョブが継続できることを確認する"""
-    input_dir = tmp_path / "inputdata"
-    tasksupport_dir = tmp_path / "tasksupport"
-    invoice_dir = tmp_path / "invoice"
-    for directory in (input_dir, tasksupport_dir, invoice_dir):
-        directory.mkdir(parents=True, exist_ok=True)
-
-    raw_file = input_dir / "sample.txt"
-    raw_file.write_text("dummy", encoding="utf-8")
-    (tasksupport_dir / "invoice.schema.json").write_text("{}", encoding="utf-8")
-    (tasksupport_dir / "invoice_org.json").write_text("{}", encoding="utf-8")
-
-    rdeoutput_resource = RdeOutputResourcePath(
-        raw=tmp_path / "raw",
-        nonshared_raw=tmp_path / "nonshared_raw",
-        rawfiles=(raw_file,),
-        struct=tmp_path / "struct",
-        main_image=tmp_path / "main_image",
-        other_image=tmp_path / "other_image",
-        meta=tmp_path / "meta",
-        thumbnail=tmp_path / "thumbnail",
-        logs=tmp_path / "logs",
-        invoice=invoice_dir,
-        invoice_schema_json=tasksupport_dir / "invoice.schema.json",
-        invoice_org=tasksupport_dir / "invoice_org.json",
-        temp=tmp_path / "temp",
-    )
-
-    config = Config(
-        system=SystemSettings(extended_mode="MultiDataTile", save_raw=True, save_thumbnail_image=False, magic_variable=False),
-        multidata_tile=MultiDataTileSettings(ignore_errors=True),
-    )
-
-    srcpaths = RdeInputDirPaths(
-        inputdata=input_dir,
-        invoice=invoice_dir,
-        tasksupport=tasksupport_dir,
-        config=config,
-    )
-
-    error_message = "温度数とサイクル数が不一致です。invoiceで1個の温度を指定してください。"
-    structured_error = StructuredError(error_message, ecode=1060)
-
-    def raise_structured_error(*_args, **_kwargs):
-        raise structured_error
-
-    monkeypatch.setattr("rdetoolkit.workflows.multifile_mode_process", raise_structured_error)
-
-    status, error_info, mode = _process_mode(
-        idx=0,
-        srcpaths=srcpaths,
-        rdeoutput_resource=rdeoutput_resource,
-        config=config,
-        excel_invoice_files=None,
-        smarttable_file=None,
-        custom_dataset_function=None,
-        logger=None,
-    )
-
-    assert status is None
-    assert mode == "MultiDataTile"
-    assert error_info["code"] == 1060
-    assert error_message in (error_info["message"] or "")
-    assert "StructuredError" in (error_info["stacktrace"] or "")
-
-    failure_status = _create_error_status(0, error_info, rdeoutput_resource, mode)
-    assert failure_status.status == "failed"
-    assert failure_status.error_code == 1060
-    assert error_message in (failure_status.error_message or "")
-    assert str(raw_file) in (failure_status.target or "")
-
-
 def test_run_empty_config(
     inputfile_single, tasksupport_empty_config, metadata_def_json_file, pre_schema_filepath, pre_invoice_filepath, metadata_json,
 ):
@@ -234,53 +146,24 @@ def test_run_empty_config(
     assert config.multidata_tile.ignore_errors is False
 
 
-# def test_multidatatile_mode_process():
-#     __config = Config()
-#     __config.system.extended_mode = "multidatatile"
-#     __config.multidata_tile.ignore_errors = True
-
-#     srcpaths = RdeInputDirPaths(
-#         inputdata=Path("path/to/inputdata"),
-#         invoice=Path("path/to/invoice"),
-#         tasksupport=Path("path/to/tasksupport"),
-#         config=__config
-#     )
-
-#     resource_paths = RdeOutputResourcePath(
-#         invoice=Path("path/to/invoice"),
-#         invoice_org=Path("path/to/invoice_org"),
-#         raw=Path("path/to/raw"),
-#         rawfiles=(Path("path/to/rawfile1"), Path("path/to/rawfile2")),
-#         thumbnail=Path("path/to/thumbnail"),
-#         main_image=Path("path/to/main_image"),
-#         other_image=Path("path/to/other_image"),
-#         meta=Path("path/to/meta"),
-#         struct=Path("path/to/struct"),
-#         logs=Path("path/to/logs"),
-#         nonshared_raw=Path("path/to/nonshared_raw"),
-#         invoice_schema_json=Path("path/to/invoice_schema_json")
-#     )
-
-#     logger = logging.getLogger("test_logger")
-#     logger.setLevel(logging.WARNING)
-
-#     def custom_function(srcpaths: RdeInputDirPaths, resource_paths: RdeOutputResourcePath) -> None:
-#         raise Exception("Exception raised")
-
-#     with patch("src.rdetoolkit.workflows.multifile_mode_process") as mock_multifile_mode_process:
-#         with skip_exception_context(Exception, logger=logger, enabled=__config.multidata_tile.ignore_errors):
-#             multifile_mode_process(srcpaths, resource_paths, custom_function)
-
-#     mock_multifile_mode_process.assert_called_once_with(srcpaths, resource_paths, custom_function)
-
-#     logger.warning.assert_called_once_with("Skipped exception: Exception raised")
-
-
 def test_structured_error_propagation_in_workflow(tmp_path, monkeypatch):
-    """Test that StructuredError from custom dataset function propagates correctly to job.failed.
+    """Test that an invalid invoice.schema.json is reported before the callback runs.
 
-    This test reproduces the issue reported in issue_203 where custom error messages
-    and codes were not being written to job.failed correctly.
+    UPDATED (Session J2 / merge-v1 I7, divergence D3, orchestrator-granted
+    exception to the tests/-root freeze). The fixture below carries an
+    ``invoice.schema.json`` that rdetoolkit rejects in BOTH versions -- it lacks
+    the required ``properties.custom.label`` / ``.required`` / ``.properties``.
+    The old expectation (``ErrorCode=21`` from the callback) pinned v1's stage
+    ORDER, in which the schema was only validated after the dataset callback had
+    already run and raised. The unified Runner validates the source invoice and
+    its schema in ``pre_validate`` (contracts.md §I6-0), so the defect is now
+    reported as catalog code 4001 and the callback is never invoked at all.
+
+    This assertion is strictly stronger than the one it replaces: it pins the
+    published error code AND the remediation message AND the fact that no user
+    code ran, through an explicit call counter. The original intent of
+    issue_203 -- "the decorator's values must not mask the real error" -- is
+    preserved below and now also covers the decorator vs. validation case.
     """
     from rdetoolkit.errors import catch_exception_with_message
     from rdetoolkit.exceptions import StructuredError
@@ -337,28 +220,37 @@ def test_structured_error_propagation_in_workflow(tmp_path, monkeypatch):
     os.chdir(tmp_path)
 
     try:
-        # Define custom dataset function that raises StructuredError
+        # Given: a dataset callback that would raise, and a counter proving
+        # whether it was reached at all
+        calls = []
+
         @catch_exception_with_message(error_message="Dataset processing failed", error_code=50)
         def custom_dataset_function(srcpaths, resource_paths):
+            calls.append(1)
             raise StructuredError("error message in dataset()", 21)
 
-        # Run the workflow and expect it to exit with error
-        with pytest.raises(SystemExit):
+        # When: running the public v1 entry point on the invalid schema
+        with pytest.raises(SystemExit) as exit_info:
             run(custom_dataset_function=custom_dataset_function)
 
-        # Check that job.failed was created with correct content
+        # Then: the process exits 1, exactly as v1 did
+        assert exit_info.value.code == 1
+
+        # And: job.failed carries the front-loaded validation contract
         job_failed_path = test_data_dir / "job.failed"
         assert job_failed_path.exists(), "job.failed file was not created"
 
         content = job_failed_path.read_text()
+        # Equality, not containment: the decorator's 50 and the callback's 21
+        # are both excluded by it, so a future change that let either of them
+        # reach job.failed would surface here as a published-code change. The
+        # two "not in content" assertions this replaces became vacuous once the
+        # callback stopped running at all.
+        assert content.splitlines()[0] == "ErrorCode=4001", f"Expected the first line to be ErrorCode=4001, got: {content}"
+        assert "Validation Errors in invoice.schema.json" in content, f"Expected the schema validation message in job.failed, got: {content}"
 
-        # The StructuredError values should be used, not the decorator values
-        assert "ErrorCode=21" in content, f"Expected ErrorCode=21 in job.failed, got: {content}"
-        assert "ErrorMessage=Error: error message in dataset()" in content, f"Expected correct error message in job.failed, got: {content}"
-
-        # Should NOT contain the decorator values
-        assert "ErrorCode=50" not in content, "Should not contain decorator error code"
-        assert "Dataset processing failed" not in content, "Should not contain decorator error message"
+        # And: validation happened BEFORE any user code ran
+        assert calls == [], "pre_validate must reject the schema before the dataset callback runs"
 
     finally:
         os.chdir(original_cwd)
@@ -637,265 +529,3 @@ def test_multiple_workflow_runs_no_log_duplication(tmp_path, monkeypatch):
         "This suggests handler accumulation - second run might be writing to both files. "
         f"Log1: {size_log1} bytes, Log2: {size_log2} bytes"
     )
-
-
-def _make_paths(tmp_path: Path, extended_mode: Optional[str] = None, ignore_errors: bool = False) -> tuple[RdeInputDirPaths, RdeOutputResourcePath, Config]:
-    """Helper to build minimal input/output structures for _process_mode tests."""
-    input_dir = tmp_path / "inputdata"
-    invoice_dir = tmp_path / "invoice"
-    tasksupport_dir = tmp_path / "tasksupport"
-    for directory in (input_dir, invoice_dir, tasksupport_dir):
-        directory.mkdir(parents=True, exist_ok=True)
-
-    raw_file = input_dir / "dummy.txt"
-    raw_file.write_text("dummy", encoding="utf-8")
-
-    config = Config(
-        system=SystemSettings(extended_mode=extended_mode, save_raw=True, save_thumbnail_image=False, magic_variable=False),
-        multidata_tile=MultiDataTileSettings(ignore_errors=ignore_errors),
-    )
-
-    srcpaths = RdeInputDirPaths(
-        inputdata=input_dir,
-        invoice=invoice_dir,
-        tasksupport=tasksupport_dir,
-        config=config,
-    )
-
-    rdeoutput_resource = RdeOutputResourcePath(
-        raw=tmp_path / "raw",
-        nonshared_raw=tmp_path / "nonshared_raw",
-        rawfiles=(raw_file,),
-        struct=tmp_path / "struct",
-        main_image=tmp_path / "main_image",
-        other_image=tmp_path / "other_image",
-        meta=tmp_path / "meta",
-        thumbnail=tmp_path / "thumbnail",
-        logs=tmp_path / "logs",
-        invoice=invoice_dir,
-        invoice_schema_json=tasksupport_dir / "invoice.schema.json",
-        invoice_org=tasksupport_dir / "invoice_org.json",
-        temp=tmp_path / "temp",
-    )
-
-    return srcpaths, rdeoutput_resource, config
-
-
-def _success_status(idx: int, mode: str = "Invoice") -> WorkflowExecutionStatus:
-    return WorkflowExecutionStatus(
-        run_id=str(idx),
-        title="tile",
-        status="success",
-        mode=mode,
-        error_code=None,
-        error_message=None,
-        target=None,
-        stacktrace=None,
-    )
-
-
-def test_process_mode_prefers_smarttable_over_excel__tc_ep_001(tmp_path, monkeypatch):
-    """Given both smarttable and excel inputs, when processing, then SmartTableInvoice is chosen."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path)
-
-    smart_called = []
-    excel_called = []
-
-    def fake_smarttable(*args, **kwargs):
-        smart_called.append(True)
-        return _success_status(0, "SmartTableInvoice")
-
-    def fake_excel(*args, **kwargs):
-        excel_called.append(True)
-        return _success_status(0, "Excelinvoice")
-
-    monkeypatch.setattr("rdetoolkit.workflows.smarttable_invoice_mode_process", fake_smarttable)
-    monkeypatch.setattr("rdetoolkit.workflows.excel_invoice_mode_process", fake_excel)
-
-    # Given: both smarttable and excel inputs are available
-    smarttable_file = tmp_path / "smarttable.csv"
-    smarttable_file.write_text("dummy", encoding="utf-8")
-    excel_bundle = tmp_path / "excel.zip"
-    excel_bundle.write_text("zip", encoding="utf-8")
-
-    # When: _process_mode is executed
-    status, error_info, mode = _process_mode(
-        idx=0,
-        srcpaths=srcpaths,
-        rdeoutput_resource=rdeoutput_resource,
-        config=config,
-        excel_invoice_files=excel_bundle,
-        smarttable_file=smarttable_file,
-        custom_dataset_function=None,
-        logger=None,
-    )
-
-    # Then: SmartTableInvoice branch runs before Excelinvoice
-    assert smart_called, "SmartTableInvoice should run when smarttable file is present"
-    assert not excel_called, "Excelinvoice should be skipped when smarttable file is present"
-    assert mode == "SmartTableInvoice"
-    assert status.status == "success"
-    assert error_info is None
-
-
-def test_process_mode_prefers_excel_before_extended_mode__tc_ep_002(tmp_path, monkeypatch):
-    """Given excel input and extended_mode set, when processing, then Excelinvoice is chosen before extended_mode."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path, extended_mode="rdeformat")
-
-    excel_called = []
-    monkeypatch.setattr("rdetoolkit.workflows.excel_invoice_mode_process", lambda *args, **kwargs: excel_called.append(True) or _success_status(0, "Excelinvoice"))
-    monkeypatch.setattr("rdetoolkit.workflows.rdeformat_mode_process", lambda *args, **kwargs: (_ for _ in ()).throw(Exception("should not be called")))
-
-    # Given: excel invoice bundle exists and extended_mode also set
-    excel_bundle = tmp_path / "excel.zip"
-    excel_bundle.write_text("zip", encoding="utf-8")
-
-    # When
-    status, error_info, mode = _process_mode(
-        idx=0,
-        srcpaths=srcpaths,
-        rdeoutput_resource=rdeoutput_resource,
-        config=config,
-        excel_invoice_files=excel_bundle,
-        smarttable_file=None,
-        custom_dataset_function=None,
-        logger=None,
-    )
-
-    # Then
-    assert excel_called, "Excelinvoice branch should run before extended_mode"
-    assert mode == "Excelinvoice"
-    assert status.status == "success"
-    assert error_info is None
-
-
-def test_process_mode_uses_extended_mode_value__tc_ep_003(tmp_path, monkeypatch):
-    """Given extended_mode set to allowed value, when processing, then rdeformat branch executes."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path, extended_mode="rdeformat")
-
-    called = []
-    monkeypatch.setattr("rdetoolkit.workflows.rdeformat_mode_process", lambda *args, **kwargs: called.append(True) or _success_status(0, "rdeformat"))
-
-    # Given: extended_mode specified
-    # When
-    status, error_info, mode = _process_mode(
-        idx=0,
-        srcpaths=srcpaths,
-        rdeoutput_resource=rdeoutput_resource,
-        config=config,
-        excel_invoice_files=None,
-        smarttable_file=None,
-        custom_dataset_function=None,
-        logger=None,
-    )
-
-    # Then
-    assert called, "rdeformat branch should execute when extended_mode equals 'rdeformat'"
-    assert mode == "rdeformat"
-    assert status.status == "success"
-    assert error_info is None
-
-
-def test_process_mode_multidatatile_propagates_structured_error__tc_ep_004(tmp_path, monkeypatch):
-    """Given MultiDataTile without ignore_errors, when handler raises StructuredError, then it propagates."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path, extended_mode="MultiDataTile", ignore_errors=False)
-
-    monkeypatch.setattr("rdetoolkit.workflows.multifile_mode_process", lambda *args, **kwargs: (_ for _ in ()).throw(StructuredError("boom", 900)))
-
-    # Given: ignore_errors is False
-    # When/Then: StructuredError propagates
-    with pytest.raises(StructuredError) as excinfo:
-        _process_mode(
-            idx=0,
-            srcpaths=srcpaths,
-            rdeoutput_resource=rdeoutput_resource,
-            config=config,
-            excel_invoice_files=None,
-            smarttable_file=None,
-            custom_dataset_function=None,
-            logger=None,
-        )
-
-    assert "boom" in str(excinfo.value)
-    assert excinfo.value.ecode == 900
-
-
-def test_process_mode_raises_when_status_none__tc_ep_005(tmp_path, monkeypatch):
-    """Given downstream handler returns None, when processing, then StructuredError is raised."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path)
-    monkeypatch.setattr("rdetoolkit.workflows.invoice_mode_process", lambda *args, **kwargs: None)
-
-    # When/Then
-    with pytest.raises(StructuredError) as excinfo:
-        _process_mode(
-            idx=1,
-            srcpaths=srcpaths,
-            rdeoutput_resource=rdeoutput_resource,
-            config=config,
-            excel_invoice_files=None,
-            smarttable_file=None,
-            custom_dataset_function=None,
-            logger=None,
-        )
-
-    assert "did not return a workflow status" in str(excinfo.value)
-
-
-def test_process_mode_raises_on_failed_status__tc_ep_006(tmp_path, monkeypatch):
-    """Given handler returns failed status, when processing, then StructuredError is raised with code."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path)
-    logger = type("Logger", (), {"error": lambda *_args, **_kwargs: None})()
-
-    failed_status = WorkflowExecutionStatus(
-        run_id="2",
-        title="tile",
-        status="failed",
-        mode="Invoice",
-        error_code=321,
-        error_message="bad",
-        target=None,
-        stacktrace="trace",
-    )
-    monkeypatch.setattr("rdetoolkit.workflows.invoice_mode_process", lambda *args, **kwargs: failed_status)
-
-    # When/Then
-    with pytest.raises(StructuredError) as excinfo:
-        _process_mode(
-            idx=2,
-            srcpaths=srcpaths,
-            rdeoutput_resource=rdeoutput_resource,
-            config=config,
-            excel_invoice_files=None,
-            smarttable_file=None,
-            custom_dataset_function=None,
-            logger=logger,
-        )
-
-    assert excinfo.value.ecode == 321
-    assert "bad" in str(excinfo.value)
-
-
-def test_process_mode_wraps_unexpected_exception__tc_ep_007(tmp_path, monkeypatch):
-    """Given handler raises unexpected Exception, when processing, then StructuredError wraps it."""
-    srcpaths, rdeoutput_resource, config = _make_paths(tmp_path)
-
-    def boom(*_args, **_kwargs):
-        raise RuntimeError("crash")
-
-    monkeypatch.setattr("rdetoolkit.workflows.invoice_mode_process", boom)
-
-    # When/Then
-    with pytest.raises(StructuredError) as excinfo:
-        _process_mode(
-            idx=3,
-            srcpaths=srcpaths,
-            rdeoutput_resource=rdeoutput_resource,
-            config=config,
-            excel_invoice_files=None,
-            smarttable_file=None,
-            custom_dataset_function=None,
-            logger=None,
-        )
-
-    assert "Unexpected error in Invoice mode" in str(excinfo.value)
-    assert "crash" in str(excinfo.value)

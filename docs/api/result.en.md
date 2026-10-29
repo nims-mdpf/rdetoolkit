@@ -380,9 +380,9 @@ def check_files(paths: list[Path]) -> list[Path]:
 
 ## Related
 
-- [Error Handling](errors.md) - Error code definitions and structured errors
-- [Exceptions](exceptions.md) - Exception hierarchy
-- [Workflows](workflows.md) - Workflow execution with Result integration
+- [Error Handling](../rdetoolkit/errors.md) - Error code definitions and structured errors
+- [Exceptions](../rdetoolkit/exceptions.md) - Exception hierarchy
+- [Workflows](../rdetoolkit/workflows.md) - Workflow execution with Result integration
 
 ## See Also
 

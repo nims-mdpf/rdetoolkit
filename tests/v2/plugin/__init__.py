@@ -1,0 +1,1 @@
+"""Plugin discovery acceptance tests."""

@@ -1,0 +1,233 @@
+{
+  "case": {
+    "effective_config": {
+      "config": {
+        "multidata_tile": {
+          "ignore_errors": false
+        },
+        "smarttable": null,
+        "system": {
+          "extended_mode": null,
+          "feature_description": true,
+          "magic_variable": false,
+          "save_invoice_to_structured": false,
+          "save_nonshared_raw": true,
+          "save_raw": true,
+          "save_thumbnail_image": true
+        },
+        "traceback": null
+      },
+      "source": {
+        "normalizations": [
+          "top-level system keys normalized to system.*"
+        ],
+        "path": "data/tasksupport/rdeconfig.yaml"
+      }
+    },
+    "entry": "custom_dataset_function",
+    "family": "canary",
+    "mode": "excelinvoice",
+    "outcome": "ok"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/temp/CrossBeam550_手動_1.tif": "dedba5d4d8422e85a3f53a5deebb68ebeb8e984c36957fdee6ec73787688f3a0",
+      "data/temp/CrossBeam550_自動_1.tif": "4ad6b1d9a4ef0b0f3c133abf409df16fcfe66a1e160991f7692d396d2b22ffb3",
+      "data/temp/invoice_org.json": "4cabaa6a69b4057f453f552e4b0a8717b7652be5c9d769995d833c36aed41c7d"
+    },
+    "callback_count": 2,
+    "exit_code": 0,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "test-scatter-plot-dataset",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+        "dateSubmitted": "<DATE>",
+        "description": null,
+        "experimentId": null,
+        "instrumentId": null
+      },
+      "custom": {
+        "energy_level_transition_structure": "",
+        "id": "80-11",
+        "instrumentation_site": "千現",
+        "measured_date": "2020-01-01",
+        "measurement_environment": "",
+        "method_category": "SEM",
+        "method_sub-category": "",
+        "mode": "Auto",
+        "reference": "",
+        "standardized_procedure": ""
+      },
+      "datasetId": "1s1199df4-0d1v-41b0-1dea-2 3bf4dh09g12",
+      "sample": {
+        "composition": null,
+        "description": null,
+        "generalAttributes": [],
+        "names": [
+          "test1"
+        ],
+        "ownerId": "00000000000000000000000000000000000000000000000000000005",
+        "referenceUrl": null,
+        "sampleId": null
+      }
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/divided/0001/invoice/invoice.json": {
+        "basic": {
+          "dataName": "CrossBeam550_手動_1.tif",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": null,
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "energy_level_transition_structure": null,
+          "id": "81",
+          "instrumentation_site": null,
+          "measured_date": null,
+          "measurement_environment": null,
+          "method_category": "顕微法",
+          "method_sub-category": "走査電子顕微鏡",
+          "mode": "Manual",
+          "reference": null,
+          "standardized_procedure": null
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-2 3bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": null,
+          "generalAttributes": [],
+          "names": [
+            "10"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "referenceUrl": null,
+          "sampleId": null
+        }
+      },
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "CrossBeam550_自動_1.tif",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": null,
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "energy_level_transition_structure": null,
+          "id": "80",
+          "instrumentation_site": null,
+          "measured_date": null,
+          "measurement_environment": null,
+          "method_category": "顕微法",
+          "method_sub-category": "走査電子顕微鏡",
+          "mode": "Auto",
+          "reference": null,
+          "standardized_procedure": null
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-2 3bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": null,
+          "generalAttributes": [],
+          "names": [
+            "10"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000001",
+          "referenceUrl": null,
+          "sampleId": null
+        }
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "Excelinvoice",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp",
+          "title": "CrossBeam550_自動_1.tif"
+        },
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "Excelinvoice",
+          "run_id": "0001",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/temp",
+          "title": "CrossBeam550_手動_1.tif"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/divided/",
+        "data/divided/0001/",
+        "data/divided/0001/attachment/",
+        "data/divided/0001/invoice/",
+        "data/divided/0001/invoice_patch/",
+        "data/divided/0001/logs/",
+        "data/divided/0001/main_image/",
+        "data/divided/0001/meta/",
+        "data/divided/0001/nonshared_raw/",
+        "data/divided/0001/other_image/",
+        "data/divided/0001/raw/",
+        "data/divided/0001/structured/",
+        "data/divided/0001/temp/",
+        "data/divided/0001/thumbnail/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/divided/0001/invoice/invoice.json",
+        "data/divided/0001/nonshared_raw/CrossBeam550_手動_1.tif",
+        "data/divided/0001/raw/CrossBeam550_手動_1.tif",
+        "data/inputdata/cb550_excel_invoice.xlsx",
+        "data/inputdata/input.zip",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/CrossBeam550_自動_1.tif",
+        "data/raw/CrossBeam550_自動_1.tif",
+        "data/tasksupport/default_value.csv",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/tasksupport/rdeconfig.yaml",
+        "data/temp/CrossBeam550_手動_1.tif",
+        "data/temp/CrossBeam550_自動_1.tif",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/divided/0001/nonshared_raw/CrossBeam550_手動_1.tif": "dedba5d4d8422e85a3f53a5deebb68ebeb8e984c36957fdee6ec73787688f3a0",
+      "data/divided/0001/raw/CrossBeam550_手動_1.tif": "dedba5d4d8422e85a3f53a5deebb68ebeb8e984c36957fdee6ec73787688f3a0",
+      "data/nonshared_raw/CrossBeam550_自動_1.tif": "4ad6b1d9a4ef0b0f3c133abf409df16fcfe66a1e160991f7692d396d2b22ffb3",
+      "data/raw/CrossBeam550_自動_1.tif": "4ad6b1d9a4ef0b0f3c133abf409df16fcfe66a1e160991f7692d396d2b22ffb3"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

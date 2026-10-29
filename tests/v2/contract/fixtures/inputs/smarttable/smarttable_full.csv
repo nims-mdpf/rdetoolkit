@@ -1,0 +1,5 @@
+Data name,Measured date,Numeric value,General attribute,Specific attribute,Sample name,Description,Comment,Temperature,Mapped input file
+basic/dataName,custom/sample1,custom/sample2,sample/generalAttributes.3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e,sample/specificAttributes.01cb3c01-37a4-5a43-d8ca-f523ca99a75b.3250c45d-0ed6-1438-43b5-eb679918604a,sample/names,sample/description,meta/comment,meta/temperature,inputdata1
+smarttable_value_0,2026-07-15 00:00:00,1,general-a,specific-a,sample-a,first row,memo-a,20.5,measurements/row0.txt
+smarttable_value_1,2026-07-16 00:00:00,2.5,general-b,specific-b,sample-b,,memo-b,21,測定/行1.txt
+smarttable_value_2,2026-07-17 00:00:00,3,,specific-c,sample-c,third row,,,

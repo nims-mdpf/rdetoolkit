@@ -1,0 +1,344 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "battery-electrolyte-charge-discharge-curves_toscat_3100",
+    "description": "None",
+    "type": "object",
+    "required": [
+        "custom",
+        "sample"
+    ],
+    "properties": {
+        "custom": {
+            "type": "object",
+            "label": {
+                "ja": "固有情報",
+                "en": "Custom Information"
+            },
+            "required": [
+                "li_salt_solvent_molar_ratio",
+                "mass_loading_of_active_material",
+                "electrode_area"
+            ],
+            "properties": {
+                "li_salt_solvent_molar_ratio": {
+                    "label": {
+                        "ja": "Li塩/溶媒モル比(1/x)",
+                        "en": "Li salt/solvent molar ratio (1/x)"
+                    },
+                    "type": "number"
+                },
+                "salt_concentration": {
+                    "label": {
+                        "ja": "塩濃度(M)",
+                        "en": "Salt concentration"
+                    },
+                    "type": "number"
+                },
+                "salt": {
+                    "label": {
+                        "ja": "塩",
+                        "en": "Salt"
+                    },
+                    "type": "string"
+                },
+                "solvent": {
+                    "label": {
+                        "ja": "溶媒",
+                        "en": "Solvent"
+                    },
+                    "type": "string"
+                },
+                "smiles_string": {
+                    "label": {
+                        "ja": "SMILES String",
+                        "en": "SMILES String"
+                    },
+                    "type": "string"
+                },
+                "li_electrode_potential": {
+                    "label": {
+                        "ja": "Li電極電位",
+                        "en": "Li electrode potential"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "V vs. Fc/Fc+"
+                    }
+                },
+                "li+_chemical_potential": {
+                    "label": {
+                        "ja": "Li+化学ポテンシャル",
+                        "en": "Li+ chemical potential"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "kJ mol-1 vs. LiFSI/DME (1/10)"
+                    }
+                },
+                "am": {
+                    "label": {
+                        "ja": "活物質",
+                        "en": "AM"
+                    },
+                    "type": "string",
+                    "default": "天然黒鉛, SNO-15"
+                },
+                "active_material_supplier": {
+                    "label": {
+                        "ja": "活物質サプライヤー",
+                        "en": "Active Material Supplier"
+                    },
+                    "type": "string",
+                    "default": "SECカーボン"
+                },
+                "temperature": {
+                    "label": {
+                        "ja": "測定温度",
+                        "en": "Temperature"
+                    },
+                    "type": "number",
+                    "default": 25.0,
+                    "options": {
+                        "unit": "℃"
+                    }
+                },
+                "mass_loading_of_active_material": {
+                    "label": {
+                        "ja": "電極の重さ",
+                        "en": "Mass Loading of Active Material"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "g cm-2"
+                    }
+                },
+                "electrode_area": {
+                    "label": {
+                        "ja": "電極面積",
+                        "en": "Electrode Area"
+                    },
+                    "type": "number",
+                    "default": 2.0,
+                    "options": {
+                        "unit": "cm2"
+                    }
+                },
+                "current_density": {
+                    "label": {
+                        "ja": "測定電流密度",
+                        "en": "Current Density"
+                    },
+                    "type": "number",
+                    "description": "C/x は 372/x mA/g変換可能",
+                    "options": {
+                        "unit": "mA g-1"
+                    }
+                },
+                "voltage_window": {
+                    "label": {
+                        "ja": "電圧範囲",
+                        "en": "Voltage Window"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "V"
+                    }
+                },
+                "active_material_ratio": {
+                    "label": {
+                        "ja": "合剤電極組成（活物質）",
+                        "en": "Active Material Ratio"
+                    },
+                    "type": "number",
+                    "default": 90.0,
+                    "options": {
+                        "unit": "wt%"
+                    }
+                },
+                "binder_ratio": {
+                    "label": {
+                        "ja": "合剤電極組成（バインダー）",
+                        "en": "Binder Ratio"
+                    },
+                    "type": "number",
+                    "default": 10.0,
+                    "options": {
+                        "unit": "wt%"
+                    }
+                },
+                "conductive_additive_ratio": {
+                    "label": {
+                        "ja": "合剤電極組成（導電助剤）",
+                        "en": "Conductive Additive Ratio"
+                    },
+                    "type": "number",
+                    "default": 0.0,
+                    "options": {
+                        "unit": "wt%"
+                    }
+                },
+                "binder_type": {
+                    "label": {
+                        "ja": "バインダーの種類",
+                        "en": "Binder Type"
+                    },
+                    "type": "string",
+                    "default": "PVdF（クレハ）"
+                },
+                "conductive_additive_type": {
+                    "label": {
+                        "ja": "導電助剤種類",
+                        "en": "Conductive Additive Type"
+                    },
+                    "type": "string",
+                    "default": "なし"
+                },
+                "current_collector_type": {
+                    "label": {
+                        "ja": "集電体種類",
+                        "en": "Current Collector Type"
+                    },
+                    "type": "string",
+                    "default": "銅（宝泉）"
+                },
+                "cell_type": {
+                    "label": {
+                        "ja": "セルの種類",
+                        "en": "Cell Type"
+                    },
+                    "type": "string",
+                    "default": "2032コインセル"
+                },
+                "cell_configuration": {
+                    "label": {
+                        "ja": "セル構成",
+                        "en": "Cell Configuration"
+                    },
+                    "type": "string",
+                    "default": "2極"
+                },
+                "counter_electrode": {
+                    "label": {
+                        "ja": "対極",
+                        "en": "Counter Electrode"
+                    },
+                    "type": "string",
+                    "default": "Li金属"
+                },
+                "lithium_metal_thickness": {
+                    "label": {
+                        "ja": "Li金属厚み",
+                        "en": "Lithium Metal Thickness"
+                    },
+                    "type": "number",
+                    "default": 300.0,
+                    "options": {
+                        "unit": "um"
+                    }
+                },
+                "electrolyte_volume": {
+                    "label": {
+                        "ja": "電解液量",
+                        "en": "Electrolyte Volume"
+                    },
+                    "type": "number",
+                    "default": 150.0,
+                    "options": {
+                        "unit": "uL"
+                    }
+                },
+                "electrode_density": {
+                    "label": {
+                        "ja": "電極密度",
+                        "en": "Electrode Density"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "g cm-3"
+                    }
+                },
+                "electrode_pressing": {
+                    "label": {
+                        "ja": "プレスの有無",
+                        "en": "Electrode Pressing"
+                    },
+                    "type": "string",
+                    "enum": [
+                        "有",
+                        "無"
+                    ]
+                },
+                "pressing_method": {
+                    "label": {
+                        "ja": "プレスの手法",
+                        "en": "Pressing Method"
+                    },
+                    "type": "string"
+                },
+                "pressing_pressure": {
+                    "label": {
+                        "ja": "プレスの圧力",
+                        "en": "Pressing Pressure"
+                    },
+                    "type": "number",
+                    "options": {
+                        "unit": "t"
+                    }
+                },
+                "active_material_morphology": {
+                    "label": {
+                        "ja": "活物質の形状・粒径など",
+                        "en": "Active Material Morphology"
+                    },
+                    "type": "string",
+                    "default": "15"
+                },
+                "separator_types": {
+                    "label": {
+                        "ja": "セパレータの種類",
+                        "en": "Separator types"
+                    },
+                    "type": "string",
+                    "default": "GC-50 (ADVANTEC)"
+                },
+                "instrumentation": {
+                    "label": {
+                        "ja": "装置",
+                        "en": "Instrumentation"
+                    },
+                    "type": "string",
+                    "default": "TOSCAT-3100"
+                },
+                "operator": {
+                    "label": {
+                        "ja": "実験者",
+                        "en": "Operator"
+                    },
+                    "type": "string"
+                },
+                "electrolyte_additional_information": {
+                    "label": {
+                        "ja": "電解液の追加情報",
+                        "en": "Electrolyte Additional Information"
+                    },
+                    "type": "string"
+                },
+                "additional_notes": {
+                    "label": {
+                        "ja": "その他、特筆すべき情報",
+                        "en": "Additional Notes"
+                    },
+                    "type": "string"
+                }
+            }
+        },
+        "sample": {
+            "type": "object",
+            "label": {
+                "ja": "試料情報",
+                "en": "Sample Information"
+            },
+            "properties": {}
+        }
+    }
+}

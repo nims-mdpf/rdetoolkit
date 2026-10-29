@@ -1,0 +1,82 @@
+{
+  "case": {
+    "family": "k2",
+    "id": "k2/TC-EP-012",
+    "inputs_sha256": {
+      "invoice": "bd04a974b6ecdad10a95420af11509fb25a436b1359dbb796d123bd0f69fc433",
+      "metadata": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "metadata_def": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "schema": "fe8b333205d8dab5997307d1b54b1ae45b765ac678db252bae55cc8a8470036d"
+    },
+    "steps": [
+      {
+        "csv_text": "sample/generalAttributes.7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0\r\npellet\r\n",
+        "dist": "source",
+        "pop_source_sample_keys": [],
+        "row_reference": true
+      }
+    ],
+    "test_id": "TC-EP-012",
+    "variant": null
+  },
+  "observed": {
+    "source_invoice": {
+      "basic": {
+        "dataName": "Restructured Test Data",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000002",
+        "dateSubmitted": "2024-01-15"
+      },
+      "datasetId": "test-dataset-restructured",
+      "sample": {
+        "composition": null,
+        "description": null,
+        "generalAttributes": [
+          {
+            "termId": "7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0",
+            "value": "pellet"
+          }
+        ],
+        "names": null,
+        "ownerId": "00000000000000000000000000000000000000000000000000000002",
+        "referenceUrl": null,
+        "sampleId": "019a6150-6f3b-4384-8f12-8f8950f51098",
+        "specificAttributes": null
+      }
+    },
+    "steps": [
+      {
+        "invoice": {
+          "basic": {
+            "dataName": "Restructured Test Data",
+            "dataOwnerId": "00000000000000000000000000000000000000000000000000000002",
+            "dateSubmitted": "2024-01-15"
+          },
+          "datasetId": "test-dataset-restructured",
+          "sample": {
+            "composition": null,
+            "description": null,
+            "generalAttributes": [
+              {
+                "termId": "7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0",
+                "value": "pellet"
+              }
+            ],
+            "names": null,
+            "ownerId": "00000000000000000000000000000000000000000000000000000002",
+            "referenceUrl": null,
+            "sampleId": "019a6150-6f3b-4384-8f12-8f8950f51098",
+            "specificAttributes": null
+          }
+        },
+        "metadata": null,
+        "row_data": {
+          "sample/generalAttributes.7cc57dfb-8b70-4b3a-5315-fbce4cbf73d0": "pellet"
+        }
+      }
+    ]
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "oracle": "rdetoolkit.processing.processors.invoice.SmartTableInvoiceInitializer"
+  }
+}

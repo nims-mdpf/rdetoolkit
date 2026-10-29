@@ -380,9 +380,9 @@ def check_files(paths: list[Path]) -> list[Path]:
 
 ## 関連項目
 
-- [エラーハンドリング](errors.md) - エラーコード定義と構造化エラー
-- [例外](exceptions.md) - 例外階層
-- [ワークフロー](workflows.md) - Result統合を伴うワークフロー実行
+- [エラーハンドリング](../rdetoolkit/errors.md) - エラーコード定義と構造化エラー
+- [例外](../rdetoolkit/exceptions.md) - 例外階層
+- [ワークフロー](../rdetoolkit/workflows.md) - Result統合を伴うワークフロー実行
 
 ## 参照
 

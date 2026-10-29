@@ -1,0 +1,445 @@
+{
+    "common.data_origin": {
+        "name": {
+            "ja": "データの起源",
+            "en": "Data Origin"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 1
+    },
+    "common.technical_category": {
+        "name": {
+            "ja": "技術カテゴリー",
+            "en": "Technical Category"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 2
+    },
+    "measurement.method_category": {
+        "name": {
+            "ja": "計測法カテゴリー",
+            "en": "Method category"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 3
+    },
+    "measurement.method_sub_category": {
+        "name": {
+            "ja": "計測法サブカテゴリー",
+            "en": "Method sub-category"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 4
+    },
+    "measurement.analysis_field": {
+        "name": {
+            "ja": "分析分野",
+            "en": "Analysis field"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 5
+    },
+    "measurement.measurement_environment": {
+        "name": {
+            "ja": "測定環境",
+            "en": "Measurement environment"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 6
+    },
+    "measurement.measurement_date": {
+        "name": {
+            "ja": "分析年月日",
+            "en": "Measured date"
+        },
+        "schema": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "order": 7
+    },
+    "measurement.analysis_date": {
+        "name": {
+            "ja": "解析年月日",
+            "en": "Analysis date"
+        },
+        "schema": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "order": 8
+    },
+    "measurement.instrumentation_site": {
+        "name": {
+            "ja": "装置設置場所",
+            "en": "Instrumentation site"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 9
+    },
+    "system.measurement_technique": {
+        "name": {
+            "ja": "測定手法",
+            "en": "Measurement Technique"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 10
+    },
+    "system.measurement_instrument": {
+        "name": {
+            "ja": "測定装置",
+            "en": "Measurement Instrument"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 11
+    },
+    "system.experiment_id": {
+        "name": {
+            "ja": "測定内容識別ID",
+            "en": "Experiment ID"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 12
+    },
+    "system.file_property": {
+        "name": {
+            "ja": "測定ファイル_属性",
+            "en": "File Property"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 13
+    },
+    "system.operation_date_time_year": {
+        "name": {
+            "ja": "測定日時[年]",
+            "en": "Operation Date-time[Year]"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 14
+    },
+    "system.operation_date_time_month": {
+        "name": {
+            "ja": "測定日時[月]",
+            "en": "Operation Date-time[Month]"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 15
+    },
+    "system.operation_date_time_day": {
+        "name": {
+            "ja": "測定日時[日]",
+            "en": "Operation Date-time[Day]"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 16
+    },
+    "instrument_manufacturer": {
+        "name": {
+            "ja": "装置メーカー",
+            "en": "instrument manufacturer"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 17
+    },
+    "model_number": {
+        "name": {
+            "ja": "装置型番",
+            "en": "Model Number"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 18
+    },
+    "operation_software_version": {
+        "name": {
+            "ja": "測定ソフトウェアバージョン",
+            "en": "Operation Software Version"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 19
+    },
+    "analyzer_mode": {
+        "name": {
+            "ja": "分析器分光動作モード",
+            "en": "Analyzer Mode"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 20
+    },
+    "xray_source": {
+        "name": {
+            "ja": "X線源",
+            "en": "Xray Source"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 21
+    },
+    "file_name": {
+        "name": {
+            "ja": "ファイル名",
+            "en": "File name"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 22
+    },
+    "operation_date": {
+        "name": {
+            "ja": "測定日",
+            "en": "Operation Date"
+        },
+        "schema": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "order": 23
+    },
+    "file_comment": {
+        "name": {
+            "ja": "ファイルコメント",
+            "en": "File Comment"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 24
+    },
+    "sub_data_file_name": {
+        "name": {
+            "ja": "サブデータファイル名",
+            "en": "Sub Data file name"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 25,
+        "unit": "eV"
+    },
+    "file_property": {
+        "name": {
+            "ja": "測定ファイル属性",
+            "en": "File Property"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 26
+    },
+    "xray_energy": {
+        "name": {
+            "ja": "X線エネルギー",
+            "en": "Xray Energy"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 27,
+        "unit": "eV"
+    },
+    "measurement_acquisition_number_per_peak_sweep": {
+        "name": {
+            "ja": "スイープごと繰り返し測定回数",
+            "en": "Measurement Acquisition Number Per Peak Sweep"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 28
+    },
+    "discharge_gas_species": {
+        "name": {
+            "ja": "パスエネルギー",
+            "en": "Pass Energy"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 29,
+        "unit": "eV"
+    },
+    "abscissa_end": {
+        "name": {
+            "ja": "横軸の終点",
+            "en": "Abscissa end"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 30,
+        "unit": "eV"
+    },
+    "abscissa_start": {
+        "name": {
+            "ja": "横軸の起点",
+            "en": "Abscissa start"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 31,
+        "unit": "eV"
+    },
+    "software_version": {
+        "name": {
+            "ja": "ソフトウェアのバージョン",
+            "en": "Software Version"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 32
+    },
+    "calculation_date": {
+        "name": {
+            "ja": "計算日",
+            "en": "Calculation Date"
+        },
+        "schema": {
+            "type": "string"
+        },
+        "order": 33
+    },
+    "abscissa_end_for_analysis": {
+        "name": {
+            "ja": "解析用横軸の終点",
+            "en": "Abscissa end for analysis"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 34,
+        "unit": "eV"
+    },
+    "abscissa_start_for_analysis": {
+        "name": {
+            "ja": "解析用横軸の起点",
+            "en": "Abscissa start for analysis"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 35,
+        "unit": "eV"
+    },
+    "abscissa-increment": {
+        "name": {
+            "ja": "エネルギーステップ幅",
+            "en": "Abscissa increment"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 36,
+        "unit": "eV"
+    },
+    "peak-number": {
+        "name": {
+            "ja": "ピーク数",
+            "en": "Peak number"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 37
+    },
+    "peak-id": {
+        "name": {
+            "ja": "ピークID",
+            "en": "Peak ID"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 38
+    },
+    "peak-height": {
+        "name": {
+            "ja": "ピーク高さ",
+            "en": "Peak height"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 39
+    },
+    "peak-position": {
+        "name": {
+            "ja": "ピーク位置",
+            "en": "Peak position"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 40,
+        "unit": "eV"
+    },
+    "peak-width": {
+        "name": {
+            "ja": "ピーク幅",
+            "en": "Peak width"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 41,
+        "unit": "eV"
+    },
+    "lorentz-ratio": {
+        "name": {
+            "ja": "ローレンツ比",
+            "en": "Lorentz ratio"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 42
+    },
+    "peak-area": {
+        "name": {
+            "ja": "面積比",
+            "en": "Peak area"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 43
+    }
+}

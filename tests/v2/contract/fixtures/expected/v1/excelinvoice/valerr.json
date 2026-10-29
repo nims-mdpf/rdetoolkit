@@ -1,0 +1,67 @@
+{
+  "case": {
+    "entry": "custom_dataset_function",
+    "mode": "excelinvoice",
+    "outcome": "valerr"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "345588d5909fb3e5412ee52fc1a64ae3939cf5563fa3c460636829e511f50648",
+      "data/temp/invoice_org.json": "cfc86918510cca708b6f0735b36ac2b275cd799c4d7fc30296dbc68d2e0bc647",
+      "data/temp/test_child1.txt": "eddae7094cde898882041f435b08987d8af7973beeda816c6140dca524237b8d",
+      "data/temp/test_child2.txt": "860b99b39f00c7ef33130fc8653168a41d5eb7fb7b5497c7ec20d88a17affec9"
+    },
+    "callback_count": 0,
+    "exit_code": 1,
+    "invoice_backup": {
+      "basic": null,
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": null,
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=1",
+    "job_failed_text": "ErrorCode=1\nErrorMessage=Failed to generate invoice file for data 0\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/contract_excel_invoice.xlsx",
+        "data/inputdata/excelinvoice_files.zip",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/invoice_org.json",
+        "data/temp/test_child1.txt",
+        "data/temp/test_child2.txt"
+      ]
+    },
+    "raw_sha256": {}
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

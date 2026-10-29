@@ -1,0 +1,3 @@
+from rdetoolkit.report.run_report import RunReport
+
+def render_call_sequence(report: RunReport, format: str = ...) -> str: ...

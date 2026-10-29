@@ -1,14 +1,53 @@
+# AGENTS.md
+
+Development rules for all agents working in this repository — including Claude Code,
+Codex (via `codex` CLI), and any other AI-assisted tooling. Read this file in full
+before writing any code or tests.
+
+> **Claude Code workflow guidance** (agent orchestration, phase classification, Codex
+> delegation and `/goal` usage) lives in **CLAUDE.md**. This file covers only the
+> coding and testing rules that every agent must follow regardless of how it is
+> invoked.
+
+> **⚠️ Canonical design document**: v2 architecture is defined by
+> **`local/develop/v2/Design.md`** (v2.1: eager execution + call-log recording,
+> ADR-020/021/022 — no value lineage).
+> The former plan (`Plan.md`) and the former design note (`20260210_raa_refactor_ja.md`)
+> are **superseded**. If any instruction, memory, or training prior suggests
+> implementing a Trace proxy, Build/Compile phases, or a pre-execution DAG —
+> **that is the retired v1-of-v2 design. Do not implement it.**
+
+---
+
 ## 1. Project Overview
 
-RDEToolKit is a fundamental Python package for creating workflows of RDE-structured programs. See [0-cite-0](#0-cite-0).
+RDEToolKit is a Python package for creating workflows of RDE (Research Data Express)
+structured programs. It enables researchers to register, process, and visualize
+experimental data in RDE format.
+
+The project is a **Rust + Python hybrid library** using PyO3/Maturin. Performance-
+critical v1 operations (image processing, encoding detection, file system ops) are
+implemented in Rust and exposed to Python via PyO3 bindings.
+
+**Current status:**
+- **v1.x** — stable, maintenance mode. Do not break existing behaviour.
+- **v2.x** — active development under `develop/v2`, **redesigned (2026-06)** around
+  eager execution and call-log recording (v2.1). Canonical spec: `local/develop/v2/Design.md`.
+  Phase instructions: `local/develop/v2/Phase{A..F}_prompts.md`.
+
+**v2 execution model in one paragraph (memorize this):**
+`@flow` functions are **plain Python executed eagerly** — `if`, loops, f-strings,
+literal arguments, and default arguments all behave exactly as normal Python.
+`@node` is a thin wrapper that registers a `NodeSpec` and records a runtime
+`NodeCallRecord` when an active run exists. The DAG is **derived after the fact**
+from call-log records as a Call Sequence (not a dataflow DAG, ADR-022), never
+constructed before execution. The Runner owns the
+RDE domain lifecycle (config → mode → validate → iterate tiles → flow call →
+validate → `job.failed` / RunReport).
+
+---
 
 ## 2. Development Environment Setup
-
-This project uses `rye` as the package and environment manager. See [0-cite-1](#0-cite-1).
-
-After installing `rye`, set up your local dev environment with `rye sync`. For code quality, we also use `pre-commit`. See [0-cite-2](#0-cite-2).
-
-**Quick start**
 
 ```bash
 cd <local rdetoolkit repo>
@@ -17,408 +56,488 @@ source .venv/bin/activate
 pre-commit install
 ```
 
-### 2.1 Common Development Commands
-
-**Building:**
+### 2.1 Common Commands
 
 ```bash
-# Build Rust extension and Python package
-python -m build
+# Full test suite (v1 + v2) — the primary gate for everything
+.venv/bin/tox -e py312-module
 
-# Build with Maturin (Rust extension only)
+# v2 tests only
+.venv/bin/tox -e py312-module -- tests/v2/ -v
+
+# Specific test file
+.venv/bin/tox -e py312-module -- tests/v2/core/ -v
+
+# Linting / type checking
+.venv/bin/tox -e py312-ruff
+.venv/bin/tox -e py312-mypy
+
+# Complexity check
+.venv/bin/tox -e lizard
+
+# Docs (error catalog pages are generated — never hand-edit)
+python scripts/gen_error_docs.py --check
+mkdocs serve
+
+# Rust extension rebuild — ONLY needed if a v1 Rust file changed.
+# v2.0 makes no Rust changes (dag.rs is frozen, see §4).
 maturin develop
 ```
 
-**Testing:**
+> Use `.venv/bin/tox` explicitly. A stale `tox` on PATH has caused silent
+> environment mismatches in the past.
 
-```bash
-# Run all tests with coverage
-tox
-
-# Run tests for specific Python version and environment
-tox -e py312-module    # Tests only
-tox -e py312-ruff      # Linting only
-tox -e py312-mypy      # Type checking only
-
-# Run pytest directly (faster for development)
-pytest tests/ --cov=. --cov-report=term-missing
-
-# Run single test file
-pytest tests/test_workflow.py -v
-```
-
-**Code Quality:**
-
-```bash
-# Lint with Ruff
-ruff check src/rdetoolkit/
-
-# Format with Ruff
-ruff format src/rdetoolkit/
-
-# Type check with mypy
-mypy src/
-
-# Check cyclomatic complexity
-tox -e lizard
-```
-
-**Documentation:**
-
-```bash
-# Serve documentation locally
-mkdocs serve
-
-# Build documentation
-mkdocs build
-```
+---
 
 ## 3. Code Formatting & Linters
 
-We use `Ruff` and `mypy` to maintain code quality. Ruff replaces isort/black/flake8 and, together with strict typing enforced by mypy, improves readability and maintainability. See [0-cite-3](#0-cite-3).
+Tools: **Ruff** (lint + format) and **mypy** (strict type checking).
 
 ### 3.1 Coding Standards
 
-**Comments & Documentation:**
+- **All comments and docstrings must be written in English.**
+- Avoid redundant comments — explain *why*, not *what*.
+- Use Unix-style line endings (LF) for all files.
+- **Google Style docstrings** are mandatory on all public APIs.
+- **Type annotations are required everywhere** — mypy strict mode is enforced.
 
-* **All comments must be written in English.** This ensures consistency and accessibility for international contributors.
-* **Avoid redundant comments for self-explanatory code.** Code should be self-documenting where possible. Only add comments when they provide meaningful context, explain non-obvious logic, or clarify complex algorithms.
-* **Focus on "why" not "what".** Comments should explain the reasoning behind decisions, not restate what the code does.
+### 3.2 v2-Specific Python Constraints
 
-**File Format:**
+| Rule | Detail |
+|------|--------|
+| `types.py` is append-only | Never modify existing v1 lines. v2 canonical types per Design §4.2. |
+| `errors.py` is append-only | Single int-coded catalog per Design §9. Old `E001–E025` / `E_CYCLE` IDs are retired markers — never delete, never reuse. |
+| `errors.pyi` is append-only | Stub files follow the same rule as their modules. Declarations must never silently disappear. |
+| `core/result.py` must not be created | Use existing `result.py` (`Success`, `Failure`, `Result`) as-is. |
+| Re-export pattern for direct refactors | When moving functions, keep `from rdetoolkit.<new> import <fn>  # noqa: F401` in the original module. |
+| `@node` transparency | Decorated functions remain plain functions: direct calls pass args verbatim, exceptions propagate unwrapped when no run is active, `functools.wraps` metadata preserved. |
+| `@flow` is a plain function | Direct invocation is a normal call. No trace mode, no proxies, ever. |
+| No DI inside `@node` | Reserved types are injected at the **flow boundary only** (Design §4.3). Nodes receive everything via explicit arguments. |
+| `OutputContext` construction | Only via `OutputContext.from_resource_paths()`. Directory creation belongs to the Runner (step 4a), never to the factory. |
+| Error codes | Raise only `RdeError` subclasses carrying an int code present in `ERROR_CATALOG`. Never invent ad-hoc codes or string-prefixed schemes. |
+| Schemas carry `schema_version` | Any change to Event / RunReport / NodeCallRecord JSON requires a version bump and a consumer-compat note. |
+| v1 public API must not break | Any phase touching v1 files requires full `tox -e py312-module` GREEN before merge. |
+| No `DeprecationWarning` on the v1 path | `run(custom_dataset_function=...)` stays warning-free in v2.0 (Design §11). |
 
-* **Use Unix-style line endings (LF, `\n`) for all files.** This ensures consistency across different development environments and prevents line-ending conflicts in version control.
+### 3.3 Rust Coding Standards
 
-## 4. Documentation Guidelines
+v2.0 introduces **no new Rust code**. These rules apply to v1 maintenance only:
 
-Docstrings **must** follow **Google Style**. See [0-cite-4](#0-cite-4).
+- Follow standard Rust idioms — code must be `clippy` clean.
+- No `unwrap()` in library code — always return `PyResult<T>`.
+- All `#[pyclass]` types must have a corresponding declaration in `_core.pyi`.
+- Pass only primitive types across the Python ↔ Rust boundary.
+- Rust unit tests go in `#[cfg(test)]` modules within each `.rs` file.
+- After any Rust change, run `maturin develop` before running Python tests.
 
-## 5. Branch Strategy
+---
 
-### 5.1 Branch Naming Convention
+## 4. Rust / Python Language Boundary
 
-When adding features or fixes, create a branch from `develop/v<x.y.z>` and append a descriptive suffix. See [0-cite-5](#0-cite-5).
+### 4.1 Division of Responsibility (v2 — post ADR-020)
 
-**Command:**
+| Domain | Language | Status |
+|--------|----------|--------|
+| Image processing / thumbnails (`imageutil.rs`) | Rust | v1, unchanged |
+| Encoding detection (`charset_detector.rs`) | Rust | v1, unchanged |
+| File system operations (`fsops.rs`) | Rust | v1, unchanged |
+| DAG structure / algorithms (`dag.rs`) | Rust | **FROZEN — internal, not on any v2.0 code path** |
+| `@node` / `@flow` decorators, registries | Python | v2 |
+| Call-log recording (CallLogRecorder, no lineage) | Python | v2 |
+| Flow-boundary DI | Python | v2 |
+| Runner lifecycle, tile iterators | Python | v2 |
+| Call-sequence rendering (`report/graph_render.py`) | Python | v2 — pure Python, tens of nodes, no perf concern |
+| Domain services, plugins, CLI (typer), DataFrames | Python | v2 |
+
+### 4.2 dag.rs Freeze Rules
+
+- `dag.rs` is **not deleted** but carries an `INTERNAL — not used in v2.0 critical
+  path (ADR-020)` header and is **not registered** in the PyO3 module.
+- ❌ Never import `RustDAG` from any v2 module. Graph work derives from the call log
+  records in pure Python.
+- ❌ Never "optimize" call-log/graph code by reviving `RustDAG` without an
+  explicit new ADR superseding ADR-020.
+- The compiled extension module is **`rdetoolkit._core`**. The type stub is
+  **`src/rdetoolkit/_core.pyi`**. The former `core.pyi` was removed in Phase A —
+  do not recreate it.
+
+---
+
+## 5. Documentation Guidelines
+
+All public APIs require **Google Style** docstrings:
+
+```python
+def render_call_sequence(records: list[NodeCallRecord]) -> str:
+    """Render the run's call sequence from call-log records.
+
+    Records are ordered by their run-global ``seq`` (Design v2.1 §3.4);
+    the output is a Call Sequence, not a dataflow DAG (ADR-022).
+
+    Returns:
+        Mermaid source for the per-tile call sequence.
+    """
+```
+
+Additional rules:
+- The error-code reference in docs is **generated** by `scripts/gen_error_docs.py`.
+  Never hand-write or hand-edit error tables in docs.
+- Code examples in user docs must be covered by doctest or an executed test.
+- When citing the design, reference sections as `Design §N.M`.
+
+---
+
+## 6. Branch Strategy
+
+### 6.1 Branch Naming
 
 ```bash
+# v2 development (one branch per phase, letter-indexed)
+git checkout -b v2/phase-<a|b|c|d|e|f> origin/develop/v2
+
+# v1 maintenance / issue-based
 git checkout -b develop/v<x.y.z>/<prefix>/<short-descriptor> origin/develop/v<x.y.z>
 ```
 
-### 5.2 Branch Prefixes
+### 6.2 Branch Prefixes
 
-We standardize branch prefixes to indicate the type of change. See [0-cite-6](#0-cite-6).
+| Prefix | Purpose |
+|--------|---------|
+| `feature/` | New feature |
+| `bugfix/` / `fix/` | Bug fix |
+| `hotfix/` | Critical urgent fix |
+| `release/` | Release preparation |
+| `chore/` | Refactoring / maintenance |
+| `refactor/` | Code refactoring |
+| `test/` | Test-only changes |
+| `docs/` | Documentation |
+| `ci/` | CI/CD configuration |
+| `perf/` | Performance improvements |
+| `experiment/` | Proof-of-concept |
 
-| **Prefix**    | **Purpose**                          | **Example**                           |
-| ------------- | ------------------------------------ | ------------------------------------- |
-| `feature/`    | New feature development              | `feature/user-authentication`         |
-| `bugfix/`     | Bug fixes                            | `bugfix/login-error`                  |
-| `fix/`        | Bug fixes (same as `bugfix/`)        | `fix/login-error`                     |
-| `hotfix/`     | Critical/urgent fixes                | `hotfix/critical-security-issue`      |
-| `release/`    | Release preparation                  | `release/v1.2.0`                      |
-| `chore/`      | Refactoring and maintenance          | `chore/update-dependencies`           |
-| `experiment/` | Experimental features/proof-of-concept | `experiment/new-ui-concept`          |
-| `docs/`       | Documentation updates                | `docs/update-readme`                  |
-| `test/`       | Test-related changes                 | `test/add-unit-tests`                 |
-| `refactor/`   | Code refactoring                     | `refactor/cleanup-auth-module`        |
-| `ci/`         | CI/CD configuration changes          | `ci/update-github-actions`            |
-| `style/`      | Code style/formatting changes        | `style/format-codebase`               |
-| `perf/`       | Performance improvements             | `perf/optimize-db-queries`            |
-| `design/`     | Design-related changes               | `design/update-mockups`               |
-| `security/`   | Security fixes/enhancements          | `security/enhance-encryption`         |
-
-### 5.3 Commit Message Format
-
-All commit messages **must** include the issue number and follow this format:
+### 6.3 Commit Message Format
 
 ```bash
-git commit -m "#<issue-number> <brief description of changes>"
+# Issue-based (v1 maintenance)
+git commit -m "#<issue-number> <brief description in English>"
+
+# Phase-based (v2 development)
+git commit -m "feat(v2/phase-c): eager @node/@flow with registry (Design §3.1-3.3)"
+git commit -m "test(v2/phase-c): PBT for provenance edge reconstruction invariants"
 ```
 
-**Examples:**
+### 6.4 Worktree Rules
 
-```bash
-git commit -m "#42 Add user authentication feature"
-git commit -m "#123 Fix login error on mobile devices"
-git commit -m "#89 Update API documentation"
-```
+- **Create worktrees with `git gtr new <branch> --from <base>`** — never plain
+  `git worktree add`. gtr's postcreate hooks provide, per worktree:
+  `.venv` (uv, Python pinned), the symlink `local -> ~/github/rdetoolkit/local`,
+  and a copy of `.claude/`.
+- `local/develop/` therefore has exactly **one canonical copy** in the main repo
+  (`~/github/rdetoolkit/local/develop/`), shared by every worktree via the
+  symlink. Never create a real `local/` directory inside a worktree; if one
+  exists (worktree made without gtr), sync its contents back to the main repo
+  and replace it with the symlink.
+- **`local/develop/` is never committed or pushed.** It is gitignored (`local/`);
+  `git add -f local/...` is forbidden. Session artifacts (surveys, task files,
+  decision records) stay under `local/develop/` as local-only documents.
 
-**Important Notes:**
-- Always reference the issue number with `#<issue-number>` at the beginning
-- Use clear, concise descriptions
-- Write commit messages in English
-- If pre-commit hooks fail, resolve all errors before committing
+### 6.5 Pull Request Rules
 
-### 5.4 Pull Request Guidelines
+- **Never target `main` directly.** PRs must target `develop/v<x.y.z>` or `develop/v2`.
+  (Sole exception: the Phase A "B5 settlement" PR that restores/hardens v1 tests
+  goes to `main` via the normal human-review process.)
+- All CI checks must pass before requesting review.
+- Phase merges into `develop/v2` use `--no-ff` and require the full suite GREEN —
+  this is a **CI-enforced phase gate**, not an honor-system checklist.
+- Direct-Refactor work (anything touching v1 files): confirm v1 tests GREEN and
+  paste the tail of the tox output into the PR description.
 
-**⚠️ CRITICAL**: **DO NOT create pull requests directly to the `main` branch.**
+### 6.6 Release / Tagging Rules
 
-- PRs must target `develop/v<x.y.z>` branches, not `main`
-- The `main` branch is reserved for releases only
-- All CI tests must pass before requesting review
-- Merge to `main` only when all development is complete and ready for release
+> Background: on 2026-07 a `v2.0.0a1` tag was pushed while `pyproject.toml`
+> still said `2.0.0`, so an unintended **2.0.0** was published to PyPI (now
+> yanked). PyPI file names can never be reused, so the version number `2.0.0`
+> is permanently burned. These rules exist to make that impossible to repeat.
 
-**Workflow:**
-
-```bash
-# 1. Create feature branch
-git checkout -b develop/v1.5.0/feature/new-processor origin/develop/v1.5.0
-
-# 2. Make changes and commit
-git add .
-git commit -m "#335 Add new data processor"
-
-# 3. Push to remote
-git push origin develop/v1.5.0/feature/new-processor
-
-# 4. Create PR targeting develop/v1.5.0 (NOT main)
-```
-
-## 6. Testing
-
-### 6.1 Environment
-
-* **Language/Tools:** Python, `pytest`
-* **Runner:** `tox` (primary entrypoint) — see [0-cite-7](#0-cite-7)
-
-### 6.2 Mandatory Requirements (Read First)
-
-1. **Present test-design tables *before* writing tests**
-
-   * Provide **Equivalence Partitioning** and **Boundary Value** tables for each public API (function/class/method).
-2. **Implement tests based on those tables**
-
-   * Each row in the table(s) must map to at least one test case.
-3. **Balance success/failure**
-
-   * Include **at least as many failing (negative) cases as passing (positive) cases**.
-4. **Required test viewpoints**
-
-   * Normal (happy path)
-   * Abnormal/error paths
-   * Boundary values
-   * Invalid types/formats
-   * External dependency failures (e.g., I/O, network, DB)
-   * Exception verification (type and message)
-5. **Scenario comments**
-
-   * Use **Given/When/Then** style comments in each test.
-6. **Execution commands & coverage collection**
-
-   * Provide concrete commands in the repo for both **per-env** and **tox** runs (see below).
-7. **Coverage target**
-
-   * **Branch coverage 100%** (aim for full decision/branch coverage across modules under test).
-
-### 6.3 Templates You Must Include in PRs
-
-**(A) Equivalence Partitioning Table (Template)**
-
-| API           | Input/State Partition    | Rationale      | Expected Outcome       | Test ID     |
-| ------------- | ------------------------ | -------------- | ---------------------- | ----------- |
-| `module.func` | e.g., valid range (1–10) | valid domain   | returns computed value | `TC-EP-001` |
-|               | e.g., below min (≤0)     | invalid domain | raises `ValueError`    | `TC-EP-002` |
-|               | e.g., non-int type       | invalid type   | raises `TypeError`     | `TC-EP-003` |
-
-**(B) Boundary Value Table (Template)**
-
-| API           | Boundary                | Rationale      | Expected Outcome | Test ID     |
-| ------------- | ----------------------- | -------------- | ---------------- | ----------- |
-| `module.func` | `min-1`, `min`, `min+1` | lower boundary | …                | `TC-BV-00x` |
-|               | `max-1`, `max`, `max+1` | upper boundary | …                | `TC-BV-00x` |
-
-> Place these tables at the top of the test module or in a colocated `README` within the test directory. Each row should be traceable to a concrete test via `Test ID`.
-
-**(C) pytest Structure & Style**
-
-* File layout: `tests/<package>/test_<unit>.py`
-* One assertion per behavior; multiple assertions allowed if they validate a single coherent behavior.
-* **Given/When/Then comments** in each test:
-
-  ```python
-  def test_func_min_boundary():
-      # Given: input at lower boundary
-      x = 0
-      # When: calling the target function
-      # Then: it raises ValueError
-      with pytest.raises(ValueError):
-          module.func(x)
-  ```
-
-**(D) External Dependencies & Exceptions**
-
-* Use fakes/mocks for external calls (filesystem, network, DB).
-* Force dependency failures (timeouts, I/O errors) and verify:
-
-  * The **exception type**
-  * The **message** (or message pattern)
-  * That **cleanup/rollback** occurs when applicable
-
-**(E) Coverage & Commands**
-
-* Recommended: `pytest-cov` with branch coverage.
-* **Direct (active venv):**
-
-  ```bash
-  pytest -q \
-    --maxfail=1 \
-    --cov=rdetoolkit \
-    --cov-branch \
-    --cov-report=term-missing \
-    --cov-report=html
-  # HTML report at htmlcov/index.html
-  ```
-* **Via tox (preferred):**
-
-  ```bash
-  tox
-  # Configure env in tox.ini, e.g.:
-  # [testenv]
-  # deps = pytest pytest-cov
-  # commands = pytest -q --maxfail=1 --cov=rdetoolkit --cov-branch --cov-report=term-missing --cov-report=html
-  ```
-* **Fail CI if coverage < 100% (branch):** add a threshold, e.g. in `pyproject.toml` or `pytest.ini`:
-
-  ```ini
-  [tool.pytest.ini_options]
-  addopts = --cov=rdetoolkit --cov-branch --cov-report=term-missing --cov-report=html --maxfail=1
-  [tool.coverage.report]
-  fail_under = 100
-  ```
-
-### 6.4 Minimum Content Checklist (PRs will be blocked if missing)
-
-* [ ] EP table provided and linked to test IDs
-* [ ] Boundary table provided and linked to test IDs
-* [ ] Tests implement **all** rows from tables
-* [ ] Failing cases ≥ Passing cases
-* [ ] Given/When/Then comments present
-* [ ] External failure scenarios covered (and asserted)
-* [ ] Exceptions verified (type/message)
-* [ ] Coverage reports generated; **branch coverage = 100%**
-
-### 6.5 Authoring Workflow & Organization Rules
-
-1. **Decide the test scope before coding.** Classify the target as either unit (pure logic, faked dependencies) or integration (real I/O). Keep integration suites under `tests/integration/**` and tag them with `@pytest.mark.integration`; default everything else to unit tests.
-2. **Draft EP/BV tables per public API.** Place the tables at the module top (preferred) and assign stable `TC-` IDs. One row → at least one test; note related fixtures alongside the table if setup is non-trivial.
-3. **Name tests after their Test ID.** Use `def test_<api>_<slug>__tc_ep_001():` pattern so traceability from the tables to the implementation stays obvious.
-4. **Balance positive and negative cases.** Provide at least one failure scenario for every success, covering: invalid inputs, edge boundaries, external dependency failures (use monkeypatch/fakes), and exact exception type+message assertions.
-5. **Structure each test consistently.** Follow Given/When/Then comments, prefer a single logical assertion per behavior, and isolate side effects in fixtures with cleanup (context managers or `yield` fixtures).
-6. **Record execution commands.** Each new/updated test module must mention the precise `pytest` command (direct and `tox`) that was used to validate 100% branch coverage. Mirror any new requirements in `tox.ini`/`pyproject.toml` when needed.
-7. **Review for gap analysis.** Before submitting, verify the checklist in §6.4, confirm coverage HTML reports are regenerated (`htmlcov/index.html`), and ensure integration tests are skipped by default in CI unless explicitly requested.
+- **Version sources that must always agree** (canonical PEP 440 form, e.g.
+  `2.0.0a1` — never `2.0.0.a1`):
+  1. `pyproject.toml` `[project].version` (maturin stamps the wheel/sdist with this)
+  2. `src/rdetoolkit/__init__.py` `__version__`
+  3. the git tag (`v` + version, e.g. `v2.0.0a1`)
+- **A version bump is a normal committed change**: update both source files in
+  one commit *before* tagging; the tag points at that commit.
+- **Before pushing any tag**, run and paste the output of:
+  `python scripts/check_version_consistency.py --tag v<version>`
+- CI enforces the same check: the `check-version` job in
+  `.github/workflows/pypi-release.yml` gates every build, and the release jobs
+  additionally verify that the built artifact file names match the tag. Never
+  bypass, weaken, or `continue-on-error` these gates.
+- **Only the human operator creates and pushes tags.** Agents (Claude, Codex)
+  must never run `git tag` or `git push --tags`; they stop and report the
+  verified version state instead.
+- Never re-point (delete + recreate) a tag that has already produced a PyPI
+  upload; pick the next free version instead.
 
 ---
 
-## Notes
+## 7. Testing
 
-When authoring AGENTS.md, keep these rules concise and explicit so AI assistants can operate effectively within this codebase. Document project-specific conventions, tools, and workflows so the assistant can generate code and changes that meet the project’s standards.
+### 7.1 Test Commands
+
+```bash
+# Full suite (v1 + v2) — required GREEN at every session end
+.venv/bin/tox -e py312-module
+
+# v2 only / single file
+.venv/bin/tox -e py312-module -- tests/v2/ -v
+.venv/bin/tox -e py312-module -- tests/v2/golden/ -v
+
+# Property-based tests only
+pytest tests/v2/ -m property -v
+HYPOTHESIS_PROFILE=ci pytest tests/v2/ -m property -v
+```
+
+### 7.2 Test Directory Structure
+
+```
+tests/
+├── (v1 tests — never modify)
+└── v2/
+    ├── core/       # @node, @flow (eager), registry, provenance, injection
+    ├── domain/     # Config, Mode, Paths, Invoice, Validation
+    ├── runner/     # Lifecycle, iterators, error policy, aggregator, finalize
+    ├── report/     # Events, RunReport, graph rendering
+    ├── nodes/      # Built-in nodes
+    ├── plugin/     # Plugin discovery
+    ├── testing/    # Public test helpers
+    ├── cli/        # CLI commands
+    ├── golden/     # v1↔v2 directory-tree parity (Design §6.4)
+    ├── e2e/        # run(flow=...) end-to-end
+    ├── property/   # PBT-only tests (@pytest.mark.property)
+    └── fixtures/   # Shared fixtures incl. dummy plugin package
+```
+
+**All v2 tests go under `tests/v2/`. Never touch `tests/` root files.**
+
+### 7.3 TDD Cycle (Mandatory for v2)
+
+```
+RED      → Write failing tests against the public Python API
+GREEN    → Implement the minimal change
+REFACTOR → Improve design while keeping tests green
+PBT      → Add Hypothesis property tests for invariants (provenance, iterators)
+```
+
+Red-phase confirmation is mandatory before any implementation:
+```bash
+.venv/bin/tox -e py312-module -- tests/v2/<new_test>.py -v 2>&1 | tail -20
+# Must show FAILED or ImportError before you write implementation code
+```
+
+### 7.4 Mandatory Test Requirements
+
+1. **Write EP/BV tables before writing tests.**
+2. Each table row maps to at least one test case.
+3. Failing (negative) cases ≥ passing (positive) cases.
+4. Required viewpoints:
+   - Normal (happy path)
+   - Abnormal / error paths (error **code** and exception type asserted)
+   - Boundary values (0 tiles, 1 tile, empty inputs, duplicate node ids)
+   - Eager-semantics regressions (the legacy-B2 family: `if`/loop/f-string/
+     literal-arg/default-arg/container patterns must behave as plain Python)
+   - Contract parity (golden directory trees, `job.failed` format)
+5. **Given/When/Then comments** in every test.
+6. **Branch coverage ≥ 95 % for new v2 code** (single canonical figure — the old
+   95 %/100 % contradiction is resolved at 95 %, Design §13).
+
+### 7.5 Test Templates
+
+**(A) EP Table**
+
+| API | Partition | Rationale | Expected | Test ID |
+|-----|-----------|-----------|---------|---------|
+| `@node` direct call | plain args | transparency | returns value verbatim | `TC-EP-001` |
+| node registry | duplicate id | invalid | raises `RdeRegistryError` (E2001) | `TC-EP-002` |
+| flow DI | reserved name, wrong type | invalid | raises `RdeRegistryError` (E2004) | `TC-EP-003` |
+
+**(B) BV Table**
+
+| API | Boundary | Rationale | Expected | Test ID |
+|-----|----------|-----------|---------|---------|
+| iterator | 0 input files (multidatatile) | empty | 0 tiles, status success | `TC-BV-001` |
+| provenance | same node called twice | minimal repeat | distinct `call_id` `#1`,`#2` | `TC-BV-002` |
+
+**(C) pytest style**
+
+```python
+class TestNodeTransparency:
+    def test_direct_call_passes_args_verbatim__tc_ep_001(self) -> None:
+        """TC-EP-001: @node function behaves as a plain function when called directly."""
+        # Given: a decorated node and no active run
+        # When: calling it directly with a literal argument
+        result = normalize(make_df(), threshold=0.3)
+        # Then: the value is returned verbatim and nothing was recorded
+        assert isinstance(result, pd.DataFrame)
+```
+
+### 7.6 Property-Based Testing (PBT)
+
+| Component | Invariants |
+|-----------|-----------|
+| Provenance edge reconstruction | producer call precedes consumer call; reconstructed graph is acyclic; each call_id unique |
+| Provenance determinism | same flow + same input ⇒ identical call_id sequence and edge set |
+| `runner/iterator.py` | tile count matches mode semantics; no tile skipped or duplicated |
+| Error policy | `continue` ⇒ status ∈ {success, partial, failed} consistent with per-tile results; `fail_fast` ⇒ stops at first failure |
+| `utils/` transformations | idempotence, round-trip, length preservation |
+
+**Generate branching and merging flow shapes** — not only linear chains — when
+testing provenance (the chain-only bias was a known audit finding).
+
+Hypothesis profiles (registered in `tests/v2/conftest.py`):
+
+| Profile | `max_examples` | Deadline |
+|---------|---------------|---------|
+| `dev` (default) | 100 | none |
+| `ci` | 50 | 5000 ms |
+
+### 7.7 PR Checklist
+
+- [ ] EP and BV tables provided, linked to Test IDs
+- [ ] All table rows implemented as tests
+- [ ] Failing cases ≥ passing cases
+- [ ] Given/When/Then comments in every test
+- [ ] Error code (int) and exception type verified for every error path
+- [ ] Eager-semantics regression cases covered where flow behaviour is touched
+- [ ] Branch coverage ≥ 95 % for new code
+- [ ] PBT added where applicable (§7.6)
+- [ ] v1 tests GREEN: full `tox -e py312-module` output tail attached
+- [ ] No new dependency on `rdetoolkit._core` from v2 modules
 
 ---
 
-## Citations
+## 8. v2 Implementation Rules
 
-### <a id="0-cite-0"></a>**File:** README.md (L12–14)
+### 8.1 Module Placement
 
-```markdown
-RDEToolKit is a fundamental Python package for creating workflows of RDE-structured programs.
-By utilizing various modules provided by RDEToolKit, you can easily build processes for registering research and experimental data into RDE.
-Additionally, by combining RDEToolKit with Python modules used in your research or experiments, you can achieve a wide range of tasks, from data registration to processing and visualization.
+| Code belongs in | When |
+|----------------|------|
+| `src/rdetoolkit/core/` | `@node`, `@flow`, `registry.py`, `provenance.py`, `injection.py`, `context.py` |
+| `src/rdetoolkit/domain/` | Config, Mode, Paths, Validation (v1-faithful ports) |
+| `src/rdetoolkit/runner/` | `lifecycle.py`, `config_loader.py`, `mode_resolver.py`, `paths.py`, `iterator.py`, `execute.py`, `aggregator.py`, `finalize.py` |
+| `src/rdetoolkit/report/` | Events, RunReport, `graph_render.py` |
+| `src/rdetoolkit/nodes/` | Built-in nodes (io / structured / meta / image / plot) |
+| `src/rdetoolkit/protocols/` | Canonical Protocols (Design §5.2) + `as_node` |
+| `src/rdetoolkit/plugin/` | Plugin discovery via entry_points |
+| `src/rdetoolkit/testing/` | Public test helpers (`run_flow`) |
+| `src/rdetoolkit/cli/` | typer CLI |
+| `tests/v2/` | All new v2 tests |
+
+### 8.2 Forbidden Actions
+
+- ❌ Implement a Trace proxy, `NodeProxy`/`OutputProxy`, Build/Compile phase, or any
+  pre-execution DAG construction — **retired design (ADR-020)**
+- ❌ Import or use `RustDAG` / `rdetoolkit._core` from any v2 module
+- ❌ Create `src/rdetoolkit/core/result.py` — use existing `result.py`
+- ❌ Modify existing lines in `types.py`, `errors.py`, or `errors.pyi` — append only
+- ❌ Touch any file under `tests/` root — v1 tests are read-only
+  (sole exception: the Phase A B5 settlement reverting them to `main`)
+- ❌ Commit directly to `develop/v2` — always use `v2/phase-<letter>`
+- ❌ Merge any phase without full `tox -e py312-module` GREEN
+- ❌ Inject reserved types inside `@node` — flow boundary only
+- ❌ Construct `OutputContext` directly — factory only
+- ❌ Emit `DeprecationWarning` from the v1 `custom_dataset_function` path
+- ❌ Raise errors without an `ERROR_CATALOG` int code
+- ❌ Hand-edit generated error docs, or copy the error table into prose docs
+- ❌ Build `RunReport` from `EventSink` output — aggregate from primary results
+  (Design §8.2)
+
+### 8.3 Required Implementation Patterns
+
+**Eager `@node` (plain function + registration + recording hook):**
+```python
+from rdetoolkit import node
+
+@node(tags=["io"], version="1.0.0")
+def read_csv(paths: InputPaths) -> tuple[Metadata, pd.DataFrame]:
+    """Read CSV from input paths."""
+    ...
+# read_csv(make_paths())  ← works directly; recorded only inside an active run
 ```
 
-### <a id="0-cite-1"></a>**File:** CONTRIBUTING.md (L21–23)
+**Eager `@flow` (plain Python — all syntax allowed):**
+```python
+from rdetoolkit import flow
 
-```markdown
-### パッケージ管理ツールのインストール
-
-rdetoolkitでは、`rye`を利用しています。ryeは、Flaskの作者が作成した、Pythonのパッケージ関係管理ツールです。内部実装はRustのため、非常に高速です。poetryを選択せずryeを採用した理由は、動作速度の観点と、`pyenv`を別途利用する必要があるためです。ryeは、`pyenv+poetry`のように、インタプリタの管理とパッケージの管理が統合されているため、メンテナンスの観点からもryeの方が優れているため、こちらを採用しています。
+@flow
+def pipeline(paths: InputPaths, out: OutputContext, config: RdeConfig) -> None:
+    meta, df = read_csv(paths)
+    if config.custom.get("normalize", True):     # plain if — fine
+        df = normalize(df, threshold=0.3)        # literal arg — fine
+    for col in df.columns:                       # plain loop — fine
+        plot_lines(df[col], out, name=f"{col}.png")
+    save_csv(df, out, "structured.csv")
 ```
 
-### <a id="0-cite-2"></a>**File:** CONTRIBUTING.md (L30–48)
-
-````markdown
-ryeをインストール後、以下の手順で開発環境をセットアップしてください。`rye sync`で仮想環境が作成され、必要なパッケージが仮想環境にインストールされます。
-
-```shell
-cd <rdetoolkitのローカルリポジトリ>
-rye sync
-````
-
-仮想環境を起動します。
-
-```shell
-source .venv/bin/activate
+**Reserved-type injection happens once, at the flow boundary (Runner side):**
+```python
+kwargs = resolve_flow_params(flow_fn, run_context)   # E2003/E2004 on mismatch
+flow_fn(**kwargs)                                    # eager call — that's it
 ```
 
-また、RDEToolKitではコード品質の観点から、`pre-commit`を採用しています。pre-commitのセットアップを実行するため、以下の処理を実行してください。
-
-```shell
-pre-commit install
+**Protocol adapter:**
+```python
+from rdetoolkit import as_node
+read_xrd = as_node(RigakuReader(), method="read")    # id: "module.RigakuReader.read"
 ```
 
-````
+**Re-export pattern (Direct Refactor) / Result type:** unchanged from v1 rules —
+keep `# noqa: F401` re-exports in original modules; use `rdetoolkit.result` as-is.
 
-### <a id="0-cite-3"></a>**File:** CONTRIBUTING.md (L169–174)
-```markdown
-#### RDEToolKitでのフォーマッター・リンターについて
+### 8.4 v1 Safety Rules
 
-RDEToolKitでは、`Ruff`と`mypy`を使用してフォーマット、リンターを動作させてコード品質を一定に保つことを目標としています。`Ruff`は、isort, black, flake8の機能に変わるツールです。Rustで開発されているため、isort, black, flake8で動作させるより段違いに高速です。また、`mypy`は、静的型チェックツールです。RDEToolKitは型の詳細な定義を強制することで、コードの可読性と保守性の向上を目的としています。
+| Scenario | Required action before merge |
+|----------|------------------------------|
+| New v2 dirs only | `tox -e py312-module -- tests/v2/` GREEN, then full suite at phase gate |
+| Any existing v1 `.py` touched | Full `tox -e py312-module` (all GREEN) in the same session |
+| `tests/` root affected (Phase A B5 only) | Restore to `main` content; failures are reported, never silenced |
 
-> - Ruff: <https://docs.astral.sh/ruff/>
-> - mypy: <https://mypy.readthedocs.io/en/stable/>
-````
+Phases with v1 impact: **A1/A3 (errors.pyi, stub cleanup), D2 (workflows.py
+dispatch), E1/E2 (cli/main.py registration)**. Everything else must leave v1
+files byte-identical.
 
-### <a id="0-cite-4"></a>**File:** CONTRIBUTING.md (L73–76)
+---
 
-```markdown
-- rdetoolkitのドキュメントは、コード自体のdocstringと、その他のドキュメントの2つに大別されます。
-- docstringは、各種モジュールの利用法が記載され、GitHub Actionsで、自動ビルドされドキュメントが更新されます。
-- docstringは、**Google Style**で記述してください。
-  - 参考: [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)
-```
+## 9. Complexity Limits
 
-### <a id="0-cite-5"></a>**File:** CONTRIBUTING.md (L133–139)
+Enforced by `tox -e lizard`:
 
-````markdown
-新しい機能や修正を行う際は、新しいブランチを作成してください。
+| File | Max cyclomatic complexity |
+|------|--------------------------|
+| `workflows.py` | 16 |
+| `__main__.py` | 10 |
+| All other Python files | 10 |
 
-- ブランチ名の接頭辞は、`develop/v<x.y.z>`というブランチから、末尾に任意の文字列を追加して作成してください。
+Keep v2 modules well under 10. Split any function exceeding 7.
 
-```shell
-git checkout -b develop/v<x.y.z>/<任意の機能名など> origin/develop/v<x.y.z>
-````
+---
 
-````
+## Notes for AI Agents
 
-### <a id="0-cite-6"></a>**File:** CONTRIBUTING.md (L141–159)
-```markdown
-**接頭辞の例**
-
-| **接頭辞**    | **意味**                                   | **例**                           |
-| ------------- | ------------------------------------------ | -------------------------------- |
-| `feature/`    | 新機能の開発                               | `feature/user-authentication`    |
-| `bugfix/`     | バグ修正                                   | `bugfix/login-error`             |
-| `fix/`        | バグ修正（`bugfix/`と同様）                | `fix/login-error`                |
-| `hotfix/`     | 緊急の修正が必要な場合                     | `hotfix/critical-security-issue` |
-| `release/`    | リリース準備やバージョン管理               | `release/v1.2.0`                 |
-| `chore/`      | コードのリファクタリングやメンテナンス作業 | `chore/update-dependencies`      |
-| `experiment/` | 試験的な機能やアイデアの検証               | `experiment/new-ui-concept`      |
-| `docs/`       | ドキュメントの更新                         | `docs/update-readme`             |
-| `test/`       | テスト関連の変更                           | `test/add-unit-tests`            |
-| `refactor/`   | コードのリファクタリング                   | `refactor/cleanup-auth-module`   |
-| `ci/`         | 継続的インテグレーション設定の変更         | `ci/update-github-actions`       |
-| `style/`      | コードのスタイルやフォーマットの変更       | `style/format-codebase`          |
-| `perf/`       | パフォーマンス改善                         | `perf/optimize-db-queries`       |
-| `design/`     | デザイン関連の変更                         | `design/update-mockups`          |
-| `security/`   | セキュリティ関連の修正や強化               | `security/enhance-encryption`    |
-````
-
-### <a id="0-cite-7"></a>**File:** CONTRIBUTING.md (L176–182)
-
-````markdown
-### テストの実行
-
-変更を行った後は、テストを実行して正常に動作することを確認してください。
-
-```shell
-tox
-````
+- Read this file in full before writing any code.
+- **The single source of truth for v2 architecture is `local/develop/v2/Design.md`.**
+  When a task prompt, an old document, or your prior knowledge of this repository
+  conflicts with Design.md, Design.md wins. Stop and report the conflict instead of
+  guessing.
+- **Codex**: you do not share context with Claude Code. All information must come
+  from the task prompt (including any active `/goal`), this file, Design.md, and
+  files you read from the workspace.
+- **If your thread has an active Goal** (set via `/goal`): completion is
+  evidence-based. Do not declare the goal complete unless the verification commands
+  named in the goal have actually been run in this thread and their output is GREEN.
+  If you hit the blocked condition defined in the goal, stop and report exactly:
+  what was attempted, the evidence gathered, the blocker, and the input needed.
+- Never git commit unless the task prompt explicitly says to — session prompts end
+  with "stop and paste results"; the human commits after the manual checklist.
+- Never skip Red-phase confirmation when implementing TDD tasks.
+- Always run the verification command from your task prompt before reporting
+  completion, and paste its tail output verbatim.

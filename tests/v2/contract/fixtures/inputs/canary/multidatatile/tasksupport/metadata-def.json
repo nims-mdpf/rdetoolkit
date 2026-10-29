@@ -1,0 +1,24 @@
+{
+    "graphite_reversible_capacity_1st": {
+        "name": {
+            "ja": "0-0.25 Vの黒鉛可逆容量(1st）",
+            "en": "Graphite reversible capacity (1st cycle, 0-0.25 V)"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 1,
+        "unit": "mAh g-1"
+    },
+    "graphite_reversible_capacity_5th": {
+        "name": {
+            "ja": "0-0.25 Vの黒鉛可逆容量(5th）",
+            "en": "Graphite reversible capacity (5th cycle, 0-0.25 V)"
+        },
+        "schema": {
+            "type": "number"
+        },
+        "order": 2,
+        "unit": "mAh g-1"
+    }
+}

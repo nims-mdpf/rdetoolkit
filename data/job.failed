@@ -1,0 +1,2 @@
+ErrorCode=999
+ErrorMessage=Unexpected error in Invoice mode: The schema and path do not exist: invoice.json

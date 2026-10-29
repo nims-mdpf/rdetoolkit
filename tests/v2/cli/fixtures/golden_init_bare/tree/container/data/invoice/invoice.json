@@ -1,0 +1,27 @@
+{
+    "datasetId": "3f976089-7b0b-4c66-a035-f48773b018e6",
+    "basic": {
+        "dateSubmitted": "",
+        "dataOwnerId": "7e4792d1a8440bcfa08925d35e9d92b234a963449f03df441234569e",
+        "dataName": "toy dataset",
+        "instrumentId": null,
+        "experimentId": null,
+        "description": null
+    },
+    "custom": {
+        "toy_data1": "2023-01-01",
+        "toy_data2": 1.0
+    },
+    "sample": {
+        "sampleId": "",
+        "names": [
+            "<Please enter a sample name>"
+        ],
+        "composition": null,
+        "referenceUrl": null,
+        "description": null,
+        "generalAttributes": [],
+        "specificAttributes": [],
+        "ownerId": "1234567e4792d1a8440bcfa08925d35e9d92b234a963449f03df449e"
+    }
+}

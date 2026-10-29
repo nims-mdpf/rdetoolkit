@@ -1,0 +1,35 @@
+{
+    "datasetId": "1s1199df4-0d1v-41b0-1dea-2 3bf4dh09g12",
+    "basic": {
+        "dateSubmitted": "",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+        "dataName": "test-scatter-plot-dataset",
+        "instrumentId": null,
+        "experimentId": null,
+        "description": null
+    },
+    "custom": {
+        "id": "80-11",
+        "mode": "Auto",
+        "method_category": "SEM",
+        "method_sub-category": "",
+        "measurement_environment": "",
+        "energy_level_transition_structure": "",
+        "measured_date": "2020-01-01",
+        "standardized_procedure": "",
+        "instrumentation_site": "千現",
+        "reference": ""
+    },
+    "sample": {
+        "sampleId": null,
+        "names": [
+            "test1"
+        ],
+        "composition": null,
+        "referenceUrl": null,
+        "description": null,
+        "generalAttributes": [
+        ],
+        "ownerId": "00000000000000000000000000000000000000000000000000000005"
+    }
+}

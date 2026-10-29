@@ -1,0 +1,55 @@
+{
+  "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+  "basic": {
+    "dateSubmitted": "",
+    "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+    "dataName": "test-dataset",
+    "instrumentId": null,
+    "experimentId": null,
+    "description": null
+  },
+  "custom": {
+    "li_salt_solvent_molar_ratio": 1.5,
+    "salt_concentration": 1.0,
+    "salt": "BBB",
+    "solvent": "DEE",
+    "smiles_string": "C1COC(=O)OC1",
+    "li_electrode_potential": 3.0,
+    "li+_chemical_potential": 1,
+    "am": "天然黒鉛",
+    "active_material_supplier": "SECカーボン",
+    "temperature": 25.0,
+    "mass_loading_of_active_material": 1,
+    "electrode_area": 2,
+    "conductive_additive_ratio": 0.0,
+    "binder_type": "PVdF(クレハ)",
+    "conductive_additive_type": "なし",
+    "current_collector_type": "銅",
+    "cell_type": "2032コインセル",
+    "cell_configuration": "2極",
+    "counter_electrode": "Li金属",
+    "lithium_metal_thickness": 300.0,
+    "electrolyte_volume": 150.0,
+    "electrode_density": 100,
+    "electrode_pressing": "無",
+    "pressing_method": "A method",
+    "pressing_pressure": 100,
+    "active_material_morphology": "15",
+    "separator_types": "GC-50",
+    "instrumentation": "TOSCAT-3100",
+    "operator": "A-san",
+    "electrolyte_additional_information": "特になし"
+  },
+  "sample": {
+    "sampleId": "",
+    "names": ["test"],
+    "composition": null,
+    "referenceUrl": null,
+    "description": null,
+    "generalAttributes": [
+    ],
+    "specificAttributes": [
+    ],
+    "ownerId": "00000000000000000000000000000000000000000000000000000005"
+  }
+}

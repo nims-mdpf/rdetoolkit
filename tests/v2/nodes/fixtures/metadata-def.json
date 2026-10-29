@@ -1,0 +1,31 @@
+{
+  "sample.key1": {
+    "name": {
+      "ja": "キー1",
+      "en": "Key1"
+    },
+    "schema": {
+      "type": "string"
+    }
+  },
+  "sample.key2": {
+    "name": {
+      "ja": "キー2",
+      "en": "Key2"
+    },
+    "schema": {
+      "type": "number"
+    },
+    "unit": "mm"
+  },
+  "sample.derived": {
+    "name": {
+      "ja": "導出",
+      "en": "Derived"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "action": "\"const-derived-value\""
+  }
+}

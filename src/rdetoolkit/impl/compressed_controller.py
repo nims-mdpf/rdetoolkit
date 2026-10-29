@@ -6,13 +6,12 @@ import shutil
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Final
 from collections.abc import Callable
 
-import charset_normalizer
 import pandas as pd
 
 from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.impl._zip_encoding import extract_zip_with_encoding
 from rdetoolkit.interfaces.filechecker import IArtifactPackageCompressor, ICompressedFileStructParser
 from rdetoolkit.invoicefile import check_exist_rawfiles
 from rdetoolkit.rdelogger import get_logger
@@ -207,7 +206,10 @@ class CompressedFlatFileParser(ICompressedFileStructParser):
         if removed_paths:
             logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
 
-        return [f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f)]
+        # Sorted: the directory listing order differs between filesystems (and
+        # between runner images), and the first raw file of a tile decides
+        # ``${filename}``; the tile contents must not depend on it.
+        return sorted(f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f))
 
     def _extract_zip_with_encoding(self, zip_path: Path | str, extract_path: Path | str) -> None:
         """Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.
@@ -218,30 +220,12 @@ class CompressedFlatFileParser(ICompressedFileStructParser):
             zip_path (Path | str): The path to the ZIP file to be extracted.
             extract_path (Path | str): The directory where the contents of the ZIP file will be extracted.
 
-        Raises:
-            ValueError: If encoding detection fails for any filename within the ZIP archive.
-            UnicodeDecodeError: If a filename cannot be decoded with the detected or specified encoding.
-
         Example:
             >>> zip_path = 'path/to/your/archive.zip'
             >>> extract_path = 'path/to/extract/directory'
-            >>> encoding = 'utf-8'  # or 'cp932' for Japanese text, for example
             >>> self._extract_zip_with_encoding(zip_path, extract_path)
         """
-        lang_enc_flag: Final = 0x800
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            for zip_info in zip_ref.infolist():
-                old_filename = zip_info.filename
-                encoding = "utf-8" if zip_info.flag_bits & lang_enc_flag else "cp437"
-                enc = charset_normalizer.detect(zip_info.filename.encode(encoding))
-                if not enc.get("encoding"):
-                    enc["encoding"] = encoding
-
-                zip_info.filename = zip_info.filename.encode(encoding).decode(str(enc["encoding"]))
-                zip_ref.NameToInfo[zip_info.filename] = zip_info
-                del zip_ref.NameToInfo[old_filename]
-
-                zip_ref.extract(zip_info, extract_path)
+        extract_zip_with_encoding(zip_path, extract_path)
 
     def _is_excluded(self, file: Path) -> bool:
         """Checks a specific file pattern to determine whether it should be excluded.
@@ -306,7 +290,10 @@ class CompressedFolderParser(ICompressedFileStructParser):
         if removed_paths:
             logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
 
-        return [f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f)]
+        # Sorted: the directory listing order differs between filesystems (and
+        # between runner images), and the first raw file of a tile decides
+        # ``${filename}``; the tile contents must not depend on it.
+        return sorted(f for f in target_dir.glob("**/*") if f.is_file() and not self._is_excluded(f))
 
     def _extract_zip_with_encoding(self, zip_path: Path | str, extract_path: Path | str) -> None:
         """Extracts a ZIP file, handling filenames with a specified encoding to prevent garbled text.
@@ -317,30 +304,12 @@ class CompressedFolderParser(ICompressedFileStructParser):
             zip_path (Path | str): The path to the ZIP file to be extracted.
             extract_path (Path | str): The directory where the contents of the ZIP file will be extracted.
 
-        Raises:
-            ValueError: If encoding detection fails for any filename within the ZIP archive.
-            UnicodeDecodeError: If a filename cannot be decoded with the detected or specified encoding.
-
         Example:
             >>> zip_path = 'path/to/your/archive.zip'
             >>> extract_path = 'path/to/extract/directory'
-            >>> encoding = 'utf-8'  # or 'cp932' for Japanese text, for example
             >>> self._extract_zip_with_encoding(zip_path, extract_path)
         """
-        lang_enc_flag: Final = 0x800
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            for zip_info in zip_ref.infolist():
-                old_filename = zip_info.filename
-                encoding = "utf-8" if zip_info.flag_bits & lang_enc_flag else "cp437"
-                enc = charset_normalizer.detect(zip_info.filename.encode(encoding))
-                if not enc.get("encoding"):
-                    enc["encoding"] = encoding
-
-                zip_info.filename = zip_info.filename.encode(encoding).decode(str(enc["encoding"]))
-                zip_ref.NameToInfo[zip_info.filename] = zip_info
-                del zip_ref.NameToInfo[old_filename]
-
-                zip_ref.extract(zip_info, extract_path)
+        extract_zip_with_encoding(zip_path, extract_path)
 
     def _is_excluded(self, file: Path) -> bool:
         """Checks a specific file pattern to determine whether it should be excluded.
@@ -388,11 +357,14 @@ class CompressedFolderParser(ICompressedFileStructParser):
         """
         verification_files: dict[str, list[Path]] = {}
         unique_dirname_set = set()
-        for d, _, fnames in os.walk(target_path):
+        for d, dirs, fnames in os.walk(target_path):
+            # Walk and group in sorted order so the tile tuples (and their first
+            # raw file) do not depend on the filesystem's listing order.
+            dirs.sort()
             if not fnames:
                 continue
             # check file
-            _filered_paths = [Path(d) / Path(f) for f in fnames if f not in exclude_names]
+            _filered_paths = [Path(d) / Path(f) for f in sorted(fnames) if f not in exclude_names]
             for f in _filered_paths:
                 if str(f).lower() in unique_dirname_set:
                     emsg = "ERROR: folder paths and file paths stored in a zip file must always have unique names."

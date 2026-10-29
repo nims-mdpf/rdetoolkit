@@ -1,0 +1,89 @@
+{
+  "case": {
+    "entry": "custom_dataset_function",
+    "mode": "rdeformat",
+    "outcome": "usererr"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "29e4a167a8786e8e99acad42eed3d888c500099802519d071be12bcc1bd28764",
+      "data/structured/result.csv": "81bf9fa83c6f7f151bd491a98cd7d933de3965289e3ebd77c6c425f7eaa16392",
+      "data/temp/0000/structured/result.csv": "81bf9fa83c6f7f151bd491a98cd7d933de3965289e3ebd77c6c425f7eaa16392",
+      "data/temp/0001/meta/metadata.json": "50baa87ce7e7b5205aab0b47556fd9a39e35adcd7c036028ba49558ba58bcde5",
+      "data/temp/invoice_org.json": "15e8541de1ce43696a427a2017349f0d6d68cbcbe8d276c292457bc1cc3f9121"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": {
+      "basic": {
+        "dataName": "seed",
+        "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+        "dateSubmitted": "<DATE>"
+      },
+      "datasetId": "seed-dataset"
+    },
+    "invoice_backup_exists": true,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "seed",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000000",
+          "dateSubmitted": "<DATE>"
+        },
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Contract callback failed. Remediation: inspect the fixture callback and correct its input.\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/temp/0000/",
+        "data/temp/0000/raw/",
+        "data/temp/0000/structured/",
+        "data/temp/0001/",
+        "data/temp/0001/meta/",
+        "data/temp/0001/raw/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/rdeformat_sample.zip",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/raw/first.txt",
+        "data/structured/result.csv",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json",
+        "data/temp/0000/raw/first.txt",
+        "data/temp/0000/structured/result.csv",
+        "data/temp/0001/meta/metadata.json",
+        "data/temp/0001/raw/日本語データ.txt",
+        "data/temp/invoice_org.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/raw/first.txt": "792eb3a89589a4f0dfe2b89d732845c81eb8c0898965c6391b22afc4538e61d6",
+      "data/temp/0000/raw/first.txt": "792eb3a89589a4f0dfe2b89d732845c81eb8c0898965c6391b22afc4538e61d6",
+      "data/temp/0001/raw/日本語データ.txt": "39bd093e16778c9996b607c22fa629704b8b3019f834c0764891d166c232b22e"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

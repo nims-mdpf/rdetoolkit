@@ -16,7 +16,6 @@ RDEToolKitのAPIドキュメントは、ハイブリッド方式で構成され�
 ### ワークフロー管理
 
 - [workflows](../rdetoolkit/workflows.md) - 構造化処理の実行とワークフロー管理
-- [modeproc](../rdetoolkit/modeproc.md) - モード処理
 
 ### 設定とファイル操作
 

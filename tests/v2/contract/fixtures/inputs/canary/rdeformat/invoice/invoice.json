@@ -1,0 +1,29 @@
+{
+  "datasetId": "test-dataset-001",
+  "basic": {
+    "dateSubmitted": "2026-01-29",
+    "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+    "dataName": "AFM Test Data"
+  },
+  "custom": {
+    "main_image": "1.jpg",
+    "common_data_type": "AFM",
+    "sample_id": "test",
+    "point": "1",
+    "common_data_origin": "experiments",
+    "common_technical_category": "measurement",
+    "measurement_method_category": "顕微法",
+    "measurement_method_sub_category": "原子間力顕微鏡"
+  },
+  "sample": {
+    "sampleId": "",
+    "names": [
+      {
+        "ja": "テストサンプル",
+        "en": "Test Sample"
+      }
+    ],
+    "ownerId": "00000000000000000000000000000000000000000000000000000001",
+    "generalAttributes": []
+  }
+}

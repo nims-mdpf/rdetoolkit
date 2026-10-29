@@ -1,0 +1,162 @@
+{
+  "case": {
+    "callback": "ok",
+    "config_overrides": {},
+    "config_source": "tasksupport",
+    "entry": "custom_dataset_function",
+    "inputs_builder": "build_k0_header_only_table",
+    "invalidate_invoice": false,
+    "mode": "smarttable",
+    "observe_extras": [
+      "callback_paths"
+    ],
+    "outcome": "ok",
+    "variant": "header_only__save_table_file"
+  },
+  "observed": {
+    "artifact_sha256": {},
+    "callback_count": 0,
+    "callback_paths": [],
+    "exit_code": 0,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": {
+          "dataName": "smarttable_test.csv",
+          "dataOwnerId": "00000000000000000000000000000000000000000000000000000001",
+          "dateSubmitted": "<DATE>",
+          "description": "",
+          "experimentId": null,
+          "instrumentId": null
+        },
+        "custom": {
+          "sample1": "2023-01-01",
+          "sample10": "S10",
+          "sample2": 1.0,
+          "sample3": 1,
+          "sample4": "20:20:39",
+          "sample5": "https://sample.co",
+          "sample6": "1d8008a5-b8f0-410b-a230-d058129822df",
+          "sample7": "#h1",
+          "sample8": "itemA",
+          "sample9": "II"
+        },
+        "datasetId": "1s1199df4-0d1v-41b0-1dea-23bf4dh09g12",
+        "sample": {
+          "composition": null,
+          "description": null,
+          "generalAttributes": [
+            {
+              "termId": "3adf9874-7bcb-e5f8-99cb-3d6fd9d7b55e",
+              "value": null
+            },
+            {
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "termId": "efcf34e7-4308-c195-6691-6f4d28ffc9bb",
+              "value": null
+            },
+            {
+              "termId": "1e70d11d-cbdd-bfd1-9301-9612c29b4060",
+              "value": null
+            },
+            {
+              "termId": "5e166ac4-bfcd-457a-84bc-8626abe9188f",
+              "value": null
+            },
+            {
+              "termId": "0d0417a3-3c3b-496a-b0fb-5a26f8a74166",
+              "value": null
+            },
+            {
+              "termId": "efc6a0d5-313e-1871-190c-baaff7d1bf6c",
+              "value": null
+            }
+          ],
+          "names": [
+            "test"
+          ],
+          "ownerId": "00000000000000000000000000000000000000000000000000000005",
+          "referenceUrl": null,
+          "sampleId": "",
+          "specificAttributes": [
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "3250c45d-0ed6-1438-43b5-eb679918604a",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "70c2c751-5404-19b7-4a5e-981e6cebbb15",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "e2d20d02-2e38-2cd3-b1b3-66fdb8a11057",
+              "value": null
+            },
+            {
+              "classId": "01cb3c01-37a4-5a43-d8ca-f523ca99a75b",
+              "termId": "518e26a0-4262-86f5-3598-80e18e6ff2af",
+              "value": null
+            }
+          ]
+        }
+      }
+    },
+    "job_failed_error_code": null,
+    "job_failed_text": null,
+    "legacy_return": {
+      "statuses": [
+        {
+          "error_code": null,
+          "error_message": null,
+          "mode": "SmartTableInvoice",
+          "run_id": "0000",
+          "stacktrace": "<TRACEBACK>",
+          "status": "success",
+          "target": "data/inputdata",
+          "title": "smarttable_test.csv"
+        }
+      ]
+    },
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/"
+      ],
+      "files": [
+        "data/inputdata/smarttable_test.csv",
+        "data/invoice/invoice.json",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/smarttable_test.csv",
+        "data/raw/smarttable_test.csv",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/rdeconfig.yml"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/smarttable_test.csv": "925a972b2d702872b0143c4c6cd4ec1b6b5a94aa7be0b84a2be461c017cf7151",
+      "data/raw/smarttable_test.csv": "925a972b2d702872b0143c4c6cd4ec1b6b5a94aa7be0b84a2be461c017cf7151"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -16,7 +16,6 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 ### Workflow Management
 
 - [workflows](../rdetoolkit/workflows.md) - Structured processing execution and workflow management
-- [modeproc](../rdetoolkit/modeproc.md) - Mode processing
 
 ### Configuration and File Operations
 

@@ -12,7 +12,6 @@ pytest_plugins = (
     "tests.fixtures.invoice",
     "tests.fixtures.schema",
     "tests.fixtures.metadata_json",
-    "tests.fixtures.processing.context",
 )
 
 

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import re
-import shutil
 from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
 
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl import compressed_controller
+from rdetoolkit.impl._zip_encoding import extract_zip_with_encoding
 from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
 from rdetoolkit.invoicefile import ExcelInvoiceFile, SmartTableFile
@@ -300,11 +300,11 @@ class RDEFormatChecker(IInputFileChecker):
     def _get_zipfiles(self, input_files: list[Path]) -> ZipFilesPathList:
         return [f for f in input_files if f.suffix.lower() == ".zip"]
 
-    def _unpacked(self, zipfile: Path, target_dir: Path) -> list[Path]:
-        shutil.unpack_archive(zipfile, self.out_dir_temp)
+    def _unpacked(self, zip_path: Path, target_dir: Path) -> list[Path]:
+        extract_zip_with_encoding(zip_path, target_dir)
 
         cleaner = SystemFilesCleaner()
-        removed_paths = cleaner.clean_directory(self.out_dir_temp)
+        removed_paths = cleaner.clean_directory(target_dir)
         if removed_paths:
             logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
 
@@ -375,12 +375,12 @@ class MultiFileChecker(IInputFileChecker):
         excel_invoice_files = [f for f in input_files if f.suffix.lower() in [".xls", ".xlsx"] and f.stem.endswith("_excel_invoice")]
         return [f for f in input_files if f not in excel_invoice_files]
 
-    def _unpacked(self, zipfile: Path, target_dir: Path) -> list[Path]:
-        shutil.unpack_archive(zipfile, self.out_dir_temp)
+    def _unpacked(self, zip_path: Path, target_dir: Path) -> list[Path]:
+        extract_zip_with_encoding(zip_path, target_dir)
 
         # Clean up system files after extraction
         cleaner = SystemFilesCleaner()
-        removed_paths = cleaner.clean_directory(self.out_dir_temp)
+        removed_paths = cleaner.clean_directory(target_dir)
         if removed_paths:
             logger.info(f"Removed {len(removed_paths)} system/temporary files after extraction")
 
@@ -494,16 +494,20 @@ class SmartTableChecker(IInputFileChecker):
 
         return raw_files, smarttable_file
 
-    def _unpacked_smarttable(self, zipfile: Path) -> list[Path]:
+    def _unpacked_smarttable(self, zip_path: Path) -> list[Path]:
         """Extract zip file to temporary directory.
 
+        Filenames are decoded with :func:`extract_zip_with_encoding` rather than
+        ``shutil.unpack_archive``, so archives created on non-UTF-8 platforms
+        (notably cp932 on Japanese Windows) keep their original filenames.
+
         Args:
-            zipfile (Path): Path to the zip file to extract.
+            zip_path (Path): Path to the zip file to extract.
 
         Returns:
             list[Path]: List of extracted file paths.
         """
-        shutil.unpack_archive(zipfile, self.out_dir_temp)
+        extract_zip_with_encoding(zip_path, self.out_dir_temp)
 
         # Clean up system files after extraction
         cleaner = SystemFilesCleaner()

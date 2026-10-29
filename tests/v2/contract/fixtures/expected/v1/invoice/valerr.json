@@ -1,0 +1,62 @@
+{
+  "case": {
+    "entry": "custom_dataset_function",
+    "mode": "invoice",
+    "outcome": "valerr"
+  },
+  "observed": {
+    "artifact_sha256": {
+      "data/job.failed": "3119bac676316bdee0d8e5a19d96d26750df203a278ddab67b67040b2e1f4043"
+    },
+    "callback_count": 1,
+    "exit_code": 1,
+    "invoice_backup": null,
+    "invoice_backup_exists": false,
+    "invoices": {
+      "data/invoice/invoice.json": {
+        "basic": null,
+        "datasetId": "seed-dataset"
+      }
+    },
+    "job_failed_error_code": "ErrorCode=999",
+    "job_failed_text": "ErrorCode=999\nErrorMessage=Unexpected error in Invoice mode: Error in validating system standard field.\nPlease correct the following fields in invoice.json\nField: \nType: required\nContext: 'basic' is a required property\n\n",
+    "legacy_return": null,
+    "output_tree": {
+      "directories": [
+        "data/attachment/",
+        "data/inputdata/",
+        "data/invoice/",
+        "data/invoice_patch/",
+        "data/logs/",
+        "data/main_image/",
+        "data/meta/",
+        "data/nonshared_raw/",
+        "data/other_image/",
+        "data/raw/",
+        "data/structured/",
+        "data/tasksupport/",
+        "data/temp/",
+        "data/thumbnail/",
+        "data/unpacked/"
+      ],
+      "files": [
+        "data/inputdata/invoice_input.txt",
+        "data/invoice/invoice.json",
+        "data/job.failed",
+        "data/logs/rdesys_<LOG_TIMESTAMP>.log",
+        "data/nonshared_raw/invoice_input.txt",
+        "data/raw/invoice_input.txt",
+        "data/tasksupport/invoice.schema.json",
+        "data/tasksupport/metadata-def.json"
+      ]
+    },
+    "raw_sha256": {
+      "data/nonshared_raw/invoice_input.txt": "720f6bcfd8521751382d7c5bfdcf48bf3f0d650ee0b290d1562d7329b849cb25",
+      "data/raw/invoice_input.txt": "720f6bcfd8521751382d7c5bfdcf48bf3f0d650ee0b290d1562d7329b849cb25"
+    }
+  },
+  "source": {
+    "commit": "62d551cd2a15",
+    "tag": "v2.0.0a1"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "comment": {
+    "name": {
+      "en": "Comment",
+      "ja": "コメント"
+    },
+    "schema": {
+      "type": "string"
+    }
+  },
+  "temperature": {
+    "name": {
+      "en": "Temperature",
+      "ja": "温度"
+    },
+    "schema": {
+      "type": "number"
+    },
+    "unit": "C"
+  }
+}

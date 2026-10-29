@@ -4,7 +4,8 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
-| v1.7.0     | unreleased | **破壊的変更**: SmartTableの行CSVを`rawfiles`から除外 / `smarttable_rowfile`を`smarttable_rawfile`に改名 / `save_table_file: true`時の元ファイル登録先を`divided/0001`に変更 / SmartTableの`meta/`列に`metadata-def.json`を必須化 / csv2graphに凡例配置ポリシーと軸目盛りフォーマットを追加 | [v1.7.0](#v170-unreleased) |
+| v1.7.1     | unreleased | 日本語Windowsで作成されたZIPのcp932ファイル名を正しくデコード / ZIP展開時のパストラバーサルを防止 | [v1.7.1](#v171-unreleased) |
+| v1.7.0     | 2026-07-13 | **破壊的変更**: SmartTableの行CSVを`rawfiles`から除外 / `smarttable_rowfile`を`smarttable_rawfile`に改名 / `save_table_file: true`時の元ファイル登録先を`divided/0001`に変更 / SmartTableの`meta/`列に`metadata-def.json`を必須化 / csv2graphに凡例配置ポリシーと軸目盛りフォーマットを追加 | [v1.7.0](#v170-2026-07-13) |
 | v1.6.4     | 2026-06-03 | SmartTableデータ登録順序をテーブル行順に修正 / CLIからclick直接依存を除去 | [v1.6.4](#v164-2026-06-03) |
 | v1.6.3     | 2026-04-13 | SmartTable新規試料登録時の`sampleId`を空文字ではなく`None`に修正 / サムネイルコピーで大文字画像拡張子をサポート | [v1.6.3](#v163-2026-04-13) |
 | v1.6.2     | 2026-03-16 | SmartTableで`sample/names`指定時にダミー試料の`sampleId`が黙って継承される問題を修正 / SmartTableのファイル参照がzip内に存在しない場合のエラーメッセージ改善 | [v1.6.2](#v162-2026-03-16) |
@@ -26,7 +27,42 @@
 
 # リリース詳細
 
-## v1.7.0 (unreleased)
+## v1.7.1 (unreleased)
+
+!!! info "参照"
+    - 主な課題: [#515](https://github.com/nims-mdpf/rdetoolkit/issues/515)
+    - プルリクエスト: [#518](https://github.com/nims-mdpf/rdetoolkit/pull/518)
+
+#### ハイライト
+
+- 日本語Windowsで作成され、UTF-8言語エンコーディングフラグが設定されて
+  いないZIPについて、cp932で格納されたエントリ名の文字化けを修正
+- SmartTable、RDEFormat、MultiFile、ExcelInvoiceのファイル・フォルダ
+  展開処理へファイル名復元を一貫して適用
+- UTF-8・ASCIIファイル名、およびUTF-8フラグ付きエントリとcp932の
+  フラグなしエントリが混在するZIPを引き続きサポート
+- ZIPエントリの展開先を検証し、出力先ディレクトリ外へ解決される
+  エントリを警告付きでスキップすることでパストラバーサルを防止
+
+### バグ修正
+
+#### cp932のZIPファイル名を正しくデコード (Issue #515)
+
+**問題**: Pythonの`zipfile`は、ZIPの言語エンコーディングフラグがない
+エントリ名をcp437としてデコードします。日本語Windowsで作成されたZIPは、
+フラグを設定せずにcp932でエントリ名を格納する場合があるため、日本語や
+マルチバイト文字を含むSmartTableのファイル参照が文字化けし、検証に
+失敗していました。
+
+**修正内容**:
+
+- `zipfile`がcp437として表現したファイル名から元のバイト列を復元し、
+  cp932としてデコード
+- cp932でデコードできない場合のみ文字コード検出へフォールバック
+- 影響を受けるすべての入力モードで共通のZIP展開ヘルパを使用
+- 書き込み前に、解決後の各エントリが展開先ディレクトリ内に収まることを検証
+
+## v1.7.0 (2026-07-13)
 
 !!! warning "破壊的変更"
     SmartTableInvoiceモードにおいて、`paths.rawfiles`に自動生成される行CSVが

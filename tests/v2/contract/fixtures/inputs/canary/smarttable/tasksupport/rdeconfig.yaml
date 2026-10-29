@@ -1,0 +1,12 @@
+system:
+  save_raw: true
+  save_nonshared_raw: false
+  magic_variable: true
+  save_thumbnail_image: true
+  save_invoice_to_structured: false
+
+multidata_tile:
+  ignore_errors: false
+
+traceback: # custom traceback settings
+  enabled: true

@@ -1,0 +1,9 @@
+from collections.abc import Iterable, Mapping
+from pathlib import Path
+from typing import Any
+
+from rdetoolkit.types import InputPaths, InvoiceData, OutputContext
+
+def make_input_paths(tmp_path: Path, files: Iterable[str] = ()) -> InputPaths: ...
+def make_output_context(tmp_path: Path) -> OutputContext: ...
+def make_invoice(overrides: Mapping[str, Any] | None = None) -> InvoiceData: ...
