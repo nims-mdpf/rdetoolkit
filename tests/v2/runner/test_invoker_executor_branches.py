@@ -27,6 +27,7 @@ import pytest
 
 from rdetoolkit.api.request import FlowTarget, LegacyCallbackTarget
 from rdetoolkit.compat.v1.callback import LegacyCallbackInvoker
+from rdetoolkit.core.calllog import CallSequence
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
 from rdetoolkit.report.events import MemoryEventSink
@@ -91,11 +92,12 @@ def test_flow_invoker_delegates_exact_arguments__tc_ep_hr_f6_101(
     run_tile = MagicMock(return_value=expected)
     monkeypatch.setattr("rdetoolkit.runner.invoker.run_tile", run_tile)
 
-    # When: invoking the normalized flow target
-    material = TileMaterial(invoice_source=Path("invoice.json"))
+    # When: invoking the normalized flow target with the run's call counter
+    material = TileMaterial(invoice_source=Path("invoice.json"), call_sequence=CallSequence())
     actual = FlowInvoker().invoke(target, context, event_sink=sink, run_id="run", config=config, material=material)
 
-    # Then: arguments are delegated exactly and iteration events remain Runner-owned
+    # Then: arguments are delegated exactly, iteration events remain Runner-owned,
+    # and the run-scoped call counter reaches the recorder (K4-F6 F6-2)
     assert actual is expected
     run_tile.assert_called_once_with(
         function,
@@ -104,6 +106,7 @@ def test_flow_invoker_delegates_exact_arguments__tc_ep_hr_f6_101(
         run_id="run",
         config=config,
         emit_iteration_events=False,
+        sequence=material.call_sequence,
     )
 
 

@@ -8,7 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal, cast
 
-from rdetoolkit.core.calllog import CallLogRecorder, NodeCallRecord, TypeSummary
+from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, TypeSummary
 from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.core.injection import resolve_flow_kwargs
 from rdetoolkit.errors import ERROR_CATALOG, RdeError, RdeExecutionError
@@ -53,6 +53,7 @@ def run_tile(
     run_id: str,
     config: RdeConfig,
     emit_iteration_events: bool = True,
+    sequence: CallSequence | None = None,
 ) -> ExecutionResult:
     """Execute one tile by injecting reserved values and calling the flow eagerly.
 
@@ -65,6 +66,9 @@ def run_tile(
         emit_iteration_events: Whether this direct tile call owns iteration
             boundary events. Runner.iterate disables this and emits a wider
             boundary that also covers invoice preparation.
+        sequence: The run's call counter (Design §3.4). The Runner passes one
+            per run so ``seq`` and ``call_id`` keep increasing across tiles;
+            ``None`` numbers this tile's calls from 1 on a private counter.
 
     Returns:
         Completed tile execution result.
@@ -82,6 +86,7 @@ def run_tile(
         repr_head_len=config.provenance.repr_head_len,
         type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
         iteration_index=iteration_index,
+        sequence=sequence,
     )
     try:
         with recorder:

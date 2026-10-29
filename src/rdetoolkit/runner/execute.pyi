@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from rdetoolkit.core.calllog import NodeCallRecord, TypeSummary
+from rdetoolkit.core.calllog import CallSequence, NodeCallRecord, TypeSummary
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.errors import RdeExecutionError
 from rdetoolkit.report.events import EventSink
@@ -32,4 +32,5 @@ def run_tile(
     run_id: str,
     config: RdeConfig,
     emit_iteration_events: bool = ...,
+    sequence: CallSequence | None = ...,
 ) -> ExecutionResult: ...

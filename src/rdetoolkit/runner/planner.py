@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from itertools import chain
 from pathlib import Path
 from typing import Any, Literal
 
 from rdetoolkit.api.request import ExecutionTarget, LegacyCallbackTarget, RunRequest
+from rdetoolkit.core.calllog import CallSequence
 from rdetoolkit.domain.invoice_service import InvoiceService, invoice_source_for
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
@@ -74,6 +75,11 @@ class ExecutionPlan:
     #: #3). Artifact publication, magic variables and the v1 callback all read
     #: this decision instead of re-deciding it from what exists on disk.
     invoice_source: Path
+    #: The run's single call counter (Design §3.4, K4-F6 F6-2). A plan is
+    #: created once per run, so a ``default_factory`` field gives exactly one
+    #: counter per run; every tile's recorder draws from it through
+    #: ``TileMaterial`` so ``seq`` is run-global and ``call_id`` run-unique.
+    call_sequence: CallSequence = field(default_factory=CallSequence)
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,10 +96,14 @@ class TileMaterial:
         invoice_source: The run-level ``invoice_org`` the plan decided.
         smarttable_row_data: The row dictionary the SmartTable builder computed
             for this tile, or ``None`` for every other tile.
+        call_sequence: The run's call counter shared by every tile's
+            recorder, or ``None`` for a standalone invocation (the recorder
+            then numbers its calls privately).
     """
 
     invoice_source: Path
     smarttable_row_data: Mapping[str, Any] | None = None
+    call_sequence: CallSequence | None = None
 
 
 @dataclass(slots=True)

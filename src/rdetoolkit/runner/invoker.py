@@ -54,7 +54,9 @@ class FlowInvoker:
             event_sink: Sink receiving node events.
             run_id: Active run identifier.
             config: Effective run configuration.
-            material: Unused; a v2 flow reads its inputs from ``context``.
+            material: Run-owned tile material. A v2 flow reads its inputs
+                from ``context``; only the run's call counter is taken from
+                here so ``seq`` stays run-global across tiles.
 
         Returns:
             Primary execution result returned by ``run_tile``.
@@ -65,7 +67,6 @@ class FlowInvoker:
         if not isinstance(target, FlowTarget):
             msg = "FlowInvoker requires a FlowTarget; a LegacyCallbackTarget belongs to LegacyCallbackInvoker"
             raise TypeError(msg)
-        _ = material
         return run_tile(
             target.function,
             context,
@@ -73,6 +74,7 @@ class FlowInvoker:
             run_id=run_id,
             config=config,
             emit_iteration_events=False,
+            sequence=material.call_sequence,
         )
 
 

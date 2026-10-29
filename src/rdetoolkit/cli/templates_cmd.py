@@ -23,6 +23,19 @@ def _emit_usage_error(message: str) -> NoReturn:
     raise typer.Exit(code=3)
 
 
+def _load_template_sources(modules: Sequence[str]) -> None:
+    """Register every template source a templates command can resolve.
+
+    ``list``, ``describe`` and processing-template generation share this so
+    a template that ``list`` shows (project modules plus installed
+    ``rdetoolkit.plugins`` entry points) is never unknown to the others.
+    """
+    load_modules(modules)
+    from rdetoolkit.plugin import discover_plugins  # noqa: PLC0415 -- plugin discovery stays off the CLI import path
+
+    discover_plugins()
+
+
 def _find_template(name: str) -> TemplateSpec:
     try:
         return registry.get_template(name)
@@ -39,10 +52,7 @@ def list_templates(
     ] = None,
 ) -> None:
     """List registered depth-1 template skeletons."""
-    load_modules(modules or [])
-    from rdetoolkit.plugin import discover_plugins  # noqa: PLC0415
-
-    discover_plugins()
+    _load_template_sources(modules or [])
     values = [asdict(spec) for spec in registry.list_templates()]
     if as_json:
         typer.echo(json.dumps(values, sort_keys=True))
@@ -61,7 +71,7 @@ def describe(
     ] = None,
 ) -> None:
     """Describe a registered template skeleton."""
-    load_modules(modules or [])
+    _load_template_sources(modules or [])
     value = asdict(_find_template(template_id))
     if as_json:
         typer.echo(json.dumps(value, sort_keys=True))
@@ -76,17 +86,50 @@ def _identifier(value: str) -> str:
     return candidate or "GeneratedProcessing"
 
 
-def _annotation(type_name: str) -> str:
-    return type_name.rsplit(".", maxsplit=1)[-1]
+_NONE_TYPE_NAMES = frozenset({"None", "NoneType", "builtins.NoneType"})
+# A (possibly dotted) identifier that is not part of a string literal.
+_DOTTED_NAME = re.compile(r"(?<![\w'\"])[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?![\w'\"])")
+
+# Module -> names the generated module must import, filled while rendering.
+_Imports = dict[str, set[str]]
 
 
-def _render_slot(method: TemplateMethodSpec) -> str:
+def _annotation(type_name: str, imports: _Imports) -> str:
+    """Render one registry type name as source text and record its import.
+
+    ``typing.get_type_hints`` resolves a ``-> None`` declaration to
+    ``NoneType``, which is not a name a module can use, so every spelling of
+    it renders as ``None``. Every dotted name inside the expression
+    (``typing.`` ones included) renders as its last segment and records
+    ``from <module> import <Name>``: the generated subclass must define the
+    same annotation text the skeleton declares, and those names have to
+    resolve when the module is imported.
+    """
+    if type_name in _NONE_TYPE_NAMES:
+        return "None"
+
+    def replace(match: re.Match[str]) -> str:
+        token = match.group(0)
+        if token in _NONE_TYPE_NAMES:
+            return "None"
+        module, _, name = token.rpartition(".")
+        if module:
+            imports.setdefault(module, set()).add(name)
+        return name
+
+    # The annotation may be an expression (``pathlib.Path | None``,
+    # ``list[pkg.X]``): only its dotted names are imported; the operators,
+    # brackets and literals around them are kept verbatim.
+    return _DOTTED_NAME.sub(replace, type_name)
+
+
+def _render_slot(method: TemplateMethodSpec, imports: _Imports) -> str:
     parameters = ", ".join(
-        f"{parameter.name}: {_annotation(parameter.type_name)}"
+        f"{parameter.name}: {_annotation(parameter.type_name, imports)}"
         for parameter in method.parameters
     )
     separator = ", " if parameters else ""
-    return_type = _annotation(method.return_type)
+    return_type = _annotation(method.return_type, imports)
     return (
         f"    def {method.name}(self{separator}{parameters}) -> {return_type}:\n"
         f"        # TODO: implement the {method.name} template slot.\n"
@@ -94,14 +137,23 @@ def _render_slot(method: TemplateMethodSpec) -> str:
     )
 
 
+def _render_imports(imports: _Imports) -> str:
+    """Render one sorted, deduplicated ``from`` import line per module."""
+    return "".join(
+        f"from {module} import {', '.join(sorted(names))}\n"
+        for module, names in sorted(imports.items())
+    )
+
+
 def _render_processing_module(spec: TemplateSpec) -> str:
     module_name, _, skeleton_name = spec.id.rpartition(".")
     class_name = _identifier(skeleton_name.removesuffix("Template") + "Processing")
-    methods = "\n".join(_render_slot(method) for method in spec.slots)
+    imports: _Imports = {module_name: {skeleton_name}}
+    methods = "\n".join(_render_slot(method, imports) for method in spec.slots)
     return (
         '"""Generated ProcessingTemplate implementation."""\n\n'
         "from __future__ import annotations\n\n"
-        f"from {module_name} import {skeleton_name}\n\n\n"
+        f"{_render_imports(imports)}\n\n"
         f"class {class_name}({skeleton_name}):\n"
         '    """TODO: implement each required domain slot."""\n\n'
         f"{methods}"
@@ -139,11 +191,12 @@ def generate_processing_template(
 
     Args:
         name: Full template id or unambiguous skeleton class name.
-        modules: Dotted provider modules imported before registry lookup.
+        modules: Dotted provider modules imported before registry lookup;
+            installed plugins are discovered as well.
         output_dir: Directory receiving generated files.
         force: Whether to replace existing generated files.
     """
-    load_modules(modules)
+    _load_template_sources(modules)
     spec = _find_template(name)
     processing_path = output_dir / "processing.py"
     test_path = output_dir / "tests" / "test_processing.py"

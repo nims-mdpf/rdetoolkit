@@ -1394,7 +1394,7 @@ def test_callback_observability_matches_the_flow_entry(
 
     # Then (column 8): the recorded call columns are identical
     assert node_call_columns(cb_report) == node_call_columns(flow_report)
-    assert node_call_columns(cb_report) == [[(_CB_OBS_NODE_ID, 1, "completed")] for _ in range(tiles)]
+    assert node_call_columns(cb_report) == [[(_CB_OBS_NODE_ID, index + 1, "completed")] for index in range(tiles)]
 
     # And: every record's parent flow is its own run's reported flow_id
     assert recorded_parent_flows(cb_root / "data") == {cb_report.flow_id}

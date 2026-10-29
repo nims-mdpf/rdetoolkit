@@ -40,10 +40,16 @@ def parse_invoice_meta(invoice: InvoiceData, metadef_path: Path) -> Metadata:
 
 @node(tags=["builtin", "meta"], version="2.0.0", idempotent=True)
 def save_meta(metadata: Metadata, out: OutputContext) -> Path:
-    """Save v2 metadata as canonical UTF-8 JSON.
+    """Save v2 metadata as the RDE ``metadata.json`` contract.
 
-    Migrated from ``retired/outputcontext_save_methods_v20.py::save_meta``
-    and the JSON shape used by v1 ``rde2util.Meta.writefile``.
+    Migrated from ``retired/outputcontext_save_methods_v20.py::save_meta``.
+    The written shape is the one v1 ``rde2util.Meta.writefile`` produced and
+    the Runner's post-validation (``metadata_validate`` against
+    ``models.metadata.MetadataItem``) requires: every custom field becomes a
+    ``constant`` entry ``{"value": ...}`` and ``variable`` is an empty list.
+
+    ``metadata.basic`` is deliberately not written: ``metadata.json`` has no
+    slot for invoice basic information, and v1 never wrote it there.
 
     Args:
         metadata: Metadata to serialize.
@@ -52,6 +58,9 @@ def save_meta(metadata: Metadata, out: OutputContext) -> Path:
     Returns:
         Path to ``metadata.json`` under ``out.meta``.
     """
-    content = {"custom": metadata.custom, "basic": metadata.basic}
+    content = {
+        "constant": {key: {"value": value} for key, value in metadata.custom.items()},
+        "variable": [],
+    }
     encoded = json.dumps(content, ensure_ascii=False, indent=2).encode("utf-8")
     return out.write_bytes("meta", "metadata.json", encoded)

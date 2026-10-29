@@ -15,6 +15,9 @@ existing output          overwrite attempt         exit 3 with remediation      
 directory without Python application usage error   exit 3 with remediation               TC-MIG-APPLY-EP-007
 PEP 263 CP932 source    declared non-UTF-8 input    conversion succeeds as UTF-8 output  TC-MIG-APPLY-EP-008
 broken encoded source  sibling valid source        diagnose and continue, exit 0         TC-MIG-APPLY-EP-009
+top-level run(...)     no ``__main__`` guard       call removed; module imports          TC-MIG-APPLY-EP-010
+guarded run(...)       ``__main__`` guard          guard removed; module imports         TC-MIG-APPLY-EP-011
+top-level other call   no callback keyword         statement kept                        TC-MIG-APPLY-EP-012
 =======================  ========================  ====================================  ====================
 
 BV table
@@ -260,3 +263,101 @@ def test_apply_reports_broken_encoding_and_continues__tc_mig_apply_ep_009(tmp_pa
     assert "Remediation:" in result.output
     assert "@flow" in (output / "valid.py").read_text(encoding="utf-8")
     assert "TODO(rdetoolkit-migrate)" in (output / "broken.py").read_text(encoding="utf-8")
+
+
+_TOP_LEVEL_SOURCE = (
+    "from rdetoolkit import workflows\n\n"
+    "MARKERS = []\n\n"
+    "def process(srcpaths, resource_paths):\n"
+    "    return None\n\n"
+    "MARKERS.append('kept')\n"
+    "workflows.run(custom_dataset_function=process)\n"
+)
+
+
+def _apply_single(tmp_path: Path, text: str) -> str:
+    source = tmp_path / "legacy_main.py"
+    source.write_text(text, encoding="utf-8")
+    output = tmp_path / "converted"
+    result = CliRunner().invoke(
+        app,
+        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+    )
+    assert result.exit_code == 0, result.output
+    return str(output / source.name)
+
+
+def test_apply_removes_top_level_callback_run__tc_mig_apply_ep_010(tmp_path: Path) -> None:
+    """TC-MIG-APPLY-EP-010: an unguarded top-level run(custom_dataset_function=...) is removed."""
+    # Given: a v1 script calling workflows.run at module level, with no __main__ guard
+    # When: apply converts it
+    converted_path = Path(_apply_single(tmp_path, _TOP_LEVEL_SOURCE))
+
+    # Then: the old call is gone, so the renamed callback is never referenced
+    converted = converted_path.read_text(encoding="utf-8")
+    assert "custom_dataset_function" not in converted
+    assert "def pipeline" in converted
+
+    # Then: importing the migrated module succeeds and exposes the pipeline flow
+    pipeline = _load_pipeline(converted_path, "migrated_top_level_ep_010")
+    assert callable(pipeline)
+
+
+def test_apply_removes_guarded_callback_run__tc_mig_apply_ep_011(tmp_path: Path) -> None:
+    """TC-MIG-APPLY-EP-011: the __main__-guarded run(custom_dataset_function=...) is still removed."""
+    # Given: a v1 script whose workflows.run call sits under the __main__ guard
+    text = (
+        "from rdetoolkit import workflows\n\n"
+        "def process(srcpaths, resource_paths):\n"
+        "    return None\n\n"
+        "if __name__ == '__main__':\n"
+        "    workflows.run(custom_dataset_function=process)\n"
+    )
+
+    # When: apply converts it
+    converted_path = Path(_apply_single(tmp_path, text))
+
+    # Then: the guard and its call are gone and the module imports
+    converted = converted_path.read_text(encoding="utf-8")
+    assert "custom_dataset_function" not in converted
+    assert "__main__" not in converted
+    assert callable(_load_pipeline(converted_path, "migrated_guarded_ep_011"))
+
+
+def test_apply_keeps_other_top_level_calls__tc_mig_apply_ep_012(tmp_path: Path) -> None:
+    """TC-MIG-APPLY-EP-012: a top-level call without the callback keyword survives."""
+    # Given: a v1 script with an unrelated module-level call beside the run call
+    # When: apply converts it
+    converted_path = Path(_apply_single(tmp_path, _TOP_LEVEL_SOURCE))
+
+    # Then: only the callback run call was removed
+    converted = converted_path.read_text(encoding="utf-8")
+    assert "MARKERS.append('kept')" in converted
+
+
+def test_apply_keeps_a_wrapper_function_syntactically_valid__tc_mig_apply_ep_013(tmp_path: Path) -> None:
+    """TC-MIG-APPLY-EP-013: removing the run call from ``def main():`` leaves a ``pass`` body.
+
+    PR #556 review R2: the emptied wrapper was rendered as a bare ``def main():``
+    header, an IndentationError on import.
+    """
+    # Given: a v1 script whose workflows.run call is the only statement of a wrapper function
+    text = (
+        "from rdetoolkit import workflows\n\n"
+        "def process(srcpaths, resource_paths):\n"
+        "    return None\n\n"
+        "def main():\n"
+        "    workflows.run(custom_dataset_function=process)\n\n"
+        "if __name__ == '__main__':\n"
+        "    main()\n"
+    )
+
+    # When: apply converts it
+    converted_path = Path(_apply_single(tmp_path, text))
+
+    # Then: the call is gone, the wrapper keeps a body, and the module imports
+    converted = converted_path.read_text(encoding="utf-8")
+    assert "custom_dataset_function" not in converted
+    assert "def main():\n    pass\n" in converted
+    compile(converted, str(converted_path), "exec")
+    assert callable(_load_pipeline(converted_path, "migrated_wrapper_ep_013"))
