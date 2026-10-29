@@ -24,6 +24,19 @@ class _LazyModuleProxy:
         module = self._load()
         return getattr(module, name)
 
+    @property
+    def __dict__(self) -> dict[str, Any]:  # type: ignore[override]
+        """Present the target module's namespace as this proxy's namespace.
+
+        pytest 9.2 decides how to undo ``monkeypatch.setattr(target, name, ...)``
+        by looking ``name`` up in ``target.__dict__``: a name that is not there
+        is treated as inherited and undone with ``delattr``. The proxy's names
+        live behind ``__getattr__``, so the undo failed and the test stub stayed
+        on ``rdetoolkit.workflows`` for the rest of the session. Exposing the
+        module's namespace makes the proxy patchable exactly like the module.
+        """
+        return self._load().__dict__
+
     def __setattr__(self, name: str, value: object) -> None:
         if name in {"_module_name", "_module"}:
             object.__setattr__(self, name, value)
