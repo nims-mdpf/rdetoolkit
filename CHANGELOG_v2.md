@@ -36,6 +36,12 @@ reference for the dual-path build.
 
 The sections below are the per-session records folded into this release.
 
+### Session K4-F7 (release PR #553 CI: pytest 9.2)
+
+#### Fixed
+
+- The CLI's lazily imported `workflows` module proxy now exposes the real module's namespace, so patching it with pytest 9.2's `monkeypatch` is undone correctly. pytest 9.2.0 changed how `monkeypatch.setattr` is reverted (it consults the target's `__dict__`); the previous proxy made the revert fail and left a test stub installed for the rest of the session, which failed 55 unrelated tests on CI.
+
 ### Session K4-F6 (release PR #553 review)
 
 #### Fixed
