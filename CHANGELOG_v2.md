@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- `Metadata.units`, `Metadata.variable` and `Metadata.set(..., unit=...)` retain
+  constant units and repeated cells when `save_meta` writes metadata.json (#563).
 - `rde2util.Meta.assign_vals` excludes `None` values before conversion and unit
   reference registration, as documented. This fix also applies to the 1.7 line (#570).
 - The injected `InvoiceData.mode` reflects the resolved mode on every tile (#574).

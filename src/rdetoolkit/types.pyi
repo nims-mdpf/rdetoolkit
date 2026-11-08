@@ -48,7 +48,9 @@ class OutputContext:
 class Metadata:
     custom: dict[str, Any] = field(default_factory=dict)
     basic: dict[str, Any] | None = None
-    def set(self, key: str, value: Any) -> None: ...
+    units: dict[str, str] = field(default_factory=dict)
+    variable: list[dict[str, dict[str, Any]]] = field(default_factory=list)
+    def set(self, key: str, value: Any, *, unit: str | None = None) -> None: ...
     def get(self, key: str, default: Any = None) -> Any: ...
 
 @dataclass(frozen=True, slots=True)

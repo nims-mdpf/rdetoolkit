@@ -222,19 +222,28 @@ class Metadata:
     Attributes:
         custom: User-defined metadata key-value pairs.
         basic: Optional basic/system metadata.
+        units: Optional unit for each constant custom field.
+        variable: Repeated rows of RDE cells, each shaped as
+            ``{"value": value, "unit": optional_unit}``.
     """
 
     custom: dict[str, Any] = field(default_factory=dict)
     basic: dict[str, Any] | None = None
+    units: dict[str, str] = field(default_factory=dict)
+    variable: list[dict[str, dict[str, Any]]] = field(default_factory=list)
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: Any, *, unit: str | None = None) -> None:
         """Set a custom metadata entry.
 
         Args:
             key: Metadata key.
             value: Metadata value.
+            unit: Unit to retain with the value. Omission preserves an
+                existing unit; remove it from ``units`` explicitly to clear it.
         """
         self.custom[key] = value
+        if unit is not None:
+            self.units[key] = unit
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get a custom metadata entry.
