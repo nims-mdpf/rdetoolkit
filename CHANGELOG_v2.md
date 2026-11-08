@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- StructuredError messages are converted to strings before aggregation, preserving
+  user error codes and messages in reports and `job.failed` on both entries (#571).
+
 ### Session RC1-INT-CORE (rc1 review: runtime)
 
 #### Fixed
@@ -24,6 +29,7 @@
   Previously every parametrized annotation was accepted. `Literal`, `TypeVar`, `NewType`, and Protocols that are not runtime-checkable are still accepted unchecked. With `type_check: off` nothing is resolved or checked, as before.
 - A node whose return value fails `type_check: strict` is recorded as a failed call before 3002 is raised, so the report error carries the node's real `call_id` (not `unknown`) and a node-failure event is emitted. A node whose arguments fail the check is still not recorded, because its body never ran.
 - W1001 (mode overridden by file detection) is emitted only when the configuration sets `extended_mode` explicitly. Before this fix, the config loader marked the default mode as explicit, so a run without a config file, or with a v1 `Config()` that never set the mode, warned on every SmartTable or ExcelInvoice input. The resolved mode is unchanged.
+
 
 ### Session RC1-INT-CLI (rc1 review: CLI)
 

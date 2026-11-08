@@ -52,7 +52,7 @@ def structured_error_record(exc: BaseException | None) -> dict[str, Any] | None:
         return None
     # job.failed is an int contract, so a malformed ecode cannot be published.
     code = exc.ecode if isinstance(exc.ecode, int) and not isinstance(exc.ecode, bool) else _DEFAULT_FAILURE_CODE
-    message = exc.emsg or str(exc) or _EMPTY_PASSTHROUGH_MESSAGE
+    message = str(exc.emsg or str(exc) or _EMPTY_PASSTHROUGH_MESSAGE)
     return {"code": code, "name": PASSTHROUGH_ERROR_NAME, "message": message}
 
 
