@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- The injected `InvoiceData.mode` reflects the resolved mode on every tile (#574).
 - Flows receive the planner's mode-dependent run-level invoice source as
   `InputPaths.invoice_org`, shared by every tile (#569).
 - `InvoiceData.get_custom_fields()` reads the invoice's nested `custom` object.

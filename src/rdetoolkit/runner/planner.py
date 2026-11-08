@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import partial
 from itertools import chain
 from pathlib import Path
@@ -310,7 +310,14 @@ def _invariant_invoice(
     data_root: Path,
     invoice_service: InvoiceService | None = None,
 ) -> InvoiceData | None:
-    return (invoice_service or InvoiceService()).invariant_invoice(mode, data_root=data_root)
+    invoice = (invoice_service or InvoiceService()).invariant_invoice(mode, data_root=data_root)
+    return _invoice_for_mode(invoice, mode)
+
+
+def _invoice_for_mode(invoice: InvoiceData | None, mode: ModeKind) -> InvoiceData | None:
+    if invoice is None or invoice.mode == mode.value:
+        return invoice
+    return replace(invoice, mode=mode.value)
 
 
 def _tile_invoice(
@@ -331,7 +338,7 @@ def _tile_invoice(
         invariant_invoice=invariant_invoice,
         invoice_source=invoice_org,
     )
-    return TilePreparation(invoice=invoice, smarttable_row_data=row_data)
+    return TilePreparation(invoice=_invoice_for_mode(invoice, mode), smarttable_row_data=row_data)
 
 
 def _run_invoice_source(
