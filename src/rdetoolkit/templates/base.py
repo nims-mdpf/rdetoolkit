@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import sys
 import types
 import typing
 from collections.abc import Callable
@@ -152,7 +153,7 @@ def _bound_to_class(implementation: Callable[..., Any], cls: type[Any]) -> Calla
     copy.__module__ = implementation.__module__
     copy.__doc__ = implementation.__doc__
     copy.__dict__.update(implementation.__dict__)
-    if hasattr(implementation, "__type_params__"):
+    if sys.version_info >= (3, 12):
         copy.__type_params__ = implementation.__type_params__
     copy.__annotations__ = {"self": cls, **implementation.__annotations__}
     return copy
