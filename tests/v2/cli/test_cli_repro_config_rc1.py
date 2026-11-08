@@ -18,6 +18,7 @@ EP table:
     TC-RC1-F09-EP-005 | data/tasksupport/rdeconfig.yaml    | round trip keeps output + config_digest
     TC-RC1-F09-EP-006 | ``run --config`` + ``export --config`` | round trip keeps output + config_digest
     TC-RC1-F09-EP-007 | v1 callback run (v1 entry config)  | export -> import -> rerun (v1 entry and --flow) keeps config_digest
+    TC-RC1-F09-EP-008 | custom keys not in alphabetical order (nested too) | round trip keeps output + config_digest (key order preserved)
 
 Negative table:
     TC-RC1-F09-NEG-001 | ``run --config`` override, export without --config | exit 3 naming --config; no archive
@@ -92,6 +93,13 @@ def _project(base: Path, case: str) -> tuple[Path, Path]:
         (root / "pyproject.toml").write_text('[tool.rdetoolkit.custom]\nlabel = "configured"\n', encoding="utf-8")
     elif case == "tasksupport_yaml":
         (data_root / "tasksupport" / "rdeconfig.yaml").write_text("system:\n  save_raw: false\n", encoding="utf-8")
+    elif case == "unsorted_keys":
+        # Keys deliberately not in alphabetical order (sorted: a, label, nested, z),
+        # one level down too: config_digest hashes the dump in insertion order.
+        (root / "rdeconfig.yaml").write_text(
+            "custom:\n  z: 1\n  label: configured\n  a: 2\n  nested:\n    y: 1\n    b: 2\n",
+            encoding="utf-8",
+        )
     return root, data_root
 
 
@@ -131,6 +139,7 @@ def _round_trip(tmp_path: Path, report_path: Path, *export_extra: str) -> tuple[
         pytest.param("root_toml", id="tc_rc1_f09_ep_003_root_toml"),
         pytest.param("flat_yaml", id="tc_rc1_f09_ep_004_flat_yaml"),
         pytest.param("tasksupport_yaml", id="tc_rc1_f09_ep_005_tasksupport_yaml"),
+        pytest.param("unsorted_keys", id="tc_rc1_f09_ep_008_unsorted_keys"),
     ],
 )
 def test_round_trip_keeps_effective_config__tc_rc1_f09_ep_001_005(tmp_path: Path, case: str) -> None:

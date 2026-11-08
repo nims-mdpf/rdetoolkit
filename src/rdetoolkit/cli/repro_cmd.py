@@ -140,13 +140,17 @@ def _config_yaml(config: RdeConfig, digest: str) -> str:
     Only non-default values are written so a replay does not see defaults as
     explicitly set. If that form ever fails to reload to the same digest, the
     full dump is used instead; the digest is the contract, not the form.
+
+    Keys keep their insertion order (``sort_keys=False``): ``config_digest``
+    hashes the dump as-is, so sorting a free-form mapping such as ``custom``
+    would make a valid config unreproducible.
     """
     dumps: tuple[Callable[[], dict[str, Any]], ...] = (
         lambda: config.model_dump(mode="json", exclude_defaults=True),
         lambda: config.model_dump(mode="json"),
     )
     for dump in dumps:
-        text = yaml.safe_dump(dump(), sort_keys=True, allow_unicode=True)
+        text = yaml.safe_dump(dump(), sort_keys=False, allow_unicode=True)
         if _replays_to(text, digest):
             return text
     _usage_error(f"The effective configuration cannot be written in a form that reproduces config_digest {digest}.")
