@@ -86,6 +86,18 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 value/unit セルの行を保持します。`parse_invoice_meta` も invoice の `custom` に
 同じ規則を適用します。flow で `rde2util.Meta` や v1 オブジェクトの変換層を使う必要はありません。
 
+ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
+`save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は
+出力先の `kind` を選べます。文字コードを検出する `read_json`、タイルの invoice を
+所定の書式で保存する `save_invoice`、利用者が作った Figure を保存する `save_figure`
+も利用できます。`plot_lines` は x/y 列または列ペア、ラベル・タイトル・軸スケール・
+凡例・サイズ・DPI・出力先を指定できます。
+
+`unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
+ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
+外向きシンボリックリンクを含む展開先の境界チェックは維持します。
+戻り値を使用していなかった呼び出し方も継続できます。
+
 ## 実行時の変更点
 
 - flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を

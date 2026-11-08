@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import zipfile
+import json
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import pandas as pd
-from charset_normalizer import detect
 
 from rdetoolkit.core.node import node
 from rdetoolkit.rdelogger import get_logger
+from rdetoolkit.rde2util import CharDecEncoding
 
 _UTF8_FLAG = 0x800
 
@@ -18,9 +19,7 @@ logger = get_logger(__name__)
 
 
 def _detect_encoding(path: Path) -> str:
-    detected = cast(dict[str, Any], detect(path.read_bytes()))
-    encoding = detected.get("encoding")
-    return str(encoding or "utf-8")
+    return CharDecEncoding.detect_text_file_encoding(path) or "utf-8"
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
@@ -56,23 +55,51 @@ def read_csv_with_header(path: Path) -> pd.DataFrame:
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
-def read_excel(path: Path) -> pd.DataFrame:
-    """Read the first worksheet of an Excel workbook.
+def read_excel(
+    path: Path, *, sheet_name: str | int = 0, header: int | list[int] | None = 0,
+    skiprows: int | list[int] | None = None, nrows: int | None = None,
+    usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
+) -> pd.DataFrame:
+    """Read a selected worksheet using pandas row and column options.
 
     This is the node form of the pandas-backed Excel reads used by v1 RDE
     processing code.
 
     Args:
         path: Excel workbook to read.
+        sheet_name: Worksheet name or zero-based position.
+        header: Header row positions, or None for unlabelled source data.
+        skiprows: Number or positions of rows to skip.
+        nrows: Maximum number of data rows to read.
+        usecols: pandas column selection.
+        pandas_kwargs: Additional pandas Excel reader options.
 
     Returns:
         Parsed data frame.
     """
-    return pd.read_excel(Path(path))
+    return pd.read_excel(Path(path), sheet_name=sheet_name, header=header, skiprows=skiprows, nrows=nrows, usecols=usecols, **pandas_kwargs)
+
+
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+def read_json(path: Path) -> Any:
+    """Read JSON using the v1 character encoding preference.
+
+    Args:
+        path: JSON file to read.
+
+    Returns:
+        The decoded JSON value.
+
+    Raises:
+        OSError: If the source cannot be read.
+        json.JSONDecodeError: If the source is not valid JSON.
+    """
+    source = Path(path)
+    return json.loads(source.read_text(encoding=_detect_encoding(source)))
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=False)
-def unzip_inputs(src_zip: Path, dst_dir: Path) -> None:
+def unzip_inputs(src_zip: Path, dst_dir: Path) -> list[Path]:
     """Extract a ZIP archive while repairing Shift-JIS member names.
 
     Ported from ``rde2util.unzip_japanese_zip`` and its filename decoder.
@@ -85,8 +112,14 @@ def unzip_inputs(src_zip: Path, dst_dir: Path) -> None:
     Args:
         src_zip: ZIP archive to extract.
         dst_dir: Destination directory.
+
+    Returns:
+        Extracted file paths in archive order, including repeated members.
+        Directory entries and unsafe destinations are excluded. Paths are
+        absolute, matching the resolved extraction directory.
     """
     base_dir = Path(dst_dir).resolve()
+    extracted: list[Path] = []
     with zipfile.ZipFile(Path(src_zip)) as archive:
         for member in archive.infolist():
             if not member.flag_bits & _UTF8_FLAG:
@@ -98,3 +131,6 @@ def unzip_inputs(src_zip: Path, dst_dir: Path) -> None:
                 )
                 continue
             archive.extract(member, base_dir)
+            if not member.is_dir():
+                extracted.append(destination)
+    return extracted

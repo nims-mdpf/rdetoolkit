@@ -50,16 +50,20 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "copy_raw",
     "plot_lines",
     "plot_scatter",
+    "build_meta",
+    "read_json",
+    "save_invoice",
+    "save_text",
+    "save_figure",
 )
 
 
-class TestRegistryContainsExactly15BuiltinNodes:
+class TestRegistryContainsAllBuiltinNodes:
     """TC-F1-DISCOVER-COUNT-001 (Conflict #1)."""
 
-    def test_registry_has_exactly_15_ids_after_import_rdetoolkit_nodes(self) -> None:
-        """After `import rdetoolkit.nodes` in a fresh interpreter,
-        registry.list_nodes() contains exactly 15 builtin ids matching the
-        Design §5.1 table's names verbatim (as id suffixes)."""
+    def test_registry_has_exact_builtin_ids_after_import_rdetoolkit_nodes(self) -> None:
+        """A fresh registry contains the exact builtin set, including GA additions."""
+        # Given: a fresh interpreter with only builtin node imports
         script = (
             "import rdetoolkit.nodes\n"
             "from rdetoolkit.core import registry\n"
@@ -68,6 +72,7 @@ class TestRegistryContainsExactly15BuiltinNodes:
             "for i in ids:\n"
             "    print(i)\n"
         )
+        # When: importing and listing the builtin registry
         proc = subprocess.run(
             [sys.executable, "-c", script],
             capture_output=True,
@@ -76,11 +81,12 @@ class TestRegistryContainsExactly15BuiltinNodes:
             check=False,
         )
 
+        # Then: every expected builtin is present, with no extras
         assert proc.returncode == 0, proc.stdout + proc.stderr
         lines = proc.stdout.strip().splitlines()
         count = int(lines[0])
         ids = lines[1:]
-        assert count == 15, f"expected exactly 15 builtin node ids, got {count}: {ids}"
+        assert count == len(_EXPECTED_BUILTIN_NODE_SUFFIXES), f"unexpected builtin node ids: {ids}"
         for suffix in _EXPECTED_BUILTIN_NODE_SUFFIXES:
             assert any(node_id.endswith(suffix) for node_id in ids), (suffix, ids)
 
@@ -88,9 +94,10 @@ class TestRegistryContainsExactly15BuiltinNodes:
 class TestCliNodesListShowsAllBuiltinsWithoutModule:
     """TC-F1-DISCOVER-CLI-001 (Conflict #7)."""
 
-    def test_cli_nodes_list_shows_all_15_without_module_flag(self) -> None:
-        """`python -m rdetoolkit nodes list` (no --module) shows exactly 15
-        lines, all 15 builtin node ids present, in a fresh subprocess."""
+    def test_cli_nodes_list_shows_all_builtins_without_module_flag(self) -> None:
+        """The CLI lists the exact builtin set without an explicit module flag."""
+        # Given: the default CLI invocation in a fresh interpreter
+        # When: listing nodes without an explicit module
         proc = subprocess.run(
             [sys.executable, "-m", "rdetoolkit", "nodes", "list"],
             capture_output=True,
@@ -99,8 +106,9 @@ class TestCliNodesListShowsAllBuiltinsWithoutModule:
             check=False,
         )
 
+        # Then: the CLI exposes the same complete builtin set
         assert proc.returncode == 0, proc.stdout + proc.stderr
         lines = [line for line in proc.stdout.strip().splitlines() if line.strip()]
-        assert len(lines) == 15, f"expected exactly 15 lines from `nodes list` with no --module, got {len(lines)}: {lines}"
+        assert len(lines) == len(_EXPECTED_BUILTIN_NODE_SUFFIXES), f"unexpected builtin node list: {lines}"
         for suffix in _EXPECTED_BUILTIN_NODE_SUFFIXES:
             assert any(line.endswith(suffix) for line in lines), (suffix, lines)

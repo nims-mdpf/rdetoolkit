@@ -92,6 +92,18 @@ definitions become one row. `Metadata.units` holds constant units and
 the same rules to the invoice's nested `custom` section. User flows do not need
 `rde2util.Meta` or a v1 object adapter.
 
+For file and image artifacts, `read_excel` accepts worksheet, header, row and
+column selections; `save_csv` accepts precision, header and index options.
+`save_json` and `save_text` accept an output `kind`. Use `read_json` for detected
+encoding, `save_invoice` for the tile invoice formatting contract, and
+`save_figure` for caller-owned matplotlib figures. `plot_lines` accepts x/y
+columns or independent pairs, labels, title, scale, legend, size, DPI and kind.
+
+`unzip_inputs` returns absolute paths to extracted files in archive order.
+Directory entries and unsafe destinations are excluded; repeated archive members
+produce repeated paths. Existing containment checks, including outward symlinks,
+still apply. Callers that ignored the old return value can keep doing so.
+
 ## Runtime changes
 
 - Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body

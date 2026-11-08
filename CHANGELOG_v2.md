@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- Builtin nodes expose Excel/CSV/plot options and output kinds, and add
+  `read_json`, `save_text`, `save_invoice` and `save_figure`. Text decoding uses
+  the v1 encoding preference. `unzip_inputs` returns extracted file paths in
+  archive order, excluding directories and unsafe members (#576).
 - `@flow(error_code=..., error_message=...)` declares a Runner-only body failure
   policy, with partial declarations supported and direct calls unchanged.
   SIGTERM retains the Runner's 3004 interruption and stops further tiles (#577).
