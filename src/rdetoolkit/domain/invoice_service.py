@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import contextlib
 import shutil
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.invoice import (
     build_excelinvoice_tile_invoice,
     build_smarttable_tile_invoice,
@@ -202,6 +202,8 @@ class InvoiceService:
             FileNotFoundError: If the structured copy is enabled but the source
                 invoice is missing (v1 ``StructuredInvoiceSaver`` behavior).
             ValueError: If ``step`` is not a known invoice artifact step.
+            RdeExecutionError: The run interruption (3004) raised while the
+                optional description transfer runs; it is never tolerated.
         """
         resource = dataset_paths.output_paths
         invoice_path = resource.invoice / "invoice.json"
@@ -220,11 +222,7 @@ class InvoiceService:
             return
         if step == INVOICE_STEP_DESCRIPTION:
             if config.system.feature_description:
-                updater = feature_updater or build_description_updater(dataset_paths)
-                # v1's DescriptionUpdater suppresses every failure because the
-                # description transfer is optional enrichment, not an artifact.
-                with contextlib.suppress(Exception):
-                    updater()
+                _update_description(feature_updater or build_description_updater(dataset_paths))
             return
         message = f"Unknown invoice artifact step: {step!r}"
         raise ValueError(message)
@@ -238,6 +236,21 @@ class InvoiceService:
         destination = structured_dir / "invoice.json"
         if invoice_org.resolve() != destination.resolve():
             shutil.copy2(invoice_org, destination)
+
+
+def _update_description(updater: Callable[[], None]) -> None:
+    """Run the optional description transfer with v1's failure tolerance.
+
+    v1's ``DescriptionUpdater`` suppresses every failure because the
+    description transfer is optional enrichment, not an artifact. The run
+    interruption (3004) is not such a failure: swallowing it finalized a
+    stopped run as ``success`` (review rc1 F01).
+    """
+    try:
+        updater()
+    except Exception as exc:  # noqa: BLE001
+        if is_run_interrupted(exc):
+            raise
 
 
 def invoice_source_for(mode: ModeKind, *, data_root: Path) -> Path:

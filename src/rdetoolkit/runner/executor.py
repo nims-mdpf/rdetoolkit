@@ -9,6 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import (
@@ -19,7 +20,7 @@ from rdetoolkit.domain.invoice_service import (
     build_tile_dataset_paths,
 )
 from rdetoolkit.models.rde2types import RdeDatasetPaths
-from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
+from rdetoolkit.errors import ERROR_CATALOG
 from rdetoolkit.domain.validation import validate_tile_outputs, wrap_validation_error
 from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
@@ -38,7 +39,6 @@ if TYPE_CHECKING:
 #: is named in the same sequence to keep one ordering authority per mode.
 _THUMBNAIL_STAGE = "thumbnail"
 
-_RUN_INTERRUPTED_CODE = 3004
 _ARTIFACT_PUBLICATION_FAILED_CODE = 3005
 _INVOICE_ARTIFACT_FAILED_CODE = 3006
 
@@ -80,7 +80,7 @@ class _BestEffortEventSink:
         try:
             self.inner.open(run_id)
         except Exception as exc:  # noqa: BLE001
-            if _is_run_interrupted(exc):
+            if is_run_interrupted(exc):
                 raise
             self._open_failed = True
             self._muted_run_id = run_id
@@ -97,7 +97,7 @@ class _BestEffortEventSink:
         try:
             self.inner.emit(event)
         except Exception as exc:  # noqa: BLE001
-            if _is_run_interrupted(exc):
+            if is_run_interrupted(exc):
                 raise
             self._muted_run_id = event.run_id
             _best_effort_stderr(f"rdetoolkit: event log write failed; later events of this run are not recorded (the run continues): {type(exc).__name__}: {exc}\n")
@@ -211,7 +211,7 @@ class TileExecutor:
                 root=plan.root,
             )
         except Exception as exc:  # noqa: BLE001
-            if _is_run_interrupted(exc):
+            if is_run_interrupted(exc):
                 raise
             if isinstance(exc, TileExecutionError):
                 return _with_legacy_metadata(
@@ -333,6 +333,9 @@ def _validate_precompleted_tile(tile: TilePlan) -> None:
             metadata_path=tile.out.meta / "metadata.json",
         )
     except Exception as exc:  # noqa: BLE001
+        # A stopped run is not an invalid tile: keep 3004 (review rc1 F01).
+        if is_run_interrupted(exc):
+            raise
         raise wrap_validation_error(exc) from exc
 
 
@@ -387,7 +390,7 @@ def _publication_guard(error_factory: Callable[[Exception], dict[str, Any]]) -> 
     try:
         yield
     except Exception as exc:
-        if _is_run_interrupted(exc):
+        if is_run_interrupted(exc):
             raise
         raise _StagePublicationError(error_factory(exc)) from exc
 
@@ -436,10 +439,6 @@ def artifact_stage_order(plan: ExecutionPlan) -> tuple[str, ...]:
         return DEFAULT_ARTIFACT_STAGE_ORDER
     order = provider(plan)
     return DEFAULT_ARTIFACT_STAGE_ORDER if order is None else tuple(order)
-
-
-def _is_run_interrupted(exc: Exception) -> bool:
-    return isinstance(exc, RdeExecutionError) and exc.code == _RUN_INTERRUPTED_CODE
 
 
 #: Fields the passthrough record owns. ``remediation`` is included because it

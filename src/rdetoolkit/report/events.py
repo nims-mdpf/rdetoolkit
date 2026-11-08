@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import json
 import os
 import sys
@@ -11,6 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, TextIO, runtime_checkable
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.errors import WARNING_CATALOG
 
 #: Soft cap on an events JSONL file (Session K3 ruling #2, Q6 = 64 MiB). At
@@ -382,10 +382,16 @@ class FileEventSink:
             # the header write releases the handle too.
             # Closing re-flushes the line still buffered and may fail the same
             # way; the descriptor is released regardless, and the header error
-            # is the one worth reporting.
+            # is the one worth reporting -- unless the close itself is the
+            # run interruption (3004): that is the run being stopped, and
+            # dropping it here let the Runner's guard mute the log and carry on
+            # (review rc1 F01, operator ruling (B)).
             self._file = None
-            with contextlib.suppress(Exception):
+            try:
                 handle.close()
+            except Exception as close_exc:
+                if is_run_interrupted(close_exc):
+                    raise
             raise
 
     def emit(self, event: Event) -> None:
@@ -457,11 +463,21 @@ def _best_effort_stderr(message: str) -> None:
     stdout in captured output (``rdetoolkit run --flow`` prints its RunReport
     JSON first, and callers parse that leading document).
 
+    The run interruption (3004) raised by the SIGTERM handler while the
+    write is in progress is not a failing stderr: it propagates, or a stopped
+    run would carry on and finalize as ``success`` (review rc1 F01).
+
     Args:
         message: Text to write, including its trailing newline.
+
+    Raises:
+        RdeExecutionError: The run interruption (3004) only.
     """
-    with contextlib.suppress(Exception):
+    try:
         sys.stderr.write(message)
+    except Exception as exc:  # noqa: BLE001
+        if is_run_interrupted(exc):
+            raise
 
 
 def _encode_line(data: dict[str, Any]) -> str:
