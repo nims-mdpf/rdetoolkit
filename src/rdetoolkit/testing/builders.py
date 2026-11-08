@@ -42,12 +42,22 @@ def make_invoice(overrides: Mapping[str, Any] | None = None) -> InvoiceData:
     """Create minimal invoice data for tests.
 
     Args:
-        overrides: Optional top-level values merged into the raw invoice dict.
+        overrides: Optional invoice sections (``basic``, ``custom``, etc.).
+            Bare measurement keys are placed inside ``custom``.
 
     Returns:
         Invoice data with non-empty raw content.
     """
     raw: dict[str, Any] = {"basic": {"dataName": "test"}}
     if overrides:
-        raw.update(dict(overrides))
+        _merge_invoice_overrides(raw, overrides)
     return InvoiceData(raw=raw, mode="invoice")
+
+
+def _merge_invoice_overrides(raw: dict[str, Any], overrides: Mapping[str, Any]) -> None:
+    sections = {"datasetId", "basic", "custom", "sample", "attachments"}
+    raw.update({key: value for key, value in overrides.items() if key in sections})
+    custom = dict(raw.get("custom", {}))
+    custom.update({key: value for key, value in overrides.items() if key not in sections})
+    if custom or "custom" in overrides:
+        raw["custom"] = custom

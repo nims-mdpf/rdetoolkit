@@ -272,12 +272,13 @@ class InvoiceData:
         return self.raw.get(key, default)
 
     def get_custom_fields(self) -> dict[str, Any]:
-        """Extract custom (non-system) fields from the raw invoice data.
+        """Extract the custom section from the raw invoice data.
 
         Returns:
-            Dict of fields whose keys do not start with ``"_"``.
+            Custom fields, or an empty dict if the section is not an object.
         """
-        return {k: v for k, v in self.raw.items() if not k.startswith("_")}
+        custom = self.raw.get("custom")
+        return dict(custom) if isinstance(custom, dict) else {}
 
 
 @dataclass(frozen=True, slots=True)

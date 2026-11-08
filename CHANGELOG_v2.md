@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- `InvoiceData.get_custom_fields()` reads the invoice's nested `custom` object.
+  `testing.make_invoice` places bare measurement overrides in that object while
+  continuing to accept explicit invoice sections (#564).
 - StructuredError messages are converted to strings before aggregation, preserving
   user error codes and messages in reports and `job.failed` on both entries (#571).
 
