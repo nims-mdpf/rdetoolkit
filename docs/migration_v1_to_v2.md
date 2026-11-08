@@ -88,6 +88,9 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 
 ## 実行時の変更点
 
+- flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
+  入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
+  Runner 内部では、開始時に一度確定した data root を引き続き使います。
 - v2 の正準戻り値は `RunReport` です。`report.status` と
   `report.iterations` を起点に結果を処理してください。
 - **flow 入口では `on_iteration_error` の既定値が `continue` です。** v1 の

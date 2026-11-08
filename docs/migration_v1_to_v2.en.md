@@ -94,6 +94,9 @@ the same rules to the invoice's nested `custom` section. User flows do not need
 
 ## Runtime changes
 
+- `InputPaths` injected into a flow uses paths relative to the working directory,
+  like v1 input paths. Path-based user error messages therefore keep the v1
+  spelling. The Runner still resolves the data root once for its internal work.
 - The canonical v2 return value is `RunReport`. Start from `report.status` and
   `report.iterations`.
 - **On the flow entry point, `on_iteration_error` defaults to `continue`.** If you

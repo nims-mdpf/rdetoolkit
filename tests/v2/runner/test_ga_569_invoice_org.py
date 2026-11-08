@@ -41,8 +41,8 @@ def test_flow_receives_run_level_invoice_source__ga569_ep_1_2_bv_1_2(
     relative = "temp/invoice_org.json" if mode in {"excelinvoice", "multidatatile", "rdeformat"} else "invoice/invoice.json"
     expected = tmp_path / "data" / relative
     assert seen
-    assert all(source == expected for source, _ in seen)
+    assert all(source.resolve() == expected for source, _ in seen)
     if mode == "excelinvoice":
         assert len(seen) >= 2
         assert len({destination for _, destination in seen}) == len(seen)
-        assert all(source != destination for source, destination in seen)
+        assert all(source.resolve() != destination.resolve() for source, destination in seen)

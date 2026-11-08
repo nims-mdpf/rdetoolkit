@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Flow input paths are relative to cwd, preserving v1 path spellings in
+  user-generated `job.failed` messages without changing internal root resolution (#567).
 - The public `build_meta` node constructs typed metadata from metadata-def.json,
   including filtering, definition order, referenced units and repeated values.
   `parse_invoice_meta` uses the same conversion and serialization rules (#575).

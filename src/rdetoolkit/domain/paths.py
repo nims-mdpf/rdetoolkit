@@ -2,10 +2,41 @@
 
 from __future__ import annotations
 
+import os
+from dataclasses import replace
 from pathlib import Path
 
 from rdetoolkit.domain.output import create_output_context
 from rdetoolkit.types import InputPaths, OutputContext
+
+
+def relative_input_paths(paths: InputPaths) -> InputPaths:
+    """Express flow input paths relative to the current working directory.
+
+    Runner-owned paths stay absolute. Only the public flow bundle is projected,
+    preserving the v1 spelling in user-generated diagnostics.
+
+    Args:
+        paths: Absolute input paths selected by the Runner.
+
+    Returns:
+        A bundle pointing to the same inputs using relative paths.
+    """
+    cwd = Path.cwd()
+
+    def project(path: Path) -> Path:
+        return Path(os.path.relpath(path, cwd))
+
+    return replace(
+        paths,
+        inputdata=project(paths.inputdata),
+        invoice=project(paths.invoice),
+        tasksupport=project(paths.tasksupport),
+        raw=project(paths.raw) if paths.raw is not None else None,
+        rawfiles=tuple(project(path) for path in paths.rawfiles),
+        smarttable_rawfile=project(paths.smarttable_rawfile) if paths.smarttable_rawfile is not None else None,
+        invoice_org=project(paths.invoice_org) if paths.invoice_org is not None else None,
+    )
 
 
 def resolve_input_paths(input_root: str | Path) -> InputPaths:
