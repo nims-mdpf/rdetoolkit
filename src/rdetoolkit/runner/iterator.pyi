@@ -1,9 +1,13 @@
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Protocol
+from rdetoolkit.errors import RdeValidationError
 
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
+
+class EmptyExcelInvoiceError(RdeValidationError):
+    def __init__(self) -> None: ...
 
 class TileIterator(Protocol):
     def __call__(

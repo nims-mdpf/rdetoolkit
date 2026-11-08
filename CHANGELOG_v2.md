@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Header-only Excel invoices fail during input iteration: the v1 callback entry
+  retains 999 and its generic message; v2 flows report the input-specific
+  `EmptyExcelInvoice` validation error, 4004 (#568).
 - Flow input paths are relative to cwd, preserving v1 path spellings in
   user-generated `job.failed` messages without changing internal root resolution (#567).
 - The public `build_meta` node constructs typed metadata from metadata-def.json,

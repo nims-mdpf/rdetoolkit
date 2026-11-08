@@ -167,6 +167,11 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 
 ### 意図的な差分(v1 と結果が異なるケース)
 
+ヘッダーだけでデータ行がない Excel invoice はタイル実行前に検出します。
+互換コールバック入口では v1 の汎用エラー（999）を保ち、flow 入口では
+入力検証エラー `EmptyExcelInvoice`（4004）とデータ行を追加する案内を返します。
+invoice シート自体がないブックについては既存のエラー契約を維持します。
+
 | ケース | v1 | v2 |
 |---|---|---|
 | コールバックが `StructuredError(msg, ecode)` を送出 | `job.failed` に `ecode` と `msg` | 同じ |

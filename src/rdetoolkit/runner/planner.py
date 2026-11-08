@@ -12,9 +12,10 @@ from typing import Any, Literal
 from rdetoolkit.api.request import ExecutionTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.core.calllog import CallSequence
 from rdetoolkit.domain.invoice_service import InvoiceService, invoice_source_for
+from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
-from rdetoolkit.runner.iterator import iterate_tiles
+from rdetoolkit.runner.iterator import EmptyExcelInvoiceError, iterate_tiles
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext, RdeConfig
 
@@ -170,6 +171,8 @@ class RunPlanner:
         tiles: Iterable[TilePlan] = (
             create_common_tiles(mode, context) if handler is None else handler.create_tiles(context)
         )
+        if isinstance(request.target, LegacyCallbackTarget):
+            tiles = _legacy_input_tiles(tiles)
         return ExecutionPlan(
             run_id=self._run_id_factory(),
             target=request.target,
@@ -181,6 +184,15 @@ class RunPlanner:
             data_root=data_root,
             invoice_source=invoice_source_for(mode, data_root=data_root),
         )
+
+
+def _legacy_input_tiles(tiles: Iterable[TilePlan]) -> Iterator[TilePlan]:
+    """Preserve the frozen v1 empty-Excel failure at the entry adapter boundary."""
+    try:
+        yield from tiles
+    except EmptyExcelInvoiceError as error:
+        message = "Error: Please check the logs and code, then try again."
+        raise StructuredError(message, 999) from error
 
 
 def _error_policy(target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> Literal["continue", "fail_fast"]:

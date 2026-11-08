@@ -175,6 +175,11 @@ v1.7, a deprecated alias of `smarttable_rawfile`.
 
 ### Intentional differences (cases where v2's result differs from v1)
 
+A header-only Excel invoice is rejected before tile execution. The compatibility
+callback entry preserves v1's generic failure (999); the flow entry reports
+the input validation error `EmptyExcelInvoice` (4004), with guidance to add data
+rows. A workbook missing its invoice sheet keeps its existing error contract.
+
 | Case | v1 | v2 |
 |---|---|---|
 | The callback raises `StructuredError(msg, ecode)` | `ecode` and `msg` in `job.failed` | Same |
