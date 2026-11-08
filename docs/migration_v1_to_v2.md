@@ -78,6 +78,14 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 したくなった時点でだけ node デコレータ付きの関数に分割します。保存処理には `rdetoolkit.nodes` の
 組込ノードを使います。
 
+測定メタデータには公開ノード `build_meta(values, metadef_path)` を使い、
+`save_meta(metadata, out)` で保存します。metadata-def に従ってキーを絞り、
+型変換、キー順、単位（`$Key` 参照を含む）、variable 行を揃えます。
+繰り返し値は `repeated={key: values}` で渡せます。variable 定義に対するスカラー値は
+1 行にまとめます。`Metadata.units` は constant の単位、`Metadata.variable` は
+value/unit セルの行を保持します。`parse_invoice_meta` も invoice の `custom` に
+同じ規則を適用します。flow で `rde2util.Meta` や v1 オブジェクトの変換層を使う必要はありません。
+
 ## 実行時の変更点
 
 - v2 の正準戻り値は `RunReport` です。`report.status` と

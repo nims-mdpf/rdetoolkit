@@ -530,6 +530,24 @@ class Meta:
         except Exception:
             return ""
 
+    def to_dict(self) -> dict[str, Any]:
+        """Return assigned metadata with resolved units in definition order.
+
+        The returned JSON-compatible object is detached from assignment state.
+        Both the v1 writer and v2 metadata nodes use this serialization rule.
+
+        Returns:
+            The RDE constant and variable metadata object.
+        """
+        outdict: dict[str, Any] = json.loads(json.dumps({"constant": self.metaConst, "variable": self.metaVar}))
+        for idx, kvdict in [(None, outdict["constant"])] + list(enumerate(outdict["variable"])):
+            for key, cell in kvdict.items():
+                self._process_unit(cell, idx)
+                self._process_action(cell, key, idx)
+        outdict["constant"] = self.__sort_by_metadef(outdict["constant"])
+        outdict["variable"] = [self.__sort_by_metadef(row) for row in outdict["variable"]]
+        return outdict
+
     def writefile(self, meta_filepath: str, enc: str = "utf_8") -> dict[str, Any]:
         """Writes the metadata to a file after processing units and actions.
 
@@ -551,15 +569,7 @@ class Meta:
         Raises:
             CustomException: If the metadata generation fails, with a custom error message and error code.
         """
-        outdict = json.loads(json.dumps({"constant": self.metaConst, "variable": self.metaVar}))
-
-        for idx, kvdict in [(None, outdict["constant"])] + list(enumerate(outdict["variable"])):
-            for k, vobj in kvdict.items():
-                self._process_unit(vobj, idx)
-                self._process_action(vobj, k, idx)
-
-        outdict["constant"] = self.__sort_by_metadef(outdict["constant"])
-        outdict["variable"] = [self.__sort_by_metadef(dvOrg) for dvOrg in outdict["variable"]]
+        outdict = self.to_dict()
 
         with open(meta_filepath, "w", encoding=enc) as fout:
             json.dump(outdict, fout, indent=4, ensure_ascii=False)

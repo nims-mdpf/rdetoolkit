@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- The public `build_meta` node constructs typed metadata from metadata-def.json,
+  including filtering, definition order, referenced units and repeated values.
+  `parse_invoice_meta` uses the same conversion and serialization rules (#575).
 - `Metadata.units`, `Metadata.variable` and `Metadata.set(..., unit=...)` retain
   constant units and repeated cells when `save_meta` writes metadata.json (#563).
 - `rde2util.Meta.assign_vals` excludes `None` values before conversion and unit

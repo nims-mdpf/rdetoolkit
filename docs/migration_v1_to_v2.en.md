@@ -83,6 +83,15 @@ exactly as in ordinary Python. Split work into functions with the node decorator
 only when you want to reuse it. Use the builtin nodes in `rdetoolkit.nodes` for
 saving.
 
+For measured metadata, use the public `build_meta(values, metadef_path)` node,
+then `save_meta(metadata, out)`. The definition controls filtering, type
+conversion, key order, units (including `$Key` references), and variable rows.
+Use `repeated={key: values}` for repeated columns; scalar values for variable
+definitions become one row. `Metadata.units` holds constant units and
+`Metadata.variable` holds rows of value/unit cells. `parse_invoice_meta` applies
+the same rules to the invoice's nested `custom` section. User flows do not need
+`rde2util.Meta` or a v1 object adapter.
+
 ## Runtime changes
 
 - The canonical v2 return value is `RunReport`. Start from `report.status` and

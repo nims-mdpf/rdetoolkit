@@ -6,6 +6,7 @@ from rdetoolkit.nodes.io import read_csv_with_header as read_csv_with_header, re
 from rdetoolkit.nodes.meta import parse_invoice_meta as parse_invoice_meta, save_meta as save_meta
 from rdetoolkit.nodes.plot import plot_lines as plot_lines, plot_scatter as plot_scatter
 from rdetoolkit.nodes.structured import save_csv as save_csv, save_json as save_json
+from rdetoolkit.nodes.meta import build_meta as build_meta
 
 def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..., Any]: ...
 
