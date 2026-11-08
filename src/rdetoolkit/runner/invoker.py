@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
+from dataclasses import replace
 from typing import Protocol
 
 from typing import TYPE_CHECKING
@@ -98,6 +99,8 @@ class FlowInvoker:
         if not isinstance(target, FlowTarget):
             msg = "FlowInvoker requires a FlowTarget; a LegacyCallbackTarget belongs to LegacyCallbackInvoker"
             raise TypeError(msg)
+        if context.paths is not None:
+            context.paths = replace(context.paths, invoice_org=material.invoice_source)
         return run_tile(
             target.function,
             context,

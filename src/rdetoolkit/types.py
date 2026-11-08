@@ -33,6 +33,9 @@ class InputPaths:
             or ``None`` outside SmartTable mode and for the tile holding the
             original table (``save_table_file``). Mirrors v1.7
             ``RdeOutputResourcePath.smarttable_rawfile``.
+        invoice_org: Run-level invoice source selected by the Runner. Backup
+            modes use ``temp/invoice_org.json``; other modes use the input
+            ``invoice/invoice.json``. Unbound test bundles may leave it unset.
     """
 
     inputdata: Path
@@ -41,6 +44,7 @@ class InputPaths:
     raw: Path | None = None
     rawfiles: tuple[Path, ...] = ()
     smarttable_rawfile: Path | None = None
+    invoice_org: Path | None = None
 
 
 OutputKind = Literal[

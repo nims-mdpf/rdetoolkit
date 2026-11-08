@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Flows receive the planner's mode-dependent run-level invoice source as
+  `InputPaths.invoice_org`, shared by every tile (#569).
 - `InvoiceData.get_custom_fields()` reads the invoice's nested `custom` object.
   `testing.make_invoice` places bare measurement overrides in that object while
   continuing to accept explicit invoice sections (#564).
