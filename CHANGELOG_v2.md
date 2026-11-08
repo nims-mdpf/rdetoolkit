@@ -1,5 +1,31 @@
 # rdetoolkit v2 changelog
 
+## Unreleased
+
+### Session RC1-INT-CLI (rc1 review: CLI)
+
+#### Added
+
+- `rdetoolkit repro export --config <yaml>` takes the same override file as `run --config`, so a run configured by an override can be exported.
+- The repro archive manifest records `config_digest`; `config_included` is now always true.
+- `templates describe --json` adds the `kind`, `default` and `default_literal` fields to each parameter (additive).
+
+#### Changed
+
+- `rdetoolkit repro export` exits 3 without writing an archive when the run's configuration came from an override that no file holds (`run --config`, or a `Config` passed through the Python API). Pass the same override with `export --config`. Before this change, such an export succeeded but archived the wrong configuration.
+
+#### Fixed
+
+- The installed `rdetoolkit` console script imports project modules from the current directory, as `python -m rdetoolkit` already did. Affected: `run --flow demo_flow:pipeline`, every `--module` option, `nodes lint --module`, and the v1 `run module::attr` form. Before this fix, they failed with `No module named ...` unless `PYTHONPATH` was set.
+- `rdetoolkit init --processing-template` reproduces each slot's signature exactly, including parameter kinds (`/`, `*`, `*args`, `**kwargs`) and defaults. A slot such as `read(self, *, value: int = 3)` no longer produces a module that fails with 2102 on import. A non-literal default resolves to the skeleton's own default object.
+- `rdetoolkit migrate apply` maps v1 output-path attributes to the v2 objects:
+  - `resource_paths.<struct|meta|main_image|...>` becomes `out.<same>`;
+  - `resource_paths.rawfiles` and `resource_paths.smarttable_rawfile` become `paths.<same>`.
+
+  Attributes without a v2 equivalent (`invoice_org`, `temp`, ...) are left unchanged and marked with a `TODO(rdetoolkit-migrate)` line, and so is passing the whole object to a helper. Before this fix, `resource_paths.rawfiles` became `out.rawfiles`, which does not exist.
+- `rdetoolkit repro export` archives the effective configuration of the run as one v2 `rdeconfig.yaml`, so an imported archive re-runs with the same configuration and the same `config_digest`. The configuration may come from root YAML or `pyproject.toml`, data-root YAML, tasksupport files, or the v1 loader used by `run(custom_dataset_function=...)`. Before this fix, only `<data root>/../rdeconfig.yaml` was archived.
+- The builtin `unzip_inputs` node skips archive members whose destination resolves outside the extraction directory through an existing symlink, and logs a warning. Before this fix, such a member was written outside the directory.
+
 ## 2.0.0rc1 — 2026-10-19
 
 First release candidate of the unified runtime. The version number 2.0.0 is
