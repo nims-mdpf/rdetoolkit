@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- `rde2util.Meta.assign_vals` excludes `None` values before conversion and unit
+  reference registration, as documented. This fix also applies to the 1.7 line (#570).
 - The injected `InvoiceData.mode` reflects the resolved mode on every tile (#574).
 - Flows receive the planner's mode-dependent run-level invoice source as
   `InputPaths.invoice_org`, shared by every tile (#569).

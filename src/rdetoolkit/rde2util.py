@@ -439,6 +439,8 @@ class Meta:
                 continue
 
             vsrc = entry_dict_meta[keysrc]
+            if vsrc is None:
+                continue
             _vsrc = self.__convert_to_str(vsrc)
 
             if kdef:
@@ -463,6 +465,8 @@ class Meta:
 
         """
         for keysrc, vsrc in entry_dict_meta.items():
+            if vsrc is None:
+                continue
             _vsrc = self.__convert_to_str(vsrc)
             self.__registerd_refered_table(keysrc, _vsrc)
 
