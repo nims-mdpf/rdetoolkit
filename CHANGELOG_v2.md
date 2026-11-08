@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Both shipped agent guides document the v2 public entry, reserved types,
+  builtin nodes, ProcessingTemplate, testing and migration behavior, with an
+  executed flow example and the v1 frozen compatibility entry retained (#580).
 - Builtin nodes expose Excel/CSV/plot options and output kinds, and add
   `read_json`, `save_text`, `save_invoice` and `save_figure`. Text decoding uses
   the v1 encoding preference. `unzip_inputs` returns extracted file paths in

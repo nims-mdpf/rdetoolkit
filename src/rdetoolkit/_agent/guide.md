@@ -1,246 +1,138 @@
 # rdetoolkit - Detailed Guide
 
-Technical reference for AI coding assistants working with rdetoolkit.
+Use public v2 flows and nodes for new RDE programs. Existing programs keep the
+v1 frozen compatibility entry.
 
-## Architecture
+## Execution model and entry points
 
-**Hybrid Python/Rust:**
-- Python: API, workflow, models (`src/rdetoolkit/`)
-- Rust: Image processing, charset detection, file ops (`rdetoolkit-core/`)
-- Build: Maturin → `core.cpython-*.so`
+The Python Runner owns the lifecycle. Rust primitives live in `rdetoolkit._core`;
+user v2 flows do not import it. There is no trace proxy, build/compile stage,
+pre-execution DAG, value-lineage inference or node scheduling.
 
-**Pipeline:** `run()` → Mode Detection → Processors → Output
-Processors: Validation → Files → Invoice → Thumbnails → Description → Variables → Dataset
+`@flow` executes eagerly with ordinary Python control flow, defaults and values.
+`@node` registers a function and records calls during active runs. Pass values
+explicitly between nodes; direct calls support ordinary unit tests. Recorded
+graphs describe call order after execution.
 
-## Path Objects
+Use `workflows.run(flow=pipeline)` from Python or
+`rdetoolkit run --flow modules.processing:pipeline` from the CLI. The Runner loads
+config, detects mode, validates inputs, iterates tiles, calls the flow once per
+tile, validates outputs, then writes job.failed and a RunReport. The Python flow
+entry returns that report; inspect status and choose a process exit status in
+main.py. The CLI owns exit codes: success 0, failed 1, partial 2, usage error 3.
+Do not assume returning a failed RunReport terminates a Python script.
 
-### RdeInputDirPaths
-- `inputdata: Path` - container/data/inputdata
-- `invoice: Path` - container/data/invoice
-- `tasksupport: Path` - container/data/tasksupport
-- `config: Config` - Configuration
-- `default_csv: Path` - tasksupport/default_value.csv (property)
+## Executable v2 example
 
-### RdeOutputResourcePath
-**Core:**
-- `raw/nonshared_raw: Path` - Raw data outputs
-- `rawfiles: tuple[Path, ...]` - Current tile inputs
-- `struct/main_image/other_image/meta/thumbnail/logs: Path` - Output dirs
-- `invoice/invoice_schema_json/invoice_org: Path` - Invoice paths
+This example writes a normalized text artifact for each current-tile input.
 
-**Optional:**
-- `smarttable_rawfile/smarttable_row_data: Path | dict | None`
-- `temp/invoice_patch/attachment: Path | None`
-
-### RdeDatasetPaths
-Unified interface combining input/output. Properties mirror both classes.
-Method: `as_legacy_args() -> tuple[RdeInputDirPaths, RdeOutputResourcePath]`
-
-## Processing Modes
-
-Priority: extended_mode → excelinvoice → invoice
-
-**Invoice:** `extended_mode = ""`, uses invoice.json
-**Excel Invoice:** `extended_mode = ""`, uses invoice.xlsx (no .json)
-**MultiDataTile:** `extended_mode = "MultiDataTile"`, multiple tiles/dataset
-**SmartTable:** `extended_mode = "SmartTable"`, row-based processing
-
-### MultiDataTile Config
-```toml
-[multidatatile]
-ignore_errors = false  # Continue on errors
-```
-
-### SmartTable Access
+<!-- test: agent-guide-v2 -->
 ```python
-row = resource_paths.smarttable_row_data
-if row:
-    sample = row.get("sample/name", "")
-    temp = row.get("condition/temperature", "")
-```
-
-```toml
-[smarttable]
-save_table_file = false
-```
-
-## Common Patterns
-
-**Multi-File Aggregation:**
-```python
-import pandas as pd
-all_data = [pd.read_csv(f) for f in srcpaths.inputdata.glob("*.csv")]
-pd.concat(all_data).to_csv(resource_paths.struct / "combined.csv", index=False)
-```
-
-**Image Processing (Rust):**
-```python
-from rdetoolkit import resize_image_aspect_ratio
-for img in resource_paths.rawfiles:
-    if img.suffix.lower() in {'.png', '.jpg'}:
-        resize_image_aspect_ratio(str(img), str(resource_paths.thumbnail / f"thumb_{img.name}"), 200, 200)
-```
-
-**Config-Driven:**
-```python
-if srcpaths.config.system.save_raw:
-    import shutil
-    for f in resource_paths.rawfiles:
-        shutil.copy2(f, resource_paths.raw / f.name)
-```
-
-**SmartTable:**
-```python
-row = resource_paths.smarttable_row_data
-if row:
-    process_by_type(resource_paths.rawfiles, row.get("sample/id"), row.get("measurement/type"), resource_paths)
-```
-
-## Error Handling
-
-**Result Pattern:**
-```python
-from rdetoolkit.result import Success, Failure
-if (result := process_data(srcpaths)).is_success():
-    data = result.unwrap()
-else:
-    (resource_paths.logs / "error.log").write_text(str(result.error))
-```
-
-**Graceful Degradation:**
-```python
-successful, failed = [], []
-for f in resource_paths.rawfiles:
-    try: successful.append(process_file(f))
-    except Exception as e: failed.append((f, str(e)))
-if failed:
-    (resource_paths.logs / "failed.log").write_text("\n".join(f"{f}: {e}" for f, e in failed))
-```
-
-**Validation:**
-```python
-if not resource_paths.rawfiles:
-    raise ValueError("No input files")
-for f in resource_paths.rawfiles:
-    if f.suffix.lower() not in {'.csv', '.txt'}:
-        raise ValueError(f"Unsupported: {f.suffix}")
-```
-
-**StructuredError:**
-```python
-from rdetoolkit.exceptions import StructuredError
-raise StructuredError(emsg="Not found", ecode=404, details={"file": str(e)})
-```
-
-## Configuration
-
-### System
-```toml
-[system]
-extended_mode = ""  # "", "MultiDataTile", "SmartTable"
-save_raw = false
-save_nonshared_raw = true
-save_thumbnail_image = false
-magic_variable = false  # ${filename} substitution
-save_invoice_to_structured = false
-feature_description = true
-```
-
-### Traceback
-```toml
-[traceback]
-enabled = false
-format = "duplex"  # "compact", "python", "duplex"
-include_context = false
-include_locals = false
-max_locals_size = 512
-```
-
-## Testing
-
-**Basic Test:**
-```python
-def test_custom_dataset(tmp_path):
-    (tmp_path/"input").mkdir()
-    (tmp_path/"input"/"test.csv").write_text("col1,col2\n1,2")
-    srcpaths = RdeInputDirPaths(inputdata=tmp_path/"input", invoice=tmp_path/"invoice",
-                                  tasksupport=tmp_path/"ts", config=Config(system=SystemSettings()))
-    resource_paths = RdeOutputResourcePath(raw=tmp_path/"raw", nonshared_raw=tmp_path/"ns",
-        rawfiles=(tmp_path/"input"/"test.csv",), struct=tmp_path/"struct", main_image=tmp_path/"img",
-        other_image=tmp_path/"other", meta=tmp_path/"meta", thumbnail=tmp_path/"thumb",
-        logs=tmp_path/"logs", invoice=tmp_path/"inv", invoice_schema_json=tmp_path/"schema.json",
-        invoice_org=tmp_path/"inv_org")
-    custom_dataset(srcpaths, resource_paths)
-    assert (tmp_path/"struct"/"result.csv").exists()
-```
-
-**Parametrized:**
-```python
-@pytest.mark.parametrize("save_raw,expected", [(True, ["result.csv", "test.csv"]), (False, ["result.csv"])])
-def test_config(tmp_path, save_raw, expected):
-    config = Config(system=SystemSettings(save_raw=save_raw))
-    # ... test with config
-```
-
-**Error:**
-```python
-def test_error(tmp_path):
-    with pytest.raises(ValueError, match="No input"):
-        custom_dataset(srcpaths, RdeOutputResourcePath(rawfiles=(), ...))
-```
-
-## Node Development (v2)
-
-```python
-from rdetoolkit import node, flow
+from rdetoolkit import flow, node
+from rdetoolkit.nodes import read_text, save_text
 from rdetoolkit.types import InputPaths, OutputContext
 
-@node(tags=["io"], version="1.0.0")
-def read_raw(paths: InputPaths) -> list[str]:
-    return [p.read_text() for p in paths.rawfiles]
+
+@node
+def normalize_text(text: str) -> str:
+    """Normalize a text measurement for structured output."""
+    return text.strip() + "\n"
+
 
 @flow
-def my_pipeline(paths: InputPaths, out: OutputContext) -> None:
-    rows = read_raw(paths)
-    (out.struct / "result.csv").write_text("\n".join(rows))
+def pipeline(paths: InputPaths, out: OutputContext) -> None:
+    """Write normalized input text for the current tile."""
+    for index, source in enumerate(paths.rawfiles):
+        save_text(normalize_text(read_text(source)), out, f"structured-{index}.txt")
 ```
 
-Test:
-```python
-def test_node(tmp_path):
-    (tmp_path / "a.txt").write_text("x")
-    paths = InputPaths(inputdata=tmp_path, invoice=tmp_path, tasksupport=tmp_path,
-                       raw=None, rawfiles=(tmp_path / "a.txt",))
-    assert read_raw(paths) == ["x"]
-```
+## Flow boundary types
 
-## API Reference
+Import the five reserved types from `rdetoolkit.types`. Injection matches the
+annotation, not its parameter name, and happens only at the flow boundary.
 
-```python
-# Workflow
-from rdetoolkit.workflows import run
-run(custom_dataset_function=my_func)
+- InputPaths: inputdata, invoice, tasksupport, raw, rawfiles,
+  smarttable_rawfile and invoice_org. Paths supplied to flows are cwd-relative;
+  the Runner retains its single resolved root internally. rawfiles contains only
+  user inputs. SmartTable row CSVs are carried separately by smarttable_rawfile.
+- OutputContext: struct, meta, main_image, other_image, thumbnail, attachment,
+  nonshared_raw, raw, invoice and logs. Construct it with from_resource_paths()
+  or test builders. The Runner creates directories; builtin nodes save artifacts.
+  path_for() and write_bytes() are low-level helpers.
+- RdeConfig: strict v2 configuration; custom contains user-defined settings.
+  Unknown configuration fields are rejected rather than silently ignored.
+- InvoiceData: raw parsed invoice, optional schema, and resolved mode.
+  get_custom_fields() reads raw["custom"]; get_field() reads a top-level field.
+- IterationInfo: index, total and mode for the current tile. Use this to identify
+  tile boundaries instead of manually managing divided directories.
 
-# Invoice
-from rdetoolkit.invoice_generator import generate_invoice_from_schema
-generate_invoice_from_schema("schema.json", "invoice.json")
+invoice_org is the run-level source selected before tile invocation. ExcelInvoice,
+MultiDataTile and RDEFormat use data/temp/invoice_org.json; invoice and SmartTable
+use data/invoice/invoice.json. Write edited invoices to the current out.invoice
+using save_invoice(), without overwriting another tile's source or output.
 
-# Config
-from rdetoolkit.config import parse_config_file
-config = parse_config_file("config.toml")
+## Artifact nodes and metadata
 
-# Types
-from rdetoolkit.models.rde2types import ZipFile, ExcelFile, CsvFile
-from rdetoolkit.result import Success, Failure
+Import helpers from `rdetoolkit.nodes`. read_text and read_json share v1 encoding
+rules, including Shift-JIS to CP932. read_excel supports sheet/header/row/column
+selection and pandas options; save_csv supports float_format, header and index.
+save_json and save_text accept an output kind. save_invoice preserves four-space
+indentation and non-ASCII text. save_figure leaves figure ownership with callers.
+plot_lines accepts x/y columns or pairs, labels, title, scale, legend, size, DPI
+and kind; it always closes internally created figures.
 
-# Exceptions
-from rdetoolkit.exceptions import StructuredError
-```
+Use build_meta(values, metadef_path, repeated=...) to construct Metadata from
+metadata-def.json. It filters unknown keys, casts schema types/formats, resolves
+literal units and $Key references, orders keys by the definition, and assembles
+variable rows. Scalar values with variable definitions form a single row;
+repeated accepts columns of values. save_meta() writes constant and variable
+sections with units. Metadata.custom contains constant values, Metadata.units
+contains their units, and Metadata.variable contains rows of value/unit cells.
+parse_invoice_meta() applies those rules to invoice.raw["custom"]. User flows need
+no v1 Meta import or object adapter.
 
-## Resources
+## Templates and testing
 
-- Docs: https://nims-mdpf.github.io/rdetoolkit/
-- GitHub: https://github.com/nims-dpfc/rdetoolkit
-- Issues: https://github.com/nims-dpfc/rdetoolkit/issues
-- AGENTS.md: Development rules
-- CLAUDE.md: Agent patterns
+ProcessingTemplate provides a wired flow skeleton. Implement required slots and
+preserve the final __flow__. Slot signatures are checked at class definition.
+Pass values explicitly instead of hiding state in self. Templates share the
+Runner, call log and CLI. Inspect templates list/describe and nodes list/describe.
+
+`rdetoolkit.testing` provides make_input_paths, make_output_context, make_invoice,
+run_flow and assert_output_tree. make_invoice puts bare measurement overrides in
+custom and accepts explicit invoice sections. Test nodes directly, then test a
+real Runner with complete mode fixtures. Compare invoice/metadata content,
+units, variable rows, structured files, images, divided layout and job.failed.
+
+## Configuration, modes and errors
+
+The standard root has data/inputdata, data/invoice/invoice.json and
+data/tasksupport/{invoice.schema.json,metadata-def.json}. Supply config to
+workflows.run or CLI --config. Check normalized RdeConfig.custom when migrating.
+Modes are invoice, excelinvoice, multidatatile, smarttable and rdeformat. Input
+SmartTable files have priority, followed by Excel invoice files and configured
+modes; MultiDataTile uses extended_mode="MultiDataTile" and RDEFormat uses
+extended_mode="rdeformat". Each mode controls tile counts and output layout.
+
+Flow on_iteration_error defaults to continue; fail_fast stops at the first
+failed tile. Read report.status, iterations, warnings and error. Framework
+errors use the integer ERROR_CATALOG and its remediation. StructuredError(msg,
+code) preserves a user-supplied error code. @flow(error_code=7,
+error_message="Cannot process input") maps ordinary body failures through the
+Runner; direct calls still raise the original exception, and KeyboardInterrupt
+or SystemExit are not mapped. Empty Excel forms use input error 4004 on the flow
+entry; the compatibility callback entry retains 999. Input preparation before
+mode detection remains explicit code before run(); a flow prepare hook is not
+available in this release.
+
+## v1 compatibility and migration
+
+Existing programs keep workflows.run(custom_dataset_function=callback), Config,
+RdeInputDirPaths, RdeOutputResourcePath and RdeDatasetPaths. The callback accepts
+the unified path object or legacy pair; its JSON return and exit rules remain.
+Do not import removed orchestration modules or copy the old processing loop.
+
+Use migrate check, review migrate apply output, and test successful and failing
+real inputs. Keep existing programs on their compatibility entry until artifact
+parity is demonstrated. Consult the migration guide for intentional differences
+and rollback, and the generated error catalog for codes and remediation.

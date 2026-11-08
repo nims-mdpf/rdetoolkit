@@ -1,128 +1,74 @@
 # rdetoolkit - Summary Guide for AI Coding Assistants
 
-## Overview
+Use the public v2 API for new structured programs. The v1 callback entry is the
+frozen compatibility path for existing programs.
 
-RDEToolKit is a Python package for creating workflows of RDE (Research Data Express) structured programs. It enables researchers to register, process, and visualize experimental data in RDE format through a hybrid Python/Rust architecture. This guide provides quick reference for AI coding agents to effectively use the library.
+## v2 entry and execution
 
-## Processing Modes
+A `@flow` is eager Python: branches, loops, f-strings, literals and defaults keep
+normal semantics. A `@node` registers a reusable function and records calls
+inside a run; direct calls remain ordinary functions. The Runner owns config,
+mode detection, validation, tile iteration, artifacts, job.failed and RunReport.
+The graph is a recorded call sequence, without value lineage or a prebuilt DAG.
 
-rdetoolkit supports four processing modes (evaluated in order):
-
-1. **invoice**: Standard JSON invoice mode
-2. **excelinvoice**: Excel-based invoice mode
-3. **MultiDataTile**: Multiple data tiles per dataset (extended_mode)
-4. **SmartTable**: Smart table processing with early exit support (extended_mode)
-
-Mode selection is controlled via `Config.system.extended_mode`.
-
-## Quick Start
-
+<!-- test: agent-guide-v2 -->
 ```python
-from rdetoolkit.workflows import run
+from rdetoolkit import flow, node
+from rdetoolkit.nodes import read_text, save_text
+from rdetoolkit.types import InputPaths, OutputContext
 
-# Basic usage with custom processing function
-def custom_dataset(srcpaths, resource_paths):
-    # Process input data from srcpaths
-    # Save outputs to resource_paths
-    pass
 
-result = run(custom_dataset_function=custom_dataset)
+@node
+def normalize_text(text: str) -> str:
+    """Normalize a text measurement for structured output."""
+    return text.strip() + "\n"
+
+
+@flow
+def pipeline(paths: InputPaths, out: OutputContext) -> None:
+    """Write normalized input text for the current tile."""
+    for index, source in enumerate(paths.rawfiles):
+        save_text(normalize_text(read_text(source)), out, f"structured-{index}.txt")
 ```
 
-## Expected Directory Structure
+Run `rdetoolkit run --flow modules.processing:pipeline` from the project root,
+or call `workflows.run(flow=pipeline)` after importing `rdetoolkit.workflows`.
+The Python flow entry returns a RunReport; check its status in scripts. The CLI
+returns 0 for success, 1 for failed, 2 for partial, and 3 for usage errors.
 
-```
-project/
-├── tasksupport/
-│   ├── config.toml           # Configuration file
-│   ├── invoice.schema.json   # Invoice schema
-│   └── invoice.json          # Invoice data (or .xlsx for excelinvoice)
-├── container/
-│   └── data/
-│       ├── inputdata/        # Input data files (CSV, images, etc.)
-│       └── invoice/          # Output resources
-└── process.py                # Your processing script
-```
+## Reserved types and output
 
-## Custom Processing Function Signature
+Import reserved types from `rdetoolkit.types`: `InputPaths`, `OutputContext`,
+`RdeConfig`, `InvoiceData`, `IterationInfo`. Injection uses annotations at the
+flow boundary only, with arbitrary parameter names. Nodes take explicit args.
+InputPaths exposes relative input paths, rawfiles and run-level invoice_org.
+SmartTable row CSVs use smarttable_rawfile and are excluded from rawfiles.
+InvoiceData.get_custom_fields() reads raw["custom"]; mode is the resolved mode.
 
-```python
-from rdetoolkit.models.rde2types import RdeInputDirPaths, RdeOutputResourcePath
+Use `rdetoolkit.nodes` for saving: save_csv, save_json, save_text, save_invoice,
+save_meta, plot_lines and save_figure. `build_meta(values, metadef_path)` applies
+metadata definition types, units, variable rows and ordering before save_meta.
+Metadata.units and Metadata.variable preserve units and repeated cells. Construct
+OutputContext through its factory or test builders; the Runner creates dirs.
 
-def custom_dataset(
-    srcpaths: RdeInputDirPaths,      # Input paths (container/data/inputdata)
-    resource_paths: RdeOutputResourcePath  # Output paths (container/data/invoice)
-) -> None:
-    """Process input data and save outputs.
+## Templates and tests
 
-    Args:
-        srcpaths: RdeInputDirPaths object with .inputdata, .invoice, .tasksupport, .config
-        resource_paths: RdeOutputResourcePath object with .struct, .main_image, .other_image,
-            .meta, .raw, .nonshared_raw, .rawfiles, .thumbnail, .logs, .invoice
-    """
-    # Your processing logic here
-    pass
-```
+Use `ProcessingTemplate` for a reusable domain skeleton. Implement its required
+slots; keep the final __flow__ skeleton intact. Templates use the same Runner.
+Inspect `rdetoolkit nodes list` and `rdetoolkit templates list` before rebuilding
+existing functionality. Use `rdetoolkit.testing` builders make_input_paths,
+make_output_context and make_invoice, or run_flow for Runner integration.
 
-## Key Modules
+## Input and compatibility
 
-- **workflows**: Main workflow orchestration (`run()` function)
-- **models.config**: Configuration schema (`Config`, `SystemSettings`)
-- **models.rde2types**: Type definitions (`RdeInputDirPaths`, `RdeOutputResourcePath`)
-- **invoice_generator**: Generate invoice.json from schema
-- **processing**: Processor-based pipeline architecture
-- **graph**: CSV to graph conversion utilities
+The standard tree has data/inputdata, data/invoice/invoice.json, and
+ data/tasksupport/{invoice.schema.json,metadata-def.json}. Modes include invoice,
+excelinvoice, multidatatile, smarttable and rdeformat. File detection takes
+precedence over configured modes. RdeConfig is strict; user settings use custom.
+Flow iteration defaults to continue. Existing programs may keep
+`workflows.run(custom_dataset_function=...)` and v1 path types; that entry keeps
+its legacy JSON return and exit behavior. Migrate new implementations to flows
+and compare artifacts, including metadata units and variable values.
 
-## Common Errors
-
-### 1. Missing Configuration File
-```
-Error: Config file not found: tasksupport/config.toml
-Solution: Create config.toml or use default configuration
-```
-
-### 2. Invalid Directory Structure
-```
-Error: Required directory not found: container/data/inputdata
-Solution: Ensure proper directory structure as shown above
-```
-
-### 3. Custom Function Signature Mismatch
-```
-Error: custom_dataset_function must accept (RdeInputDirPaths, RdeOutputResourcePath)
-Solution: Match the function signature exactly as shown
-```
-
-## Configuration Example
-
-```toml
-[system]
-extended_mode = "MultiDataTile"  # or "SmartTable", "", etc.
-save_raw = false
-save_thumbnail_image = true
-```
-
-## CLI Commands
-
-```bash
-# Initialize project template
-rdetoolkit init <project_name>
-
-# Generate invoice.json from schema
-rdetoolkit gen-invoice tasksupport/invoice.schema.json
-
-# Generate Excel invoice from schema
-rdetoolkit gen-excelinvoice tasksupport/invoice.schema.json
-
-# Validate project structure
-rdetoolkit validate <project_dir>
-```
-
-## For More Details
-
-Use `get_agent_guide(detailed=True)` or `rdetoolkit agent-guide --detailed` for comprehensive documentation including:
-- Architecture details
-- Advanced processing patterns
-- Error handling patterns
-- Testing patterns
-- Configuration reference
+Use `get_agent_guide(detailed=True)` or `rdetoolkit agent-guide --detailed` for
+signature, error handling, configuration and migration details.
