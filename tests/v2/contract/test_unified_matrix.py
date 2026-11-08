@@ -1295,15 +1295,6 @@ def test_multidatatile_public_entry_sigterm_exits_1__tc_um_mdt_cb_entry_sigterm(
 #: Shared between the two entry points, so the node-identity comparison is real.
 _CB_OBS_NODE_ID = "tests.v2.contract.cb_obs_probe"
 
-#: Modes whose ``oracle_config`` declares no ``extended_mode`` while their input
-#: is detected as a non-invoice mode, so ``resolve_mode`` publishes W1001 once
-#: per run (Design §8.1 ``warning``). Listed here rather than derived from the
-#: run, so the canonical event sequence stays an expectation independent of the
-#: subject under test. Both entry points share the resolution step, so the value
-#: is the same on both sides by construction.
-_CB_OBS_MODE_OVERRIDE_MODES = frozenset({"excelinvoice", "smarttable"})
-
-
 @node(id=_CB_OBS_NODE_ID)
 def _cb_obs_probe(label: str) -> str:
     """The one recorded unit of work both CB-OBS entry points perform."""
@@ -1382,10 +1373,13 @@ def test_callback_observability_matches_the_flow_entry(
     flow_logs = flow_root / "data" / "logs"
     cb_names = event_names(cb_logs, cb_report.run_id)
     assert cb_names == event_names(flow_logs, flow_report.run_id)
-    assert cb_names == expected_event_names(
-        tiles=tiles,
-        run_warnings=1 if mode in _CB_OBS_MODE_OVERRIDE_MODES else 0,
-    )
+    # Design §6.2 (operator ruling 2026-11-09, C02): ``oracle_config`` is a v1
+    # ``Config`` that never sets ``extended_mode`` for ExcelInvoice / SmartTable,
+    # so the mode is implicit and file detection publishes no W1001 -- the run
+    # carries no ``warning`` event. (The former expectation of one W1001 for
+    # those two cells pinned the false warning.)
+    assert cb_names == expected_event_names(tiles=tiles)
+    assert cb_names.count("warning") == 0
 
     # And: the node events name the same node, in the same order, on both sides
     cb_node_events = node_event_ids(cb_logs, cb_report.run_id)
