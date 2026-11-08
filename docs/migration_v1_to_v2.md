@@ -88,6 +88,11 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 
 ## 実行時の変更点
 
+- flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を
+  両 v2 入口から同じコード・メッセージにまとめられます。コードだけなら元の
+  メッセージを保ち、メッセージだけならコードは 3001 です。直接の関数呼び出しでは
+  元の例外がそのまま送出されます。Runner では元の例外をチェーンに残し、
+  `KeyboardInterrupt`・`SystemExit` などのプロセス制御例外は変換しません。
 - flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
   入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
   Runner 内部では、開始時に一度確定した data root を引き続き使います。

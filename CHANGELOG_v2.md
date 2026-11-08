@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- `@flow(error_code=..., error_message=...)` declares a Runner-only body failure
+  policy, with partial declarations supported and direct calls unchanged.
+  SIGTERM retains the Runner's 3004 interruption and stops further tiles (#577).
 - Header-only Excel invoices fail during input iteration: the v1 callback entry
   retains 999 and its generic message; v2 flows report the input-specific
   `EmptyExcelInvoice` validation error, 4004 (#568).

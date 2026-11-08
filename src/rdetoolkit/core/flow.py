@@ -8,7 +8,9 @@ from contextvars import ContextVar
 from functools import wraps
 from typing import Any, TypeVar, overload
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.registry import FlowSpec, register_flow
+from rdetoolkit.exceptions import StructuredError
 
 F = TypeVar("F", bound=Callable[..., Any])
 _flow_stack_var: ContextVar[tuple[str, ...]] = ContextVar("rdetoolkit_flow_stack", default=())
@@ -90,11 +92,24 @@ def flow(func: F, /) -> F: ...
 
 
 @overload
-def flow(*, id: str | None = None) -> Callable[[F], F]: ...
+def flow(*, id: str | None = None, error_code: int | None = None, error_message: str | None = None) -> Callable[[F], F]: ...
 
 
-def flow(func: F | None = None, /, *, id: str | None = None) -> F | Callable[[F], F]:  # noqa: A002
-    """Decorate a plain Python function as a registered eager flow."""
+def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | None = None, error_message: str | None = None) -> F | Callable[[F], F]:  # noqa: A002
+    """Decorate a plain Python function as a registered eager flow.
+
+    Args:
+        func: Function supplied by the bare decorator form.
+        id: Optional stable flow identifier.
+        error_code: User error code applied to body exceptions by the Runner.
+            With only a message supplied, the default code is 3001.
+        error_message: Fixed Runner failure message. With only a code supplied,
+            the original exception's message is retained.
+
+    Returns:
+        A transparent decorated function, or its decorator. Direct calls retain
+        ordinary exception semantics, including when error options are set.
+    """
 
     def _decorator(fn: F) -> F:
         spec = _build_flow_spec(fn, id)
@@ -105,9 +120,39 @@ def flow(func: F | None = None, /, *, id: str | None = None) -> F | Callable[[F]
                 return fn(*args, **kwargs)
 
         wrapper.__flow_spec__ = spec  # type: ignore[attr-defined]
+        wrapper.__flow_error_code__ = error_code  # type: ignore[attr-defined]
+        wrapper.__flow_error_message__ = error_message  # type: ignore[attr-defined]
         register_flow(spec, wrapper)
         return wrapper  # type: ignore[return-value]
 
     if func is not None:
         return _decorator(func)
     return _decorator
+
+
+def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
+    """Apply an optional flow error declaration at the Runner boundary.
+
+    Args:
+        fn: Registered or plain flow callable selected for execution.
+
+    Returns:
+        A callable preserving the signature and exception chain. Only ordinary
+        exceptions raised by the body are mapped; process-control exceptions
+        and the Runner's SIGTERM interruption propagate unchanged.
+    """
+    code = getattr(fn, "__flow_error_code__", None)
+    message = getattr(fn, "__flow_error_message__", None)
+    if code is None and message is None:
+        return fn
+
+    @wraps(fn)
+    def mapped(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return fn(*args, **kwargs)
+        except Exception as error:
+            if is_run_interrupted(error):
+                raise
+            raise StructuredError(str(error) if message is None else message, 3001 if code is None else code) from error
+
+    return mapped

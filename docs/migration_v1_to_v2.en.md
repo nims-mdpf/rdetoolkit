@@ -94,6 +94,12 @@ the same rules to the invoice's nested `custom` section. User flows do not need
 
 ## Runtime changes
 
+- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
+  failures to one code and message through either v2 entry. Supplying only a
+  code preserves the original message; supplying only a message uses 3001.
+  Direct function calls still propagate the original exception. The original
+  exception remains chained in Runner failures; process-control exceptions
+  such as `KeyboardInterrupt` and `SystemExit` are not mapped.
 - `InputPaths` injected into a flow uses paths relative to the working directory,
   like v1 input paths. Path-based user error messages therefore keep the v1
   spelling. The Runner still resolves the data root once for its internal work.

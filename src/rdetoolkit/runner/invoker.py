@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from rdetoolkit.api.request import ExecutionTarget, FlowTarget, LegacyCallbackTarget
 from rdetoolkit.core.context import RunContext
+from rdetoolkit.core.flow import flow_for_runner
 from rdetoolkit.domain.paths import relative_input_paths
 from rdetoolkit.report.events import EventSink
 from rdetoolkit.runner.execute import ExecutionResult, run_tile
@@ -103,7 +104,7 @@ class FlowInvoker:
         if context.paths is not None:
             context.paths = relative_input_paths(replace(context.paths, invoice_org=material.invoice_source))
         return run_tile(
-            target.function,
+            flow_for_runner(target.function),
             context,
             event_sink=event_sink,
             run_id=run_id,
