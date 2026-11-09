@@ -42,7 +42,13 @@ def _project_template_modules() -> list[str]:
     """Find skeleton declarations in root modules and the conventional modules package."""
     root = Path.cwd()
     paths = sorted([*root.glob("*.py"), *(root / "modules").rglob("*.py")])
-    return [".".join(path.relative_to(root).with_suffix("").parts) for path in paths if _declares_skeleton(path)]
+    modules = [_template_module_name(path.relative_to(root)) for path in paths if _declares_skeleton(path)]
+    return list(dict.fromkeys(module for module in modules if module))
+
+
+def _template_module_name(path: Path) -> str:
+    parts = path.with_suffix("").parts
+    return ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
 
 
 def _declares_skeleton(path: Path) -> bool:
