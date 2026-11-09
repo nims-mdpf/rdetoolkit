@@ -448,9 +448,14 @@ def _write_v1_failure_traceback(failure: Exception, config_source: Any) -> None:
             return
         # v1's formatter reads ``sys.exc_info()``, so it must run while the
         # failure is being handled -- exactly where v1's ``except`` called it.
+        # Raising sets ``__context__`` to whatever the caller is handling (run()
+        # may itself be called from an ``except`` block), which would replace the
+        # callback's own implicit chain; restore it before formatting.
+        context, suppress_context = failure.__context__, failure.__suppress_context__
         try:
             raise failure
         except Exception as shown:  # noqa: BLE001 -- re-raised only to be formatted
+            shown.__context__, shown.__suppress_context__ = context, suppress_context
             formatted = handle_exception(shown, verbose=True, config=v1_config)
         _best_effort_stderr((formatted.traceback_info or "") + "\n")
 

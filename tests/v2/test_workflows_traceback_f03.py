@@ -57,6 +57,7 @@ EP / BV table:
 | TC-F03-042 | EP valid | successful invoke inside a capture                                  | nothing recorded                                      |
 | TC-F03-043 | BV       | nested captures                                                     | inner records only its own; outer restored after      |
 | TC-F03-044 | BV       | two failures inside one capture                                     | only the latest is held (earlier ones released)       |
+| TC-F03-026 | EP valid | implicit KeyError -> StructuredError chain; run() plain / from an except | KeyError kept in the chain before the StructuredError |
 """
 
 from __future__ import annotations
@@ -771,3 +772,52 @@ def test_capture_keeps_only_the_latest_failure__tc_f03_044(captures: Callable[[]
                 _invoke(_registry(error))
         # Then: only the latest failure is held
         assert failures == [second]
+
+
+def _structured_from_key_error(srcpaths: Any, resource_paths: Any) -> None:
+    """Raise a StructuredError while handling a KeyError (implicit ``__context__`` chain)."""
+    del srcpaths, resource_paths
+    try:
+        _ = {}["missing-key"]
+    except KeyError:
+        msg = "lookup failed"
+        raise StructuredError(msg, 53)  # noqa: B904 -- implicit chaining is the point
+
+
+@pytest.mark.parametrize("inside_caller_except", [False, True], ids=["plain_call", "called_from_except"])
+def test_implicit_chain_survives_reformatting__tc_f03_026(
+    project: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    inside_caller_except: bool,
+) -> None:
+    """TC-F03-026: the callback's implicit chain (KeyError -> StructuredError) stays in stderr.
+
+    Re-raising the selected exception to format it must not replace its
+    ``__context__`` with whatever the caller happens to be handling.
+    """
+    # Given: python format and a callback whose StructuredError implicitly chains a KeyError
+    config = Config(traceback=TracebackSettings(enabled=True, format="python"))
+
+    # When: run() is called plainly, or from inside the caller's own except block
+    capsys.readouterr()
+    if inside_caller_except:
+        try:
+            msg = "caller-context"
+            raise RuntimeError(msg)
+        except RuntimeError:
+            _, code = _run_v1(project, monkeypatch, _structured_from_key_error, config)
+    else:
+        _, code = _run_v1(project, monkeypatch, _structured_from_key_error, config)
+    err = capsys.readouterr().err
+
+    # Then: the StructuredError still chains the callback's KeyError. The caller's
+    # exception may appear only where Python really put it -- as the KeyError's own
+    # context, before it -- never in place of the KeyError (rc1 re-raise lost it).
+    assert code == 1
+    key_error = err.index("KeyError: 'missing-key'")
+    assert "During handling of the above exception, another exception occurred" in err[key_error:]
+    assert "lookup failed" in err[key_error:]
+    if inside_caller_except:
+        assert err.index("RuntimeError: caller-context") < key_error
+    assert _job_failed(project) == "ErrorCode=53\nErrorMessage=lookup failed\n"
