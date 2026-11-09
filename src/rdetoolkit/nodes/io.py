@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import zipfile
 import json
+import os
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from charset_normalizer import detect
 
 from rdetoolkit.core.node import node
 from rdetoolkit.rdelogger import get_logger
@@ -19,14 +21,31 @@ logger = get_logger(__name__)
 
 
 def _detect_encoding(path: Path) -> str:
+    # The legacy usual-codec set omits CP932 and can replace it with MacCyrillic.
+    primary = detect(path.read_bytes()).get("encoding")
+    if primary is not None and primary.lower() == "cp932":
+        return primary
     return CharDecEncoding.detect_text_file_encoding(path) or "utf-8"
+
+
+def _zip_destination(base_dir: Path, filename: str) -> Path:
+    """Mirror zipfile's member sanitization before checking existing symlinks."""
+    name = filename.replace("/", os.path.sep)
+    if os.path.altsep:
+        name = name.replace(os.path.altsep, os.path.sep)
+    name = os.path.splitdrive(name)[1]
+    parts = [part for part in name.split(os.path.sep) if part not in {"", ".", ".."}]
+    if os.path.sep == "\\":
+        translation = str.maketrans(':<>|"?*', "_______")
+        parts = [part.translate(translation).rstrip(" .") for part in parts]
+    return base_dir.joinpath(*parts).resolve()
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
 def read_text(path: Path) -> str:
     """Read a text file using detected character encoding.
 
-    Ported from ``rde2util.CharDecEncoding.detect_text_file_encoding``.
+    Uses the legacy encoding preference while retaining primary CP932 detection.
 
     Args:
         path: Text file to read.
@@ -42,7 +61,7 @@ def read_text(path: Path) -> str:
 def read_csv_with_header(path: Path) -> pd.DataFrame:
     """Read a CSV whose first row contains its column names.
 
-    Encoding detection follows the v1 ``rde2util.CharDecEncoding`` behavior.
+    Uses the legacy encoding preference while retaining primary CP932 detection.
 
     Args:
         path: CSV file to read.
@@ -82,7 +101,7 @@ def read_excel(
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
 def read_json(path: Path) -> Any:
-    """Read JSON using the v1 character encoding preference.
+    """Read JSON using legacy encoding preferences with primary CP932 support.
 
     Args:
         path: JSON file to read.
@@ -125,12 +144,13 @@ def unzip_inputs(src_zip: Path, dst_dir: Path) -> list[Path]:
             if not member.flag_bits & _UTF8_FLAG:
                 member.filename = member.filename.encode("cp437").decode("cp932")
             destination = (base_dir / member.filename).resolve()
-            if destination != base_dir and base_dir not in destination.parents:
+            sanitized = _zip_destination(base_dir, member.filename)
+            if not destination.is_relative_to(base_dir) or not sanitized.is_relative_to(base_dir):
                 logger.warning(
                     f"Skipping unsafe zip entry {member.filename!r}: path resolves outside {str(base_dir)!r}",
                 )
                 continue
-            archive.extract(member, base_dir)
+            extracted_path = archive.extract(member, base_dir)
             if not member.is_dir():
-                extracted.append(destination)
+                extracted.append(Path(extracted_path))
     return extracted
