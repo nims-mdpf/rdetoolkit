@@ -92,6 +92,7 @@ def apply(
     ] = True,
 ) -> None:
     """Convert legacy callbacks into eager v2 flows without editing input files."""
+    path = path.resolve()
     files = _python_files(path)
     if not files:
         _usage_error(
