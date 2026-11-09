@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Legacy tasksupport `custom` values are normalized into the same flat namespace
+  as explicit configuration, without warning about the supported section (#566).
 - Unrelated project TOML files no longer shadow tasksupport configuration;
   an explicitly present empty `[tool.rdetoolkit]` table still takes priority (#565).
 - Both shipped agent guides document the v2 public entry, reserved types,
