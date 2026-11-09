@@ -117,7 +117,8 @@ def _validate_concrete_class(cls: type[Any], skeleton: type[Any]) -> None:
         if not callable(implementation):
             raise _template_error(2101, slot_name=slot_name)
         if not _signatures_match(declaration, implementation):
-            raise _template_error(2102, slot_name=slot_name)
+            detail = f"{slot_name}; expected {inspect.signature(declaration)}; actual {inspect.signature(implementation)}"
+            raise _template_error(2102, slot_name=detail)
     try:
         cls()
     except TypeError as exc:

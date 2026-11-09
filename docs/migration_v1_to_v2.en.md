@@ -106,6 +106,17 @@ still apply. Callers that ignored the old return value can keep doing so.
 
 ## Runtime changes
 
+Template discovery imports skeleton providers declared in root Python modules
+and the conventional `modules/` package when `--module` is omitted; installed
+plugins remain discoverable. Use `--module` to select other provider modules.
+Template descriptions include slot documentation and domain annotations while
+omitting standard library types. Processing-template init generates `main.py`,
+the implementation and a test skeleton; all three have overwrite protection.
+Slot signatures must still match exactly, including parameter names and kinds.
+Add optional hooks when evolving a published skeleton; adding a required slot
+requires updating its concrete implementations. The depth-2 and flow-boundary DI
+rules remain unchanged (Design §5.2).
+
 `migrate apply` preserves unsupported cross-module entries and helper files,
 and reports the callback requiring manual migration. Convert that callback and
 its entry together. Supported local callbacks preserve comments and literals;

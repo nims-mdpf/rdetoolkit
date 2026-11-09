@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import inspect
+import re
+import sys
 import types
 import typing
 from dataclasses import dataclass
@@ -49,11 +51,13 @@ class TemplateMethodSpec:
         name: Declared method name.
         parameters: Parameters excluding ``self``.
         return_type: Shallow, human-readable return annotation.
+        docstring: Slot or hook documentation from the skeleton.
     """
 
     name: str
     parameters: tuple[TemplateParameterSpec, ...]
     return_type: str
+    docstring: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -182,7 +186,20 @@ def _method_spec(name: str, method: Any) -> TemplateMethodSpec:
         name=name,
         parameters=parameters,
         return_type=_annotation_name(hints.get("return", signature.return_annotation)),
+        docstring=inspect.getdoc(method) or "",
     )
+
+
+def _domain_types(slots: tuple[TemplateMethodSpec, ...]) -> tuple[str, ...]:
+    """Describe domain annotations without treating standard library types as domains."""
+    annotations = [name for method in slots for name in [method.return_type, *(parameter.type_name for parameter in method.parameters)]]
+    names = [name for annotation in annotations for name in _domain_annotation_names(annotation)]
+    return tuple(dict.fromkeys(names))
+
+
+def _domain_annotation_names(annotation: str) -> list[str]:
+    names = re.findall(r"\b\w+(?:\.\w+)+\b", annotation)
+    return [name for name in names if name.partition(".")[0] not in sys.stdlib_module_names and not name.startswith("rdetoolkit.types.")]
 
 
 def register_template(template_cls: type[Any]) -> None:
@@ -204,14 +221,7 @@ def register_template(template_cls: type[Any]) -> None:
         and not name.startswith("_")
         and not getattr(method, "__rdetoolkit_slot__", False)
     )
-    domain_types = tuple(
-        dict.fromkeys(
-            parameter.type_name
-            for method in slots
-            for parameter in method.parameters
-            if "." in parameter.type_name and not parameter.type_name.startswith("typing.")
-        ),
-    )
+    domain_types = _domain_types(slots)
     template_id = f"{template_cls.__module__}.{template_cls.__qualname__}"
     _template_specs.setdefault(
         template_id,

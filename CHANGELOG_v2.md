@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Template diagnostics show expected and actual slot signatures; project root
+  and `modules/` skeletons are discoverable without `--module`. Descriptions
+  include documentation and domain types, and init wires a guarded main entry (#579).
 - Unsupported cross-module migration entries and unrelated helpers remain
   byte-identical with an explicit manual diagnostic. Supported callback edits
   preserve comments, encoding semantics and neighboring main-guard logic (#562).
