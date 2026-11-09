@@ -207,7 +207,9 @@ def _discover_v2_config(root: Path) -> dict[str, Any] | None:
         return _load_mapping(root)
     for path in (root / "rdeconfig.yaml", root / "pyproject.toml"):
         if path.exists():
-            return _load_mapping(path)
+            discovered = _load_optional_mapping(path)
+            if discovered is not None:
+                return discovered
     return None
 
 
@@ -227,14 +229,13 @@ def _discover_config(root: Path, origin: ConfigOrigin) -> dict[str, Any]:
 
     candidates: tuple[Path, ...]
     if origin == "v2":
-        candidates = (root / "rdeconfig.yaml", root / "pyproject.toml")
-    else:
-        tasksupport_dirs = (root / "data" / "tasksupport", root / "tasksupport", root)
-        candidates = tuple(
-            directory / filename
-            for directory in tasksupport_dirs
-            for filename in ("rdeconfig.yaml", "rdeconfig.yml", "pyproject.toml")
-        )
+        return _discover_v2_config(root) or {}
+    tasksupport_dirs = (root / "data" / "tasksupport", root / "tasksupport", root)
+    candidates = tuple(
+        directory / filename
+        for directory in tasksupport_dirs
+        for filename in ("rdeconfig.yaml", "rdeconfig.yml", "pyproject.toml")
+    )
     for path in candidates:
         if path.exists():
             return _load_mapping(path)
@@ -242,6 +243,11 @@ def _discover_config(root: Path, origin: ConfigOrigin) -> dict[str, Any]:
 
 
 def _load_mapping(path: Path) -> dict[str, Any]:
+    return _load_optional_mapping(path) or {}
+
+
+def _load_optional_mapping(path: Path) -> dict[str, Any] | None:
+    """Distinguish an absent TOML tool table from a present empty configuration."""
     if not path.exists():
         reason = f"configuration file does not exist: {path}"
         raise _config_error(reason)
@@ -250,7 +256,7 @@ def _load_mapping(path: Path) -> dict[str, Any]:
             raw = yaml.safe_load(path.read_text(encoding="utf-8"))
         elif path.suffix.lower() == ".toml":
             document = tomllib.loads(path.read_text(encoding="utf-8"))
-            raw = document.get("tool", {}).get("rdetoolkit", {})
+            raw = document.get("tool", {}).get("rdetoolkit")
         else:
             reason = f"unsupported configuration file: {path.name}"
             raise _config_error(reason)
@@ -258,7 +264,7 @@ def _load_mapping(path: Path) -> dict[str, Any]:
         reason = f"could not read {path}: {exc}"
         raise _config_error(reason) from exc
     if raw is None:
-        return {}
+        return None if path.suffix.lower() == ".toml" else {}
     if not isinstance(raw, Mapping):
         reason = f"{path.name} must contain a mapping at the top level"
         raise _config_error(reason)

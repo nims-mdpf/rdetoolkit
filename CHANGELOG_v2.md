@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Unrelated project TOML files no longer shadow tasksupport configuration;
+  an explicitly present empty `[tool.rdetoolkit]` table still takes priority (#565).
 - Both shipped agent guides document the v2 public entry, reserved types,
   builtin nodes, ProcessingTemplate, testing and migration behavior, with an
   executed flow example and the v1 frozen compatibility entry retained (#580).
