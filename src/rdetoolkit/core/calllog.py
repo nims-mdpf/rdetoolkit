@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import inspect
 import time
+import types
 import typing
 import warnings
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
 import sys
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.flow import current_flow_id
 from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
 
@@ -119,7 +121,11 @@ def _safe_repr_head(value: Any, *, enabled: bool, length: int) -> str | None:
         return None
     try:
         return repr(value)[:length]
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        # A repr that cannot be taken is "no repr"; the run interruption is
+        # the run being stopped and must reach the Runner (review rc1 F01).
+        if is_run_interrupted(exc):
+            raise
         return None
 
 
@@ -149,16 +155,58 @@ def _mismatch_error(node_id: str, param_name: str) -> RdeExecutionError:
 
 
 def _matches_annotation(value: Any, annotation: Any) -> bool:
+    """Check one value against one resolved annotation, shallowly (Design §4.4).
+
+    "isinstance-based, generics checked shallowly up to origin": container
+    elements are never inspected, only the runtime class the annotation names.
+
+    * ``Any``, an empty annotation, an unresolved string / ``ForwardRef``, a
+      ``TypeVar``, a ``NewType`` and ``Literal[...]`` accept every value.
+      ``Literal`` value checks are deliberately out of scope.
+    * ``None`` means ``NoneType``.
+    * A union (``typing.Union``, ``X | Y``, ``Optional``) accepts when any
+      member matches by these same rules.
+    * A parametrized generic whose origin is a class (``list[int]``,
+      ``dict[str, int]``, ``type[int]``, ``collections.abc.Sequence[int]``, a
+      user ``Generic``) is ``isinstance(value, origin)``.
+    * A plain class is ``isinstance``; a class ``isinstance`` cannot use (a
+      Protocol that is not ``runtime_checkable``) accepts.
+
+    Args:
+        value: Runtime value bound to the parameter or returned.
+        annotation: Resolved annotation (``Annotated`` already stripped).
+
+    Returns:
+        Whether the value satisfies the shallow check.
+    """
     if annotation is inspect.Signature.empty or annotation is Any:
         return True
-    origin = getattr(annotation, "__origin__", None)
-    if origin is not None:
-        return True
     if annotation is None:
-        annotation = type(None)
-    if isinstance(annotation, type):
-        return isinstance(value, annotation)
-    return True
+        return value is None
+    origin = typing.get_origin(annotation)
+    if origin is typing.Union or origin is types.UnionType:
+        return any(_matches_annotation(value, member) for member in typing.get_args(annotation))
+    target = annotation if origin is None else origin
+    if not isinstance(target, type):
+        return True
+    try:
+        return isinstance(value, target)
+    except TypeError:
+        return True
+
+
+def _bound_values(value: Any, kind: object) -> Iterable[Any]:
+    """Return the values one bound parameter carries (C04).
+
+    ``*args: T`` annotates each positional element and ``**kwargs: T`` each
+    keyword value, so the bound tuple / dict itself is never compared with
+    ``T``.
+    """
+    if kind is inspect.Parameter.VAR_POSITIONAL:
+        return cast("tuple[Any, ...]", value)
+    if kind is inspect.Parameter.VAR_KEYWORD:
+        return cast("dict[str, Any]", value).values()
+    return (value,)
 
 
 class CallLogRecorder:
@@ -213,8 +261,9 @@ class CallLogRecorder:
         hints = self._resolve_hints(fn)
         bound = signature.bind_partial(*args, **kwargs)
         for name, value in bound.arguments.items():
-            annotation = hints.get(name, signature.parameters[name].annotation)
-            if _matches_annotation(value, annotation):
+            parameter = signature.parameters[name]
+            annotation = hints.get(name, parameter.annotation)
+            if all(_matches_annotation(item, annotation) for item in _bound_values(value, parameter.kind)):
                 continue
             message = f"Node argument type mismatch for {node_id}.{name}"
             if self.type_check == "warn":
@@ -244,7 +293,9 @@ class CallLogRecorder:
     def _resolve_hints(fn: Callable[..., Any]) -> dict[str, Any]:
         try:
             return typing.get_type_hints(fn, include_extras=False)
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
+            if is_run_interrupted(exc):
+                raise
             return {}
 
     def _summarize_inputs(self, fn: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]) -> dict[str, TypeSummary]:
@@ -256,7 +307,15 @@ class CallLogRecorder:
         }
 
     def call_node(self, spec: Any, fn: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:
-        """Execute ``fn`` and append a call-log record."""
+        """Execute ``fn`` and append a call-log record.
+
+        The argument check runs before the body, so an argument mismatch
+        leaves no record: nothing was executed, and the call log records
+        executed calls only. Once the body has run, every failure -- its own
+        exception or a strict return-type mismatch -- is recorded as a
+        ``failed`` call before it propagates (review rc1 F06), so the run
+        error and the node events can name the call that produced it.
+        """
         self._check_types(spec.id, fn, args, kwargs)
         started_at = datetime.now(timezone.utc).isoformat()
         start = time.perf_counter()
@@ -264,29 +323,58 @@ class CallLogRecorder:
         try:
             result = fn(*args, **kwargs)
         except Exception as exc:
-            duration_ms = (time.perf_counter() - start) * 1000
-            # seq is allocated at append time: nested @node calls append their
-            # records first, so pre-computing seq would duplicate numbers (R2:
-            # the call log must be a deterministic, uniquely-ordered sequence).
-            seq = self._sequence.next()
-            self._records.append(
-                NodeCallRecord(
-                    call_id=f"{spec.id}#{seq}",
-                    node_id=spec.id,
-                    parent_flow=current_flow_id(),
-                    seq=seq,
-                    iteration_index=self.iteration_index,
-                    started_at=started_at,
-                    duration_ms=duration_ms,
-                    status="failed",
-                    inputs=inputs,
-                    outputs=(),
-                    error={"type": type(exc).__name__, "message": str(exc)},
-                ),
-            )
+            self._append_failed(spec, started_at=started_at, duration_ms=_elapsed_ms(start), inputs=inputs, exc=exc)
             raise
-        duration_ms = (time.perf_counter() - start) * 1000
-        self._check_return_type(spec.id, fn, result)
+        duration_ms = _elapsed_ms(start)
+        try:
+            self._check_return_type(spec.id, fn, result)
+        except Exception as exc:
+            self._append_failed(spec, started_at=started_at, duration_ms=duration_ms, inputs=inputs, exc=exc)
+            raise
+        self._append(
+            spec,
+            started_at=started_at,
+            duration_ms=duration_ms,
+            status="completed",
+            inputs=inputs,
+            outputs=_summarize_outputs(result, repr_head=self.repr_head, repr_head_len=self.repr_head_len),
+            error=None,
+        )
+        return result
+
+    def _append_failed(
+        self,
+        spec: Any,
+        *,
+        started_at: str,
+        duration_ms: float,
+        inputs: dict[str, TypeSummary],
+        exc: Exception,
+    ) -> None:
+        self._append(
+            spec,
+            started_at=started_at,
+            duration_ms=duration_ms,
+            status="failed",
+            inputs=inputs,
+            outputs=(),
+            error={"type": type(exc).__name__, "message": str(exc)},
+        )
+
+    def _append(
+        self,
+        spec: Any,
+        *,
+        started_at: str,
+        duration_ms: float,
+        status: Literal["completed", "failed"],
+        inputs: dict[str, TypeSummary],
+        outputs: tuple[TypeSummary, ...],
+        error: dict[str, Any] | None,
+    ) -> None:
+        # seq is allocated at append time: nested @node calls append their
+        # records first, so pre-computing seq would duplicate numbers (R2:
+        # the call log must be a deterministic, uniquely-ordered sequence).
         seq = self._sequence.next()
         self._records.append(
             NodeCallRecord(
@@ -297,10 +385,13 @@ class CallLogRecorder:
                 iteration_index=self.iteration_index,
                 started_at=started_at,
                 duration_ms=duration_ms,
-                status="completed",
+                status=status,
                 inputs=inputs,
-                outputs=_summarize_outputs(result, repr_head=self.repr_head, repr_head_len=self.repr_head_len),
-                error=None,
+                outputs=outputs,
+                error=error,
             ),
         )
-        return result
+
+
+def _elapsed_ms(start: float) -> float:
+    return (time.perf_counter() - start) * 1000

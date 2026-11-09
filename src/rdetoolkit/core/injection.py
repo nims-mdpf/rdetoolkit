@@ -7,6 +7,7 @@ import typing
 from collections.abc import Callable
 from typing import Any
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.errors import ERROR_CATALOG, RdeRegistryError
 
@@ -25,7 +26,11 @@ def _resolve_type_hints(func: Callable[..., Any]) -> dict[str, Any]:
     """Resolve annotations for ``func`` without failing signature inspection."""
     try:
         return typing.get_type_hints(func, include_extras=False)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        # Unresolvable annotations mean "no hints"; the run interruption
+        # does not (review rc1 F01).
+        if is_run_interrupted(exc):
+            raise
         return {}
 
 

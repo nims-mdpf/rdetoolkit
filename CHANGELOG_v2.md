@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Session RC1-INT-CORE (rc1 review: runtime)
+
+#### Fixed
+
+- A SIGTERM now stops the run with 3004 in every stage. These steps used to swallow the interruption:
+  - thumbnail generation;
+  - the invoice description update;
+  - a diagnostic write to stderr (such as the W1001 notice);
+  - closing an event log whose header failed;
+  - building a SmartTable row's invoice;
+  - copying RDE-format raw files.
+
+  The run either went on and reported success, or recorded the stopped tile as an ordinary failure, which the continue policy skipped past. An interruption during raw-file copy or validation is now reported as 3004 instead of 3005 or 4003. Every other failure in these steps is tolerated or wrapped exactly as before.
+- `ProcessingTemplate` subclasses of one skeleton no longer share a hook's annotations. Registering a concrete class used to write `self: <that class>` into the skeleton's own function object, so the second sibling's node spec named the first sibling's class, and `type_check: strict` rejected its default hook with 3002. Each concrete class now gets its own copy of the inherited hook, and the skeleton is not modified.
+- `type_check: warn|strict` now checks parametrized generics shallowly up to their origin, as the design specifies.
+  - `list[int]` rejects a `dict`, and `Sequence[int]` rejects a `dict`.
+  - A union accepts a value that matches any of its members.
+  - `*args` and `**kwargs` annotations are checked against each element and value, not against the whole tuple or dict.
+
+  Previously every parametrized annotation was accepted. `Literal`, `TypeVar`, `NewType`, and Protocols that are not runtime-checkable are still accepted unchecked. With `type_check: off` nothing is resolved or checked, as before.
+- A node whose return value fails `type_check: strict` is recorded as a failed call before 3002 is raised, so the report error carries the node's real `call_id` (not `unknown`) and a node-failure event is emitted. A node whose arguments fail the check is still not recorded, because its body never ran.
+- W1001 (mode overridden by file detection) is emitted only when the configuration sets `extended_mode` explicitly. Before this fix, the config loader marked the default mode as explicit, so a run without a config file, or with a v1 `Config()` that never set the mode, warned on every SmartTable or ExcelInvoice input. The resolved mode is unchanged.
+
 ### Session RC1-INT-CLI (rc1 review: CLI)
 
 #### Added

@@ -39,10 +39,19 @@ def load_config(
             for ``RdeConfig`` or its child models.
     """
     normalizer = ConfigNormalizer()
-    config_data = normalizer.normalize(None, root=root, origin="v2", data_root=data_root).model_dump()
+    discovered = normalizer.normalize(None, root=root, origin="v2", data_root=data_root)
+    # Only the keys a source actually set are carried into the merge. Dumping
+    # the defaulted model re-entered every default as a value, so an implicit
+    # ``extended_mode`` became "explicitly configured" and file detection of a
+    # SmartTable / ExcelInvoice input published a false W1001 (review rc1 C02,
+    # Design §6.2). ``exclude_unset`` is applied recursively to the nested
+    # section models, and every omitted key takes the same default again, so
+    # the effective values are unchanged.
+    config_data = discovered.model_dump(exclude_unset=True)
     if overrides:
         config_data = _deep_merge(config_data, dict(overrides))
     return normalizer.normalize(config_data, root=root, origin="v2")
+
 
 def _deep_merge(base: Mapping[str, Any], overlay: Mapping[str, Any]) -> dict[str, Any]:
     result = copy.deepcopy(dict(base))
