@@ -14,6 +14,7 @@ class TemplateMethodSpec:
     name: str
     parameters: tuple[TemplateParameterSpec, ...]
     return_type: str
+    docstring: str = ...
 
 @dataclass(frozen=True, slots=True)
 class TemplateSpec:

@@ -25,7 +25,7 @@ else:
 
 ConfigOrigin = Literal["v1", "v2"]
 
-_V1_TOP_LEVEL_KEYS = frozenset({"system", "multidata_tile", "smarttable", "traceback"})
+_V1_TOP_LEVEL_KEYS = frozenset({"system", "multidata_tile", "smarttable", "traceback", "custom"})
 _SYSTEM_KEYS = (
     "extended_mode",
     "save_raw",
@@ -174,15 +174,7 @@ class ConfigNormalizer:
         # deliberately dropped here, silently -- Design §11 rules out new
         # DeprecationWarnings in v2.0 (operator ruling 2026-11-08, F03).
 
-        custom: dict[str, Any] = {}
-        for key, value in data.items():
-            if key not in _V1_TOP_LEVEL_KEYS:
-                warnings.warn(
-                    f"Legacy configuration key {key!r} is preserved under custom.",
-                    UserWarning,
-                    stacklevel=3,
-                )
-                custom[key] = copy.deepcopy(value)
+        custom = _legacy_custom(data)
         if custom:
             result["custom"] = custom
         return result
@@ -196,6 +188,25 @@ def _mapping_section(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
 
 
+def _legacy_custom(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Merge legacy extensions while keeping the explicit custom namespace flat."""
+    custom: dict[str, Any] = {}
+    for key, value in data.items():
+        if key not in _V1_TOP_LEVEL_KEYS:
+            warnings.warn(
+                f"Legacy configuration key {key!r} is preserved under custom.",
+                UserWarning,
+                stacklevel=4,
+            )
+            custom[key] = copy.deepcopy(value)
+    explicit = data.get("custom", {})
+    if not isinstance(explicit, Mapping):
+        reason = "custom must contain a mapping"
+        raise _config_error(reason)
+    custom.update(copy.deepcopy(explicit))
+    return custom
+
+
 #: Filenames the v1 loader accepts, in its own priority order
 #: (``rdetoolkit.config.CONFIG_FILES``).
 _V1_CONFIG_FILENAMES = ("rdeconfig.yaml", "rdeconfig.yml", "pyproject.toml")
@@ -207,7 +218,9 @@ def _discover_v2_config(root: Path) -> dict[str, Any] | None:
         return _load_mapping(root)
     for path in (root / "rdeconfig.yaml", root / "pyproject.toml"):
         if path.exists():
-            return _load_mapping(path)
+            discovered = _load_optional_mapping(path)
+            if discovered is not None:
+                return discovered
     return None
 
 
@@ -227,42 +240,49 @@ def _discover_config(root: Path, origin: ConfigOrigin) -> dict[str, Any]:
 
     candidates: tuple[Path, ...]
     if origin == "v2":
-        candidates = (root / "rdeconfig.yaml", root / "pyproject.toml")
-    else:
-        tasksupport_dirs = (root / "data" / "tasksupport", root / "tasksupport", root)
-        candidates = tuple(
-            directory / filename
-            for directory in tasksupport_dirs
-            for filename in ("rdeconfig.yaml", "rdeconfig.yml", "pyproject.toml")
-        )
+        return _discover_v2_config(root) or {}
+    candidates = _legacy_config_candidates(root)
     for path in candidates:
         if path.exists():
             return _load_mapping(path)
     return {}
 
 
+def _legacy_config_candidates(root: Path) -> tuple[Path, ...]:
+    directories = (root / "data" / "tasksupport", root / "tasksupport", root)
+    return tuple(directory / name for directory in directories for name in _V1_CONFIG_FILENAMES)
+
+
 def _load_mapping(path: Path) -> dict[str, Any]:
+    return _load_optional_mapping(path) or {}
+
+
+def _load_optional_mapping(path: Path) -> dict[str, Any] | None:
+    """Distinguish an absent TOML tool table from a present empty configuration."""
     if not path.exists():
         reason = f"configuration file does not exist: {path}"
         raise _config_error(reason)
     try:
-        if path.suffix.lower() in {".yaml", ".yml"}:
-            raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-        elif path.suffix.lower() == ".toml":
-            document = tomllib.loads(path.read_text(encoding="utf-8"))
-            raw = document.get("tool", {}).get("rdetoolkit", {})
-        else:
-            reason = f"unsupported configuration file: {path.name}"
-            raise _config_error(reason)
+        raw = _read_configuration(path)
     except (OSError, tomllib.TOMLDecodeError, yaml.YAMLError) as exc:
         reason = f"could not read {path}: {exc}"
         raise _config_error(reason) from exc
     if raw is None:
-        return {}
+        return None if path.suffix.lower() == ".toml" else {}
     if not isinstance(raw, Mapping):
         reason = f"{path.name} must contain a mapping at the top level"
         raise _config_error(reason)
     return copy.deepcopy(dict(raw))
+
+
+def _read_configuration(path: Path) -> Any:
+    if path.suffix.lower() in {".yaml", ".yml"}:
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+    if path.suffix.lower() == ".toml":
+        document = tomllib.loads(path.read_text(encoding="utf-8"))
+        return document.get("tool", {}).get("rdetoolkit")
+    reason = f"unsupported configuration file: {path.name}"
+    raise _config_error(reason)
 
 
 def _config_error(reason: str) -> RdeConfigError:

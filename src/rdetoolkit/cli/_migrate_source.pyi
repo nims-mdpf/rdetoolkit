@@ -1,0 +1,3 @@
+import ast
+
+def _render_conversion(source: str, original: ast.Module, converted: ast.Module) -> str: ...

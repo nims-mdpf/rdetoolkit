@@ -778,3 +778,10 @@ ERROR_CATALOG[3006] = ErrorDef(
         "with the enabled system.* settings, then rerun."
     ),
 )
+
+
+ERROR_CATALOG[4004] = ErrorDef(
+    name="EmptyExcelInvoice",
+    message_template="The Excel invoice has no data rows.",
+    remediation="Add at least one data row to the Excel invoice, then rerun.",
+)

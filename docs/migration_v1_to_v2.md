@@ -78,8 +78,63 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 したくなった時点でだけ node デコレータ付きの関数に分割します。保存処理には `rdetoolkit.nodes` の
 組込ノードを使います。
 
+測定メタデータには公開ノード `build_meta(values, metadef_path)` を使い、
+`save_meta(metadata, out)` で保存します。metadata-def に従ってキーを絞り、
+型変換、キー順、単位（`$Key` 参照を含む）、variable 行を揃えます。
+繰り返し値は `repeated={key: values}` で渡せます。variable 定義に対するスカラー値は
+1 行にまとめます。`Metadata.units` は constant の単位、`Metadata.variable` は
+value/unit セルの行を保持します。`parse_invoice_meta` も invoice の `custom` に
+同じ規則を適用します。flow で `rde2util.Meta` や v1 オブジェクトの変換層を使う必要はありません。
+
+ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
+`save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は
+出力先の `kind` を選べます。文字コードを検出する `read_json`、タイルの invoice を
+所定の書式で保存する `save_invoice`、利用者が作った Figure を保存する `save_figure`
+も利用できます。`plot_lines` は x/y 列または列ペア、ラベル・タイトル・軸スケール・
+凡例・サイズ・DPI・出力先を指定できます。
+
+`unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
+ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
+外向きシンボリックリンクを含む展開先の境界チェックは維持します。
+戻り値を使用していなかった呼び出し方も継続できます。
+
 ## 実行時の変更点
 
+本番の `main.py` では、失敗・一部失敗をプロセスの終了コードへ反映する指定を追加してください。
+RunReport、失敗時の `job.failed`、完了済み成果物を確定してから、失敗は1、一部失敗は2で終了します。
+成功時は通常どおり戻ります。ライブラリからの既定の呼び出しは RunReport を返す契約を維持します。
+公開の `report.exit_code` も CLI と同じ値を返すため、`SystemExit` に渡せます。
+この値は派生プロパティであり、JSON のフィールドやスキーマバージョンは増やしません。
+
+<!-- test: ga572-main -->
+```python
+from rdetoolkit import workflows
+from processing import pipeline
+
+workflows.run(flow=pipeline, exit_on_failure=True)
+```
+
+テンプレート探索では、`--module` を省略するとルートの Python モジュールと
+`modules/` パッケージ内の骨格宣言を読み込みます。インストール済みプラグインも探索します。
+別の場所の提供モジュールは `--module` で指定してください。
+説明には slot のドキュメントとドメイン型を含め、標準ライブラリ型を除外します。
+テンプレート用 init は `main.py`・実装・テスト雛形を生成し、3ファイルすべてを上書きから保護します。
+slot の引数名と種類を含むシグネチャの一致、深さ2までの継承、flow 境界での DI は維持します。
+公開済み骨格には任意 hook を追加して拡張し、必須 slot を追加する場合は具象実装も更新してください。
+
+`migrate apply` は、未対応の別モジュール参照とヘルパーファイルを変更せず、
+手動移行が必要なコールバックを報告します。そのコールバックと入口を一緒に移行してください。
+変換可能なローカル関数ではコメントと文字列を保持し、旧入口を削除したことと
+変換後の flow を CLI で実行する方法を明示します。
+
+- flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を
+  両 v2 入口から同じコード・メッセージにまとめられます。コードだけなら元の
+  メッセージを保ち、メッセージだけならコードは 3001 です。直接の関数呼び出しでは
+  元の例外がそのまま送出されます。Runner では元の例外をチェーンに残し、
+  `KeyboardInterrupt`・`SystemExit` などのプロセス制御例外は変換しません。
+- flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
+  入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
+  Runner 内部では、開始時に一度確定した data root を引き続き使います。
 - v2 の正準戻り値は `RunReport` です。`report.status` と
   `report.iterations` を起点に結果を処理してください。
 - **flow 入口では `on_iteration_error` の既定値が `continue` です。** v1 の
@@ -156,6 +211,11 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 
 ### 意図的な差分(v1 と結果が異なるケース)
 
+ヘッダーだけでデータ行がない Excel invoice はタイル実行前に検出します。
+互換コールバック入口では v1 の汎用エラー（999）を保ち、flow 入口では
+入力検証エラー `EmptyExcelInvoice`（4004）とデータ行を追加する案内を返します。
+invoice シート自体がないブックについては既存のエラー契約を維持します。
+
 | ケース | v1 | v2 |
 |---|---|---|
 | コールバックが `StructuredError(msg, ecode)` を送出 | `job.failed` に `ecode` と `msg` | 同じ |
@@ -166,7 +226,7 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 | 設定ファイルの探索(`config=None`) | `data/tasksupport` から読み込み | 同じ。不正な設定ファイルは v1 と同じく `ErrorCode=999` |
 | `rdesys_<タイムスタンプ>.log` の場所 | `data/logs` | 標準構成では同じ |
 | 実行中の SIGTERM | プロセスが終了するだけで `job.failed` も記録も残らない | `job.failed` に `ErrorCode=3004`(`RunInterrupted`)、`RunReport` も書き出し、完了済みタイルの成果物は残ります。公開入口の終了コードは 1 |
-| `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python API の `run()` は v1 どおり(失敗で `SystemExit(1)`) |
+| `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python の v1 コールバック入口は失敗で `SystemExit(1)` を維持。flow 入口は `exit_on_failure=True` で失敗1・一部失敗2を反映し、同じ値を `RunReport.exit_code` でも公開 |
 | `multidata_tile.ignore_errors: true` で全タイルが失敗 | MultiDataTile のみ全件 `failed` の JSON を返し終了コード 0。他モードではフラグは無視され最初の失敗で停止 | v1 コールバック入口は全モードで v1 と同じ。flow 入口では全タイル失敗は `failed` となり `job.failed` を書きます |
 
 ### ロールバック

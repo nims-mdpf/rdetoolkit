@@ -33,6 +33,9 @@ class InputPaths:
             or ``None`` outside SmartTable mode and for the tile holding the
             original table (``save_table_file``). Mirrors v1.7
             ``RdeOutputResourcePath.smarttable_rawfile``.
+        invoice_org: Run-level invoice source selected by the Runner. Backup
+            modes use ``temp/invoice_org.json``; other modes use the input
+            ``invoice/invoice.json``. Unbound test bundles may leave it unset.
     """
 
     inputdata: Path
@@ -41,6 +44,7 @@ class InputPaths:
     raw: Path | None = None
     rawfiles: tuple[Path, ...] = ()
     smarttable_rawfile: Path | None = None
+    invoice_org: Path | None = None
 
 
 OutputKind = Literal[
@@ -218,19 +222,28 @@ class Metadata:
     Attributes:
         custom: User-defined metadata key-value pairs.
         basic: Optional basic/system metadata.
+        units: Optional unit for each constant custom field.
+        variable: Repeated rows of RDE cells, each shaped as
+            ``{"value": value, "unit": optional_unit}``.
     """
 
     custom: dict[str, Any] = field(default_factory=dict)
     basic: dict[str, Any] | None = None
+    units: dict[str, str] = field(default_factory=dict)
+    variable: list[dict[str, dict[str, Any]]] = field(default_factory=list)
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: Any, *, unit: str | None = None) -> None:
         """Set a custom metadata entry.
 
         Args:
             key: Metadata key.
             value: Metadata value.
+            unit: Unit to retain with the value. Omission preserves an
+                existing unit; remove it from ``units`` explicitly to clear it.
         """
         self.custom[key] = value
+        if unit is not None:
+            self.units[key] = unit
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get a custom metadata entry.
@@ -272,12 +285,13 @@ class InvoiceData:
         return self.raw.get(key, default)
 
     def get_custom_fields(self) -> dict[str, Any]:
-        """Extract custom (non-system) fields from the raw invoice data.
+        """Extract the custom section from the raw invoice data.
 
         Returns:
-            Dict of fields whose keys do not start with ``"_"``.
+            Custom fields, or an empty dict if the section is not an object.
         """
-        return {k: v for k, v in self.raw.items() if not k.startswith("_")}
+        custom = self.raw.get("custom")
+        return dict(custom) if isinstance(custom, dict) else {}
 
 
 @dataclass(frozen=True, slots=True)

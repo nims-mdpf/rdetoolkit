@@ -460,11 +460,30 @@ def _write_v1_failure_traceback(failure: Exception, config_source: Any) -> None:
         _best_effort_stderr((formatted.traceback_info or "") + "\n")
 
 
+def _validate_exit_option(flow: object, *, exit_on_failure: bool) -> None:
+    """Keep the opt-in process policy confined to the v2 entry."""
+    if exit_on_failure and flow is None:
+        from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
+
+        definition = ERROR_CATALOG[1001]
+        message = "exit_on_failure=True requires run(flow=...). Remediation: use the v2 flow entry or omit this option on the legacy entry."
+        error_cls: Any = RdeConfigError
+        raise error_cls(code=1001, name=definition.name, message=message)
+
+
+def _flow_entry_result(report: RunReport, *, exit_on_failure: bool) -> RunReport:
+    """Apply the process policy only after Runner finalization has completed."""
+    if exit_on_failure and report.exit_code:
+        raise SystemExit(report.exit_code)
+    return report
+
+
 def run(  # pragma: no cover
     *,
     flow: Callable[..., Any] | type[ProcessingTemplate] | None = None,
     custom_dataset_function: DatasetCallback | None = None,
     config: Any = None,
+    exit_on_failure: bool = False,
 ) -> str | RunReport:
     """Execute the RDE workflow pipeline with custom processing.
 
@@ -474,7 +493,7 @@ def run(  # pragma: no cover
     Excelinvoice, MultiDataTile, SmartTable) configured via the Config object.
 
     Both public forms execute through the **single unified Runner** (merge-v1
-    I7): ``run(flow=...)`` returns its ``RunReport``, while
+    I7): ``run(flow=...)`` returns its ``RunReport`` by default, while
     ``run(custom_dataset_function=...)`` keeps the v1 return and exit contract on
     top of it — the ``rdesys_<ts>.log`` file logger, the legacy ``{"statuses":
     [...]}`` JSON string, v1's fail-fast iteration policy, and ``SystemExit(1)``
@@ -507,6 +526,12 @@ def run(  # pragma: no cover
             which keeps the v1 fail-fast iteration policy; on the ``flow`` path
             ``None`` lets the Runner discover ``rdeconfig.yaml`` /
             ``tasksupport/`` configuration.
+        exit_on_failure: Opt into process exits for the v2 flow entry. Failed
+            runs raise ``SystemExit(1)`` and partial runs ``SystemExit(2)``,
+            after reports and artifacts are finalized. Successful runs still
+            return their report. The default preserves programmatic report
+            inspection. This option requires ``flow``; legacy calls retain
+            their existing exit contract.
 
     Returns:
         For ``run(flow=...)``, a v2 ``RunReport``. For the v1
@@ -528,6 +553,10 @@ def run(  # pragma: no cover
             - Invoice schema validation failures
             - Custom function execution errors
         Exception: For unexpected errors during processing
+        RdeConfigError: If both entry points are supplied, or a legacy entry
+            requests ``exit_on_failure=True``.
+        SystemExit: For a failed v1 entry (1), or when ``exit_on_failure=True``
+            and the flow report is failed (1) or partial (2), after finalization.
 
     Examples:
         Basic usage with custom processing:
@@ -619,6 +648,7 @@ def run(  # pragma: no cover
         - RdeOutputResourcePath: Output path structure (legacy)
         - WorkflowExecutionStatus: Execution result details
     """
+    _validate_exit_option(flow, exit_on_failure=exit_on_failure)
     if flow is not None:
         from rdetoolkit.api.request import build_run_request
         from rdetoolkit.runner.lifecycle import Runner
@@ -635,10 +665,11 @@ def run(  # pragma: no cover
         # inputdata/invoice/tasksupport sit directly below the root -- run with
         # zero inputs and still report success.
         data_root = resolve_data_root(request.root)
-        return Runner(
+        report = Runner(
             root=request.root,
             inputdata_path=data_root / "inputdata",
             unpacked_dir_path=data_root / "temp",
         ).run(request)
+        return _flow_entry_result(report, exit_on_failure=exit_on_failure)
 
     return _run_callback_entry(custom_dataset_function, config)

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
 from rdetoolkit.domain.input_checker import selected_input_checker
+from rdetoolkit.errors import ERROR_CATALOG, RdeValidationError
 from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import RdeInputDirPaths
 from rdetoolkit.runner.mode_resolver import ModeKind
@@ -15,6 +16,17 @@ from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 
 #: Arity of a v1.7 ``SmartTableRawFiles`` element: ``(row_csv | None, user_files)``.
 _SMARTTABLE_PAIR_LEN = 2
+
+
+class EmptyExcelInvoiceError(RdeValidationError):
+    """Input validation error for an Excel invoice with no registration rows."""
+
+    def __init__(self) -> None:
+        """Create the catalogued empty-input diagnostic."""
+        definition = ERROR_CATALOG[4004]
+        # The append-only v1 signature is narrower than the v2 runtime initializer.
+        initialize = cast(Callable[..., None], super().__init__)
+        initialize(code=4004, message=f"{definition.message_template} Remediation: {definition.remediation}")
 
 
 class TileIterator(Protocol):
@@ -69,6 +81,8 @@ def iterate_tiles(
     )
     groups, _special = checker.parse(inputdata_path)
     total = len(groups)
+    if mode is ModeKind.excelinvoice and total == 0:
+        raise EmptyExcelInvoiceError
 
     for idx, group in enumerate(groups):
         tile_paths = resolve_tile_paths(data_root, idx)

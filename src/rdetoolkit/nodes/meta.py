@@ -3,11 +3,69 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Any
 
 from rdetoolkit.core.node import node
 from rdetoolkit.rde2util import Meta
 from rdetoolkit.types import InvoiceData, Metadata, OutputContext
+
+
+def _variable_values(value: Any) -> Any:
+    return value if value is None or isinstance(value, list) else [value]
+
+
+def _assignment_values(values: Mapping[str, Any], repeated: Mapping[str, Sequence[Any]] | None, definitions: Mapping[str, Any]) -> dict[str, Any]:
+    entries = dict(values)
+    if repeated is not None:
+        entries.update({key: list(column) for key, column in repeated.items()})
+    assignments = dict(entries)
+    for key, definition in definitions.items():
+        source = key if key in entries else definition.get("originalName", key)
+        if source in entries:
+            value = entries[source]
+            assignments[key] = _variable_values(value) if definition.get("variable") else value
+    return assignments
+
+
+def _build_metadata(values: Mapping[str, Any], metadef_path: Path, repeated: Mapping[str, Sequence[Any]] | None = None) -> Metadata:
+    validator = Meta(metadef_path)
+    validator.assign_vals(_assignment_values(values, repeated, validator.metaDef))
+    payload = validator.to_dict()
+    constant = payload["constant"]
+    return Metadata(
+        custom={key: cell["value"] for key, cell in constant.items()},
+        units={key: cell["unit"] for key, cell in constant.items() if "unit" in cell},
+        variable=payload["variable"],
+    )
+
+
+@node(tags=["builtin", "meta"], version="2.0.0", idempotent=True)
+def build_meta(values: Mapping[str, Any], metadef_path: Path, *, repeated: Mapping[str, Sequence[Any]] | None = None) -> Metadata:
+    """Build metadata by applying the RDE metadata definition to measured values.
+
+    Undefined keys and absent values are excluded. Values are converted using
+    ``schema.type`` and ``schema.format``; literal units and ``$Key`` references
+    are resolved in definition order. Scalar values declared variable become a
+    single repeated row. The shared conversion engine keeps v1 output parity
+    without requiring v1 objects or adapters in user flows.
+
+    Args:
+        values: Measured values, including optional unit-reference sources.
+        metadef_path: Path to ``metadata-def.json``.
+        repeated: Columns of repeated values for variable definitions. These
+            override same-named entries in ``values`` and may differ in length.
+
+    Returns:
+        Metadata ready for ``save_meta`` with typed values, units and rows.
+
+    Raises:
+        StructuredError: If a value violates the metadata definition.
+        OSError: If the definition cannot be read.
+        json.JSONDecodeError: If the definition is not valid JSON.
+    """
+    return _build_metadata(values, metadef_path, repeated)
 
 
 @node(tags=["builtin", "meta"], version="2.0.0", idempotent=True)
@@ -30,23 +88,19 @@ def parse_invoice_meta(invoice: InvoiceData, metadef_path: Path) -> Metadata:
         OSError: If the metadata definition cannot be read.
     """
     custom_fields = invoice.get_custom_fields()
-    validator = Meta(metadef_path)
-    assignment = validator.assign_vals(custom_fields)
-    assigned = assignment["assigned"]
-    custom = {key: value for key, value in custom_fields.items() if key in assigned}
+    metadata = _build_metadata(custom_fields, metadef_path)
     basic = invoice.raw.get("basic")
-    return Metadata(custom=custom, basic=basic if isinstance(basic, dict) else None)
+    metadata.basic = basic if isinstance(basic, dict) else None
+    return metadata
 
 
 @node(tags=["builtin", "meta"], version="2.0.0", idempotent=True)
 def save_meta(metadata: Metadata, out: OutputContext) -> Path:
     """Save v2 metadata as the RDE ``metadata.json`` contract.
 
-    Migrated from ``retired/outputcontext_save_methods_v20.py::save_meta``.
-    The written shape is the one v1 ``rde2util.Meta.writefile`` produced and
-    the Runner's post-validation (``metadata_validate`` against
-    ``models.metadata.MetadataItem``) requires: every custom field becomes a
-    ``constant`` entry ``{"value": ...}`` and ``variable`` is an empty list.
+    Constant custom values carry the corresponding ``metadata.units`` entry,
+    when present. Repeated cells come from ``metadata.variable`` and retain
+    their per-row units. The resulting shape matches the v1 metadata contract.
 
     ``metadata.basic`` is deliberately not written: ``metadata.json`` has no
     slot for invoice basic information, and v1 never wrote it there.
@@ -59,8 +113,11 @@ def save_meta(metadata: Metadata, out: OutputContext) -> Path:
         Path to ``metadata.json`` under ``out.meta``.
     """
     content = {
-        "constant": {key: {"value": value} for key, value in metadata.custom.items()},
-        "variable": [],
+        "constant": {
+            key: {"value": value, **({"unit": metadata.units[key]} if key in metadata.units else {})}
+            for key, value in metadata.custom.items()
+        },
+        "variable": metadata.variable,
     }
     encoded = json.dumps(content, ensure_ascii=False, indent=2).encode("utf-8")
     return out.write_bytes("meta", "metadata.json", encoded)

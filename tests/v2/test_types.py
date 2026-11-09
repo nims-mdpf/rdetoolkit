@@ -20,7 +20,7 @@ EP Table:
 | Metadata.set/get  | method API          | design spec             | set/get work            | TC-EP-046   |
 | InvoiceData()     | valid construction  | normal                  | fields accessible       | TC-EP-009   |
 | InvoiceData       | get_field           | method API              | returns field           | TC-EP-047   |
-| InvoiceData       | get_custom_fields   | method API              | filters _-prefixed      | TC-EP-048   |
+| InvoiceData       | get_custom_fields   | method API              | nested custom section   | TC-EP-048   |
 | IterationInfo()   | valid construction  | normal                  | fields accessible       | TC-EP-010   |
 | IterationInfo()   | zero index          | boundary                | index=0                 | TC-EP-011   |
 
@@ -301,11 +301,11 @@ class TestInvoiceData:
         assert invoice.get_field("missing", "default") == "default"
 
     def test_get_custom_fields__tc_ep_048(self) -> None:
-        """TC-EP-048: get_custom_fields filters out _-prefixed keys."""
+        """TC-EP-048: get_custom_fields reads custom rather than system fields."""
         from rdetoolkit.types import InvoiceData
 
         invoice = InvoiceData(
-            raw={"sample_name": "test", "_system": "internal", "value": 42},
+            raw={"custom": {"sample_name": "test", "value": 42}, "_system": "internal"},
         )
         custom = invoice.get_custom_fields()
         assert "sample_name" in custom

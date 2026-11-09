@@ -172,5 +172,5 @@ class TestParseInvoiceMetaThenSaveMetaRoundTrip:
         decoded = json.loads(result_path.read_text(encoding="utf-8"))
 
         assert decoded["constant"]["sample.key1"] == {"value": "value1"}
-        assert decoded["constant"]["sample.key2"] == {"value": 42}
+        assert decoded["constant"]["sample.key2"] == {"value": 42, "unit": "mm"}
         assert decoded["variable"] == []

@@ -5,10 +5,10 @@ from typing import Any, cast
 
 from rdetoolkit.core.node import node
 from rdetoolkit.nodes.image import copy_raw, make_thumbnail, save_main_image, to_jpeg, to_png
-from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_text, unzip_inputs
-from rdetoolkit.nodes.meta import parse_invoice_meta, save_meta
-from rdetoolkit.nodes.plot import plot_lines, plot_scatter
-from rdetoolkit.nodes.structured import save_csv, save_json
+from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_json, read_text, unzip_inputs
+from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
+from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure
+from rdetoolkit.nodes.structured import save_csv, save_invoice, save_json, save_text
 
 
 def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..., Any]:  # noqa: A002
@@ -40,13 +40,18 @@ def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..
 
 __all__ = [
     "read_text",
+    "read_json",
     "read_csv_with_header",
     "read_excel",
     "unzip_inputs",
     "save_csv",
     "save_json",
+    "save_text",
+    "save_invoice",
+    "save_figure",
     "parse_invoice_meta",
     "save_meta",
+    "build_meta",
     "to_png",
     "to_jpeg",
     "make_thumbnail",

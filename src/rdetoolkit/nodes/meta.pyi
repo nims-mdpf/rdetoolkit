@@ -1,6 +1,9 @@
 from pathlib import Path
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from rdetoolkit.types import InvoiceData, Metadata, OutputContext
 
 def parse_invoice_meta(invoice: InvoiceData, metadef_path: Path) -> Metadata: ...
+def build_meta(values: Mapping[str, Any], metadef_path: Path, *, repeated: Mapping[str, Sequence[Any]] | None = None) -> Metadata: ...
 def save_meta(metadata: Metadata, out: OutputContext) -> Path: ...

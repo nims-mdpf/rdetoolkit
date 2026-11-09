@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import ast
+import tokenize
 import re
 from collections.abc import Sequence
 from dataclasses import asdict
@@ -30,10 +32,44 @@ def _load_template_sources(modules: Sequence[str]) -> None:
     a template that ``list`` shows (project modules plus installed
     ``rdetoolkit.plugins`` entry points) is never unknown to the others.
     """
-    load_modules(modules)
+    load_modules(modules or _project_template_modules())
     from rdetoolkit.plugin import discover_plugins  # noqa: PLC0415 -- plugin discovery stays off the CLI import path
 
     discover_plugins()
+
+
+def _project_template_modules() -> list[str]:
+    """Find skeleton declarations in root modules and the conventional modules package."""
+    root = Path.cwd()
+    paths = sorted([*root.glob("*.py"), *(root / "modules").rglob("*.py")])
+    modules = [_template_module_name(path.relative_to(root)) for path in paths if _declares_skeleton(path)]
+    return list(dict.fromkeys(module for module in modules if module))
+
+
+def _template_module_name(path: Path) -> str:
+    parts = path.with_suffix("").parts
+    return ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
+
+
+def _declares_skeleton(path: Path) -> bool:
+    try:
+        with tokenize.open(path) as source:
+            tree = ast.parse(source.read())
+    except (OSError, SyntaxError, UnicodeError):
+        return False
+    names = _skeleton_base_names(tree)
+    return any(
+        isinstance(node, ast.ClassDef) and any(ast.unparse(base).split(".")[-1] in names for base in node.bases)
+        for node in ast.walk(tree)
+    )
+
+
+def _skeleton_base_names(tree: ast.AST) -> set[str]:
+    names = {"ProcessingTemplate"}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == "rdetoolkit.templates":
+            names.update(alias.asname or alias.name for alias in node.names if alias.name == "ProcessingTemplate")
+    return names
 
 
 def _find_template(name: str) -> TemplateSpec:
@@ -221,20 +257,26 @@ def _render_processing_module(spec: TemplateSpec) -> str:
 def _render_sample_test(spec: TemplateSpec) -> str:
     skeleton_name = spec.name
     class_name = _identifier(skeleton_name.removesuffix("Template") + "Processing")
-    first_slot = spec.slots[0].name if spec.slots else None
-    assertion = (
-        f"    # TODO: call processing.{first_slot}(rde_paths) and assert its result.\n"
-        if first_slot is not None
-        else "    # TODO: assert the generated processing behavior.\n"
-    )
     return (
         '"""Sample tests for the generated processing template."""\n\n'
         "from processing import "
         f"{class_name}\n\n\n"
         "def test_generated_processing(rde_paths, rde_out, rde_config, rde_invoice) -> None:\n"
         f"    processing = {class_name}()\n"
-        f"{assertion}"
+        "    # TODO: build domain fixtures matching the slot signatures and assert results.\n"
         "    assert processing is not None\n"
+    )
+
+
+def _render_main(spec: TemplateSpec) -> str:
+    class_name = _identifier(spec.name.removesuffix("Template") + "Processing")
+    return (
+        '\"\"\"Run the generated ProcessingTemplate after implementing its slots.\"\"\"\n\n'
+        "from rdetoolkit import workflows\n"
+        f"from processing import {class_name}\n\n"
+        'if __name__ == "__main__":\n'
+        f"    report = workflows.run(flow={class_name})\n"
+        '    raise SystemExit(report.exit_code)\n'
     )
 
 
@@ -258,7 +300,8 @@ def generate_processing_template(
     spec = _find_template(name)
     processing_path = output_dir / "processing.py"
     test_path = output_dir / "tests" / "test_processing.py"
-    existing_paths = [path for path in (processing_path, test_path) if path.exists()]
+    main_path = output_dir / "main.py"
+    existing_paths = [path for path in (processing_path, test_path, main_path) if path.exists()]
     if existing_paths and not force:
         rendered_paths = ", ".join(str(path) for path in existing_paths)
         _emit_usage_error(
@@ -269,5 +312,7 @@ def generate_processing_template(
     test_path.parent.mkdir(parents=True, exist_ok=True)
     processing_path.write_text(_render_processing_module(spec), encoding="utf-8")
     test_path.write_text(_render_sample_test(spec), encoding="utf-8")
+    main_path.write_text(_render_main(spec), encoding="utf-8")
     typer.echo(f"Generated {processing_path}")
     typer.echo(f"Generated {test_path}")
+    typer.echo(f"Generated {main_path}")

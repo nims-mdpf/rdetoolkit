@@ -83,8 +83,69 @@ exactly as in ordinary Python. Split work into functions with the node decorator
 only when you want to reuse it. Use the builtin nodes in `rdetoolkit.nodes` for
 saving.
 
+For measured metadata, use the public `build_meta(values, metadef_path)` node,
+then `save_meta(metadata, out)`. The definition controls filtering, type
+conversion, key order, units (including `$Key` references), and variable rows.
+Use `repeated={key: values}` for repeated columns; scalar values for variable
+definitions become one row. `Metadata.units` holds constant units and
+`Metadata.variable` holds rows of value/unit cells. `parse_invoice_meta` applies
+the same rules to the invoice's nested `custom` section. User flows do not need
+`rde2util.Meta` or a v1 object adapter.
+
+For file and image artifacts, `read_excel` accepts worksheet, header, row and
+column selections; `save_csv` accepts precision, header and index options.
+`save_json` and `save_text` accept an output `kind`. Use `read_json` for detected
+encoding, `save_invoice` for the tile invoice formatting contract, and
+`save_figure` for caller-owned matplotlib figures. `plot_lines` accepts x/y
+columns or independent pairs, labels, title, scale, legend, size, DPI and kind.
+
+`unzip_inputs` returns absolute paths to extracted files in archive order.
+Directory entries and unsafe destinations are excluded; repeated archive members
+produce repeated paths. Existing containment checks, including outward symlinks,
+still apply. Callers that ignored the old return value can keep doing so.
+
 ## Runtime changes
 
+In a production `main.py`, opt into nonzero exits for failed or partial runs.
+The run report, `job.failed` on failure, and completed artifacts are finalized
+before exit. A success returns normally; failed exits with 1 and partial with 2.
+The default library call still returns a `RunReport` for inspection. Its public
+`exit_code` property uses the same mapping as the CLI and can also be passed to
+`SystemExit`; it is derived and adds no JSON field or schema version.
+
+<!-- test: ga572-main -->
+```python
+from rdetoolkit import workflows
+from processing import pipeline
+
+workflows.run(flow=pipeline, exit_on_failure=True)
+```
+
+Template discovery imports skeleton providers declared in root Python modules
+and the conventional `modules/` package when `--module` is omitted; installed
+plugins remain discoverable. Use `--module` to select other provider modules.
+Template descriptions include slot documentation and domain annotations while
+omitting standard library types. Processing-template init generates `main.py`,
+the implementation and a test skeleton; all three have overwrite protection.
+Slot signatures must still match exactly, including parameter names and kinds.
+Add optional hooks when evolving a published skeleton; adding a required slot
+requires updating its concrete implementations. The depth-2 and flow-boundary DI
+rules remain unchanged (Design §5.2).
+
+`migrate apply` preserves unsupported cross-module entries and helper files,
+and reports the callback requiring manual migration. Convert that callback and
+its entry together. Supported local callbacks preserve comments and literals;
+removal of the legacy entry is explicitly reported with the flow CLI invocation.
+
+- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
+  failures to one code and message through either v2 entry. Supplying only a
+  code preserves the original message; supplying only a message uses 3001.
+  Direct function calls still propagate the original exception. The original
+  exception remains chained in Runner failures; process-control exceptions
+  such as `KeyboardInterrupt` and `SystemExit` are not mapped.
+- `InputPaths` injected into a flow uses paths relative to the working directory,
+  like v1 input paths. Path-based user error messages therefore keep the v1
+  spelling. The Runner still resolves the data root once for its internal work.
 - The canonical v2 return value is `RunReport`. Start from `report.status` and
   `report.iterations`.
 - **On the flow entry point, `on_iteration_error` defaults to `continue`.** If you
@@ -163,6 +224,11 @@ v1.7, a deprecated alias of `smarttable_rawfile`.
 
 ### Intentional differences (cases where v2's result differs from v1)
 
+A header-only Excel invoice is rejected before tile execution. The compatibility
+callback entry preserves v1's generic failure (999); the flow entry reports
+the input validation error `EmptyExcelInvoice` (4004), with guidance to add data
+rows. A workbook missing its invoice sheet keeps its existing error contract.
+
 | Case | v1 | v2 |
 |---|---|---|
 | The callback raises `StructuredError(msg, ecode)` | `ecode` and `msg` in `job.failed` | Same |
@@ -173,7 +239,7 @@ v1.7, a deprecated alias of `smarttable_rawfile`.
 | Configuration discovery (`config=None`) | Loaded from `data/tasksupport` | Same. An invalid configuration file is `ErrorCode=999`, as in v1 |
 | Location of `rdesys_<timestamp>.log` | `data/logs` | Same for the standard layout |
 | SIGTERM during a run | The process simply dies; no `job.failed`, no record | `job.failed` with `ErrorCode=3004` (`RunInterrupted`), a `RunReport` is written, and the artifacts of completed tiles are kept. The public entry point exits with 1 |
-| Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The Python API `run()` behaves as in v1 (`SystemExit(1)` on failure) |
+| Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
 
 ### Rollback

@@ -200,8 +200,9 @@ class TestInputPathsRawField:
             "raw",
             "rawfiles",
             "smarttable_rawfile",
+            "invoice_org",
         ], (
-            f"InputPaths must have exactly 6 fields in append-only order, got "
+            f"InputPaths must have exactly 7 fields in append-only order, got "
             f"{len(dataclasses.fields(InputPaths))}: {field_names}"
         )
         # Omitting raw/rawfiles must work (defaults: None / ())
@@ -213,6 +214,7 @@ class TestInputPathsRawField:
         assert paths.raw is None
         assert paths.rawfiles == ()
         assert paths.smarttable_rawfile is None
+        assert paths.invoice_org is None
 
     def test_input_paths_raw_accepts_path_value__tc_types_008(self) -> None:
         """TC-TYPES-008: InputPaths.raw can be set to a Path (non-None)."""

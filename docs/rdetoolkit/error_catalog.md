@@ -33,6 +33,7 @@ Authority: `local/develop/v2/Design.md` §9.
 | 4001 | InvoiceSchemaInvalid | Invoice schema validation failed: {reason} | Fix invoice.schema.json (or the generated invoice.json) so it validates; the reported reason names the failing keyword and path. |
 | 4002 | MetadataDefinitionInvalid | Metadata definition validation failed: {reason} | Fix metadata-def.json to satisfy the metadata definition schema; the reported reason names the offending field. |
 | 4003 | RequiredArtifactMissing | Required output artifact is missing: {path} | Ensure the flow writes the artifact before finalize (use the save nodes in rdetoolkit.nodes); check that the reported path is produced in the expected output directory. |
+| 4004 | EmptyExcelInvoice | The Excel invoice has no data rows. | Add at least one data row to the Excel invoice, then rerun. |
 | 5001 | InternalInvariantViolation | Internal rdetoolkit invariant failed: {reason} | This is a bug in rdetoolkit, not in user code. Please report it together with the run report and the stack trace. |
 
 ## Warnings

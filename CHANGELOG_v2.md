@@ -2,6 +2,56 @@
 
 ## Unreleased
 
+### Fixed
+
+- Python flow entries can opt into finalized process exits with
+  `run(flow=..., exit_on_failure=True)` (failed 1, partial 2). The public
+  `RunReport.exit_code` shares the CLI mapping without changing JSON schemas,
+  and generated template entries use it. Default report returns and the v1
+  traceback/exit contract remain unchanged (#572).
+- Template diagnostics show expected and actual slot signatures; project root
+  and `modules/` skeletons are discoverable without `--module`. Descriptions
+  include documentation and domain types, and init wires a guarded main entry (#579).
+- Unsupported cross-module migration entries and unrelated helpers remain
+  byte-identical with an explicit manual diagnostic. Supported callback edits
+  preserve comments, encoding semantics and neighboring main-guard logic (#562).
+- `migrate apply .` and the omitted path derive their external destination from
+  the resolved source directory, retaining dry-run and overwrite protections (#561).
+- Legacy tasksupport `custom` values are normalized into the same flat namespace
+  as explicit configuration, without warning about the supported section (#566).
+- Unrelated project TOML files no longer shadow tasksupport configuration;
+  an explicitly present empty `[tool.rdetoolkit]` table still takes priority (#565).
+- Both shipped agent guides document the v2 public entry, reserved types,
+  builtin nodes, ProcessingTemplate, testing and migration behavior, with an
+  executed flow example and the v1 frozen compatibility entry retained (#580).
+- Builtin nodes expose Excel/CSV/plot options and output kinds, and add
+  `read_json`, `save_text`, `save_invoice` and `save_figure`. Text decoding uses
+  the v1 encoding preference. `unzip_inputs` returns extracted file paths in
+  archive order, excluding directories and unsafe members (#576).
+- `@flow(error_code=..., error_message=...)` declares a Runner-only body failure
+  policy, with partial declarations supported and direct calls unchanged.
+  SIGTERM retains the Runner's 3004 interruption and stops further tiles (#577).
+- Header-only Excel invoices fail during input iteration: the v1 callback entry
+  retains 999 and its generic message; v2 flows report the input-specific
+  `EmptyExcelInvoice` validation error, 4004 (#568).
+- Flow input paths are relative to cwd, preserving v1 path spellings in
+  user-generated `job.failed` messages without changing internal root resolution (#567).
+- The public `build_meta` node constructs typed metadata from metadata-def.json,
+  including filtering, definition order, referenced units and repeated values.
+  `parse_invoice_meta` uses the same conversion and serialization rules (#575).
+- `Metadata.units`, `Metadata.variable` and `Metadata.set(..., unit=...)` retain
+  constant units and repeated cells when `save_meta` writes metadata.json (#563).
+- `rde2util.Meta.assign_vals` excludes `None` values before conversion and unit
+  reference registration, as documented. This fix also applies to the 1.7 line (#570).
+- The injected `InvoiceData.mode` reflects the resolved mode on every tile (#574).
+- Flows receive the planner's mode-dependent run-level invoice source as
+  `InputPaths.invoice_org`, shared by every tile (#569).
+- `InvoiceData.get_custom_fields()` reads the invoice's nested `custom` object.
+  `testing.make_invoice` places bare measurement overrides in that object while
+  continuing to accept explicit invoice sections (#564).
+- StructuredError messages are converted to strings before aggregation, preserving
+  user error codes and messages in reports and `job.failed` on both entries (#571).
+
 ### Session RC1-INT-CORE (rc1 review: runtime)
 
 #### Fixed
@@ -24,6 +74,7 @@
   Previously every parametrized annotation was accepted. `Literal`, `TypeVar`, `NewType`, and Protocols that are not runtime-checkable are still accepted unchecked. With `type_check: off` nothing is resolved or checked, as before.
 - A node whose return value fails `type_check: strict` is recorded as a failed call before 3002 is raised, so the report error carries the node's real `call_id` (not `unknown`) and a node-failure event is emitted. A node whose arguments fail the check is still not recorded, because its body never ran.
 - W1001 (mode overridden by file detection) is emitted only when the configuration sets `extended_mode` explicitly. Before this fix, the config loader marked the default mode as explicit, so a run without a config file, or with a v1 `Config()` that never set the mode, warned on every SmartTable or ExcelInvoice input. The resolved mode is unchanged.
+
 
 ### Session RC1-INT-CLI (rc1 review: CLI)
 

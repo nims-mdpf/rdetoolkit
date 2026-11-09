@@ -209,9 +209,10 @@ class TestFlowDispatch:
 
         # Then: flow-boundary DI exposes the real input directory and raw file
         assert len(received) == 1
-        assert received[0].inputdata == tmp_path / "data" / "inputdata"
+        assert received[0].inputdata == Path("data/inputdata")
+        assert received[0].inputdata.resolve() == tmp_path / "data" / "inputdata"
         assert received[0].inputdata.is_dir()
-        assert received[0].rawfiles == (tmp_path / "data" / "inputdata" / "test_single.txt",)
+        assert received[0].rawfiles == (Path("data/inputdata/test_single.txt"),)
 
     def test_run_flow_propagates_v2_config_overrides__tc_d2r_f2(
         self,
