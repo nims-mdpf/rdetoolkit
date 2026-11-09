@@ -6,6 +6,7 @@ EP table:
 | --- | --- | --- | --- |
 | repository guard | unchanged session delta | suite completes | TC-H0-GUARD-EP-001 |
 | repository guard | changed tracked or new untracked path | teardown fails with remediation | TC-H0-GUARD-EP-002 |
+| sys.path guard | in-process CLI prepends its working directory | entry removed after the test | TC-RC1-F02-GUARD-EP-001 |
 
 BV table:
 
@@ -18,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
+import sys
 import warnings
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -127,3 +129,17 @@ def guard_repository_tree_delta() -> Iterator[None]:
     changed_tracked = _changed_tracked(before, after)
     new_untracked = sorted(after.untracked - before.untracked)
     assert not changed_tracked and not new_untracked, f"Repository pollution detected after the v2 test session: tracked changes={changed_tracked}, new untracked={new_untracked}. {_REMEDIATION}"
+
+
+@pytest.fixture(autouse=True)
+def restore_sys_path() -> Iterator[None]:
+    """Undo ``sys.path`` growth caused by in-process CLI invocations.
+
+    CLI commands that import a user-named module put the working directory at
+    the front of ``sys.path`` (``python -m`` semantics, review F02). Under
+    ``CliRunner`` that is the test process itself, so each ``tmp_path`` a test
+    ``chdir``s into would otherwise stay importable for every later test.
+    """
+    saved = list(sys.path)
+    yield
+    sys.path[:] = saved

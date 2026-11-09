@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import inspect
 import types
 import typing
@@ -15,13 +16,29 @@ from rdetoolkit.core.calllog import type_name_of
 class TemplateParameterSpec:
     """Serializable declaration of one template method parameter.
 
+    ``kind``, ``default`` and ``default_literal`` were added after the first
+    release with defaults, so two-field construction and JSON consumers that
+    ignore unknown keys keep working.
+
     Attributes:
         name: Parameter name from the skeleton declaration.
         type_name: Shallow, human-readable annotation.
+        kind: ``inspect.Parameter.kind`` name in lowercase
+            (``"positional_only"``, ``"positional_or_keyword"``,
+            ``"var_positional"``, ``"keyword_only"``, ``"var_keyword"``).
+        default: ``repr`` of the declared default, or ``None`` when the
+            parameter has no default (a default of ``None`` is ``"None"``).
+        default_literal: Whether ``default`` is source text that evaluates
+            back to an equal value of the same type. When ``False`` with a
+            default present, the text is informational only and generated
+            code must take the object from the skeleton's own signature.
     """
 
     name: str
     type_name: str
+    kind: str = "positional_or_keyword"
+    default: str | None = None
+    default_literal: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,6 +133,40 @@ def _annotation_arg_name(arg: Any) -> str:
     return _annotation_name(arg)
 
 
+def _is_literal_default(value: Any) -> bool:
+    """Return whether ``repr(value)`` is source text recreating ``value``.
+
+    The type must survive too: a ``str`` subclass with a plain string repr
+    would otherwise be silently replaced by a ``str`` in generated code. Any
+    failure -- an unparsable repr, or a comparison that raises -- means
+    "not literal", which only routes the default through the skeleton lookup.
+    """
+    try:
+        evaluated = ast.literal_eval(repr(value))
+        return type(evaluated) is type(value) and bool(evaluated == value)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _default_text(value: Any) -> str:
+    """Render a default for display; a raising ``__repr__`` must not break registration."""
+    try:
+        return repr(value)
+    except Exception:  # noqa: BLE001
+        return object.__repr__(value)
+
+
+def _parameter_spec(parameter: inspect.Parameter, hints: dict[str, Any]) -> TemplateParameterSpec:
+    has_default = parameter.default is not inspect.Parameter.empty
+    return TemplateParameterSpec(
+        name=parameter.name,
+        type_name=_annotation_name(hints.get(parameter.name, parameter.annotation)),
+        kind=parameter.kind.name.lower(),
+        default=_default_text(parameter.default) if has_default else None,
+        default_literal=has_default and _is_literal_default(parameter.default),
+    )
+
+
 def _method_spec(name: str, method: Any) -> TemplateMethodSpec:
     signature = inspect.signature(method)
     try:
@@ -123,10 +174,7 @@ def _method_spec(name: str, method: Any) -> TemplateMethodSpec:
     except Exception:  # noqa: BLE001
         hints = {}
     parameters = tuple(
-        TemplateParameterSpec(
-            name=parameter_name,
-            type_name=_annotation_name(hints.get(parameter_name, parameter.annotation)),
-        )
+        _parameter_spec(parameter, hints)
         for parameter_name, parameter in signature.parameters.items()
         if parameter_name != "self"
     )

@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal, cast
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, TypeSummary
 from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.core.injection import resolve_flow_kwargs
@@ -192,7 +193,11 @@ def _safe_repr_head(value: Any, *, enabled: bool, length: int) -> str | None:
         return None
     try:
         return repr(value)[:length]
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        # A repr that cannot be taken is "no repr"; the run interruption is
+        # the run being stopped and must reach the Runner (review rc1 F01).
+        if is_run_interrupted(exc):
+            raise
         return None
 
 

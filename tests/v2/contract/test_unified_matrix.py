@@ -1295,15 +1295,6 @@ def test_multidatatile_public_entry_sigterm_exits_1__tc_um_mdt_cb_entry_sigterm(
 #: Shared between the two entry points, so the node-identity comparison is real.
 _CB_OBS_NODE_ID = "tests.v2.contract.cb_obs_probe"
 
-#: Modes whose ``oracle_config`` declares no ``extended_mode`` while their input
-#: is detected as a non-invoice mode, so ``resolve_mode`` publishes W1001 once
-#: per run (Design §8.1 ``warning``). Listed here rather than derived from the
-#: run, so the canonical event sequence stays an expectation independent of the
-#: subject under test. Both entry points share the resolution step, so the value
-#: is the same on both sides by construction.
-_CB_OBS_MODE_OVERRIDE_MODES = frozenset({"excelinvoice", "smarttable"})
-
-
 @node(id=_CB_OBS_NODE_ID)
 def _cb_obs_probe(label: str) -> str:
     """The one recorded unit of work both CB-OBS entry points perform."""
@@ -1338,15 +1329,36 @@ def _run_cb_obs(mode: str, root: Path, target: Any, monkeypatch: pytest.MonkeyPa
     )
 
 
-def _cb_obs_cli_views(root: Path, report_path: Path) -> tuple[str, str, set[str]]:
-    """Return the ``graph`` / ``report show`` output and the repro archive listing."""
+def _cb_obs_cli_views(mode: str, root: Path, report_path: Path) -> tuple[str, str, set[str]]:
+    """Return the ``graph`` / ``report show`` output and the repro archive listing.
+
+    Both entries run with the in-memory ``oracle_config(mode)``, an override no
+    file reproduces. Column 12 (amended 2026-11-09, RC1 F09): a plain
+    ``repro export`` must refuse such a run with exit 3 -- rc1 "succeeded" and
+    archived the wrong, discovered config -- and ``export --config`` with the
+    override's YAML must then succeed, identically on both entries.
+    """
+    # Imported here so this column's change stays inside its own helper.
+    import yaml  # noqa: PLC0415
+
+    from rdetoolkit.config.normalize import ConfigNormalizer  # noqa: PLC0415
+
     cli = CliRunner()
     graph = cli.invoke(app, ["graph", str(report_path), "--format", "json"])
     assert graph.exit_code == 0, graph.output
     show = cli.invoke(app, ["report", "show", str(report_path)])
     assert show.exit_code == 0, show.output
     archive = root / "repro.zip"
-    export = cli.invoke(app, ["repro", "export", str(report_path), "--output", str(archive)])
+    refused = cli.invoke(app, ["repro", "export", str(report_path), "--output", str(archive)])
+    assert refused.exit_code == 3, refused.output
+    assert "cannot be recovered from files" in refused.output
+    assert "repro export --config" in refused.output
+    assert not archive.exists()
+    # A v1 ``Config`` source is normalized with origin "v1" on both entries.
+    override = root / "override.yaml"
+    effective = ConfigNormalizer().normalize(_generate.oracle_config(mode), root=root, origin="v1")
+    override.write_text(yaml.safe_dump(effective.model_dump(mode="json")), encoding="utf-8")
+    export = cli.invoke(app, ["repro", "export", str(report_path), "--output", str(archive), "--config", str(override)])
     assert export.exit_code == 0, export.output
     return graph.output, show.output, archive_listing(archive, report_name=report_path.name)
 
@@ -1382,10 +1394,13 @@ def test_callback_observability_matches_the_flow_entry(
     flow_logs = flow_root / "data" / "logs"
     cb_names = event_names(cb_logs, cb_report.run_id)
     assert cb_names == event_names(flow_logs, flow_report.run_id)
-    assert cb_names == expected_event_names(
-        tiles=tiles,
-        run_warnings=1 if mode in _CB_OBS_MODE_OVERRIDE_MODES else 0,
-    )
+    # Design §6.2 (operator ruling 2026-11-09, C02): ``oracle_config`` is a v1
+    # ``Config`` that never sets ``extended_mode`` for ExcelInvoice / SmartTable,
+    # so the mode is implicit and file detection publishes no W1001 -- the run
+    # carries no ``warning`` event. (The former expectation of one W1001 for
+    # those two cells pinned the false warning.)
+    assert cb_names == expected_event_names(tiles=tiles)
+    assert cb_names.count("warning") == 0
 
     # And: the node events name the same node, in the same order, on both sides
     cb_node_events = node_event_ids(cb_logs, cb_report.run_id)
@@ -1412,8 +1427,8 @@ def test_callback_observability_matches_the_flow_entry(
     # Then (column 12): both runs are equally consumable by the CLI
     cb_report_path = run_report_path(cb_root / "data", cb_report.run_id)
     flow_report_path = run_report_path(flow_root / "data", flow_report.run_id)
-    cb_graph, cb_show, cb_archive = _cb_obs_cli_views(cb_root, cb_report_path)
-    flow_graph, flow_show, flow_archive = _cb_obs_cli_views(flow_root, flow_report_path)
+    cb_graph, cb_show, cb_archive = _cb_obs_cli_views(mode, cb_root, cb_report_path)
+    flow_graph, flow_show, flow_archive = _cb_obs_cli_views(mode, flow_root, flow_report_path)
     assert cb_archive == flow_archive
     assert "data/logs/<RUN_REPORT>" in cb_archive
 

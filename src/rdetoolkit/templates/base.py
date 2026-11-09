@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import inspect
+import sys
+import types
 import typing
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeGuard, TypeVar, cast
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.node import node
 from rdetoolkit.errors import ERROR_CATALOG, RdeRegistryError
 from rdetoolkit.templates import registry
@@ -74,7 +77,11 @@ def _resolved_hints(fn: Callable[..., Any]) -> dict[str, Any]:
     """
     try:
         return typing.get_type_hints(fn, include_extras=False)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        # Unresolvable annotations mean "no hints"; the run interruption
+        # does not (review rc1 F01).
+        if is_run_interrupted(exc):
+            raise
         return {}
 
 
@@ -117,17 +124,49 @@ def _validate_concrete_class(cls: type[Any], skeleton: type[Any]) -> None:
         raise _template_error(2105, class_name=cls.__name__) from exc
 
 
+def _bound_to_class(implementation: Callable[..., Any], cls: type[Any]) -> Callable[..., Any]:
+    """Return a per-class copy of ``implementation`` whose ``self`` is ``cls``.
+
+    An inherited hook is the skeleton's own function object, shared by every
+    concrete sibling. Writing ``self: FirstSibling`` into it (as this module
+    once did) made the next sibling fail strict type checking with 3002 and
+    gave its NodeSpec the wrong class (review rc1 F04). A copy sharing code,
+    globals, defaults and closure behaves identically while each class owns
+    its annotations; the user's own function objects are never written to
+    either. An explicit ``self`` annotation is kept as declared.
+
+    Callables that are not Python functions (a builtin exposed through
+    ``staticmethod``) cannot be copied this way and are returned unchanged:
+    they carry no ``self`` annotation to specialize.
+    """
+    if not isinstance(implementation, types.FunctionType):
+        return implementation
+    copy = types.FunctionType(
+        implementation.__code__,
+        implementation.__globals__,
+        implementation.__name__,
+        implementation.__defaults__,
+        implementation.__closure__,
+    )
+    copy.__kwdefaults__ = None if implementation.__kwdefaults__ is None else dict(implementation.__kwdefaults__)
+    copy.__qualname__ = implementation.__qualname__
+    copy.__module__ = implementation.__module__
+    copy.__doc__ = implementation.__doc__
+    copy.__dict__.update(implementation.__dict__)
+    if sys.version_info >= (3, 12):
+        copy.__type_params__ = implementation.__type_params__
+    copy.__annotations__ = {"self": cls, **implementation.__annotations__}
+    return copy
+
+
 def _register_implementations(cls: type[Any], skeleton: type[Any]) -> None:
     member_names = set(_declared_slots(skeleton)) | _declared_hooks(skeleton)
     for method_name in member_names:
         implementation = vars(cls).get(method_name, getattr(skeleton, method_name, None))
         if not callable(implementation):
             continue
-        annotations = dict(getattr(implementation, "__annotations__", {}))
-        annotations.setdefault("self", cls)
-        implementation.__annotations__ = annotations
         node_id = f"{cls.__module__}.{cls.__qualname__}.{method_name}"
-        wrapped = node(id=node_id, tags=["template"])(implementation)
+        wrapped = node(id=node_id, tags=["template"])(_bound_to_class(implementation, cls))
         setattr(cls, method_name, wrapped)
 
 

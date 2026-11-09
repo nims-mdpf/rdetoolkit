@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from functools import wraps
 from typing import Any, TypeVar, overload
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.calllog import get_active_recorder, type_name_of
 from rdetoolkit.core.registry import register_node
 
@@ -50,7 +51,11 @@ def _resolve_type_hints(func: Callable[..., Any]) -> dict[str, Any]:
     """
     try:
         return typing.get_type_hints(func, include_extras=False)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        # Unresolvable annotations mean "no hints"; the run interruption
+        # does not (review rc1 F01).
+        if is_run_interrupted(exc):
+            raise
         return {}
 
 

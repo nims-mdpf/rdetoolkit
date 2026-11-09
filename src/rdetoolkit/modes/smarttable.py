@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.invoice import load_invoice
 from rdetoolkit.domain.invoice_service import invoice_source_for
 from rdetoolkit.exceptions import StructuredError
@@ -229,6 +230,7 @@ class SmartTableInvoiceBuilder:
             StructuredError: If the row cannot be merged into an invoice, with
                 v1's message. Any other failure is wrapped exactly as v1's
                 processor wrapped it.
+            RdeExecutionError: The run interruption (3004), never wrapped.
         """
         try:
             return self._build(
@@ -242,6 +244,11 @@ class SmartTableInvoiceBuilder:
         except StructuredError:
             raise
         except Exception as exc:
+            # The run interruption (3004) is the run being stopped, not a row
+            # that cannot be merged: wrapping it made the tile an ordinary
+            # failure the continue policy skipped past (rc1 audit N1).
+            if is_run_interrupted(exc):
+                raise
             error_msg = f"Failed to initialize invoice from SmartTable: {str(exc)}"
             raise StructuredError(error_msg) from exc
 

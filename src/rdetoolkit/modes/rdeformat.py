@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.service_errors import execution_error
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.planner import create_common_tiles
@@ -135,6 +136,10 @@ def _copy_one(source: Path, destination: Path) -> None:
     try:
         shutil.copy(source, target)
     except Exception as exc:
+        # The run interruption keeps its own code; wrapping it as a copy
+        # failure reported 3001/3005 for a stopped run (rc1 audit N2).
+        if is_run_interrupted(exc):
+            raise
         message = f"Failed to copy {source} --> {target}"
         raise execution_error(_COPY_FAILED_CODE, message) from exc
 

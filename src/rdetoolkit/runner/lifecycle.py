@@ -12,6 +12,7 @@ from pathlib import Path
 from types import FrameType
 from typing import Any
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.api.request import (
     ExecutionTarget,
     FlowTarget,
@@ -407,6 +408,9 @@ class Runner:
         try:
             invoice_validate(invoice_path, schema_path)
         except Exception as exc:  # noqa: BLE001
+            # A stopped run is not an invalid invoice: keep 3004 (review rc1 F01).
+            if is_run_interrupted(exc):
+                raise
             raise _wrap_domain_validation_error(exc) from exc
 
     def iterate(
@@ -464,7 +468,7 @@ class Runner:
                 completed_count += 1
                 aggregator.record(result)
             except Exception as exc:  # noqa: BLE001
-                if _is_run_interrupted(exc):
+                if is_run_interrupted(exc):
                     raise
                 failed_count += 1
                 raise
@@ -523,6 +527,9 @@ class Runner:
                     metadata_path=paths.meta / "metadata.json",
                 )
             except Exception as exc:  # noqa: BLE001
+                # A stopped run is not an invalid tile: keep 3004 (review rc1 F01).
+                if is_run_interrupted(exc):
+                    raise
                 raise _wrap_domain_validation_error(exc) from exc
 
     def finalize(self, report: RunReport, config: RdeConfig) -> None:
@@ -630,10 +637,6 @@ def _raise_run_interrupted(signum: int, frame: FrameType | None) -> None:
     message = f"{error_def.message_template} Remediation: {error_def.remediation}"
     error_cls: Any = RdeExecutionError
     raise error_cls(code=_RUN_INTERRUPTED_CODE, name=error_def.name, message=message)
-
-
-def _is_run_interrupted(exc: Exception) -> bool:
-    return isinstance(exc, RdeExecutionError) and exc.code == _RUN_INTERRUPTED_CODE
 
 
 def _config_digest(config: RdeConfig) -> str:

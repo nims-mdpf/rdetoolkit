@@ -146,8 +146,14 @@ class ConfigNormalizer:
                 for key in _SYSTEM_KEYS
                 if key in system
             }
+            # v1 ``extended_mode=None`` means "no mode configured" (invoice
+            # by default). Leaving the key out lets ``RdeConfig`` default it to
+            # the same ``invoice`` while keeping it out of
+            # ``model_fields_set``: writing ``invoice`` here made every v1 job
+            # an explicit invoice configuration, so file detection published a
+            # false W1001 (review rc1 C02, Design §6.2).
             if converted_system.get("extended_mode") is None:
-                converted_system["extended_mode"] = "invoice"
+                converted_system.pop("extended_mode", None)
             result["system"] = converted_system
 
         smarttable = _mapping_section(data, "smarttable")

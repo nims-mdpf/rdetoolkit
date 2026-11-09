@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 from rdetoolkit import img2thumb
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.service_errors import execution_error
 from rdetoolkit.types import RdeConfig
 
@@ -68,6 +69,10 @@ class RawArtifactService:
                 elif source.is_dir():
                     shutil.copytree(source, target, dirs_exist_ok=True)
             except Exception as exc:
+                # The run interruption keeps its own code; wrapping it as a
+                # copy failure would report 3001 for a stopped run.
+                if is_run_interrupted(exc):
+                    raise
                 message = f"Failed to copy {source} --> {target}"
                 raise execution_error(3001, message) from exc
 
@@ -88,12 +93,19 @@ class ImageArtifactService:
             main_image_dir: Directory containing main images.
             thumbnail_dir: Thumbnail destination directory.
             config: Canonical run configuration.
+
+        Raises:
+            RdeExecutionError: The run interruption (3004). It is the run
+                being stopped, not a converter failure, so it is never
+                tolerated (review rc1 F01).
         """
         if not config.system.save_thumbnail_image:
             return
         try:
             img2thumb.copy_images_to_thumbnail(thumbnail_dir, main_image_dir)
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
+            if is_run_interrupted(exc):
+                raise
             return
 
 

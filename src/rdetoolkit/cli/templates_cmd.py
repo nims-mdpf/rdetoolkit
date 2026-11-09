@@ -13,7 +13,7 @@ import typer
 
 from rdetoolkit.cli._v2_common import load_modules
 from rdetoolkit.templates import registry
-from rdetoolkit.templates.registry import TemplateMethodSpec, TemplateSpec
+from rdetoolkit.templates.registry import TemplateMethodSpec, TemplateParameterSpec, TemplateSpec
 
 app = typer.Typer(help="Inspect registered ProcessingTemplate skeletons.")
 
@@ -123,11 +123,54 @@ def _annotation(type_name: str, imports: _Imports) -> str:
     return _DOTTED_NAME.sub(replace, type_name)
 
 
+_STAR_PREFIX = {"var_positional": "*", "var_keyword": "**"}
+_DEFAULT_HELPER = "_skeleton_default"
+
+
+def _needs_default_helper(parameter: TemplateParameterSpec) -> bool:
+    """Whether a default cannot be written as source and must come from the skeleton."""
+    return parameter.default is not None and not parameter.default_literal
+
+
+def _render_parameter(method_name: str, parameter: TemplateParameterSpec, imports: _Imports) -> str:
+    """Render one parameter with its star prefix, annotation and default.
+
+    A literal default is its ``repr``. Any other default (a module constant,
+    ``Path("x")``, NaN) is read back from the skeleton's own signature at
+    import time, so the generated class carries the identical object rather
+    than a ``...``/``None`` stand-in (review F07).
+    """
+    prefix = _STAR_PREFIX.get(parameter.kind, "")
+    text = f"{prefix}{parameter.name}: {_annotation(parameter.type_name, imports)}"
+    if parameter.default is None:
+        return text
+    if _needs_default_helper(parameter):
+        return f"{text} = {_DEFAULT_HELPER}({method_name!r}, {parameter.name!r})"
+    return f"{text} = {parameter.default}"
+
+
+def _render_parameters(method: TemplateMethodSpec, imports: _Imports) -> list[str]:
+    """Render parameters with the ``/`` and bare ``*`` markers their kinds imply.
+
+    ``_signatures_match`` compares names, kinds and annotations, so dropping a
+    marker turns a valid slot into a 2102 import failure (review F07).
+    """
+    items: list[str] = []
+    keyword_only_open = False
+    parameters = method.parameters
+    for index, parameter in enumerate(parameters):
+        if parameter.kind == "keyword_only" and not keyword_only_open:
+            items.append("*")
+        keyword_only_open = keyword_only_open or parameter.kind in {"var_positional", "keyword_only"}
+        items.append(_render_parameter(method.name, parameter, imports))
+        following = parameters[index + 1].kind if index + 1 < len(parameters) else None
+        if parameter.kind == "positional_only" and following != "positional_only":
+            items.append("/")
+    return items
+
+
 def _render_slot(method: TemplateMethodSpec, imports: _Imports) -> str:
-    parameters = ", ".join(
-        f"{parameter.name}: {_annotation(parameter.type_name, imports)}"
-        for parameter in method.parameters
-    )
+    parameters = ", ".join(_render_parameters(method, imports))
     separator = ", " if parameters else ""
     return_type = _annotation(method.return_type, imports)
     return (
@@ -145,15 +188,30 @@ def _render_imports(imports: _Imports) -> str:
     )
 
 
+def _render_default_helper(spec: TemplateSpec, skeleton_name: str, imports: _Imports) -> str:
+    """Render the import-time lookup of non-literal skeleton defaults, if any slot needs it."""
+    if not any(_needs_default_helper(parameter) for method in spec.slots for parameter in method.parameters):
+        return ""
+    imports.setdefault("inspect", set()).add("signature")
+    imports.setdefault("typing", set()).add("Any")
+    return (
+        f"def {_DEFAULT_HELPER}(slot: str, parameter: str) -> Any:\n"
+        '    """Return the skeleton\'s own default object for one slot parameter."""\n'
+        f"    return signature(getattr({skeleton_name}, slot)).parameters[parameter].default\n\n\n"
+    )
+
+
 def _render_processing_module(spec: TemplateSpec) -> str:
     module_name, _, skeleton_name = spec.id.rpartition(".")
     class_name = _identifier(skeleton_name.removesuffix("Template") + "Processing")
     imports: _Imports = {module_name: {skeleton_name}}
     methods = "\n".join(_render_slot(method, imports) for method in spec.slots)
+    helper = _render_default_helper(spec, skeleton_name, imports)
     return (
         '"""Generated ProcessingTemplate implementation."""\n\n'
         "from __future__ import annotations\n\n"
         f"{_render_imports(imports)}\n\n"
+        f"{helper}"
         f"class {class_name}({skeleton_name}):\n"
         '    """TODO: implement each required domain slot."""\n\n'
         f"{methods}"
