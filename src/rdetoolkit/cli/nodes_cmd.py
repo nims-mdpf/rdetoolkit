@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ast
-import importlib
 import inspect
 import json
 import textwrap
@@ -15,7 +14,7 @@ from typing import Annotated, Any, cast
 import typer
 import rdetoolkit.nodes  # noqa: F401  # Design v2.1 §5.1: builtin nodes must always appear in `nodes list`, no --module required
 
-from rdetoolkit.cli._v2_common import load_modules
+from rdetoolkit.cli._v2_common import import_project_module, load_modules
 from rdetoolkit.core import registry
 from rdetoolkit.core.injection import find_duplicate_reserved_annotations
 from rdetoolkit.core.node import NodeSpec
@@ -171,7 +170,7 @@ def _load_modules_for_lint(module_names: Sequence[str]) -> list[str]:
     messages: list[str] = []
     for module_name in module_names:
         try:
-            importlib.import_module(module_name)
+            import_project_module(module_name)
         except RdeRegistryError as exc:
             code = exc.code
             if not isinstance(code, int) or code not in {2101, 2102, 2103, 2104, 2105}:

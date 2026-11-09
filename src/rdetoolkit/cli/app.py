@@ -3,7 +3,6 @@
 # Avoid postponed evaluation so Typer can read Annotated metadata (minimum supported: Python 3.10).
 
 import hashlib
-import importlib
 import importlib.util
 import inspect
 import os
@@ -14,6 +13,8 @@ from types import ModuleType
 from typing import Annotated, cast
 
 import typer
+
+from rdetoolkit.cli._v2_common import import_project_module
 
 app = typer.Typer(
     name="rdetoolkit",
@@ -111,7 +112,7 @@ def _load_target_module(module_or_file: str) -> ModuleType:
         path = Path(module_or_file).expanduser()
         return _load_module_from_file(path)
     try:
-        return importlib.import_module(module_or_file)
+        return import_project_module(module_or_file)
     except Exception as exc:
         emsg = f"Failed to import module: {module_or_file}"
         raise typer.BadParameter(emsg) from exc
