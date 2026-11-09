@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Protocol
 
 from typing import TYPE_CHECKING
@@ -14,6 +17,34 @@ from rdetoolkit.types import RdeConfig
 
 if TYPE_CHECKING:
     from rdetoolkit.runner.planner import TileMaterial
+
+
+#: The failure list of the innermost active :func:`capture_target_failures`.
+#: A context variable rather than Runner state: the v1 entry needs the exception
+#: object of a failed tile, which ``TileExecutor`` normalizes into a JSON-ready
+#: record, and a ContextVar keeps concurrent in-process runs apart.
+_TARGET_FAILURES: ContextVar[list[Exception] | None] = ContextVar("rdetoolkit_target_failures", default=None)
+
+
+@contextmanager
+def capture_target_failures() -> Iterator[list[Exception]]:
+    """Hold the latest exception an invoked target raised while the context is active.
+
+    This is the seam the v1 entry (``workflows.run(custom_dataset_function=...)``)
+    uses to obtain the primary exception of a failed tile, so it can write the
+    stderr traceback v1.7.1 wrote. Execution is unaffected: every exception is
+    still re-raised to ``TileExecutor`` exactly as before.
+
+    Yields:
+        A list holding at most one exception: the most recent failure. Earlier
+        failures are dropped so their tracebacks are released.
+    """
+    failures: list[Exception] = []
+    token = _TARGET_FAILURES.set(failures)
+    try:
+        yield failures
+    finally:
+        _TARGET_FAILURES.reset(token)
 
 
 class TargetInvoker(Protocol):
@@ -146,11 +177,20 @@ class InvokerRegistry:
         Returns:
             Primary execution result produced by the selected invoker.
         """
-        return self.for_target(target).invoke(
-            target,
-            context,
-            event_sink=event_sink,
-            run_id=run_id,
-            config=config,
-            material=material,
-        )
+        try:
+            return self.for_target(target).invoke(
+                target,
+                context,
+                event_sink=event_sink,
+                run_id=run_id,
+                config=config,
+                material=material,
+            )
+        except Exception as exc:
+            failures = _TARGET_FAILURES.get()
+            if failures is not None:
+                # Keep only the latest failure: the v1 entry formats the last
+                # one, and holding every tile's traceback (frames, locals) for
+                # the whole run would keep large objects alive under continue.
+                failures[:] = [exc]
+            raise

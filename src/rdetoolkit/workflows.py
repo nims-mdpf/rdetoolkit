@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import sys
 import traceback
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -323,6 +324,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
     from rdetoolkit.config import load_config as load_v1_config
     from rdetoolkit.rdelogger import get_logger
+    from rdetoolkit.runner.invoker import capture_target_failures
     from rdetoolkit.runner.lifecycle import Runner
     from rdetoolkit.runner.paths import resolve_data_root
 
@@ -367,21 +369,90 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
             )
             get_logger(__name__).exception(str(error))
             sys.exit(1)
-    report = Runner(
-        root=root,
-        inputdata_path=data_root / "inputdata",
-        unpacked_dir_path=data_root / "temp",
-    ).run(
-        RunRequest(
+    with capture_target_failures() as failures:
+        report = Runner(
             root=root,
-            target=LegacyCallbackTarget(function=custom_dataset_function),
-            config_source=config_source,
-        ),
-    )
+            inputdata_path=data_root / "inputdata",
+            unpacked_dir_path=data_root / "temp",
+        ).run(
+            RunRequest(
+                root=root,
+                target=LegacyCallbackTarget(function=custom_dataset_function),
+                config_source=config_source,
+            ),
+        )
     if report.status == "failed":
+        failure = _v1_failure_exception(report.error, failures)
+        if failure is not None:
+            _write_v1_failure_traceback(failure, config_source)
         _best_effort_stderr(_CALLBACK_ENTRY_FAILURE_NOTICE)
         sys.exit(1)
     return report.to_legacy_statuses()
+
+
+def _v1_failure_exception(error: Mapping[str, Any] | None, failures: Sequence[Exception]) -> Exception | None:
+    """Return the exception v1.7.1 formatted on stderr for this failed run.
+
+    v1 formatted the exception that reached ``run()``: a ``StructuredError``
+    the callback raised, or else the ``StructuredError`` wrapper chained from
+    the callback's exception -- in both cases the error ``job.failed`` reports.
+    The unified Runner's counterpart of that wrapper is the tile failure the
+    invoker raised (``TileExecutionError``, ``__cause__`` = the callback's
+    exception), so the same rule picks between the cause and the wrapper.
+
+    A run error without ``call_id`` is not a tile failure (configuration,
+    pre/post validation): pairing it with a captured tile exception would show
+    a traceback for a failure ``job.failed`` does not report.
+
+    Args:
+        error: ``RunReport.error`` of the failed run.
+        failures: Exceptions captured from the target invoker, in order.
+
+    Returns:
+        The exception to format, or ``None`` when the run failed elsewhere.
+    """
+    if error is None or "call_id" not in error or not failures:
+        return None
+    failure = failures[-1]
+    if isinstance(failure.__cause__, StructuredError):
+        return failure.__cause__
+    return failure
+
+
+def _write_v1_failure_traceback(failure: Exception, config_source: Any) -> None:
+    """Write v1.7.1's stderr traceback for ``failure``, never raising.
+
+    The text comes from v1's own formatter, ``errors.handle_exception`` with
+    ``verbose=True`` -- the call ``handle_and_exit_on_structured_error`` and
+    ``handle_generic_error`` made -- so ``Config.traceback`` (explicit, or read
+    from ``data/tasksupport`` by the v1 loader), then ``TRACE_*``, then the
+    plain python form decide the format exactly as in v1. A ``StructuredError``
+    that already carries ``traceback_info`` is written verbatim, as v1 did.
+
+    The traceback is a diagnostic of a failure already decided: a formatter
+    defect or an unusable stderr must not change the exit code or
+    ``job.failed`` (the python form writes ``sys.stderr`` directly).
+
+    Args:
+        failure: Exception selected by :func:`_v1_failure_exception`.
+        config_source: The v1 entry's configuration source; only a v1
+            ``Config`` carries traceback settings.
+    """
+    from rdetoolkit.errors import handle_exception
+    from rdetoolkit.models.config import Config
+
+    v1_config = config_source if isinstance(config_source, Config) else None
+    with contextlib.suppress(Exception):
+        if isinstance(failure, StructuredError) and failure.traceback_info is not None:
+            _best_effort_stderr(failure.traceback_info + "\n")
+            return
+        # v1's formatter reads ``sys.exc_info()``, so it must run while the
+        # failure is being handled -- exactly where v1's ``except`` called it.
+        try:
+            raise failure
+        except Exception as shown:  # noqa: BLE001 -- re-raised only to be formatted
+            formatted = handle_exception(shown, verbose=True, config=v1_config)
+        _best_effort_stderr((formatted.traceback_info or "") + "\n")
 
 
 def run(  # pragma: no cover
