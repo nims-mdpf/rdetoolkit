@@ -29,6 +29,7 @@ class RunReport:
         warnings: Warning summaries.
         error: Optional terminal error summary.
         schema_version: RunReport schema version.
+        exit_code: Derived process exit code: 0 success, 1 failed, 2 partial.
     """
 
     run_id: str
@@ -42,6 +43,18 @@ class RunReport:
     warnings: list[dict[str, Any]]
     error: dict[str, Any] | None = None
     schema_version: str = RUN_REPORT_SCHEMA_VERSION
+
+    @property
+    def exit_code(self) -> int:
+        """Return the shared Python and CLI process status for this outcome.
+
+        The value is derived from ``status`` and is not part of the serialized
+        report schema. Unknown future statuses conservatively signal failure.
+
+        Returns:
+            0 for success, 2 for partial, and 1 for failed or unknown status.
+        """
+        return {"success": 0, "failed": 1, "partial": 2}.get(self.status, 1)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the report to a plain dict.

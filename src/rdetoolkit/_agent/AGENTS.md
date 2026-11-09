@@ -33,8 +33,9 @@ def pipeline(paths: InputPaths, out: OutputContext) -> None:
 
 Run `rdetoolkit run --flow modules.processing:pipeline` from the project root,
 or call `workflows.run(flow=pipeline)` after importing `rdetoolkit.workflows`.
-The Python flow entry returns a RunReport; check its status in scripts. The CLI
-returns 0 for success, 1 for failed, 2 for partial, and 3 for usage errors.
+For production main.py, use `workflows.run(flow=pipeline, exit_on_failure=True)`.
+The default library call returns RunReport; its public exit_code is 0 for success,
+1 for failed and 2 for partial. The CLI uses the same mapping and 3 for usage errors.
 
 ## Reserved types and output
 

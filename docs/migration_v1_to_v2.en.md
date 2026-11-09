@@ -106,6 +106,21 @@ still apply. Callers that ignored the old return value can keep doing so.
 
 ## Runtime changes
 
+In a production `main.py`, opt into nonzero exits for failed or partial runs.
+The run report, `job.failed` on failure, and completed artifacts are finalized
+before exit. A success returns normally; failed exits with 1 and partial with 2.
+The default library call still returns a `RunReport` for inspection. Its public
+`exit_code` property uses the same mapping as the CLI and can also be passed to
+`SystemExit`; it is derived and adds no JSON field or schema version.
+
+<!-- test: ga572-main -->
+```python
+from rdetoolkit import workflows
+from processing import pipeline
+
+workflows.run(flow=pipeline, exit_on_failure=True)
+```
+
 Template discovery imports skeleton providers declared in root Python modules
 and the conventional `modules/` package when `--module` is omitted; installed
 plugins remain discoverable. Use `--module` to select other provider modules.
@@ -224,7 +239,7 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 | Configuration discovery (`config=None`) | Loaded from `data/tasksupport` | Same. An invalid configuration file is `ErrorCode=999`, as in v1 |
 | Location of `rdesys_<timestamp>.log` | `data/logs` | Same for the standard layout |
 | SIGTERM during a run | The process simply dies; no `job.failed`, no record | `job.failed` with `ErrorCode=3004` (`RunInterrupted`), a `RunReport` is written, and the artifacts of completed tiles are kept. The public entry point exits with 1 |
-| Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The Python API `run()` behaves as in v1 (`SystemExit(1)` on failure) |
+| Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
 
 ### Rollback

@@ -1,6 +1,6 @@
 from collections.abc import Callable, Generator, Mapping, Sequence
 from pathlib import Path
-from typing import Any, overload
+from typing import Any, Literal, overload
 from rdetoolkit.config import load_config as load_config
 from rdetoolkit.core import DirectoryOps as DirectoryOps
 from rdetoolkit.exceptions import StructuredError as StructuredError
@@ -27,6 +27,7 @@ def run(
     flow: Callable[..., Any] | type[ProcessingTemplate],
     custom_dataset_function: None = None,
     config: RdeConfig | Mapping[str, Any] | None = None,
+    exit_on_failure: bool = False,
 ) -> RunReport: ...
 @overload
 def run(
@@ -34,4 +35,5 @@ def run(
     flow: None = None,
     custom_dataset_function: DatasetCallback | None = None,
     config: Config | None = None,
+    exit_on_failure: Literal[False] = False,
 ) -> str: ...

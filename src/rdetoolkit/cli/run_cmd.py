@@ -69,8 +69,15 @@ def resolve_flow(flow_ref: str) -> Callable[..., Any]:
 
 
 def determine_exit_code(report: RunReport) -> int:
-    """Map a run report status to the v2 CLI exit-code contract."""
-    return {"success": 0, "failed": 1, "partial": 2}.get(report.status, 1)
+    """Return the public run report's process exit status.
+
+    Args:
+        report: Finalized run result.
+
+    Returns:
+        0 for success, 2 for partial, and 1 for failed or unknown status.
+    """
+    return report.exit_code
 
 
 def legacy_exit_code(result: object) -> int:

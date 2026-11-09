@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Python flow entries can opt into finalized process exits with
+  `run(flow=..., exit_on_failure=True)` (failed 1, partial 2). The public
+  `RunReport.exit_code` shares the CLI mapping without changing JSON schemas,
+  and generated template entries use it. Default report returns and the v1
+  traceback/exit contract remain unchanged (#572).
 - Template diagnostics show expected and actual slot signatures; project root
   and `modules/` skeletons are discoverable without `--module`. Descriptions
   include documentation and domain types, and init wires a guarded main entry (#579).

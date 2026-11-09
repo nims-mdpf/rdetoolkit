@@ -18,9 +18,11 @@ Use `workflows.run(flow=pipeline)` from Python or
 `rdetoolkit run --flow modules.processing:pipeline` from the CLI. The Runner loads
 config, detects mode, validates inputs, iterates tiles, calls the flow once per
 tile, validates outputs, then writes job.failed and a RunReport. The Python flow
-entry returns that report; inspect status and choose a process exit status in
-main.py. The CLI owns exit codes: success 0, failed 1, partial 2, usage error 3.
-Do not assume returning a failed RunReport terminates a Python script.
+entry returns that report by default. In production main.py, use
+`workflows.run(flow=pipeline, exit_on_failure=True)` to exit after finalization
+with 1 for failed and 2 for partial. Alternatively use `raise SystemExit(report.exit_code)`.
+The public report.exit_code and CLI share success 0, failed 1 and partial 2;
+CLI usage errors use 3. The default programmatic call keeps returning its report.
 
 ## Executable v2 example
 

@@ -100,6 +100,20 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 
 ## 実行時の変更点
 
+本番の `main.py` では、失敗・一部失敗をプロセスの終了コードへ反映する指定を追加してください。
+RunReport、失敗時の `job.failed`、完了済み成果物を確定してから、失敗は1、一部失敗は2で終了します。
+成功時は通常どおり戻ります。ライブラリからの既定の呼び出しは RunReport を返す契約を維持します。
+公開の `report.exit_code` も CLI と同じ値を返すため、`SystemExit` に渡せます。
+この値は派生プロパティであり、JSON のフィールドやスキーマバージョンは増やしません。
+
+<!-- test: ga572-main -->
+```python
+from rdetoolkit import workflows
+from processing import pipeline
+
+workflows.run(flow=pipeline, exit_on_failure=True)
+```
+
 テンプレート探索では、`--module` を省略するとルートの Python モジュールと
 `modules/` パッケージ内の骨格宣言を読み込みます。インストール済みプラグインも探索します。
 別の場所の提供モジュールは `--module` で指定してください。
@@ -212,7 +226,7 @@ invoice シート自体がないブックについては既存のエラー契約
 | 設定ファイルの探索(`config=None`) | `data/tasksupport` から読み込み | 同じ。不正な設定ファイルは v1 と同じく `ErrorCode=999` |
 | `rdesys_<タイムスタンプ>.log` の場所 | `data/logs` | 標準構成では同じ |
 | 実行中の SIGTERM | プロセスが終了するだけで `job.failed` も記録も残らない | `job.failed` に `ErrorCode=3004`(`RunInterrupted`)、`RunReport` も書き出し、完了済みタイルの成果物は残ります。公開入口の終了コードは 1 |
-| `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python API の `run()` は v1 どおり(失敗で `SystemExit(1)`) |
+| `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python の v1 コールバック入口は失敗で `SystemExit(1)` を維持。flow 入口は `exit_on_failure=True` で失敗1・一部失敗2を反映し、同じ値を `RunReport.exit_code` でも公開 |
 | `multidata_tile.ignore_errors: true` で全タイルが失敗 | MultiDataTile のみ全件 `failed` の JSON を返し終了コード 0。他モードではフラグは無視され最初の失敗で停止 | v1 コールバック入口は全モードで v1 と同じ。flow 入口では全タイル失敗は `failed` となり `job.failed` を書きます |
 
 ### ロールバック

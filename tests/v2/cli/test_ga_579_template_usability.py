@@ -99,12 +99,12 @@ def test_init_generates_wired_main_and_usable_sample__ga579_bv_1(tmp_path: Path,
     def run(**kwargs: Any) -> Any:
         from types import SimpleNamespace
         called.append(kwargs["flow"])
-        return SimpleNamespace(status=status)
+        return SimpleNamespace(status=status, exit_code=exit_code)
 
     monkeypatch.setattr(workflows, "run", run)
     monkeypatch.delitem(sys.modules, "processing", raising=False)
     # When: executing the generated production entry
-    for status, exit_code in [("success", 0), ("failed", 1), ("partial", 1)]:
+    for status, exit_code in [("success", 0), ("failed", 1), ("partial", 2)]:
         with pytest.raises(SystemExit) as raised:
             runpy.run_path(str(tmp_path / "main.py"), run_name="__main__")
         # Then: the concrete template is selected and the result controls the exit

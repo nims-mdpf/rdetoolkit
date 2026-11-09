@@ -270,7 +270,7 @@ def _render_main(spec: TemplateSpec) -> str:
         f"from processing import {class_name}\n\n"
         'if __name__ == "__main__":\n'
         f"    report = workflows.run(flow={class_name})\n"
-        '    raise SystemExit(0 if report.status == "success" else 1)\n'
+        '    raise SystemExit(report.exit_code)\n'
     )
 
 

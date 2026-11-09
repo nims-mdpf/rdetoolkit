@@ -101,7 +101,9 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # Given: all fenced examples in the migration guide
     examples = _examples(doc)
     # When: comparing their stable marker names with this module's executed set
-    executed = {"legacy-source", "migration-commands", "as-node-bridge"}
+    # GA572's production entry is executed for all outcomes and both languages
+    # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
