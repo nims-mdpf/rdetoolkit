@@ -20,11 +20,13 @@ def _assignment_values(values: Mapping[str, Any], repeated: Mapping[str, Sequenc
     entries = dict(values)
     if repeated is not None:
         entries.update({key: list(column) for key, column in repeated.items()})
+    assignments = dict(entries)
     for key, definition in definitions.items():
         source = key if key in entries else definition.get("originalName", key)
-        if definition.get("variable") and source in entries:
-            entries[source] = _variable_values(entries[source])
-    return entries
+        if source in entries:
+            value = entries[source]
+            assignments[key] = _variable_values(value) if definition.get("variable") else value
+    return assignments
 
 
 def _build_metadata(values: Mapping[str, Any], metadef_path: Path, repeated: Mapping[str, Sequence[Any]] | None = None) -> Metadata:
