@@ -41,7 +41,7 @@ def _node_edits(lines: list[str], node: ast.Name | ast.arg | ast.FunctionDef, be
             return [(*_span(lines, original_name), node.id)]
     elif isinstance(node, ast.arg):
         original_arg = cast(ast.arg, before)
-        if original_arg.arg != node.arg:
+        if ast.dump(original_arg) != ast.dump(node):
             return [(*_span(lines, original_arg), ast.unparse(node))]
     else:
         original_function = cast(ast.FunctionDef, before)
