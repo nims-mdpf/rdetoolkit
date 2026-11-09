@@ -49,6 +49,19 @@
 - `rdetoolkit repro export` archives the effective configuration of the run as one v2 `rdeconfig.yaml`, so an imported archive re-runs with the same configuration and the same `config_digest`. The configuration may come from root YAML or `pyproject.toml`, data-root YAML, tasksupport files, or the v1 loader used by `run(custom_dataset_function=...)`. Before this fix, only `<data root>/../rdeconfig.yaml` was archived.
 - The builtin `unzip_inputs` node skips archive members whose destination resolves outside the extraction directory through an existing symlink, and logs a warning. Before this fix, such a member was written outside the directory.
 
+### Session RC1-INT-F03 (rc1 review: v1 traceback settings)
+
+#### Fixed
+
+- `run(custom_dataset_function=...)` honours the v1 traceback settings again. When a tile fails, stderr carries the traceback that 1.7.1 printed, written by the same v1 formatter.
+  - The settings come from, in order: `Config(traceback=TracebackSettings(...))`; else the `traceback` section of the v1 `rdeconfig.yaml`; else the `TRACE_*` environment variables; else the plain Python traceback.
+  - It honours the compact, python and duplex formats, as well as `include_locals`, `include_env` and `sensitive_patterns` masking.
+  - It is written between the existing "N iteration(s) failed" line and the final notice.
+  - For a callback that raises a plain exception, the outermost exception is the Runner's 3001 wrapper, matching `job.failed`; its cause is the callback's exception.
+  - `job.failed`, the exit status and the directory tree are unchanged.
+  - Not yet covered: a failure outside a tile, such as a configuration or validation error, prints no traceback.
+- The `traceback.*` configuration keys no longer emit a DeprecationWarning. Per the design, v2.0 emits none. The settings are used by the v1 entry point and are not part of the v2 `RdeConfig`.
+
 ## 2.0.0rc1 — 2026-10-19
 
 First release candidate of the unified runtime. The version number 2.0.0 is

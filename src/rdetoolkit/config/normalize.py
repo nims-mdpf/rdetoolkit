@@ -35,15 +35,6 @@ _SYSTEM_KEYS = (
     "save_invoice_to_structured",
     "feature_description",
 )
-_TRACEBACK_KEYS = (
-    "enabled",
-    "format",
-    "include_context",
-    "include_locals",
-    "include_env",
-    "max_locals_size",
-    "sensitive_patterns",
-)
 
 
 class ConfigNormalizer:
@@ -177,14 +168,11 @@ class ConfigNormalizer:
                 "continue" if multidata_tile["ignore_errors"] else "fail_fast"
             )
 
-        traceback = _mapping_section(data, "traceback")
-        for key in _TRACEBACK_KEYS:
-            if key in traceback:
-                warnings.warn(
-                    f"traceback.{key} is deprecated; use TRACE_* environment configuration instead.",
-                    DeprecationWarning,
-                    stacklevel=3,
-                )
+        # ``traceback.*`` is formatter configuration for the v1 entry's stderr
+        # traceback, not Runner configuration: it is carried out of band (the
+        # v1 ``Config`` reaches ``workflows._run_callback_entry`` unchanged) and
+        # deliberately dropped here, silently -- Design §11 rules out new
+        # DeprecationWarnings in v2.0 (operator ruling 2026-11-08, F03).
 
         custom: dict[str, Any] = {}
         for key, value in data.items():

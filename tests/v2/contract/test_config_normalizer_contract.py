@@ -11,7 +11,7 @@ EP table (``config_mapping.md`` §C):
 | six ``system`` artifact keys | same paths | mechanical | TC-EP-G2-201 |
 | ``smarttable.save_table_file`` | same path | mechanical | TC-EP-G2-201 |
 | ``multidata_tile.ignore_errors`` | ``execution.on_iteration_error`` | inverted mechanical | TC-EP-G2-202 |
-| each of seven ``traceback`` keys | discarded with deprecation warning | deprecated | TC-EP-G2-203 |
+| each of seven ``traceback`` keys | discarded without any warning (Design §11; carried out of band to the v1 entry) | v1-entry only | TC-EP-G2-203 |
 | unknown v1 top-level key | ``custom`` | warning-backed preservation | TC-EP-G2-204 |
 | unknown v2 top-level key | error 1002 | invalid | TC-EP-G2-205 |
 | v1 Config / dict / v1 YAML / v2 YAML | ``RdeConfig`` | accepted origins | TC-EP-G2-206..209 |
@@ -25,6 +25,7 @@ BV table:
 | ``extended_mode=None`` | ``invoice`` | TC-BV-G2-202 |
 """
 
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -140,23 +141,31 @@ def test_ignore_errors_is_inverted__tc_ep_g2_202(
         pytest.param("sensitive_patterns", ["TOKEN"], id="sensitive-patterns"),
     ],
 )
-def test_traceback_keys_warn_and_are_discarded__tc_ep_g2_203(
+def test_traceback_keys_are_discarded_without_warning__tc_ep_g2_203(
     tmp_path: Path,
     key: str,
     value: object,
 ) -> None:
-    """TC-EP-G2-203: Every legacy traceback key emits migration guidance."""
+    """TC-EP-G2-203: Every legacy traceback key is dropped from RdeConfig silently.
+
+    Design §11 overrides contracts.md §3.2 (operator ruling 2026-11-08): v2.0
+    emits no new DeprecationWarning, and the settings stay effective on the v1
+    entry, which formats its stderr traceback from the v1 ``Config`` itself.
+    """
     from rdetoolkit.config.normalize import ConfigNormalizer
 
     # Given: one of the seven legacy traceback settings
     source = {"traceback": {key: value}}
 
-    # When: normalizing the unsupported setting
-    with pytest.warns(DeprecationWarning, match=rf"traceback\.{key}.*TRACE_"):
+    # When: normalizing it with every warning promoted to an error
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         config = ConfigNormalizer().normalize(source, root=tmp_path, origin="v1")
 
-    # Then: traceback settings are not admitted to the strict v2 model
+    # Then: nothing warned, and traceback settings are neither admitted to the
+    # strict v2 model nor smuggled into ``custom``
     assert "traceback" not in config.model_dump()
+    assert config.custom == {}
 
 
 def test_unknown_v1_key_moves_to_custom_with_warning__tc_ep_g2_204(

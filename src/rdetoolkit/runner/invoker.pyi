@@ -1,3 +1,5 @@
+from contextlib import AbstractContextManager
+from contextvars import ContextVar
 from typing import Protocol
 
 from rdetoolkit.api.request import ExecutionTarget
@@ -6,6 +8,10 @@ from rdetoolkit.report.events import EventSink
 from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.planner import TileMaterial
 from rdetoolkit.types import RdeConfig
+
+_TARGET_FAILURES: ContextVar[list[Exception] | None]
+
+def capture_target_failures() -> AbstractContextManager[list[Exception]]: ...
 
 class TargetInvoker(Protocol):
     def invoke(
