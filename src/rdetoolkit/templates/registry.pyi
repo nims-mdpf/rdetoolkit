@@ -5,6 +5,9 @@ from typing import Any
 class TemplateParameterSpec:
     name: str
     type_name: str
+    kind: str = ...
+    default: str | None = ...
+    default_literal: bool = ...
 
 @dataclass(frozen=True, slots=True)
 class TemplateMethodSpec:

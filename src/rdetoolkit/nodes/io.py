@@ -10,8 +10,11 @@ import pandas as pd
 from charset_normalizer import detect
 
 from rdetoolkit.core.node import node
+from rdetoolkit.rdelogger import get_logger
 
 _UTF8_FLAG = 0x800
+
+logger = get_logger(__name__)
 
 
 def _detect_encoding(path: Path) -> str:
@@ -73,13 +76,25 @@ def unzip_inputs(src_zip: Path, dst_dir: Path) -> None:
     """Extract a ZIP archive while repairing Shift-JIS member names.
 
     Ported from ``rde2util.unzip_japanese_zip`` and its filename decoder.
+    Each member's destination is resolved -- symlinks already present in
+    ``dst_dir`` included -- and a member that would land outside ``dst_dir``
+    is skipped with a warning, the containment policy of
+    ``impl._zip_encoding.extract_zip_with_encoding``. Without it a member named
+    like a pre-existing outward link overwrote the file behind the link.
 
     Args:
         src_zip: ZIP archive to extract.
         dst_dir: Destination directory.
     """
+    base_dir = Path(dst_dir).resolve()
     with zipfile.ZipFile(Path(src_zip)) as archive:
         for member in archive.infolist():
             if not member.flag_bits & _UTF8_FLAG:
                 member.filename = member.filename.encode("cp437").decode("cp932")
-            archive.extract(member, Path(dst_dir))
+            destination = (base_dir / member.filename).resolve()
+            if destination != base_dir and base_dir not in destination.parents:
+                logger.warning(
+                    f"Skipping unsafe zip entry {member.filename!r}: path resolves outside {str(base_dir)!r}",
+                )
+                continue
+            archive.extract(member, base_dir)

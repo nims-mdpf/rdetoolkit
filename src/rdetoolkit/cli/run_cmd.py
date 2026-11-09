@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import inspect
 import json
 from collections.abc import Callable
@@ -14,6 +13,7 @@ import yaml
 
 from rdetoolkit import workflows
 from rdetoolkit.api.request import build_run_request
+from rdetoolkit.cli._v2_common import import_project_module
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.paths import resolve_data_root
@@ -52,7 +52,7 @@ def resolve_flow(flow_ref: str) -> Callable[..., Any]:
     if not separator or not module_name or not attribute_path or ":" in attribute_path:
         usage_error("--flow must use the form pkg.mod:callable")
     try:
-        value: Any = importlib.import_module(module_name)
+        value: Any = import_project_module(module_name)
         for attribute in attribute_path.split("."):
             value = getattr(value, attribute)
     except (ImportError, AttributeError) as exc:

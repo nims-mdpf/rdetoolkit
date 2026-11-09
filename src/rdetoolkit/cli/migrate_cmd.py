@@ -7,6 +7,7 @@ common handler base class. Review those findings manually.
 from __future__ import annotations
 
 import ast
+import dataclasses
 import shutil
 import sys
 import tokenize
@@ -15,6 +16,8 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+
+from rdetoolkit.types import InputPaths
 
 if sys.version_info >= (3, 11):
     from typing import Never
@@ -25,6 +28,26 @@ else:
 app = typer.Typer(help="Inspect Python source for v1 migration points.")
 _HANDLER_POSITIONAL_ARGUMENTS = 3
 _CALLBACK_POSITIONAL_ARGUMENTS = 2
+
+#: v1 ``RdeOutputResourcePath`` fields that ``OutputContext`` keeps by name.
+_OUTPUT_CONTEXT_ATTRIBUTES = frozenset(
+    {
+        "struct",
+        "meta",
+        "main_image",
+        "other_image",
+        "thumbnail",
+        "raw",
+        "logs",
+        "attachment",
+        "nonshared_raw",
+        "invoice",
+    },
+)
+#: v1 ``RdeOutputResourcePath`` fields that moved to ``InputPaths`` in v2.
+_OUTPUT_TO_INPUT_ATTRIBUTES = frozenset({"rawfiles", "smarttable_rawfile"})
+#: v1 ``RdeInputDirPaths`` attributes that ``InputPaths`` keeps by name.
+_INPUT_PATHS_ATTRIBUTES = frozenset(field.name for field in dataclasses.fields(InputPaths))
 
 
 @dataclass(frozen=True, slots=True)
@@ -155,6 +178,9 @@ def _convert_source(path: Path) -> str:
     ast.fix_missing_locations(converted)
     _insert_v2_imports(converted)
     text = ast.unparse(converted) + "\n"
+    # Prepended last-first so the header lists findings in source line order.
+    for reason in reversed(transformer.manual_steps):
+        text = _todo_source(text, reason)
     if _has_dynamic_dispatch(tree):
         text = _todo_source(text, "dynamic dispatch requires manual review")
     if not transformer.converted_callback:
@@ -199,32 +225,85 @@ def _insert_v2_imports(tree: ast.Module) -> None:
     tree.body[index:index] = imports
 
 
-class _RenameLegacyParams(ast.NodeTransformer):
-    def __init__(self, names: dict[str, str]) -> None:
-        self._names = names
+class _LegacyParamMapper(ast.NodeTransformer):
+    """Move v1 path-bundle attribute access onto the v2 bundle that owns it.
+
+    Renaming the parameters alone turned ``resource_paths.rawfiles`` into the
+    non-existent ``out.rawfiles`` and reported success (review F08). Mapped
+    attributes are rewritten; an attribute with no v2 home is left exactly as
+    written, and a bare use of a renamed parameter is renamed -- the callee now
+    receives a v2 object -- and both are recorded for a manual-migration TODO
+    (Design §10: unsupported constructs are marked, not silently converted).
+    """
+
+    def __init__(self, input_name: str, output_name: str) -> None:
+        self._input_name = input_name
+        self._output_name = output_name
+        self.findings: dict[tuple[int, str], str] = {}
+
+    def visit_Attribute(self, node: ast.Attribute) -> ast.AST:  # noqa: N802
+        owner = node.value
+        if not isinstance(owner, ast.Name) or owner.id not in {self._input_name, self._output_name}:
+            return self.generic_visit(node)
+        target = self._target_for(owner.id, node.attr)
+        original = f"{owner.id}.{node.attr}"
+        if target is None:
+            bundle = "InputPaths" if owner.id == self._input_name else "InputPaths/OutputContext"
+            self._record(node, original, f"{original} has no {bundle} equivalent and was left unconverted; migrate it manually")
+            return node
+        renamed = ast.copy_location(ast.Name(id=target, ctx=ast.Load()), owner)
+        return ast.copy_location(ast.Attribute(value=renamed, attr=node.attr, ctx=node.ctx), node)
 
     def visit_Name(self, node: ast.Name) -> ast.Name:  # noqa: N802
-        replacement = self._names.get(node.id)
-        return ast.copy_location(ast.Name(id=replacement, ctx=node.ctx), node) if replacement else node
+        if node.id == self._input_name:
+            return self._rename_bare(node, "paths", "InputPaths")
+        if node.id == self._output_name:
+            return self._rename_bare(node, "out", "OutputContext")
+        return node
+
+    def _target_for(self, owner: str, attribute: str) -> str | None:
+        if owner == self._input_name:
+            return "paths" if attribute in _INPUT_PATHS_ATTRIBUTES else None
+        if attribute in _OUTPUT_CONTEXT_ATTRIBUTES:
+            return "out"
+        return "paths" if attribute in _OUTPUT_TO_INPUT_ATTRIBUTES else None
+
+    def _rename_bare(self, node: ast.Name, replacement: str, bundle: str) -> ast.Name:
+        self._record(
+            node,
+            node.id,
+            f"{node.id} is now passed on as a v2 {bundle} (renamed to {replacement}); update the code that receives it",
+        )
+        return ast.copy_location(ast.Name(id=replacement, ctx=node.ctx), node)
+
+    def _record(self, node: ast.expr, name: str, reason: str) -> None:
+        self.findings.setdefault((node.lineno, name), f"line {node.lineno}: {reason}")
 
 
 class _ApplyTransformer(ast.NodeTransformer):
     def __init__(self, callback_names: set[str]) -> None:
         self._callback_names = callback_names
         self.converted_callback = False
+        self._findings: dict[tuple[int, str], str] = {}
+
+    @property
+    def manual_steps(self) -> list[str]:
+        """Manual-migration reasons for converted callbacks, in source line order."""
+        return [self._findings[key] for key in sorted(self._findings)]
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:  # noqa: N802
         if node.name not in self._callback_names or len(node.args.args) < _CALLBACK_POSITIONAL_ARGUMENTS:
             return self.generic_visit(node)
         first, second = node.args.args[:2]
-        replacements = {first.arg: "paths", second.arg: "out"}
+        mapper = _LegacyParamMapper(first.arg, second.arg)
         first.arg = "paths"
         first.annotation = ast.Name(id="InputPaths", ctx=ast.Load())
         second.arg = "out"
         second.annotation = ast.Name(id="OutputContext", ctx=ast.Load())
         node.name = "pipeline"
         node.decorator_list.insert(0, ast.Name(id="flow", ctx=ast.Load()))
-        node.body = [cast_node for item in node.body if (cast_node := _RenameLegacyParams(replacements).visit(item))]
+        node.body = [cast_node for item in node.body if (cast_node := mapper.visit(item))]
+        self._findings.update(mapper.findings)
         self.converted_callback = True
         return self.generic_visit(node)
 
