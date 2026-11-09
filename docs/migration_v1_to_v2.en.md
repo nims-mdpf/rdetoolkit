@@ -106,6 +106,11 @@ still apply. Callers that ignored the old return value can keep doing so.
 
 ## Runtime changes
 
+`migrate apply` preserves unsupported cross-module entries and helper files,
+and reports the callback requiring manual migration. Convert that callback and
+its entry together. Supported local callbacks preserve comments and literals;
+removal of the legacy entry is explicitly reported with the flow CLI invocation.
+
 - Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
   failures to one code and message through either v2 entry. Supplying only a
   code preserves the original message; supplying only a message uses 3001.

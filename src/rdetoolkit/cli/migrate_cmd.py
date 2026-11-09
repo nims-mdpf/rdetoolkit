@@ -7,6 +7,7 @@ common handler base class. Review those findings manually.
 from __future__ import annotations
 
 import ast
+import copy
 import dataclasses
 import shutil
 import sys
@@ -17,6 +18,7 @@ from typing import Annotated
 
 import typer
 
+from rdetoolkit.cli._migrate_source import _render_conversion
 from rdetoolkit.types import InputPaths
 
 if sys.version_info >= (3, 11):
@@ -106,7 +108,8 @@ def apply(
         _preview(path, destination, converted)
         return
     _write_conversion(path, destination, converted)
-    typer.echo(f"Converted {len(converted)} file(s) to {destination}")
+    count = sum(text is not None for _, text in converted)
+    typer.echo(f"Converted {count} of {len(converted)} file(s) to {destination}")
 
 
 def _python_files(path: Path) -> list[Path]:
@@ -134,30 +137,36 @@ def _validate_destination(source: Path, destination: Path) -> None:
 def _preview(
     source_root: Path,
     destination: Path,
-    converted: list[tuple[Path, str]],
+    converted: list[tuple[Path, str | None]],
 ) -> None:
     for source_path, text in converted:
         relative = source_path.relative_to(source_root) if source_root.is_dir() else Path(source_path.name)
         typer.echo(f"--- {source_path} -> {destination / relative} (dry-run) ---")
-        typer.echo(text)
+        typer.echo(text if text is not None else "Unchanged; see any manual-migration diagnostic above.")
 
 
 def _write_conversion(
     source_root: Path,
     destination: Path,
-    converted: list[tuple[Path, str]],
+    converted: list[tuple[Path, str | None]],
 ) -> None:
     if source_root.is_dir():
         shutil.copytree(source_root, destination)
         for source_path, text in converted:
+            if text is None:
+                continue
             target = destination / source_path.relative_to(source_root)
             target.write_text(text, encoding="utf-8")
         return
     destination.mkdir(parents=True)
-    (destination / source_root.name).write_text(converted[0][1], encoding="utf-8")
+    text = converted[0][1]
+    if text is None:
+        shutil.copy2(source_root, destination / source_root.name)
+    else:
+        (destination / source_root.name).write_text(text, encoding="utf-8")
 
 
-def _convert_source(path: Path) -> str:
+def _convert_source(path: Path) -> str | None:
     try:
         with tokenize.open(path) as source_file:
             source = source_file.read()
@@ -168,25 +177,70 @@ def _convert_source(path: Path) -> str:
             err=True,
         )
         return _todo_source("", f"source encoding could not be decoded: {exc}")
+    return _convert_text(path, source)
+
+
+def _convert_text(path: Path, source: str) -> str | None:
     try:
         tree = ast.parse(source, filename=str(path))
     except SyntaxError as exc:
         return _todo_source(source, f"unparseable source at line {exc.lineno or 0}")
+    if _callbacks_need_manual(tree):
+        _report_unconverted(path, tree)
+        return None
     callback_names = _callback_names(tree)
     transformer = _ApplyTransformer(callback_names)
-    converted = transformer.visit(tree)
+    converted = transformer.visit(copy.deepcopy(tree))
+    if not transformer.converted_callback:
+        _report_unconverted(path, tree)
+        return None
     _repair_empty_bodies(converted)
     ast.fix_missing_locations(converted)
     _insert_v2_imports(converted)
-    text = ast.unparse(converted) + "\n"
+    text = _render_conversion(source, tree, converted)
+    _report_removed_entries(path, tree)
     # Prepended last-first so the header lists findings in source line order.
     for reason in reversed(transformer.manual_steps):
         text = _todo_source(text, reason)
     if _has_dynamic_dispatch(tree):
         text = _todo_source(text, "dynamic dispatch requires manual review")
-    if not transformer.converted_callback:
-        text = _todo_source(text, "no custom_dataset_function callback could be converted")
     return text
+
+
+def _callback_values(tree: ast.AST) -> list[ast.expr]:
+    return [keyword.value for call in ast.walk(tree) if isinstance(call, ast.Call) for keyword in call.keywords if keyword.arg == "custom_dataset_function"]
+
+
+def _local_callback_names(tree: ast.AST) -> set[str]:
+    return {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and len(node.args.args) >= _CALLBACK_POSITIONAL_ARGUMENTS}
+
+
+def _callbacks_need_manual(tree: ast.AST) -> bool:
+    names = _local_callback_names(tree)
+    return any(not isinstance(value, ast.Name) or value.id not in names for value in _callback_values(tree))
+
+
+def _report_removed_entries(path: Path, tree: ast.AST) -> None:
+    for call in ast.walk(tree):
+        if isinstance(call, ast.Call) and _has_custom_dataset_keyword(call):
+            typer.echo(
+                f"{path}:{call.lineno}: removed legacy entry {ast.unparse(call)}. "
+                "Run the converted flow using rdetoolkit run --flow <module>:pipeline.",
+                err=True,
+            )
+
+
+def _report_unconverted(path: Path, tree: ast.AST) -> None:
+    for call in ast.walk(tree):
+        if not isinstance(call, ast.Call):
+            continue
+        for keyword in call.keywords:
+            if keyword.arg == "custom_dataset_function":
+                typer.echo(
+                    f"{path}:{call.lineno}: manual migration required for {ast.unparse(keyword.value)}; "
+                    "source and entry call left unchanged. Convert the callback to a flow and update this entry together.",
+                    err=True,
+                )
 
 
 def _callback_names(tree: ast.AST) -> set[str]:
@@ -309,7 +363,7 @@ class _ApplyTransformer(ast.NodeTransformer):
         return self.generic_visit(node)
 
     def visit_If(self, node: ast.If) -> ast.AST | None:  # noqa: N802
-        if _is_main_guard(node) and any(_has_custom_dataset_keyword(item) for item in ast.walk(node)):
+        if _is_main_guard(node) and not node.orelse and _only_legacy_entries(node.body):
             return None
         return self.generic_visit(node)
 
@@ -341,6 +395,10 @@ def _is_main_guard(node: ast.If) -> bool:
         and isinstance(node.test.left, ast.Name)
         and node.test.left.id == "__name__"
     )
+
+
+def _only_legacy_entries(statements: list[ast.stmt]) -> bool:
+    return all(isinstance(statement, ast.Expr) and _has_custom_dataset_keyword(statement.value) for statement in statements)
 
 
 def _has_custom_dataset_keyword(node: ast.AST) -> bool:

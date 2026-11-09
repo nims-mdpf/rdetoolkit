@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Unsupported cross-module migration entries and unrelated helpers remain
+  byte-identical with an explicit manual diagnostic. Supported callback edits
+  preserve comments, encoding semantics and neighboring main-guard logic (#562).
 - `migrate apply .` and the omitted path derive their external destination from
   the resolved source directory, retaining dry-run and overwrite protections (#561).
 - Legacy tasksupport `custom` values are normalized into the same flat namespace
