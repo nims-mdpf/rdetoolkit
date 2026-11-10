@@ -121,7 +121,8 @@ failed tile. Read report.status, iterations, warnings and error. Framework
 errors use the integer ERROR_CATALOG and its remediation. StructuredError(msg,
 code) preserves a user-supplied error code. @flow(error_code=7,
 error_message="Cannot process input") maps ordinary body failures through the
-Runner; direct calls still raise the original exception, and KeyboardInterrupt
+Runner, while a StructuredError raised in the body keeps its own code and
+message; direct calls still raise the original exception, and KeyboardInterrupt
 or SystemExit are not mapped. Empty Excel forms use input error 4004 on the flow
 entry; the compatibility callback entry retains 999. Input preparation before
 mode detection remains explicit code before run(); a flow prepare hook is not
