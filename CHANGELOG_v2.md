@@ -34,6 +34,10 @@
 - Header-only Excel invoices fail during input iteration: the v1 callback entry
   retains 999 and its generic message; v2 flows report the input-specific
   `EmptyExcelInvoice` validation error, 4004 (#568).
+- An Excel invoice without data rows is diagnosed before the
+  `invoice/invoice.json` pre-check. A blank form uploaded on its own, such as a
+  template whose rows hold only formulas evaluating to `""`, now reports
+  999 (v1 entry) / 4004 (flows) instead of 4003 RequiredArtifactMissing (#588).
 - Flow input paths are relative to cwd, preserving v1 path spellings in
   user-generated `job.failed` messages without changing internal root resolution (#567).
 - The public `build_meta` node constructs typed metadata from metadata-def.json,
