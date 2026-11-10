@@ -48,8 +48,7 @@ import pytest
 from typer.testing import CliRunner
 
 from rdetoolkit.cli.app import app
-from rdetoolkit.runner.config_loader import load_config
-from rdetoolkit.runner.lifecycle import _config_digest
+from rdetoolkit.runner.config_loader import compute_config_digest, load_config
 
 FIXTURE_MODULE = "tests.v2.cli.fixtures.run_flows"
 
@@ -191,7 +190,7 @@ class TestReproImport:
         (root / "data" / "tasksupport").mkdir()
         # The report carries the digest a run of this tree would record: export
         # refuses a digest the discoverable config cannot reproduce (RC1 F09).
-        digest = _config_digest(load_config(root, data_root=root / "data"))
+        digest = compute_config_digest(load_config(root, data_root=root / "data"))
         report_path = logs / "run_report_empty.json"
         report_path.write_text(json.dumps({**_VALID_REPORT_TEMPLATE, "config_digest": digest}), encoding="utf-8")
         archive_path = tmp_path / "empty.zip"

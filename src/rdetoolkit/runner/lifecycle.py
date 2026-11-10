@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import shutil
 import signal
 import time
@@ -38,6 +37,7 @@ from rdetoolkit.models.config import Config
 from rdetoolkit.report.events import Event, EventSink, FileEventSink, _best_effort_stderr
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
+from rdetoolkit.runner.config_loader import compute_config_digest
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
 from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
 from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
@@ -324,7 +324,7 @@ class Runner:
                 mode=mode.value,
                 started_at=_iso_timestamp(started),
                 duration_ms=(time.time() - started) * 1000.0,
-                config_digest=_config_digest(config),
+                config_digest=compute_config_digest(config),
                 iterations=[],
                 warnings=[],
                 error=None,
@@ -460,7 +460,7 @@ class Runner:
             run_id=self.run_id,
             flow_id=_target_flow_id(execution_target),
             mode=mode.value,
-            config_digest=_config_digest(config),
+            config_digest=compute_config_digest(config),
             logs_dir=self.data_root / "logs",
         )
         failed_count = 0
@@ -654,11 +654,6 @@ def _raise_run_interrupted(signum: int, frame: FrameType | None) -> None:
     raise error_cls(code=_RUN_INTERRUPTED_CODE, name=error_def.name, message=message)
 
 
-def _config_digest(config: RdeConfig) -> str:
-    encoded = config.model_dump_json().encode("utf-8")
-    return "sha256:" + hashlib.sha256(encoded).hexdigest()
-
-
 def _iso_timestamp(timestamp: float) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(timestamp))
 
@@ -753,7 +748,7 @@ def _failed_report(
         mode=mode.value if mode is not None else "unknown",
         started_at=_iso_timestamp(started),
         duration_ms=(time.time() - started) * 1000.0,
-        config_digest=_config_digest(config),
+        config_digest=compute_config_digest(config),
         iterations=[],
         warnings=[],
         error=_run_error(exc),

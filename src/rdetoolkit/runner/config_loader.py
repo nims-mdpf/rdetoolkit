@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -51,6 +53,32 @@ def load_config(
     if overrides:
         config_data = _deep_merge(config_data, dict(overrides))
     return normalizer.normalize(config_data, root=root, origin="v2")
+
+
+def compute_config_digest(config: RdeConfig) -> str:
+    """Return the digest that identifies an effective config by value.
+
+    The digest is sha256 over the config's JSON dump written canonically:
+    mapping keys sorted at every depth, compact separators, UTF-8. Two
+    configs holding the same values therefore share a digest however their
+    free-form mappings (such as ``custom``) were ordered, while list order and
+    JSON value types (``1`` vs ``1.0``) still count. ``RunReport.config_digest``
+    and ``repro export`` both use this function, so "same config" has one
+    definition.
+
+    Args:
+        config: Effective v2 configuration.
+
+    Returns:
+        ``"sha256:"`` followed by 64 lowercase hex digits.
+    """
+    canonical = json.dumps(
+        config.model_dump(mode="json"),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _deep_merge(base: Mapping[str, Any], overlay: Mapping[str, Any]) -> dict[str, Any]:

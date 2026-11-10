@@ -21,11 +21,7 @@ import yaml
 from rdetoolkit.cli.run_cmd import load_config_overrides
 from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.report.run_report import RunReport
-from rdetoolkit.runner.config_loader import load_config
-
-# The digest is the one ``RunReport.config_digest`` carries; importing the
-# Runner's private function keeps "same config" defined in exactly one place.
-from rdetoolkit.runner.lifecycle import _config_digest
+from rdetoolkit.runner.config_loader import compute_config_digest, load_config
 from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
 
@@ -112,7 +108,7 @@ def _effective_config(report: RunReport, data_root: Path, config_option: Path | 
     """Return the discovered config whose digest equals the report's, or exit 3."""
     overrides = load_config_overrides(config_option)
     for config in _config_candidates(data_root, overrides):
-        if _config_digest(config) == report.config_digest:
+        if compute_config_digest(config) == report.config_digest:
             return config
     if config_option is not None:
         _usage_error(
@@ -131,7 +127,7 @@ def _replays_to(text: str, digest: str) -> bool:
     with tempfile.TemporaryDirectory(prefix="rdetoolkit-repro-") as scratch:
         root = Path(scratch)
         (root / "rdeconfig.yaml").write_text(text, encoding="utf-8")
-        return _config_digest(load_config(root, data_root=root / "data")) == digest
+        return compute_config_digest(load_config(root, data_root=root / "data")) == digest
 
 
 def _config_yaml(config: RdeConfig, digest: str) -> str:
@@ -141,16 +137,15 @@ def _config_yaml(config: RdeConfig, digest: str) -> str:
     explicitly set. If that form ever fails to reload to the same digest, the
     full dump is used instead; the digest is the contract, not the form.
 
-    Keys keep their insertion order (``sort_keys=False``): ``config_digest``
-    hashes the dump as-is, so sorting a free-form mapping such as ``custom``
-    would make a valid config unreproducible.
+    Keys are sorted: ``config_digest`` is computed over key-sorted JSON, so key
+    order never affects whether the archived form replays.
     """
     dumps: tuple[Callable[[], dict[str, Any]], ...] = (
         lambda: config.model_dump(mode="json", exclude_defaults=True),
         lambda: config.model_dump(mode="json"),
     )
     for dump in dumps:
-        text = yaml.safe_dump(dump(), sort_keys=False, allow_unicode=True)
+        text = yaml.safe_dump(dump(), sort_keys=True, allow_unicode=True)
         if _replays_to(text, digest):
             return text
     _usage_error(f"The effective configuration cannot be written in a form that reproduces config_digest {digest}.")

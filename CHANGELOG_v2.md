@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- `RunReport.config_digest` no longer depends on key order: it is sha256 over
+  key-sorted, compact UTF-8 JSON of the effective config, so reordering keys in
+  `rdeconfig.yaml` or building `custom` in another order no longer makes
+  `repro export` reject the run. List order and value types still count.
+  Digests recorded by 2.0.0rc1 reports differ from the new ones.
 - `@flow(error_code=..., error_message=...)` no longer overrides a
   `StructuredError` raised in the flow body: its own code and message reach
   `RunReport.error` and `job.failed`, matching v1 `catch_exception_with_message`.
