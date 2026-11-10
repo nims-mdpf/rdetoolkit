@@ -42,7 +42,10 @@
 - `Metadata.units`, `Metadata.variable` and `Metadata.set(..., unit=...)` retain
   constant units and repeated cells when `save_meta` writes metadata.json (#563).
 - `rde2util.Meta.assign_vals` excludes `None` values before conversion and unit
-  reference registration, as documented. This fix also applies to the 1.7 line (#570).
+  reference registration, as documented. The 1.7 line has the same bug; no 1.7.x
+  release carries the fix yet (#570).
+- The migration guide lists the `Meta.assign_vals` `None` change as an intentional
+  difference from 1.7.1 on the v1 callback entry, in both languages (#587).
 - The injected `InvoiceData.mode` reflects the resolved mode on every tile (#574).
 - Flows receive the planner's mode-dependent run-level invoice source as
   `InputPaths.invoice_org`, shared by every tile (#569).
