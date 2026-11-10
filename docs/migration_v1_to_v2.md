@@ -129,7 +129,9 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 
 - flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を
   両 v2 入口から同じコード・メッセージにまとめられます。コードだけなら元の
-  メッセージを保ち、メッセージだけならコードは 3001 です。直接の関数呼び出しでは
+  メッセージを保ち、メッセージだけならコードは 3001 です。本体で送出した
+  `StructuredError` は v1 の `catch_exception_with_message` と同じく、そのコードと
+  メッセージを保ちます。直接の関数呼び出しでは
   元の例外がそのまま送出されます。Runner では元の例外をチェーンに残し、
   `KeyboardInterrupt`・`SystemExit` などのプロセス制御例外は変換しません。
 - flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。

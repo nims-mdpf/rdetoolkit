@@ -102,7 +102,9 @@ def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | N
         func: Function supplied by the bare decorator form.
         id: Optional stable flow identifier.
         error_code: User error code applied to body exceptions by the Runner.
-            With only a message supplied, the default code is 3001.
+            With only a message supplied, the default code is 3001. A
+            ``StructuredError`` raised by the body keeps its own code and
+            message.
         error_message: Fixed Runner failure message. With only a code supplied,
             the original exception's message is retained.
 
@@ -138,8 +140,10 @@ def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Returns:
         A callable preserving the signature and exception chain. Only ordinary
-        exceptions raised by the body are mapped; process-control exceptions
-        and the Runner's SIGTERM interruption propagate unchanged.
+        exceptions raised by the body are mapped; a ``StructuredError`` keeps
+        its own code and message (v1 ``catch_exception_with_message`` parity),
+        and process-control exceptions and the Runner's SIGTERM interruption
+        propagate unchanged.
     """
     code = getattr(fn, "__flow_error_code__", None)
     message = getattr(fn, "__flow_error_message__", None)
@@ -150,6 +154,10 @@ def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
     def mapped(*args: Any, **kwargs: Any) -> Any:
         try:
             return fn(*args, **kwargs)
+        except StructuredError:
+            # v1 catch_exception_with_message parity (#589): a user-raised
+            # StructuredError already carries its own ecode/emsg.
+            raise
         except Exception as error:
             if is_run_interrupted(error):
                 raise

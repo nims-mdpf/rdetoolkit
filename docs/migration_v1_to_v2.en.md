@@ -140,6 +140,8 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
 - Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
   failures to one code and message through either v2 entry. Supplying only a
   code preserves the original message; supplying only a message uses 3001.
+  A `StructuredError` raised in the body keeps its own code and message, as
+  with v1 `catch_exception_with_message`.
   Direct function calls still propagate the original exception. The original
   exception remains chained in Runner failures; process-control exceptions
   such as `KeyboardInterrupt` and `SystemExit` are not mapped.

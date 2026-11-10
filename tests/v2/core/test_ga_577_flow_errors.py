@@ -10,7 +10,6 @@ import pytest
 from typer.testing import CliRunner
 
 from rdetoolkit import flow, node, workflows
-from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.cli.app import app
 from rdetoolkit.types import IterationInfo
 from tests.v2.runner.test_event_log_robustness_k4 import _build_tree
@@ -21,14 +20,18 @@ def _fail_node() -> None:
     raise ValueError("boom")
 
 
-@pytest.mark.parametrize("failure", ["plain", "node", "structured"])
+@pytest.mark.parametrize("failure", ["plain", "node"])
 @pytest.mark.parametrize("options, code, message", [
     ({"error_code": 7, "error_message": "Cannot process input"}, 7, "Cannot process input"),
     ({"error_code": 7}, 7, "boom"),
     ({"error_message": "Cannot process input"}, 3001, "Cannot process input"),
 ])
 def test_runner_applies_flow_error_policy__ga577_neg_1_bv_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str, options: dict[str, Any], code: int, message: str) -> None:
-    """GA577-NEG-1/BV-1: explicit code/message replace any body exception."""
+    """GA577-NEG-1/BV-1: explicit code/message replace ordinary body exceptions.
+
+    A body ``StructuredError`` keeps its own code/message instead (#589, see
+    ``test_ga_589_flow_structured_error.py``).
+    """
     # Given: a real Runner dataset and an opted-in flow failure
     _build_tree(tmp_path / "data")
     monkeypatch.chdir(tmp_path)
@@ -37,8 +40,6 @@ def test_runner_applies_flow_error_policy__ga577_neg_1_bv_1(tmp_path: Path, monk
     def pipeline() -> None:
         if failure == "node":
             _fail_node()
-        if failure == "structured":
-            raise StructuredError("boom", 41)
         raise ValueError("boom")
 
     # When: executing through the public v2 entry
