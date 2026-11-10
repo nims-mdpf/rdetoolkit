@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -14,6 +15,9 @@ from rdetoolkit.exceptions import StructuredError
 
 F = TypeVar("F", bound=Callable[..., Any])
 _flow_stack_var: ContextVar[tuple[str, ...]] = ContextVar("rdetoolkit_flow_stack", default=())
+#: The only placeholders of ``@flow(error_message=...)``. Every other brace is
+#: literal text, so existing fixed messages never hit ``str.format`` errors.
+_MESSAGE_PLACEHOLDER = re.compile(r"\{(error|error_type)\}")
 
 
 def current_flow_id() -> str | None:
@@ -103,8 +107,10 @@ def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | N
         id: Optional stable flow identifier.
         error_code: User error code applied to body exceptions by the Runner.
             With only a message supplied, the default code is 3001.
-        error_message: Fixed Runner failure message. With only a code supplied,
-            the original exception's message is retained.
+        error_message: Runner failure message. ``{error}`` is replaced by the
+            body exception's text and ``{error_type}`` by its class name; all
+            other text, including other braces, is kept verbatim. With only a
+            code supplied, the original exception's message is retained.
 
     Returns:
         A transparent decorated function, or its decorator. Direct calls retain
@@ -153,6 +159,13 @@ def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
         except Exception as error:
             if is_run_interrupted(error):
                 raise
-            raise StructuredError(str(error) if message is None else message, 3001 if code is None else code) from error
+            raise StructuredError(str(error) if message is None else _format_message(message, error), 3001 if code is None else code) from error
 
     return mapped
+
+
+def _format_message(message: str, error: BaseException) -> str:
+    # One substitution pass: placeholder-like text in the exception's own
+    # message is inserted literally, never expanded again.
+    values = {"error": str(error), "error_type": type(error).__name__}
+    return _MESSAGE_PLACEHOLDER.sub(lambda match: values[match.group(1)], message)

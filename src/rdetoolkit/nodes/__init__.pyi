@@ -7,6 +7,7 @@ from rdetoolkit.nodes.meta import parse_invoice_meta as parse_invoice_meta, save
 from rdetoolkit.nodes.plot import plot_lines as plot_lines, plot_scatter as plot_scatter
 from rdetoolkit.nodes.structured import save_csv as save_csv, save_json as save_json
 from rdetoolkit.nodes.io import read_json as read_json
+from rdetoolkit.nodes.io import read_excel_fills as read_excel_fills
 from rdetoolkit.nodes.meta import build_meta as build_meta
 from rdetoolkit.nodes.plot import save_figure as save_figure
 from rdetoolkit.nodes.structured import save_invoice as save_invoice, save_text as save_text

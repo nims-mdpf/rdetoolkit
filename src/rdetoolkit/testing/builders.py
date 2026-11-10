@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -11,13 +12,16 @@ from rdetoolkit.domain.paths import resolve_input_paths
 from rdetoolkit.types import InputPaths, InvoiceData, OutputContext
 
 
-def make_input_paths(tmp_path: Path, files: Iterable[str] = ()) -> InputPaths:
+def make_input_paths(tmp_path: Path, files: Iterable[str] = (), *, invoice_org: Path | None = None) -> InputPaths:
     """Create a minimal on-disk input tree for tests.
 
     Args:
         tmp_path: Root directory under which the RDE input directories are
             created.
         files: Optional file names to create under ``inputdata``.
+        invoice_org: Run-level invoice source. Defaults to
+            ``invoice/invoice.json``, as the Runner selects outside the
+            backup modes; the file itself is not created.
 
     Returns:
         Input path bundle for the created tree.
@@ -30,7 +34,8 @@ def make_input_paths(tmp_path: Path, files: Iterable[str] = ()) -> InputPaths:
         path = inputdata / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         path.touch()
-    return resolve_input_paths(root)
+    paths = resolve_input_paths(root)
+    return replace(paths, invoice_org=paths.invoice / "invoice.json" if invoice_org is None else Path(invoice_org))
 
 
 def make_output_context(tmp_path: Path) -> OutputContext:

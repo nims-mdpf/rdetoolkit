@@ -1,11 +1,11 @@
 """Canonical builtin nodes and migration adapter for rdetoolkit v2."""
 
 from collections.abc import Callable
-from typing import Any, cast
+from typing import Any
 
 from rdetoolkit.core.node import node
 from rdetoolkit.nodes.image import copy_raw, make_thumbnail, save_main_image, to_jpeg, to_png
-from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_json, read_text, unzip_inputs
+from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_text, unzip_inputs
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
 from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure
 from rdetoolkit.nodes.structured import save_csv, save_invoice, save_json, save_text
@@ -36,13 +36,15 @@ def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..
         raise TypeError(msg)
     default_id = f"{type(instance).__module__}.{type(instance).__qualname__}.{method}"
     decorator = node(id=id or default_id)
-    return decorator(cast(Callable[..., Any], target))
+    bound: Callable[..., Any] = target
+    return decorator(bound)
 
 __all__ = [
     "read_text",
     "read_json",
     "read_csv_with_header",
     "read_excel",
+    "read_excel_fills",
     "unzip_inputs",
     "save_csv",
     "save_json",

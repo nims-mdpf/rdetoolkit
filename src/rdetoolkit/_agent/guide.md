@@ -77,11 +77,12 @@ using save_invoice(), without overwriting another tile's source or output.
 
 Import helpers from `rdetoolkit.nodes`. read_text and read_json share v1 encoding
 rules, including Shift-JIS to CP932. read_excel supports sheet/header/row/column
-selection and pandas options; save_csv supports float_format, header and index.
-save_json and save_text accept an output kind. save_invoice preserves four-space
-indentation and non-ASCII text. save_figure leaves figure ownership with callers.
-plot_lines accepts x/y columns or pairs, labels, title, scale, legend, size, DPI
-and kind; it always closes internally created figures.
+selection and pandas options; read_excel_fills gives row fill colours.
+save_csv supports float_format, header and index. save_json and save_text accept
+an output kind. save_invoice and save_meta keep v1 four-space JSON. save_figure
+leaves figure ownership with callers. plot_lines accepts x/y columns or pairs,
+labels, grid, title, scale, legend, size, DPI and kind; it always closes
+internally created figures. bbox_inches=None matches v1 fig.savefig(path).
 
 Use build_meta(values, metadef_path, repeated=...) to construct Metadata from
 metadata-def.json. It filters unknown keys, casts schema types/formats, resolves
@@ -102,7 +103,8 @@ Runner, call log and CLI. Inspect templates list/describe and nodes list/describ
 
 `rdetoolkit.testing` provides make_input_paths, make_output_context, make_invoice,
 run_flow and assert_output_tree. make_invoice puts bare measurement overrides in
-custom and accepts explicit invoice sections. Test nodes directly, then test a
+custom and accepts explicit invoice sections. run_flow(flow, data_root=root)
+runs a real RDE tree in place. Test nodes directly, then test a
 real Runner with complete mode fixtures. Compare invoice/metadata content,
 units, variable rows, structured files, images, divided layout and job.failed.
 
@@ -120,8 +122,8 @@ Flow on_iteration_error defaults to continue; fail_fast stops at the first
 failed tile. Read report.status, iterations, warnings and error. Framework
 errors use the integer ERROR_CATALOG and its remediation. StructuredError(msg,
 code) preserves a user-supplied error code. @flow(error_code=7,
-error_message="Cannot process input") maps ordinary body failures through the
-Runner; direct calls still raise the original exception, and KeyboardInterrupt
+error_message="Cannot process input: {error}") maps ordinary body failures through
+the Runner; direct calls still raise the original exception, and KeyboardInterrupt
 or SystemExit are not mapped. Empty Excel forms use input error 4004 on the flow
 entry; the compatibility callback entry retains 999. Input preparation before
 mode detection remains explicit code before run(); a flow prepare hook is not

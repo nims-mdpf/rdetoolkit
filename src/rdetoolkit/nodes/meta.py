@@ -51,8 +51,17 @@ def build_meta(values: Mapping[str, Any], metadef_path: Path, *, repeated: Mappi
     single repeated row. The shared conversion engine keeps v1 output parity
     without requiring v1 objects or adapters in user flows.
 
+    Source keys follow v1 ``Meta.assign_vals``: each definition reads the
+    value stored under its own definition key and falls back to its
+    ``originalName`` only when the definition key is absent from the input.
+    The definition key therefore wins when both spellings are present, and
+    a definition key present with a None value is excluded without falling
+    back. Programs that preferred the ``originalName`` spelling must map
+    those values onto the definition keys before calling this node.
+
     Args:
-        values: Measured values, including optional unit-reference sources.
+        values: Measured values keyed by definition key or ``originalName``,
+            including optional unit-reference sources.
         metadef_path: Path to ``metadata-def.json``.
         repeated: Columns of repeated values for variable definitions. These
             override same-named entries in ``values`` and may differ in length.
@@ -95,12 +104,14 @@ def parse_invoice_meta(invoice: InvoiceData, metadef_path: Path) -> Metadata:
 
 
 @node(tags=["builtin", "meta"], version="2.0.0", idempotent=True)
-def save_meta(metadata: Metadata, out: OutputContext) -> Path:
+def save_meta(metadata: Metadata, out: OutputContext, *, indent: int | None = 4) -> Path:
     """Save v2 metadata as the RDE ``metadata.json`` contract.
 
     Constant custom values carry the corresponding ``metadata.units`` entry,
     when present. Repeated cells come from ``metadata.variable`` and retain
-    their per-row units. The resulting shape matches the v1 metadata contract.
+    their per-row units. The resulting shape matches the v1 metadata contract,
+    and the default four-space indentation matches v1 ``Meta.writefile``
+    byte for byte.
 
     ``metadata.basic`` is deliberately not written: ``metadata.json`` has no
     slot for invoice basic information, and v1 never wrote it there.
@@ -108,6 +119,7 @@ def save_meta(metadata: Metadata, out: OutputContext) -> Path:
     Args:
         metadata: Metadata to serialize.
         out: Output resource context.
+        indent: JSON indentation, as for ``json.dumps``.
 
     Returns:
         Path to ``metadata.json`` under ``out.meta``.
@@ -119,5 +131,5 @@ def save_meta(metadata: Metadata, out: OutputContext) -> Path:
         },
         "variable": metadata.variable,
     }
-    encoded = json.dumps(content, ensure_ascii=False, indent=2).encode("utf-8")
+    encoded = json.dumps(content, ensure_ascii=False, indent=indent).encode("utf-8")
     return out.write_bytes("meta", "metadata.json", encoded)

@@ -55,6 +55,7 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "save_invoice",
     "save_text",
     "save_figure",
+    "read_excel_fills",
 )
 
 
