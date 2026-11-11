@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- `rdetoolkit nodes lint` no longer reports a node parameter annotated as
+  `typing.Any` (bare, qualified or as a string) as `Missing type annotation`;
+  only parameters with no annotation are reported. The NodeSpec
+  `input_schema` is unchanged (#601).
 - `system.extended_mode=None` (including YAML `null`) now means an unset
   mode in `RdeConfig`, using the invoice default without a false W1001 when
   SmartTable or ExcelInvoice input is detected (#600).
