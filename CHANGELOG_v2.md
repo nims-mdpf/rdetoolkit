@@ -29,7 +29,10 @@
   key-sorted, compact UTF-8 JSON of the effective config, so reordering keys in
   `rdeconfig.yaml` or building `custom` in another order no longer makes
   `repro export` reject the run. List order and value types still count.
-  Digests recorded by 2.0.0rc1 reports differ from the new ones.
+  **Incompatible with 2.0.0rc1 reports:** digests recorded by 2.0.0rc1 do not
+  match the new ones, so `rdetoolkit repro export` rejects a run report written
+  by 2.0.0rc1 (exit 3) even when the configuration is unchanged. Re-run the job
+  with this version to get an exportable report.
 - Builtin nodes close the remaining v1 byte-parity gaps. `plot_lines` and
   `save_figure` accept `bbox_inches`/`pad_inches` (`bbox_inches=None` writes the
   full canvas like `fig.savefig(path)`). `plot_lines` adds `(x, y, label)` pairs,
