@@ -17,6 +17,10 @@
   it, `make_input_paths` defaults `invoice_org` like the Runner, writing
   `job.failed` no longer emits rdetoolkit's own `get_datadir` DeprecationWarning,
   and `rdetoolkit.nodes.cast` is no longer exported (#590).
+- `@flow(error_code=..., error_message=...)` no longer overrides a
+  `StructuredError` raised in the flow body: its own code and message reach
+  `RunReport.error` and `job.failed`, matching v1 `catch_exception_with_message`.
+  Ordinary exceptions are still mapped by the declaration (#589).
 - Python flow entries can opt into finalized process exits with
   `run(flow=..., exit_on_failure=True)` (failed 1, partial 2). The public
   `RunReport.exit_code` shares the CLI mapping without changing JSON schemas,
@@ -47,6 +51,12 @@
 - Header-only Excel invoices fail during input iteration: the v1 callback entry
   retains 999 and its generic message; v2 flows report the input-specific
   `EmptyExcelInvoice` validation error, 4004 (#568).
+- An Excel invoice without data rows is diagnosed before the
+  `invoice/invoice.json` pre-check. A blank form uploaded on its own, such as a
+  template whose rows hold only formulas evaluating to `""`, now reports
+  999 (v1 entry) / 4004 (flows) instead of 4003 RequiredArtifactMissing (#588).
+  Invalid extra files and multiple ZIPs retain the checker's existing input
+  errors; the empty-form preflight shares its file-layout validation (#593).
 - Flow input paths are relative to cwd, preserving v1 path spellings in
   user-generated `job.failed` messages without changing internal root resolution (#567).
 - The public `build_meta` node constructs typed metadata from metadata-def.json,
@@ -55,7 +65,10 @@
 - `Metadata.units`, `Metadata.variable` and `Metadata.set(..., unit=...)` retain
   constant units and repeated cells when `save_meta` writes metadata.json (#563).
 - `rde2util.Meta.assign_vals` excludes `None` values before conversion and unit
-  reference registration, as documented. This fix also applies to the 1.7 line (#570).
+  reference registration, as documented. The 1.7 line has the same bug; no 1.7.x
+  release carries the fix yet (#570).
+- The migration guide lists the `Meta.assign_vals` `None` change as an intentional
+  difference from 1.7.1 on the v1 callback entry, in both languages (#587).
 - The injected `InvoiceData.mode` reflects the resolved mode on every tile (#574).
 - Flows receive the planner's mode-dependent run-level invoice source as
   `InputPaths.invoice_org`, shared by every tile (#569).

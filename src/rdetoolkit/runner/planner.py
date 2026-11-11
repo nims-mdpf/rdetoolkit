@@ -15,7 +15,7 @@ from rdetoolkit.domain.invoice_service import InvoiceService, invoice_source_for
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
-from rdetoolkit.runner.iterator import EmptyExcelInvoiceError, iterate_tiles
+from rdetoolkit.runner.iterator import EmptyExcelInvoiceError, iterate_tiles, reject_empty_excelinvoice
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext, RdeConfig
 
@@ -186,13 +186,43 @@ class RunPlanner:
         )
 
 
+def reject_empty_input(target: ExecutionTarget, mode: ModeKind, inputdata_path: Path) -> None:
+    """Diagnose an empty Excel invoice before pre-validation (#588).
+
+    The Runner calls this before ``pre_validate``, so a blank form is reported
+    as an empty input even when ``invoice/invoice.json`` is absent. The error
+    is entry-specific exactly as during tile discovery: 4004 for a flow and
+    the frozen v1 999 for a v1 callback.
+
+    Args:
+        target: Normalized execution target.
+        mode: Effective Runner mode.
+        inputdata_path: Directory containing input files.
+
+    Raises:
+        EmptyExcelInvoiceError: For a flow target whose form has no data rows.
+        StructuredError: Code 999, for a v1 callback target in the same case.
+    """
+    try:
+        reject_empty_excelinvoice(mode, inputdata_path)
+    except EmptyExcelInvoiceError as error:
+        if isinstance(target, LegacyCallbackTarget):
+            raise _legacy_empty_excelinvoice_error() from error
+        raise
+
+
 def _legacy_input_tiles(tiles: Iterable[TilePlan]) -> Iterator[TilePlan]:
     """Preserve the frozen v1 empty-Excel failure at the entry adapter boundary."""
     try:
         yield from tiles
     except EmptyExcelInvoiceError as error:
-        message = "Error: Please check the logs and code, then try again."
-        raise StructuredError(message, 999) from error
+        raise _legacy_empty_excelinvoice_error() from error
+
+
+def _legacy_empty_excelinvoice_error() -> StructuredError:
+    """Return the frozen v1 failure for an Excel invoice without data rows."""
+    message = "Error: Please check the logs and code, then try again."
+    return StructuredError(message, 999)
 
 
 def _error_policy(target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> Literal["continue", "fail_fast"]:

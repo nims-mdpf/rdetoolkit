@@ -164,6 +164,8 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   The message may contain `{error}` (the exception's text) and `{error_type}`
   (its class name), e.g. `error_message="Cannot read sample: {error}"`; other
   braces are kept as written.
+  A `StructuredError` raised in the body keeps its own code and message, as
+  with v1 `catch_exception_with_message`.
   Direct function calls still propagate the original exception. The original
   exception remains chained in Runner failures; process-control exceptions
   such as `KeyboardInterrupt` and `SystemExit` are not mapped.
@@ -265,6 +267,13 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 | SIGTERM during a run | The process simply dies; no `job.failed`, no record | `job.failed` with `ErrorCode=3004` (`RunInterrupted`), a `RunReport` is written, and the artifacts of completed tiles are kept. The public entry point exits with 1 |
 | Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
+| `rde2util.Meta.assign_vals` receives a `None` value (#570) | `None` is converted as the string `"None"`. A `number` / `integer` / `boolean` field raises `StructuredError` (`ERROR: failed to cast metaDef value` or similar). If the callback does not catch it, `job.failed` has `ErrorCode=1` and the later outputs, such as `metadata.json`, are not created. A `string` field is written as the value `"None"`, and a `$`-referenced unit as `"unit": "None"` | The key is not assigned, and `metadata.json` is written without it (without `unit` for a referenced unit). The callback's other outputs are created as usual. A value other than `None` that cannot be converted is still `ErrorCode=1` |
+
+The `Meta.assign_vals` row is a bug fix in the Tier 1 API, so it also applies on the
+v1 callback entry. The 1.7 line has the same bug, but no 1.7.x release with the fix
+has been published yet. The v1 column shows the behaviour of 1.7.1, the latest v1
+release, and rolling back to 1.7.1 restores it. If a later 1.7.x release carries the
+same fix, this row no longer differs from that release.
 
 ### Rollback
 

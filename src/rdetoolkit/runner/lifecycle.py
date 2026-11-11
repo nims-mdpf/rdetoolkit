@@ -44,7 +44,7 @@ from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, wr
 from rdetoolkit.runner.invoker import InvokerRegistry
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
-from rdetoolkit.runner.planner import RunPlanner
+from rdetoolkit.runner.planner import RunPlanner, reject_empty_input
 from rdetoolkit.types import RdeConfig
 
 
@@ -215,7 +215,7 @@ class Runner:
                     # here -- once, from the data root -- removes the last
                     # directory-tree asymmetry the Session I6-B seats bounded.
                     (self.data_root / "temp").mkdir(parents=True, exist_ok=True)
-                    self.pre_validate(config)
+                    self._validate_inputs(target, mode, config)
                     report = self._execute(
                         run_request,
                         target,
@@ -391,6 +391,21 @@ class Runner:
             self._events,
             self.run_id,
         )
+
+    def _validate_inputs(self, target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> None:
+        """Diagnose an empty Excel invoice, then pre-validate the run inputs.
+
+        The empty-form probe runs first: a blank form often comes without
+        ``invoice/invoice.json``, and the 4003 that ``pre_validate`` raises for
+        it would hide the entry-specific 4004/999 empty-input outcome (#588).
+
+        Args:
+            target: Normalized execution target.
+            mode: Effective mode.
+            config: Effective configuration.
+        """
+        reject_empty_input(target, mode, self.inputdata_path)
+        self.pre_validate(config)
 
     def pre_validate(self, config: RdeConfig) -> None:
         """Validate source structure and invoice schema before flow execution.
