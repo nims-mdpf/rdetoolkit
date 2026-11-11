@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import copy
 import datetime as dt
-import math
 from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Literal
+
+import numpy as np
+import pandas as pd
 
 from rdetoolkit.core.node import node
 from rdetoolkit.exceptions import StructuredError
@@ -41,9 +43,17 @@ def _custom_definitions(schema: Mapping[str, Any]) -> Mapping[str, Any]:
 
 
 def _is_missing(value: Any) -> bool:
-    if value is None or (isinstance(value, float) and math.isnan(value)):
-        return True
-    return type(value).__name__ == "NaTType"
+    """Return whether a scalar is a missing cell: None, NaN, NaT or ``pd.NA``, in any pandas / NumPy form."""
+    return value is None or (pd.api.types.is_scalar(value) and bool(pd.isna(value)))
+
+
+def _to_python(value: Any) -> Any:
+    """Return the plain Python value of a NumPy scalar, so the stored value serializes as JSON."""
+    if isinstance(value, np.datetime64):
+        return pd.Timestamp(value).to_pydatetime()
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
 
 def _cast_string(value: Any, fmt: str | None) -> Any:
@@ -61,6 +71,7 @@ def _cast_string(value: Any, fmt: str | None) -> Any:
 def _cast_value(value: Any, value_type: Any, fmt: str | None) -> Any:
     if _is_missing(value):
         return None
+    value = _to_python(value)
     if value_type == "string":
         return _cast_string(value, fmt)
     if value_type == "integer" and isinstance(value, float) and value.is_integer():
@@ -95,8 +106,10 @@ def set_custom_fields(
     ``rde2util.castval`` update of ``invoice.custom``. Each value is cast by
     its ``properties.custom.properties.<key>`` ``type`` and ``format``:
 
-    - ``None``, a float NaN or ``pandas.NaT`` is stored as ``None`` for
-      every type; filter such values out beforehand to keep the old value.
+    - ``None``, NaN, NaT or ``pandas.NA`` (in any pandas / NumPy form, as
+      in a frame read with ``dtype_backend="numpy_nullable"``) is stored as
+      ``None`` for every type; filter such values out beforehand to keep
+      the old value. Other NumPy scalars are cast as their Python value.
     - ``boolean``: the strings ``"true"`` / ``"false"`` (case-insensitive,
       surrounding spaces ignored); any other value by Python truthiness.
     - ``integer``: digits with an optional trailing unit (``"12 mm"`` -> 12)

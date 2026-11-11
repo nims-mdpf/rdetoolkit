@@ -13,6 +13,8 @@ set_custom_fields          date / date-time / time     normalised text (v1)     
 set_custom_fields          date objects                normalised text                     GA603-EP-005
 set_custom_fields          string, other or no format  value unchanged                     GA603-EP-006
 set_custom_fields          None / NaN / NaT            stored as None                      GA603-EP-007
+set_custom_fields          pd.NA / NumPy NaN / NaT     stored as None                      GA603-EP-019
+set_custom_fields          NumPy scalars               cast as the Python value            GA603-EP-020
 set_custom_fields          undeclared key              StructuredError code 1              GA603-EP-008
 set_custom_fields          uncastable value            StructuredError code 1, v1 message  GA603-EP-009
 set_custom_fields          unparseable date / object   StructuredError code 1, chained     GA603-EP-010
@@ -40,6 +42,7 @@ set_custom_fields          integral vs fractional 3.x  int vs error for integer 
 resolve_custom_key         ja == en on one key         one match, not ambiguous            GA603-BV-006
 resolve_custom_key         surrounding whitespace      stripped before comparison          GA603-BV-007
 resolve_custom_key         schema without custom       StructuredError (unknown)           GA603-BV-008
+set_custom_fields          numpy_nullable Excel row    saved invoice.json, blanks null     GA603-BV-009
 =========================  ==========================  ==================================  ================
 """
 
@@ -50,14 +53,15 @@ import json
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pytest
 from hypothesis import given, strategies as st
 
 from rdetoolkit.exceptions import StructuredError
-from rdetoolkit.nodes import resolve_custom_key, set_custom_fields
+from rdetoolkit.nodes import read_excel, resolve_custom_key, save_invoice, set_custom_fields
 from rdetoolkit.rde2util import castval
-from rdetoolkit.types import InvoiceData
+from rdetoolkit.types import InvoiceData, OutputContext
 
 SCHEMA: dict[str, Any] = {
     "properties": {
@@ -188,6 +192,44 @@ class TestCastBySchemaType:
         actual = set_custom_fields(invoice, {key: value}).raw["custom"][key]
         # Then: the field is null instead of an error or False
         assert actual is None
+
+
+    @pytest.mark.parametrize(
+        "value",
+        [pd.NA, np.float32("nan"), np.float64("nan"), np.datetime64("NaT", "ns"), np.timedelta64("NaT", "ns")],
+        ids=["pd.NA", "float32-nan", "float64-nan", "datetime64-nat", "timedelta64-nat"],
+    )
+    @pytest.mark.parametrize("key", ["count", "power", "enabled", "measured_date", "operator"])
+    def test_pandas_and_numpy_missing_values_stored_as_none__ga603_ep_019(self, key: str, value: Any) -> None:
+        """GA603-EP-019: pandas / NumPy missing scalars clear the field like None."""
+        # Given: a field holding a value and a missing cell as read by pandas or NumPy
+        invoice = _invoice({key: "old"})
+        # When: setting the missing value
+        actual = set_custom_fields(invoice, {key: value}).raw["custom"][key]
+        # Then: the field is null, not an error, True, or an unserializable scalar
+        assert actual is None
+
+    @pytest.mark.parametrize(
+        ("key", "value", "expected"),
+        [
+            ("count", np.int64(3), 3),
+            ("count", np.float32(3.0), 3),
+            ("power", np.float32(2.5), 2.5),
+            ("power", np.int32(4), 4),
+            ("enabled", np.bool_(False), False),
+            ("operator", np.int64(5), 5),
+            ("operator", np.str_("Taro"), "Taro"),
+            ("measured_date", np.datetime64("2023-07-19T10:20:30"), "2023-07-19"),
+        ],
+    )
+    def test_numpy_scalars_cast_as_python_values__ga603_ep_020(self, key: str, value: Any, expected: Any) -> None:
+        """GA603-EP-020: NumPy scalars are cast as the equal Python value."""
+        # Given: a NumPy scalar as read from a pandas frame
+        # When: setting the value
+        actual = _custom({key: value})[key]
+        # Then: the stored value is the plain Python value, so it serializes as JSON
+        assert actual == expected
+        assert type(actual) is type(expected)
 
 
 class TestCastFailures:
@@ -387,6 +429,25 @@ class TestResolveCustomKey:
         # Then: setting a field also reports it as undeclared
         with pytest.raises(StructuredError, match="is not defined"):
             set_custom_fields(_invoice({}, schema=schema), {"x": "1"})
+
+
+class TestSpreadsheetRoundTrip:
+    def test_numpy_nullable_excel_row_saved__ga603_bv_009(self, tmp_path: Path, output_context: OutputContext) -> None:
+        """GA603-BV-009: a nullable Excel row with blank cells is cast and saved."""
+        # Given: a workbook row with values and blank cells, read with nullable dtypes
+        workbook = tmp_path / "custom.xlsx"
+        pd.DataFrame(
+            {"回数": [3, None], "出力": [None, 1.5], "有効": [None, True], "測定者": [None, "Taro"], "測定日": ["2023/07/19", None]},
+        ).to_excel(workbook, index=False)
+        frame = read_excel(workbook, dtype_backend="numpy_nullable")
+        row = {label: frame[label].iloc[0] for label in frame.columns}  # cells keep pd.NA / NumPy scalars
+        assert row["測定者"] is pd.NA
+        # When: mapping labels to keys, casting by schema, and saving the invoice
+        updates = {resolve_custom_key(SCHEMA, label): value for label, value in row.items()}
+        path = save_invoice(set_custom_fields(_invoice({}), updates), output_context)
+        # Then: the saved invoice holds the cast values and null for the blank cells
+        custom = json.loads(path.read_text(encoding="utf-8"))["custom"]
+        assert custom == {"count": 3, "power": None, "enabled": None, "operator": None, "measured_date": "2023-07-19"}
 
 
 class TestNodeAndProperties:

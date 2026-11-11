@@ -120,7 +120,10 @@ v1 の `castval` / `_assign_invoice_val` のように `invoice.custom` を更新
 | `boolean` | `"true"` / `"false"`(大文字小文字を区別しない)、それ以外は真偽値として評価 | `bool` |
 | `string` + `date` / `date-time` / `time` | dateutil で解釈できる文字列、`date` / `datetime` オブジェクト | `2023-07-19` / ISO 8601 / `13:04:05` |
 | `string`(他の format、または format なし) | 任意 | そのまま |
-| すべての型 | `None`、NaN、`NaT` | `None` |
+| すべての型 | `None`、NaN、`NaT`、`pd.NA`(NumPy の NaN / NaT も含む) | `None` |
+
+`dtype_backend="numpy_nullable"` で読んだ空セル(`pd.NA`)も `None` になります。NumPy のスカラー
+(`np.int64` など)は対応する Python の値として変換するので、そのまま `save_invoice` で保存できます。
 
 スキーマにないキーや型に合わない値は `StructuredError`(コード 1)になります。型の不一致は
 v1 と同じメッセージです。`schema=paths.tasksupport / "invoice.schema.json"` を渡して
@@ -343,7 +346,7 @@ invoice シート自体がないブックについては既存のエラー契約
 | `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python の v1 コールバック入口は失敗で `SystemExit(1)` を維持。flow 入口は `exit_on_failure=True` で失敗1・一部失敗2を反映し、同じ値を `RunReport.exit_code` でも公開 |
 | `multidata_tile.ignore_errors: true` で全タイルが失敗 | MultiDataTile のみ全件 `failed` の JSON を返し終了コード 0。他モードではフラグは無視され最初の失敗で停止 | v1 コールバック入口は全モードで v1 と同じ。flow 入口では全タイル失敗は `failed` となり `job.failed` を書きます |
 | `rde2util.Meta.assign_vals` が値 `None` を受け取る(#570) | `None` を文字列 `"None"` として変換します。`number` / `integer` / `boolean` の項目は `StructuredError`(`ERROR: failed to cast metaDef value` など)。コールバックが捕捉しなければ `job.failed` に `ErrorCode=1` となり、`metadata.json` など以降の出力は作られません。`string` の項目は値 `"None"`、`$` 参照の単位は `"unit": "None"` として書き出されます | そのキーは代入されず、`metadata.json` はそのキー(参照単位なら `unit`)を含めずに書き出されます。コールバックの他の出力もそのまま作られます。`None` 以外の変換できない値は従来どおり `ErrorCode=1` |
-| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT` はすべての型で `None` として格納します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。v1 の関数自体は変更していません |
+| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT`・`pd.NA`(NumPy の NaN / NaT を含む)はすべての型で `None` として格納し、NumPy のスカラーは Python の値として変換します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。v1 の関数自体は変更していません |
 | コールバックや flow が処理中に run 単位の invoice(`paths.invoice_org`。MultiDataTile / ExcelInvoice / RDEformat では `temp/invoice_org.json`)へ書き込む(#603) | 後続タイルは書き換え後のファイルから作られるため、前のタイルが書いた値がタイル順に依存して後続へ引き継がれました | サポートしません。`paths.invoice_org` は読み取り専用の入力です。Runner は各タイルの invoice を登録時の invoice から作り(ExcelInvoice と SmartTable はその行を上書き)、タイル固有の値は flow が `save_invoice` で上書きします。各タイルは登録時の状態から始まります。`invoice_org` への書き込みが後続タイルに届くかどうかは v2 では定めていません |
 
 `Meta.assign_vals` の行は Tier 1 API の不具合修正です。そのため v1 コールバック入口にも

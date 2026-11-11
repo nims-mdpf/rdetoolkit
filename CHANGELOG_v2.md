@@ -62,7 +62,9 @@
   and `rdetoolkit.nodes.cast` is no longer exported (#590).
 - The public `set_custom_fields` node returns an invoice whose `custom` values are
   cast by `invoice.schema.json` `type` / `format` (v1 `castval` semantics, dates
-  normalized), so rewrites no longer port their own cast function. Undeclared keys
+  normalized; `None`, NaN, NaT and `pd.NA` in any pandas / NumPy form are stored as
+  `None`, and NumPy scalars as their Python value), so rewrites no longer port their
+  own cast function. Undeclared keys
   and uncastable values raise `StructuredError` (code 1). `resolve_custom_key` maps a
   ja / en label to its key and rejects unknown or ambiguous labels. Writing the
   run-level `invoice_org` so that later tiles inherit a value is documented as an
