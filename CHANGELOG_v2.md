@@ -7,7 +7,9 @@
 - `testing.make_input_paths(files=...)` now fills `rawfiles` with the requested
   files in iterable order. Absolute paths, directory names and paths escaping
   `inputdata` (including outward symlinks) fail with error 1003 before any
-  fixture files or directories are created; external files are not touched (#602).
+  fixture files or directories are created; external files are not touched.
+  File/directory conflicts in either input order and symlinks replacing
+  `inputdata` itself are also rejected before writes; duplicates stay allowed (#602).
 - Builtin nodes close the remaining v1 byte-parity gaps. `plot_lines` and
   `save_figure` accept `bbox_inches`/`pad_inches` (`bbox_inches=None` writes the
   full canvas like `fig.savefig(path)`). `plot_lines` adds `(x, y, label)` pairs,

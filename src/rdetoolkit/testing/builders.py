@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 from rdetoolkit.domain.output import create_output_context
 from rdetoolkit.domain.paths import resolve_input_paths
@@ -30,12 +30,16 @@ def make_input_paths(tmp_path: Path, files: Iterable[str] = (), *, invoice_org: 
 
     Raises:
         RdeConfigError: With code 1003 if a name is absolute, names a directory,
-            or resolves outside ``inputdata``, including through a symlink.
-            All names are validated before any directories or files are created.
+            resolves outside ``inputdata``, or conflicts with a required parent
+            directory. ``inputdata`` itself must not be a symlink. Names and
+            file/directory roles are checked before creating directories or files.
     """
     root = Path(tmp_path)
     inputdata = root / "inputdata"
+    if inputdata.is_symlink():
+        _raise_invalid_input_path(inputdata)
     rawfiles = tuple(_input_file_path(inputdata, filename) for filename in files)
+    _validate_input_file_set(rawfiles)
     for name in ("inputdata", "invoice", "tasksupport"):
         (root / name).mkdir(parents=True, exist_ok=True)
     for path in rawfiles:
@@ -57,9 +61,21 @@ def _input_file_path(inputdata: Path, filename: str) -> Path:
         or resolved == boundary
         or resolved.is_dir()
     ):
-        error_cls: Any = RdeConfigError
-        raise error_cls(code=1003, message=ERROR_CATALOG[1003].message_template.format(path=filename))
+        _raise_invalid_input_path(filename)
     return path
+
+
+def _validate_input_file_set(rawfiles: tuple[Path, ...]) -> None:
+    # Resolve only for conflict checks; rawfiles keeps its order and duplicates.
+    destinations = {path.resolve() for path in rawfiles}
+    for path in rawfiles:
+        if any(parent.resolve() in destinations or parent.is_file() for parent in path.parents):
+            _raise_invalid_input_path(path)
+
+
+def _raise_invalid_input_path(path: str | Path) -> NoReturn:
+    error_cls: Any = RdeConfigError
+    raise error_cls(code=1003, message=ERROR_CATALOG[1003].message_template.format(path=path))
 
 
 def make_output_context(tmp_path: Path) -> OutputContext:

@@ -98,7 +98,10 @@ assert report.status == "success"
 `make_input_paths()` の `invoice_org` は Runner と同じく `invoice/invoice.json` を既定にします。
 `files=` で指定したファイルは `inputdata/` に作成され、同じ順序で `rawfiles` に格納されます。
 絶対パス・ディレクトリ名・`inputdata/` の外へ出るパス（外向きのシンボリックリンクを含む）は
-ファイル作成前に `RdeConfigError`（コード 1003）で拒否されます。これにより直接呼び出しのテストと Runner 結合テストを
+ファイル作成前に `RdeConfigError`（コード 1003）で拒否されます。
+`["a", "a/b"]` のようなファイルと親ディレクトリの競合や、`inputdata/` 自体が
+シンボリックリンクの場合も、作成・更新前に同じコードで拒否します。重複したファイル名は指定順で保持します。
+これにより直接呼び出しのテストと Runner 結合テストを
 目的に応じて使い分けられます。
 
 ## スコープ

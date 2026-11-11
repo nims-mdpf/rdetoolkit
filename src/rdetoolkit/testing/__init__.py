@@ -33,8 +33,9 @@ def make_input_paths(tmp_path: Path, files: Iterable[str] = (), *, invoice_org: 
 
     Raises:
         RdeConfigError: With code 1003 if a name is absolute, names a directory,
-            or escapes ``inputdata``, including through a symlink. Invalid
-            batches create no directories or files.
+            escapes ``inputdata``, or conflicts with a required parent directory.
+            ``inputdata`` itself must not be a symlink. All names and
+            file/directory roles are checked before creating directories or files.
     """
     from rdetoolkit.testing.builders import make_input_paths as _make_input_paths  # noqa: PLC0415
 
