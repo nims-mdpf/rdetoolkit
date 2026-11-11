@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import sys
 import traceback
+import warnings
 from collections.abc import Callable, Generator, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -363,11 +364,15 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
 
             _best_effort_stderr((handle_exception(error, verbose=True).traceback_info or "") + "\n")
             data_root.mkdir(parents=True, exist_ok=True)
-            write_job_errorlog_file(
-                999,
-                "Error: Please check the logs and code, then try again.",
-                filename=str(data_root / "job.failed"),
-            )
+            with warnings.catch_warnings():
+                # Same as Runner finalize: the deprecated v1 StorageDir only
+                # supplies a base the absolute filename discards.
+                warnings.filterwarnings("ignore", message="get_datadir is deprecated", category=DeprecationWarning)
+                write_job_errorlog_file(
+                    999,
+                    "Error: Please check the logs and code, then try again.",
+                    filename=str(data_root / "job.failed"),
+                )
             get_logger(__name__).exception(str(error))
             sys.exit(1)
     with capture_target_failures() as failures, capture_run_failures() as run_failures:

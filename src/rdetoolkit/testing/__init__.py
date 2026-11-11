@@ -8,7 +8,7 @@ import tempfile
 from collections.abc import Mapping, Callable, Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from rdetoolkit.report.run_report import RunReport
@@ -16,11 +16,15 @@ if TYPE_CHECKING:
     from rdetoolkit.types import InputPaths, InvoiceData, OutputContext
 
 
-def make_input_paths(tmp_path: Path, files: Iterable[str] = ()) -> InputPaths:
-    """Create a minimal on-disk input tree for tests."""
+def make_input_paths(tmp_path: Path, files: Iterable[str] = (), *, invoice_org: Path | None = None) -> InputPaths:
+    """Create a minimal on-disk input tree for tests.
+
+    ``invoice_org`` defaults to ``invoice/invoice.json``, the run-level
+    invoice source the Runner selects outside the backup modes.
+    """
     from rdetoolkit.testing.builders import make_input_paths as _make_input_paths  # noqa: PLC0415
 
-    return _make_input_paths(tmp_path, files=files)
+    return _make_input_paths(tmp_path, files=files, invoice_org=invoice_org)
 
 
 def make_output_context(tmp_path: Path) -> OutputContext:
@@ -37,18 +41,39 @@ def make_invoice(overrides: Mapping[str, Any] | None = None) -> InvoiceData:
     return _make_invoice(overrides=overrides)
 
 
-def run_flow(flow_fn_or_template: Callable[..., Any], fixture_dir: Path) -> RunReport:
-    """Run a flow-like callable through the Phase B Runner skeleton.
+def run_flow(
+    flow_fn_or_template: Callable[..., Any], fixture_dir: Path | None = None, *, data_root: Path | None = None,
+) -> RunReport:
+    """Run a flow through the real Runner, on fixture inputs or a full data root.
+
+    With ``fixture_dir``, its files are copied into ``inputdata/`` of a
+    temporary RDE tree with a synthetic invoice and an empty invoice schema;
+    the tree is deleted afterwards. With ``data_root``, an existing RDE tree
+    (``inputdata/``, ``invoice/``, ``tasksupport/`` with its real invoice,
+    schema and metadata definition, or a project directory holding such a
+    ``data/`` child) is run in place, exactly as ``workflows.run(flow=...)``
+    run from that directory, and every output, including ``job.failed``, is
+    kept for inspection. The caller's working directory is restored.
 
     Args:
-        flow_fn_or_template: Callable placeholder for later flow dispatch phases.
-        fixture_dir: Directory used as the source fixture root.
+        flow_fn_or_template: Flow callable or processing template to run.
+        fixture_dir: Directory whose files become the synthetic tree's inputs.
+        data_root: Existing data root or project directory to run in place.
 
     Returns:
         Run report produced by the Runner.
-    """
-    from rdetoolkit.runner.lifecycle import Runner  # noqa: PLC0415
 
+    Raises:
+        ValueError: If neither or both of ``fixture_dir`` and ``data_root``
+            are given.
+        FileNotFoundError: If ``data_root`` does not exist.
+        NotADirectoryError: If ``data_root`` is not a directory.
+    """
+    if (fixture_dir is None) == (data_root is None):
+        msg = "run_flow requires exactly one of fixture_dir or data_root"
+        raise ValueError(msg)
+    if fixture_dir is None:
+        return _run_in_place(flow_fn_or_template, Path(cast("Path", data_root)))
     fixture_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as run_dir:
         root = Path(run_dir)
@@ -57,6 +82,22 @@ def run_flow(flow_fn_or_template: Callable[..., Any], fixture_dir: Path) -> RunR
             runner_cls = _make_testing_runner()
             runner = runner_cls(root=root, inputdata_path=root / "inputdata", unpacked_dir_path=root / "unpacked")
             return runner.run(flow_fn_or_template)
+
+
+def _run_in_place(flow_fn_or_template: Callable[..., Any], root: Path) -> RunReport:
+    from rdetoolkit.runner.paths import resolve_data_root  # noqa: PLC0415
+
+    if not root.exists():
+        msg = f"run_flow data_root does not exist: {root}"
+        raise FileNotFoundError(msg)
+    if not root.is_dir():
+        msg = f"run_flow data_root is not a directory: {root}"
+        raise NotADirectoryError(msg)
+    project = root.resolve()
+    with _chdir(project):
+        data = resolve_data_root(project)
+        runner = _make_testing_runner()(root=project, inputdata_path=data / "inputdata", unpacked_dir_path=data / "temp")
+        return runner.run(flow_fn_or_template)
 
 
 def assert_output_tree(out: OutputContext, golden_dir: Path) -> None:

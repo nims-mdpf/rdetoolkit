@@ -30,6 +30,19 @@
   `rdeconfig.yaml` or building `custom` in another order no longer makes
   `repro export` reject the run. List order and value types still count.
   Digests recorded by 2.0.0rc1 reports differ from the new ones.
+- Builtin nodes close the remaining v1 byte-parity gaps. `plot_lines` and
+  `save_figure` accept `bbox_inches`/`pad_inches` (`bbox_inches=None` writes the
+  full canvas like `fig.savefig(path)`). `plot_lines` adds `(x, y, label)` pairs,
+  `labels=`, `grid` and `label_fontsize`; label sizes follow rcParams by default.
+  `save_meta` writes v1 four-space JSON and accepts `indent`. The new
+  `read_excel_fills` node reads fill colours aligned with `read_excel` rows, and
+  `unzip_inputs(include_dirs=True)` returns directory entries. The `build_meta`
+  originalName fallback and its v1 precedence are documented; temporary files use
+  `tempfile`. `@flow(error_message=)` supports `{error}`/`{error_type}`.
+  `testing.run_flow(flow, data_root=...)` runs a real RDE tree in place and keeps
+  it, `make_input_paths` defaults `invoice_org` like the Runner, writing
+  `job.failed` no longer emits rdetoolkit's own `get_datadir` DeprecationWarning,
+  and `rdetoolkit.nodes.cast` is no longer exported (#590).
 - `@flow(error_code=..., error_message=...)` no longer overrides a
   `StructuredError` raised in the flow body: its own code and message reach
   `RunReport.error` and `job.failed`, matching v1 `catch_exception_with_message`.

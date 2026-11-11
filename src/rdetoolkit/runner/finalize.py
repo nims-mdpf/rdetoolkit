@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import uuid
+import warnings
 from pathlib import Path
 from collections.abc import Callable
 from typing import Any
@@ -97,7 +98,12 @@ def finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None:
         code, message = _failure_error(report)
         failure_path = (data_root / "job.failed").resolve()
         failure_path.parent.mkdir(parents=True, exist_ok=True)
-        write_job_errorlog_file(code, message, filename=str(failure_path))
+        with warnings.catch_warnings():
+            # The v1 writer joins an absolute filename onto the deprecated
+            # ``StorageDir.get_datadir``, which only contributes a warning the
+            # user cannot act on; the path itself is fully resolved here.
+            warnings.filterwarnings("ignore", message="get_datadir is deprecated", category=DeprecationWarning)
+            write_job_errorlog_file(code, message, filename=str(failure_path))
 
 
 def write_run_report(report: RunReport, *, data_root: Path) -> None:

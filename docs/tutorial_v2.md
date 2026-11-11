@@ -92,7 +92,10 @@ assert report.status == "success"
 ```
 
 `run_flow` は実データを模した一時 RDE ツリーを作り、正規の Runner 経路を実行して
-`RunReport` を返します。これにより直接呼び出しのテストと Runner 結合テストを
+`RunReport` を返します。実際の invoice や metadata-def.json が必要な flow は、
+`run_flow(flow, data_root=root)` で完全な RDE ツリー（`inputdata/`・`invoice/`・`tasksupport/`）を
+そのまま実行できます。この場合は出力と `job.failed` を残すので、実行後に内容を確認できます。
+`make_input_paths()` の `invoice_org` は Runner と同じく `invoice/invoice.json` を既定にします。これにより直接呼び出しのテストと Runner 結合テストを
 目的に応じて使い分けられます。
 
 ## スコープ
