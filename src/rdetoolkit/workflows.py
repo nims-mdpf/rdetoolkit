@@ -325,6 +325,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     """
     from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
     from rdetoolkit.config import load_config as load_v1_config
+    from rdetoolkit.models.config import Config
     from rdetoolkit.rdelogger import get_logger
     from rdetoolkit.runner.invoker import capture_run_failures, capture_target_failures
     from rdetoolkit.runner.lifecycle import Runner
@@ -383,7 +384,13 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
         ).run(
             RunRequest(
                 root=root,
-                target=LegacyCallbackTarget(function=custom_dataset_function),
+                # The v1 ``Config`` also travels with the target: its extras are
+                # the callback's ``srcpaths.config`` extras, in v1's layout
+                # (``custom:`` stays ``Config.custom``, #586).
+                target=LegacyCallbackTarget(
+                    function=custom_dataset_function,
+                    legacy_config=config_source if isinstance(config_source, Config) else None,
+                ),
                 config_source=config_source,
             ),
         )

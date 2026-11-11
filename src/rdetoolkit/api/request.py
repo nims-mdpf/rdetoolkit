@@ -5,9 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
+
+if TYPE_CHECKING:
+    from rdetoolkit.models.config import Config
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,9 +30,15 @@ class LegacyCallbackTarget:
 
     Attributes:
         function: Dataset callback, or ``None`` for callback-free v1 runs.
+        legacy_config: The v1 ``Config`` the run was configured from, when
+            there is one. Its extra fields are what the callback sees as
+            ``srcpaths.config`` extras, in v1's own layout: normalization
+            flattens the ``custom:`` section into ``RdeConfig.custom`` for
+            flows (#566), which loses where each key came from (#586).
     """
 
     function: Callable[..., object] | None
+    legacy_config: Config | None = None
 
 
 ExecutionTarget = FlowTarget | LegacyCallbackTarget
