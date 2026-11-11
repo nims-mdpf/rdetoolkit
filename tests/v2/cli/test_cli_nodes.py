@@ -198,6 +198,50 @@ class TestNodesLintCleanRegistry:
         assert "2004" not in combined
 
 
+class TestNodesLintExplicitAny:
+    """Issue #601: an explicit ``typing.Any`` annotation is an annotation.
+
+    Subprocess-isolated (exit 0 needs a clean registry, see module docstring).
+    """
+
+    @pytest.mark.parametrize(
+        "annotation",
+        ["Any", "typing.Any", '"Any"'],
+        ids=["bare-any", "qualified-any", "string-any"],
+    )
+    def test_explicit_any_parameter_is_not_missing_annotation__issue_601(self, annotation: str) -> None:
+        register_snippet = f"""
+            import typing
+            from typing import Any
+
+            @node(id="isolated_any_node_601")
+            def any_node(v: {annotation}) -> int:
+                return 1
+        """
+
+        proc = _run_isolated_lint(register_snippet)
+
+        combined = proc.stdout + proc.stderr
+        assert proc.returncode == 0, combined
+        assert "Missing type annotation" not in combined
+
+    def test_only_unannotated_parameter_is_reported_next_to_explicit_any__issue_601(self) -> None:
+        register_snippet = """
+            from typing import Any
+
+            @node(id="isolated_mixed_node_601")
+            def mixed_node(v: Any, w) -> None:  # noqa: ANN001
+                return None
+        """
+
+        proc = _run_isolated_lint(register_snippet)
+
+        assert proc.returncode == 3, proc.stdout + proc.stderr
+        lines = proc.stdout.splitlines()
+        assert "Missing type annotation: isolated_mixed_node_601.w" in lines
+        assert "Missing type annotation: isolated_mixed_node_601.v" not in lines
+
+
 class TestNodesLintViolations:
     """TC-CLI-NODES-EP-007/008/009: each violation kind, in-process (only
     presence of a violation is asserted -- see module docstring on why
