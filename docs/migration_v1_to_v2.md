@@ -86,17 +86,35 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 value/unit セルの行を保持します。`parse_invoice_meta` も invoice の `custom` に
 同じ規則を適用します。flow で `rde2util.Meta` や v1 オブジェクトの変換層を使う必要はありません。
 
+値のキーには定義キーと `originalName` のどちらも使えます。v1 の `Meta.assign_vals` と
+同じく、両方がある場合は定義キーを優先し、`originalName` は定義キーが無いときだけ
+参照します（定義キーが `None` で存在する場合は `originalName` を参照せず除外します）。
+`originalName` 側を優先していたコードは、呼び出し前に値を定義キーへ移してください。
+`save_meta` は v1 の `Meta.writefile` と同じ 4 スペースのインデントで書き出し、
+`indent=` で変更できます。
+
 ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
 `save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は
 出力先の `kind` を選べます。文字コードを検出する `read_json`、タイルの invoice を
 所定の書式で保存する `save_invoice`、利用者が作った Figure を保存する `save_figure`
 も利用できます。`plot_lines` は x/y 列または列ペア、ラベル・タイトル・軸スケール・
 凡例・サイズ・DPI・出力先を指定できます。
+列ペアは `(x, y, label)` でも指定でき、`labels=` で全系列の凡例名を指定することもできます。
+`grid=True` でグリッドを描き、軸ラベルの文字サイズは `label_fontsize` を指定しない限り
+matplotlib の rcParams に従います。2 つの描画ノードは既定で tight な bounding box で保存します。
+v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
+`savefig(path, bbox_inches="tight", pad_inches=0)` と同じ画像には `pad_inches=0` を指定してください。
+セルの塗りつぶし色で行を選ぶテンプレートでは、`read_excel` と同じシート・行指定で
+`read_excel_fills(path, column="A", ...)` を呼ぶと、データフレームの各行に対応する
+塗りつぶし色（ARGB 16 進文字列、`theme:<n>`、または `None`）を返します。
+`OutputContext` には v1 の `resource_paths.temp` に当たる一時ディレクトリはありません。
+作業用ファイルには `tempfile.TemporaryDirectory()` を使ってください（ブロック終了時に削除されます）。
 
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
 外向きシンボリックリンクを含む展開先の境界チェックは維持します。
 戻り値を使用していなかった呼び出し方も継続できます。
+アーカイブ構造を列挙する場合は `include_dirs=True` で空ディレクトリを含むディレクトリエントリーも返します。
 
 ## 実行時の変更点
 
@@ -129,7 +147,10 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 
 - flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を
   両 v2 入口から同じコード・メッセージにまとめられます。コードだけなら元の
-  メッセージを保ち、メッセージだけならコードは 3001 です。本体で送出した
+  メッセージを保ち、メッセージだけならコードは 3001 です。メッセージには例外の文字列
+  `{error}` と例外クラス名 `{error_type}` を埋め込めます（例:
+  `error_message="Cannot read sample: {error}"`）。それ以外の波括弧はそのまま残ります。
+  本体で送出した
   `StructuredError` は v1 の `catch_exception_with_message` と同じく、そのコードと
   メッセージを保ちます。直接の関数呼び出しでは
   元の例外がそのまま送出されます。Runner では元の例外をチェーンに残し、

@@ -10,7 +10,7 @@ EP table
 BV / negative table
 | Case | Expected | Test ID |
 |---|---|---|
-| row is outside the table (other section) | not counted | GA587-NEG-1 |
+| earlier sections contain prose API references | allowed; no #570 table row is misplaced there | GA587-NEG-1 |
 | non-``None`` unconvertible value | ``StructuredError`` with ecode 1, as the row says | GA587-NEG-2 |
 """
 
@@ -74,11 +74,13 @@ def test_note_states_17_line_status__ga587_ep_2(language: str) -> None:
 @pytest.mark.parametrize("language", ["ja", "en"])
 def test_row_outside_table_is_not_counted__ga587_neg_1(language: str) -> None:
     """GA587-NEG-1: only the intentional-differences section supplies the row."""
-    # Given: the behaviour-change section that precedes the table
+    # Given: earlier sections may reference the API in ordinary prose
     text = GUIDES[language].read_text(encoding="utf-8")
     before = text[: text.index(HEADINGS[language])]
-    # When / Then: the #570 row is not misplaced there
-    assert "Meta.assign_vals" not in before
+    # When: selecting table rows rather than unrelated prose references
+    rows = _table_rows(before)
+    # Then: the #570 row is not misplaced in an earlier table
+    assert not any("Meta.assign_vals" in row and "#570" in row for row in rows)
 
 
 def test_documented_v2_outcome_holds__ga587_ep_3(tmp_path: Path) -> None:

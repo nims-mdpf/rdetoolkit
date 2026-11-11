@@ -49,6 +49,8 @@ InvoiceData.get_custom_fields() reads raw["custom"]; mode is the resolved mode.
 Use `rdetoolkit.nodes` for saving: save_csv, save_json, save_text, save_invoice,
 save_meta, plot_lines and save_figure. `build_meta(values, metadef_path)` applies
 metadata definition types, units, variable rows and ordering before save_meta.
+save_meta and save_invoice keep v1 four-space JSON. For v1 image parity pass
+bbox_inches=None (or pad_inches=0) to plot_lines/save_figure.
 Metadata.units and Metadata.variable preserve units and repeated cells. Construct
 OutputContext through its factory or test builders; the Runner creates dirs.
 
@@ -58,7 +60,8 @@ Use `ProcessingTemplate` for a reusable domain skeleton. Implement its required
 slots; keep the final __flow__ skeleton intact. Templates use the same Runner.
 Inspect `rdetoolkit nodes list` and `rdetoolkit templates list` before rebuilding
 existing functionality. Use `rdetoolkit.testing` builders make_input_paths,
-make_output_context and make_invoice, or run_flow for Runner integration.
+make_output_context and make_invoice, or run_flow for Runner integration
+(run_flow(flow, data_root=root) keeps a real RDE tree and its outputs).
 
 ## Input and compatibility
 

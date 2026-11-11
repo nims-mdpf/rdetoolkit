@@ -92,17 +92,38 @@ definitions become one row. `Metadata.units` holds constant units and
 the same rules to the invoice's nested `custom` section. User flows do not need
 `rde2util.Meta` or a v1 object adapter.
 
+Values may be keyed by the definition key or by its `originalName`. As in v1
+`Meta.assign_vals`, the definition key wins when both spellings are present,
+and `originalName` is read only when the definition key is absent (a key that
+is present with `None` is excluded without falling back). Code that preferred
+the `originalName` spelling should map those values onto the definition keys
+first. `save_meta` writes four-space indentation like v1 `Meta.writefile`;
+pass `indent=` to choose another.
+
 For file and image artifacts, `read_excel` accepts worksheet, header, row and
 column selections; `save_csv` accepts precision, header and index options.
 `save_json` and `save_text` accept an output `kind`. Use `read_json` for detected
 encoding, `save_invoice` for the tile invoice formatting contract, and
 `save_figure` for caller-owned matplotlib figures. `plot_lines` accepts x/y
 columns or independent pairs, labels, title, scale, legend, size, DPI and kind.
+Pairs may be `(x, y, label)`, or `labels=` names every series; `grid=True` draws
+the grid, and axis-label sizes follow matplotlib rcParams unless
+`label_fontsize` is set. Both plot nodes save with a tight bounding box by
+default: pass `bbox_inches=None` to reproduce a plain v1 `fig.savefig(path)`, or
+`pad_inches=0` for `savefig(path, bbox_inches="tight", pad_inches=0)`.
+Templates that select rows by cell colour use
+`read_excel_fills(path, column="A", ...)` with the same sheet and row options as
+`read_excel`; it returns one fill colour (ARGB hex, `theme:<n>` or `None`) per
+data-frame row. `OutputContext` has no run-scoped temp directory (v1
+`resource_paths.temp`); use `tempfile.TemporaryDirectory()` for scratch files,
+which are removed when the block ends.
 
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
 produce repeated paths. Existing containment checks, including outward symlinks,
 still apply. Callers that ignored the old return value can keep doing so.
+Pass `include_dirs=True` to also receive directory entries, including empty
+directories, when listing the archive structure.
 
 ## Runtime changes
 
@@ -140,6 +161,9 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
 - Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
   failures to one code and message through either v2 entry. Supplying only a
   code preserves the original message; supplying only a message uses 3001.
+  The message may contain `{error}` (the exception's text) and `{error_type}`
+  (its class name), e.g. `error_message="Cannot read sample: {error}"`; other
+  braces are kept as written.
   A `StructuredError` raised in the body keeps its own code and message, as
   with v1 `catch_exception_with_message`.
   Direct function calls still propagate the original exception. The original
