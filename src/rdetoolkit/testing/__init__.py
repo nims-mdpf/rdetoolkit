@@ -21,6 +21,20 @@ def make_input_paths(tmp_path: Path, files: Iterable[str] = (), *, invoice_org: 
 
     ``invoice_org`` defaults to ``invoice/invoice.json``, the run-level
     invoice source the Runner selects outside the backup modes.
+
+    Args:
+        tmp_path: Root directory for the test input tree.
+        files: Relative file names under ``inputdata``. The returned
+            ``rawfiles`` preserves their order and duplicates.
+        invoice_org: Optional run-level invoice source; its file is not created.
+
+    Returns:
+        Input paths whose ``rawfiles`` names the requested files.
+
+    Raises:
+        RdeConfigError: With code 1003 if a name is absolute, names a directory,
+            or escapes ``inputdata``, including through a symlink. Invalid
+            batches create no directories or files.
     """
     from rdetoolkit.testing.builders import make_input_paths as _make_input_paths  # noqa: PLC0415
 

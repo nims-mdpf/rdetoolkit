@@ -95,7 +95,10 @@ assert report.status == "success"
 `RunReport` を返します。実際の invoice や metadata-def.json が必要な flow は、
 `run_flow(flow, data_root=root)` で完全な RDE ツリー（`inputdata/`・`invoice/`・`tasksupport/`）を
 そのまま実行できます。この場合は出力と `job.failed` を残すので、実行後に内容を確認できます。
-`make_input_paths()` の `invoice_org` は Runner と同じく `invoice/invoice.json` を既定にします。これにより直接呼び出しのテストと Runner 結合テストを
+`make_input_paths()` の `invoice_org` は Runner と同じく `invoice/invoice.json` を既定にします。
+`files=` で指定したファイルは `inputdata/` に作成され、同じ順序で `rawfiles` に格納されます。
+絶対パス・ディレクトリ名・`inputdata/` の外へ出るパス（外向きのシンボリックリンクを含む）は
+ファイル作成前に `RdeConfigError`（コード 1003）で拒否されます。これにより直接呼び出しのテストと Runner 結合テストを
 目的に応じて使い分けられます。
 
 ## スコープ

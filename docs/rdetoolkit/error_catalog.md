@@ -10,6 +10,7 @@ Authority: `local/develop/v2/Design.md` §9.
 |------|------|------------------|-------------|
 | 1001 | RunArgumentUsageError | Specify exactly one of flow or custom_dataset_function. | Call run() with exactly one entry point: run(flow=...) for v2 pipelines or run(custom_dataset_function=...) for v1 workflows. |
 | 1002 | ConfigLoadFailed | Failed to load RDE configuration: {reason} | Fix the reported issue in rdeconfig.yaml (or [tool.rdetoolkit] in pyproject.toml). Unknown keys are rejected: check for typos and remove settings this version does not support. |
+| 1003 | InvalidTestInputPath | Test input file must name a file inside inputdata: {path} | Pass relative file names to make_input_paths(files=...). Avoid absolute paths, directories, parent paths escaping inputdata, and symlinks pointing outside the input tree. |
 | 2001 | DuplicateNodeId | Duplicate node id registered: {node_id} | Rename one of the functions or move it to another module (the node id is '{module}.{qualname}'), or pass an explicit id via @node(id=...). |
 | 2002 | ~~ReservedParamMismatch~~ (retired) | Reserved flow parameter has an incompatible type: {param_name} | Retired by design revision R1: DI is type-based and parameter names are advisory only, so a name mismatch is no longer an error. This number must not be reused. |
 | 2003 | UnresolvableFlowParam | Could not resolve flow parameter: {param_name} | Annotate the parameter with one of the reserved types (InputPaths, OutputContext, RdeConfig, InvoiceData, IterationInfo) or give it a default value. |

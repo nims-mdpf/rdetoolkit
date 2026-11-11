@@ -785,3 +785,13 @@ ERROR_CATALOG[4004] = ErrorDef(
     message_template="The Excel invoice has no data rows.",
     remediation="Add at least one data row to the Excel invoice, then rerun.",
 )
+
+
+ERROR_CATALOG[1003] = ErrorDef(
+    name="InvalidTestInputPath",
+    message_template="Test input file must name a file inside inputdata: {path}",
+    remediation=(
+        "Pass relative file names to make_input_paths(files=...). Avoid absolute paths, "
+        "directories, parent paths escaping inputdata, and symlinks pointing outside the input tree."
+    ),
+)
