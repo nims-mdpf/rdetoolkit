@@ -9,7 +9,8 @@ from typing import Protocol, cast
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.input_checker import selected_input_checker
 from rdetoolkit.errors import ERROR_CATALOG, RdeValidationError
-from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
+from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.impl.input_controller import ExcelInvoiceChecker
 from rdetoolkit.invoicefile import ExcelInvoiceFile
 from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import RdeInputDirPaths
@@ -46,9 +47,9 @@ def reject_empty_excelinvoice(mode: ModeKind, inputdata_path: Path) -> None:
     "No data rows" is exactly what tile discovery sees: the rows the v1 sheet
     reader keeps, where a formula's ``""`` result is an empty cell. The probe
     only reads the workbook (no unpacking, no writes) and stays silent on
-    anything it cannot judge -- another mode, zero or several candidate
-    workbooks, or a workbook the reader rejects -- so those inputs keep their
-    existing diagnostics.
+    anything it cannot judge -- another mode, an invalid file layout, zero
+    candidate workbooks, or a workbook the reader rejects -- so those inputs
+    keep their existing diagnostics.
 
     Args:
         mode: Effective Runner mode.
@@ -73,17 +74,13 @@ def reject_empty_excelinvoice(mode: ModeKind, inputdata_path: Path) -> None:
 
 
 def _single_excel_invoice(inputdata_path: Path) -> Path | None:
-    """Return the one Excel invoice ``ExcelInvoiceChecker`` would select, if any."""
-    if not inputdata_path.is_dir():
+    """Select a workbook only after the checker's read-only layout validation."""
+    checker = ExcelInvoiceChecker(inputdata_path)
+    try:
+        _, candidates, _ = checker.validate_input_files(inputdata_path)
+    except StructuredError:
+        # Invalid layouts keep their normal validation order and diagnostics.
         return None
-    cleaner = SystemFilesCleaner()
-    candidates = [
-        path
-        for path in inputdata_path.glob("*")
-        if not cleaner.is_excluded(path)
-        and path.suffix.lower() in {".xls", ".xlsx"}
-        and path.stem.endswith("_excel_invoice")
-    ]
     return candidates[0] if len(candidates) == 1 else None
 
 

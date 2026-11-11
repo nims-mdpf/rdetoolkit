@@ -38,6 +38,8 @@
   `invoice/invoice.json` pre-check. A blank form uploaded on its own, such as a
   template whose rows hold only formulas evaluating to `""`, now reports
   999 (v1 entry) / 4004 (flows) instead of 4003 RequiredArtifactMissing (#588).
+  Invalid extra files and multiple ZIPs retain the checker's existing input
+  errors; the empty-form preflight shares its file-layout validation (#593).
 - Flow input paths are relative to cwd, preserving v1 path spellings in
   user-generated `job.failed` messages without changing internal root resolution (#567).
 - The public `build_meta` node constructs typed metadata from metadata-def.json,
