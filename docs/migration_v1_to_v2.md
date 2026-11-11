@@ -209,6 +209,20 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   メッセージを保ちます。直接の関数呼び出しでは
   元の例外がそのまま送出されます。Runner では元の例外をチェーンに残し、
   `KeyboardInterrupt`・`SystemExit` などのプロセス制御例外は変換しません。
+- **v1 の `catch_exception_with_message` を flow に書き換えるときは `error_code=1` を明示してください。**
+  v1 のデコレータは素の例外を `ecode=1`、メッセージ先頭に `Error: ` を付けた
+  `StructuredError` に変換します。flow の `error_message` だけを移すとコードは 3001 になり、
+  `job.failed` の `ErrorCode` が 1 から変わります。v1 と同じ結果にする対応は次のとおりです。
+
+  | v1 の `catch_exception_with_message` の引数 | flow デコレータの引数 |
+  |---|---|
+  | `error_message="m"` | `error_code=1, error_message="Error: m"` |
+  | なし | `error_code=1, error_message="Error: {error}"` |
+  | `error_code=c, error_message="m"` | `error_code=c, error_message="Error: m"` |
+
+  `Error: ` 接頭辞が不要なら `error_code=1, error_message="m"`、
+  引数なしの場合は `error_code=1` だけで構いません(コードは同じで、メッセージは
+  それぞれ `m`、例外の文字列になります)。
 - flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
   入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
   Runner 内部では、開始時に一度確定した data root を引き続き使います。

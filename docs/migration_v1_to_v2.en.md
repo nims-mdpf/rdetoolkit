@@ -227,6 +227,21 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   Direct function calls still propagate the original exception. The original
   exception remains chained in Runner failures; process-control exceptions
   such as `KeyboardInterrupt` and `SystemExit` are not mapped.
+- **When rewriting v1 `catch_exception_with_message` as a flow, set `error_code=1` explicitly.**
+  The v1 decorator turns a plain exception into a `StructuredError` with
+  `ecode=1` and an `Error: ` prefixed message. Moving only `error_message` to
+  the flow decorator uses 3001, so the `job.failed` `ErrorCode` changes from 1.
+  The mapping that reproduces the v1 result is:
+
+  | v1 `catch_exception_with_message` arguments | flow decorator arguments |
+  |---|---|
+  | `error_message="m"` | `error_code=1, error_message="Error: m"` |
+  | none | `error_code=1, error_message="Error: {error}"` |
+  | `error_code=c, error_message="m"` | `error_code=c, error_message="Error: m"` |
+
+  If you do not need the `Error: ` prefix, `error_code=1, error_message="m"`
+  and, without arguments, `error_code=1` alone keep the same code (the
+  message is then `m` or the exception's text respectively).
 - `InputPaths` injected into a flow uses paths relative to the working directory,
   like v1 input paths. Path-based user error messages therefore keep the v1
   spelling. The Runner still resolves the data root once for its internal work.
