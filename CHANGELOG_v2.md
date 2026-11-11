@@ -33,6 +33,14 @@
   match the new ones, so `rdetoolkit repro export` rejects a run report written
   by 2.0.0rc1 (exit 3) even when the configuration is unchanged. Re-run the job
   with this version to get an exportable report.
+- `build_meta` accepts a definition Mapping, including a filtered definition,
+  without temporary files. `match="key"` / `"original_name"` select explicit
+  source rules; the default `"both"` retains definition-key precedence. Empty
+  and whitespace-only strings are consistently omitted after trimming, or
+  retained with `keep_empty_strings=True` when the schema allows them (#598).
+  Missing or null `originalName` falls back to the definition key; explicit
+  empty aliases remain supported. Blank number, integer and boolean values
+  are omitted by default and raise conversion errors when retention is enabled.
 - `testing.make_input_paths(files=...)` now fills `rawfiles` with the requested
   files in iterable order. Absolute paths, directory names and paths escaping
   `inputdata` (including outward symlinks) fail with error 1003 before any

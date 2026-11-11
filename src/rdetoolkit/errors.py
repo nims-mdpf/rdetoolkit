@@ -795,3 +795,10 @@ ERROR_CATALOG[1003] = ErrorDef(
         "directories, parent paths escaping inputdata, and symlinks pointing outside the input tree."
     ),
 )
+
+
+ERROR_CATALOG[1004] = ErrorDef(
+    name="InvalidMetadataMatchMode",
+    message_template="Unsupported metadata source matching mode: {mode}",
+    remediation="Pass match='key', match='original_name' or match='both' to build_meta().",
+)
