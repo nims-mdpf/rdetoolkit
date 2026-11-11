@@ -309,7 +309,8 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
             ``<data root>/tasksupport`` with v1's own loader; a v1 ``Config`` is
             passed through unchanged. Both keep the v1 contract — fail-fast
             unless ``multidata_tile.ignore_errors`` says otherwise. An
-            ``RdeConfig`` or mapping is normalized as a v2 source.
+            ``RdeConfig`` is used as-is; a mapping is merged over the
+            discovered files as a v2 source.
 
     Returns:
         The v1 ``{"statuses": [...]}`` JSON string for a successful or partial
@@ -525,7 +526,9 @@ def run(  # pragma: no cover
             ``custom_dataset_function`` path ``None`` means "the v1 defaults",
             which keeps the v1 fail-fast iteration policy; on the ``flow`` path
             ``None`` lets the Runner discover ``rdeconfig.yaml`` /
-            ``tasksupport/`` configuration.
+            ``tasksupport/`` configuration. A config object (``Config`` or
+            ``RdeConfig``) is used as the whole configuration without reading
+            any file; a mapping is merged over the discovered files.
         exit_on_failure: Opt into process exits for the v2 flow entry. Failed
             runs raise ``SystemExit(1)`` and partial runs ``SystemExit(2)``,
             after reports and artifacts are finalized. Successful runs still

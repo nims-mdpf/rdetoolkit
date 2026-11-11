@@ -342,19 +342,26 @@ class Runner:
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.
 
+        A config object (``RdeConfig`` or a v1 ``Config``) is the whole
+        effective config: no file is discovered or merged in, and only the
+        fields the object set count as explicitly configured. A mapping is a
+        set of overrides merged over the discovered files.
+
         Args:
             source: Explicit v2 config source or mapping overrides.
 
         Returns:
             Effective configuration.
         """
+        if isinstance(source, RdeConfig):
+            # A deep copy keeps ``model_fields_set``, which mode resolution
+            # reads to decide whether the mode was configured explicitly.
+            return source.model_copy(deep=True)
         # The data root was resolved before anything existed (ruling #1), and
         # config discovery needs it to reach data/tasksupport (ruling #4).
         data_root = self.data_root
         if source is None:
             return load_config_from_root(self.root, data_root=data_root)
-        if isinstance(source, RdeConfig):
-            return load_config_from_root(self.root, overrides=source.model_dump(), data_root=data_root)
         if isinstance(source, Mapping):
             return load_config_from_root(self.root, overrides=source, data_root=data_root)
         if isinstance(source, Config):

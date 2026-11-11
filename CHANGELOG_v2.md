@@ -4,6 +4,12 @@
 
 ### Fixed
 
+- An `RdeConfig` object passed as the run config (`run(flow=..., config=RdeConfig(...))`,
+  `RunRequest(config_source=...)`) is used as the whole configuration, like a v1
+  `Config` object: config files are no longer merged in, and only the fields the
+  object set count as explicit. A plain `RdeConfig()` with SmartTable or
+  ExcelInvoice input no longer publishes a false W1001. Mappings are still merged
+  over the discovered files.
 - `RunReport.config_digest` no longer depends on key order: it is sha256 over
   key-sorted, compact UTF-8 JSON of the effective config, so reordering keys in
   `rdeconfig.yaml` or building `custom` in another order no longer makes
