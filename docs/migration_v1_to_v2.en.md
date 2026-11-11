@@ -238,6 +238,11 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   "Intentional differences" below).
 - The graph is a call sequence recorded after execution, not a pre-execution DAG.
   Ordinary Python control flow works as is.
+- MultiDataTile assigns its tiles (`data/`, `divided/0001`, ...) in file name order,
+  as v1's MultiDataTile did. A v1 structured program that listed `inputdata` itself,
+  such as `for f in inputdata.glob("*")`, got directory order instead. To keep that
+  order, set `multidata_tile.order: filesystem` (the default is `name`). The listing
+  order depends on the filesystem (#597).
 
 ## Compatibility scope and schedule for v1 users
 

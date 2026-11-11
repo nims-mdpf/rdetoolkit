@@ -220,6 +220,12 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   (後述の「意図的な差分」を参照)。
 - グラフは実行前 DAG ではなく、実行後の call sequence です。通常の Python
   制御構文をそのまま使えます。
+- MultiDataTile のタイル(`data/`、`divided/0001`、…)は、v1 の MultiDataTile と
+  同じくファイル名順に割り当てられます。v1 の構造化処理が
+  `for f in inputdata.glob("*")` のように自前で `inputdata` を列挙してタイルを
+  作っていた場合は、ディレクトリの列挙順になっていました。同じ順序が必要なら
+  `multidata_tile.order: filesystem` を設定してください(既定は `name`)。
+  列挙順はファイルシステムに依存します(#597)。
 
 ## v1 ユーザー向け互換範囲とスケジュール
 

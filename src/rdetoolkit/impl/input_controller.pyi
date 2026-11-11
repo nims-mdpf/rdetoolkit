@@ -2,6 +2,7 @@ from _typeshed import Incomplete as Incomplete
 from collections.abc import Sequence
 from pathlib import Path
 from rdetoolkit.interfaces.filechecker import IInputFileChecker as IInputFileChecker
+from rdetoolkit.models.config import MultiDataTileOrder as MultiDataTileOrder
 from rdetoolkit.models.rde2types import InputFilesGroup as InputFilesGroup, RawFiles as RawFiles, SmartTableRawFiles as SmartTableRawFiles
 
 class InvoiceChecker(IInputFileChecker):
@@ -29,7 +30,8 @@ class RDEFormatChecker(IInputFileChecker):
 
 class MultiFileChecker(IInputFileChecker):
     out_dir_temp: Incomplete
-    def __init__(self, unpacked_dir_basename: Path) -> None: ...
+    order: MultiDataTileOrder
+    def __init__(self, unpacked_dir_basename: Path, order: MultiDataTileOrder = "name") -> None: ...
     @property
     def checker_type(self) -> str: ...
     def parse(self, src_dir_input: Path) -> tuple[RawFiles, Path | None]: ...

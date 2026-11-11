@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, SerializerFunctionWrapHandler, field_validator, model_serializer
+
+#: How MultiDataTile numbers its tiles (issue #597): ``name`` sorts the input
+#: files by name (the v1 framework contract), ``filesystem`` keeps the order
+#: ``Path.glob("*")`` lists them in, as v1 programs that listed ``inputdata/``
+#: themselves did.
+MultiDataTileOrder = Literal["name", "filesystem"]
 
 
 class SystemSettings(BaseModel):
@@ -50,7 +58,35 @@ class SystemSettings(BaseModel):
 
 
 class MultiDataTileSettings(BaseModel):
+    """MultiDataTileSettings is a configuration model for MultiDataTile processing.
+
+    Attributes:
+        ignore_errors (bool): Continue with the next tile when one tile fails. Default is False.
+        order (str): Tile numbering order. ``"name"`` (default) sorts the input files by name;
+            ``"filesystem"`` keeps the order in which ``Path.glob("*")`` lists ``inputdata/``.
+            The filesystem order depends on the filesystem and is not guaranteed to be stable
+            across machines.
+    """
+
     ignore_errors: bool = Field(default=False, description="If true, errors encountered during processing will be ignored, and the process will continue without stopping.")
+    order: MultiDataTileOrder = Field(
+        default="name",
+        description="Tile numbering order: 'name' sorts input files by name, 'filesystem' keeps the directory listing order.",
+    )
+
+    @model_serializer(mode="wrap")
+    def _omit_default_order(self, handler: SerializerFunctionWrapHandler) -> Any:
+        """Serialize ``order`` only when it is not the default.
+
+        ``order`` was added after the v1 configuration dump was frozen in the
+        contract fixtures; omitting the default keeps every existing
+        configuration's dump identical while a non-default order still
+        round-trips.
+        """
+        data = handler(self)
+        if isinstance(data, dict) and data.get("order") == "name":
+            data.pop("order")
+        return data
 
 
 class SmartTableSettings(BaseModel):

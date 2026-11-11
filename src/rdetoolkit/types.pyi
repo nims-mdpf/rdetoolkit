@@ -91,6 +91,10 @@ class V2SmartTableSettings(BaseModel):
     model_config: ConfigDict
     save_table_file: bool = ...
 
+class V2MultiDataTileSettings(BaseModel):
+    model_config: ConfigDict
+    order: Literal["name", "filesystem"]
+
 
 class RdeConfig(BaseModel):
     model_config: ConfigDict
@@ -99,6 +103,7 @@ class RdeConfig(BaseModel):
     provenance: V2RecordingSettings = Field(default_factory=V2RecordingSettings)
     custom: dict[str, Any] = Field(default_factory=dict)
     smarttable: V2SmartTableSettings = Field(default_factory=V2SmartTableSettings)
+    multidata_tile: V2MultiDataTileSettings = Field(default_factory=V2MultiDataTileSettings)
 
 def _require_simple_filename(filename: str) -> None: ...
 def _build_output_context(

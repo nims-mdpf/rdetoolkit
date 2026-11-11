@@ -204,6 +204,22 @@ multidatatile:
   ignore_errors: true   # or false
 ```
 
+#### **MultiDataTile tile order**
+
+> *Only effective when `extended_mode: "MultiDataTile"` is set.*
+
+Selects the order in which input files are assigned to data tiles (`data/` → `divided/0001` → …).
+
+- `name`: sort the files by name (the default, the same as v1's MultiDataTile).
+- `filesystem`: keep the order `Path.glob("*")` lists `inputdata` in (directory order). Use it to reproduce a v1 structured program that built its tiles itself with `for f in inputdata.glob("*")`. The listing order depends on the filesystem and is not guaranteed to be the same on another machine.
+- **type:** `str` (`name` / `filesystem`)
+- **default:** `name`
+
+```yaml
+multidata_tile:
+  order: filesystem   # or name
+```
+
 #### **SmartTable**
 
 > *Only effective when the SmartTable feature is enabled.*

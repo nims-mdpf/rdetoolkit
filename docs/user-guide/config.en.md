@@ -89,6 +89,7 @@ system:
 
 multidata_tile:
   ignore_errors: true  # Continue processing on errors
+  order: name          # Tile order: name (by file name, default) / filesystem (directory listing order)
 ```
 
 #### RDE Format Mode

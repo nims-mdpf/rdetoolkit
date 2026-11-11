@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
+  MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
+  configuration. `filesystem` keeps the order `Path.glob("*")` lists
+  `inputdata/` in, so a rewrite of a v1 program that listed its inputs itself
+  can reproduce that program's `data/` / `divided/NNNN` layout. The default
+  keeps the name order and the v1 configuration dump unchanged. Adding the
+  section to `RdeConfig` changes `RunReport.config_digest` for every
+  configuration (#597).
+
 ### Fixed
 
 - `system.extended_mode=None` (including YAML `null`) now means an unset

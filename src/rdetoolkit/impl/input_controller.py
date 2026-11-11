@@ -11,6 +11,7 @@ from rdetoolkit.impl._zip_encoding import extract_zip_with_encoding
 from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
 from rdetoolkit.interfaces.filechecker import IInputFileChecker
 from rdetoolkit.invoicefile import ExcelInvoiceFile, SmartTableFile
+from rdetoolkit.models.config import MultiDataTileOrder
 from rdetoolkit.models.rde2types import (
     ExcelInvoicePathList,
     FileGroup,
@@ -351,10 +352,13 @@ class MultiFileChecker(IInputFileChecker):
 
     Attributes:
         out_dir_temp (Path): Temporary directory used for certain operations.
+        order (str): Tile order. ``"name"`` (default) sorts the files by name; ``"filesystem"``
+            keeps the order ``Path.glob("*")`` lists them in.
     """
 
-    def __init__(self, unpacked_dir_basename: Path):
+    def __init__(self, unpacked_dir_basename: Path, order: MultiDataTileOrder = "name"):
         self.out_dir_temp = unpacked_dir_basename
+        self.order = order
 
     @property
     def checker_type(self) -> str:
@@ -387,6 +391,9 @@ class MultiFileChecker(IInputFileChecker):
             # Align with InvoiceChecker: ensure pipeline executes once even when inputdata is empty
             return [()], None
         _rawfiles: list[tuple[Path, ...]] = [(f,) for f in other_files]
+        if self.order == "filesystem":
+            # Keep the ``glob("*")`` listing order (issue #597).
+            return _rawfiles, None
         return sorted(_rawfiles, key=str), None
 
     def _get_group_by_files(self, input_files: list[Path]) -> OtherFilesPathList:

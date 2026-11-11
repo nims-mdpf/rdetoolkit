@@ -167,6 +167,8 @@ class ConfigNormalizer:
             result["execution"]["on_iteration_error"] = (
                 "continue" if multidata_tile["ignore_errors"] else "fail_fast"
             )
+        if "order" in multidata_tile:
+            result["multidata_tile"] = {"order": copy.deepcopy(multidata_tile["order"])}
 
         # ``traceback.*`` is formatter configuration for the v1 entry's stderr
         # traceback, not Runner configuration: it is carried out of band (the

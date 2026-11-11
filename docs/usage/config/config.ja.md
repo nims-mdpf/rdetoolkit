@@ -180,6 +180,21 @@ multidatatile:
   ignore_errors: true # もしくはfalse
 ```
 
+#### MultiDataTileのタイルの順序
+
+> MultiDataTileが有効の場合、この設定は機能します。
+
+- 入力ファイルをどの順でデータタイル(`data/` → `divided/0001` → …)に割り当てるかを指定します。
+- `name`: ファイル名順に並べます(v1 の MultiDataTile と同じ既定の挙動)。
+- `filesystem`: `inputdata` を `Path.glob("*")` で列挙した順(ディレクトリの列挙順)のまま割り当てます。`for f in inputdata.glob("*")` で自前にタイルを作っていた v1 の構造化処理と同じ順序を再現するときに使います。列挙順はファイルシステムに依存し、マシン間で同じになる保証はありません。
+- type: `str`(`name` / `filesystem`)
+- デフォルト: `name`
+
+```yaml
+multidata_tile:
+  order: filesystem # もしくはname
+```
+
 #### SmartTable設定
 
 > SmartTableが有効の場合、この設定は機能します。
