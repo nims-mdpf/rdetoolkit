@@ -6,8 +6,12 @@ from collections.abc import Callable, Iterator, Sequence
 from pathlib import Path
 from typing import Protocol, cast
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.input_checker import selected_input_checker
 from rdetoolkit.errors import ERROR_CATALOG, RdeValidationError
+from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.impl.input_controller import ExcelInvoiceChecker
+from rdetoolkit.invoicefile import ExcelInvoiceFile
 from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import RdeInputDirPaths
 from rdetoolkit.runner.mode_resolver import ModeKind
@@ -27,6 +31,57 @@ class EmptyExcelInvoiceError(RdeValidationError):
         # The append-only v1 signature is narrower than the v2 runtime initializer.
         initialize = cast(Callable[..., None], super().__init__)
         initialize(code=4004, message=f"{definition.message_template} Remediation: {definition.remediation}")
+
+
+def reject_empty_excelinvoice(mode: ModeKind, inputdata_path: Path) -> None:
+    """Diagnose an Excel invoice with no data rows before pre-validation (#588).
+
+    ``iterate_tiles`` already rejects a form whose checker finds no rows, but
+    the Runner pre-validates ``invoice/invoice.json`` first. A blank form
+    uploaded on its own -- typically a template whose data rows hold only
+    formulas evaluating to ``""`` -- often comes without that invoice, so the
+    run ended in 4003 RequiredArtifactMissing before the form was ever looked
+    at. v1.7.1 never required the invoice for a form without rows and
+    published 999; probing the form first restores the #568 outcome for it.
+
+    "No data rows" is exactly what tile discovery sees: the rows the v1 sheet
+    reader keeps, where a formula's ``""`` result is an empty cell. The probe
+    only reads the workbook (no unpacking, no writes) and stays silent on
+    anything it cannot judge -- another mode, an invalid file layout, zero
+    candidate workbooks, or a workbook the reader rejects -- so those inputs
+    keep their existing diagnostics.
+
+    Args:
+        mode: Effective Runner mode.
+        inputdata_path: Directory containing input files.
+
+    Raises:
+        EmptyExcelInvoiceError: If the run's single Excel invoice has no data rows.
+    """
+    if mode is not ModeKind.excelinvoice:
+        return
+    workbook = _single_excel_invoice(inputdata_path)
+    if workbook is None:
+        return
+    try:
+        rows = ExcelInvoiceFile(workbook).dfexcelinvoice
+    except Exception as exc:  # noqa: BLE001 -- unreadable input keeps the existing route
+        if is_run_interrupted(exc):
+            raise
+        return
+    if len(rows) == 0:
+        raise EmptyExcelInvoiceError
+
+
+def _single_excel_invoice(inputdata_path: Path) -> Path | None:
+    """Select a workbook only after the checker's read-only layout validation."""
+    checker = ExcelInvoiceChecker(inputdata_path)
+    try:
+        _, candidates, _ = checker.validate_input_files(inputdata_path)
+    except StructuredError:
+        # Invalid layouts keep their normal validation order and diagnostics.
+        return None
+    return candidates[0] if len(candidates) == 1 else None
 
 
 class TileIterator(Protocol):

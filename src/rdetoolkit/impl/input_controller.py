@@ -148,16 +148,34 @@ class ExcelInvoiceChecker(IInputFileChecker):
             New implementations should consider FileGroup for enhanced type safety.
             Migration path: RawFiles -> list[FileGroup] in future version.
         """
-        input_files = list(src_dir_input.glob("*"))
-        # Filter out system files before processing
-        cleaner = SystemFilesCleaner()
-        input_files = [f for f in input_files if not cleaner.is_excluded(f)]
-        zipfiles, excel_invoice_files, other_files = self._get_group_by_files(input_files)
-        self._validate_files(zipfiles, excel_invoice_files, other_files)
+        zipfiles, excel_invoice_files, _ = self.validate_input_files(src_dir_input)
 
         rawfiles = self._get_rawfiles(zipfiles[0], excel_invoice_files[0]) if zipfiles else self._get_rawfiles(None, excel_invoice_files[0])
 
         return rawfiles, excel_invoice_files[0]
+
+    def validate_input_files(self, src_dir_input: Path) -> InputFilesGroup:
+        """Classify and validate the input layout without reading file contents.
+
+        Shared with the Runner's empty-form preflight so layout errors retain
+        precedence over workbook-content diagnostics.
+
+        Args:
+            src_dir_input: Directory containing the input files.
+
+        Returns:
+            ZIP, Excel invoice and other file groups, excluding system files.
+            A missing workbook remains the caller's responsibility.
+
+        Raises:
+            StructuredError: If archive counts, workbook counts or extra files
+                violate the existing Excel invoice input contract.
+        """
+        cleaner = SystemFilesCleaner()
+        input_files = [path for path in src_dir_input.glob("*") if not cleaner.is_excluded(path)]
+        groups = self._get_group_by_files(input_files)
+        self._validate_files(*groups)
+        return groups
 
     def _get_group_by_files(self, input_files: list[Path]) -> InputFilesGroup:
         """Group input files by type.
