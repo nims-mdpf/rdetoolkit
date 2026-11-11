@@ -34,7 +34,8 @@ def _definition_validator(source: Path | Mapping[str, Any]) -> Meta:
 def _source_key(key: str, definition: Mapping[str, Any], entries: Mapping[str, Any], match: _MatchMode) -> str:
     if match == "key":
         return key
-    alias = cast("str", definition.get("originalName", key))
+    original_name = definition.get("originalName")
+    alias = key if original_name is None else cast("str", original_name)
     if match == "original_name":
         return alias
     return key if key in entries else alias
@@ -105,10 +106,14 @@ def build_meta(
     The definition key therefore wins when both spellings are present, and
     a definition key present with a None value is excluded without falling
     back. ``match="key"`` disables alias matching; ``match="original_name"``
-    uses only the alias where one is declared, or the definition key otherwise.
-    Strings are stripped before the emptiness check. Empty strings are omitted
-    by default; ``keep_empty_strings=True`` retains them when the schema accepts
-    them, including in variable rows. Non-string schema validation still applies.
+    uses only the alias where one is declared, or the definition key when
+    ``originalName`` is absent or None. An explicit empty-string alias is kept.
+    Strings are stripped before the emptiness check. By default, empty strings
+    are omitted before conversion for every schema type, including number,
+    integer and boolean. With ``keep_empty_strings=True``, they reach schema
+    conversion: string fields retain them where the format permits, whereas
+    number, integer and boolean fields raise ``StructuredError`` (ecode 1).
+    These rules also apply to variable cells and preserve their row positions.
 
     Args:
         values: Measured values keyed by definition key or ``originalName``,

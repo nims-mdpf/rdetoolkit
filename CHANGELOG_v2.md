@@ -38,6 +38,9 @@
   source rules; the default `"both"` retains definition-key precedence. Empty
   and whitespace-only strings are consistently omitted after trimming, or
   retained with `keep_empty_strings=True` when the schema allows them (#598).
+  Missing or null `originalName` falls back to the definition key; explicit
+  empty aliases remain supported. Blank number, integer and boolean values
+  are omitted by default and raise conversion errors when retention is enabled.
 - `testing.make_input_paths(files=...)` now fills `rawfiles` with the requested
   files in iterable order. Absolute paths, directory names and paths escaping
   `inputdata` (including outward symlinks) fail with error 1003 before any
