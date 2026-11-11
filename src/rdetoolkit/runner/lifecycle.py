@@ -41,7 +41,7 @@ from rdetoolkit.runner.config_loader import compute_config_digest
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
 from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
 from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
-from rdetoolkit.runner.invoker import InvokerRegistry
+from rdetoolkit.runner.invoker import InvokerRegistry, record_run_failure
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
 from rdetoolkit.runner.planner import RunPlanner, reject_empty_input
@@ -748,6 +748,9 @@ def _failed_report(
     config: RdeConfig,
     exc: Exception,
 ) -> RunReport:
+    # The report keeps the code and message only; the v1 entry needs the
+    # exception itself for its stderr traceback (capture_run_failures).
+    record_run_failure(exc)
     return RunReport(
         run_id=run_id,
         status="failed",

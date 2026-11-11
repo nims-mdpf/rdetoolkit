@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- The v1 callback entry (`run(custom_dataset_function=...)`) writes the v1.7.1
+  stderr traceback for failures outside a tile as well (configuration, mode
+  resolution, invoice and output validation), for the error `job.failed`
+  reports and in the configured v1 format. `job.failed`, exit codes and the
+  flow entry are unchanged.
 - An `RdeConfig` object passed as the run config (`run(flow=..., config=RdeConfig(...))`,
   `RunRequest(config_source=...)`) is used as the whole configuration, like a v1
   `Config` object: config files are no longer merged in, and only the fields the
