@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -68,7 +68,7 @@ class IterationInfo:
     mode: str
 
 class V2SystemSettings(BaseModel):
-    model_config: ConfigDict
+    model_config: ClassVar[ConfigDict]
     extended_mode: str = ...
     save_raw: bool = ...
     save_nonshared_raw: bool = ...
@@ -78,26 +78,26 @@ class V2SystemSettings(BaseModel):
     feature_description: bool = ...
 
 class V2ExecutionSettings(BaseModel):
-    model_config: ConfigDict
+    model_config: ClassVar[ConfigDict]
     type_check: str = ...
-    on_iteration_error: Literal["continue", "fail_fast"]
+    on_iteration_error: Literal["continue", "fail_fast"] = ...
 
 class V2RecordingSettings(BaseModel):
-    model_config: ConfigDict
-    repr_head: Literal["on", "off"]
-    repr_head_len: int
+    model_config: ClassVar[ConfigDict]
+    repr_head: Literal["on", "off"] = ...
+    repr_head_len: int = ...
 
 class V2SmartTableSettings(BaseModel):
-    model_config: ConfigDict
+    model_config: ClassVar[ConfigDict]
     save_table_file: bool = ...
 
 class V2MultiDataTileSettings(BaseModel):
-    model_config: ConfigDict
-    order: Literal["name", "filesystem"]
+    model_config: ClassVar[ConfigDict]
+    order: Literal["name", "filesystem"] = ...
 
 
 class RdeConfig(BaseModel):
-    model_config: ConfigDict
+    model_config: ClassVar[ConfigDict]
     system: V2SystemSettings = Field(default_factory=V2SystemSettings)
     execution: V2ExecutionSettings = Field(default_factory=V2ExecutionSettings)
     provenance: V2RecordingSettings = Field(default_factory=V2RecordingSettings)

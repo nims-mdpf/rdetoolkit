@@ -14,8 +14,8 @@ class SystemSettings(BaseModel):
     def validate_extended_mode(cls, v: str | None) -> str | None: ...
 
 class MultiDataTileSettings(BaseModel):
-    ignore_errors: bool
-    order: MultiDataTileOrder
+    ignore_errors: bool = ...
+    order: MultiDataTileOrder = ...
 
 class SmartTableSettings(BaseModel):
     save_table_file: bool

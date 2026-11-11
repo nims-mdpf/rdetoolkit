@@ -15,6 +15,11 @@
 
 ### Fixed
 
+- The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
+  `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
+  defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check
+  for consumers as they already ran (#597).
+
 - `system.extended_mode=None` (including YAML `null`) now means an unset
   mode in `RdeConfig`, using the invoice default without a false W1001 when
   SmartTable or ExcelInvoice input is detected (#600).
