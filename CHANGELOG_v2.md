@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- `@node` no longer fails, and no longer breaks the import of the defining
+  module, when a parameter default's `__repr__` raises: the NodeSpec records a
+  `<module.Class object>` placeholder for that default instead.
 - The v1 callback entry (`run(custom_dataset_function=...)`) writes the v1.7.1
   stderr traceback for failures outside a tile as well (configuration, mode
   resolution, invoice and output validation), for the error `job.failed`
