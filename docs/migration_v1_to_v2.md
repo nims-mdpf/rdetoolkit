@@ -89,9 +89,16 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 値のキーには定義キーと `originalName` のどちらも使えます。v1 の `Meta.assign_vals` と
 同じく、両方がある場合は定義キーを優先し、`originalName` は定義キーが無いときだけ
 参照します（定義キーが `None` で存在する場合は `originalName` を参照せず除外します）。
-`originalName` 側を優先していたコードは、呼び出し前に値を定義キーへ移してください。
+`match="original_name"` は宣言された別名だけを使い、別名のない定義は定義キーを使います。
+`match="key"` は別名の照合を無効にします。既定の `match="both"` は上記の優先規則を保ちます。
 `save_meta` は v1 の `Meta.writefile` と同じ 4 スペースのインデントで書き出し、
 `indent=` で変更できます。
+
+第2引数には定義の Mapping も渡せます。共有定義をメモリ上で絞り込んで直接渡せるため、
+一時 JSON ファイルは不要です。文字列は空かどうかを判定する前に前後の空白を除去し、
+`""` と空白だけの文字列を既定で同じく除外します。`keep_empty_strings=True` では、
+スキーマが許す場合に空文字を保持します（繰り返し行にも適用）。数値の型検証は引き続き行います。
+`parse_invoice_meta` の既存の v1 空文字規則は維持します。
 
 ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
 `save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は

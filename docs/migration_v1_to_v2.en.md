@@ -97,8 +97,19 @@ Values may be keyed by the definition key or by its `originalName`. As in v1
 and `originalName` is read only when the definition key is absent (a key that
 is present with `None` is excluded without falling back). Code that preferred
 the `originalName` spelling should map those values onto the definition keys
-first. `save_meta` writes four-space indentation like v1 `Meta.writefile`;
+first, or choose `match="original_name"` to use the declared alias exclusively
+(definitions without an alias still use their key). Use `match="key"` to
+disable aliases entirely; the default `match="both"` keeps the precedence above.
+`save_meta` writes four-space indentation like v1 `Meta.writefile`;
 pass `indent=` to choose another.
+
+The second argument may also be a definition Mapping. Filter a shared definition
+in memory and pass it directly to `build_meta`; no temporary JSON file is needed.
+String values are stripped before checking emptiness, so `""` and whitespace-only
+strings are both omitted by default. Set `keep_empty_strings=True` to retain them
+as empty strings where the schema permits, including in repeated rows. Numeric
+schema validation still applies. `parse_invoice_meta` retains its existing v1
+empty-string behavior.
 
 For file and image artifacts, `read_excel` accepts worksheet, header, row and
 column selections; `save_csv` accepts precision, header and index options.
