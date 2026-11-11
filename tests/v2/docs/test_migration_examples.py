@@ -103,7 +103,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
@@ -125,3 +125,32 @@ def test_language_twins_carry_identical_examples__tc_doc_mig_bv_003() -> None:
     # When: comparing them by marker name
     # Then: names, languages and code are identical, so neither twin drifts
     assert _examples(DOC_EN) == _examples(DOC_JA)
+
+
+@DOCS
+def test_load_run_config_example_executes__tc_600_doc_001(doc: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TC-600-DOC-001: the helper example retains tasksupport settings in a real run."""
+    from tests.v2.contract.fixtures import _generate
+
+    # Given: valid invoice inputs, legacy settings and the documented example
+    _generate.materialize_sut_case("invoice", tmp_path)
+    (tmp_path / "data" / "tasksupport" / "rdeconfig.yaml").write_text(
+        "system:\n  save_raw: true\ncustom:\n  label: retained\n", encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    namespace: dict[str, object] = {}
+    # When: executing the complete example through the public API
+    exec(_examples(doc)["load-run-config"][1], namespace)  # noqa: S102
+    # Then: the override and unrelated discovered values reach the successful run
+    from rdetoolkit.types import RdeConfig
+    from rdetoolkit.report.run_report import RunReport
+
+    config = namespace["config"]
+    report = namespace["report"]
+    assert isinstance(config, RdeConfig)
+    assert isinstance(report, RunReport)
+    assert config.system.extended_mode == "MultiDataTile"
+    assert "extended_mode" in config.system.model_fields_set
+    assert config.system.save_raw is True
+    assert config.custom == {"label": "retained"}
+    assert report.status == "success"

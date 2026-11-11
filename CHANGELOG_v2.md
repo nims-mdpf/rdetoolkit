@@ -4,6 +4,13 @@
 
 ### Fixed
 
+- `system.extended_mode=None` (including YAML `null`) now means an unset
+  mode in `RdeConfig`, using the invoice default without a false W1001 when
+  SmartTable or ExcelInvoice input is detected (#600).
+- Added `rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`
+  to load the Runner's effective configuration, including legacy tasksupport
+  discovery and recursive overrides, before calling `run(flow=..., config=...)`
+  (#600).
 - `@node` no longer fails, and no longer breaks the import of the defining
   module, when a parameter default's `__repr__` raises: the NodeSpec records a
   `<module.Class object>` placeholder for that default instead.

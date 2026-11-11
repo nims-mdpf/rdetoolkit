@@ -104,6 +104,44 @@ Directory entries and unsafe destinations are excluded; repeated archive members
 produce repeated paths. Existing containment checks, including outward symlinks,
 still apply. Callers that ignored the old return value can keep doing so.
 
+### Load settings and override the mode in main.py
+
+To prepare configuration before entering a flow, use
+`rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`.
+`root` accepts a project or data directory as a `Path` or string and defaults to
+the current directory. The helper uses the Runner's data-root resolver and
+discovery order: project-root `rdeconfig.yaml`, project-root `pyproject.toml`,
+then `tasksupport/{rdeconfig.yaml,rdeconfig.yml,pyproject.toml}` under the resolved
+data root. Tasksupport files are interpreted as v1 configuration (Design §6.3).
+
+`overrides` merges recursively over the discovered settings. Pass the returned
+`RdeConfig` to `run(flow=..., config=...)` to use the entire object as the
+configuration. Passing a mapping directly also overrides discovered settings.
+This example changes the mode while retaining other tasksupport values.
+
+<!-- test: load-run-config -->
+```python
+from rdetoolkit import flow, workflows
+from rdetoolkit.runner import load_run_config
+from rdetoolkit.types import RdeConfig
+
+
+@flow
+def pipeline(config: RdeConfig) -> None:
+    print(config.system.extended_mode)
+
+
+config = load_run_config(overrides={"system": {"extended_mode": "MultiDataTile"}})
+report = workflows.run(flow=pipeline, config=config)
+if report.status != "success":
+    raise SystemExit(1)
+```
+
+`RdeConfig.model_validate({"system": {"extended_mode": None}})` is also accepted.
+YAML `null` and a `None` override normalize to an unset mode with the default
+value `"invoice"`. SmartTable / ExcelInvoice detection then emits no W1001.
+A conflicting mode explicitly set as a string still emits W1001 (Design §6.2).
+
 ## Runtime changes
 
 In a production `main.py`, opt into nonzero exits for failed or partial runs.

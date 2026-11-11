@@ -8,11 +8,13 @@ Note:
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 from typing import Literal, Any
 
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic import model_validator
 
 
 @dataclass(frozen=True, slots=True)
@@ -321,6 +323,15 @@ class V2SystemSettings(BaseModel):
     magic_variable: bool = False
     save_invoice_to_structured: bool = False
     feature_description: bool = True
+
+    @model_validator(mode="before")
+    @classmethod
+    def _omit_null_mode(cls, data: Any) -> Any:
+        """Keep a null mode out of model_fields_set for W1001 (Design §6.2)."""
+        if isinstance(data, Mapping) and data.get("extended_mode") is None:
+            data = dict(data)
+            data.pop("extended_mode", None)
+        return data
 
 
 class V2ExecutionSettings(BaseModel):

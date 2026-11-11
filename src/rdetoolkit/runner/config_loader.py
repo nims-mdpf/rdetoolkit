@@ -10,7 +10,38 @@ from pathlib import Path
 from typing import Any
 
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
+
+
+def load_run_config(
+    root: Path | str | None = None,
+    *,
+    overrides: Mapping[str, Any] | None = None,
+) -> RdeConfig:
+    """Load configuration using the Runner's discovery and override rules.
+
+    Uses the shared data-root resolver and config loader (Design §6.3).
+    Project-root ``rdeconfig.yaml`` and ``pyproject.toml`` take priority over
+    legacy files in the resolved data root's ``tasksupport`` directory.
+    Overrides are merged recursively over the discovered settings; their
+    non-null mode values count as explicit for W1001 (Design §6.2).
+    Pass the returned object to ``workflows.run(flow=..., config=...)`` to
+    use these effective settings as the whole configuration.
+
+    Args:
+        root: Project or data directory. Defaults to the current directory.
+        overrides: Optional mapping merged over the discovered configuration.
+            A null ``system.extended_mode`` clears an explicitly set mode.
+
+    Returns:
+        Effective configuration without creating any run directories.
+
+    Raises:
+        RdeConfigError: If a discovered file or override is invalid (E1002).
+    """
+    root_path = Path.cwd() if root is None else Path(root)
+    return load_config(root_path, overrides, data_root=resolve_data_root(root_path))
 
 
 def load_config(

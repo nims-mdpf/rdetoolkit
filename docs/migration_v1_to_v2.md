@@ -98,6 +98,44 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 外向きシンボリックリンクを含む展開先の境界チェックは維持します。
 戻り値を使用していなかった呼び出し方も継続できます。
 
+### main.py で設定を読み込み、モードを上書きする
+
+flow 入口の設定を事前に用意する場合は、`rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`
+を使います。`root` はプロジェクトルートまたは data ルートで、`Path` と文字列を受け付けます。
+省略時はカレントディレクトリです。Runner と同じ data ルート解決・設定探索を使い、
+プロジェクト直下の `rdeconfig.yaml`、`pyproject.toml`、解決した data ルートの
+`tasksupport/{rdeconfig.yaml,rdeconfig.yml,pyproject.toml}` の順に探索します。
+tasksupport の設定は v1 形式として解釈します（Design §6.3）。
+
+`overrides` は発見した設定へ再帰的にマージします。戻り値の `RdeConfig` を
+`run(flow=..., config=...)` に渡すと、そのオブジェクト全体を設定として使います。
+マッピングを直接渡す場合も、発見した設定に対する上書きになります。
+以下の例は tasksupport の他の値を保ったままモードを変更します。
+
+<!-- test: load-run-config -->
+```python
+from rdetoolkit import flow, workflows
+from rdetoolkit.runner import load_run_config
+from rdetoolkit.types import RdeConfig
+
+
+@flow
+def pipeline(config: RdeConfig) -> None:
+    print(config.system.extended_mode)
+
+
+config = load_run_config(overrides={"system": {"extended_mode": "MultiDataTile"}})
+report = workflows.run(flow=pipeline, config=config)
+if report.status != "success":
+    raise SystemExit(1)
+```
+
+`RdeConfig.model_validate({"system": {"extended_mode": None}})` も受理します。
+YAML の `null` や上書きの `None` はモード未指定として正規化され、
+値は既定の `"invoice"` になります。SmartTable / ExcelInvoice の検出で
+W1001 は出ません。文字列で明示したモードと検出結果が競合する場合は、
+引き続き W1001 を出します（Design §6.2）。
+
 ## 実行時の変更点
 
 本番の `main.py` では、失敗・一部失敗をプロセスの終了コードへ反映する指定を追加してください。
