@@ -18,7 +18,8 @@ EP table:
     TC-RC1-F09-EP-005 | data/tasksupport/rdeconfig.yaml    | round trip keeps output + config_digest
     TC-RC1-F09-EP-006 | ``run --config`` + ``export --config`` | round trip keeps output + config_digest
     TC-RC1-F09-EP-007 | v1 callback run (v1 entry config)  | export -> import -> rerun (v1 entry and --flow) keeps config_digest
-    TC-RC1-F09-EP-008 | custom keys not in alphabetical order (nested too) | round trip keeps output + config_digest (key order preserved)
+    TC-RC1-F09-EP-008 | custom keys not in alphabetical order (nested too) | round trip keeps output + config_digest
+    TC-D1-EP-007      | rdeconfig.yaml keys reordered after the run | export still matches the run's config_digest
 
 Negative table:
     TC-RC1-F09-NEG-001 | ``run --config`` override, export without --config | exit 3 naming --config; no archive
@@ -51,8 +52,7 @@ from typer.testing import CliRunner
 
 from rdetoolkit.cli import repro_cmd
 from rdetoolkit.cli.app import app
-from rdetoolkit.runner.config_loader import load_config
-from rdetoolkit.runner.lifecycle import _config_digest
+from rdetoolkit.runner.config_loader import compute_config_digest, load_config
 
 FLOW = "tests.v2.cli.fixtures.repro_config_flows:config_pipeline"
 LEGACY = "tests.v2.cli.fixtures.repro_config_flows::legacy_callback"
@@ -95,7 +95,7 @@ def _project(base: Path, case: str) -> tuple[Path, Path]:
         (data_root / "tasksupport" / "rdeconfig.yaml").write_text("system:\n  save_raw: false\n", encoding="utf-8")
     elif case == "unsorted_keys":
         # Keys deliberately not in alphabetical order (sorted: a, label, nested, z),
-        # one level down too: config_digest hashes the dump in insertion order.
+        # one level down too: config_digest must not depend on key order.
         (root / "rdeconfig.yaml").write_text(
             "custom:\n  z: 1\n  label: configured\n  a: 2\n  nested:\n    y: 1\n    b: 2\n",
             encoding="utf-8",
@@ -156,6 +156,24 @@ def test_round_trip_keeps_effective_config__tc_rc1_f09_ep_001_005(tmp_path: Path
     assert manifest == {"schema_version": "1", "config_included": True, "config_digest": original["config_digest"]}
 
 
+def test_reordered_config_file_still_exports__tc_d1_ep_007(tmp_path: Path) -> None:
+    """TC-D1-EP-007: reordering keys in the config file does not make a run unexportable."""
+    # Given: a completed run, after which the same keys are rewritten in another order
+    root, data_root = _project(tmp_path, "unsorted_keys")
+    original = _run(root)
+    (root / "rdeconfig.yaml").write_text(
+        "custom:\n  nested:\n    b: 2\n    y: 1\n  a: 2\n  label: configured\n  z: 1\n",
+        encoding="utf-8",
+    )
+    archive = tmp_path / "archive.zip"
+    # When: the run is exported
+    result = _export(_report_path(data_root, original), archive)
+    # Then: the reordered file still reproduces the run's digest
+    assert result.exit_code == 0, result.output
+    with zipfile.ZipFile(archive) as opened:
+        assert json.loads(opened.read("repro_manifest.json"))["config_digest"] == original["config_digest"]
+
+
 def test_run_config_override_round_trips_with_export_config__tc_rc1_f09_ep_006(tmp_path: Path) -> None:
     """TC-RC1-F09-EP-006: ``export --config`` recovers a ``run --config`` override."""
     # Given: a run that took its label from a run --config override file
@@ -181,7 +199,7 @@ def test_v1_callback_run_exports_its_entry_config__tc_rc1_f09_ep_007(tmp_path: P
     assert result.exit_code == 0, result.output
     report_path = next(iter(sorted((data_root / "logs").glob("run_report_*.json"))))
     original_digest = json.loads(report_path.read_text(encoding="utf-8"))["config_digest"]
-    assert _config_digest(load_config(root, data_root=data_root)) != original_digest
+    assert compute_config_digest(load_config(root, data_root=data_root)) != original_digest
     # When: the run is exported, imported, and rerun there through both entries
     archive = tmp_path / "legacy.zip"
     exported = _export(report_path, archive)
@@ -340,7 +358,7 @@ def test_full_dump_is_archived_when_minimal_form_does_not_replay__tc_rc1_f09_bv_
     replay_root = tmp_path / "replay"
     replay_root.mkdir()
     (replay_root / "rdeconfig.yaml").write_text(yaml.safe_dump(archived), encoding="utf-8")
-    assert _config_digest(load_config(replay_root, data_root=replay_root / "data")) == original["config_digest"]
+    assert compute_config_digest(load_config(replay_root, data_root=replay_root / "data")) == original["config_digest"]
 
 
 def test_unreplayable_effective_config_is_usage_error__tc_rc1_f09_neg_007(

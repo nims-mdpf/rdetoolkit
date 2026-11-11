@@ -4,6 +4,35 @@
 
 ### Fixed
 
+- `system.extended_mode=None` (including YAML `null`) now means an unset
+  mode in `RdeConfig`, using the invoice default without a false W1001 when
+  SmartTable or ExcelInvoice input is detected (#600).
+- Added `rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`
+  to load the Runner's effective configuration, including legacy tasksupport
+  discovery and recursive overrides, before calling `run(flow=..., config=...)`
+  (#600).
+- `@node` no longer fails, and no longer breaks the import of the defining
+  module, when a parameter default's `__repr__` raises: the NodeSpec records a
+  `<module.Class object>` placeholder for that default instead.
+- The v1 callback entry (`run(custom_dataset_function=...)`) writes the v1.7.1
+  stderr traceback for failures outside a tile as well (configuration, mode
+  resolution, invoice and output validation), for the error `job.failed`
+  reports and in the configured v1 format. `job.failed`, exit codes and the
+  flow entry are unchanged.
+- An `RdeConfig` object passed as the run config (`run(flow=..., config=RdeConfig(...))`,
+  `RunRequest(config_source=...)`) is used as the whole configuration, like a v1
+  `Config` object: config files are no longer merged in, and only the fields the
+  object set count as explicit. A plain `RdeConfig()` with SmartTable or
+  ExcelInvoice input no longer publishes a false W1001. Mappings are still merged
+  over the discovered files.
+- `RunReport.config_digest` no longer depends on key order: it is sha256 over
+  key-sorted, compact UTF-8 JSON of the effective config, so reordering keys in
+  `rdeconfig.yaml` or building `custom` in another order no longer makes
+  `repro export` reject the run. List order and value types still count.
+  **Incompatible with 2.0.0rc1 reports:** digests recorded by 2.0.0rc1 do not
+  match the new ones, so `rdetoolkit repro export` rejects a run report written
+  by 2.0.0rc1 (exit 3) even when the configuration is unchanged. Re-run the job
+  with this version to get an exportable report.
 - `testing.make_input_paths(files=...)` now fills `rawfiles` with the requested
   files in iterable order. Absolute paths, directory names and paths escaping
   `inputdata` (including outward symlinks) fail with error 1003 before any

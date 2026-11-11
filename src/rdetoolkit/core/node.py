@@ -91,6 +91,20 @@ def _build_output_schema(return_type: Any) -> tuple[str, ...]:
     return (_annotation_type_name(return_type),)
 
 
+def _safe_repr(value: object) -> str:
+    """Return ``repr(value)``, or a class-named placeholder when that raises.
+
+    The repr is descriptive NodeSpec metadata. A default whose ``__repr__``
+    raises must not make ``@node`` -- and so the defining module's import --
+    fail.
+    """
+    try:
+        return repr(value)
+    except Exception:  # noqa: BLE001 -- any repr failure falls back to the placeholder
+        cls = type(value)
+        return f"<{cls.__module__}.{cls.__qualname__} object>"
+
+
 def _build_node_spec(
     func: Callable[..., Any],
     *,
@@ -109,7 +123,7 @@ def _build_node_spec(
         input_schema[name] = {
             "type_name": _annotation_type_name(hints.get(name, Any)),
             "has_default": default is not inspect.Signature.empty,
-            "default_repr": None if default is inspect.Signature.empty else repr(default),
+            "default_repr": None if default is inspect.Signature.empty else _safe_repr(default),
         }
 
     return_type = hints.get("return", sig.return_annotation)

@@ -116,6 +116,44 @@ v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 戻り値を使用していなかった呼び出し方も継続できます。
 アーカイブ構造を列挙する場合は `include_dirs=True` で空ディレクトリを含むディレクトリエントリーも返します。
 
+### main.py で設定を読み込み、モードを上書きする
+
+flow 入口の設定を事前に用意する場合は、`rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`
+を使います。`root` はプロジェクトルートまたは data ルートで、`Path` と文字列を受け付けます。
+省略時はカレントディレクトリです。Runner と同じ data ルート解決・設定探索を使い、
+プロジェクト直下の `rdeconfig.yaml`、`pyproject.toml`、解決した data ルートの
+`tasksupport/{rdeconfig.yaml,rdeconfig.yml,pyproject.toml}` の順に探索します。
+tasksupport の設定は v1 形式として解釈します（Design §6.3）。
+
+`overrides` は発見した設定へ再帰的にマージします。戻り値の `RdeConfig` を
+`run(flow=..., config=...)` に渡すと、そのオブジェクト全体を設定として使います。
+マッピングを直接渡す場合も、発見した設定に対する上書きになります。
+以下の例は tasksupport の他の値を保ったままモードを変更します。
+
+<!-- test: load-run-config -->
+```python
+from rdetoolkit import flow, workflows
+from rdetoolkit.runner import load_run_config
+from rdetoolkit.types import RdeConfig
+
+
+@flow
+def pipeline(config: RdeConfig) -> None:
+    print(config.system.extended_mode)
+
+
+config = load_run_config(overrides={"system": {"extended_mode": "MultiDataTile"}})
+report = workflows.run(flow=pipeline, config=config)
+if report.status != "success":
+    raise SystemExit(1)
+```
+
+`RdeConfig.model_validate({"system": {"extended_mode": None}})` も受理します。
+YAML の `null` や上書きの `None` はモード未指定として正規化され、
+値は既定の `"invoice"` になります。SmartTable / ExcelInvoice の検出で
+W1001 は出ません。文字列で明示したモードと検出結果が競合する場合は、
+引き続き W1001 を出します（Design §6.2）。
+
 ## 実行時の変更点
 
 本番の `main.py` では、失敗・一部失敗をプロセスの終了コードへ反映する指定を追加してください。
@@ -243,7 +281,7 @@ invoice シート自体がないブックについては既存のエラー契約
 |---|---|---|
 | コールバックが `StructuredError(msg, ecode)` を送出 | `job.failed` に `ecode` と `msg` | 同じ |
 | コールバックが素の例外を送出 | `ErrorCode=999`、`Unexpected error in <mode> mode: ...` | `ErrorCode=3001`。メッセージはエラーカタログ E3001 の文で、ユーザーの例外メッセージを含みます |
-| コールバック失敗時の stderr トレースバック(`traceback:` 設定 / `TRACE_*`) | `errors.handle_exception` が `Config.traceback`、なければ `TRACE_*`、なければ python 形式で `compact` / `python` / `duplex` を出力 | v1 コールバック入口では同じフォーマッタ・同じ設定・同じ優先順で出力し、設定は警告を出しません。素の例外では、最外の例外が `StructuredError: Unexpected error in <mode> mode: ...` ではなく E3001 メッセージの `TileExecutionError`(ユーザーの例外から連鎖)になります。`run()` 自体を `except` ブロックの中から呼んだ場合も、例外の連鎖は Python が記録したとおりに表示します(1.7.1 はこの場合にコールバック自身の暗黙の連鎖を失っていました)。コールバック外の失敗(設定、invoice 検証)ではトレースバックを出しません。flow 入口(`run(flow=...)`、`rdetoolkit run --flow`)はこのトレースバックを出さず、プロジェクト直下の v2 形式 `rdeconfig.yaml` では `traceback:` はエラー(E1002)です |
+| コールバック失敗時の stderr トレースバック(`traceback:` 設定 / `TRACE_*`) | `errors.handle_exception` が `Config.traceback`、なければ `TRACE_*`、なければ python 形式で `compact` / `python` / `duplex` を出力 | v1 コールバック入口では同じフォーマッタ・同じ設定・同じ優先順で出力し、設定は警告を出しません。素の例外では、最外の例外が `StructuredError: Unexpected error in <mode> mode: ...` ではなく E3001 メッセージの `TileExecutionError`(ユーザーの例外から連鎖)になります。`run()` 自体を `except` ブロックの中から呼んだ場合も、例外の連鎖は Python が記録したとおりに表示します(1.7.1 はこの場合にコールバック自身の暗黙の連鎖を失っていました)。コールバック外の失敗(設定、invoice 検証、出力の検証など)でも、`job.failed` が報告するエラーのトレースバックを同じ形式で出力します。flow 入口(`run(flow=...)`、`rdetoolkit run --flow`)はこのトレースバックを出さず、プロジェクト直下の v2 形式 `rdeconfig.yaml` では `traceback:` はエラー(E1002)です |
 | `invoice.schema.json` 自体が不正で、コールバックも失敗 | コールバック側のエラーコード(検証はコールバックの後) | `ErrorCode=4001`(スキーマ検証の理由付き)。コールバックは呼ばれません |
 | invoice がスキーマに違反 | モードごとに異なるコード、一部モードではコールバック実行済み・出力も生成済み | `ErrorCode=4001`。コールバックは呼ばれず、タイルの成果物は作られません(`job.failed`・ログ・run report は残ります) |
 | 設定ファイルの探索(`config=None`) | `data/tasksupport` から読み込み | 同じ。不正な設定ファイルは v1 と同じく `ErrorCode=999` |

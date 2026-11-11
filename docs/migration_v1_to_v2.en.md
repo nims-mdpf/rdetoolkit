@@ -125,6 +125,44 @@ still apply. Callers that ignored the old return value can keep doing so.
 Pass `include_dirs=True` to also receive directory entries, including empty
 directories, when listing the archive structure.
 
+### Load settings and override the mode in main.py
+
+To prepare configuration before entering a flow, use
+`rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`.
+`root` accepts a project or data directory as a `Path` or string and defaults to
+the current directory. The helper uses the Runner's data-root resolver and
+discovery order: project-root `rdeconfig.yaml`, project-root `pyproject.toml`,
+then `tasksupport/{rdeconfig.yaml,rdeconfig.yml,pyproject.toml}` under the resolved
+data root. Tasksupport files are interpreted as v1 configuration (Design §6.3).
+
+`overrides` merges recursively over the discovered settings. Pass the returned
+`RdeConfig` to `run(flow=..., config=...)` to use the entire object as the
+configuration. Passing a mapping directly also overrides discovered settings.
+This example changes the mode while retaining other tasksupport values.
+
+<!-- test: load-run-config -->
+```python
+from rdetoolkit import flow, workflows
+from rdetoolkit.runner import load_run_config
+from rdetoolkit.types import RdeConfig
+
+
+@flow
+def pipeline(config: RdeConfig) -> None:
+    print(config.system.extended_mode)
+
+
+config = load_run_config(overrides={"system": {"extended_mode": "MultiDataTile"}})
+report = workflows.run(flow=pipeline, config=config)
+if report.status != "success":
+    raise SystemExit(1)
+```
+
+`RdeConfig.model_validate({"system": {"extended_mode": None}})` is also accepted.
+YAML `null` and a `None` override normalize to an unset mode with the default
+value `"invoice"`. SmartTable / ExcelInvoice detection then emits no W1001.
+A conflicting mode explicitly set as a string still emits W1001 (Design §6.2).
+
 ## Runtime changes
 
 In a production `main.py`, opt into nonzero exits for failed or partial runs.
@@ -259,7 +297,7 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 |---|---|---|
 | The callback raises `StructuredError(msg, ecode)` | `ecode` and `msg` in `job.failed` | Same |
 | The callback raises a plain exception | `ErrorCode=999`, `Unexpected error in <mode> mode: ...` | `ErrorCode=3001`. The message is the error-catalogue E3001 text and contains your exception's message |
-| stderr traceback when the callback fails (`traceback:` settings / `TRACE_*`) | Formatted by `errors.handle_exception` as `compact` / `python` / `duplex` from `Config.traceback`, else `TRACE_*`, else the python form | Same formatter, same settings and the same choice order on the v1 callback entry; the settings raise no warning. For a plain exception the outermost exception shown is `TileExecutionError` with the E3001 message (chained from your exception) instead of `StructuredError: Unexpected error in <mode> mode: ...`. When `run()` is itself called from inside an `except` block, the exception chain is shown as Python recorded it (1.7.1 dropped the callback's own implicit context in that case). Failures outside the callback (configuration, invoice validation) print no traceback. The flow entry (`run(flow=...)`, `rdetoolkit run --flow`) writes no such traceback, and a v2 `rdeconfig.yaml` at the project root rejects `traceback:` (E1002) |
+| stderr traceback when the callback fails (`traceback:` settings / `TRACE_*`) | Formatted by `errors.handle_exception` as `compact` / `python` / `duplex` from `Config.traceback`, else `TRACE_*`, else the python form | Same formatter, same settings and the same choice order on the v1 callback entry; the settings raise no warning. For a plain exception the outermost exception shown is `TileExecutionError` with the E3001 message (chained from your exception) instead of `StructuredError: Unexpected error in <mode> mode: ...`. When `run()` is itself called from inside an `except` block, the exception chain is shown as Python recorded it (1.7.1 dropped the callback's own implicit context in that case). Failures outside the callback (configuration, invoice validation, output validation and so on) also print the traceback of the error `job.failed` reports, in the same format. The flow entry (`run(flow=...)`, `rdetoolkit run --flow`) writes no such traceback, and a v2 `rdeconfig.yaml` at the project root rejects `traceback:` (E1002) |
 | `invoice.schema.json` itself is invalid and the callback also fails | The callback's error code (v1 validated after the callback) | `ErrorCode=4001` with the schema-validation reason. The callback is not called |
 | The invoice violates its schema | A mode-specific code; in some modes the callback had already run and outputs were created | `ErrorCode=4001`. The callback is not called and no tile artifacts are created (`job.failed`, the logs and the run report remain) |
 | Configuration discovery (`config=None`) | Loaded from `data/tasksupport` | Same. An invalid configuration file is `ErrorCode=999`, as in v1 |

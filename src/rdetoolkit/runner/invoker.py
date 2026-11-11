@@ -50,6 +50,46 @@ def capture_target_failures() -> Iterator[list[Exception]]:
         _TARGET_FAILURES.reset(token)
 
 
+#: The failure list of the innermost active :func:`capture_run_failures`.
+#: Kept apart from the target failures: a run-level error (configuration,
+#: mode, pre/post validation, a fail-fast iteration wrapper) is reported
+#: without a ``call_id``, so the v1 entry pairs each kind of report error only
+#: with the exception of the same kind.
+_RUN_FAILURES: ContextVar[list[Exception] | None] = ContextVar("rdetoolkit_run_failures", default=None)
+
+
+@contextmanager
+def capture_run_failures() -> Iterator[list[Exception]]:
+    """Hold the exception behind a run-level failure while the context is active.
+
+    The Runner turns an exception raised outside a tile into the failed
+    ``RunReport`` it returns, which drops the exception object. The v1 entry
+    opens this context so it can still write the stderr traceback v1.7.1
+    wrote for such failures (for example an invoice that violates its schema).
+    The run's outcome is unaffected.
+
+    Yields:
+        A list holding at most one exception: the run's failure, if any.
+    """
+    failures: list[Exception] = []
+    token = _RUN_FAILURES.set(failures)
+    try:
+        yield failures
+    finally:
+        _RUN_FAILURES.reset(token)
+
+
+def record_run_failure(exc: Exception) -> None:
+    """Record ``exc`` in the innermost active :func:`capture_run_failures`, if any.
+
+    Args:
+        exc: The exception the Runner converted into a failed report.
+    """
+    failures = _RUN_FAILURES.get()
+    if failures is not None:
+        failures[:] = [exc]
+
+
 class TargetInvoker(Protocol):
     """Adapter contract for invoking one normalized execution target."""
 

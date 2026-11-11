@@ -310,7 +310,8 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
             ``<data root>/tasksupport`` with v1's own loader; a v1 ``Config`` is
             passed through unchanged. Both keep the v1 contract — fail-fast
             unless ``multidata_tile.ignore_errors`` says otherwise. An
-            ``RdeConfig`` or mapping is normalized as a v2 source.
+            ``RdeConfig`` is used as-is; a mapping is merged over the
+            discovered files as a v2 source.
 
     Returns:
         The v1 ``{"statuses": [...]}`` JSON string for a successful or partial
@@ -325,7 +326,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
     from rdetoolkit.config import load_config as load_v1_config
     from rdetoolkit.rdelogger import get_logger
-    from rdetoolkit.runner.invoker import capture_target_failures
+    from rdetoolkit.runner.invoker import capture_run_failures, capture_target_failures
     from rdetoolkit.runner.lifecycle import Runner
     from rdetoolkit.runner.paths import resolve_data_root
 
@@ -374,7 +375,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
                 )
             get_logger(__name__).exception(str(error))
             sys.exit(1)
-    with capture_target_failures() as failures:
+    with capture_target_failures() as failures, capture_run_failures() as run_failures:
         report = Runner(
             root=root,
             inputdata_path=data_root / "inputdata",
@@ -387,7 +388,7 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
             ),
         )
     if report.status == "failed":
-        failure = _v1_failure_exception(report.error, failures)
+        failure = _v1_failure_exception(report.error, failures, run_failures)
         if failure is not None:
             _write_v1_failure_traceback(failure, config_source)
         _best_effort_stderr(_CALLBACK_ENTRY_FAILURE_NOTICE)
@@ -395,7 +396,11 @@ def _run_callback_entry(custom_dataset_function: DatasetCallback | None, config:
     return report.to_legacy_statuses()
 
 
-def _v1_failure_exception(error: Mapping[str, Any] | None, failures: Sequence[Exception]) -> Exception | None:
+def _v1_failure_exception(
+    error: Mapping[str, Any] | None,
+    failures: Sequence[Exception],
+    run_failures: Sequence[Exception] = (),
+) -> Exception | None:
     """Return the exception v1.7.1 formatted on stderr for this failed run.
 
     v1 formatted the exception that reached ``run()``: a ``StructuredError``
@@ -406,17 +411,23 @@ def _v1_failure_exception(error: Mapping[str, Any] | None, failures: Sequence[Ex
     exception), so the same rule picks between the cause and the wrapper.
 
     A run error without ``call_id`` is not a tile failure (configuration,
-    pre/post validation): pairing it with a captured tile exception would show
-    a traceback for a failure ``job.failed`` does not report.
+    mode, pre/post validation): it is paired only with the run-level
+    exception the Runner recorded, never with a captured tile exception, so
+    the traceback always belongs to the failure ``job.failed`` reports.
 
     Args:
         error: ``RunReport.error`` of the failed run.
         failures: Exceptions captured from the target invoker, in order.
+        run_failures: The run-level exception the Runner recorded, if any.
 
     Returns:
-        The exception to format, or ``None`` when the run failed elsewhere.
+        The exception to format, or ``None`` when there is none to pair.
     """
-    if error is None or "call_id" not in error or not failures:
+    if error is None:
+        return None
+    if "call_id" not in error:
+        return run_failures[-1] if run_failures else None
+    if not failures:
         return None
     failure = failures[-1]
     if isinstance(failure.__cause__, StructuredError):
@@ -530,7 +541,9 @@ def run(  # pragma: no cover
             ``custom_dataset_function`` path ``None`` means "the v1 defaults",
             which keeps the v1 fail-fast iteration policy; on the ``flow`` path
             ``None`` lets the Runner discover ``rdeconfig.yaml`` /
-            ``tasksupport/`` configuration.
+            ``tasksupport/`` configuration. A config object (``Config`` or
+            ``RdeConfig``) is used as the whole configuration without reading
+            any file; a mapping is merged over the discovered files.
         exit_on_failure: Opt into process exits for the v2 flow entry. Failed
             runs raise ``SystemExit(1)`` and partial runs ``SystemExit(2)``,
             after reports and artifacts are finalized. Successful runs still

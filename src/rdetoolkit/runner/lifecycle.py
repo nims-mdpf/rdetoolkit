@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import shutil
 import signal
 import time
@@ -38,10 +37,11 @@ from rdetoolkit.models.config import Config
 from rdetoolkit.report.events import Event, EventSink, FileEventSink, _best_effort_stderr
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
+from rdetoolkit.runner.config_loader import compute_config_digest
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
 from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
 from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
-from rdetoolkit.runner.invoker import InvokerRegistry
+from rdetoolkit.runner.invoker import InvokerRegistry, record_run_failure
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
 from rdetoolkit.runner.planner import RunPlanner, reject_empty_input
@@ -324,7 +324,7 @@ class Runner:
                 mode=mode.value,
                 started_at=_iso_timestamp(started),
                 duration_ms=(time.time() - started) * 1000.0,
-                config_digest=_config_digest(config),
+                config_digest=compute_config_digest(config),
                 iterations=[],
                 warnings=[],
                 error=None,
@@ -342,19 +342,26 @@ class Runner:
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.
 
+        A config object (``RdeConfig`` or a v1 ``Config``) is the whole
+        effective config: no file is discovered or merged in, and only the
+        fields the object set count as explicitly configured. A mapping is a
+        set of overrides merged over the discovered files.
+
         Args:
             source: Explicit v2 config source or mapping overrides.
 
         Returns:
             Effective configuration.
         """
+        if isinstance(source, RdeConfig):
+            # A deep copy keeps ``model_fields_set``, which mode resolution
+            # reads to decide whether the mode was configured explicitly.
+            return source.model_copy(deep=True)
         # The data root was resolved before anything existed (ruling #1), and
         # config discovery needs it to reach data/tasksupport (ruling #4).
         data_root = self.data_root
         if source is None:
             return load_config_from_root(self.root, data_root=data_root)
-        if isinstance(source, RdeConfig):
-            return load_config_from_root(self.root, overrides=source.model_dump(), data_root=data_root)
         if isinstance(source, Mapping):
             return load_config_from_root(self.root, overrides=source, data_root=data_root)
         if isinstance(source, Config):
@@ -460,7 +467,7 @@ class Runner:
             run_id=self.run_id,
             flow_id=_target_flow_id(execution_target),
             mode=mode.value,
-            config_digest=_config_digest(config),
+            config_digest=compute_config_digest(config),
             logs_dir=self.data_root / "logs",
         )
         failed_count = 0
@@ -654,11 +661,6 @@ def _raise_run_interrupted(signum: int, frame: FrameType | None) -> None:
     raise error_cls(code=_RUN_INTERRUPTED_CODE, name=error_def.name, message=message)
 
 
-def _config_digest(config: RdeConfig) -> str:
-    encoded = config.model_dump_json().encode("utf-8")
-    return "sha256:" + hashlib.sha256(encoded).hexdigest()
-
-
 def _iso_timestamp(timestamp: float) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(timestamp))
 
@@ -746,6 +748,9 @@ def _failed_report(
     config: RdeConfig,
     exc: Exception,
 ) -> RunReport:
+    # The report keeps the code and message only; the v1 entry needs the
+    # exception itself for its stderr traceback (capture_run_failures).
+    record_run_failure(exc)
     return RunReport(
         run_id=run_id,
         status="failed",
@@ -753,7 +758,7 @@ def _failed_report(
         mode=mode.value if mode is not None else "unknown",
         started_at=_iso_timestamp(started),
         duration_ms=(time.time() - started) * 1000.0,
-        config_digest=_config_digest(config),
+        config_digest=compute_config_digest(config),
         iterations=[],
         warnings=[],
         error=_run_error(exc),
