@@ -56,6 +56,7 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "save_text",
     "save_figure",
     "read_excel_fills",
+    "set_custom_fields",
 )
 
 
