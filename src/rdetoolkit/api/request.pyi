@@ -2,6 +2,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from rdetoolkit.models.config import Config
+
 @dataclass(frozen=True, slots=True)
 class FlowTarget:
     function: Callable[..., object]
@@ -9,6 +11,7 @@ class FlowTarget:
 @dataclass(frozen=True, slots=True)
 class LegacyCallbackTarget:
     function: Callable[..., object] | None
+    legacy_config: Config | None = ...
 
 ExecutionTarget = FlowTarget | LegacyCallbackTarget
 

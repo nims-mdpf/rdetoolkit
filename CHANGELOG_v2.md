@@ -23,6 +23,10 @@
   `typing.Any` (bare, qualified or as a string) as `Missing type annotation`;
   only parameters with no annotation are reported. The NodeSpec
   `input_schema` is unchanged (#601).
+- The v1 callback entry (`run(custom_dataset_function=...)`) again exposes a
+  `custom:` configuration section as `srcpaths.config.custom`, with the same
+  `Config` extras v1.7.1 built from the file; flows keep the flat
+  `RdeConfig.custom` from #566 (#586).
 - `system.extended_mode=None` (including YAML `null`) now means an unset
   mode in `RdeConfig`, using the invoice default without a false W1001 when
   SmartTable or ExcelInvoice input is detected (#600).
