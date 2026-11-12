@@ -1,3 +1,9 @@
+# Canonical type source for ``rdetoolkit.graph`` (supersedes the former
+# ``rdetoolkit/graph.pyi``). Declares exactly the runtime ``__all__``: the
+# supported tier followed by the compatibility tier. Private helpers that the
+# runtime still resolves are intentionally absent; see the export inventory in
+# docs/rdetoolkit/csv2graph.md. tests/v2/test_rde003_graph_public_api.py
+# fails on any drift between this file and graph/__init__.py.
 from rdetoolkit.graph.api import csv2graph as csv2graph, plot_from_dataframe as plot_from_dataframe
 from rdetoolkit.graph.config import DEFAULT_FIG_SIZE as DEFAULT_FIG_SIZE, DEFAULT_PLOT_PARAMS as DEFAULT_PLOT_PARAMS, PlotConfigBuilder as PlotConfigBuilder, apply_matplotlib_config as apply_matplotlib_config
 from rdetoolkit.graph.exceptions import ColumnNotFoundError as ColumnNotFoundError, DirectionError as DirectionError, DualAxisError as DualAxisError, GraphPlottingError as GraphPlottingError, InvalidCSVFormatError as InvalidCSVFormatError, InvalidMetadataError as InvalidMetadataError, PlotConfigError as PlotConfigError, RendererError as RendererError
