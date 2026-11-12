@@ -83,6 +83,11 @@ def save_text(text: str, out: OutputContext, filename: str, *, kind: OutputKind 
 def save_invoice(content: InvoiceData | Mapping[str, Any], out: OutputContext) -> Path:
     """Save an edited invoice using the v1 JSON formatting contract.
 
+    This writes only the current tile's ``invoice.json``. The run-level
+    ``InputPaths.invoice_org`` is read-only input: writing it so that later
+    tiles inherit a value is not supported (#603). Compute tile-specific
+    values in the tile's flow, for example with ``set_custom_fields``.
+
     Args:
         content: Parsed invoice or its raw JSON object.
         out: Output resource context for the current tile.

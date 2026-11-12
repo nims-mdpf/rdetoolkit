@@ -38,6 +38,8 @@ class InputPaths:
         invoice_org: Run-level invoice source selected by the Runner. Backup
             modes use ``temp/invoice_org.json``; other modes use the input
             ``invoice/invoice.json``. Unbound test bundles may leave it unset.
+            It is read-only input: tile invoices are seeded from it, and
+            writing it during processing is not supported (#603).
     """
 
     inputdata: Path

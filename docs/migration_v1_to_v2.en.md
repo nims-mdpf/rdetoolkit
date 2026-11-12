@@ -120,6 +120,48 @@ This normalization is specific to `build_meta`: v1 `Meta.assign_vals` and
 `parse_invoice_meta` retain their existing rules, including conversion errors
 for whitespace-only number, integer and boolean values.
 
+To update `invoice.custom` as v1 `castval` / `_assign_invoice_val` did, use
+`set_custom_fields(invoice, updates, schema=...)` (#603). It returns a new
+`InvoiceData`; each value is cast by the field's `type` and `format` in
+`invoice.schema.json`:
+
+| Schema | Accepted values | Stored value |
+|---|---|---|
+| `integer` | digits with an optional unit (`"12 mm"`), an integral float (`3.0`) | `int` |
+| `number` | numeric text with an optional unit | `int` when integral, else `float` |
+| `boolean` | `"true"` / `"false"` (any case), other values by truthiness | `bool` |
+| `string` + `date` / `date-time` / `time` | text dateutil can parse, `date` / `datetime` objects | `2023-07-19` / ISO 8601 / `13:04:05` |
+| `string`, other or no format | anything | unchanged |
+| any type | `None`, NaN, `NaT`, `pd.NA` (NumPy NaN / NaT included) | `None` |
+
+Blank cells read with `dtype_backend="numpy_nullable"` (`pd.NA`) are also stored as `None`. NumPy
+scalars (such as `np.int64`) are cast as the equal Python value, so the result saves with `save_invoice`.
+
+An undeclared key or a value that does not fit raises `StructuredError` (code 1);
+a type mismatch uses v1's message. Pass
+`schema=paths.tasksupport / "invoice.schema.json"`: the injected invoice carries
+its schema only for ExcelInvoice and SmartTable row tiles. Write the result with
+`save_invoice(invoice, out)`. To fill values from spreadsheet columns,
+`resolve_custom_key(schema, label)` returns the key whose `label.ja` or
+`label.en` equals the label (`lang="ja"` or `"en"` restricts the language). An
+unknown label, or a label shared by two fields, raises `StructuredError`.
+
+<!-- test: ga603-custom-fields -->
+```python
+from rdetoolkit.nodes import resolve_custom_key, set_custom_fields
+from rdetoolkit.types import InvoiceData
+
+schema = {"properties": {"custom": {"properties": {
+    "measured_date": {"type": "string", "format": "date", "label": {"ja": "測定日", "en": "Measured date"}},
+    "cycles": {"type": "integer", "label": {"ja": "サイクル数", "en": "Cycles"}},
+}}}}
+invoice = InvoiceData(raw={"custom": {"measured_date": None, "cycles": None}}, schema=schema)
+row = {"測定日": "2023/07/19", "Cycles": "12"}
+updates = {resolve_custom_key(schema, label): value for label, value in row.items()}
+invoice = set_custom_fields(invoice, updates)
+assert invoice.raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}
+```
+
 For file and image artifacts, `read_excel` accepts worksheet, header, row and
 column selections; `save_csv` accepts precision, header and index options.
 `save_json` and `save_text` accept an output `kind`. Use `read_json` for detected
@@ -373,12 +415,18 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 | Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
 | `rde2util.Meta.assign_vals` receives a `None` value (#570) | `None` is converted as the string `"None"`. A `number` / `integer` / `boolean` field raises `StructuredError` (`ERROR: failed to cast metaDef value` or similar). If the callback does not catch it, `job.failed` has `ErrorCode=1` and the later outputs, such as `metadata.json`, are not created. A `string` field is written as the value `"None"`, and a `$`-referenced unit as `"unit": "None"` | The key is not assigned, and `metadata.json` is written without it (without `unit` for a referenced unit). The callback's other outputs are created as usual. A value other than `None` that cannot be converted is still `ErrorCode=1` |
+| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | A `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails. An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. The v1 functions themselves are unchanged |
+| A callback or flow writes the run-level invoice (`paths.invoice_org`; `temp/invoice_org.json` in MultiDataTile / ExcelInvoice / RDEformat) during processing (#603) | Later tiles were built from the edited file, so a value written by an earlier tile carried over to later ones, depending on tile order | Not supported. `paths.invoice_org` is read-only input. The Runner seeds every tile's invoice from the registration invoice (ExcelInvoice and SmartTable overlay their row), and a flow overrides tile-specific values with `save_invoice`. Each tile starts from the registration state; v2 does not define whether a write to `invoice_org` reaches later tiles |
 
 The `Meta.assign_vals` row is a bug fix in the Tier 1 API, so it also applies on the
 v1 callback entry. The 1.7 line has the same bug, but no 1.7.x release with the fix
 has been published yet. The v1 column shows the behaviour of 1.7.1, the latest v1
 release, and rolling back to 1.7.1 restores it. If a later 1.7.x release carries the
 same fix, this row no longer differs from that release.
+
+For the run-level invoice row, rely on the seeded tile invoice for registration
+values and compute any tile-specific value inside that tile's flow, then write it
+with `save_invoice`.
 
 ### Rollback
 
