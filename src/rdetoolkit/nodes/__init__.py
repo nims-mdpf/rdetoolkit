@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 from rdetoolkit.core.node import node
-from rdetoolkit.nodes.image import copy_raw, make_thumbnail, save_main_image, to_jpeg, to_png
+from rdetoolkit.nodes.image import copy_raw, make_thumbnail, render_png, save_main_image, to_jpeg, to_png
 from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
 from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_text, unzip_inputs
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
@@ -59,6 +59,7 @@ __all__ = [
     "build_meta",
     "to_png",
     "to_jpeg",
+    "render_png",
     "make_thumbnail",
     "save_main_image",
     "copy_raw",
