@@ -612,17 +612,15 @@ class ValidateAllCommand:
             msg = f"Project directory not found: {self.project_dir}"
             raise FileNotFoundError(msg)
 
-        # Discover files
-        discovered = self._discover_files()
-
-        if not discovered:
-            # No standard files found
-            return []
-
-        # Validate each file
+        # The v1 layout is reported even when it holds no file to validate.
         results: list[ValidationResult] = []
         if self._uses_legacy_template_dir():
             results.append(self._legacy_template_dir_warning())
+
+        # Discover files
+        discovered = self._discover_files()
+
+        # Validate each file
         for file_info in discovered:
             if not file_info.exists:
                 # Add warning for missing expected files

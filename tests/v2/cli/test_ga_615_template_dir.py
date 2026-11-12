@@ -27,6 +27,8 @@ Command                    Boundary                         Expected            
 =========================  ===============================  ==========================================  ==============
 migrate apply              templates/ and template/ exist   exit 3 with remediation, nothing written    GA615-NEG-1
 migrate check / apply      file argument (not a project)    no layout finding or rename                 GA615-BV-1
+migrate apply              v1 templates/ only, no .py files  rename previewed / written, exit 0          GA615-BV-2
+validate all               empty v1 templates/tasksupport/  deprecation reported, strict exit 1         GA615-BV-3
 =========================  ===============================  ==========================================  ==============
 """
 
@@ -295,3 +297,43 @@ def test_migrate_file_argument_has_no_layout_handling__ga615_bv_1(tmp_path: Path
     assert preview.exit_code == 0, preview.output
     assert "legacy templates/" not in check.output
     assert "directory rename" not in preview.output
+
+
+@pytest.mark.parametrize("write", [False, True])
+def test_migrate_apply_renames_without_python_files__ga615_bv_2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, write: bool) -> None:
+    """GA615-BV-2: a project with only the v1 template directory is still migrated."""
+    # Given: a directory holding templates/tasksupport/metadata-def.json and no Python file
+    project = tmp_path / "project"
+    legacy = project / "templates" / "tasksupport"
+    legacy.mkdir(parents=True)
+    (legacy / "metadata-def.json").write_text("{}", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    before = _snapshot(project)
+    destination = tmp_path / "project_migrated"
+    # When: previewing or writing the migration
+    result = CliRunner().invoke(app, ["migrate", "apply", str(project), *(["--no-dry-run"] if write else [])])
+    # Then: the rename is handled instead of rejecting the input
+    assert result.exit_code == 0, result.output
+    assert "No Python files found" not in result.output
+    if write:
+        assert "Renamed templates/ to template/" in result.output
+        assert (destination / "template" / "tasksupport" / "metadata-def.json").read_text(encoding="utf-8") == "{}"
+        assert not (destination / "templates").exists()
+    else:
+        assert f"--- {project / 'templates'} -> {destination / 'template'} (dry-run, directory rename) ---" in result.output
+        assert not destination.exists()
+    assert _snapshot(project) == before
+
+
+def test_validate_all_empty_v1_layout_warns__ga615_bv_3(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """GA615-BV-3: an empty templates/tasksupport/ still reports the deprecation."""
+    # Given: a directory whose only RDE content is an empty v1 template directory
+    (tmp_path / "templates" / "tasksupport").mkdir(parents=True)
+    monkeypatch.chdir(tmp_path)
+    # When: validating with and without --strict
+    exit_code, results = _validate_json(tmp_path)
+    strict_code, _ = _validate_json(tmp_path, "--strict")
+    # Then: the warning is reported and only --strict fails on it
+    assert exit_code == 0
+    assert strict_code == 1
+    assert len(_deprecations(results)) == 1

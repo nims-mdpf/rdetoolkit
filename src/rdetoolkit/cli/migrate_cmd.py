@@ -110,12 +110,12 @@ def apply(
     """
     path = path.resolve()
     files = _python_files(path)
-    if not files:
+    rename_template_dir = path.is_dir() and has_legacy_template_layout(path)
+    if not files and not rename_template_dir:
         _usage_error(
             f"No Python files found beneath: {path}. "
             "Remediation: provide a Python file or a directory containing v1 template sources.",
         )
-    rename_template_dir = path.is_dir() and has_legacy_template_layout(path)
     if rename_template_dir and (path / TEMPLATE_DIR).exists():
         _usage_error(
             f"Both {LEGACY_TEMPLATE_DIR}/ and {TEMPLATE_DIR}/ exist in: {path}. "
