@@ -109,6 +109,46 @@ value/unit セルの行を保持します。`parse_invoice_meta` も invoice の
 v1 の `Meta.assign_vals` と `parse_invoice_meta` の既存規則は維持し、空白だけの
 数値・整数・真偽値は従来どおり型変換エラーになります。
 
+v1 の `castval` / `_assign_invoice_val` のように `invoice.custom` を更新するには
+`set_custom_fields(invoice, updates, schema=...)` を使います(#603)。新しい
+`InvoiceData` を返し、各値を `invoice.schema.json` の `type` と `format` で変換します。
+
+| スキーマ | 受け付ける値 | 格納される値 |
+|---|---|---|
+| `integer` | 数字(単位付き `"12 mm"` も可)、整数値の float(`3.0`) | `int` |
+| `number` | 数値の文字列(単位付きも可) | 整数なら `int`、それ以外は `float` |
+| `boolean` | `"true"` / `"false"`(大文字小文字を区別しない)、それ以外は真偽値として評価 | `bool` |
+| `string` + `date` / `date-time` / `time` | dateutil で解釈できる文字列、`date` / `datetime` オブジェクト | `2023-07-19` / ISO 8601 / `13:04:05` |
+| `string`(他の format、または format なし) | 任意 | そのまま |
+| すべての型 | `None`、NaN、`NaT`、`pd.NA`(NumPy の NaN / NaT も含む) | `None` |
+
+`dtype_backend="numpy_nullable"` で読んだ空セル(`pd.NA`)も `None` になります。NumPy のスカラー
+(`np.int64` など)は対応する Python の値として変換するので、そのまま `save_invoice` で保存できます。
+
+スキーマにないキーや型に合わない値は `StructuredError`(コード 1)になります。型の不一致は
+v1 と同じメッセージです。`schema=paths.tasksupport / "invoice.schema.json"` を渡して
+ください。注入される invoice がスキーマを持つのは ExcelInvoice と SmartTable の行タイル
+だけです。結果は `save_invoice(invoice, out)` で保存します。表計算の列から値を
+埋める場合は、`resolve_custom_key(schema, label)` が `label.ja` または `label.en` が
+一致するキーを返します(`lang="ja"` / `"en"` で言語を限定できます)。該当しないラベルや
+2 つの項目に共通するラベルは `StructuredError` になります。
+
+<!-- test: ga603-custom-fields -->
+```python
+from rdetoolkit.nodes import resolve_custom_key, set_custom_fields
+from rdetoolkit.types import InvoiceData
+
+schema = {"properties": {"custom": {"properties": {
+    "measured_date": {"type": "string", "format": "date", "label": {"ja": "測定日", "en": "Measured date"}},
+    "cycles": {"type": "integer", "label": {"ja": "サイクル数", "en": "Cycles"}},
+}}}}
+invoice = InvoiceData(raw={"custom": {"measured_date": None, "cycles": None}}, schema=schema)
+row = {"測定日": "2023/07/19", "Cycles": "12"}
+updates = {resolve_custom_key(schema, label): value for label, value in row.items()}
+invoice = set_custom_fields(invoice, updates)
+assert invoice.raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}
+```
+
 ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
 `save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は
 出力先の `kind` を選べます。文字コードを検出する `read_json`、タイルの invoice を
@@ -326,12 +366,17 @@ invoice シート自体がないブックについては既存のエラー契約
 | `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python の v1 コールバック入口は失敗で `SystemExit(1)` を維持。flow 入口は `exit_on_failure=True` で失敗1・一部失敗2を反映し、同じ値を `RunReport.exit_code` でも公開 |
 | `multidata_tile.ignore_errors: true` で全タイルが失敗 | MultiDataTile のみ全件 `failed` の JSON を返し終了コード 0。他モードではフラグは無視され最初の失敗で停止 | v1 コールバック入口は全モードで v1 と同じ。flow 入口では全タイル失敗は `failed` となり `job.failed` を書きます |
 | `rde2util.Meta.assign_vals` が値 `None` を受け取る(#570) | `None` を文字列 `"None"` として変換します。`number` / `integer` / `boolean` の項目は `StructuredError`(`ERROR: failed to cast metaDef value` など)。コールバックが捕捉しなければ `job.failed` に `ErrorCode=1` となり、`metadata.json` など以降の出力は作られません。`string` の項目は値 `"None"`、`$` 参照の単位は `"unit": "None"` として書き出されます | そのキーは代入されず、`metadata.json` はそのキー(参照単位なら `unit`)を含めずに書き出されます。コールバックの他の出力もそのまま作られます。`None` 以外の変換できない値は従来どおり `ErrorCode=1` |
+| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT`・`pd.NA`(NumPy の NaN / NaT を含む)はすべての型で `None` として格納し、NumPy のスカラーは Python の値として変換します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。v1 の関数自体は変更していません |
+| コールバックや flow が処理中に run 単位の invoice(`paths.invoice_org`。MultiDataTile / ExcelInvoice / RDEformat では `temp/invoice_org.json`)へ書き込む(#603) | 後続タイルは書き換え後のファイルから作られるため、前のタイルが書いた値がタイル順に依存して後続へ引き継がれました | サポートしません。`paths.invoice_org` は読み取り専用の入力です。Runner は各タイルの invoice を登録時の invoice から作り(ExcelInvoice と SmartTable はその行を上書き)、タイル固有の値は flow が `save_invoice` で上書きします。各タイルは登録時の状態から始まります。`invoice_org` への書き込みが後続タイルに届くかどうかは v2 では定めていません |
 
 `Meta.assign_vals` の行は Tier 1 API の不具合修正です。そのため v1 コールバック入口にも
 適用されます。この不具合は 1.7 系にもありますが、修正を含む 1.7.x はまだリリース
 されていません。表の v1 列は最新の v1 リリース 1.7.1 の挙動で、1.7.1 に
 ロールバックすると旧挙動に戻ります。今後 1.7.x に同じ修正が入った場合は、その版との
 比較ではこの行の差分はなくなります。
+
+run 単位の invoice の行について: 登録時の値は各タイルに用意された invoice を使い、
+タイル固有の値はそのタイルの flow の中で求めて `save_invoice` で書き出してください。
 
 ### ロールバック
 

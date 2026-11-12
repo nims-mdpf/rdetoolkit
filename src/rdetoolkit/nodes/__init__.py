@@ -5,6 +5,7 @@ from typing import Any
 
 from rdetoolkit.core.node import node
 from rdetoolkit.nodes.image import copy_raw, make_thumbnail, save_main_image, to_jpeg, to_png
+from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
 from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_text, unzip_inputs
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
 from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure
@@ -50,6 +51,8 @@ __all__ = [
     "save_json",
     "save_text",
     "save_invoice",
+    "set_custom_fields",
+    "resolve_custom_key",
     "save_figure",
     "parse_invoice_meta",
     "save_meta",

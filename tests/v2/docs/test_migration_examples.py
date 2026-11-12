@@ -8,6 +8,7 @@ Example               Partition               Expected                       Tes
 ====================  ======================  =============================  ====================
 migration commands    check and dry-run apply commands accepted by CLI       TC-DOC-MIG-EP-001
 ``as_node`` bridge    legacy handler method  callable node preserves result TC-DOC-MIG-EP-002
+custom field cast     label-keyed row         keys resolved, values cast     GA603-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -96,6 +97,17 @@ def test_as_node_bridge_executes__tc_doc_mig_ep_002(doc: Path) -> None:
 
 
 @DOCS
+def test_custom_fields_example_executes__ga603_doc(doc: Path) -> None:
+    """GA603-DOC: the documented label mapping and schema cast example runs."""
+    # Given: the documented set_custom_fields example
+    namespace: dict[str, object] = {}
+    # When: executing it as ordinary Python
+    exec(_examples(doc)["ga603-custom-fields"][1], namespace)  # noqa: S102
+    # Then: its own assertion ran on the cast invoice
+    assert namespace["invoice"].raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}  # type: ignore[attr-defined]
+
+
+@DOCS
 def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None:
     """TC-DOC-MIG-BV-001: no unmarked migration-guide code fence can bypass execution."""
     # Given: all fenced examples in the migration guide
@@ -103,7 +115,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
