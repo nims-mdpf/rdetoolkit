@@ -87,6 +87,11 @@
   `StructuredError` raised in the flow body: its own code and message reach
   `RunReport.error` and `job.failed`, matching v1 `catch_exception_with_message`.
   Ordinary exceptions are still mapped by the declaration (#589).
+- The migration guide maps v1 `catch_exception_with_message` to the flow
+  decorator with an explicit `error_code=1` (and the v1 `Error: ` message
+  prefix): a message-only `@flow(error_message=...)` keeps the default code
+  3001, so a literal rewrite would change the `job.failed` `ErrorCode` from 1.
+  Behaviour is unchanged (#596).
 - Python flow entries can opt into finalized process exits with
   `run(flow=..., exit_on_failure=True)` (failed 1, partial 2). The public
   `RunReport.exit_code` shares the CLI mapping without changing JSON schemas,

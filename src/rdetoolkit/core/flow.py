@@ -108,7 +108,9 @@ def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | N
         error_code: User error code applied to body exceptions by the Runner.
             With only a message supplied, the default code is 3001. A
             ``StructuredError`` raised by the body keeps its own code and
-            message.
+            message. v1 ``catch_exception_with_message`` used code 1, so a
+            rewrite of it passes ``error_code=1`` explicitly (see the
+            migration guide).
         error_message: Runner failure message. ``{error}`` is replaced by the
             body exception's text and ``{error_type}`` by its class name; all
             other text, including other braces, is kept verbatim. With only a
