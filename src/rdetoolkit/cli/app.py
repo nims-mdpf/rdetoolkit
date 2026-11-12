@@ -270,7 +270,7 @@ def version() -> None:
 def run(
     target: Annotated[str | None, typer.Argument(metavar="<module_or_file::attr>")] = None,
     flow: Annotated[str | None, typer.Option("--flow", help="Dotted v2 flow reference (pkg.mod:callable).")] = None,
-    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config and mode without calling the flow.")] = False,
+    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config and mode without calling the flow. A flow prepare= hook still runs and may modify inputdata.")] = False,
     config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides.")] = None,
 ) -> None:
     """Run rdetoolkit workflows with a user-defined dataset function."""

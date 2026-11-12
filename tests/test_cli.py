@@ -248,7 +248,7 @@ def test_init_creation():
         Path("container/data/tasksupport"),
         Path("input/invoice"),
         Path("input/inputdata"),
-        Path("templates/tasksupport"),
+        Path("template/tasksupport"),
     ]
     for d in dirs:
         assert d.exists()
@@ -260,8 +260,8 @@ def test_init_creation():
         Path("container/data/tasksupport/invoice.schema.json"),
         Path("container/data/tasksupport/metadata-def.json"),
         Path("input/invoice/invoice.json"),
-        Path("templates/tasksupport/invoice.schema.json"),
-        Path("templates/tasksupport/metadata-def.json"),
+        Path("template/tasksupport/invoice.schema.json"),
+        Path("template/tasksupport/metadata-def.json"),
     ]
     for file in files:
         assert file.exists()
@@ -275,8 +275,8 @@ def test_init_creation():
     if os.path.exists("input"):
         shutil.rmtree("input")
 
-    if os.path.exists("templates"):
-        shutil.rmtree("templates")
+    if os.path.exists("template"):
+        shutil.rmtree("template")
 
 
 def test_init_no_overwrite():

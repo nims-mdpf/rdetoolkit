@@ -92,6 +92,25 @@ definitions become one row. `Metadata.units` holds constant units and
 the same rules to the invoice's nested `custom` section. User flows do not need
 `rde2util.Meta` or a v1 object adapter.
 
+Read `tasksupport/default_value.csv` (`key,value` rows), which v1 read with
+`rde2util.get_default_values`, with `read_key_values(path)` (#629). By default
+it detects the encoding with chardet as v1 does and keeps every value a string,
+so the result equals `get_default_values`. Merge it with the measured values for
+`build_meta`:
+
+<!-- test: read-key-values -->
+```python
+from rdetoolkit.nodes import build_meta, read_key_values
+
+defaults = read_key_values(paths.tasksupport / "default_value.csv", missing_ok=True)
+metadata = build_meta({**defaults, **measured}, paths.tasksupport / "metadata-def.json")
+```
+
+`key=` and `value=` name the columns and `encoding=` sets the encoding. chardet
+can misdetect a short, mostly ASCII Shift-JIS file, as in v1; pass
+`encoding="cp932"` for such files. A missing file raises `FileNotFoundError`;
+with `missing_ok=True` it returns an empty dict.
+
 Values may be keyed by the definition key or by its `originalName`. As in v1
 `Meta.assign_vals`, the definition key wins when both spellings are present,
 and `originalName` is read only when the definition key is absent (a key that
@@ -262,7 +281,25 @@ and reports the callback requiring manual migration. Convert that callback and
 its entry together. Supported local callbacks preserve comments and literals;
 removal of the legacy entry is explicitly reported with the flow CLI invocation.
 
-- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
+- A v1 `main.py` that rewrites `data/inputdata/` before calling `run()`
+  (splitting a concatenated instrument file, building a SmartTable CSV and its
+  zip) declares that step with the flow decorator's `prepare=prepare_inputs`
+  option, with
+  `def prepare_inputs(inputdata: Path, config: RdeConfig) -> None`. The Runner
+  calls it once per run, after loading the configuration and before resolving
+  the mode, so both `workflows.run(flow=...)` and `rdetoolkit run --flow` see
+  the prepared inputs. Without it, `run --flow` resolves the mode from the
+  unprepared files. `--validate-only` also runs it, so the pre-flight checks
+  the same mode as the real run but may modify `inputdata/`; write it to be
+  idempotent (a re-run and `rdetoolkit repro` see the already-prepared
+  inputs). It receives a copy of the configuration. It is recorded as
+  `prepare.started` / `prepare.completed` / `prepare.failed` events. The
+  flow's `error_code` / `error_message` options apply to its failures as to
+  the body's; without them an ordinary exception fails the run with 3001
+  before any tile. A `StructuredError` keeps its own code and message. Only
+  the flow the Runner executes is prepared (a nested flow's `prepare` is not
+  run), and direct calls of the flow do not run it.
+- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body (and prepare)
   failures to one code and message through either v2 entry. Supplying only a
   code preserves the original message; supplying only a message uses 3001.
   The message may contain `{error}` (the exception's text) and `{error_type}`
@@ -371,6 +408,29 @@ v1.7, a deprecated alias of `smarttable_rawfile`.
   kept). `data/logs/**` is not part of the v1 artifact contract.
 - `data/logs/iterations/` is emptied when tile iteration starts. `job.failed`,
   `run_report_*` and `events_*` are kept across runs, as before.
+
+**Introduced in 2.0.1: `templates/` is renamed to `template/`**
+
+- `rdetoolkit init` generates `template/tasksupport/` instead of
+  `templates/tasksupport/`, so all generated directories (`container/`,
+  `input/`, `template/`) have singular names.
+- A project created by v1 still has `templates/tasksupport/`. Run
+  `rdetoolkit migrate apply <project>` on the project root. The dry run lists
+  the `templates/` → `template/` move next to the Python conversions. With
+  `--no-dry-run`, the output directory (`--out`, or `<name>_migrated`) contains
+  `template/`; the input directory is not changed. `migrate check <project>`
+  reports `templates/` as a finding.
+- If the project has both `templates/` and `template/`, `migrate apply` stops
+  with exit code 3 and does not merge them. Move the files you want to keep
+  into `template/`, remove `templates/`, and run it again.
+- Until you migrate, `validate all` reads `templates/tasksupport/` when
+  `template/tasksupport/` does not exist and reports a `deprecated_layout`
+  warning. The warning does not change the exit code, but `--strict` fails on it.
+- `init` run in a directory that has `templates/tasksupport/` does not create
+  `template/`. It prints a warning that points to `migrate apply`.
+- `migrate apply` renames only the directory. Update paths you wrote yourself,
+  such as `[tool.rdetoolkit.init]` entries in `pyproject.toml` or CI scripts
+  that copy schemas into `templates/tasksupport/`.
 
 ### Intentional differences (cases where v2's result differs from v1)
 

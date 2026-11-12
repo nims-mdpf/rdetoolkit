@@ -84,8 +84,8 @@ Created: /Users/user1/my-rde-project/my-rde-project/container/Dockerfile
 Created: /Users/user1/my-rde-project/my-rde-project/container/data/invoice/invoice.json
 Created: /Users/user1/my-rde-project/my-rde-project/container/data/tasksupport/invoice.schema.json
 Created: /Users/user1/my-rde-project/my-rde-project/container/data/tasksupport/metadata-def.json
-Created: /Users/user1/my-rde-project/my-rde-project/templates/tasksupport/invoice.schema.json
-Created: /Users/user1/my-rde-project/my-rde-project/templates/tasksupport/metadata-def.json
+Created: /Users/user1/my-rde-project/my-rde-project/template/tasksupport/invoice.schema.json
+Created: /Users/user1/my-rde-project/my-rde-project/template/tasksupport/metadata-def.json
 Created: /Users/user1/my-rde-project/my-rde-project/input/invoice/invoice.json
 
 Check the folder: /Users/user1/my-rde-project/my-rde-project

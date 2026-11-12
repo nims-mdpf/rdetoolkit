@@ -23,7 +23,7 @@ This section explains detailed usage methods and advanced features of RDEToolKit
 
 - [Template File Guide](../usage/metadata_definition_file.en.md) - Roles and structure of `invoice.schema.json`, `invoice.json`, `metadata-def.json`, and `metadata.json`
 - [init CLI](../usage/cli.en.md#init-create-a-startup-project) - Automatically scaffold key templates and directory layout
-- Repository samples: `templates/tasksupport/invoice.schema.json`, `templates/tasksupport/metadata-def.json`
+- Repository samples: `template/tasksupport/invoice.schema.json`, `template/tasksupport/metadata-def.json`
 
 ### Practical Usage
 
