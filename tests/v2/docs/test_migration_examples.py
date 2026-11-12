@@ -9,6 +9,7 @@ Example               Partition               Expected                       Tes
 migration commands    check and dry-run apply commands accepted by CLI       TC-DOC-MIG-EP-001
 ``as_node`` bridge    legacy handler method  callable node preserves result TC-DOC-MIG-EP-002
 custom field cast     label-keyed row         keys resolved, values cast     GA603-DOC
+artifact logger       shared logger in flow   file holds the block lines     GA631-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -108,6 +109,18 @@ def test_custom_fields_example_executes__ga603_doc(doc: Path) -> None:
 
 
 @DOCS
+def test_artifact_logger_example_executes__ga631_doc(doc: Path) -> None:
+    """GA631-DOC: the documented artifact_logger flow writes the tile log in v1 format."""
+    # Given: the documented artifact_logger example
+    namespace: dict[str, object] = {"__name__": "ga631_doc_example"}
+    # When: executing it as ordinary Python
+    exec(_examples(doc)["ga631-artifact-logger"][1], namespace)  # noqa: S102
+    # Then: its own assertion ran on the two logged lines
+    assert namespace["lines"] is not None
+    assert len(namespace["lines"]) == 2  # type: ignore[arg-type]
+
+
+@DOCS
 def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None:
     """TC-DOC-MIG-BV-001: no unmarked migration-guide code fence can bypass execution."""
     # Given: all fenced examples in the migration guide
@@ -115,7 +128,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga631-artifact-logger"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 

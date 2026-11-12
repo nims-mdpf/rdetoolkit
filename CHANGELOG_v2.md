@@ -4,6 +4,17 @@
 
 ### Added
 
+- `rdetoolkit.nodes.artifact_logger(out, filename, *, name=None, kind="struct",
+  fmt=..., level=logging.DEBUG, mode="a", encoding="utf-8")` declares a log
+  file that a logger streams into during a tile, the v2 counterpart of v1
+  `rdelogger.get_logger(name, file_path=...)`. Use the returned
+  `ArtifactLogger` as a context manager: it attaches a `logging.FileHandler`
+  for `out.<kind>/<filename>` to the logger for the block and removes it when
+  the block ends, also on error, so a logger shared by every tile writes each
+  tile's records into that tile's file only. Lines use the v1 format by
+  default, an existing file is appended to, and no file is created when
+  nothing is logged. The call is a builtin node call, so it appears in the
+  call log and in the RunReport `node_calls` (#631).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
