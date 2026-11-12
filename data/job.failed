@@ -1,2 +1,2 @@
-ErrorCode=999
-ErrorMessage=Unexpected error in Invoice mode: The schema and path do not exist: invoice.json
+ErrorCode=4003
+ErrorMessage=Required output artifact is missing: /home/gmk01/github/rdetoolkit-worktrees/feat-issue-625/data/invoice/invoice.json Remediation: Ensure the flow writes the artifact before finalize (use the save nodes in rdetoolkit.nodes); check that the reported path is produced in the expected output directory.

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import re
+import importlib
 from io import BytesIO
 from pathlib import Path
+from typing import Any
 from collections.abc import Sequence
 
 import matplotlib as mpl
@@ -19,6 +22,8 @@ from rdetoolkit.types import OutputContext, OutputKind  # noqa: E402
 _DPI = 150
 _FONT_SIZE = 10
 _PAIR_WITH_LABEL = 3
+_DIV_ID_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
+_PLOTLY_MISSING = 'save_html_figure requires plotly, which is not installed; install it with: pip install "rdetoolkit[plotly]"'
 
 #: A line-series pair: x column, y column and an optional legend label.
 LinePair = tuple[str, str] | tuple[str, str, str]
@@ -223,3 +228,53 @@ def plot_scatter(df: pd.DataFrame, out: OutputContext, filename: str, x: str, y:
         return out.write_bytes("main_image", filename, _figure_bytes(fig, filename))
     finally:
         plt.close(fig)
+
+
+@node(tags=["builtin", "plot"], version="2.0.0", idempotent=True)
+def save_html_figure(
+    fig: Any, out: OutputContext, filename: str, *, kind: OutputKind = "struct",
+    include_plotlyjs: str | bool = "cdn", full_html: bool = True, div_id: str | None = None,
+) -> Path:
+    """Save a plotly figure as an interactive HTML file.
+
+    The HTML is ``plotly.io.to_html`` output. Plotly gives the chart ``<div>``
+    a random id, so the same figure would produce a different file on every
+    run; this node derives a stable id from ``filename`` instead (``chart.html``
+    becomes ``plotly-chart``), making the artifact reproducible. plotly is
+    imported only when the node runs, from the optional ``rdetoolkit[plotly]``
+    extra.
+
+    Args:
+        fig: ``plotly.graph_objects.Figure``, or its dict form, created and
+            managed by the caller.
+        out: Output resource context.
+        filename: Simple output filename, normally ending in ``.html``.
+        kind: Output directory kind.
+        include_plotlyjs: How plotly.js is included, as for
+            ``plotly.io.to_html``: ``"cdn"`` references the CDN, True embeds
+            the library, False omits it.
+        full_html: Whether to write a complete HTML page; False writes only
+            the ``<div>`` fragment.
+        div_id: Id of the chart ``<div>``; None derives ``plotly-<stem>`` from
+            ``filename``, with characters other than ASCII letters, digits,
+            ``_`` and ``-`` collapsed to ``-``.
+
+    Returns:
+        Path to the saved HTML file.
+
+    Raises:
+        ImportError: If plotly is not installed.
+    """
+    try:
+        plotly_io = importlib.import_module("plotly.io")
+    except ImportError as exc:
+        raise ImportError(_PLOTLY_MISSING) from exc
+    html: str = plotly_io.to_html(
+        fig, include_plotlyjs=include_plotlyjs, full_html=full_html, div_id=div_id or _html_div_id(filename),
+    )
+    return out.write_bytes(kind, filename, html.encode("utf-8"))
+
+
+def _html_div_id(filename: str) -> str:
+    slug = _DIV_ID_UNSAFE.sub("-", Path(filename).stem).strip("-")
+    return f"plotly-{slug or 'figure'}"

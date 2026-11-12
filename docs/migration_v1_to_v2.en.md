@@ -173,6 +173,13 @@ the grid, and axis-label sizes follow matplotlib rcParams unless
 `label_fontsize` is set. Both plot nodes save with a tight bounding box by
 default: pass `bbox_inches=None` to reproduce a plain v1 `fig.savefig(path)`, or
 `pad_inches=0` for `savefig(path, bbox_inches="tight", pad_inches=0)`.
+For an interactive chart, `save_html_figure(fig, out, "chart.html")` writes a
+plotly figure with `plotly.io.to_html` under `structured/` by default, loading
+plotly.js from the CDN (`include_plotlyjs=`, `full_html=` and `kind=` change
+that). Its chart `<div>` id is derived from the filename (`plotly-chart`) rather
+than plotly's random one, so the file is identical on every run; pass `div_id=`
+to choose it. plotly comes from the optional `rdetoolkit[plotly]` extra and is
+imported only when the node runs.
 Templates that select rows by cell colour use
 `read_excel_fills(path, column="A", ...)` with the same sheet and row options as
 `read_excel`; it returns one fill colour (ARGB hex, `theme:<n>` or `None`) per

@@ -83,6 +83,9 @@ an output kind. save_invoice and save_meta keep v1 four-space JSON. save_figure
 leaves figure ownership with callers. plot_lines accepts x/y columns or pairs,
 labels, grid, title, scale, legend, size, DPI and kind; it always closes
 internally created figures. bbox_inches=None matches v1 fig.savefig(path).
+save_html_figure writes a plotly figure as HTML (default structured/, CDN
+plotly.js) with a div id derived from the filename, so output is reproducible;
+it needs the rdetoolkit[plotly] extra.
 
 Use build_meta(values, metadef_path, repeated=...) to construct Metadata from
 metadata-def.json. It filters unknown keys, casts schema types/formats, resolves
