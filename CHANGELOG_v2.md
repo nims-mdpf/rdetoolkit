@@ -18,6 +18,14 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- `plot_lines` accepts `xlim` / `ylim` (`(lower, upper)`, a `None` bound keeps
+  matplotlib's automatic limit, so `ylim=(0, None)` starts the axis at 0) and
+  `xscale`, so a fixed axis range no longer needs an own figure and
+  `save_figure`. It also takes a sequence of data frames: the `x` / `y` or
+  `pairs` selection applies to each frame, each frame keeps its own x values and
+  length, and `labels` name the series in frame order. With several frames the
+  default y axis label names a repeated y column once. Defaults keep the
+  current output (#626).
 - `@flow(prepare=fn)` declares run-level input preparation,
   `fn(inputdata: Path, config: RdeConfig) -> None`, that the Runner calls after
   config load and before mode resolution, so `workflows.run(flow=...)` and
