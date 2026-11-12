@@ -239,7 +239,23 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 変換可能なローカル関数ではコメントと文字列を保持し、旧入口を削除したことと
 変換後の flow を CLI で実行する方法を明示します。
 
-- flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を
+- `run()` を呼ぶ前に `data/inputdata/` を書き換える v1 の `main.py`（連結された
+  装置ファイルの分割、SmartTable CSV と zip の生成など）は、その処理を
+  flow デコレータの `prepare=prepare_inputs` オプションとして宣言します。シグネチャは
+  `def prepare_inputs(inputdata: Path, config: RdeConfig) -> None` です。Runner は
+  設定の読み込み後、モード判定の前に 1 回だけ呼ぶため、`workflows.run(flow=...)`
+  と `rdetoolkit run --flow` のどちらでも準備後の入力でモードが決まります。宣言しない
+  場合、`run --flow` は準備前のファイルでモードを判定します。`--validate-only` でも
+  実行されるため、事前チェックは本番と同じモードで検証しますが、`inputdata/` を
+  変更することがあります。再実行や `rdetoolkit repro` は準備済みの入力に対して再び呼ぶので、
+  冪等にしてください。渡される設定は複製なので、変更しても実行には影響しません。
+  実行は `prepare.started` / `prepare.completed` / `prepare.failed` イベントとして
+  記録されます。flow の `error_code` / `error_message` は本体と同様に prepare の
+  失敗にも適用され、指定がなければ通常の例外はタイル処理の前に 3001 で失敗します。
+  `StructuredError` はそのコードとメッセージを保ちます。prepare が実行されるのは
+  Runner が実行する flow だけで(入れ子の flow の `prepare` は実行されません)、
+  flow を直接呼び出したときも実行されません。
+- flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体（と prepare）の例外を
   両 v2 入口から同じコード・メッセージにまとめられます。コードだけなら元の
   メッセージを保ち、メッセージだけならコードは 3001 です。メッセージには例外の文字列
   `{error}` と例外クラス名 `{error_type}` を埋め込めます（例:

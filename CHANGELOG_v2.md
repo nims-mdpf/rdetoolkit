@@ -12,6 +12,19 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- `@flow(prepare=fn)` declares run-level input preparation,
+  `fn(inputdata: Path, config: RdeConfig) -> None`, that the Runner calls after
+  config load and before mode resolution, so `workflows.run(flow=...)` and
+  `rdetoolkit run --flow` (including `--validate-only`) resolve the mode and
+  tiles from the prepared inputs. It is recorded as `prepare.started` /
+  `prepare.completed` / `prepare.failed` events. `--validate-only` runs it
+  too, so the pre-flight checks the same mode as the real run and may modify
+  `inputdata/`; the preparation must be idempotent. A failure is published
+  like a body failure: the flow's `error_code` / `error_message` declaration
+  maps it, a `StructuredError` keeps its own code, and otherwise an ordinary
+  exception fails the run with 3001 (naming the preparation) before any tile.
+  Only the flow the Runner executes is prepared, and direct calls of the flow
+  do not run it (#573).
 
 ### Changed
 

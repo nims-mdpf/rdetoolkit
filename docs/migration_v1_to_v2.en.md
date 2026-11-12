@@ -258,7 +258,25 @@ and reports the callback requiring manual migration. Convert that callback and
 its entry together. Supported local callbacks preserve comments and literals;
 removal of the legacy entry is explicitly reported with the flow CLI invocation.
 
-- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
+- A v1 `main.py` that rewrites `data/inputdata/` before calling `run()`
+  (splitting a concatenated instrument file, building a SmartTable CSV and its
+  zip) declares that step with the flow decorator's `prepare=prepare_inputs`
+  option, with
+  `def prepare_inputs(inputdata: Path, config: RdeConfig) -> None`. The Runner
+  calls it once per run, after loading the configuration and before resolving
+  the mode, so both `workflows.run(flow=...)` and `rdetoolkit run --flow` see
+  the prepared inputs. Without it, `run --flow` resolves the mode from the
+  unprepared files. `--validate-only` also runs it, so the pre-flight checks
+  the same mode as the real run but may modify `inputdata/`; write it to be
+  idempotent (a re-run and `rdetoolkit repro` see the already-prepared
+  inputs). It receives a copy of the configuration. It is recorded as
+  `prepare.started` / `prepare.completed` / `prepare.failed` events. The
+  flow's `error_code` / `error_message` options apply to its failures as to
+  the body's; without them an ordinary exception fails the run with 3001
+  before any tile. A `StructuredError` keeps its own code and message. Only
+  the flow the Runner executes is prepared (a nested flow's `prepare` is not
+  run), and direct calls of the flow do not run it.
+- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body (and prepare)
   failures to one code and message through either v2 entry. Supplying only a
   code preserves the original message; supplying only a message uses 3001.
   The message may contain `{error}` (the exception's text) and `{error_type}`
