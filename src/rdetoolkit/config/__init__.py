@@ -127,7 +127,7 @@ def parse_config_file(*, path: str | None = None) -> Config:
         if not path_obj.exists():
             msg = (
                 f"Configuration file not found: '{path}'. "
-                f"Create a configuration file or use 'rdetoolkit new config' to generate one."
+                f"Create a configuration file or use 'rdetoolkit new config' (formerly 'gen-config') to generate one."
             )
             raise ConfigError(
                 msg,
