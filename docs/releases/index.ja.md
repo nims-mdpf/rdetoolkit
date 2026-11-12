@@ -32,6 +32,7 @@
 
 !!! info "参照"
     - 主な課題: [#622](https://github.com/nims-mdpf/rdetoolkit/issues/622)
+    - プルリクエスト: [#650](https://github.com/nims-mdpf/rdetoolkit/pull/650)
 
 #### ハイライト
 

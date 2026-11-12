@@ -32,6 +32,7 @@
 
 !!! info "References"
     - Key issue: [#622](https://github.com/nims-mdpf/rdetoolkit/issues/622)
+    - Pull request: [#650](https://github.com/nims-mdpf/rdetoolkit/pull/650)
 
 #### Highlights
 
