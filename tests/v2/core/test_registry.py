@@ -91,6 +91,31 @@ class TestGetFlowFunction:
             raise AssertionError(msg)
 
 
+class TestGetNodeFunction:
+    """Issue #601: ``nodes lint`` reads parameter annotations from the
+    undecorated node callable."""
+
+    def test_get_node_function_returns_undecorated_callable__issue_601(self) -> None:
+        from rdetoolkit.core.registry import get_node_function
+
+        @node
+        def _fixture_node_601(paths: InputPaths) -> None:
+            return None
+
+        result = get_node_function(_fixture_node_601.__node_spec__.id)
+
+        assert result is _fixture_node_601.__wrapped__
+        assert result is not _fixture_node_601
+
+    def test_get_node_function_unknown_id_raises_keyerror__issue_601(self) -> None:
+        import pytest
+
+        from rdetoolkit.core.registry import get_node_function
+
+        with pytest.raises(KeyError):
+            get_node_function("definitely.not.a.registered.node.id.issue601")
+
+
 class TestExistingRegistryBehaviorUnaffected:
     """TC-REG-004 (regression guard): the additive amendment must not
     change any pre-existing registry.py behavior (get_node,

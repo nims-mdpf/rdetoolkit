@@ -112,9 +112,14 @@ def _lint_messages() -> list[str]:
         for node_id in find_duplicate_node_ids(nodes)
     ]
     for spec in nodes:
-        for parameter, schema in spec.input_schema.items():
-            if schema["type_name"] == "typing.Any":
-                messages.append(f"Missing type annotation: {spec.id}.{parameter}")
+        # The signature, not ``input_schema``: the schema renders an absent
+        # annotation and an explicit ``typing.Any`` identically (#601).
+        parameters = inspect.signature(registry.get_node_function(spec.id)).parameters
+        messages.extend(
+            f"Missing type annotation: {spec.id}.{name}"
+            for name, parameter in parameters.items()
+            if parameter.annotation is inspect.Parameter.empty
+        )
     messages.extend(
         f"E2005 unstable node id {node_id}. {ERROR_CATALOG[2005].remediation}"
         for node_id in registry.find_unstable_node_ids()

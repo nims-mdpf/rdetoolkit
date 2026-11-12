@@ -59,6 +59,15 @@ def get_node(node_id: str) -> _Spec:
     return _node_specs[node_id]
 
 
+def get_node_function(node_id: str) -> Any:
+    """Return a registered node's undecorated callable.
+
+    Raises:
+        KeyError: If ``node_id`` is not registered.
+    """
+    return _node_functions[node_id]
+
+
 def find_unstable_node_ids() -> tuple[str, ...]:
     """Return registered node ids whose qualname contains ``<locals>``."""
     return tuple(node_id for node_id in _node_specs if "<locals>" in node_id)
