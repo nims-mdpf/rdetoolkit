@@ -17,6 +17,7 @@ Equivalence Partitioning:
 | sample/names + UUID + blank sample field                | Explicit sampleId kept; blank field removed            | TC-EP-011   |
 | Original invoice has sample.generalAttributes = null   | generalAttributes.<termId> written without error       | TC-EP-012   |
 | Original invoice has sample.specificAttributes = null  | specificAttributes.<classId>.<termId> written ok       | TC-EP-013   |
+| custom/ columns for uri, uuid and markdown fields      | Values written unchanged (Issue #622)                  | TC-EP-014   |
 
 Boundary Value:
 
@@ -782,3 +783,45 @@ def test_smarttable_whitespace_sampleid_triggers_clearing__tc_bv_006(tmp_path: P
     assert output["sample"]["sampleId"] is None
     assert output["sample"]["description"] is None
     assert output["sample"]["names"] == ["Brand New BV-006"]
+
+
+def test_smarttable_keeps_uri_uuid_markdown_custom_values__tc_ep_014(tmp_path: Path) -> None:
+    """TC-EP-014: custom uri/uuid/markdown values are written unchanged (Issue #622)."""
+    # Given: a SmartTable row filling the uri (sample5), uuid (sample6) and markdown (sample7) fields
+    invoice_org, schema_path = _copy_sample_invoice_files(tmp_path)
+    smarttable_file = tmp_path / "inputdata" / "smarttable_sample.csv"
+    smarttable_file.parent.mkdir(parents=True, exist_ok=True)
+    smarttable_file.touch()
+    row = {
+        "custom/sample5": "https://example.com/a",
+        "custom/sample6": "0d3b9c1e-6f1a-4b8e-9a51-2f0f6f4b7c11",
+        "custom/sample7": "**bold**",
+    }
+    rowfile = tmp_path / "temp" / "fsmarttable_case_0000.csv"
+    _write_smarttable_row(rowfile, row)
+
+    srcpaths = RdeInputDirPaths(
+        inputdata=smarttable_file.parent,
+        invoice=invoice_org.parent,
+        tasksupport=schema_path.parent,
+        config=create_default_config(),
+    )
+    output_invoice_dir = tmp_path / "divided" / "0000" / "invoice"
+    resource_paths = _build_resource_paths(tmp_path, output_invoice_dir, invoice_org, schema_path, rowfile)
+    context = ProcessingContext(
+        index="0",
+        srcpaths=srcpaths,
+        resource_paths=resource_paths,
+        datasets_function=None,
+        mode_name="smarttable",
+        smarttable_file=smarttable_file,
+    )
+
+    # When: the row is applied
+    SmartTableInvoiceInitializer().process(context)
+
+    # Then: the values are stored as given
+    output_invoice = json.loads((output_invoice_dir / "invoice.json").read_text())
+    assert output_invoice["custom"]["sample5"] == "https://example.com/a"
+    assert output_invoice["custom"]["sample6"] == "0d3b9c1e-6f1a-4b8e-9a51-2f0f6f4b7c11"
+    assert output_invoice["custom"]["sample7"] == "**bold**"

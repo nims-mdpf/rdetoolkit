@@ -1165,3 +1165,21 @@ class TestSheetProcessorDispatch:
         assert _SHEET_PROCESSORS["invoice"] is _process_invoice_sheet
         assert _SHEET_PROCESSORS["general_term"] is _process_general_term_sheet
         assert _SHEET_PROCESSORS["specific_term"] is _process_specific_term_sheet
+
+
+@pytest.mark.parametrize(
+    "key2, value",
+    [
+        ("sample5", "https://example.com/a"),
+        ("sample6", "0d3b9c1e-6f1a-4b8e-9a51-2f0f6f4b7c11"),
+        ("sample7", "**bold**"),
+    ],
+)
+def test_assign_invoice_val_keeps_uri_uuid_markdown_values(key2, value):
+    """Issue #622: custom uri/uuid/markdown values are assigned unchanged, not parsed as dates."""
+    from rdetoolkit.invoicefile._invoice import _assign_invoice_val
+
+    schema = json.loads(Path("tests/samplefile/invoice.schema.json").read_text(encoding="utf-8"))
+    invoiceobj = {"custom": {}}
+    _assign_invoice_val(invoiceobj, "custom", key2, value, schema)
+    assert invoiceobj["custom"][key2] == value

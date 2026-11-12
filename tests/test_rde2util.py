@@ -494,3 +494,40 @@ class TestDispatchTable:
         from rdetoolkit.rde2util import _TYPE_CASTERS
         for type_name, caster in _TYPE_CASTERS.items():
             assert callable(caster), f"caster for type '{type_name}' is not callable"
+
+
+class TestCastvalNonDateStringFormats:
+    """Issue #622: string formats other than date/date-time/time are not parsed as dates."""
+
+    @pytest.mark.parametrize(
+        "value, outfmt",
+        [
+            ("https://example.com/a", "uri"),
+            ("0d3b9c1e-6f1a-4b8e-9a51-2f0f6f4b7c11", "uuid"),
+            ("**bold**", "markdown"),
+            ("12", "markdown"),
+            ("2021-01-01", "markdown"),
+            ("https://example.com/a", "unknown-format"),
+        ],
+    )
+    def test_non_date_format_returns_value_unchanged(self, value, outfmt):
+        """A uri/uuid/markdown (or unknown) format returns the value as given."""
+        assert castval(value, "string", outfmt) == value
+
+    def test_non_date_format_preserves_original_type(self):
+        """A non-date format keeps a non-string value's type, like outfmt=None."""
+        result = castval(12, "string", "markdown")
+        assert result == 12
+        assert isinstance(result, int)
+
+    @pytest.mark.parametrize(
+        "value, outfmt, expected",
+        [
+            ("2021/01/02", "date", "2021-01-02"),
+            ("2021-01-02 03:04:05", "date-time", "2021-01-02T03:04:05"),
+            ("03:04:05", "time", "03:04:05"),
+        ],
+    )
+    def test_date_formats_are_still_converted(self, value, outfmt, expected):
+        """date, date-time and time keep their conversion."""
+        assert castval(value, "string", outfmt) == expected
