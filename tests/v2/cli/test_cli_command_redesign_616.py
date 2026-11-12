@@ -14,7 +14,11 @@
 | TC-616-RC-001 | rc-only names | invoke ``graph`` / ``templates`` / ``nodes describe`` / ``run --flow`` | rejected by the parser (exit 2) |
 | TC-616-RUN-001 | ``run`` | ``::`` without ``--legacy`` vs with it | both reach the legacy entry |
 | TC-616-MIG-001 | ``migrate check`` | Python string / argv list / shell script using old names | one finding per renamed command naming the replacement |
-| TC-616-MIG-002 | ``migrate check`` | current names only | no finding |
+| TC-616-MIG-002 | ``migrate check`` | current names only, incl. ``--legacy`` after TARGET | no finding |
+| TC-616-MIG-003 | ``migrate check`` | argv list mixing literals and variables | old name in the literal part reported |
+| TC-616-MIG-004 | ``migrate check`` | shell command continued with a trailing backslash | reported at the first physical line |
+| TC-616-PY-001 | ``rdetoolkit.cli.app`` | import the v1.7.1 Python function names | importable with the v1.7.1 parameter names |
+| TC-616-PY-002 | v1 Python names | call with v1 keyword arguments | the replacement's backend runs |
 | TC-616-REN-001 | ``COMMAND_RENAMES`` | each row | v1 rows still registered, rc rows gone, replacement registered |
 """
 
@@ -378,7 +382,15 @@ def test_migrate_check_is_silent_for_current_names__tc_616_mig_002(tmp_path: Pat
     # Given: scripts that already use the v2.0 names
     (tmp_path / "ci.sh").write_text(
         "rdetoolkit new config --preset full\nrdetoolkit run modules.processing:pipeline\n"
-        "rdetoolkit run --legacy main.py::dataset\nrdetoolkit report trace r.json\nrdetoolkit plot a.csv\n",
+        "rdetoolkit run --legacy main.py::dataset\nrdetoolkit run main.py::dataset --legacy\n"
+        "rdetoolkit report trace r.json\nrdetoolkit plot a.csv\n"
+        "rdetoolkit run \\\n  modules.processing:pipeline \\\n  --config c.yaml\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "build.py").write_text(
+        "import subprocess\n"
+        'subprocess.run(["rdetoolkit", "run", "main.py::dataset", "--legacy"])\n'
+        'subprocess.run(["rdetoolkit", "run", flow_ref, "--config", config_path])\n',
         encoding="utf-8",
     )
 
@@ -386,6 +398,111 @@ def test_migrate_check_is_silent_for_current_names__tc_616_mig_002(tmp_path: Pat
     result = CliRunner().invoke(app, ["migrate", "check", str(tmp_path)])
     assert result.exit_code == 0
     assert result.output == ""
+
+
+def test_migrate_check_reads_argv_lists_with_variables__tc_616_mig_003(tmp_path: Path) -> None:
+    # Given: argv lists whose command part is literal but whose arguments are variables
+    (tmp_path / "build.py").write_text(
+        "import subprocess, sys\n"
+        'subprocess.run(["rdetoolkit", "run", "--flow", flow_ref])\n'
+        'subprocess.run([sys.executable, "-m", "rdetoolkit", "templates", "list", *extra])\n'
+        'subprocess.run(["rdetoolkit", "run", f"{module}::dataset"])\n',
+        encoding="utf-8",
+    )
+
+    # When: checking the project
+    result = CliRunner().invoke(app, ["migrate", "check", str(tmp_path)])
+
+    # Then: the literal command names are reported
+    assert result.exit_code == 0, result.output
+    lines = result.output.splitlines()
+    assert f"{tmp_path / 'build.py'}:2: renamed CLI command 'rdetoolkit run --flow X' -> use 'rdetoolkit run X'" in lines
+    assert any(line.startswith(f"{tmp_path / 'build.py'}:3: renamed CLI command 'rdetoolkit templates") for line in lines)
+    assert any(line.startswith(f"{tmp_path / 'build.py'}:4: renamed CLI command 'rdetoolkit run TARGET'") for line in lines)
+    assert len(lines) == 3
+
+
+def test_migrate_check_joins_shell_line_continuations__tc_616_mig_004(tmp_path: Path) -> None:
+    # Given: an old option on a continuation line
+    (tmp_path / "ci.sh").write_text(
+        "#!/bin/sh\nrdetoolkit run \\\n  --flow modules.processing:pipeline\necho done\n",
+        encoding="utf-8",
+    )
+
+    # When: checking the project
+    result = CliRunner().invoke(app, ["migrate", "check", str(tmp_path)])
+
+    # Then: the command is reported once, at the line where it starts
+    assert result.exit_code == 0, result.output
+    assert result.output.splitlines() == [
+        f"{tmp_path / 'ci.sh'}:2: renamed CLI command 'rdetoolkit run --flow X' -> use 'rdetoolkit run X'",
+    ]
+
+
+#: Parameter names of the CLI functions in rdetoolkit 1.7.1 ``rdetoolkit/cli/app.pyi``.
+_V1_PYTHON_SIGNATURES = {
+    "init": ["template", "entry_point", "modules", "tasksupport", "inputdata", "other"],
+    "version": [],
+    "run": ["target"],
+    "gen_config": ["output_dir", "template_name", "overwrite", "lang"],
+    "artifact": ["source_dir", "output_archive", "exclude"],
+    "gen_invoice": ["schema_path", "output_path", "fill_defaults", "required_only", "output_format"],
+    "make_excelinvoice": ["invoice_schema_json_path", "output_path", "mode"],
+    "csv2graph": [
+        "csv_path", "output_dir", "main_image_dir", "html_output_dir", "csv_format", "logy", "logx", "html", "mode",
+        "x_col", "y_cols", "direction_cols", "direction_filter", "direction_colors", "title", "legend_info",
+        "legend_loc", "xlim", "ylim", "grid", "invert_x", "invert_y", "no_individual", "max_legend_items",
+        "legend_policy", "legend_outside_threshold", "legend_bottom_threshold", "legend_ncol",
+        "x_tick_format", "y_tick_format",
+    ],
+    "parse_column": ["col"],
+    "validate_json_file": ["value"],
+}
+
+
+@pytest.mark.parametrize("name", sorted(_V1_PYTHON_SIGNATURES))
+def test_v1_python_names_stay_importable__tc_616_py_001(name: str) -> None:
+    import importlib
+    import inspect
+
+    app_module = importlib.import_module("rdetoolkit.cli.app")
+
+    # When: importing a v1.7.1 function name from rdetoolkit.cli.app
+    function = getattr(app_module, name)
+
+    # Then: it keeps the v1.7.1 parameter names (v2 may add keyword parameters after them)
+    parameters = list(inspect.signature(function).parameters)
+    assert parameters[: len(_V1_PYTHON_SIGNATURES[name])] == _V1_PYTHON_SIGNATURES[name]
+
+
+def test_v1_python_names_accept_v1_keywords__tc_616_py_002(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from rdetoolkit import cli as cli_module
+    from rdetoolkit.cli.app import csv2graph, gen_invoice, make_excelinvoice, run
+
+    # Given: inputs on disk and every backend replaced by a recorder
+    schema = tmp_path / "invoice.schema.json"
+    schema.write_text('{"type": "object", "properties": {}}', encoding="utf-8")
+    csv = tmp_path / "data.csv"
+    csv.write_text("x,y\n1,2\n", encoding="utf-8")
+    source = tmp_path / "main.py"
+    source.write_text("def dataset(srcpaths, resource_paths):\n    return None\n", encoding="utf-8")
+    calls: list[str] = []
+    for backend in (
+        "rdetoolkit.cmd.gen_invoice.GenerateInvoiceCommand.invoke",
+        "rdetoolkit.cmd.gen_excelinvoice.GenerateExcelInvoiceCommand.invoke",
+        "rdetoolkit.cmd.csv2graph.Csv2GraphCommand.invoke",
+    ):
+        monkeypatch.setattr(backend, lambda self, backend=backend: calls.append(backend.split(".")[2]))
+    monkeypatch.setattr(cli_module.workflows, "run", lambda *, custom_dataset_function: calls.append("workflows.run"))
+
+    # When: calling them the v1 way, with v1 keyword arguments
+    gen_invoice(schema_path=schema, output_path=tmp_path / "invoice.json")
+    make_excelinvoice(invoice_schema_json_path=schema, output_path=tmp_path / "a_excel_invoice.xlsx", mode="file")
+    csv2graph(csv_path=csv, output_dir=tmp_path)
+    run(target=f"{source}::dataset")
+
+    # Then: each reached its backend
+    assert calls == ["gen_invoice", "gen_excelinvoice", "csv2graph", "workflows.run"]
 
 
 @pytest.mark.parametrize("rename", COMMAND_RENAMES, ids=lambda rename: rename.old)

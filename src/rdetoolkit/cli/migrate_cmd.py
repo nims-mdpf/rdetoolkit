@@ -485,9 +485,32 @@ def _report_command_file(path: Path) -> None:
         lines = path.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeError):
         return
-    for number, line in enumerate(lines, start=1):
+    for number, line in _logical_lines(lines):
         for category in _renamed_command_categories(line):
             typer.echo(f"{path}:{number}: {category}")
+
+
+def _logical_lines(lines: list[str]) -> list[tuple[int, str]]:
+    r"""Join shell line continuations (a trailing backslash) into one command.
+
+    Each logical line keeps the number of the physical line it starts on, so
+    ``rdetoolkit run \`` followed by ``--flow X`` is one finding at the first line.
+    """
+    joined: list[tuple[int, str]] = []
+    start = 0
+    parts: list[str] = []
+    for number, line in enumerate(lines, start=1):
+        if not parts:
+            start = number
+        if line.endswith("\\"):
+            parts.append(line[:-1])
+            continue
+        parts.append(line)
+        joined.append((start, " ".join(parts)))
+        parts = []
+    if parts:
+        joined.append((start, " ".join(parts)))
+    return joined
 
 
 def _renamed_command_categories(text: str) -> list[str]:
@@ -498,7 +521,9 @@ def _find_renamed_command_strings(tree: ast.AST) -> list[Finding]:
     """Find renamed CLI commands in string literals and argv-style lists.
 
     ``"rdetoolkit gen-config"`` and ``["rdetoolkit", "gen-config"]`` (the
-    ``subprocess`` form) are both reported, once per source line.
+    ``subprocess`` form) are both reported, once per source line. An argv
+    list may mix literals with variables (``["rdetoolkit", "run", "--flow",
+    ref]``); the literal parts still name the command and are checked.
     """
     findings: dict[tuple[int, str], Finding] = {}
     for node in ast.walk(tree):
@@ -507,13 +532,37 @@ def _find_renamed_command_strings(tree: ast.AST) -> list[Finding]:
         text: str | None = None
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             text = node.value
-        elif isinstance(node, (ast.List, ast.Tuple)) and node.elts and all(isinstance(item, ast.Constant) and isinstance(item.value, str) for item in node.elts):
-            text = " ".join(str(item.value) for item in node.elts if isinstance(item, ast.Constant))
+        elif isinstance(node, (ast.List, ast.Tuple)) and any(_is_str_constant(item) for item in node.elts):
+            text = " ".join(_argv_word(item) for item in node.elts)
         if text is None:
             continue
         for category in _renamed_command_categories(text):
             findings.setdefault((node.lineno, category), Finding(node.lineno, category))
     return list(findings.values())
+
+
+#: Stands for an argv element whose value is only known at run time.
+_RUNTIME_VALUE = "{}"
+
+
+def _is_str_constant(node: ast.expr) -> bool:
+    return isinstance(node, ast.Constant) and isinstance(node.value, str)
+
+
+def _argv_word(node: ast.expr) -> str:
+    """Render one argv element: literals as written, run-time values as ``{}``.
+
+    An f-string keeps its literal parts (``f"{mod}::main"`` -> ``{}::main``),
+    so the shape of the argument can still be recognised.
+    """
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.JoinedStr):
+        return "".join(
+            part.value if isinstance(part, ast.Constant) and isinstance(part.value, str) else _RUNTIME_VALUE
+            for part in node.values
+        )
+    return _RUNTIME_VALUE
 
 
 def _find_migration_points(tree: ast.AST) -> list[Finding]:

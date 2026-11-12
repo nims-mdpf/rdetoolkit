@@ -554,7 +554,7 @@ RUN_HELP = CommandHelp(
 
 @app.command("run", help=RUN_HELP.render(), short_help=RUN_HELP.summary, rich_help_panel=PANEL_RUN)
 def run(
-    ref: Annotated[
+    target: Annotated[
         str | None,
         typer.Argument(metavar="REF", help="Flow reference pkg.mod:callable, or module_or_file::attr with --legacy."),
     ] = None,
@@ -565,13 +565,12 @@ def run(
     """Run a v2 flow or a v1 dataset function."""
     from rdetoolkit.cli.run_cmd import run_flow, usage_error
 
-    if ref is None:
+    if target is None:
         usage_error(
             "Missing REF.\n"
             "Remediation: pass a flow reference such as 'rdetoolkit run modules.processing:pipeline', "
             "or 'rdetoolkit run --legacy main.py::dataset' for a v1 dataset function.",
         )
-    target = ref
     if legacy or "::" in target:
         if "::" not in target:
             usage_error(
@@ -841,7 +840,7 @@ GEN_INVOICE_HELP = CommandHelp(
     see_also=("rdetoolkit new invoice",),
 )
 
-app.command(
+gen_invoice = app.command(
     "gen-invoice",
     cls=_deprecated("rdetoolkit new invoice"),
     help=GEN_INVOICE_HELP.render(),
@@ -871,7 +870,17 @@ app.command(
     rich_help_panel=PANEL_DEPRECATED,
 )(new_excelinvoice)
 
-app.command(
+
+def make_excelinvoice(invoice_schema_json_path: Path, output_path: Path | None = None, mode: str = "file") -> None:
+    """Generate an ExcelInvoice workbook (v1 Python name of ``new_excelinvoice``; removed in v2.1).
+
+    Keeps the v1.x keyword ``invoice_schema_json_path`` for code that calls
+    this function directly; the CLI name ``make-excelinvoice`` is registered
+    on :func:`new_excelinvoice` above.
+    """
+    new_excelinvoice(invoice_schema_json_path, output_path, mode=mode)
+
+csv2graph = app.command(
     "csv2graph",
     cls=_deprecated("rdetoolkit plot"),
     help=CSV2GRAPH_HELP.render(),

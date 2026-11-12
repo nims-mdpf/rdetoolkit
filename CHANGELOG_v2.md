@@ -27,9 +27,13 @@
 
   A deprecated alias runs the same code as its replacement after printing a
   warning with a `Remediation:` line on stderr; its options and exit codes are
-  unchanged. `rdetoolkit migrate check` reports the old names in Python
-  string literals and in shell, CI and container files (`*.sh`, `*.yml`,
-  `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`). Usage errors of the
+  unchanged. The v1.7 Python names in `rdetoolkit.cli.app` (`gen_invoice`,
+  `make_excelinvoice`, `csv2graph`, `run(target=...)`, ...) stay importable
+  with their v1 keyword arguments. `rdetoolkit migrate check` reports the old
+  names in Python string literals and argv lists (also when other arguments
+  are variables) and in shell, CI and container files (`*.sh`, `*.yml`,
+  `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`; a command continued
+  with a trailing `\` is read as one line). Usage errors of the
   v2 commands now end with a `Remediation:` line, and the remediation of
   error 2102 (`TemplateSlotSignatureMismatch`) names
   `rdetoolkit skeletons show <name>`.

@@ -42,7 +42,7 @@ COMMAND_RENAMES: tuple[CommandRename, ...] = (
     CommandRename("rdetoolkit make-excelinvoice", "rdetoolkit new excelinvoice", "v1", r"make-excelinvoice\b"),
     CommandRename("rdetoolkit csv2graph", "rdetoolkit plot", "v1", r"csv2graph\b"),
     CommandRename("rdetoolkit artifact --output-archive", "rdetoolkit package -o", "v1", r"artifact\b"),
-    CommandRename("rdetoolkit run TARGET", "rdetoolkit run --legacy TARGET", "v1", r"run\s+(?!--legacy)\S+::\S+"),
+    CommandRename("rdetoolkit run TARGET", "rdetoolkit run --legacy TARGET", "v1", r"run\s+(?![^\n;&|]*--legacy\b)\S+::\S+"),
     CommandRename("rdetoolkit init --processing-template X", "rdetoolkit new processing X", "v2rc", r"init\b.*--processing-template\b"),
     CommandRename("rdetoolkit run --flow X", "rdetoolkit run X", "v2rc", r"run\b.*--flow\b"),
     CommandRename("rdetoolkit graph REPORT", "rdetoolkit report trace REPORT", "v2rc", r"graph\b"),
