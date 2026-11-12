@@ -176,9 +176,11 @@ default: pass `bbox_inches=None` to reproduce a plain v1 `fig.savefig(path)`, or
 For an interactive chart, `save_html_figure(fig, out, "chart.html")` writes a
 plotly figure with `plotly.io.to_html` under `structured/` by default, loading
 plotly.js from the CDN (`include_plotlyjs=`, `full_html=` and `kind=` change
-that). Its chart `<div>` id is derived from the filename (`plotly-chart`) rather
-than plotly's random one, so the file is identical on every run; pass `div_id=`
-to choose it. plotly comes from the optional `rdetoolkit[plotly]` extra and is
+that). Its chart `<div>` id is derived from the filename rather than plotly's
+random one: the sanitized stem plus a short hash of the filename
+(`plotly-chart-3e67baf8`), so the file is identical on every run and fragments
+of different files (`full_html=False`) keep distinct ids on one page. Pass
+`div_id=` to choose it. plotly comes from the optional `rdetoolkit[plotly]` extra and is
 imported only when the node runs.
 Templates that select rows by cell colour use
 `read_excel_fills(path, column="A", ...)` with the same sheet and row options as

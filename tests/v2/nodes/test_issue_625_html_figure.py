@@ -8,6 +8,7 @@
 | ``save_html_figure`` | ``kind`` / ``full_html`` / ``include_plotlyjs`` | passed through | I625-EP-4 |
 | ``save_html_figure`` | dict figure | accepted like ``plotly.io.to_html``, deterministic | I625-EP-5 |
 | ``save_html_figure`` | filename with spaces / non-ASCII | derived id is a safe HTML id | I625-BV-1 |
+| ``save_html_figure`` | filenames whose stems sanitize alike | fragments on one page keep distinct ids | I625-BV-2 |
 | ``save_html_figure`` | plotly not installed | ImportError naming the ``plotly`` extra | I625-NEG-1 |
 | ``rdetoolkit.nodes`` | import without plotly | import succeeds, plotly not imported | I625-NEG-2 |
 | ``run_flow`` | flow calling the node | call log records the node | I625-EP-6 |
@@ -47,7 +48,7 @@ def test_writes_full_html_under_structured_by_default__i625_ep_1(tmp_path: Path)
     assert "<html" in html
     assert html.rstrip().endswith("</html>")
     assert re.search(r'<script [^>]*src="https://cdn\.plot\.ly/plotly-[^"]+\.min\.js"', html)
-    assert _DIV_ID.findall(html) == ["plotly-chart"]
+    assert _DIV_ID.findall(html) == ["plotly-chart-3e67baf8"]
 
 
 def test_repeated_writes_are_byte_identical__i625_ep_2(tmp_path: Path) -> None:
@@ -80,7 +81,7 @@ def test_options_are_passed_through__i625_ep_4(tmp_path: Path) -> None:
     assert html.lstrip().startswith("<div")
     assert "<html" not in html
     assert "cdn.plot.ly" not in html
-    assert _DIV_ID.findall(html) == ["plotly-chart"]
+    assert _DIV_ID.findall(html) == ["plotly-chart-3e67baf8"]
 
 
 def test_dict_figure_is_accepted__i625_ep_5(tmp_path: Path) -> None:
@@ -92,7 +93,7 @@ def test_dict_figure_is_accepted__i625_ep_5(tmp_path: Path) -> None:
     second = save_html_figure(spec, make_output_context(tmp_path / "b"), "chart.html")
     # Then: the chart is written with the derived id, deterministically
     html = first.read_text(encoding="utf-8")
-    assert _DIV_ID.findall(html) == ["plotly-chart"]
+    assert _DIV_ID.findall(html) == ["plotly-chart-3e67baf8"]
     assert '"y":[1,4,9]' in html
     assert first.read_bytes() == second.read_bytes()
 
@@ -100,10 +101,10 @@ def test_dict_figure_is_accepted__i625_ep_5(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("filename", "expected"),
     [
-        ("my chart (1).html", "plotly-my-chart-1"),
-        ("sample_01-a.html", "plotly-sample_01-a"),
-        ("測定.html", "plotly-figure"),
-        ("x.y.html", "plotly-x-y"),
+        ("my chart (1).html", "plotly-my-chart-1-f8316b93"),
+        ("sample_01-a.html", "plotly-sample_01-a-cef4ea63"),
+        ("測定.html", "plotly-figure-be95c65c"),
+        ("x.y.html", "plotly-x-y-d24d662f"),
     ],
 )
 def test_derived_div_id_is_a_safe_html_id__i625_bv_1(tmp_path: Path, filename: str, expected: str) -> None:
@@ -112,6 +113,22 @@ def test_derived_div_id_is_a_safe_html_id__i625_bv_1(tmp_path: Path, filename: s
     path = save_html_figure(_figure(), make_output_context(tmp_path), filename)
     # Then: the derived id is a plain, quote-free identifier
     assert _DIV_ID.findall(path.read_text(encoding="utf-8")) == [expected]
+
+
+@pytest.mark.parametrize("filenames", [("測定.html", "解析.html"), ("a b.html", "a-b.html"), ("chart.html", "chart.htm")])
+def test_fragments_of_different_files_keep_distinct_ids__i625_bv_2(tmp_path: Path, filenames: tuple[str, str]) -> None:
+    """I625-BV-2: fragments concatenated into one page never share a div id."""
+    # Given: two filenames whose stems sanitize to the same slug
+    out = make_output_context(tmp_path)
+    # When: writing a fragment for each and joining them into one page
+    page = "".join(
+        save_html_figure(_figure(), out, name, full_html=False, include_plotlyjs=False).read_text(encoding="utf-8")
+        for name in filenames
+    )
+    # Then: each Plotly.newPlot targets its own element
+    ids = _DIV_ID.findall(page)
+    assert len(ids) == 2
+    assert len(set(ids)) == 2
 
 
 def test_missing_plotly_names_the_extra__i625_neg_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

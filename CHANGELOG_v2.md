@@ -7,8 +7,10 @@
 - Builtin node `save_html_figure(fig, out, filename, *, kind="struct",
   include_plotlyjs="cdn", full_html=True, div_id=None)` writes a plotly figure
   (or its dict form) as interactive HTML with `plotly.io.to_html`. Without
-  `div_id` the chart `<div>` id is derived from the filename (`plotly-<stem>`)
-  instead of plotly's random one, so the artifact is identical on every run.
+  `div_id` the chart `<div>` id is derived from the filename
+  (`plotly-<stem>-<8 hex digits of its SHA-256>`) instead of plotly's random
+  one, so the artifact is identical on every run and fragments of different
+  files keep distinct ids on one page.
   plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
   extra raises an `ImportError` naming it (#625).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how

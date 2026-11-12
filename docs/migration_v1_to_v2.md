@@ -163,8 +163,9 @@ v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 インタラクティブなグラフは `save_html_figure(fig, out, "chart.html")` で、plotly の Figure を
 `plotly.io.to_html` により既定で `structured/` に保存できます。plotly.js は既定で CDN から読み込みます
 （`include_plotlyjs=`・`full_html=`・`kind=` で変更できます）。グラフの `<div>` の id は plotly の
-ランダムな値ではなくファイル名から決まる（`plotly-chart`）ため、毎回同じファイルになります。
-`div_id=` で指定することもできます。plotly はオプションの `rdetoolkit[plotly]` で導入し、
+ランダムな値ではなく、ファイル名の英数字部分とファイル名の短いハッシュから決まります
+（`plotly-chart-3e67baf8`）。そのため毎回同じファイルになり、別ファイルの断片（`full_html=False`）を
+1 ページに並べても id は重なりません。`div_id=` で指定することもできます。plotly はオプションの `rdetoolkit[plotly]` で導入し、
 ノードの実行時にだけ import されます。
 セルの塗りつぶし色で行を選ぶテンプレートでは、`read_excel` と同じシート・行指定で
 `read_excel_fills(path, column="A", ...)` を呼ぶと、データフレームの各行に対応する

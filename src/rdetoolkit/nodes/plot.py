@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import hashlib
 import importlib
 from io import BytesIO
 from pathlib import Path
@@ -23,6 +24,7 @@ _DPI = 150
 _FONT_SIZE = 10
 _PAIR_WITH_LABEL = 3
 _DIV_ID_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
+_DIV_ID_DIGEST_LEN = 8
 _PLOTLY_MISSING = 'save_html_figure requires plotly, which is not installed; install it with: pip install "rdetoolkit[plotly]"'
 
 #: A line-series pair: x column, y column and an optional legend label.
@@ -240,7 +242,7 @@ def save_html_figure(
     The HTML is ``plotly.io.to_html`` output. Plotly gives the chart ``<div>``
     a random id, so the same figure would produce a different file on every
     run; this node derives a stable id from ``filename`` instead (``chart.html``
-    becomes ``plotly-chart``), making the artifact reproducible. plotly is
+    becomes ``plotly-chart-<digest>``), making the artifact reproducible. plotly is
     imported only when the node runs, from the optional ``rdetoolkit[plotly]``
     extra.
 
@@ -255,9 +257,12 @@ def save_html_figure(
             the library, False omits it.
         full_html: Whether to write a complete HTML page; False writes only
             the ``<div>`` fragment.
-        div_id: Id of the chart ``<div>``; None derives ``plotly-<stem>`` from
-            ``filename``, with characters other than ASCII letters, digits,
-            ``_`` and ``-`` collapsed to ``-``.
+        div_id: Id of the chart ``<div>``; None derives
+            ``plotly-<stem>-<digest>`` from ``filename``: the stem with
+            characters other than ASCII letters, digits, ``_`` and ``-``
+            collapsed to ``-`` (``figure`` when nothing is left), then the
+            first 8 hex digits of the SHA-256 of ``filename``, so different
+            filenames give different ids.
 
     Returns:
         Path to the saved HTML file.
@@ -276,5 +281,9 @@ def save_html_figure(
 
 
 def _html_div_id(filename: str) -> str:
-    slug = _DIV_ID_UNSAFE.sub("-", Path(filename).stem).strip("-")
-    return f"plotly-{slug or 'figure'}"
+    # The slug keeps the id readable but is lossy (``a b`` and ``a-b``, or any
+    # two non-ASCII stems, collapse alike); the filename digest keeps ids of
+    # different files distinct when their fragments share one page (#625).
+    slug = _DIV_ID_UNSAFE.sub("-", Path(filename).stem).strip("-") or "figure"
+    digest = hashlib.sha256(filename.encode("utf-8")).hexdigest()[:_DIV_ID_DIGEST_LEN]
+    return f"plotly-{slug}-{digest}"
