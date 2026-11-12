@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, ClassVar, Literal
+from typing import Any, ClassVar, Final, Literal, final, type_check_only
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -27,18 +27,70 @@ OutputKind = Literal[
     "logs",
 ]
 
-@dataclass(frozen=True, slots=True)
+@type_check_only
+@final
+class _FactoryToken:
+    """Stub-only nominal type of the private ``_FACTORY_TOKEN`` sentinel.
+
+    At runtime the sentinel is a bare ``object()``; giving it a type that user
+    code cannot construct is what makes direct ``OutputContext(...)`` calls a
+    type error while rdetoolkit's own factories stay type-checked.
+    """
+
+_FACTORY_TOKEN: Final[_FactoryToken]
+
 class OutputContext:
-    struct: Path
-    meta: Path
-    main_image: Path
-    other_image: Path
-    thumbnail: Path
-    raw: Path
-    logs: Path
-    attachment: Path
-    nonshared_raw: Path
-    invoice: Path
+    """Immutable, factory-only output path context (Design §4.2).
+
+    Construct it with ``OutputContext.from_resource_paths()``. The runtime class
+    is a frozen dataclass whose ``__post_init__`` raises ``TypeError`` unless the
+    private factory token is passed, so the stub models that contract directly:
+
+    * ``__init__`` requires ``_token: _FactoryToken``, a stub-only type no public
+      API hands out, so ``OutputContext(struct=..., ...)`` fails type checking
+      exactly where it would fail at runtime.
+    * It is deliberately *not* declared as a dataclass: ``dataclasses.replace()``
+      re-enters ``__init__`` without the token and raises at runtime, so it must
+      not type-check either.
+    * The ten directories are read-only properties because the runtime instance
+      is frozen.
+    """
+
+    def __init__(
+        self,
+        *,
+        struct: Path,
+        meta: Path,
+        main_image: Path,
+        other_image: Path,
+        thumbnail: Path,
+        raw: Path,
+        logs: Path,
+        attachment: Path,
+        nonshared_raw: Path,
+        invoice: Path,
+        _token: _FactoryToken,
+    ) -> None: ...
+    @property
+    def struct(self) -> Path: ...
+    @property
+    def meta(self) -> Path: ...
+    @property
+    def main_image(self) -> Path: ...
+    @property
+    def other_image(self) -> Path: ...
+    @property
+    def thumbnail(self) -> Path: ...
+    @property
+    def raw(self) -> Path: ...
+    @property
+    def logs(self) -> Path: ...
+    @property
+    def attachment(self) -> Path: ...
+    @property
+    def nonshared_raw(self) -> Path: ...
+    @property
+    def invoice(self) -> Path: ...
     @classmethod
     def from_resource_paths(cls, resource_paths: Any) -> OutputContext: ...
     def path_for(self, kind: OutputKind, filename: str) -> Path: ...

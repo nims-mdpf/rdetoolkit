@@ -11,6 +11,57 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 - **Auto-generated parts**: Detailed technical specifications generated from docstrings in source code
 - **Manually created parts**: Practical usage examples and inter-module collaboration methods
 
+## Top-level Imports
+
+The names below form the supported top-level API: each one works as
+`from rdetoolkit import <name>`, is included in `from rdetoolkit import *`, and is
+typed in the shipped `__init__.pyi` stub. They are resolved lazily, so
+`import rdetoolkit` alone does not import any submodule or heavy dependency.
+
+```python title="top_level_imports.py"
+from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
+```
+
+<!-- top-level-api:start -->
+| Name | Kind | Resolves to |
+|------|------|-------------|
+| `node` | v2 decorator | `rdetoolkit.core.node.node` |
+| `flow` | v2 decorator | `rdetoolkit.core.flow.flow` |
+| `as_node` | v2 adapter | `rdetoolkit.nodes.as_node` |
+| `Result` | type alias | `rdetoolkit.result.Result` |
+| `Success` | class | `rdetoolkit.result.Success` |
+| `Failure` | class | `rdetoolkit.result.Failure` |
+| `try_result` | decorator | `rdetoolkit.result.try_result` |
+| `DirectoryOps` | class (Rust extension) | `rdetoolkit.core.DirectoryOps` |
+| `ManagedDirectory` | class (Rust extension) | `rdetoolkit.core.ManagedDirectory` |
+| `detect_encoding` | function (Rust extension) | `rdetoolkit.core.detect_encoding` |
+| `resize_image_aspect_ratio` | function (Rust extension) | `rdetoolkit.core.resize_image_aspect_ratio` |
+| `workflows` | module | `rdetoolkit.workflows` |
+| `errors` | module | `rdetoolkit.errors` |
+| `exceptions` | module | `rdetoolkit.exceptions` |
+| `img2thumb` | module | `rdetoolkit.img2thumb` |
+| `invoicefile` | module | `rdetoolkit.invoicefile` |
+| `rde2util` | module | `rdetoolkit.rde2util` |
+| `rdelogger` | module | `rdetoolkit.rdelogger` |
+| `storage` | module | `rdetoolkit.storage` |
+| `traceback` | module | `rdetoolkit.traceback` |
+| `models` | module | `rdetoolkit.models` |
+| `config` | module | `rdetoolkit.models.config` |
+| `invoice` | module | `rdetoolkit.models.invoice` |
+| `invoice_schema` | module | `rdetoolkit.models.invoice_schema` |
+| `metadata` | module | `rdetoolkit.models.metadata` |
+| `rde2types` | module | `rdetoolkit.models.rde2types` |
+<!-- top-level-api:end -->
+
+`__version__` is also exported. The legacy `get_agent_guide()` helper remains
+importable for v1 compatibility but is not part of the supported v2 API and is
+scheduled for removal. No pre-GA top-level export has been removed.
+
+The top-level `config` attribute is the configuration *models* module
+(`rdetoolkit.models.config`). The configuration *loader* functions live in the
+`rdetoolkit.config` package; import them explicitly, as in
+`from rdetoolkit.config import parse_config_file`.
+
 ## Core Modules
 
 ### Workflow Management

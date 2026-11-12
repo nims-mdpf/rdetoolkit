@@ -11,6 +11,56 @@ RDEToolKitのAPIドキュメントは、ハイブリッド方式で構成され�
 - **自動生成部分**: ソースコード内のdocstringから生成される詳細な技術仕様
 - **手動作成部分**: 実践的な使用例とモジュール間の連携方法
 
+## トップレベルのインポート
+
+以下の名前がサポート対象のトップレベル API です。いずれも
+`from rdetoolkit import <name>` でインポートでき、`from rdetoolkit import *` にも含まれ、
+同梱の `__init__.pyi` スタブで型付けされています。遅延解決されるため、
+`import rdetoolkit` だけではサブモジュールや重い依存ライブラリは読み込まれません。
+
+```python title="top_level_imports.py"
+from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
+```
+
+<!-- top-level-api:start -->
+| 名前 | 種別 | 解決先 |
+|------|------|--------|
+| `node` | v2 デコレーター | `rdetoolkit.core.node.node` |
+| `flow` | v2 デコレーター | `rdetoolkit.core.flow.flow` |
+| `as_node` | v2 アダプター | `rdetoolkit.nodes.as_node` |
+| `Result` | 型エイリアス | `rdetoolkit.result.Result` |
+| `Success` | クラス | `rdetoolkit.result.Success` |
+| `Failure` | クラス | `rdetoolkit.result.Failure` |
+| `try_result` | デコレーター | `rdetoolkit.result.try_result` |
+| `DirectoryOps` | クラス (Rust 拡張) | `rdetoolkit.core.DirectoryOps` |
+| `ManagedDirectory` | クラス (Rust 拡張) | `rdetoolkit.core.ManagedDirectory` |
+| `detect_encoding` | 関数 (Rust 拡張) | `rdetoolkit.core.detect_encoding` |
+| `resize_image_aspect_ratio` | 関数 (Rust 拡張) | `rdetoolkit.core.resize_image_aspect_ratio` |
+| `workflows` | モジュール | `rdetoolkit.workflows` |
+| `errors` | モジュール | `rdetoolkit.errors` |
+| `exceptions` | モジュール | `rdetoolkit.exceptions` |
+| `img2thumb` | モジュール | `rdetoolkit.img2thumb` |
+| `invoicefile` | モジュール | `rdetoolkit.invoicefile` |
+| `rde2util` | モジュール | `rdetoolkit.rde2util` |
+| `rdelogger` | モジュール | `rdetoolkit.rdelogger` |
+| `storage` | モジュール | `rdetoolkit.storage` |
+| `traceback` | モジュール | `rdetoolkit.traceback` |
+| `models` | モジュール | `rdetoolkit.models` |
+| `config` | モジュール | `rdetoolkit.models.config` |
+| `invoice` | モジュール | `rdetoolkit.models.invoice` |
+| `invoice_schema` | モジュール | `rdetoolkit.models.invoice_schema` |
+| `metadata` | モジュール | `rdetoolkit.models.metadata` |
+| `rde2types` | モジュール | `rdetoolkit.models.rde2types` |
+<!-- top-level-api:end -->
+
+`__version__` もエクスポートされます。従来の `get_agent_guide()` は v1 互換のために
+引き続きインポートできますが、サポート対象の v2 API には含まれず、削除予定です。
+GA 前のトップレベルエクスポートで削除されたものはありません。
+
+トップレベルの `config` 属性は設定*モデル*のモジュール (`rdetoolkit.models.config`) です。
+設定ファイルの*読み込み*関数は `rdetoolkit.config` パッケージにあるため、
+`from rdetoolkit.config import parse_config_file` のように明示的にインポートしてください。
+
 ## 主要モジュール
 
 ### ワークフロー管理
