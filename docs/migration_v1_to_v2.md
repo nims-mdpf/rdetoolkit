@@ -86,6 +86,24 @@ f-string、リテラル引数、デフォルト引数は通常の Python と同�
 value/unit セルの行を保持します。`parse_invoice_meta` も invoice の `custom` に
 同じ規則を適用します。flow で `rde2util.Meta` や v1 オブジェクトの変換層を使う必要はありません。
 
+v1 の `rde2util.get_default_values` で読んでいた `tasksupport/default_value.csv`
+（`key,value` の 2 列）は `read_key_values(path)` で読みます(#629)。既定では v1 と
+同じく chardet で文字コードを判定し、値はすべて文字列のまま返すため、結果は
+`get_default_values` と一致します。測定値と合わせて `build_meta` に渡します。
+
+<!-- test: read-key-values -->
+```python
+from rdetoolkit.nodes import build_meta, read_key_values
+
+defaults = read_key_values(paths.tasksupport / "default_value.csv", missing_ok=True)
+metadata = build_meta({**defaults, **measured}, paths.tasksupport / "metadata-def.json")
+```
+
+列名は `key=` / `value=`、文字コードは `encoding=` で指定できます。ほとんどが ASCII の
+短い Shift-JIS ファイルは v1 と同じく chardet が別の文字コードと誤判定することがあるため、
+`encoding="cp932"` を指定してください。ファイルが無い場合は `FileNotFoundError` に
+なり、`missing_ok=True` では空の dict を返します。
+
 値のキーには定義キーと `originalName` のどちらも使えます。v1 の `Meta.assign_vals` と
 同じく、両方がある場合は定義キーを優先し、`originalName` は定義キーが無いときだけ
 参照します（定義キーが `None` で存在する場合は `originalName` を参照せず除外します）。

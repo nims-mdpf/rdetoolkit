@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import csv
 import zipfile
 import json
 import os
 from pathlib import Path
 from typing import Any
 
+import chardet
 import pandas as pd
 from charset_normalizer import detect
 from openpyxl import load_workbook
@@ -74,6 +76,58 @@ def read_csv_with_header(path: Path) -> pd.DataFrame:
     """
     source = Path(path)
     return pd.read_csv(source, encoding=_detect_encoding(source))
+
+
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+def read_key_values(
+    path: Path, *, key: str = "key", value: str = "value",
+    encoding: str | None = None, missing_ok: bool = False,
+) -> dict[str, str]:
+    """Read a two-column CSV such as ``tasksupport/default_value.csv`` into a dict.
+
+    With the default options the result equals v1
+    ``rde2util.get_default_values(path)``: the encoding is detected with
+    chardet, rows are read with ``csv.DictReader`` and every value stays a
+    string. chardet can misdetect a short, mostly ASCII Shift-JIS file, as
+    in v1; pass ``encoding="cp932"`` for such files. The
+    result can be merged with measured values for ``build_meta``, as in
+    ``build_meta({**defaults, **measured}, metadef)``.
+
+    Args:
+        path: CSV file whose header row names the key and value columns.
+        key: Header of the key column.
+        value: Header of the value column.
+        encoding: Text encoding, or None to detect it with chardet like v1.
+        missing_ok: Whether a missing file returns an empty dict.
+
+    Returns:
+        One entry per data row; a repeated key keeps its last value.
+
+    Raises:
+        FileNotFoundError: If the file does not exist and ``missing_ok`` is false.
+        ValueError: If a column is missing from the header, or a row has no
+            cell for it.
+    """
+    source = Path(path)
+    if missing_ok and not source.exists():
+        return {}
+    if encoding is None:
+        encoding = chardet.detect(source.read_bytes())["encoding"]
+    values: dict[str, str] = {}
+    with source.open(encoding=encoding) as fin:
+        reader = csv.DictReader(fin)
+        columns = list(reader.fieldnames or [])
+        for column in (key, value):
+            if column not in columns:
+                msg = f"read_key_values: column {column!r} not in the header of {source}: {columns}"
+                raise ValueError(msg)
+        for row in reader:
+            row_key, row_value = row[key], row[value]
+            if row_key is None or row_value is None:
+                msg = f"read_key_values: {source} line {reader.line_num} has no {key!r}/{value!r} cell"
+                raise ValueError(msg)
+            values[row_key] = row_value
+    return values
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
