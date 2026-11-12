@@ -13,6 +13,19 @@
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
 
+### Changed
+
+- `rdetoolkit init` generates `template/tasksupport/` instead of
+  `templates/tasksupport/`, matching the singular `container/` and `input/`
+  directories. In a directory that already has `templates/tasksupport/`, init
+  creates no `template/`, prints a warning, and points to
+  `rdetoolkit migrate apply`. `validate all` reads `templates/tasksupport/`
+  when `template/tasksupport/` does not exist and reports a
+  `deprecated_layout` warning, which fails only under `--strict`.
+  `migrate check` reports the old directory, and `migrate apply` previews the
+  rename and writes `template/` into its output directory; it exits 3 when
+  both directories exist (#615).
+
 ### Fixed
 
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of

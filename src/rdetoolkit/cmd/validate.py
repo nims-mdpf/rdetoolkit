@@ -7,6 +7,13 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
+from rdetoolkit.cmd._project_layout import (
+    LEGACY_TEMPLATE_DIR,
+    TASKSUPPORT_DIR,
+    TEMPLATE_DIR,
+    legacy_template_tasksupport_dir,
+    template_tasksupport_dir,
+)
 from rdetoolkit.validation import InvoiceValidator, MetadataDefinitionValidator, MetadataValidator
 
 
@@ -578,6 +585,10 @@ class ValidateAllCommand:
     - template/tasksupport/metadata-def.json
     - input/invoice/invoice.json (with schema discovery)
     - input/metadata/metadata.json (with schema discovery, optional)
+
+    A project created by v1 has templates/tasksupport/ instead of
+    template/tasksupport/. When template/tasksupport/ does not exist, the old
+    directory is read and a deprecation warning is reported (#615).
     """
 
     def __init__(self, project_dir: str | Path | None = None) -> None:
@@ -610,6 +621,8 @@ class ValidateAllCommand:
 
         # Validate each file
         results: list[ValidationResult] = []
+        if self._uses_legacy_template_dir():
+            results.append(self._legacy_template_dir_warning())
         for file_info in discovered:
             if not file_info.exists:
                 # Add warning for missing expected files
@@ -668,9 +681,9 @@ class ValidateAllCommand:
 
         # Discover data files (need schema paths)
         container_invoice_schema = self.project_dir / "container" / "data" / "tasksupport" / "invoice.schema.json"
-        template_invoice_schema = self.project_dir / "templates" / "tasksupport" / "invoice.schema.json"
+        template_invoice_schema = self._template_tasksupport_dir() / "invoice.schema.json"
         container_metadata_def = self.project_dir / "container" / "data" / "tasksupport" / "metadata-def.json"
-        template_metadata_def = self.project_dir / "templates" / "tasksupport" / "metadata-def.json"
+        template_metadata_def = self._template_tasksupport_dir() / "metadata-def.json"
 
         data_files = self._discover_data_files(
             container_invoice_schema,
@@ -713,14 +726,47 @@ class ValidateAllCommand:
 
         return discovered
 
+    def _template_tasksupport_dir(self) -> Path:
+        """Return template/tasksupport/, or the v1 templates/tasksupport/ fallback."""
+        if self._uses_legacy_template_dir():
+            return legacy_template_tasksupport_dir(self.project_dir)
+        return template_tasksupport_dir(self.project_dir)
+
+    def _uses_legacy_template_dir(self) -> bool:
+        """Return whether only the v1 templates/tasksupport/ directory exists."""
+        return (
+            not template_tasksupport_dir(self.project_dir).is_dir()
+            and legacy_template_tasksupport_dir(self.project_dir).is_dir()
+        )
+
+    def _legacy_template_dir_warning(self) -> ValidationResult:
+        """Report that schemas were read from the v1 templates/tasksupport/."""
+        legacy_dir = legacy_template_tasksupport_dir(self.project_dir)
+        return ValidationResult(
+            target=str(legacy_dir),
+            is_valid=True,
+            errors=[],
+            warnings=[
+                ValidationWarning(
+                    field="",
+                    warning_type="deprecated_layout",
+                    message=(
+                        f"{LEGACY_TEMPLATE_DIR}/{TASKSUPPORT_DIR}/ is deprecated and was read because "
+                        f"{TEMPLATE_DIR}/{TASKSUPPORT_DIR}/ does not exist. "
+                        f"Run 'rdetoolkit migrate apply' to rename {LEGACY_TEMPLATE_DIR}/ to {TEMPLATE_DIR}/."
+                    ),
+                ),
+            ],
+        )
+
     def _discover_template_schemas(self) -> list[DiscoveredFile]:
-        """Discover schema files in templates/tasksupport/.
+        """Discover schema files in template/tasksupport/ (or the v1 fallback).
 
         Returns:
             List of discovered schema files
         """
         discovered: list[DiscoveredFile] = []
-        template_tasksupport = self.project_dir / "templates" / "tasksupport"
+        template_tasksupport = self._template_tasksupport_dir()
 
         invoice_schema = template_tasksupport / "invoice.schema.json"
         if invoice_schema.exists():

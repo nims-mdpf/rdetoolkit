@@ -1,0 +1,9 @@
+from pathlib import Path
+
+TEMPLATE_DIR: str
+LEGACY_TEMPLATE_DIR: str
+TASKSUPPORT_DIR: str
+
+def template_tasksupport_dir(root: Path) -> Path: ...
+def legacy_template_tasksupport_dir(root: Path) -> Path: ...
+def has_legacy_template_layout(root: Path) -> bool: ...

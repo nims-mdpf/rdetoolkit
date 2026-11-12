@@ -326,6 +326,29 @@ v1.7, a deprecated alias of `smarttable_rawfile`.
 - `data/logs/iterations/` is emptied when tile iteration starts. `job.failed`,
   `run_report_*` and `events_*` are kept across runs, as before.
 
+**Introduced in 2.0.1: `templates/` is renamed to `template/`**
+
+- `rdetoolkit init` generates `template/tasksupport/` instead of
+  `templates/tasksupport/`, so all generated directories (`container/`,
+  `input/`, `template/`) have singular names.
+- A project created by v1 still has `templates/tasksupport/`. Run
+  `rdetoolkit migrate apply <project>` on the project root. The dry run lists
+  the `templates/` → `template/` move next to the Python conversions. With
+  `--no-dry-run`, the output directory (`--out`, or `<name>_migrated`) contains
+  `template/`; the input directory is not changed. `migrate check <project>`
+  reports `templates/` as a finding.
+- If the project has both `templates/` and `template/`, `migrate apply` stops
+  with exit code 3 and does not merge them. Move the files you want to keep
+  into `template/`, remove `templates/`, and run it again.
+- Until you migrate, `validate all` reads `templates/tasksupport/` when
+  `template/tasksupport/` does not exist and reports a `deprecated_layout`
+  warning. The warning does not change the exit code, but `--strict` fails on it.
+- `init` run in a directory that has `templates/tasksupport/` does not create
+  `template/`. It prints a warning that points to `migrate apply`.
+- `migrate apply` renames only the directory. Update paths you wrote yourself,
+  such as `[tool.rdetoolkit.init]` entries in `pyproject.toml` or CI scripts
+  that copy schemas into `templates/tasksupport/`.
+
 ### Intentional differences (cases where v2's result differs from v1)
 
 A header-only Excel invoice is rejected before tile execution. The compatibility

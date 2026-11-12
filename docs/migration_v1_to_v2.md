@@ -306,6 +306,29 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 - `data/logs/iterations/` はタイル反復の開始時に空にされます。
   `job.failed`、`run_report_*`、`events_*` は従来どおり実行をまたいで残ります。
 
+**2.0.1 で入った変更: `templates/` を `template/` に改名**
+
+- `rdetoolkit init` は `templates/tasksupport/` ではなく `template/tasksupport/`
+  を生成します。生成されるディレクトリ(`container/`、`input/`、`template/`)は
+  すべて単数形になります。
+- v1 で作成したプロジェクトには `templates/tasksupport/` が残っています。
+  プロジェクトのルートに対して `rdetoolkit migrate apply <project>` を実行します。
+  dry-run では Python の変換結果と並べて `templates/` → `template/` の移動を表示します。
+  `--no-dry-run` を付けると、出力先(`--out`、省略時は `<name>_migrated`)に
+  `template/` が作られます。入力ディレクトリは変更しません。
+  `migrate check <project>` は `templates/` を検出結果として報告します。
+- `templates/` と `template/` の両方がある場合、`migrate apply` は終了コード 3 で
+  停止し、両者をマージしません。残したいファイルを `template/` へ移し、
+  `templates/` を削除してから再実行してください。
+- 移行するまでの間、`validate all` は `template/tasksupport/` がなければ
+  `templates/tasksupport/` を読み、`deprecated_layout` 警告を出します。
+  この警告は終了コードを変えませんが、`--strict` では失敗になります。
+- `templates/tasksupport/` があるディレクトリで `init` を実行すると、
+  `template/` は作られず、`migrate apply` を案内する警告が表示されます。
+- `migrate apply` が改名するのはディレクトリだけです。`pyproject.toml` の
+  `[tool.rdetoolkit.init]` や、スキーマを `templates/tasksupport/` へコピーする
+  CI スクリプトなど、ご自身で書いたパスは書き換えてください。
+
 ### 意図的な差分(v1 と結果が異なるケース)
 
 ヘッダーだけでデータ行がない Excel invoice はタイル実行前に検出します。

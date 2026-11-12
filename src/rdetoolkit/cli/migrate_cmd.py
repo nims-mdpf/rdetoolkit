@@ -2,6 +2,10 @@
 
 Class findings use a best-effort structural heuristic because v1 defines no
 common handler base class. Review those findings manually.
+
+A project directory that still has the v1 ``templates/tasksupport/`` layout is
+also reported, and ``apply`` renames ``templates/`` to ``template/`` in its
+output directory (#615).
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from typing import Annotated
 import typer
 
 from rdetoolkit.cli._migrate_source import _render_conversion
+from rdetoolkit.cmd._project_layout import LEGACY_TEMPLATE_DIR, TEMPLATE_DIR, has_legacy_template_layout
 from rdetoolkit.types import InputPaths
 
 if sys.version_info >= (3, 11):
@@ -70,6 +75,11 @@ def check(path: Annotated[Path, typer.Argument(metavar="[path]")] = Path(".")) -
     """Scan one Python file or all Python files beneath a directory."""
     if not path.exists():
         _usage_error(f"Path does not exist: {path}")
+    if path.is_dir() and has_legacy_template_layout(path):
+        typer.echo(
+            f"{path / LEGACY_TEMPLATE_DIR}: legacy {LEGACY_TEMPLATE_DIR}/ directory; "
+            f"rename it to {TEMPLATE_DIR}/ (migrate apply does this)",
+        )
     files = [path] if path.is_file() else sorted(path.rglob("*.py"))
     for source_path in files:
         _report_file(source_path)
@@ -93,7 +103,11 @@ def apply(
         typer.Option("--dry-run/--no-dry-run", help="Preview by default; write only with --no-dry-run."),
     ] = True,
 ) -> None:
-    """Convert legacy callbacks into eager v2 flows without editing input files."""
+    """Convert legacy callbacks into eager v2 flows without editing input files.
+
+    A project directory with the v1 templates/tasksupport/ layout also gets
+    templates/ renamed to template/ in the output directory.
+    """
     path = path.resolve()
     files = _python_files(path)
     if not files:
@@ -101,15 +115,30 @@ def apply(
             f"No Python files found beneath: {path}. "
             "Remediation: provide a Python file or a directory containing v1 template sources.",
         )
+    rename_template_dir = path.is_dir() and has_legacy_template_layout(path)
+    if rename_template_dir and (path / TEMPLATE_DIR).exists():
+        _usage_error(
+            f"Both {LEGACY_TEMPLATE_DIR}/ and {TEMPLATE_DIR}/ exist in: {path}. "
+            f"Remediation: move the files you want to keep into {TEMPLATE_DIR}/, "
+            f"remove {LEGACY_TEMPLATE_DIR}/, then rerun migrate apply.",
+        )
     destination = out or _default_output(path)
     _validate_destination(path, destination)
     converted = [(source_path, _convert_source(source_path)) for source_path in files]
     if dry_run:
+        if rename_template_dir:
+            typer.echo(
+                f"--- {path / LEGACY_TEMPLATE_DIR} -> {destination / TEMPLATE_DIR} (dry-run, directory rename) ---",
+            )
         _preview(path, destination, converted)
         return
     _write_conversion(path, destination, converted)
+    if rename_template_dir:
+        (destination / LEGACY_TEMPLATE_DIR).rename(destination / TEMPLATE_DIR)
     count = sum(text is not None for _, text in converted)
     typer.echo(f"Converted {count} of {len(converted)} file(s) to {destination}")
+    if rename_template_dir:
+        typer.echo(f"Renamed {LEGACY_TEMPLATE_DIR}/ to {TEMPLATE_DIR}/ in {destination}")
 
 
 def _python_files(path: Path) -> list[Path]:
