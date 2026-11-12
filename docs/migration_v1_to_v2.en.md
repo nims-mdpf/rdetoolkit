@@ -170,7 +170,13 @@ encoding, `save_invoice` for the tile invoice formatting contract, and
 columns or independent pairs, labels, title, scale, legend, size, DPI and kind.
 Pairs may be `(x, y, label)`, or `labels=` names every series; `grid=True` draws
 the grid, and axis-label sizes follow matplotlib rcParams unless
-`label_fontsize` is set. Both plot nodes save with a tight bounding box by
+`label_fontsize` is set. Axis ranges, as in v1 `csv2graph(..., xlim=..., ylim=...)`
+or `ax.set_xlim` / `ax.set_ylim`, are `xlim` / `ylim`, and `xscale` sets the x
+axis scale; a `None` bound stays automatic, so `ylim=(0, None)` starts the axis
+at 0. Series with their own x values and length, such as the regions of a
+multi-region measurement, can be passed as a list of data frames: the x/y or
+pair selection applies to each frame, and `labels=` names the series in frame
+order (no `pd.concat(axis=1)` into one frame is needed). Both plot nodes save with a tight bounding box by
 default: pass `bbox_inches=None` to reproduce a plain v1 `fig.savefig(path)`, or
 `pad_inches=0` for `savefig(path, bbox_inches="tight", pad_inches=0)`.
 Templates that select rows by cell colour use

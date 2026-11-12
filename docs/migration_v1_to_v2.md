@@ -157,7 +157,13 @@ assert invoice.raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}
 凡例・サイズ・DPI・出力先を指定できます。
 列ペアは `(x, y, label)` でも指定でき、`labels=` で全系列の凡例名を指定することもできます。
 `grid=True` でグリッドを描き、軸ラベルの文字サイズは `label_fontsize` を指定しない限り
-matplotlib の rcParams に従います。2 つの描画ノードは既定で tight な bounding box で保存します。
+matplotlib の rcParams に従います。
+v1 の `csv2graph(..., xlim=..., ylim=...)` や `ax.set_xlim` / `ax.set_ylim` に当たる軸範囲は
+`xlim` / `ylim` で、x 軸のスケールは `xscale` で指定します。片側を `None` にするとその側は
+自動のままなので、`ylim=(0, None)` で軸を 0 から始められます。
+複数領域の測定のように x 値や長さが異なる系列は、データフレームのリストで渡せます。
+x/y 列または列ペアの指定は各データフレームに適用され、`labels=` はデータフレーム順の
+全系列に名前を付けます（`pd.concat(axis=1)` で 1 つのデータフレームにまとめる必要はありません）。2 つの描画ノードは既定で tight な bounding box で保存します。
 v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 `savefig(path, bbox_inches="tight", pad_inches=0)` と同じ画像には `pad_inches=0` を指定してください。
 セルの塗りつぶし色で行を選ぶテンプレートでは、`read_excel` と同じシート・行指定で
