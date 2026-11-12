@@ -266,13 +266,17 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   calls it once per run, after loading the configuration and before resolving
   the mode, so both `workflows.run(flow=...)` and `rdetoolkit run --flow` see
   the prepared inputs. Without it, `run --flow` resolves the mode from the
-  unprepared files. `--validate-only` also runs it; it receives a copy of the
-  configuration, and should be idempotent. It is recorded as
-  `prepare.started` / `prepare.completed` / `prepare.failed` events. An
-  ordinary exception fails the run with 3001 before any tile; a
-  `StructuredError` keeps its own code and message. Direct calls of the flow
-  do not run it.
-- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body
+  unprepared files. `--validate-only` also runs it, so the pre-flight checks
+  the same mode as the real run but may modify `inputdata/`; write it to be
+  idempotent (a re-run and `rdetoolkit repro` see the already-prepared
+  inputs). It receives a copy of the configuration. It is recorded as
+  `prepare.started` / `prepare.completed` / `prepare.failed` events. The
+  flow's `error_code` / `error_message` options apply to its failures as to
+  the body's; without them an ordinary exception fails the run with 3001
+  before any tile. A `StructuredError` keeps its own code and message. Only
+  the flow the Runner executes is prepared (a nested flow's `prepare` is not
+  run), and direct calls of the flow do not run it.
+- Use the flow decorator with `error_code=7, error_message="Cannot process input"` to map body (and prepare)
   failures to one code and message through either v2 entry. Supplying only a
   code preserves the original message; supplying only a message uses 3001.
   The message may contain `{error}` (the exception's text) and `{error_type}`

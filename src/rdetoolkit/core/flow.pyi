@@ -3,6 +3,7 @@ from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any, TypeVar, overload
 
+from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.types import RdeConfig
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -22,4 +23,5 @@ def flow(
     prepare: PrepareFn | None = None,
 ) -> Callable[[F], F]: ...
 def flow_prepare(fn: Callable[..., Any]) -> PrepareFn | None: ...
+def flow_error(fn: Callable[..., Any], error: Exception) -> StructuredError | None: ...
 def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]: ...

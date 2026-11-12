@@ -20,7 +20,7 @@ from rdetoolkit.api.request import (
     build_run_request,
 )
 from rdetoolkit.config.normalize import ConfigNormalizer
-from rdetoolkit.core.flow import derive_flow_id, flow_prepare
+from rdetoolkit.core.flow import derive_flow_id, flow_error, flow_prepare
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
@@ -401,11 +401,16 @@ class Runner:
         ``@flow(prepare=...)`` itself, between config load and mode resolution,
         for every v2 entry. The v1 callback entry declares no preparation.
 
-        An ordinary exception is an execution failure (3001) naming the
-        preparation -- not the lifecycle catch-all's 1002 ``ConfigLoadFailed``.
-        A catalogued ``RdeError`` (including the 3004 interruption) and a v1
-        ``StructuredError`` keep their own codes; process-control exceptions
-        are not caught.
+        A failure is published exactly like a failure of the flow body: the
+        flow's ``error_code``/``error_message`` declaration maps it, a v1
+        ``StructuredError`` and the 3004 interruption keep their own codes,
+        and process-control exceptions are not caught. Without a declaration
+        a catalogued ``RdeError`` keeps its code and any other exception is an
+        execution failure (3001) naming the preparation -- not the lifecycle
+        catch-all's 1002 ``ConfigLoadFailed``.
+
+        ``--validate-only`` runs it too, so the pre-flight resolves the same
+        mode as the real run; it may therefore modify ``inputdata``.
 
         Args:
             target: Normalized execution target.
@@ -413,8 +418,10 @@ class Runner:
                 copy, so it cannot change the run's configuration.
 
         Raises:
+            StructuredError: The flow's declared error, or the preparation's
+                own ``StructuredError``.
             RdeExecutionError: 3001 when the preparation raised an ordinary
-                exception.
+                exception and the flow declares no error options.
         """
         if not isinstance(target, FlowTarget):
             return
@@ -428,6 +435,9 @@ class Runner:
             prepare(self.inputdata_path, config.model_copy(deep=True))
         except Exception as exc:
             self._events.emit(Event.prepare_failed(run_id=self.run_id, prepare_id=prepare_id, error=exc))
+            declared = flow_error(target.function, exc)
+            if declared is not None:
+                raise declared from exc
             if isinstance(exc, (RdeError, StructuredError)):
                 raise
             raise _prepare_error(exc, prepare_id) from exc
@@ -776,24 +786,32 @@ def _iteration_error(exc: Exception) -> RdeError | None:
     error_def = ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE]
     reason = f"tile iteration failed ({type(exc).__name__}): {exc}"
     message = error_def.message_template.format(call_id="unknown", reason=reason)
-    message = f"{message} Remediation: {error_def.remediation}"
-    error_cls: Any = RdeExecutionError
-    error: RdeError = error_cls(code=_TILE_ITERATION_FAILURE_CODE, name=error_def.name, message=message)
-    return error
+    return _execution_failure(f"{message} Remediation: {error_def.remediation}")
 
 
 def _prepare_error(exc: Exception, prepare_id: str) -> RdeError:
     """Map an ordinary ``@flow(prepare=...)`` exception to ``3001``.
 
-    No node call owns the preparation, so the call id is ``unknown`` exactly
-    as for a failure that escapes tile iteration (``_iteration_error``).
+    The catalogue's 3001 wording points at a node call and its call-log entry;
+    a preparation has neither, so the message names the preparation and its
+    ``prepare.failed`` run event instead.
     """
-    error_def = ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE]
-    reason = f"input preparation {prepare_id} failed ({type(exc).__name__}): {exc}"
-    message = error_def.message_template.format(call_id="unknown", reason=reason)
-    message = f"{message} Remediation: {error_def.remediation}"
+    return _execution_failure(
+        f"Input preparation {prepare_id} failed ({type(exc).__name__}): {exc}. "
+        "Remediation: Inspect the chained original exception (__cause__) and the "
+        "prepare.failed run event; fix the preparation function or the files in "
+        "inputdata. Preparations are plain functions - reproduce directly with pytest.",
+    )
+
+
+def _execution_failure(message: str) -> RdeError:
+    """Return the ``3001 NodeExecutionFailed`` error carrying ``message``."""
     error_cls: Any = RdeExecutionError
-    error: RdeError = error_cls(code=_TILE_ITERATION_FAILURE_CODE, name=error_def.name, message=message)
+    error: RdeError = error_cls(
+        code=_TILE_ITERATION_FAILURE_CODE,
+        name=ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE].name,
+        message=message,
+    )
     return error
 
 

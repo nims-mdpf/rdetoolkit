@@ -17,9 +17,14 @@
   config load and before mode resolution, so `workflows.run(flow=...)` and
   `rdetoolkit run --flow` (including `--validate-only`) resolve the mode and
   tiles from the prepared inputs. It is recorded as `prepare.started` /
-  `prepare.completed` / `prepare.failed` events; an ordinary exception fails
-  the run with 3001 before any tile, and a `StructuredError` keeps its own
-  code. Direct calls of the flow do not run it (#573).
+  `prepare.completed` / `prepare.failed` events. `--validate-only` runs it
+  too, so the pre-flight checks the same mode as the real run and may modify
+  `inputdata/`; the preparation must be idempotent. A failure is published
+  like a body failure: the flow's `error_code` / `error_message` declaration
+  maps it, a `StructuredError` keeps its own code, and otherwise an ordinary
+  exception fails the run with 3001 (naming the preparation) before any tile.
+  Only the flow the Runner executes is prepared, and direct calls of the flow
+  do not run it (#573).
 
 ### Fixed
 

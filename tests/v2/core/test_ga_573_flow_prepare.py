@@ -154,7 +154,10 @@ def test_prepare_failure_fails_run_before_any_tile__ga573_neg_1(tmp_path: Path, 
     # job.failed is written, and the failure is in the event log
     assert report.status == "failed"
     assert report.error is not None and report.error["code"] == 3001
-    assert "input preparation" in report.error["message"]
+    assert "Input preparation" in report.error["message"]
+    # The catalogue's node wording (call id, call-log entry) does not apply.
+    assert "call-log" not in report.error["message"]
+    assert "prepare.failed" in report.error["message"]
     assert "ValueError" in report.error["message"] and "bad header" in report.error["message"]
     assert called == []
     assert report.iterations == []
@@ -186,6 +189,83 @@ def test_prepare_structured_error_keeps_its_code__ga573_neg_2(tmp_path: Path, mo
     # Then: the user code and message reach the report and job.failed verbatim
     assert report.status == "failed"
     assert report.error is not None and report.error["code"] == 21
+    assert (data_root / "job.failed").read_text(encoding="utf-8") == "ErrorCode=21\nErrorMessage=Unsupported instrument file\n"
+
+
+def test_prepare_failure_uses_flow_error_declaration__ga573_neg_5(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """GA573-NEG-5: the flow's error_code/error_message also map prepare failures."""
+    # Given: a flow declaring one user code for "cannot process input"
+    data_root = _concatenated_project(tmp_path, monkeypatch)
+
+    def prepare(inputdata: Path, config: RdeConfig) -> None:
+        _ = (inputdata, config)
+        msg = "bad header"
+        raise ValueError(msg)
+
+    @flow(prepare=prepare, error_code=7, error_message="Cannot process input: {error}")
+    def pipeline() -> None:
+        return None
+
+    # When: executing through the Runner
+    report = workflows.run(flow=pipeline, config=_MULTIDATA_CONFIG)
+    # Then: job.failed carries the declared code and message, as for the body,
+    # and the event log still records the original exception
+    assert report.status == "failed"
+    assert report.error is not None and report.error["code"] == 7
+    assert (data_root / "job.failed").read_text(encoding="utf-8") == "ErrorCode=7\nErrorMessage=Cannot process input: bad header\n"
+    failed = [event for event in _events(data_root, report.run_id) if event["name"] == "prepare.failed"]
+    assert [event["payload"]["error_type"] for event in failed] == ["ValueError"]
+
+
+@pytest.mark.parametrize(
+    ("declaration", "expected"),
+    [
+        ({"error_message": "Cannot process input"}, "ErrorCode=3001\nErrorMessage=Cannot process input\n"),
+        ({"error_code": 7}, "ErrorCode=7\nErrorMessage=bad header\n"),
+    ],
+)
+def test_prepare_failure_partial_flow_error_declaration__ga573_neg_6(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    declaration: dict[str, Any],
+    expected: str,
+) -> None:
+    """GA573-NEG-6: a message-only or code-only declaration maps prepare like the body."""
+    # Given: a flow declaring only one of the error options
+    data_root = _concatenated_project(tmp_path, monkeypatch)
+
+    def prepare(inputdata: Path, config: RdeConfig) -> None:
+        _ = (inputdata, config)
+        msg = "bad header"
+        raise ValueError(msg)
+
+    @flow(prepare=prepare, **declaration)
+    def pipeline() -> None:
+        return None
+
+    # When: executing through the Runner
+    workflows.run(flow=pipeline, config=_MULTIDATA_CONFIG)
+    # Then: the defaults match the body's (3001 code / original message)
+    assert (data_root / "job.failed").read_text(encoding="utf-8") == expected
+
+
+def test_prepare_structured_error_beats_flow_error_declaration__ga573_neg_7(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """GA573-NEG-7: a StructuredError from prepare keeps its code despite a declaration."""
+    # Given: a declared flow whose preparation raises its own user error
+    data_root = _concatenated_project(tmp_path, monkeypatch)
+
+    def prepare(inputdata: Path, config: RdeConfig) -> None:
+        _ = (inputdata, config)
+        msg = "Unsupported instrument file"
+        raise StructuredError(msg, 21)
+
+    @flow(prepare=prepare, error_code=7, error_message="Cannot process input")
+    def pipeline() -> None:
+        return None
+
+    # When: executing through the Runner
+    workflows.run(flow=pipeline, config=_MULTIDATA_CONFIG)
+    # Then: v1 catch_exception_with_message parity -- the explicit error wins
     assert (data_root / "job.failed").read_text(encoding="utf-8") == "ErrorCode=21\nErrorMessage=Unsupported instrument file\n"
 
 
@@ -227,10 +307,12 @@ def test_validate_only_runs_prepare_but_not_the_flow__ga573_bv_1(tmp_path: Path,
     runner = Runner(root=tmp_path, inputdata_path=data_root / "inputdata", unpacked_dir_path=data_root / "temp")
     # When: running the pre-flight validation
     report = runner.run(request)
-    # Then: preparation ran and the flow body did not
+    # Then: preparation ran and the flow body did not; the pre-flight leaves
+    # the prepared inputs in place (documented: prepare must be idempotent)
     assert report.status == "success", report.error
     assert calls == ["prepare"]
     assert report.iterations == []
+    assert sorted(path.name for path in (data_root / "inputdata").iterdir()) == ["part_0.txt", "part_1.txt", "part_2.txt"]
 
 
 def test_direct_call_does_not_run_prepare__ga573_bv_2() -> None:
@@ -282,3 +364,29 @@ def test_non_callable_prepare_is_rejected_at_decoration__ga573_neg_4() -> None:
         @flow(prepare="split_combined")  # type: ignore[arg-type]
         def pipeline() -> None:
             return None
+
+
+def test_nested_flow_prepare_is_not_run__ga573_bv_4(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """GA573-BV-4: only the flow the Runner executes is prepared."""
+    # Given: an outer flow calling an inner flow that declares a preparation
+    _concatenated_project(tmp_path, monkeypatch)
+    calls: list[str] = []
+
+    def prepare(inputdata: Path, config: RdeConfig) -> None:
+        _ = (inputdata, config)
+        calls.append("prepare")
+
+    @flow(prepare=prepare)
+    def inner() -> None:
+        calls.append("inner")
+
+    @flow
+    def outer() -> None:
+        inner()
+
+    # When: executing the outer flow through the Runner
+    report = workflows.run(flow=outer, config=_MULTIDATA_CONFIG)
+    # Then: the inner flow runs as a plain call; its preparation does not
+    assert report.status == "success", report.error
+    assert "prepare" not in calls
+    assert calls == ["inner"]

@@ -126,10 +126,10 @@ def flow(  # noqa: PLR0913
     Args:
         func: Function supplied by the bare decorator form.
         id: Optional stable flow identifier.
-        error_code: User error code applied to body exceptions by the Runner.
-            With only a message supplied, the default code is 3001. A
-            ``StructuredError`` raised by the body keeps its own code and
-            message. v1 ``catch_exception_with_message`` used code 1, so a
+        error_code: User error code applied by the Runner to exceptions
+            raised by the body or by ``prepare``. With only a message
+            supplied, the default code is 3001. A ``StructuredError`` keeps
+            its own code and message. v1 ``catch_exception_with_message`` used code 1, so a
             rewrite of it passes ``error_code=1`` explicitly (see the
             migration guide).
         error_message: Runner failure message. ``{error}`` is replaced by the
@@ -143,9 +143,14 @@ def flow(  # noqa: PLR0913
             its zip) decide the mode and the tiles. Both v2 entries
             (``workflows.run(flow=...)`` and ``rdetoolkit run --flow``) run
             it, ``--validate-only`` included, and it is recorded as
-            ``prepare.*`` run events. ``config`` is a copy: changing it does
-            not change the run. It should be idempotent, since a re-run sees
-            the already-prepared inputs.
+            ``prepare.*`` run events. ``--validate-only`` therefore may
+            modify ``inputdata``, and a re-run (or ``rdetoolkit repro``) sees
+            the already-prepared inputs, so it must be idempotent. ``config``
+            is a copy: changing it does not change the run. The error options
+            apply to its failures as to the body's; without them an ordinary
+            exception fails the run with 3001 before any tile. Only the flow
+            the Runner executes is prepared: ``prepare`` on a flow called from
+            inside another flow is not run.
 
     Returns:
         A transparent decorated function, or its decorator. Direct calls retain
@@ -191,8 +196,34 @@ def flow_prepare(fn: Callable[..., Any]) -> PrepareFn | None:
     Returns:
         The ``@flow(prepare=...)`` callable, or ``None`` when none is declared.
     """
-    prepare = getattr(fn, "__flow_prepare__", None)
-    return prepare if callable(prepare) else None
+    prepare: PrepareFn | None = getattr(fn, "__flow_prepare__", None)
+    return prepare
+
+
+def flow_error(fn: Callable[..., Any], error: Exception) -> StructuredError | None:
+    """Return the error a flow's error declaration publishes for ``error``.
+
+    The declaration covers the flow's whole run: its body (``flow_for_runner``)
+    and its ``prepare`` (the Runner, #573).
+
+    Args:
+        fn: Registered or plain flow callable selected for execution.
+        error: Ordinary exception raised by the body or the preparation.
+
+    Returns:
+        The mapped ``StructuredError``, or ``None`` when the flow declares no
+        error options or ``error`` keeps its own identity -- a
+        ``StructuredError`` (v1 ``catch_exception_with_message`` parity) or
+        the Runner's SIGTERM interruption.
+    """
+    code = getattr(fn, "__flow_error_code__", None)
+    message = getattr(fn, "__flow_error_message__", None)
+    if code is None and message is None:
+        return None
+    if isinstance(error, StructuredError) or is_run_interrupted(error):
+        return None
+    text = str(error) if message is None else _format_message(message, error)
+    return StructuredError(text, 3001 if code is None else code)
 
 
 def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -217,14 +248,14 @@ def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
     def mapped(*args: Any, **kwargs: Any) -> Any:
         try:
             return fn(*args, **kwargs)
-        except StructuredError:
-            # v1 catch_exception_with_message parity (#589): a user-raised
-            # StructuredError already carries its own ecode/emsg.
-            raise
         except Exception as error:
-            if is_run_interrupted(error):
+            # A user-raised StructuredError already carries its own ecode/emsg
+            # (v1 catch_exception_with_message parity, #589); flow_error
+            # leaves it, and the SIGTERM interruption, unmapped.
+            mapped_error = flow_error(fn, error)
+            if mapped_error is None:
                 raise
-            raise StructuredError(str(error) if message is None else _format_message(message, error), 3001 if code is None else code) from error
+            raise mapped_error from error
 
     return mapped
 
