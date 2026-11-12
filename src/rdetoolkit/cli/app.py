@@ -10,15 +10,17 @@ their replacements and print a deprecation warning first.
 
 # Avoid postponed evaluation so Typer can read Annotated metadata (minimum supported: Python 3.10).
 
+import functools
 import hashlib
 import importlib.util
 import inspect
 import os
 import sys
+import warnings
 from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
-from typing import Annotated, Any, cast
+from typing import Annotated, Any, ParamSpec, cast
 
 import click
 import typer
@@ -819,7 +821,7 @@ GEN_CONFIG_HELP = CommandHelp(
     short_help="Use `rdetoolkit new config`.",
     rich_help_panel=PANEL_DEPRECATED,
 )
-def gen_config(
+def _gen_config_alias(
     output_dir: Annotated[
         Path | None,
         typer.Argument(help="Target directory for rdeconfig.yaml", exists=False, file_okay=False, resolve_path=True),
@@ -840,7 +842,7 @@ GEN_INVOICE_HELP = CommandHelp(
     see_also=("rdetoolkit new invoice",),
 )
 
-gen_invoice = app.command(
+app.command(
     "gen-invoice",
     cls=_deprecated("rdetoolkit new invoice"),
     help=GEN_INVOICE_HELP.render(),
@@ -872,15 +874,17 @@ app.command(
 
 
 def make_excelinvoice(invoice_schema_json_path: Path, output_path: Path | None = None, mode: str = "file") -> None:
-    """Generate an ExcelInvoice workbook (v1 Python name of ``new_excelinvoice``; removed in v2.1).
+    """Generate an ExcelInvoice workbook (deprecated v1 Python name of ``new_excelinvoice``; removed in v2.1).
 
     Keeps the v1.x keyword ``invoice_schema_json_path`` for code that calls
-    this function directly; the CLI name ``make-excelinvoice`` is registered
-    on :func:`new_excelinvoice` above.
+    this function directly and emits a DeprecationWarning. The CLI name
+    ``make-excelinvoice`` is registered on :func:`new_excelinvoice` above and
+    warns on stderr instead.
     """
+    _warn_python_name("make_excelinvoice", "rdetoolkit.cli.new_cmd.new_excelinvoice()")
     new_excelinvoice(invoice_schema_json_path, output_path, mode=mode)
 
-csv2graph = app.command(
+app.command(
     "csv2graph",
     cls=_deprecated("rdetoolkit plot"),
     help=CSV2GRAPH_HELP.render(),
@@ -907,10 +911,49 @@ ARTIFACT_HELP = CommandHelp(
     short_help="Use `rdetoolkit package`.",
     rich_help_panel=PANEL_DEPRECATED,
 )
-def artifact(
+def _artifact_alias(
     source_dir: Annotated[Path, _SOURCE_DIR_OPTION],
     output_archive: Annotated[Path | None, typer.Option("--output-archive", "-o", help="Output archive file (e.g. rde_template.zip).")] = None,
     exclude: Annotated[list[str] | None, _EXCLUDE_OPTION] = None,
 ) -> None:
     """Create an artifact (.zip) for submission to RDE."""
     _create_package(source_dir, output_archive, exclude)
+
+
+# --------------------------------------------------------------------------
+# v1 Python names (deprecated, removed in v2.1)
+# --------------------------------------------------------------------------
+#
+# rdetoolkit 1.x exposed the CLI callbacks as importable functions. They stay
+# callable with their v1 keyword arguments and emit a DeprecationWarning; the
+# CLI aliases above are separate callbacks that warn on stderr instead, so a
+# command line never gets both warnings.
+
+_P = ParamSpec("_P")
+
+
+def _warn_python_name(old: str, new: str) -> None:
+    warnings.warn(
+        f"rdetoolkit.cli.app.{old}() is deprecated and will be removed in rdetoolkit v2.1; use {new} instead.",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+
+
+def _python_alias(command: Callable[_P, None], old: str, new: str) -> Callable[_P, None]:
+    """Return ``command`` under its v1 name, warning once per call."""
+
+    @functools.wraps(command)
+    def alias(*args: _P.args, **kwargs: _P.kwargs) -> None:
+        _warn_python_name(old, new)
+        command(*args, **kwargs)
+
+    alias.__name__ = alias.__qualname__ = old
+    alias.__doc__ = f"Deprecated v1 Python name; use {new} instead. Removed in rdetoolkit v2.1."
+    return alias
+
+
+gen_config = _python_alias(_gen_config_alias, "gen_config", "rdetoolkit.cli.new_cmd.new_config()")
+gen_invoice = _python_alias(new_invoice, "gen_invoice", "rdetoolkit.cli.new_cmd.new_invoice()")
+csv2graph = _python_alias(plot, "csv2graph", "rdetoolkit.cli.app.plot()")
+artifact = _python_alias(_artifact_alias, "artifact", "rdetoolkit.cli.app.package()")

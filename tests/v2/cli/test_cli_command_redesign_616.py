@@ -18,7 +18,8 @@
 | TC-616-MIG-003 | ``migrate check`` | argv list mixing literals and variables | old name in the literal part reported |
 | TC-616-MIG-004 | ``migrate check`` | shell command continued with a trailing backslash | reported at the first physical line |
 | TC-616-PY-001 | ``rdetoolkit.cli.app`` | import the v1.7.1 Python function names | importable with the v1.7.1 parameter names |
-| TC-616-PY-002 | v1 Python names | call with v1 keyword arguments | the replacement's backend runs |
+| TC-616-PY-002 | v1 Python names | call with v1 keyword arguments | DeprecationWarning naming the replacement, then the backend runs |
+| TC-616-PY-003 | CLI aliases and new Python names | invoke / call | no DeprecationWarning (the CLI alias warns on stderr only) |
 | TC-616-REN-001 | ``COMMAND_RENAMES`` | each row | v1 rows still registered, rc rows gone, replacement registered |
 """
 
@@ -27,6 +28,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import click
 import pytest
@@ -475,11 +477,20 @@ def test_v1_python_names_stay_importable__tc_616_py_001(name: str) -> None:
     assert parameters[: len(_V1_PYTHON_SIGNATURES[name])] == _V1_PYTHON_SIGNATURES[name]
 
 
-def test_v1_python_names_accept_v1_keywords__tc_616_py_002(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from rdetoolkit import cli as cli_module
-    from rdetoolkit.cli.app import csv2graph, gen_invoice, make_excelinvoice, run
+_DEPRECATED_PYTHON_NAMES = {
+    "gen_config": "rdetoolkit.cli.new_cmd.new_config()",
+    "gen_invoice": "rdetoolkit.cli.new_cmd.new_invoice()",
+    "make_excelinvoice": "rdetoolkit.cli.new_cmd.new_excelinvoice()",
+    "csv2graph": "rdetoolkit.cli.app.plot()",
+    "artifact": "rdetoolkit.cli.app.package()",
+}
 
-    # Given: inputs on disk and every backend replaced by a recorder
+
+@pytest.fixture
+def _recorded_backends(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
+    """Inputs on disk and every command backend replaced by a recorder."""
+    from rdetoolkit import cli as cli_module
+
     schema = tmp_path / "invoice.schema.json"
     schema.write_text('{"type": "object", "properties": {}}', encoding="utf-8")
     csv = tmp_path / "data.csv"
@@ -491,18 +502,57 @@ def test_v1_python_names_accept_v1_keywords__tc_616_py_002(tmp_path: Path, monke
         "rdetoolkit.cmd.gen_invoice.GenerateInvoiceCommand.invoke",
         "rdetoolkit.cmd.gen_excelinvoice.GenerateExcelInvoiceCommand.invoke",
         "rdetoolkit.cmd.csv2graph.Csv2GraphCommand.invoke",
+        "rdetoolkit.cmd.archive.CreateArtifactCommand.invoke",
+        "rdetoolkit.cmd.gen_config.GenerateConfigCommand.invoke",
     ):
         monkeypatch.setattr(backend, lambda self, backend=backend: calls.append(backend.split(".")[2]))
     monkeypatch.setattr(cli_module.workflows, "run", lambda *, custom_dataset_function: calls.append("workflows.run"))
+    return {"tmp": tmp_path, "schema": schema, "csv": csv, "source": source, "calls": calls}
 
-    # When: calling them the v1 way, with v1 keyword arguments
-    gen_invoice(schema_path=schema, output_path=tmp_path / "invoice.json")
-    make_excelinvoice(invoice_schema_json_path=schema, output_path=tmp_path / "a_excel_invoice.xlsx", mode="file")
-    csv2graph(csv_path=csv, output_dir=tmp_path)
+
+def test_v1_python_names_warn_and_accept_v1_keywords__tc_616_py_002(_recorded_backends: dict[str, Any]) -> None:
+    from rdetoolkit.cli.app import artifact, csv2graph, gen_config, gen_invoice, make_excelinvoice, run
+
+    tmp, schema, csv, source = (_recorded_backends[key] for key in ("tmp", "schema", "csv", "source"))
+    calls = [
+        ("gen_config", lambda: gen_config(output_dir=tmp / "cfg", template_name="minimal", overwrite=False, lang="en")),
+        ("gen_invoice", lambda: gen_invoice(schema_path=schema, output_path=tmp / "invoice.json")),
+        ("make_excelinvoice", lambda: make_excelinvoice(invoice_schema_json_path=schema, output_path=tmp / "a.xlsx", mode="file")),
+        ("csv2graph", lambda: csv2graph(csv_path=csv, output_dir=tmp)),
+        ("artifact", lambda: artifact(source_dir=tmp, output_archive=tmp / "a.zip", exclude=None)),
+    ]
+    for name, call in calls:
+        # When: calling a v1 Python name with v1 keyword arguments
+        # Then: a DeprecationWarning names the replacement
+        with pytest.warns(DeprecationWarning, match=re.escape(f"rdetoolkit.cli.app.{name}() is deprecated")) as record:
+            call()
+        assert _DEPRECATED_PYTHON_NAMES[name] in str(record[0].message)
+
+    # run is current in v2 (not deprecated); v1 callers pass target=
     run(target=f"{source}::dataset")
 
-    # Then: each reached its backend
-    assert calls == ["gen_invoice", "gen_excelinvoice", "csv2graph", "workflows.run"]
+    # Then: every call reached its backend
+    assert _recorded_backends["calls"] == [
+        "gen_config", "gen_invoice", "gen_excelinvoice", "csv2graph", "archive", "workflows.run",
+    ]
+
+
+def test_cli_aliases_and_new_python_names_do_not_warn__tc_616_py_003(_recorded_backends: dict[str, Any]) -> None:
+    import warnings
+
+    from rdetoolkit.cli.new_cmd import new_invoice
+
+    tmp, schema = _recorded_backends["tmp"], _recorded_backends["schema"]
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        # When: invoking a v1 CLI alias, and calling the new Python name
+        result = CliRunner().invoke(app, ["gen-invoice", str(schema), "-o", str(tmp / "invoice.json")])
+        new_invoice(schema, tmp / "invoice.json")
+
+    # Then: only the stderr warning of the alias, no DeprecationWarning
+    assert result.exit_code == 0, result.output
+    assert "deprecated" in _plain(result.stderr)
+    assert [w for w in caught if issubclass(w.category, DeprecationWarning) and "rdetoolkit.cli" in str(w.message)] == []
 
 
 @pytest.mark.parametrize("rename", COMMAND_RENAMES, ids=lambda rename: rename.old)

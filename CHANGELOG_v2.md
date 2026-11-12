@@ -28,8 +28,10 @@
   A deprecated alias runs the same code as its replacement after printing a
   warning with a `Remediation:` line on stderr; its options and exit codes are
   unchanged. The v1.7 Python names in `rdetoolkit.cli.app` (`gen_invoice`,
-  `make_excelinvoice`, `csv2graph`, `run(target=...)`, ...) stay importable
-  with their v1 keyword arguments. `rdetoolkit migrate check` reports the old
+  `make_excelinvoice`, `csv2graph`, `gen_config`, `artifact`) stay importable
+  with their v1 keyword arguments and emit a `DeprecationWarning` naming the
+  replacement (removed in v2.1); `run(target=...)` keeps its v1 keyword.
+  `rdetoolkit migrate check` reports the old
   names in Python string literals and argv lists (also when other arguments
   are variables) and in shell, CI and container files (`*.sh`, `*.yml`,
   `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`; a command continued
