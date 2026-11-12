@@ -47,6 +47,25 @@
 
 ### Changed
 
+- `rdetoolkit.graph` has one documented export inventory (CSV to Graph API →
+  Package Export Inventory). `__all__`, `dir()` and the package stub list only
+  the supported and compatibility exports. Twelve internal helpers
+  (`RenderResult`, `MatplotlibArtifact`, `NormalizedColumns`,
+  `RenderCollections`, `normalize_direction_filter`, `build_direction_config`,
+  `resolve_column_index`, `determine_titles`, `determine_formats`,
+  `normalize_axis_limits`, `collect_render_results`,
+  `build_matplotlib_artifacts`) are no longer exported from the package root;
+  they still resolve at runtime but are private, so import them from their
+  defining submodules if needed (#639).
+- Registering a flow under an id that another flow already owns raises
+  `RdeRegistryError` code 2007 (`DuplicateFlowId`) at decoration time, naming
+  the id and both source locations, instead of silently keeping the first
+  registration. Re-registering the same callable object is a no-op. Reloading
+  a module that defines a flow, or re-running a notebook cell that defines
+  one, also raises 2007; restart the interpreter instead. Tests that define a
+  flow inside a parametrized test function need a unique `id=` per case
+  (#640).
+
 - `rdetoolkit init` generates `template/tasksupport/` instead of
   `templates/tasksupport/`, matching the singular `container/` and `input/`
   directories. In a directory that already has `templates/tasksupport/`, init
@@ -59,6 +78,33 @@
   both directories exist (#615).
 
 ### Fixed
+
+- `node` and `flow` are listed in `rdetoolkit.__all__`, and `__init__.pyi`
+  types every lazy top-level export, including `Result`, `Success`,
+  `Failure`, `try_result`, `DirectoryOps`, `ManagedDirectory`,
+  `detect_encoding` and the `storage`, `traceback`, `invoice` and `models`
+  modules. A test keeps the runtime exports, `__all__`, `dir()`, the stub and
+  the docs in sync. No top-level export was removed (#637).
+- The stubs declare `Success.is_failure()` and `Failure.is_failure()` and type
+  both result classes as frozen dataclasses, matching the runtime. The
+  `OutputContext` stub is factory-only: direct construction and
+  `dataclasses.replace()` are type errors, and
+  `OutputContext.from_resource_paths()` and its methods type-check. The stub no
+  longer declares `OutputContext` as a dataclass, so `dataclasses.fields()` /
+  `asdict()` on it are rejected by type checkers. Runtime behavior is unchanged
+  (#638).
+- The Runner summarizes tile outputs with the call log's implementation, so a
+  value's recorded type name no longer depends on the recording path (a flow
+  returning a `Path` is recorded as `pathlib.PosixPath`, not
+  `pathlib._local.PosixPath`, on Python 3.13). JSON shapes and schema versions
+  are unchanged (#641).
+- Removed the module-level stubs `rdetoolkit/cli.pyi`, `graph.pyi` and
+  `invoicefile.pyi`, which type checkers never selected over the packages and
+  which held stale declarations. The new `rdetoolkit/cli/__init__.pyi` types
+  the CLI command exports as `typer.core.TyperCommand` instead of `Any`. The
+  `rdetoolkit.graph.api.csv2graph` stub declared `csv2graph` twice and mypy
+  used the stale first declaration, which rejected `html_output_dir=`; it now
+  has one declaration matching the runtime signature (#639, #642).
 
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
