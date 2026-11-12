@@ -20,7 +20,7 @@ from rdetoolkit.api.request import (
     build_run_request,
 )
 from rdetoolkit.config.normalize import ConfigNormalizer
-from rdetoolkit.core.flow import derive_flow_id
+from rdetoolkit.core.flow import derive_flow_id, flow_error, flow_prepare
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
@@ -207,7 +207,7 @@ class Runner:
                 try:
                     self._events.emit(Event.run_started(run_id=self.run_id))
                     config = self.load_config(run_request.config_source)
-                    mode = self.resolve_mode(config)
+                    mode = self._prepare_and_resolve_mode(target, config)
                     # v1 creates the unpack directory before it parses anything
                     # (``workflows.check_files_result`` opens with
                     # ``StorageDir.get_specific_outputdir(True, "temp")``), so a
@@ -381,6 +381,73 @@ class Runner:
         # answering with the old root (Session J0, contracts.md §I-REVIEW-A
         # debt 4), so the cache is dropped here and re-taken lazily.
         self._data_root = None
+
+    def _prepare_and_resolve_mode(self, target: ExecutionTarget, config: RdeConfig) -> ModeKind:
+        """Prepare the inputs, then resolve the mode from what was prepared.
+
+        The order is the point: files a ``@flow(prepare=...)`` writes to
+        ``inputdata`` decide the mode and the tiles (#573).
+        """
+        self.prepare_inputs(target, config)
+        return self.resolve_mode(config)
+
+    def prepare_inputs(self, target: ExecutionTarget, config: RdeConfig) -> None:
+        """Run the flow's declared input preparation, recorded as run events.
+
+        A template that rewrites ``inputdata/`` (splitting a concatenated
+        instrument file, building a SmartTable CSV and its zip) could only do
+        so in ``main.py`` before ``workflows.run``, so ``rdetoolkit run --flow``
+        silently ran the unprepared inputs (#573). The Runner now calls
+        ``@flow(prepare=...)`` itself, between config load and mode resolution,
+        for every v2 entry. The v1 callback entry declares no preparation.
+
+        A failure is published exactly like a failure of the flow body: the
+        flow's ``error_code``/``error_message`` declaration maps it, a v1
+        ``StructuredError`` and the 3004 interruption keep their own codes,
+        and process-control exceptions are not caught. Without a declaration
+        a catalogued ``RdeError`` keeps its code and any other exception is an
+        execution failure (3001) naming the preparation -- not the lifecycle
+        catch-all's 1002 ``ConfigLoadFailed``.
+
+        ``--validate-only`` runs it too, so the pre-flight resolves the same
+        mode as the real run; it may therefore modify ``inputdata``.
+
+        Args:
+            target: Normalized execution target.
+            config: Effective configuration. The preparation receives a deep
+                copy, so it cannot change the run's configuration.
+
+        Raises:
+            StructuredError: The flow's declared error, or the preparation's
+                own ``StructuredError``.
+            RdeExecutionError: 3001 when the preparation raised an ordinary
+                exception and the flow declares no error options.
+        """
+        if not isinstance(target, FlowTarget):
+            return
+        prepare = flow_prepare(target.function)
+        if prepare is None:
+            return
+        prepare_id = derive_flow_id(prepare)
+        self._events.emit(Event.prepare_started(run_id=self.run_id, prepare_id=prepare_id))
+        started = time.perf_counter()
+        try:
+            prepare(self.inputdata_path, config.model_copy(deep=True))
+        except Exception as exc:
+            self._events.emit(Event.prepare_failed(run_id=self.run_id, prepare_id=prepare_id, error=exc))
+            declared = flow_error(target.function, exc)
+            if declared is not None:
+                raise declared from exc
+            if isinstance(exc, (RdeError, StructuredError)):
+                raise
+            raise _prepare_error(exc, prepare_id) from exc
+        self._events.emit(
+            Event.prepare_completed(
+                run_id=self.run_id,
+                prepare_id=prepare_id,
+                duration_ms=(time.perf_counter() - started) * 1000.0,
+            ),
+        )
 
     def resolve_mode(self, config: RdeConfig) -> ModeKind:
         """Resolve the effective mode for this run.
@@ -719,9 +786,32 @@ def _iteration_error(exc: Exception) -> RdeError | None:
     error_def = ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE]
     reason = f"tile iteration failed ({type(exc).__name__}): {exc}"
     message = error_def.message_template.format(call_id="unknown", reason=reason)
-    message = f"{message} Remediation: {error_def.remediation}"
+    return _execution_failure(f"{message} Remediation: {error_def.remediation}")
+
+
+def _prepare_error(exc: Exception, prepare_id: str) -> RdeError:
+    """Map an ordinary ``@flow(prepare=...)`` exception to ``3001``.
+
+    The catalogue's 3001 wording points at a node call and its call-log entry;
+    a preparation has neither, so the message names the preparation and its
+    ``prepare.failed`` run event instead.
+    """
+    return _execution_failure(
+        f"Input preparation {prepare_id} failed ({type(exc).__name__}): {exc}. "
+        "Remediation: Inspect the chained original exception (__cause__) and the "
+        "prepare.failed run event; fix the preparation function or the files in "
+        "inputdata. Preparations are plain functions - reproduce directly with pytest.",
+    )
+
+
+def _execution_failure(message: str) -> RdeError:
+    """Return the ``3001 NodeExecutionFailed`` error carrying ``message``."""
     error_cls: Any = RdeExecutionError
-    error: RdeError = error_cls(code=_TILE_ITERATION_FAILURE_CODE, name=error_def.name, message=message)
+    error: RdeError = error_cls(
+        code=_TILE_ITERATION_FAILURE_CODE,
+        name=ERROR_CATALOG[_TILE_ITERATION_FAILURE_CODE].name,
+        message=message,
+    )
     return error
 
 

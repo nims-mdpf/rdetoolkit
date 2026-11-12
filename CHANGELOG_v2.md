@@ -20,6 +20,32 @@
   length, and `labels` name the series in frame order. With several frames the
   default y axis label names a repeated y column once. Defaults keep the
   current output (#626).
+- `@flow(prepare=fn)` declares run-level input preparation,
+  `fn(inputdata: Path, config: RdeConfig) -> None`, that the Runner calls after
+  config load and before mode resolution, so `workflows.run(flow=...)` and
+  `rdetoolkit run --flow` (including `--validate-only`) resolve the mode and
+  tiles from the prepared inputs. It is recorded as `prepare.started` /
+  `prepare.completed` / `prepare.failed` events. `--validate-only` runs it
+  too, so the pre-flight checks the same mode as the real run and may modify
+  `inputdata/`; the preparation must be idempotent. A failure is published
+  like a body failure: the flow's `error_code` / `error_message` declaration
+  maps it, a `StructuredError` keeps its own code, and otherwise an ordinary
+  exception fails the run with 3001 (naming the preparation) before any tile.
+  Only the flow the Runner executes is prepared, and direct calls of the flow
+  do not run it (#573).
+
+### Changed
+
+- `rdetoolkit init` generates `template/tasksupport/` instead of
+  `templates/tasksupport/`, matching the singular `container/` and `input/`
+  directories. In a directory that already has `templates/tasksupport/`, init
+  creates no `template/`, prints a warning, and points to
+  `rdetoolkit migrate apply`. `validate all` reads `templates/tasksupport/`
+  when `template/tasksupport/` does not exist and reports a
+  `deprecated_layout` warning, which fails only under `--strict`.
+  `migrate check` reports the old directory, and `migrate apply` previews the
+  rename and writes `template/` into its output directory; it exits 3 when
+  both directories exist (#615).
 
 ### Fixed
 

@@ -163,7 +163,8 @@ v1 の `csv2graph(..., xlim=..., ylim=...)` や `ax.set_xlim` / `ax.set_ylim` �
 自動のままなので、`ylim=(0, None)` で軸を 0 から始められます。
 複数領域の測定のように x 値や長さが異なる系列は、データフレームのリストで渡せます。
 x/y 列または列ペアの指定は各データフレームに適用され、`labels=` はデータフレーム順の
-全系列に名前を付けます（`pd.concat(axis=1)` で 1 つのデータフレームにまとめる必要はありません）。2 つの描画ノードは既定で tight な bounding box で保存します。
+全系列に名前を付けます（`pd.concat(axis=1)` で 1 つのデータフレームにまとめる必要はありません）。
+2 つの描画ノードは既定で tight な bounding box で保存します。
 v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 `savefig(path, bbox_inches="tight", pad_inches=0)` と同じ画像には `pad_inches=0` を指定してください。
 セルの塗りつぶし色で行を選ぶテンプレートでは、`read_excel` と同じシート・行指定で
@@ -245,7 +246,23 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 変換可能なローカル関数ではコメントと文字列を保持し、旧入口を削除したことと
 変換後の flow を CLI で実行する方法を明示します。
 
-- flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体の例外を
+- `run()` を呼ぶ前に `data/inputdata/` を書き換える v1 の `main.py`（連結された
+  装置ファイルの分割、SmartTable CSV と zip の生成など）は、その処理を
+  flow デコレータの `prepare=prepare_inputs` オプションとして宣言します。シグネチャは
+  `def prepare_inputs(inputdata: Path, config: RdeConfig) -> None` です。Runner は
+  設定の読み込み後、モード判定の前に 1 回だけ呼ぶため、`workflows.run(flow=...)`
+  と `rdetoolkit run --flow` のどちらでも準備後の入力でモードが決まります。宣言しない
+  場合、`run --flow` は準備前のファイルでモードを判定します。`--validate-only` でも
+  実行されるため、事前チェックは本番と同じモードで検証しますが、`inputdata/` を
+  変更することがあります。再実行や `rdetoolkit repro` は準備済みの入力に対して再び呼ぶので、
+  冪等にしてください。渡される設定は複製なので、変更しても実行には影響しません。
+  実行は `prepare.started` / `prepare.completed` / `prepare.failed` イベントとして
+  記録されます。flow の `error_code` / `error_message` は本体と同様に prepare の
+  失敗にも適用され、指定がなければ通常の例外はタイル処理の前に 3001 で失敗します。
+  `StructuredError` はそのコードとメッセージを保ちます。prepare が実行されるのは
+  Runner が実行する flow だけで(入れ子の flow の `prepare` は実行されません)、
+  flow を直接呼び出したときも実行されません。
+- flow デコレータの `error_code=7, error_message="Cannot process input"` で、本体（と prepare）の例外を
   両 v2 入口から同じコード・メッセージにまとめられます。コードだけなら元の
   メッセージを保ち、メッセージだけならコードは 3001 です。メッセージには例外の文字列
   `{error}` と例外クラス名 `{error_type}` を埋め込めます（例:
@@ -351,6 +368,29 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   `data/logs/**` は v1 の成果物契約の対象外です。
 - `data/logs/iterations/` はタイル反復の開始時に空にされます。
   `job.failed`、`run_report_*`、`events_*` は従来どおり実行をまたいで残ります。
+
+**2.0.1 で入った変更: `templates/` を `template/` に改名**
+
+- `rdetoolkit init` は `templates/tasksupport/` ではなく `template/tasksupport/`
+  を生成します。生成されるディレクトリ(`container/`、`input/`、`template/`)は
+  すべて単数形になります。
+- v1 で作成したプロジェクトには `templates/tasksupport/` が残っています。
+  プロジェクトのルートに対して `rdetoolkit migrate apply <project>` を実行します。
+  dry-run では Python の変換結果と並べて `templates/` → `template/` の移動を表示します。
+  `--no-dry-run` を付けると、出力先(`--out`、省略時は `<name>_migrated`)に
+  `template/` が作られます。入力ディレクトリは変更しません。
+  `migrate check <project>` は `templates/` を検出結果として報告します。
+- `templates/` と `template/` の両方がある場合、`migrate apply` は終了コード 3 で
+  停止し、両者をマージしません。残したいファイルを `template/` へ移し、
+  `templates/` を削除してから再実行してください。
+- 移行するまでの間、`validate all` は `template/tasksupport/` がなければ
+  `templates/tasksupport/` を読み、`deprecated_layout` 警告を出します。
+  この警告は終了コードを変えませんが、`--strict` では失敗になります。
+- `templates/tasksupport/` があるディレクトリで `init` を実行すると、
+  `template/` は作られず、`migrate apply` を案内する警告が表示されます。
+- `migrate apply` が改名するのはディレクトリだけです。`pyproject.toml` の
+  `[tool.rdetoolkit.init]` や、スキーマを `templates/tasksupport/` へコピーする
+  CI スクリプトなど、ご自身で書いたパスは書き換えてください。
 
 ### 意図的な差分(v1 と結果が異なるケース)
 
