@@ -179,6 +179,16 @@ Templates that select rows by cell colour use
 data-frame row. `OutputContext` has no run-scoped temp directory (v1
 `resource_paths.temp`); use `tempfile.TemporaryDirectory()` for scratch files,
 which are removed when the block ends.
+To build the main image from an uploaded PDF or SVG, as the v1
+simple-registration template does, use
+`render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)`.
+A `.pdf` file has that page rendered at `dpi`, a `.svg` / `.svgz` file is
+rendered at its own size, and any other file is converted with Pillow like
+`to_png`. The defaults (page 1, 350 dpi) match the v1 template. PDF and SVG
+need `pip install 'rdetoolkit[render]'`, and SVG also needs the Cairo system
+library; without them the node raises an `ImportError` that names the extra
+and the library. PDF pages are rendered with pypdfium2 instead of v1's
+pdf2image (poppler), so the pixels can differ from v1.
 
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
