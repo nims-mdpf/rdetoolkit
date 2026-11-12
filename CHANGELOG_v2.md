@@ -12,6 +12,14 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- The builtin node `run_program` runs an external converter from a flow and
+  returns a `CompletedProgram` (command line, exit code, output streams, run
+  time). A non-zero exit, a program that cannot start, or a timeout raises
+  `StructuredError` with the caller's `error_code` (default 1) instead of
+  surfacing as ErrorCode 3001; the default message names the command line, the
+  exit code and the end of stderr. `wine="auto"` runs a Windows program with
+  `wine` outside Windows and converts `Path` arguments, and `to_wine_path`
+  converts paths embedded in option strings (#630).
 
 ### Fixed
 

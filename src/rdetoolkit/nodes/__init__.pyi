@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+from rdetoolkit.nodes.external import CompletedProgram as CompletedProgram, run_program as run_program, to_wine_path as to_wine_path
 from rdetoolkit.nodes.image import copy_raw as copy_raw, make_thumbnail as make_thumbnail, save_main_image as save_main_image, to_jpeg as to_jpeg, to_png as to_png
 from rdetoolkit.nodes.io import read_csv_with_header as read_csv_with_header, read_excel as read_excel, read_text as read_text, unzip_inputs as unzip_inputs
 from rdetoolkit.nodes.meta import parse_invoice_meta as parse_invoice_meta, save_meta as save_meta

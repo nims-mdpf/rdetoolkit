@@ -83,6 +83,7 @@ an output kind. save_invoice and save_meta keep v1 four-space JSON. save_figure
 leaves figure ownership with callers. plot_lines accepts x/y columns or pairs,
 labels, grid, title, scale, legend, size, DPI and kind; it always closes
 internally created figures. bbox_inches=None matches v1 fig.savefig(path).
+run_program runs external converters (wine="auto"); failures use error_code.
 
 Use build_meta(values, metadef_path, repeated=...) to construct Metadata from
 metadata-def.json. It filters unknown keys, casts schema types/formats, resolves

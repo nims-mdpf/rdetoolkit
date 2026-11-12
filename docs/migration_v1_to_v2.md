@@ -166,6 +166,35 @@ v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 `OutputContext` には v1 の `resource_paths.temp` に当たる一時ディレクトリはありません。
 作業用ファイルには `tempfile.TemporaryDirectory()` を使ってください（ブロック終了時に削除されます）。
 
+v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
+`run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
+など引数で渡したディレクトリへ書き込みます。標準出力と標準エラーは取り込まれ、
+`CompletedProgram`（`args`、`returncode`、`stdout`、`stderr`、秒単位の `duration`）で返ります。
+0 以外の終了コード、起動できないプログラム、`timeout` の超過は、ErrorCode 3001 ではなく
+`error_code`（既定 1）の `StructuredError` になります。既定のメッセージはコマンドライン・
+終了コード・実行時間・標準エラーの末尾行を含み、`error_message` を指定するとそれに置き換わります。
+コマンドラインと結果はログにも出力されます。`env` は引き継いだ環境変数に追加されます。
+Windows 用の変換プログラムでは、`wine="auto"` を指定すると Windows 以外で `wine` を前置し、
+`Path` の引数を Windows 形式に変換します（`/data/structured` は `Z:\data\structured`）。
+オプション文字列に埋め込むパスは `to_wine_path` で変換してください。例:
+`f"-OutputFolder:{to_wine_path(out.struct)}"`。文字列の引数はそのまま渡します。
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
+
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
 外向きシンボリックリンクを含む展開先の境界チェックは維持します。

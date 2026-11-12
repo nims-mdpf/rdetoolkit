@@ -180,6 +180,38 @@ data-frame row. `OutputContext` has no run-scoped temp directory (v1
 `resource_paths.temp`); use `tempfile.TemporaryDirectory()` for scratch files,
 which are removed when the block ends.
 
+To run an external converter, as v1 templates did with `subprocess.run`, use
+`run_program(args, ...)` (#630). The converter writes into directories you pass
+as arguments, such as `out.struct` and `out.logs`. Output streams are captured
+and returned in a `CompletedProgram` (`args`, `returncode`, `stdout`, `stderr`,
+`duration` in seconds). A non-zero exit, a program that cannot start, or a
+`timeout` is a `StructuredError` with `error_code` (default 1) instead of
+ErrorCode 3001. `error_message` replaces the default message, which names the
+command line, the exit code, the run time and the last stderr lines; the command
+line and the outcome are also logged. `env` adds to the inherited environment.
+For a Windows converter, `wine="auto"` prefixes `wine` outside Windows and writes
+`Path` arguments in Windows form (`/data/structured` becomes
+`Z:\data\structured`). Convert a path inside an option string with
+`to_wine_path`, for example
+`f"-OutputFolder:{to_wine_path(out.struct)}"`. Text arguments are passed
+unchanged.
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
+
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
 produce repeated paths. Existing containment checks, including outward symlinks,

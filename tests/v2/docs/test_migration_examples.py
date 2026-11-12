@@ -9,6 +9,7 @@ Example               Partition               Expected                       Tes
 migration commands    check and dry-run apply commands accepted by CLI       TC-DOC-MIG-EP-001
 ``as_node`` bridge    legacy handler method  callable node preserves result TC-DOC-MIG-EP-002
 custom field cast     label-keyed row         keys resolved, values cast     GA603-DOC
+external converter    exit 0, Path argument   output written, result kept    GA630-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -108,6 +109,17 @@ def test_custom_fields_example_executes__ga603_doc(doc: Path) -> None:
 
 
 @DOCS
+def test_run_program_example_executes__ga630_doc(doc: Path) -> None:
+    """GA630-DOC: the documented external converter example runs."""
+    # Given: the documented run_program example
+    namespace: dict[str, object] = {}
+    # When: executing it as ordinary Python
+    exec(_examples(doc)["ga630-run-program"][1], namespace)  # noqa: S102
+    # Then: its own assertions ran on the converter result
+    assert namespace["result"].returncode == 0  # type: ignore[attr-defined]
+
+
+@DOCS
 def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None:
     """TC-DOC-MIG-BV-001: no unmarked migration-guide code fence can bypass execution."""
     # Given: all fenced examples in the migration guide
@@ -115,7 +127,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
