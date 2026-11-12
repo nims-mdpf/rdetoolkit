@@ -4,6 +4,11 @@
 
 ### Added
 
+- `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
+  block of lines before the table, such as the `#title` / `#legend` metadata
+  header that `rdetoolkit.graph` parses. Rows may have different numbers of
+  fields and use the table's CSV dialect and line ending; a str is written
+  verbatim. The default `preamble=None` keeps the current bytes (#628).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
