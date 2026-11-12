@@ -255,7 +255,7 @@ def test_registry_and_describe_record_kind_and_default__tc_rc1_f07_ep_007(
     importlib.import_module("rc1_f07_spec")
     # When: the registry spec is read and described as JSON
     spec = template_registry.get_template("rc1_f07_spec.Rc1SpecTemplate")
-    result = CliRunner().invoke(app, ["templates", "describe", "rc1_f07_spec.Rc1SpecTemplate", "--json", "--module", "rc1_f07_spec"])
+    result = CliRunner().invoke(app, ["skeletons", "show", "rc1_f07_spec.Rc1SpecTemplate", "--json", "--module", "rc1_f07_spec"])
     # Then: each parameter records its kind and default presence additively
     plain, value, where = spec.slots[0].parameters
     assert (plain.kind, plain.default, plain.default_literal) == ("positional_or_keyword", None, False)

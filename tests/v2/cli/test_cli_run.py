@@ -6,10 +6,10 @@ in codex-worker Green phase. Authority: local/develop/v2/tasks/session_e1.md
 §9.3/§11.
 
 Binding API-shape pins asserted by this file (precision standard):
-- ``rdetoolkit run --flow <dotted.module:attr> [--validate-only] [--config
-  PATH]`` is the existing ``cli/app.py:run()`` command extended in place;
-  ``target`` becomes an optional positional argument.
-- ``--flow`` resolves ONLY a dotted ``pkg.mod`` path via
+- ``rdetoolkit run <dotted.module:attr> [--validate-only] [--config
+  PATH]`` (issue #616 dropped the ``--flow`` option: a single-``:``
+  reference is a v2 flow, a ``::`` reference or ``--legacy`` the v1 target).
+- A flow reference resolves ONLY a dotted ``pkg.mod`` path via
   ``importlib.import_module`` + single-``:``-separated ``getattr`` (no
   file-path support) -- Conflict #11. Fixture flows therefore live in the
   real, dotted-importable package ``tests.v2.cli.fixtures.run_flows``.
@@ -201,7 +201,7 @@ class TestRunFlowExitCodes:
     ) -> None:
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:success_pipeline"])
 
         assert result.exit_code == 0
         assert "success" in result.output.lower()
@@ -214,7 +214,7 @@ class TestRunFlowExitCodes:
         _build_data_fixture(isolated_root, input_files={"a.txt": "a", "b.txt": "b"})
         _write_rdeconfig(isolated_root, {"system": {"extended_mode": "MultiDataTile"}})
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:second_tile_fails_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:second_tile_fails_pipeline"])
 
         assert result.exit_code == 2
         assert "partial" in result.output.lower()
@@ -226,7 +226,7 @@ class TestRunFlowExitCodes:
     ) -> None:
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:failing_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:failing_pipeline"])
 
         assert result.exit_code == 1
         assert "failed" in result.output.lower()
@@ -245,7 +245,7 @@ class TestRunFlowResolutionUsageErrors:
     ) -> None:
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", "tests.v2.cli.fixtures.totally_nonexistent_module:pipeline"])
+        result = cli_runner.invoke(app, ["run", "tests.v2.cli.fixtures.totally_nonexistent_module:pipeline"])
 
         assert result.exit_code == 3
         assert workflows_run_spy == []
@@ -258,7 +258,7 @@ class TestRunFlowResolutionUsageErrors:
     ) -> None:
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:does_not_exist"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:does_not_exist"])
 
         assert result.exit_code == 3
         assert workflows_run_spy == []
@@ -280,26 +280,29 @@ class TestRunFlowResolutionUsageErrors:
         for the right reason, never the old (now-wrong) one."""
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:NotAFunctionTarget"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:NotAFunctionTarget"])
 
         assert result.exit_code == 3
         assert "processingtemplate" in result.output.lower()
         assert workflows_run_spy == []
 
-    def test_target_and_flow_both_given_exits_3__tc_cli_run_ep_007(
+    def test_legacy_flag_with_flow_reference_exits_3__tc_cli_run_ep_007(
         self,
         cli_runner: CliRunner,
         isolated_root: Path,
         workflows_run_spy: list[tuple],
     ) -> None:
+        # --legacy needs the v1 'module_or_file::attr' form; a v2 flow
+        # reference is a usage error, not a silent switch to the flow path.
         _build_data_fixture(isolated_root)
 
         result = cli_runner.invoke(
             app,
-            ["run", "legacy_target::attr", "--flow", f"{FIXTURE_MODULE}:success_pipeline"],
+            ["run", "--legacy", f"{FIXTURE_MODULE}:success_pipeline"],
         )
 
         assert result.exit_code == 3
+        assert "module_or_file::attr" in result.output
         assert workflows_run_spy == []
 
     def test_neither_target_nor_flow_exits_3__tc_cli_run_ep_008(
@@ -329,7 +332,7 @@ class TestRunValidateOnly:
         before = len(run_flows.VALIDATE_ONLY_SENTINEL)
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
         assert result.exit_code == 0
         assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
@@ -348,7 +351,7 @@ class TestRunValidateOnly:
         # raises during the validate-only path's first step.
         _write_rdeconfig(isolated_root, {"nonexistent_top_level_key": True})
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
         assert result.exit_code == 1
         assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
@@ -372,7 +375,7 @@ class TestRunValidateOnly:
         _build_alias_flat_fixture(isolated_root)
 
         # When: validating without executing the flow
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
         # Then: the real tree validated, and the flow never ran
         assert result.exit_code == 0, result.output
@@ -390,7 +393,7 @@ class TestRunValidateOnly:
         (isolated_root / "invoice" / "invoice.json").unlink()
 
         # When: validating without executing the flow
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
         # Then: validation fails on the resolved root's own artifacts
         assert result.exit_code == 1
@@ -506,7 +509,7 @@ class TestRunValidateOnly:
         (isolated_root / "data" / "invoice" / "invoice.json").unlink()
 
         # When: validating without executing the flow
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
         # Then: the caller is told it failed, and the flow never ran
         assert result.exit_code == 1
@@ -558,7 +561,7 @@ class TestRunValidateOnly:
         _write_rdeconfig(isolated_root, {"system": {"extended_mode": "invoice"}})
 
         # When: validating through the CLI
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
         # Then: validation succeeds without running the flow
         assert result.exit_code == 0, result.output
@@ -716,7 +719,7 @@ class TestRunConfigOverride:
         _build_data_fixture(isolated_root, input_files={"a.txt": "a", "b.txt": "b"})
         _write_rdeconfig(isolated_root, {"system": {"extended_mode": "MultiDataTile"}})
 
-        baseline = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:second_tile_fails_pipeline"])
+        baseline = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:second_tile_fails_pipeline"])
         assert baseline.exit_code == 2, "baseline (no --config): continue policy -> partial -> exit 2"
 
         override_path = isolated_root / "override.yaml"
@@ -724,7 +727,7 @@ class TestRunConfigOverride:
 
         overridden = cli_runner.invoke(
             app,
-            ["run", "--flow", f"{FIXTURE_MODULE}:second_tile_fails_pipeline", "--config", str(override_path)],
+            ["run", f"{FIXTURE_MODULE}:second_tile_fails_pipeline", "--config", str(override_path)],
         )
         assert overridden.exit_code == 1, "--config override to fail_fast must flip the outcome to failed -> exit 1"
 
@@ -737,7 +740,7 @@ class TestRunConfigOverride:
 
         result = cli_runner.invoke(
             app,
-            ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline", "--config", str(isolated_root / "does_not_exist.yaml")],
+            ["run", f"{FIXTURE_MODULE}:success_pipeline", "--config", str(isolated_root / "does_not_exist.yaml")],
         )
 
         assert result.exit_code == 3
@@ -792,7 +795,7 @@ class TestRunFlowTemplateClassAcceptance:
     ) -> None:
         _build_data_fixture(isolated_root)
 
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:ValidTemplateTarget"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:ValidTemplateTarget"])
 
         assert result.exit_code == 0, result.output
         assert len(workflows_run_recording_spy) == 1
@@ -809,8 +812,8 @@ class TestRunFlowTemplateClassAcceptance:
         # Given: a CLI reference to the registered depth-1 fixture skeleton
         flow_ref = f"{FIXTURE_MODULE}:_Ep014Skeleton"
 
-        # When: run --flow resolves that class under the existing error conversion
-        result = cli_runner.invoke(app, ["run", "--flow", flow_ref])
+        # When: run resolves that class under the existing error conversion
+        result = cli_runner.invoke(app, ["run", flow_ref])
 
         # Then: it fails and retains the remediation-bearing TypeError
         assert result.exit_code == 1

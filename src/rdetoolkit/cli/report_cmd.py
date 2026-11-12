@@ -59,7 +59,7 @@ TRACE_HELP = CommandHelp(
     examples=(
         "rdetoolkit report trace data/logs/run_report_<id>.json",
         "rdetoolkit report trace data/logs/run_report_<id>.json --format html > t.html",
-            ),
+    ),
     exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "the report file is missing or invalid, or `--format` is not json, mermaid, or html")),
     see_also=("rdetoolkit report show", "rdetoolkit run"),
 )

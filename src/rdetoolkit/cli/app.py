@@ -546,7 +546,7 @@ RUN_HELP = CommandHelp(
         (0, "every tile succeeded (or `--validate-only` passed)"),
         (1, "the run failed (or validation failed)"),
         (2, "partial: some tiles failed (also used by the parser for an unknown option)"),
-        (3, "invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy`"),
+        (3, "invalid REF, a flow or legacy TARGET that cannot be loaded, unreadable `--config`, or options that do not apply to `--legacy`"),
     ),
     see_also=("rdetoolkit validate all", "rdetoolkit report show", "rdetoolkit report trace", "rdetoolkit package"),
 )
@@ -573,6 +573,12 @@ def run(
         )
     target = ref
     if legacy or "::" in target:
+        if "::" not in target:
+            usage_error(
+                f"Invalid legacy TARGET '{target}': {_LEGACY_TARGET_FORMAT}\n"
+                "Remediation: name the file or module and the function, e.g. 'rdetoolkit run --legacy main.py::dataset', "
+                "or drop --legacy to run a v2 flow 'pkg.mod:callable'.",
+            )
         if validate_only or config is not None:
             option = "--validate-only" if validate_only else "--config"
             usage_error(
@@ -592,9 +598,18 @@ def run(
 
 def _run_legacy(target: str) -> None:
     """Run ``workflows.run(custom_dataset_function=...)`` for a ``module_or_file::attr`` target."""
-    from rdetoolkit.cli.run_cmd import legacy_exit_code
+    from rdetoolkit.cli.run_cmd import legacy_exit_code, usage_error
 
-    func = _load_target_function(target)
+    try:
+        func = _load_target_function(target)
+    except typer.BadParameter as exc:
+        # Exit 3 like every other ``run`` usage error: Click's own code for a
+        # BadParameter (2) would read as "partial" (Design §9.3).
+        usage_error(
+            f"{exc.message}\n"
+            "Remediation: check that the file or module exists and that the attribute names a "
+            "function taking (srcpaths, resource_paths).",
+        )
     from rdetoolkit import cli as cli_module
 
     try:

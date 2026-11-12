@@ -31,7 +31,7 @@ class PackageSkeleton(ProcessingTemplate):
     def __flow__(self, paths: InputPaths) -> None:
         self.read(paths)
 ''', encoding="utf-8")
-    arguments = ["templates", "list", "--json"] if command == "list" else ["init", "--processing-template", "PackageSkeleton"]
+    arguments = ["skeletons", "list", "--json"] if command == "list" else ["new", "processing", "PackageSkeleton"]
     # When: invoking the installed CLI in a fresh production-like process
     invocation = [sys.executable, "-m", "rdetoolkit", *arguments]
     if command == "explicit_then_auto":

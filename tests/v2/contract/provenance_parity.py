@@ -177,7 +177,7 @@ def graph_iterations(rendered: str) -> list[dict[str, Any]]:
     every other rendered field is a contract.
 
     Args:
-        rendered: Standard output of ``rdetoolkit graph --format json``.
+        rendered: Standard output of ``rdetoolkit report trace --format json``.
 
     Returns:
         The iteration objects, each ``node_calls`` entry without ``duration_ms``.

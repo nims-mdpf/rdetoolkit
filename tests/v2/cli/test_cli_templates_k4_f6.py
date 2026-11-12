@@ -1,11 +1,11 @@
 """Release PR #553 review fixes F6-3 and F6-5 (Session K4-F6).
 
-F6-3: ``init --processing-template`` must generate a ``processing.py`` that
+F6-3: ``new processing`` must generate a ``processing.py`` that
 imports: ``None`` return annotations render as ``None`` (never ``NoneType``)
 and every dotted annotation name is imported from its module.
 
-F6-5: ``templates describe`` and ``init --processing-template`` load
-``rdetoolkit.plugins`` entry points exactly as ``templates list`` does, so a
+F6-5: ``skeletons show`` and ``new processing`` load
+``rdetoolkit.plugins`` entry points exactly as ``skeletons list`` does, so a
 template that ``list`` shows is never "Unknown" for the other two commands.
 
 EP table:
@@ -14,8 +14,8 @@ EP table:
 |--------------------|---------------------------------------------------------|-------------------------------------------------------------|
 | TC-K4F6-TPL-EP-001 | init for the DemoSkeletonTemplate fixture                | processing.py imports; class subclasses the skeleton         |
 | TC-K4F6-TPL-EP-002 | spec with typing / builtins / dotted / None annotations  | grouped, sorted, deduplicated imports; None rendered as None |
-| TC-K4F6-TPL-EP-003 | plugin-only template, templates describe                 | exit 0, the template id is described                         |
-| TC-K4F6-TPL-EP-004 | plugin-only template, init --processing-template         | exit 0, processing.py generated and importable               |
+| TC-K4F6-TPL-EP-003 | plugin-only template, skeletons show                 | exit 0, the template id is described                         |
+| TC-K4F6-TPL-EP-004 | plugin-only template, new processing         | exit 0, processing.py generated and importable               |
 
 BV / negative table:
 
@@ -153,7 +153,7 @@ def test_generated_processing_module_imports__tc_k4f6_tpl_ep_001(isolated_root: 
     runner = CliRunner()
 
     # When: generating its processing template
-    result = runner.invoke(app, ["init", "--processing-template", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE])
+    result = runner.invoke(app, ["new", "processing", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE])
 
     # Then: the source names no NoneType and imports the rdetoolkit.types names it uses
     assert result.exit_code == 0, result.output
@@ -222,7 +222,7 @@ def test_describe_loads_plugin_templates__tc_k4f6_tpl_ep_003(plugin_entry: Entry
     assert not _registered(PLUGIN_TEMPLATE)
 
     # When: describing the plugin template
-    result = CliRunner().invoke(app, ["templates", "describe", PLUGIN_TEMPLATE])
+    result = CliRunner().invoke(app, ["skeletons", "show", PLUGIN_TEMPLATE])
 
     # Then: it is described rather than reported unknown
     assert result.exit_code == 0, result.output
@@ -230,12 +230,12 @@ def test_describe_loads_plugin_templates__tc_k4f6_tpl_ep_003(plugin_entry: Entry
 
 
 def test_init_loads_plugin_templates__tc_k4f6_tpl_ep_004(plugin_entry: EntryPoint, isolated_root: Path) -> None:
-    """TC-K4F6-TPL-EP-004: init --processing-template generates from a plugin-only template."""
+    """TC-K4F6-TPL-EP-004: new processing generates from a plugin-only template."""
     # Given: a plugin entry point whose template is not yet registered
     assert not _registered(PLUGIN_TEMPLATE)
 
     # When: generating a processing template from it
-    result = CliRunner().invoke(app, ["init", "--processing-template", PLUGIN_TEMPLATE])
+    result = CliRunner().invoke(app, ["new", "processing", PLUGIN_TEMPLATE])
 
     # Then: both files are generated and the module imports
     assert result.exit_code == 0, result.output
@@ -253,7 +253,7 @@ def test_describe_without_the_plugin_is_still_unknown__tc_k4f6_tpl_bv_002(monkey
     discovery.__dict__["_discovered"].clear()
 
     # When: describing the plugin-only template name
-    result = CliRunner().invoke(app, ["templates", "describe", PLUGIN_TEMPLATE])
+    result = CliRunner().invoke(app, ["skeletons", "show", PLUGIN_TEMPLATE])
 
     # Then: it is a usage error
     assert result.exit_code == 3
@@ -319,7 +319,7 @@ def test_union_and_generic_slots_generate_an_importable_module__tc_k4f6_tpl_ep_0
     monkeypatch.syspath_prepend(str(provider_dir))
 
     # When: generating its processing template
-    result = CliRunner().invoke(app, ["init", "--processing-template", "K4F6UnionTemplate", "--module", "k4f6_union_provider"])
+    result = CliRunner().invoke(app, ["new", "processing", "K4F6UnionTemplate", "--module", "k4f6_union_provider"])
 
     # Then: the registry names the annotations structurally with public modules
     assert result.exit_code == 0, result.output

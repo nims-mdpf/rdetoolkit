@@ -70,7 +70,7 @@ IMPORT_HELP = CommandHelp(
     outputs=("Extracts the archive into `TARGET_DIR` (created if missing) and prints its path. Never overwrites: a non-empty target is refused.",),
     examples=(
         "rdetoolkit repro import repro.zip ./replay",
-        "cd replay && rdetoolkit run modules.processing:pipeline",
+        "rdetoolkit repro import downloads/repro.zip ../replays/run_0001",
     ),
     exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "the target is not empty, the zip is unreadable, or a member path is unsafe")),
     see_also=("rdetoolkit repro export", "rdetoolkit run"),
