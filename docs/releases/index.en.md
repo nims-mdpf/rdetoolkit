@@ -4,6 +4,7 @@
 
 | Version | Release Date | Key Changes | Details |
 | ------- | ------------ | ----------- | ------- |
+| v1.7.2  | unreleased   | Keep `uri` / `uuid` / `markdown` string values unchanged instead of parsing them as dates | [v1.7.2](#v172-unreleased) |
 | v1.7.1  | unreleased   | Decode cp932 filenames correctly when extracting ZIP archives created on Japanese Windows / Protect ZIP extraction from path traversal | [v1.7.1](#v171-unreleased) |
 | v1.7.0  | 2026-07-13   | **BREAKING**: SmartTable row CSV excluded from `rawfiles` / `smarttable_rowfile` renamed to `smarttable_rawfile` / `save_table_file: true` original file now registers at `divided/0001` / SmartTable `meta/` columns now require `metadata-def.json` / csv2graph legend placement policy and axis tick label formatting added | [v1.7.0](#v170-2026-07-13) |
 | v1.6.4  | 2026-06-03   | Fix SmartTable data registration order to follow table row order / Remove direct click dependency from CLI | [v1.6.4](#v164-2026-06-03) |
@@ -26,6 +27,36 @@
 | v1.2.0  | 2025-04-14   | MinIO integration / Archive generation / Report tooling | [v1.2.0](#v120-2025-04-14) |
 
 # Release Details
+
+## v1.7.2 (unreleased)
+
+!!! info "References"
+    - Key issue: [#622](https://github.com/nims-mdpf/rdetoolkit/issues/622)
+    - Pull request: [#650](https://github.com/nims-mdpf/rdetoolkit/pull/650)
+
+#### Highlights
+
+- String fields with `format: "uri"`, `"uuid"` or `"markdown"` no longer fail
+  in Excel invoice, SmartTable `custom/` and `meta/` columns, and metadata-def
+  values; the value is kept as given
+
+### Bug Fixes
+
+#### Do Not Parse Non-Date String Formats as Dates (Issue #622)
+
+**Problem**: `castval(value, "string", fmt)` passed every non-empty `fmt` to the
+date conversion, which only knows `date`, `date-time` and `time`. A string field
+with `format: "uri"`, `"uuid"` or `"markdown"` (all valid in
+`invoice.schema.json`) therefore failed with `Unknown string format: ...`, or
+with `ERROR: unknown format in metaDef` when the value happened to parse as a
+date (for example `"12"` in a markdown field).
+
+**Changes**:
+
+- Convert a string value only when its format is `date`, `date-time` or `time`;
+  any other format returns the value unchanged, as `format` absent already did
+- The fix applies to every caller of `castval`: Excel invoice custom columns,
+  SmartTable `custom/` and `meta/` columns, and `Meta.assign_vals`
 
 ## v1.7.1 (unreleased)
 

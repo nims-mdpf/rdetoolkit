@@ -4,6 +4,7 @@
 
 | バージョン | リリース日 | 主な変更点 | 詳細セクション |
 | ---------- | ---------- | ---------- | -------------- |
+| v1.7.2     | unreleased | `uri` / `uuid` / `markdown`形式の文字列を日付として解釈せずそのまま保持 | [v1.7.2](#v172-unreleased) |
 | v1.7.1     | unreleased | 日本語Windowsで作成されたZIPのcp932ファイル名を正しくデコード / ZIP展開時のパストラバーサルを防止 | [v1.7.1](#v171-unreleased) |
 | v1.7.0     | 2026-07-13 | **破壊的変更**: SmartTableの行CSVを`rawfiles`から除外 / `smarttable_rowfile`を`smarttable_rawfile`に改名 / `save_table_file: true`時の元ファイル登録先を`divided/0001`に変更 / SmartTableの`meta/`列に`metadata-def.json`を必須化 / csv2graphに凡例配置ポリシーと軸目盛りフォーマットを追加 | [v1.7.0](#v170-2026-07-13) |
 | v1.6.4     | 2026-06-03 | SmartTableデータ登録順序をテーブル行順に修正 / CLIからclick直接依存を除去 | [v1.6.4](#v164-2026-06-03) |
@@ -26,6 +27,36 @@
 | v1.2.0     | 2025-04-14 | MinIO対応 / アーカイブ生成 / レポート生成 | [v1.2.0](#v120-2025-04-14) |
 
 # リリース詳細
+
+## v1.7.2 (unreleased)
+
+!!! info "参照"
+    - 主な課題: [#622](https://github.com/nims-mdpf/rdetoolkit/issues/622)
+    - プルリクエスト: [#650](https://github.com/nims-mdpf/rdetoolkit/pull/650)
+
+#### ハイライト
+
+- `format`が`"uri"`、`"uuid"`、`"markdown"`の文字列項目が、Excelインボイス、
+  SmartTableの`custom/`・`meta/`列、metadata-defの値で失敗しなくなり、
+  値がそのまま保持されるように修正
+
+### バグ修正
+
+#### 日付以外の文字列フォーマットを日付として解釈しない (Issue #622)
+
+**問題**: `castval(value, "string", fmt)`は、空でない`fmt`をすべて日付変換に
+渡していましたが、日付変換が扱えるのは`date`、`date-time`、`time`だけです。
+そのため、`invoice.schema.json`で有効な`format: "uri"`、`"uuid"`、
+`"markdown"`の文字列項目は`Unknown string format: ...`で失敗し、値が偶然
+日付として読める場合(例: markdown項目の`"12"`)は
+`ERROR: unknown format in metaDef`で失敗していました。
+
+**修正内容**:
+
+- 文字列の値を変換するのは、`format`が`date`、`date-time`、`time`の場合だけに
+  変更。それ以外の`format`は、`format`が無い場合と同じく値をそのまま返す
+- `castval`を使うすべての箇所(Excelインボイスのcustom列、SmartTableの
+  `custom/`・`meta/`列、`Meta.assign_vals`)に修正が適用される
 
 ## v1.7.1 (unreleased)
 

@@ -794,20 +794,25 @@ def _cast_number(valstr: Any, outfmt: str | None) -> int | float:
     raise StructuredError(emsg)
 
 
+_DATE_FORMATS = frozenset({"date", "date-time", "time"})
+
+
 def _cast_string(valstr: Any, outfmt: str | None) -> Any:
-    """Cast value to string type with optional format conversion.
+    """Cast value to string type with optional date format conversion.
 
     Args:
         valstr: Value to cast.
-        outfmt: Optional date format ("date-time", "date", "time").
+        outfmt: Optional format. Only the date formats ("date-time", "date",
+            "time") are converted; any other format (e.g. "uri", "uuid",
+            "markdown") leaves the value unchanged.
 
     Returns:
-        Formatted string if outfmt is specified, otherwise valstr as-is.
+        Formatted string if outfmt is a date format, otherwise valstr as-is.
 
     Note:
-        When outfmt=None, the original type of valstr is preserved.
+        When outfmt is not a date format, the original type of valstr is preserved.
     """
-    if not outfmt:
+    if outfmt not in _DATE_FORMATS:
         return valstr
     return ValueCaster.convert_to_date_format(valstr, outfmt)
 
