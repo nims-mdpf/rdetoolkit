@@ -11,6 +11,12 @@ RDEToolKitのAPIドキュメントは、ハイブリッド方式で構成され�
 - **自動生成部分**: ソースコード内のdocstringから生成される詳細な技術仕様
 - **手動作成部分**: 実践的な使用例とモジュール間の連携方法
 
+## v2 API
+
+v2 で追加された API(`node` / `flow`、予約型、組込ノード、テンプレート、`rdetoolkit.testing`、
+プラグイン、Runner、RunReport、v2 のエラー階層)は [v2 API の概要](../rdetoolkit/v2/index.md) に、
+すべてのコマンドとオプションは [CLI リファレンス](../reference/cli.md) にまとめています。
+
 ## 主要モジュール
 
 ### ワークフロー管理
