@@ -65,7 +65,7 @@ container
 └── Dockerfile
 ```
 
-`container/` と同じ階層に `input/`(`inputdata/`、`invoice/invoice.json`)と `templates/tasksupport/` も作成されます。
+`container/` と同じ階層に `input/`(`inputdata/`、`invoice/invoice.json`)と `template/tasksupport/` も作成されます。
 
 各ファイルの説明は以下の通りです。
 
@@ -93,17 +93,17 @@ container
 
 ```toml
 [tool.rdetoolkit.init]
-entry_point = "templates/main.py"
-modules = "templates/modules"
-tasksupport = "templates/tasksupport"
-inputdata = "templates/inputdata"
+entry_point = "tpl/main.py"
+modules = "tpl/modules"
+tasksupport = "tpl/tasksupport"
+inputdata = "tpl/inputdata"
 ```
 
 キーの意味:
 
 - `entry_point`: `container/main.py` としてコピーされるファイル。
 - `modules`: `container/modules/` 配下に展開されるファイルまたはディレクトリ。
-- `tasksupport`: `container/data/tasksupport/` と `templates/tasksupport/` の両方へ複製されるファイル/ディレクトリ。
+- `tasksupport`: `container/data/tasksupport/` と `template/tasksupport/` の両方へ複製されるファイル/ディレクトリ。
 - `inputdata`: `container/data/inputdata/` と `input/inputdata/` に展開されるディレクトリ。
 
 相対パスは設定ファイルが置かれたディレクトリから解決されるため、テンプレート用リポジトリを別環境でも共有できます。
@@ -116,7 +116,7 @@ inputdata = "templates/inputdata"
 | ----------------- | ------------------------------------------------------------------------------------------- |
 | `--entry-point`   | `container/main.py` としてコピー（ファイル限定）                                            |
 | `--modules`       | `container/modules/` 以下にコピー（ファイル/ディレクトリ対応）                              |
-| `--tasksupport`   | `container/data/tasksupport/` と `templates/tasksupport/` の両方にコピー（ファイル/ディレクトリ対応） |
+| `--tasksupport`   | `container/data/tasksupport/` と `template/tasksupport/` の両方にコピー（ファイル/ディレクトリ対応） |
 | `--inputdata`     | `container/data/inputdata/` と `input/inputdata/` にコピー（ディレクトリ推奨）              |
 | `--other` (複数可) | `container/` 以下に任意のファイル/ディレクトリをコピー                                      |
 
@@ -145,7 +145,7 @@ Created: /private/tmp/rdt-init-check/container/Dockerfile
 Populated /private/tmp/rdt-init-check/container/modules from template directory: /private/tmp/rdt-init-check/tpl/modules
 Created: /private/tmp/rdt-init-check/container/data/invoice/invoice.json
 Populated /private/tmp/rdt-init-check/container/data/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
-Populated /private/tmp/rdt-init-check/templates/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
+Populated /private/tmp/rdt-init-check/template/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
 Populated /private/tmp/rdt-init-check/container/data/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
 Populated /private/tmp/rdt-init-check/input/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
 Copied template file /private/tmp/rdt-init-check/tpl/extra.txt into /private/tmp/rdt-init-check/container

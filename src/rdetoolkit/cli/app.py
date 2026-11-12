@@ -245,7 +245,7 @@ INIT_HELP = CommandHelp(
     outputs=(
         "Creates `container/` (`main.py`, `modules/`, `requirements.txt`, `Dockerfile`, and `data/` with "
         "`inputdata/`, `invoice/invoice.json`, `tasksupport/{invoice.schema.json,metadata-def.json}`), "
-        "`input/` (`inputdata/`, `invoice/invoice.json`), and `templates/tasksupport/`.",
+        "`input/` (`inputdata/`, `invoice/invoice.json`), and `template/tasksupport/`.",
         "Existing files are kept (printed as `Skip: ... already exists.`); nothing is overwritten.",
     ),
     examples=(
@@ -531,12 +531,14 @@ RUN_HELP = CommandHelp(
         "`workflows.run(custom_dataset_function=...)`. The `::` form without `--legacy` still works in v2.0.x; "
         "`--legacy` becomes required in v2.1.",
         "`--config FILE` (v2 only): YAML overrides merged over the discovered rdeconfig.yaml.",
-        "`--validate-only` (v2 only): check the config, mode, and invoice without calling the flow.",
+        "`--validate-only` (v2 only): check the config, mode, and invoice without calling the flow. "
+        "A flow `prepare=` hook still runs and may modify `inputdata/`.",
     ),
     outputs=(
         "Writes the RDE output tree under `data/` (`structured/`, `meta/`, `raw/`, images, `logs/`, and `job.failed` on failure).",
         "v2: prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`. "
-        "`--validate-only` prints `Validation succeeded` and writes no outputs. v1: prints the legacy status JSON.",
+        "`--validate-only` prints `Validation succeeded` and writes no outputs (a `prepare=` hook may still modify `inputdata/`). "
+        "v1: prints the legacy status JSON.",
     ),
     examples=(
         "rdetoolkit run modules.processing:pipeline",
@@ -561,7 +563,7 @@ def run(
         typer.Argument(metavar="REF", help="Flow reference pkg.mod:callable, or module_or_file::attr with --legacy."),
     ] = None,
     legacy: Annotated[bool, typer.Option("--legacy", help="Run a v1 dataset function given as module_or_file::attr.")] = False,
-    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config, mode, and invoice without calling the flow.")] = False,
+    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config, mode, and invoice without calling the flow. A flow prepare= hook still runs and may modify inputdata.")] = False,
     config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides (v2 flows only).")] = None,
 ) -> None:
     """Run a v2 flow or a v1 dataset function."""

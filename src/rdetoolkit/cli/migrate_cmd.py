@@ -4,6 +4,10 @@ Class findings use a best-effort structural heuristic because v1 defines no
 common handler base class. Review those findings manually. ``check`` also
 reports CLI command names renamed in v2.0 (see :mod:`rdetoolkit.cli._renames`)
 in Python sources and in shell, CI, and container files.
+
+A project directory that still has the v1 ``templates/tasksupport/`` layout is
+also reported, and ``apply`` renames ``templates/`` to ``template/`` in its
+output directory (#615).
 """
 
 from __future__ import annotations
@@ -23,6 +27,7 @@ import typer
 from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli._migrate_source import _render_conversion
 from rdetoolkit.cli._renames import find_renamed_commands
+from rdetoolkit.cmd._project_layout import LEGACY_TEMPLATE_DIR, TEMPLATE_DIR, has_legacy_template_layout
 from rdetoolkit.types import InputPaths
 
 if sys.version_info >= (3, 11):
@@ -47,7 +52,8 @@ CHECK_HELP = CommandHelp(
     details=(
         "Python files are scanned for `custom_dataset_function=` entry calls, `RdeOutputResourcePath` references, "
         "v1 handler-shaped classes, and CLI command names renamed in v2.0. Shell, CI, and container files "
-        "(`*.sh`, `*.yml`, `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`) are scanned for renamed CLI commands only."
+        "(`*.sh`, `*.yml`, `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`) are scanned for renamed CLI commands only. "
+        "A directory that still has the v1 `templates/tasksupport/` layout is reported once."
     ),
     inputs=("`PATH`: one file, or a directory scanned recursively (default: the current directory).",),
     outputs=("Prints findings; prints nothing when there is nothing to migrate. Never changes files.",),
@@ -64,12 +70,13 @@ APPLY_HELP = CommandHelp(
         "Previews the converted sources by default (`--dry-run`); writes nothing.",
         "With `--no-dry-run`, writes the converted copy to `-o DIR` (default: `<PATH>_migrated` next to the input). "
         "The input is never edited, and an existing output directory is refused.",
+        "A directory with the v1 `templates/tasksupport/` layout also gets `templates/` renamed to `template/` in the output.",
     ),
     examples=(
         "rdetoolkit migrate apply container/main.py",
         "rdetoolkit migrate apply container --no-dry-run -o container_v2",
     ),
-    exit_codes=(EXIT_OK, (2, "the input path does not exist (reported by the parser)"), (3, "no Python files found, or the output directory exists or is inside the input")),
+    exit_codes=(EXIT_OK, (2, "the input path does not exist (reported by the parser)"), (3, "nothing to convert, both `templates/` and `template/` exist, or the output directory exists or is inside the input")),
     see_also=("rdetoolkit migrate check", "rdetoolkit run", "rdetoolkit flows list"),
 )
 
@@ -125,6 +132,11 @@ def check(path: Annotated[Path, typer.Argument(metavar="PATH", help="File or dir
     """Scan one file, or every Python and command file beneath a directory."""
     if not path.exists():
         _usage_error(f"Path does not exist: {path}\nRemediation: pass an existing file or directory.")
+    if path.is_dir() and has_legacy_template_layout(path):
+        typer.echo(
+            f"{path / LEGACY_TEMPLATE_DIR}: legacy {LEGACY_TEMPLATE_DIR}/ directory; "
+            f"rename it to {TEMPLATE_DIR}/ (migrate apply does this)",
+        )
     for source_path in _check_targets(path):
         if source_path.suffix == ".py":
             _report_file(source_path)
@@ -157,23 +169,42 @@ def apply(
         typer.Option("--dry-run/--no-dry-run", help="Preview by default; write only with --no-dry-run."),
     ] = True,
 ) -> None:
-    """Convert legacy callbacks into eager v2 flows without editing input files."""
+    """Convert legacy callbacks into eager v2 flows without editing input files.
+
+    A project directory with the v1 templates/tasksupport/ layout also gets
+    templates/ renamed to template/ in the output directory.
+    """
     path = path.resolve()
     files = _python_files(path)
-    if not files:
+    rename_template_dir = path.is_dir() and has_legacy_template_layout(path)
+    if not files and not rename_template_dir:
         _usage_error(
             f"No Python files found beneath: {path}. "
             "Remediation: provide a Python file or a directory containing v1 template sources.",
+        )
+    if rename_template_dir and (path / TEMPLATE_DIR).exists():
+        _usage_error(
+            f"Both {LEGACY_TEMPLATE_DIR}/ and {TEMPLATE_DIR}/ exist in: {path}. "
+            f"Remediation: move the files you want to keep into {TEMPLATE_DIR}/, "
+            f"remove {LEGACY_TEMPLATE_DIR}/, then rerun migrate apply.",
         )
     destination = out or _default_output(path)
     _validate_destination(path, destination)
     converted = [(source_path, _convert_source(source_path)) for source_path in files]
     if dry_run:
+        if rename_template_dir:
+            typer.echo(
+                f"--- {path / LEGACY_TEMPLATE_DIR} -> {destination / TEMPLATE_DIR} (dry-run, directory rename) ---",
+            )
         _preview(path, destination, converted)
         return
     _write_conversion(path, destination, converted)
+    if rename_template_dir:
+        (destination / LEGACY_TEMPLATE_DIR).rename(destination / TEMPLATE_DIR)
     count = sum(text is not None for _, text in converted)
     typer.echo(f"Converted {count} of {len(converted)} file(s) to {destination}")
+    if rename_template_dir:
+        typer.echo(f"Renamed {LEGACY_TEMPLATE_DIR}/ to {TEMPLATE_DIR}/ in {destination}")
 
 
 def _python_files(path: Path) -> list[Path]:

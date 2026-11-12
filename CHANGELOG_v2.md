@@ -46,6 +46,17 @@
 
 ### Added
 
+- `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
+  block of lines before the table, such as the `#title` / `#legend` metadata
+  header that `rdetoolkit.graph` parses. Rows may have different numbers of
+  fields and use the table's CSV dialect and line ending; a str is written
+  verbatim. The default `preamble=None` keeps the current bytes (#628).
+- The builtin `read_key_values(path, *, key="key", value="value",
+  encoding=None, missing_ok=False)` node reads a two-column CSV such as
+  `tasksupport/default_value.csv` into a `dict[str, str]`. With the default
+  options the result equals v1 `rde2util.get_default_values`, and it appears
+  in the call log and `rdetoolkit nodes list`. A missing column or a row
+  without its cell raises `ValueError` (#629).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
@@ -54,6 +65,40 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- `plot_lines` accepts `xlim` / `ylim` (`(lower, upper)`, a `None` bound keeps
+  matplotlib's automatic limit, so `ylim=(0, None)` starts the axis at 0) and
+  `xscale`, so a fixed axis range no longer needs an own figure and
+  `save_figure`. It also takes a sequence of data frames: the `x` / `y` or
+  `pairs` selection applies to each frame, each frame keeps its own x values and
+  length, and `labels` name the series in frame order. With several frames the
+  default y axis label names a repeated y column once. Defaults keep the
+  current output (#626).
+- `@flow(prepare=fn)` declares run-level input preparation,
+  `fn(inputdata: Path, config: RdeConfig) -> None`, that the Runner calls after
+  config load and before mode resolution, so `workflows.run(flow=...)` and
+  `rdetoolkit run <pkg.mod:flow>` (including `--validate-only`) resolve the mode and
+  tiles from the prepared inputs. It is recorded as `prepare.started` /
+  `prepare.completed` / `prepare.failed` events. `--validate-only` runs it
+  too, so the pre-flight checks the same mode as the real run and may modify
+  `inputdata/`; the preparation must be idempotent. A failure is published
+  like a body failure: the flow's `error_code` / `error_message` declaration
+  maps it, a `StructuredError` keeps its own code, and otherwise an ordinary
+  exception fails the run with 3001 (naming the preparation) before any tile.
+  Only the flow the Runner executes is prepared, and direct calls of the flow
+  do not run it (#573).
+
+### Changed
+
+- `rdetoolkit init` generates `template/tasksupport/` instead of
+  `templates/tasksupport/`, matching the singular `container/` and `input/`
+  directories. In a directory that already has `templates/tasksupport/`, init
+  creates no `template/`, prints a warning, and points to
+  `rdetoolkit migrate apply`. `validate all` reads `templates/tasksupport/`
+  when `template/tasksupport/` does not exist and reports a
+  `deprecated_layout` warning, which fails only under `--strict`.
+  `migrate check` reports the old directory, and `migrate apply` previews the
+  rename and writes `template/` into its output directory; it exits 3 when
+  both directories exist (#615).
 
 ### Fixed
 

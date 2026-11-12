@@ -65,7 +65,7 @@ container
 └── Dockerfile
 ```
 
-`init` also creates `input/` (`inputdata/`, `invoice/invoice.json`) and `templates/tasksupport/` next to `container/`.
+`init` also creates `input/` (`inputdata/`, `invoice/invoice.json`) and `template/tasksupport/` next to `container/`.
 
 Description of each file:
 
@@ -94,17 +94,17 @@ The configuration file must define template paths under `[tool.rdetoolkit.init]`
 
 ```toml
 [tool.rdetoolkit.init]
-entry_point = "templates/main.py"
-modules = "templates/modules"
-tasksupport = "templates/tasksupport"
-inputdata = "templates/inputdata"
+entry_point = "tpl/main.py"
+modules = "tpl/modules"
+tasksupport = "tpl/tasksupport"
+inputdata = "tpl/inputdata"
 ```
 
 Key meaning:
 
 - `entry_point`: File copied to `container/main.py`.
 - `modules`: File or directory copied under `container/modules/`.
-- `tasksupport`: File or directory mirrored to both `container/data/tasksupport/` and `templates/tasksupport/`.
+- `tasksupport`: File or directory mirrored to both `container/data/tasksupport/` and `template/tasksupport/`.
 - `inputdata`: Directory copied into `container/data/inputdata/` and `input/inputdata/`.
 
 Relative paths are resolved from the configuration file location, so template repositories stay portable.
@@ -117,7 +117,7 @@ If you prefer not to store personal paths in config files, pass PATH options dir
 | --------------- | ------------------------------------------------------------------------------------------- |
 | `--entry-point` | Copied as `container/main.py` (file only)                                                   |
 | `--modules`     | Copied under `container/modules/` (file or directory)                                       |
-| `--tasksupport` | Copied to both `container/data/tasksupport/` and `templates/tasksupport/` (file or directory) |
+| `--tasksupport` | Copied to both `container/data/tasksupport/` and `template/tasksupport/` (file or directory) |
 | `--inputdata`   | Copied to `container/data/inputdata/` and `input/inputdata/` (directory recommended)        |
 | `--other` (repeatable) | Copies arbitrary files or directories under `container/`                             |
 
@@ -146,7 +146,7 @@ Created: /private/tmp/rdt-init-check/container/Dockerfile
 Populated /private/tmp/rdt-init-check/container/modules from template directory: /private/tmp/rdt-init-check/tpl/modules
 Created: /private/tmp/rdt-init-check/container/data/invoice/invoice.json
 Populated /private/tmp/rdt-init-check/container/data/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
-Populated /private/tmp/rdt-init-check/templates/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
+Populated /private/tmp/rdt-init-check/template/tasksupport from template directory: /private/tmp/rdt-init-check/tpl/tasksupport
 Populated /private/tmp/rdt-init-check/container/data/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
 Populated /private/tmp/rdt-init-check/input/inputdata from template directory: /private/tmp/rdt-init-check/tpl/inputdata
 Copied template file /private/tmp/rdt-init-check/tpl/extra.txt into /private/tmp/rdt-init-check/container
