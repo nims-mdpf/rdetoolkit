@@ -89,6 +89,7 @@ system:
   
 multidata_tile:
   ignore_errors: true  # エラー時の処理継続
+  order: name          # タイルの順序: name(ファイル名順、既定) / filesystem(ディレクトリの列挙順)
 ```
 
 #### RDEフォーマットモード

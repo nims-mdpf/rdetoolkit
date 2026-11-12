@@ -1,4 +1,8 @@
+from typing import Literal
+
 from pydantic import BaseModel
+
+MultiDataTileOrder = Literal["name", "filesystem"]
 
 class SystemSettings(BaseModel):
     extended_mode: str | None
@@ -10,7 +14,8 @@ class SystemSettings(BaseModel):
     def validate_extended_mode(cls, v: str | None) -> str | None: ...
 
 class MultiDataTileSettings(BaseModel):
-    ignore_errors: bool
+    ignore_errors: bool = ...
+    order: MultiDataTileOrder = ...
 
 class SmartTableSettings(BaseModel):
     save_table_file: bool

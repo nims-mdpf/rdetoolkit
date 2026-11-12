@@ -56,5 +56,6 @@ def selected_input_checker(src_paths: RdeInputDirPaths, unpacked_dir_path: Path,
     if mode == "rdeformat":
         return RDEFormatChecker(unpacked_dir_path)
     if mode == "multidatatile":
-        return MultiFileChecker(unpacked_dir_path)
+        order = config.multidata_tile.order if config and config.multidata_tile else "name"
+        return MultiFileChecker(unpacked_dir_path, order=order)
     return InvoiceChecker(unpacked_dir_path)

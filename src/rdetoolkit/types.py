@@ -364,6 +364,20 @@ class V2SmartTableSettings(BaseModel):
     save_table_file: bool = False
 
 
+class V2MultiDataTileSettings(BaseModel):
+    """Strict v2 MultiDataTile settings (issue #597).
+
+    ``order`` selects how tiles are numbered: ``name`` (default) sorts the
+    input files by name, as the v1 framework did; ``filesystem`` keeps the
+    order ``Path.glob("*")`` lists ``inputdata/`` in. The error policy is not
+    here: v1's ``multidata_tile.ignore_errors`` is ``execution.on_iteration_error``.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    order: Literal["name", "filesystem"] = "name"
+
+
 class RdeConfig(BaseModel):
     """Strict v2 Runner configuration.
 
@@ -377,6 +391,7 @@ class RdeConfig(BaseModel):
     provenance: V2RecordingSettings = Field(default_factory=V2RecordingSettings)
     custom: dict[str, Any] = Field(default_factory=dict)
     smarttable: V2SmartTableSettings = Field(default_factory=V2SmartTableSettings)
+    multidata_tile: V2MultiDataTileSettings = Field(default_factory=V2MultiDataTileSettings)
 
 
 def _build_output_context(

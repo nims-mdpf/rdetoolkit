@@ -2,8 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+- `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
+  MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
+  configuration. `filesystem` keeps the order `Path.glob("*")` lists
+  `inputdata/` in, so a rewrite of a v1 program that listed its inputs itself
+  can reproduce that program's `data/` / `divided/NNNN` layout. The default
+  keeps the name order and the v1 configuration dump unchanged. Adding the
+  section to `RdeConfig` changes `RunReport.config_digest` for every
+  configuration (#597).
+
 ### Fixed
 
+- The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
+  `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
+  defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check
+  for consumers as they already ran (#597).
 - `rdetoolkit nodes lint` no longer reports a node parameter annotated as
   `typing.Any` (bare, qualified or as a string) as `Missing type annotation`;
   only parameters with no annotation are reported. The NodeSpec

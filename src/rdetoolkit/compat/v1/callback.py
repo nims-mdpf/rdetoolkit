@@ -419,6 +419,7 @@ def to_legacy_config(config: RdeConfig | None, *, legacy_config: Config | None =
         ),
         multidata_tile=MultiDataTileSettings(
             ignore_errors=config.execution.on_iteration_error == "continue",
+            order=config.multidata_tile.order,
         ),
         smarttable=SmartTableSettings(save_table_file=config.smarttable.save_table_file),
         **extras,
