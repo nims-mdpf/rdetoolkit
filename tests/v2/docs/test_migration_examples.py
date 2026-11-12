@@ -10,6 +10,7 @@ migration commands    check and dry-run apply commands accepted by CLI       TC-
 ``as_node`` bridge    legacy handler method  callable node preserves result TC-DOC-MIG-EP-002
 custom field cast     label-keyed row         keys resolved, values cast     GA603-DOC
 default_value.csv     defaults + measured     measured wins in build_meta    629-DOC
+ProcessingError       missing input file      3007 with cause and guidance   634-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -130,6 +131,22 @@ def test_read_key_values_example_executes__629_doc(doc: Path, tmp_path: Path) ->
 
 
 @DOCS
+def test_processing_error_example_executes__634_doc(doc: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """634-DOC: the documented ProcessingError replaces a missing-file exception."""
+    from rdetoolkit.exceptions import ProcessingError
+
+    # Given: a working directory without the documented input file
+    monkeypatch.chdir(tmp_path)
+    namespace: dict[str, object] = {}
+    # When: executing the documented example
+    exec(_examples(doc)["processing-error"][1], namespace)  # noqa: S102
+    # Then: the caught error is the 3007 ProcessingError with the documented guidance
+    caught = namespace["caught"]
+    assert isinstance(caught, ProcessingError)
+    assert caught.remediation == "Check that the file is in inputdata."
+
+
+@DOCS
 def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None:
     """TC-DOC-MIG-BV-001: no unmarked migration-guide code fence can bypass execution."""
     # Given: all fenced examples in the migration guide
@@ -137,7 +154,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "read-key-values"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "read-key-values", "processing-error"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 

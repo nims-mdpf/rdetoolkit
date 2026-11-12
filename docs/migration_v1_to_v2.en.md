@@ -321,6 +321,47 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   If you do not need the `Error: ` prefix, `error_code=1, error_message="m"`
   and, without arguments, `error_code=1` alone keep the same code (the
   message is then `m` or the exception's text respectively).
+- **`catch_exception_with_message` is deprecated.** Applying it emits a
+  `DeprecationWarning`; its behavior is unchanged and it is not removed in v2.
+  When the `job.failed` `ErrorCode` must stay at its v1 value, rewrite it with
+  the table above. Otherwise raise `ProcessingError` for failures the user
+  should see and drop the decorator. You choose no error code: the Runner
+  writes it to `RunReport`, the iteration log and `job.failed` as 3007
+  `ProcessingFailed`, with `Remediation: <guidance>` appended to the message.
+  Without `remediation` the catalog default is used. `raise ... from exc` keeps
+  the original exception. Ordinary exceptions such as `ValueError` stay 3001.
+  The example below replaces the `FileNotFoundError` of a missing file with a
+  `ProcessingError`.
+
+<!-- test: processing-error -->
+```python
+from pathlib import Path
+
+from rdetoolkit.exceptions import ProcessingError
+
+
+def read_sample(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+
+
+try:
+    read_sample(Path("missing.csv"))
+except ProcessingError as error:
+    caught = error
+
+assert caught.code == 3007
+assert isinstance(caught.__cause__, FileNotFoundError)
+```
+
+  Neither the flow's `error_code` / `error_message` nor
+  `catch_exception_with_message` remaps a `ProcessingError`; it keeps 3007 and
+  its remediation.
 - `InputPaths` injected into a flow uses paths relative to the working directory,
   like v1 input paths. Path-based user error messages therefore keep the v1
   spelling. The Runner still resolves the data root once for its internal work.

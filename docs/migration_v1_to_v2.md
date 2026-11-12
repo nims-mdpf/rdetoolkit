@@ -297,6 +297,45 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   `Error: ` 接頭辞が不要なら `error_code=1, error_message="m"`、
   引数なしの場合は `error_code=1` だけで構いません(コードは同じで、メッセージは
   それぞれ `m`、例外の文字列になります)。
+- **`catch_exception_with_message` は非推奨です。** デコレータを付けた時点で
+  `DeprecationWarning` が出ます。動作は変わらず、v2 では削除しません。
+  `job.failed` の `ErrorCode` を v1 と同じ値に保つ必要があるときは上の表で書き換えます。
+  そうでなければ、利用者に伝えたい失敗を `ProcessingError` で送出し、
+  デコレータを外してください。エラーコードは指定しません。Runner が 3007
+  `ProcessingFailed` として `RunReport`・反復ログ・`job.failed` に書き込み、
+  メッセージの後ろに `Remediation: <対処法>` を付けます。`remediation` を省略すると
+  カタログの既定文になります。`raise ... from exc` で元の例外を残せます。
+  `ValueError` などの通常の例外はこれまでどおり 3001 です。次の例は、ファイルが
+  見つからないときの `FileNotFoundError` を `ProcessingError` に置き換えます。
+
+<!-- test: processing-error -->
+```python
+from pathlib import Path
+
+from rdetoolkit.exceptions import ProcessingError
+
+
+def read_sample(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+
+
+try:
+    read_sample(Path("missing.csv"))
+except ProcessingError as error:
+    caught = error
+
+assert caught.code == 3007
+assert isinstance(caught.__cause__, FileNotFoundError)
+```
+
+  `ProcessingError` は flow の `error_code` / `error_message` でも
+  `catch_exception_with_message` でも変換されず、3007 と対処法を保ちます。
 - flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
   入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
   Runner 内部では、開始時に一度確定した data root を引き続き使います。

@@ -100,3 +100,13 @@ class RdeInternalError(RdeError): ...
 from rdetoolkit.config import get_traceback_settings_from_env as get_traceback_settings_from_env
 from rdetoolkit.rde2util import StorageDir as StorageDir
 from rdetoolkit.traceback.formatter import CompactTraceFormatter as CompactTraceFormatter
+
+class ProcessingError(RdeExecutionError):
+    code: int
+    name: str
+    message: str
+    remediation: str
+    def __init__(self, message: str, *, remediation: str | None = None) -> None: ...
+    def to_dict(self) -> dict[str, _Any]: ...
+
+def _catch_exception_with_message(*, error_message: str | None = None, error_code: int | None = None, eobj: Any | None = None, verbose: bool = False) -> Callable: ...
