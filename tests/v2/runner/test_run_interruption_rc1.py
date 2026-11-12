@@ -510,6 +510,17 @@ _PREDICATE_USERS = (
     "rdetoolkit.runner.lifecycle",
     "rdetoolkit.modes.rdeformat",
     "rdetoolkit.modes.smarttable",
+    # v1 utilities that translated or swallowed it (issue #635).
+    "rdetoolkit.fileops",
+    "rdetoolkit.img2thumb",
+    "rdetoolkit.impl.compressed_controller",
+    "rdetoolkit.invoice_generator",
+    "rdetoolkit.invoicefile._excelinvoice",
+    "rdetoolkit.invoicefile._smarttable",
+    "rdetoolkit.models.invoice",
+    "rdetoolkit.rde2util",
+    "rdetoolkit.result",
+    "rdetoolkit.workflows",
 )
 
 _SRC_ROOT = Path(interrupt_module.__file__).parent

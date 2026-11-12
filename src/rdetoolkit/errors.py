@@ -45,6 +45,12 @@ def catch_exception_with_message(
             try:
                 return func(*args, **kwargs)
             except Exception as e:
+                # The run interruption (3004) keeps its own code (#635); deferred
+                # import because rdetoolkit._interrupt imports this module.
+                from rdetoolkit._interrupt import is_run_interrupted  # noqa: PLC0415
+
+                if is_run_interrupted(e):
+                    raise
                 _emsg = e.emsg if hasattr(e, "emsg") else error_message
                 _ecode = e.ecode if hasattr(e, "ecode") else error_code
                 _eobj = e.eobj if hasattr(e, "eobj") else eobj

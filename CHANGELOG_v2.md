@@ -55,6 +55,19 @@
 
 ### Fixed
 
+- A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
+  with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
+  exception and translated it (`StructuredError`, `ValueError`,
+  `DataRetrievalError`, a `Failure` value) or logged and skipped it, so the
+  interruption was reported with another code, or the thumbnail stage
+  tolerated it and the run succeeded: `SmartTableFile.read_table` /
+  `generate_row_csvs_with_file_mapping`, `fileops.readf_json`,
+  `SystemFilesCleaner.clean_directory`, `catch_exception_with_message` (and so
+  `img2thumb.copy_images_to_thumbnail`), `img2thumb.resize_image`,
+  `ExcelInvoiceFile.save`, `invoice_generator.generate_invoice_from_schema`,
+  `Meta`, `SpecificTermRegistry.search`, `try_result` and
+  `workflows.check_files_result`. Only the interruption passes through;
+  every other exception keeps its v1 translation and `__cause__` (#635).
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
   defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check
