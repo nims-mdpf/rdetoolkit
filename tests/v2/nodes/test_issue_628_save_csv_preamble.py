@@ -24,8 +24,6 @@ BV table
 
 from __future__ import annotations
 
-import csv
-import io
 import os
 from collections.abc import Sequence
 from pathlib import Path
@@ -61,7 +59,7 @@ def test_rows_use_table_dialect__i628_ep_002(tmp_path: Path) -> None:
 
 def test_rows_are_quoted_like_table__i628_ep_003(tmp_path: Path) -> None:
     """I628-EP-003: fields with a comma or quote are quoted as ``to_csv`` would."""
-    rows = [["#title", 'a,"b"'], ["#n", 3, 1.5, None]]
+    rows: list[list[object]] = [["#title", 'a,"b"'], ["#n", 3, 1.5, None]]
     path = save_csv(_frame(), make_output_context(tmp_path), "data.csv", preamble=rows)
     first_two = path.read_text(encoding="utf-8").split(NL)[:2]
     assert first_two == ['#title,"a,""b"""', "#n,3,1.5,"]
@@ -91,7 +89,12 @@ def test_table_options_still_apply__i628_ep_006(tmp_path: Path) -> None:
 
 
 def test_matches_v1_aes_template__i628_ep_007(tmp_path: Path) -> None:
-    """I628-EP-007: reproduces the v1 template's ``csv.writer`` output on this platform."""
+    """I628-EP-007: writes the v1 AES template layout quoted in #628.
+
+    The expected text is a literal, not rebuilt with ``csv.writer``; only the
+    line ending follows this platform (the v1 template's fixed LF is a
+    #599 ``lineterminator=`` concern).
+    """
     frame = _frame()
     header = [
         ["#title", "Survey"],
@@ -102,14 +105,22 @@ def test_matches_v1_aes_template__i628_ep_007(tmp_path: Path) -> None:
         ["#acq_date", "2023/07/19 10:11:12"],
         ["##comment", "AES(JEOL)spectrum"],
     ]
-    buffer = io.StringIO()
-    writer = csv.writer(buffer, lineterminator=NL)
-    writer.writerows(header)
-    writer.writerow([])
-    writer.writerow(list(frame.columns))
-    writer.writerows(frame.itertuples(index=False))
+    expected = [
+        "#title,Survey",
+        "#dimension,x,y",
+        "#x,Kinetic Energy,eV",
+        "#y,Intensity,counts",
+        "#legend,Survey",
+        "#acq_date,2023/07/19 10:11:12",
+        "##comment,AES(JEOL)spectrum",
+        "",
+        "Kinetic Energy,Intensity",
+        "100.0,1234",
+        "101.5,1300",
+        "",
+    ]
     path = save_csv(frame, make_output_context(tmp_path), "data.csv", preamble=header, blank_line_after_preamble=True)
-    assert path.read_text(encoding="utf-8") == buffer.getvalue()
+    assert path.read_bytes() == NL.join(expected).encode("utf-8")
 
 
 def test_graph_parser_reads_written_file__i628_ep_008(tmp_path: Path) -> None:
@@ -127,7 +138,7 @@ def test_str_row_is_rejected__i628_neg_001(tmp_path: Path) -> None:
     """I628-NEG-001: a row given as one string is rejected rather than split into characters."""
     out = make_output_context(tmp_path)
     with pytest.raises(TypeError, match="preamble"):
-        save_csv(_frame(), out, "data.csv", preamble=["#title,AES"])  # type: ignore[list-item]
+        save_csv(_frame(), out, "data.csv", preamble=["#title,AES"])  # str is a Sequence, so only the runtime check rejects it
     assert not (out.struct / "data.csv").exists()
 
 
