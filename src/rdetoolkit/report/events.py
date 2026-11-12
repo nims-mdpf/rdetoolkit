@@ -460,7 +460,7 @@ def _best_effort_stderr(message: str) -> None:
 
     No explicit flush: ``sys.stderr`` is line-buffered (Python 3.9+), and
     forcing one would reorder the notice ahead of a command's already-echoed
-    stdout in captured output (``rdetoolkit run --flow`` prints its RunReport
+    stdout in captured output (``rdetoolkit run pkg.mod:flow`` prints its RunReport
     JSON first, and callers parse that leading document).
 
     The run interruption (3004) raised by the SIGTERM handler while the

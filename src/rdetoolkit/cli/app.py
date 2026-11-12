@@ -1,4 +1,12 @@
-"""Typer CLI application scaffold for rdetoolkit."""
+"""Typer CLI application for rdetoolkit.
+
+Commands follow ``rdetoolkit <noun> <verb>`` and are grouped in the root
+``--help`` by workflow phase (issue #616). Every command's help states its
+inputs, outputs, examples, and exit codes; see :mod:`rdetoolkit.cli._help`.
+The v1 command names (``gen-config``, ``gen-invoice``, ``make-excelinvoice``,
+``csv2graph``, ``artifact``) still work in v2.0.x: they run the same code as
+their replacements and print a deprecation warning first.
+"""
 
 # Avoid postponed evaluation so Typer can read Annotated metadata (minimum supported: Python 3.10).
 
@@ -10,54 +18,122 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
-from typing import Annotated, cast
+from typing import Annotated, Any, cast
 
+import click
 import typer
+from typer.core import TyperCommand, TyperGroup
 
+from rdetoolkit.cli._help import (
+    EXIT_CLICK_USAGE,
+    EXIT_OK,
+    PANEL_DEPRECATED,
+    PANEL_GENERATE,
+    PANEL_INFO,
+    PANEL_INSPECT,
+    PANEL_MIGRATE,
+    PANEL_PACKAGE,
+    PANEL_RUN,
+    PANEL_SCAFFOLD,
+    PANEL_VALIDATE,
+    CommandHelp,
+    deprecation_message,
+)
 from rdetoolkit.cli._v2_common import import_project_module
+# DEFAULT_EXCEL_INVOICE_TEMPLATE and validate_json_file are re-exported: they
+# were importable from this module before the ``new`` group existed.
+from rdetoolkit.cli.new_cmd import (  # noqa: F401
+    DEFAULT_EXCEL_INVOICE_TEMPLATE,
+    EXCELINVOICE_HELP,
+    INVOICE_HELP,
+    generate_config,
+    new_excelinvoice,
+    new_invoice,
+    validate_json_file,
+)
+
+ROOT_HELP = CommandHelp(
+    summary="Build, run, and package RDE (Research Data Express) structured-processing programs.",
+    details=(
+        "Commands are `rdetoolkit <noun> <verb>` and are grouped below by workflow phase. "
+        "A typical project runs `init` -> `new config` -> `validate all` -> `run` -> `package`. "
+        "Every command's `--help` lists its inputs, outputs, examples, and exit codes."
+    ),
+    examples=(
+        "rdetoolkit init",
+        "rdetoolkit validate all",
+        "rdetoolkit run modules.processing:pipeline",
+        "rdetoolkit report show data/logs/run_report_<id>.json",
+        "rdetoolkit package -s container -o rde_submission.zip",
+    ),
+    exit_codes=(
+        EXIT_OK,
+        (1, "the command or the run failed"),
+        (2, "`run`: partial (some tiles failed); other commands: invalid command line or, for `validate`, a usage error"),
+        (3, "invalid input to a v2 command (bad reference, unreadable file, lint violations)"),
+    ),
+    see_also=("rdetoolkit agent-guide",),
+)
+
+#: Root command order: the root ``--help`` prints panels in the order their
+#: first command appears, so this order is the workflow order.
+_COMMAND_ORDER = (
+    "init",
+    "new",
+    "plot",
+    "validate",
+    "run",
+    "report",
+    "nodes",
+    "flows",
+    "skeletons",
+    "formats",
+    "package",
+    "repro",
+    "migrate",
+    "agent-guide",
+    "version",
+)
+
+
+class _WorkflowOrderedGroup(TyperGroup):
+    """Root group that lists commands in :data:`_COMMAND_ORDER`, then the rest."""
+
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        names = super().list_commands(ctx)
+        rank = {name: index for index, name in enumerate(_COMMAND_ORDER)}
+        return sorted(names, key=lambda name: rank.get(name, len(rank)))
+
 
 app = typer.Typer(
     name="rdetoolkit",
-    help="CLI generates template projects for RDE structured programs.",
+    cls=_WorkflowOrderedGroup,
+    help=ROOT_HELP.render(),
     no_args_is_help=True,
+    rich_markup_mode="markdown",
 )
-
-DEFAULT_EXCEL_INVOICE_TEMPLATE = "template_excel_invoice.xlsx"
 
 #: Exit status for a run whose report is ``failed`` (Design §9.3).
 _FAILED_EXIT_CODE = 1
 
 
-def validate_json_file(value: Path) -> Path:
-    """Validate that the provided file is a properly formatted JSON file.
+class _DeprecatedCommand(TyperCommand):
+    """A v1 command name kept as an alias: warns on stderr, then runs normally.
 
-    This function performs two validations:
-    1. Checks if the file has a .json extension
-    2. Attempts to parse the file content as JSON
-
-    Args:
-        value: The path to the file to validate
-
-    Returns:
-        The validated file path
-
-    Raises:
-        typer.BadParameter: If the file is not a .json file or contains invalid JSON
+    Typer passes no per-command payload to a command class, so
+    :func:`_deprecated` makes one subclass per replacement.
     """
-    import json
 
-    if value.suffix != ".json":
-        msg = "The schema file must be a JSON file."
-        raise typer.BadParameter(msg)
+    replacement: str = ""
 
-    try:
-        with open(value) as f:
-            json.load(f)
-    except json.JSONDecodeError as e:
-        msg = "The schema file must be a valid JSON file."
-        raise typer.BadParameter(msg) from e
+    def invoke(self, ctx: click.Context) -> Any:
+        typer.echo(deprecation_message(f"rdetoolkit {self.name}", self.replacement), err=True)
+        return super().invoke(ctx)
 
-    return value
+
+def _deprecated(replacement: str) -> type[TyperCommand]:
+    """Return a command class whose invocation warns that ``replacement`` replaces it."""
+    return type("DeprecatedCommand", (_DeprecatedCommand,), {"replacement": replacement})
 
 
 def parse_column(col: str) -> int | str:
@@ -68,15 +144,16 @@ def parse_column(col: str) -> int | str:
         return col
 
 
+_LEGACY_TARGET_FORMAT = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
+
+
 def _parse_run_target(target: str) -> tuple[str, str]:
     expected_parts = 2
     if "::" not in target:
-        emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
-        raise typer.BadParameter(emsg)
+        raise typer.BadParameter(_LEGACY_TARGET_FORMAT)
     parts = target.split("::")
     if len(parts) != expected_parts or not parts[0] or not parts[1]:
-        emsg = "TARGET must be 'module_or_file::attr' (e.g., process::main)."
-        raise typer.BadParameter(emsg)
+        raise typer.BadParameter(_LEGACY_TARGET_FORMAT)
     return parts[0], parts[1]
 
 
@@ -151,7 +228,35 @@ def _load_target_function(target: str) -> Callable[..., object]:
     return _validate_target_function(func)
 
 
-@app.command()
+# --------------------------------------------------------------------------
+# Scaffold
+# --------------------------------------------------------------------------
+
+INIT_HELP = CommandHelp(
+    summary="Create the project scaffold for an RDE structured program in the current directory.",
+    inputs=(
+        "`--template PATH`: a `pyproject.toml` or `rdeconfig.yaml` with a `[tool.rdetoolkit.init]` / `init:` "
+        "section, or a directory that holds one. It names template files to copy.",
+        "`--entry-point`, `--modules`, `--tasksupport`, `--inputdata`, `--other`: the same template paths given "
+        "directly; they override the template config.",
+    ),
+    outputs=(
+        "Creates `container/` (`main.py`, `modules/`, `requirements.txt`, `Dockerfile`, and `data/` with "
+        "`inputdata/`, `invoice/invoice.json`, `tasksupport/{invoice.schema.json,metadata-def.json}`), "
+        "`input/` (`inputdata/`, `invoice/invoice.json`), and `templates/tasksupport/`.",
+        "Existing files are kept (printed as `Skip: ... already exists.`); nothing is overwritten.",
+    ),
+    examples=(
+        "rdetoolkit init",
+        "rdetoolkit init --template pyproject.toml",
+        "rdetoolkit init --entry-point my_main.py --modules my_modules/",
+    ),
+    exit_codes=(EXIT_OK, (1, "a file could not be created or the template config is invalid"), EXIT_CLICK_USAGE),
+    see_also=("rdetoolkit new config", "rdetoolkit validate all", "rdetoolkit new processing"),
+)
+
+
+@app.command("init", help=INIT_HELP.render(), short_help=INIT_HELP.summary, rich_help_panel=PANEL_SCAFFOLD)
 def init(
     template: Annotated[
         Path | None,
@@ -164,81 +269,28 @@ def init(
             resolve_path=True,
         ),
     ] = None,
-    processing_template: Annotated[
-        str | None,
-        typer.Option("--processing-template", help="Registered ProcessingTemplate skeleton name."),
-    ] = None,
-    template_modules: Annotated[
-        list[str] | None,
-        typer.Option("--module", help="Import a template provider module; repeatable."),
-    ] = None,
-    force: Annotated[
-        bool,
-        typer.Option("--force", help="Overwrite existing processing-template output files."),
-    ] = False,
     entry_point: Annotated[
         Path | None,
-        typer.Option(
-            "--entry-point",
-            help="Template file copied to container/main.py.",
-            exists=True,
-            file_okay=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
+        typer.Option("--entry-point", help="Template file copied to container/main.py.", exists=True, file_okay=True, dir_okay=False, resolve_path=True),
     ] = None,
     modules: Annotated[
         Path | None,
-        typer.Option(
-            "--modules",
-            help="Template file or directory copied under container/modules/.",
-            exists=True,
-            file_okay=True,
-            dir_okay=True,
-            resolve_path=True,
-        ),
+        typer.Option("--modules", help="Template file or directory copied under container/modules/.", exists=True, file_okay=True, dir_okay=True, resolve_path=True),
     ] = None,
     tasksupport: Annotated[
         Path | None,
-        typer.Option(
-            "--tasksupport",
-            help="Template file or directory copied under tasksupport locations.",
-            exists=True,
-            file_okay=True,
-            dir_okay=True,
-            resolve_path=True,
-        ),
+        typer.Option("--tasksupport", help="Template file or directory copied under tasksupport locations.", exists=True, file_okay=True, dir_okay=True, resolve_path=True),
     ] = None,
     inputdata: Annotated[
         Path | None,
-        typer.Option(
-            "--inputdata",
-            help="Template directory copied under inputdata locations.",
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            resolve_path=True,
-        ),
+        typer.Option("--inputdata", help="Template directory copied under inputdata locations.", exists=True, file_okay=False, dir_okay=True, resolve_path=True),
     ] = None,
     other: Annotated[
         list[Path] | None,
-        typer.Option(
-            "--other",
-            help="Additional templates copied under container/ (repeatable).",
-            exists=True,
-            file_okay=True,
-            dir_okay=True,
-            resolve_path=True,
-        ),
+        typer.Option("--other", help="Additional templates copied under container/ (repeatable).", exists=True, file_okay=True, dir_okay=True, resolve_path=True),
     ] = None,
 ) -> None:
     """Output files needed to build RDE structured programs."""
-    if processing_template is not None:
-        from rdetoolkit.cli.templates_cmd import generate_processing_template
-
-        generate_processing_template(processing_template, template_modules or [], Path.cwd(), force=force)
-        return
-
     # Lazy import to minimize startup cost
     from rdetoolkit.cmd.command import InitCommand, InitTemplateConfig
 
@@ -256,394 +308,53 @@ def init(
     cmd.invoke()
 
 
-@app.command()
-def version() -> None:
-    """Command to display version."""
-    # Lazy import to minimize startup cost
-    from rdetoolkit.cmd.command import VersionCommand
-
-    cmd = VersionCommand()
-    cmd.invoke()
+# --------------------------------------------------------------------------
+# Generate: ``new`` group and ``plot``
+# --------------------------------------------------------------------------
 
 
-@app.command()
-def run(
-    target: Annotated[str | None, typer.Argument(metavar="<module_or_file::attr>")] = None,
-    flow: Annotated[str | None, typer.Option("--flow", help="Dotted v2 flow reference (pkg.mod:callable).")] = None,
-    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config and mode without calling the flow.")] = False,
-    config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides.")] = None,
-) -> None:
-    """Run rdetoolkit workflows with a user-defined dataset function."""
-    from rdetoolkit.cli.run_cmd import legacy_exit_code, run_flow, usage_error
+def _register_new_commands() -> typer.Typer:
+    from rdetoolkit.cli.new_cmd import app as new_app_local
 
-    if (target is None) == (flow is None):
-        usage_error("Provide exactly one of TARGET or --flow")
-    if validate_only and flow is None:
-        usage_error("--validate-only requires --flow")
-    if config is not None and flow is None:
-        usage_error("--config requires --flow")
-    if flow is not None:
-        run_flow(flow, validate_only_requested=validate_only, config_path=config)
-        return
-    func = _load_target_function(cast(str, target))
-    from rdetoolkit import cli as cli_module
-
-    try:
-        # Looked up on the module object at call time, never bound at import
-        # time: the v2 CLI tests spy on ``rdetoolkit.workflows.run`` itself.
-        workflow_run = cast(Callable[..., str], cli_module.workflows.run)
-        result = workflow_run(custom_dataset_function=func)
-    except SystemExit as exc:
-        # The v1 Python contract for a failed run is ``sys.exit(1)``, and
-        # ``SystemExit`` is a BaseException -- it would sail straight through the
-        # handler below and surface as a traceback. Design §9.3 wants one
-        # uniform CLI code for every ``run`` form, so it is mapped here
-        # (Session J2 ruling #3).
-        raise typer.Exit(code=_FAILED_EXIT_CODE if exc.code else 0) from exc
-    except Exception as exc:
-        typer.echo("An error occurred while running the workflow.", err=True)
-        raise typer.Exit(code=_FAILED_EXIT_CODE) from exc
-    if result is not None:
-        typer.echo(result)
-    # A partial run returns normally from the v1 API (process status 0 by the
-    # v1 contract) but is exit code 2 for every ``run`` CLI form.
-    exit_code = legacy_exit_code(result)
-    if exit_code:
-        raise typer.Exit(code=exit_code)
+    app.add_typer(new_app_local, name="new", rich_help_panel=PANEL_GENERATE)
+    return new_app_local
 
 
-@app.command("gen-config")
-def gen_config(
-    output_dir: Annotated[
-        Path | None,
-        typer.Argument(
-            help="Target directory for rdeconfig.yaml",
-            exists=False,
-            file_okay=False,
-            resolve_path=True,
-        ),
-    ] = None,
-    template_name: Annotated[
-        str,
-        typer.Option(
-            "--template",
-            help="Template style for rdeconfig.yaml.",
-            case_sensitive=False,
-        ),
-    ] = "minimal",
-    overwrite: Annotated[
-        bool,
-        typer.Option(
-            "--overwrite",
-            help="Allow replacing an existing rdeconfig.yaml.",
-        ),
-    ] = False,
-    lang: Annotated[
-        str,
-        typer.Option(
-            "--lang",
-            help="Prompt language (interactive template only).",
-            case_sensitive=False,
-        ),
-    ] = "en",
-) -> None:
-    """Generate an rdeconfig.yaml template in the target directory."""
-    # Lazy imports
-    from typing import Literal, cast
-    import typer
-    from rdetoolkit.cmd.gen_config import (
-        GenerateConfigCommand,
-        TEMPLATE_CHOICES,
-        LANG_CHOICES,
-    )
+new_app = _register_new_commands()
 
-    template_key = template_name.lower()
-    lang_key = lang.lower()
+PLOT_HELP = CommandHelp(
+    summary="Draw graphs (PNG, optionally interactive HTML) from a CSV file.",
+    inputs=(
+        "`CSV_PATH`: a CSV file. `--csv-format standard` (header row, default), `transpose` (series in rows), or `noheader`.",
+        "`--x-col` / `--y-cols`: columns by 0-based index or header name (repeatable); by default the first column is x.",
+    ),
+    outputs=(
+        "Writes one overlay PNG plus one PNG per series into `-o/--output-dir` (default: the CSV's directory). "
+        "`--mode individual` writes per-series PNGs only; a single-series overlay skips per-series PNGs unless `--individual`.",
+        "`--main-image-dir` sends the overlay to another directory; `--html` also writes interactive HTML into "
+        "`--html-output-dir` (default: the CSV's directory). Existing files with the same names are overwritten.",
+    ),
+    examples=(
+        "rdetoolkit plot data/structured/sample.csv",
+        "rdetoolkit plot sample.csv -o data/other_image --title 'XRD pattern'",
+        "rdetoolkit plot sample.csv --x-col 0 --y-cols 1 --y-cols 2 --logy --html",
+    ),
+    exit_codes=(EXIT_OK, (1, "the CSV could not be read or plotted"), EXIT_CLICK_USAGE),
+    see_also=("rdetoolkit run", "rdetoolkit package"),
+)
 
-    # Validate template choice
-    if template_key not in TEMPLATE_CHOICES:
-        msg = f"Invalid template: {template_name}. Choose from {list(TEMPLATE_CHOICES)}"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--template",
-        )
-
-    # Validate lang choice
-    if lang_key not in LANG_CHOICES:
-        msg = f"Invalid language: {lang}. Choose from {list(LANG_CHOICES)}"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--lang",
-        )
-
-    # Validate lang is only used with interactive template
-    if template_key != "interactive" and lang_key != "en":
-        msg = "--lang is only available when --template=interactive"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--lang",
-        )
-
-    target_dir = output_dir if output_dir is not None else Path.cwd()
-
-    command = GenerateConfigCommand(
-        output_dir=target_dir,
-        template=cast(
-            Literal["minimal", "full", "multitile", "rdeformat", "smarttable", "interactive"],
-            template_key,
-        ),
-        overwrite=overwrite,
-        lang=cast(Literal["en", "ja"], lang_key if template_key == "interactive" else "en"),
-    )
-    command.invoke()
+CSV2GRAPH_HELP = CommandHelp(
+    summary="Generate graphs from CSV files (deprecated alias of `rdetoolkit plot`).",
+    details="Runs `rdetoolkit plot` with the same options after a deprecation warning; removed in v2.1.",
+    examples=("rdetoolkit plot data/structured/sample.csv", "rdetoolkit csv2graph data/structured/sample.csv"),
+    exit_codes=PLOT_HELP.exit_codes,
+    see_also=("rdetoolkit plot",),
+)
 
 
-@app.command()
-def artifact(
-    source_dir: Annotated[
-        Path,
-        typer.Option(
-            "--source-dir",
-            "-s",
-            help="The source directory to compress and scan.",
-            exists=True,
-            file_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    output_archive: Annotated[
-        Path | None,
-        typer.Option(
-            "--output-archive",
-            "-o",
-            help="Output archive file (e.g. rde_template.zip).",
-            exists=False,
-        ),
-    ] = None,
-    exclude: Annotated[
-        list[str] | None,
-        typer.Option(
-            "--exclude",
-            "-e",
-            help="Exclude directory names. Defaults to 'venv' and 'site-packages'.",
-        ),
-    ] = None,
-) -> None:
-    """Create an artifact (.zip) for submission to RDE by archiving the specified source directory, excluding specified files or directories."""
-    # Lazy imports
-    from rdetoolkit.cmd.archive import CreateArtifactCommand
-
-    cmd = CreateArtifactCommand(
-        source_dir,
-        output_archive_path=output_archive,
-        exclude_patterns=exclude,
-    )
-    cmd.invoke()
-
-
-@app.command("make-excelinvoice")
-def make_excelinvoice(
-    invoice_schema_json_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to invoice.schema.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    output_path: Annotated[
-        Path | None,
-        typer.Option(
-            "-o",
-            "--output",
-            help=f"Path to ExcelInvoice file output (default: ./{DEFAULT_EXCEL_INVOICE_TEMPLATE})",
-            exists=False,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ] = None,
-    mode: Annotated[
-        str,
-        typer.Option(
-            "-m",
-            "--mode",
-            help="Select the registration mode: 'file' or 'folder' (default: file)",
-            case_sensitive=False,
-        ),
-    ] = "file",
-) -> None:
-    """Generate an Excel invoice based on the provided schema and save it to the specified output path."""
-    # Lazy imports
-    from typing import Literal, cast
-
-    from rdetoolkit.cmd.gen_excelinvoice import GenerateExcelInvoiceCommand
-
-    # Validate JSON file
-    validated_path = validate_json_file(invoice_schema_json_path)
-
-    # Set default output path if not provided
-    final_output_path = output_path if output_path is not None else Path.cwd() / DEFAULT_EXCEL_INVOICE_TEMPLATE
-
-    # Validate mode
-    if mode.lower() not in ["file", "folder"]:
-        msg = "Mode must be 'file' or 'folder'"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--mode",
-        )
-
-    cmd = GenerateExcelInvoiceCommand(
-        validated_path,
-        final_output_path,
-        cast(Literal["file", "folder"], mode.lower()),
-    )
-    cmd.invoke()
-
-
-def _run_generate_invoice(
-    schema_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to invoice.schema.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    output_path: Annotated[
-        Path | None,
-        typer.Option(
-            "-o",
-            "--output",
-            help="Path to output invoice.json file (default: ./invoice.json)",
-            exists=False,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ] = None,
-    fill_defaults: Annotated[
-        bool,
-        typer.Option(
-            "--fill-defaults/--no-fill-defaults",
-            help="Fill type-based default values (default: enabled)",
-        ),
-    ] = True,
-    required_only: Annotated[
-        bool,
-        typer.Option(
-            "--required-only",
-            help="Include only required fields (default: disabled)",
-        ),
-    ] = False,
-    output_format: Annotated[
-        str,
-        typer.Option(
-            "--format",
-            help="Output JSON format: 'pretty' or 'compact' (default: pretty)",
-            case_sensitive=False,
-        ),
-    ] = "pretty",
-) -> None:
-    """Generate invoice.json from invoice.schema.json.
-
-    Creates a valid invoice.json file based on the structure and requirements
-    defined in the provided invoice.schema.json file.
-
-    Examples:
-        rdetoolkit gen-invoice invoice.schema.json
-
-        rdetoolkit gen-invoice invoice.schema.json -o output/invoice.json
-
-        rdetoolkit gen-invoice invoice.schema.json --required-only --no-fill-defaults
-
-        rdetoolkit gen-invoice invoice.schema.json --format compact
-    """
-    # Lazy imports
-    from typing import Literal, cast
-    from rdetoolkit.cmd.gen_invoice import GenerateInvoiceCommand
-
-    # Set default output path
-    final_output_path = output_path if output_path is not None else Path.cwd() / "invoice.json"
-
-    # Validate JSON file
-    validated_schema_path = validate_json_file(schema_path)
-
-    # Validate format
-    format_lower = output_format.lower()
-    if format_lower not in ["pretty", "compact"]:
-        msg = "Format must be 'pretty' or 'compact'"
-        raise typer.BadParameter(msg, param_hint="--format")
-
-    # Create and invoke command
-    cmd = GenerateInvoiceCommand(
-        schema_path=validated_schema_path,
-        output_path=final_output_path,
-        fill_defaults=fill_defaults,
-        required_only=required_only,
-        output_format=cast(Literal["pretty", "compact"], format_lower),
-    )
-    cmd.invoke()
-
-
-@app.command("gen-invoice", help="Generate invoice.json from invoice.schema.json.")
-def gen_invoice(
-    schema_path: Annotated[
-        Path,
-        typer.Argument(
-            help="Path to invoice.schema.json file",
-            exists=True,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ],
-    output_path: Annotated[
-        Path | None,
-        typer.Option(
-            "-o",
-            "--output",
-            help="Path to output invoice.json file (default: ./invoice.json)",
-            exists=False,
-            dir_okay=False,
-            resolve_path=True,
-        ),
-    ] = None,
-    fill_defaults: Annotated[
-        bool,
-        typer.Option(
-            "--fill-defaults/--no-fill-defaults",
-            help="Fill type-based default values (default: enabled)",
-        ),
-    ] = True,
-    required_only: Annotated[
-        bool,
-        typer.Option(
-            "--required-only",
-            help="Include only required fields (default: disabled)",
-        ),
-    ] = False,
-    output_format: Annotated[
-        str,
-        typer.Option(
-            "--format",
-            help="Output JSON format: 'pretty' or 'compact' (default: pretty)",
-            case_sensitive=False,
-        ),
-    ] = "pretty",
-) -> None:
-    """Generate invoice.json from invoice.schema.json."""
-    _run_generate_invoice(
-        schema_path=schema_path,
-        output_path=output_path,
-        fill_defaults=fill_defaults,
-        required_only=required_only,
-        output_format=output_format,
-    )
-
-
-@app.command()
-def csv2graph(
-    csv_path: Annotated[Path, typer.Argument(help="Path to CSV file", exists=False, dir_okay=False)],
+@app.command("plot", help=PLOT_HELP.render(), short_help=PLOT_HELP.summary, rich_help_panel=PANEL_GENERATE)
+def plot(
+    csv_path: Annotated[Path, typer.Argument(metavar="CSV_PATH", help="Path to CSV file", exists=False, dir_okay=False)],
     output_dir: Annotated[Path | None, typer.Option("--output-dir", "-o", help="Output directory for plots")] = None,
     main_image_dir: Annotated[Path | None, typer.Option("--main-image-dir", help="Directory for combined plot outputs")] = None,
     html_output_dir: Annotated[Path | None, typer.Option("--html-output-dir", help="Directory for HTML outputs (defaults to the CSV directory)")] = None,
@@ -786,7 +497,250 @@ def csv2graph(
     cmd.invoke()
 
 
-@app.command()
+# --------------------------------------------------------------------------
+# Validate
+# --------------------------------------------------------------------------
+
+
+def _register_validate_commands() -> typer.Typer:
+    """Register validate subcommands."""
+    from rdetoolkit.cli.validate import app as validate_app_local
+
+    app.add_typer(validate_app_local, name="validate", rich_help_panel=PANEL_VALIDATE)
+    return validate_app_local
+
+
+validate_app = _register_validate_commands()
+
+
+# --------------------------------------------------------------------------
+# Run
+# --------------------------------------------------------------------------
+
+RUN_HELP = CommandHelp(
+    summary="Run structured processing: a v2 flow (`pkg.mod:callable`) or, with `--legacy`, a v1 dataset function.",
+    details=(
+        "Run it from the project root: the Runner reads `data/inputdata`, `data/invoice`, and `data/tasksupport`, "
+        "finds `rdeconfig.yaml`, and processes every tile."
+    ),
+    inputs=(
+        "`REF` (v2): `pkg.mod:callable` naming a flow function or a ProcessingTemplate subclass; the current directory is importable.",
+        "`REF` with `--legacy` (v1): `module_or_file::attr` naming `def f(srcpaths, resource_paths)`, as passed to "
+        "`workflows.run(custom_dataset_function=...)`. The `::` form without `--legacy` still works in v2.0.x; "
+        "`--legacy` becomes required in v2.1.",
+        "`--config FILE` (v2 only): YAML overrides merged over the discovered rdeconfig.yaml.",
+        "`--validate-only` (v2 only): check the config, mode, and invoice without calling the flow.",
+    ),
+    outputs=(
+        "Writes the RDE output tree under `data/` (`structured/`, `meta/`, `raw/`, images, `logs/`, and `job.failed` on failure).",
+        "v2: prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`. "
+        "`--validate-only` prints `Validation succeeded` and writes no outputs. v1: prints the legacy status JSON.",
+    ),
+    examples=(
+        "rdetoolkit run modules.processing:pipeline",
+        "rdetoolkit run modules.processing:pipeline --config overrides.yaml",
+        "rdetoolkit run modules.processing:pipeline --validate-only",
+        "rdetoolkit run --legacy main.py::dataset",
+    ),
+    exit_codes=(
+        (0, "every tile succeeded (or `--validate-only` passed)"),
+        (1, "the run failed (or validation failed)"),
+        (2, "partial: some tiles failed (also used by the parser for an unknown option)"),
+        (3, "invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy`"),
+    ),
+    see_also=("rdetoolkit validate all", "rdetoolkit report show", "rdetoolkit report trace", "rdetoolkit package"),
+)
+
+
+@app.command("run", help=RUN_HELP.render(), short_help=RUN_HELP.summary, rich_help_panel=PANEL_RUN)
+def run(
+    ref: Annotated[
+        str | None,
+        typer.Argument(metavar="REF", help="Flow reference pkg.mod:callable, or module_or_file::attr with --legacy."),
+    ] = None,
+    legacy: Annotated[bool, typer.Option("--legacy", help="Run a v1 dataset function given as module_or_file::attr.")] = False,
+    validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config, mode, and invoice without calling the flow.")] = False,
+    config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides (v2 flows only).")] = None,
+) -> None:
+    """Run a v2 flow or a v1 dataset function."""
+    from rdetoolkit.cli.run_cmd import run_flow, usage_error
+
+    if ref is None:
+        usage_error(
+            "Missing REF.\n"
+            "Remediation: pass a flow reference such as 'rdetoolkit run modules.processing:pipeline', "
+            "or 'rdetoolkit run --legacy main.py::dataset' for a v1 dataset function.",
+        )
+    target = ref
+    if legacy or "::" in target:
+        if validate_only or config is not None:
+            option = "--validate-only" if validate_only else "--config"
+            usage_error(
+                f"{option} applies only to v2 flows, not to the legacy form 'module_or_file::attr'.\n"
+                "Remediation: drop the option, or run a v2 flow with 'rdetoolkit run pkg.mod:callable'.",
+            )
+        _run_legacy(target)
+        return
+    if ":" not in target:
+        usage_error(
+            f"Invalid REF '{target}': a v2 flow is 'pkg.mod:callable'; for a v1 dataset function, "
+            f"{_LEGACY_TARGET_FORMAT}\n"
+            "Remediation: use 'rdetoolkit run modules.processing:pipeline' or 'rdetoolkit run --legacy main.py::dataset'.",
+        )
+    run_flow(target, validate_only_requested=validate_only, config_path=config)
+
+
+def _run_legacy(target: str) -> None:
+    """Run ``workflows.run(custom_dataset_function=...)`` for a ``module_or_file::attr`` target."""
+    from rdetoolkit.cli.run_cmd import legacy_exit_code
+
+    func = _load_target_function(target)
+    from rdetoolkit import cli as cli_module
+
+    try:
+        # Looked up on the module object at call time, never bound at import
+        # time: the v2 CLI tests spy on ``rdetoolkit.workflows.run`` itself.
+        workflow_run = cast(Callable[..., str], cli_module.workflows.run)
+        result = workflow_run(custom_dataset_function=func)
+    except SystemExit as exc:
+        # The v1 Python contract for a failed run is ``sys.exit(1)``, and
+        # ``SystemExit`` is a BaseException -- it would sail straight through the
+        # handler below and surface as a traceback. Design §9.3 wants one
+        # uniform CLI code for every ``run`` form, so it is mapped here
+        # (Session J2 ruling #3).
+        raise typer.Exit(code=_FAILED_EXIT_CODE if exc.code else 0) from exc
+    except Exception as exc:
+        typer.echo("An error occurred while running the workflow.", err=True)
+        raise typer.Exit(code=_FAILED_EXIT_CODE) from exc
+    if result is not None:
+        typer.echo(result)
+    # A partial run returns normally from the v1 API (process status 0 by the
+    # v1 contract) but is exit code 2 for every ``run`` CLI form.
+    exit_code = legacy_exit_code(result)
+    if exit_code:
+        raise typer.Exit(code=exit_code)
+
+
+# --------------------------------------------------------------------------
+# Inspect
+# --------------------------------------------------------------------------
+
+
+def _register_inspect_commands() -> tuple[typer.Typer, typer.Typer, typer.Typer, typer.Typer, typer.Typer]:
+    """Register the run-report and registry inspection groups."""
+    from rdetoolkit.cli.flows_cmd import app as flows_app_local
+    from rdetoolkit.cli.formats_cmd import app as formats_app_local
+    from rdetoolkit.cli.nodes_cmd import app as nodes_app_local
+    from rdetoolkit.cli.report_cmd import app as report_app_local
+    from rdetoolkit.cli.templates_cmd import app as skeletons_app_local
+
+    app.add_typer(report_app_local, name="report", rich_help_panel=PANEL_INSPECT)
+    app.add_typer(nodes_app_local, name="nodes", rich_help_panel=PANEL_INSPECT)
+    app.add_typer(flows_app_local, name="flows", rich_help_panel=PANEL_INSPECT)
+    app.add_typer(skeletons_app_local, name="skeletons", rich_help_panel=PANEL_INSPECT)
+    app.add_typer(formats_app_local, name="formats", rich_help_panel=PANEL_INSPECT)
+    return report_app_local, nodes_app_local, flows_app_local, skeletons_app_local, formats_app_local
+
+
+report_app, nodes_app, flows_app, skeletons_app, formats_app = _register_inspect_commands()
+
+
+# --------------------------------------------------------------------------
+# Package
+# --------------------------------------------------------------------------
+
+PACKAGE_HELP = CommandHelp(
+    summary="Create the RDE submission archive (.zip) from a source directory, with a scan report.",
+    inputs=(
+        "`-s/--source-dir DIR`: the directory to archive, usually `container/` (required).",
+        "`-e/--exclude NAME`: directory names to leave out (repeatable; default: `.*`, `venv`, `.venv`, `site-packages`).",
+    ),
+    outputs=(
+        "Writes the zip given by `-o/--output` (default: `<YYYYMMDD>_<id>_rde_artifact.zip` next to the source directory); "
+        "the name must end with `.zip` and an existing file is replaced.",
+        "Writes a Markdown report next to the zip (same name, `.md`) listing the Dockerfile and requirements.txt "
+        "checks, external-connection references, and code-security findings.",
+    ),
+    examples=(
+        "rdetoolkit package -s container",
+        "rdetoolkit package -s container -o rde_submission.zip",
+        "rdetoolkit package -s container -o rde_submission.zip -e tests -e .venv",
+    ),
+    exit_codes=(EXIT_OK, (1, "the output name is not .zip, or archiving or the report failed"), EXIT_CLICK_USAGE),
+    see_also=("rdetoolkit run", "rdetoolkit validate all"),
+)
+
+_SOURCE_DIR_OPTION = typer.Option(
+    "--source-dir",
+    "-s",
+    help="The source directory to compress and scan.",
+    exists=True,
+    file_okay=False,
+    resolve_path=True,
+)
+_EXCLUDE_OPTION = typer.Option(
+    "--exclude",
+    "-e",
+    help="Exclude directory names. Defaults to '.*', 'venv', '.venv', and 'site-packages'.",
+)
+
+
+def _create_package(source_dir: Path, output: Path | None, exclude: list[str] | None) -> None:
+    from rdetoolkit.cmd.archive import CreateArtifactCommand
+
+    CreateArtifactCommand(source_dir, output_archive_path=output, exclude_patterns=exclude).invoke()
+
+
+@app.command("package", help=PACKAGE_HELP.render(), short_help=PACKAGE_HELP.summary, rich_help_panel=PANEL_PACKAGE)
+def package(
+    source_dir: Annotated[Path, _SOURCE_DIR_OPTION],
+    output: Annotated[Path | None, typer.Option("--output", "-o", help="Output archive file (e.g. rde_submission.zip).")] = None,
+    exclude: Annotated[list[str] | None, _EXCLUDE_OPTION] = None,
+) -> None:
+    """Create the RDE submission archive from a source directory."""
+    _create_package(source_dir, output, exclude)
+
+
+def _register_package_commands() -> typer.Typer:
+    from rdetoolkit.cli.repro_cmd import app as repro_app_local
+
+    app.add_typer(repro_app_local, name="repro", rich_help_panel=PANEL_PACKAGE)
+    return repro_app_local
+
+
+repro_app = _register_package_commands()
+
+
+# --------------------------------------------------------------------------
+# Migrate
+# --------------------------------------------------------------------------
+
+
+def _register_migrate_commands() -> typer.Typer:
+    from rdetoolkit.cli.migrate_cmd import app as migrate_app_local
+
+    app.add_typer(migrate_app_local, name="migrate", rich_help_panel=PANEL_MIGRATE)
+    return migrate_app_local
+
+
+migrate_app = _register_migrate_commands()
+
+
+# --------------------------------------------------------------------------
+# Info
+# --------------------------------------------------------------------------
+
+AGENT_GUIDE_HELP = CommandHelp(
+    summary="Display agent guide for AI coding assistants: the rdetoolkit workflow and API as Markdown.",
+    details="The summary guide covers the common workflow; `--detailed` adds advanced patterns and the API reference.",
+    outputs=("Prints Markdown to stdout. Writes no files; redirect to save it.",),
+    examples=("rdetoolkit agent-guide", "rdetoolkit agent-guide --detailed > AGENT_GUIDE.md"),
+    exit_codes=(EXIT_OK, (1, "the packaged guide file is missing or unreadable"), EXIT_CLICK_USAGE),
+    see_also=("rdetoolkit --help",),
+)
+
+
+@app.command("agent-guide", help=AGENT_GUIDE_HELP.render(), short_help=AGENT_GUIDE_HELP.summary, rich_help_panel=PANEL_INFO)
 def agent_guide(
     detailed: Annotated[
         bool,
@@ -796,19 +750,7 @@ def agent_guide(
         ),
     ] = False,
 ) -> None:
-    """Display agent guide for AI coding assistants.
-
-    Shows documentation designed for AI coding agents (Claude Code, GitHub Copilot, etc.)
-    to effectively use rdetoolkit. By default, displays a concise summary guide.
-    Use --detailed for comprehensive documentation.
-
-    Examples:
-        # Show summary guide
-        $ rdetoolkit agent-guide
-
-        # Show detailed guide with advanced patterns
-        $ rdetoolkit agent-guide --detailed
-    """
+    """Display agent guide for AI coding assistants."""
     from rdetoolkit._agent import get_guide
 
     try:
@@ -822,56 +764,129 @@ def agent_guide(
         raise typer.Exit(code=1) from e
 
 
-# Import validate commands module at end to avoid circular imports
-def _register_validate_commands() -> typer.Typer:
-    """Register validate subcommands."""
-    from rdetoolkit.cli.validate import app as validate_app_local
-
-    app.add_typer(validate_app_local, name="validate")
-    return validate_app_local
-
-
-validate_app = _register_validate_commands()
+VERSION_HELP = CommandHelp(
+    summary="Print the installed rdetoolkit version.",
+    outputs=("Prints the version string. Writes no files.",),
+    examples=("rdetoolkit version", "python -m rdetoolkit version"),
+    exit_codes=(EXIT_OK,),
+)
 
 
-def _register_v2_inspection_commands() -> tuple[typer.Typer, typer.Typer, typer.Typer]:
-    """Register v2 node and flow inspection subcommands."""
-    from rdetoolkit.cli.flows_cmd import app as flows_app_local
-    from rdetoolkit.cli.nodes_cmd import app as nodes_app_local
-    from rdetoolkit.cli.templates_cmd import app as templates_app_local
+@app.command("version", help=VERSION_HELP.render(), short_help=VERSION_HELP.summary, rich_help_panel=PANEL_INFO)
+def version() -> None:
+    """Command to display version."""
+    # Lazy import to minimize startup cost
+    from rdetoolkit.cmd.command import VersionCommand
 
-    app.add_typer(nodes_app_local, name="nodes")
-    app.add_typer(flows_app_local, name="flows")
-    app.add_typer(templates_app_local, name="templates")
-    return nodes_app_local, flows_app_local, templates_app_local
+    cmd = VersionCommand()
+    cmd.invoke()
 
 
-nodes_app, flows_app, templates_app = _register_v2_inspection_commands()
+# --------------------------------------------------------------------------
+# Deprecated v1 names (removed in v2.1)
+# --------------------------------------------------------------------------
+
+GEN_CONFIG_HELP = CommandHelp(
+    summary="Generate an rdeconfig.yaml template in the target directory (deprecated alias of `rdetoolkit new config`).",
+    details=(
+        "Option names differ from `new config`: `OUTPUT_DIR` is positional here (`-o` there), "
+        "`--template` is `--preset`, and `--overwrite` is `--force`. Removed in v2.1."
+    ),
+    examples=("rdetoolkit new config --preset full -o container/data/tasksupport", "rdetoolkit gen-config container/data/tasksupport --template full"),
+    exit_codes=(EXIT_OK, (1, "writing failed, or you declined to overwrite"), EXIT_CLICK_USAGE),
+    see_also=("rdetoolkit new config",),
+)
 
 
-def _register_v2_format_commands() -> typer.Typer:
-    """Register plugin format inspection subcommands."""
-    from rdetoolkit.cli.formats_cmd import app as formats_app_local
-
-    app.add_typer(formats_app_local, name="formats")
-    return formats_app_local
-
-
-formats_app = _register_v2_format_commands()
-
-
-def _register_v2_reporting_commands() -> tuple[typer.Typer, typer.Typer, typer.Typer, typer.Typer]:
-    """Register v2 reporting subcommands."""
-    from rdetoolkit.cli.graph_cmd import app as graph_app_local
-    from rdetoolkit.cli.migrate_cmd import app as migrate_app_local
-    from rdetoolkit.cli.report_cmd import app as report_app_local
-    from rdetoolkit.cli.repro_cmd import app as repro_app_local
-
-    app.add_typer(graph_app_local, name="graph")
-    app.add_typer(report_app_local, name="report")
-    app.add_typer(repro_app_local, name="repro")
-    app.add_typer(migrate_app_local, name="migrate")
-    return graph_app_local, report_app_local, repro_app_local, migrate_app_local
+@app.command(
+    "gen-config",
+    cls=_deprecated("rdetoolkit new config"),
+    help=GEN_CONFIG_HELP.render(),
+    short_help="Use `rdetoolkit new config`.",
+    rich_help_panel=PANEL_DEPRECATED,
+)
+def gen_config(
+    output_dir: Annotated[
+        Path | None,
+        typer.Argument(help="Target directory for rdeconfig.yaml", exists=False, file_okay=False, resolve_path=True),
+    ] = None,
+    template_name: Annotated[str, typer.Option("--template", help="Template style for rdeconfig.yaml.", case_sensitive=False)] = "minimal",
+    overwrite: Annotated[bool, typer.Option("--overwrite", help="Allow replacing an existing rdeconfig.yaml.")] = False,
+    lang: Annotated[str, typer.Option("--lang", help="Prompt language (interactive template only).", case_sensitive=False)] = "en",
+) -> None:
+    """Generate an rdeconfig.yaml template in the target directory."""
+    generate_config(output_dir, preset=template_name, force=overwrite, lang=lang, preset_option="--template")
 
 
-graph_app, report_app, repro_app, migrate_app = _register_v2_reporting_commands()
+GEN_INVOICE_HELP = CommandHelp(
+    summary="Generate invoice.json from invoice.schema.json (deprecated alias of `rdetoolkit new invoice`).",
+    details="Same arguments and options as `rdetoolkit new invoice`. Removed in v2.1.",
+    examples=("rdetoolkit new invoice invoice.schema.json -o invoice.json", "rdetoolkit gen-invoice invoice.schema.json -o invoice.json"),
+    exit_codes=INVOICE_HELP.exit_codes,
+    see_also=("rdetoolkit new invoice",),
+)
+
+app.command(
+    "gen-invoice",
+    cls=_deprecated("rdetoolkit new invoice"),
+    help=GEN_INVOICE_HELP.render(),
+    short_help="Use `rdetoolkit new invoice`.",
+    rich_help_panel=PANEL_DEPRECATED,
+)(new_invoice)
+
+MAKE_EXCELINVOICE_HELP = CommandHelp(
+    summary=(
+        "Generate an Excel invoice based on the provided schema and save it to the specified output path "
+        "(deprecated alias of `rdetoolkit new excelinvoice`)."
+    ),
+    details="Same arguments and options as `rdetoolkit new excelinvoice`. Removed in v2.1.",
+    examples=(
+        "rdetoolkit new excelinvoice invoice.schema.json -o a_excel_invoice.xlsx",
+        "rdetoolkit make-excelinvoice invoice.schema.json -o a_excel_invoice.xlsx",
+    ),
+    exit_codes=EXCELINVOICE_HELP.exit_codes,
+    see_also=("rdetoolkit new excelinvoice",),
+)
+
+app.command(
+    "make-excelinvoice",
+    cls=_deprecated("rdetoolkit new excelinvoice"),
+    help=MAKE_EXCELINVOICE_HELP.render(),
+    short_help="Use `rdetoolkit new excelinvoice`.",
+    rich_help_panel=PANEL_DEPRECATED,
+)(new_excelinvoice)
+
+app.command(
+    "csv2graph",
+    cls=_deprecated("rdetoolkit plot"),
+    help=CSV2GRAPH_HELP.render(),
+    short_help="Use `rdetoolkit plot`.",
+    rich_help_panel=PANEL_DEPRECATED,
+)(plot)
+
+ARTIFACT_HELP = CommandHelp(
+    summary=(
+        "Create an artifact (.zip) for submission to RDE by archiving the specified source directory "
+        "(deprecated alias of `rdetoolkit package`)."
+    ),
+    details="`--output-archive` is `-o/--output` in `rdetoolkit package`. Removed in v2.1.",
+    examples=("rdetoolkit package -s container -o rde_submission.zip", "rdetoolkit artifact -s container -o rde_submission.zip"),
+    exit_codes=PACKAGE_HELP.exit_codes,
+    see_also=("rdetoolkit package",),
+)
+
+
+@app.command(
+    "artifact",
+    cls=_deprecated("rdetoolkit package"),
+    help=ARTIFACT_HELP.render(),
+    short_help="Use `rdetoolkit package`.",
+    rich_help_panel=PANEL_DEPRECATED,
+)
+def artifact(
+    source_dir: Annotated[Path, _SOURCE_DIR_OPTION],
+    output_archive: Annotated[Path | None, typer.Option("--output-archive", "-o", help="Output archive file (e.g. rde_template.zip).")] = None,
+    exclude: Annotated[list[str] | None, _EXCLUDE_OPTION] = None,
+) -> None:
+    """Create an artifact (.zip) for submission to RDE."""
+    _create_package(source_dir, output_archive, exclude)

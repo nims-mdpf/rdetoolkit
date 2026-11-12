@@ -1,7 +1,9 @@
-"""Report source locations that may need v2 migration.
+"""``rdetoolkit migrate``: find and convert v1 code that needs v2 migration.
 
 Class findings use a best-effort structural heuristic because v1 defines no
-common handler base class. Review those findings manually.
+common handler base class. Review those findings manually. ``check`` also
+reports CLI command names renamed in v2.0 (see :mod:`rdetoolkit.cli._renames`)
+in Python sources and in shell, CI, and container files.
 """
 
 from __future__ import annotations
@@ -18,7 +20,9 @@ from typing import Annotated
 
 import typer
 
+from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli._migrate_source import _render_conversion
+from rdetoolkit.cli._renames import find_renamed_commands
 from rdetoolkit.types import InputPaths
 
 if sys.version_info >= (3, 11):
@@ -27,7 +31,49 @@ else:
     from typing_extensions import Never
 
 
-app = typer.Typer(help="Inspect Python source for v1 migration points.")
+MIGRATE_HELP = CommandHelp(
+    summary="Find v1 code and CLI calls that need changes for v2, and convert v1 callbacks into v2 flows.",
+    examples=(
+        "rdetoolkit migrate check container",
+        "rdetoolkit migrate apply container/main.py",
+        "rdetoolkit migrate apply container --no-dry-run -o container_v2",
+    ),
+    exit_codes=(EXIT_OK, (2, "the input path does not exist (`apply`, reported by the parser)"), (3, "invalid input or output path")),
+    see_also=("rdetoolkit run", "rdetoolkit flows list"),
+)
+
+CHECK_HELP = CommandHelp(
+    summary="Report the lines that need v2 migration, one `path:line: finding` per line.",
+    details=(
+        "Python files are scanned for `custom_dataset_function=` entry calls, `RdeOutputResourcePath` references, "
+        "v1 handler-shaped classes, and CLI command names renamed in v2.0. Shell, CI, and container files "
+        "(`*.sh`, `*.yml`, `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`) are scanned for renamed CLI commands only."
+    ),
+    inputs=("`PATH`: one file, or a directory scanned recursively (default: the current directory).",),
+    outputs=("Prints findings; prints nothing when there is nothing to migrate. Never changes files.",),
+    examples=("rdetoolkit migrate check", "rdetoolkit migrate check container/main.py"),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "the path does not exist")),
+    see_also=("rdetoolkit migrate apply",),
+)
+
+APPLY_HELP = CommandHelp(
+    summary="Convert v1 `custom_dataset_function` callbacks into v2 flows, written to a separate directory.",
+    details="Constructs that cannot be converted safely are marked with `# TODO(rdetoolkit-migrate)` comments instead.",
+    inputs=("`PATH`: one Python file, or a directory whose `*.py` files are converted (default: the current directory).",),
+    outputs=(
+        "Previews the converted sources by default (`--dry-run`); writes nothing.",
+        "With `--no-dry-run`, writes the converted copy to `-o DIR` (default: `<PATH>_migrated` next to the input). "
+        "The input is never edited, and an existing output directory is refused.",
+    ),
+    examples=(
+        "rdetoolkit migrate apply container/main.py",
+        "rdetoolkit migrate apply container --no-dry-run -o container_v2",
+    ),
+    exit_codes=(EXIT_OK, (2, "the input path does not exist (reported by the parser)"), (3, "no Python files found, or the output directory exists or is inside the input")),
+    see_also=("rdetoolkit migrate check", "rdetoolkit run", "rdetoolkit flows list"),
+)
+
+app = typer.Typer(help=MIGRATE_HELP.render(), short_help=MIGRATE_HELP.summary, no_args_is_help=True)
 _HANDLER_POSITIONAL_ARGUMENTS = 3
 _CALLBACK_POSITIONAL_ARGUMENTS = 2
 
@@ -65,29 +111,47 @@ def _usage_error(message: str) -> Never:
     raise typer.Exit(code=3)
 
 
-@app.command()
-def check(path: Annotated[Path, typer.Argument(metavar="[path]")] = Path(".")) -> None:
-    """Scan one Python file or all Python files beneath a directory."""
+#: Non-Python files that commonly invoke the rdetoolkit CLI.
+_COMMAND_FILE_SUFFIXES = frozenset({".sh", ".bash", ".yml", ".yaml", ".toml", ".cfg"})
+_COMMAND_FILE_NAMES = frozenset({"Makefile", "Dockerfile"})
+
+
+def _is_command_file(path: Path) -> bool:
+    return path.suffix in _COMMAND_FILE_SUFFIXES or path.name in _COMMAND_FILE_NAMES
+
+
+@app.command("check", help=CHECK_HELP.render(), short_help=CHECK_HELP.summary)
+def check(path: Annotated[Path, typer.Argument(metavar="PATH", help="File or directory to scan.")] = Path(".")) -> None:
+    """Scan one file, or every Python and command file beneath a directory."""
     if not path.exists():
-        _usage_error(f"Path does not exist: {path}")
-    files = [path] if path.is_file() else sorted(path.rglob("*.py"))
-    for source_path in files:
-        _report_file(source_path)
+        _usage_error(f"Path does not exist: {path}\nRemediation: pass an existing file or directory.")
+    for source_path in _check_targets(path):
+        if source_path.suffix == ".py":
+            _report_file(source_path)
+        elif _is_command_file(source_path):
+            _report_command_file(source_path)
 
 
-@app.command()
+def _check_targets(path: Path) -> list[Path]:
+    if path.is_file():
+        return [path]
+    return sorted(candidate for candidate in path.rglob("*") if candidate.is_file() and (candidate.suffix == ".py" or _is_command_file(candidate)))
+
+
+@app.command("apply", help=APPLY_HELP.render(), short_help=APPLY_HELP.summary)
 def apply(
     path: Annotated[
         Path,
         typer.Argument(
-            metavar="[path]",
+            metavar="PATH",
+            help="Python file or directory to convert.",
             exists=True,
             file_okay=True,
             dir_okay=True,
             readable=True,
         ),
     ] = Path("."),
-    out: Annotated[Path | None, typer.Option("--out", help="External output directory.")] = None,
+    out: Annotated[Path | None, typer.Option("-o", "--output", help="Output directory outside the input (default: <PATH>_migrated).")] = None,
     dry_run: Annotated[
         bool,
         typer.Option("--dry-run/--no-dry-run", help="Preview by default; write only with --no-dry-run."),
@@ -125,12 +189,12 @@ def _validate_destination(source: Path, destination: Path) -> None:
     if destination.exists():
         _usage_error(
             f"Output already exists: {destination}. "
-            "Remediation: choose a new external directory with --out.",
+            "Remediation: choose a new external directory with -o/--output.",
         )
     if source.is_dir() and destination.resolve().is_relative_to(source.resolve()):
         _usage_error(
             f"Output must be outside the input tree: {destination}. "
-            "Remediation: pass --out with a sibling or otherwise external directory.",
+            "Remediation: pass -o/--output with a sibling or otherwise external directory.",
         )
 
 
@@ -225,7 +289,7 @@ def _report_removed_entries(path: Path, tree: ast.AST) -> None:
         if isinstance(call, ast.Call) and _has_custom_dataset_keyword(call):
             typer.echo(
                 f"{path}:{call.lineno}: removed legacy entry {ast.unparse(call)}. "
-                "Run the converted flow using rdetoolkit run --flow <module>:pipeline.",
+                "Run the converted flow using rdetoolkit run <module>:pipeline.",
                 err=True,
             )
 
@@ -411,8 +475,45 @@ def _report_file(path: Path) -> None:
     except (OSError, SyntaxError) as exc:
         typer.echo(f"{path}:{getattr(exc, 'lineno', 0) or 0}: unparseable: {exc}")
         return
-    for finding in _find_migration_points(tree):
+    renamed = sorted(_find_renamed_command_strings(tree), key=lambda item: item.line)
+    for finding in [*_find_migration_points(tree), *renamed]:
         typer.echo(f"{path}:{finding.line}: {finding.category}")
+
+
+def _report_command_file(path: Path) -> None:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError):
+        return
+    for number, line in enumerate(lines, start=1):
+        for category in _renamed_command_categories(line):
+            typer.echo(f"{path}:{number}: {category}")
+
+
+def _renamed_command_categories(text: str) -> list[str]:
+    return [f"renamed CLI command '{rename.old}' -> use '{rename.new}'" for rename in find_renamed_commands(text)]
+
+
+def _find_renamed_command_strings(tree: ast.AST) -> list[Finding]:
+    """Find renamed CLI commands in string literals and argv-style lists.
+
+    ``"rdetoolkit gen-config"`` and ``["rdetoolkit", "gen-config"]`` (the
+    ``subprocess`` form) are both reported, once per source line.
+    """
+    findings: dict[tuple[int, str], Finding] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.expr):
+            continue
+        text: str | None = None
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            text = node.value
+        elif isinstance(node, (ast.List, ast.Tuple)) and node.elts and all(isinstance(item, ast.Constant) and isinstance(item.value, str) for item in node.elts):
+            text = " ".join(str(item.value) for item in node.elts if isinstance(item, ast.Constant))
+        if text is None:
+            continue
+        for category in _renamed_command_categories(text):
+            findings.setdefault((node.lineno, category), Finding(node.lineno, category))
+    return list(findings.values())
 
 
 def _find_migration_points(tree: ast.AST) -> list[Finding]:

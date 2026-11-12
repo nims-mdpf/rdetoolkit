@@ -1,4 +1,4 @@
-"""Implementation helpers for the v2 ``run --flow`` CLI path."""
+"""Implementation helpers for ``rdetoolkit run`` with a v2 flow reference."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import inspect
 import json
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, NoReturn, cast
 
 import typer
 import yaml
@@ -25,7 +25,7 @@ from rdetoolkit.runner.paths import resolve_data_root
 _PARTIAL_EXIT_CODE = 2
 
 
-def usage_error(message: str) -> None:
+def usage_error(message: str) -> NoReturn:
     """Print a CLI usage error and exit with the v2 usage-error code."""
     typer.echo(message, err=True)
     raise typer.Exit(code=3)
@@ -38,11 +38,11 @@ def load_config_overrides(config_path: Path | None) -> dict[str, Any] | None:
     try:
         loaded = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError) as exc:
-        usage_error(f"Unable to load --config {config_path}: {exc}")
+        usage_error(f"Unable to load --config {config_path}: {exc}\nRemediation: pass a readable YAML file.")
     if loaded is None:
         return {}
     if not isinstance(loaded, dict):
-        usage_error("--config must contain a top-level YAML mapping")
+        usage_error("--config must contain a top-level YAML mapping\nRemediation: write the overrides as keys such as 'system:' at the top level.")
     return cast(dict[str, Any], loaded)
 
 
@@ -50,21 +50,31 @@ def resolve_flow(flow_ref: str) -> Callable[..., Any]:
     """Resolve a dotted ``module:attribute`` reference to a flow callable."""
     module_name, separator, attribute_path = flow_ref.partition(":")
     if not separator or not module_name or not attribute_path or ":" in attribute_path:
-        usage_error("--flow must use the form pkg.mod:callable")
+        usage_error(
+            f"Invalid flow reference '{flow_ref}': it must use the form pkg.mod:callable\n"
+            "Remediation: name the module and the flow, e.g. 'rdetoolkit run modules.processing:pipeline'.",
+        )
     try:
         value: Any = import_project_module(module_name)
         for attribute in attribute_path.split("."):
             value = getattr(value, attribute)
     except (ImportError, AttributeError) as exc:
-        usage_error(f"Unable to resolve --flow {flow_ref}: {exc}")
+        usage_error(
+            f"Unable to resolve flow {flow_ref}: {exc}\n"
+            "Remediation: run from the project root and check the module path and attribute name "
+            "('rdetoolkit flows list --module <module>' lists registered flows).",
+        )
     if inspect.isclass(value):
         from rdetoolkit.templates.base import is_template_class
 
         if not is_template_class(value):
-            usage_error("--flow class target is not a ProcessingTemplate subclass")
+            usage_error(
+                f"Flow class target {flow_ref} is not a ProcessingTemplate subclass\n"
+                "Remediation: reference a flow function, or a class derived from a processing skeleton.",
+            )
         return cast(Callable[..., Any], value)
     if not callable(value):
-        usage_error(f"--flow target is not callable: {flow_ref}")
+        usage_error(f"Flow target is not callable: {flow_ref}\nRemediation: reference a flow function such as modules.processing:pipeline.")
     return cast(Callable[..., Any], value)
 
 

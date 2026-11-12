@@ -8,18 +8,105 @@ from typing import TYPE_CHECKING, Annotated, Optional
 
 import typer
 
+from rdetoolkit.cli._help import EXIT_OK, CommandHelp
+
 if TYPE_CHECKING:
     from rdetoolkit.cmd.validate import ValidationResult
 
+#: Exit codes shared by every validate command (kept from v1: usage errors are 2).
+_EXIT_CODES = (
+    EXIT_OK,
+    (1, "validation failure: the file violates its schema (or has warnings with `--strict`)"),
+    (2, "usage error: a file is missing, an argument is invalid, or validation could not run"),
+)
+_FORMAT_OUTPUT = (
+    "Prints a human-readable report, or JSON with `--format json`; `--quiet` prints errors only. Writes no files."
+)
+
+VALIDATE_HELP = CommandHelp(
+    summary="Validate RDE schema and data files: invoice, invoice schema, metadata, and metadata definition.",
+    details="Run `rdetoolkit validate all` in a project root to check every standard file at once.",
+    examples=(
+        "rdetoolkit validate all",
+        "rdetoolkit validate all --format json --strict",
+        "rdetoolkit validate invoice-schema data/tasksupport/invoice.schema.json",
+    ),
+    exit_codes=_EXIT_CODES,
+    see_also=("rdetoolkit init", "rdetoolkit new invoice", "rdetoolkit run"),
+)
+
+INVOICE_SCHEMA_HELP = CommandHelp(
+    summary="Validate the structure and field definitions of an invoice.schema.json file.",
+    inputs=("`SCHEMA_PATH`: an `invoice.schema.json` file.",),
+    outputs=(_FORMAT_OUTPUT,),
+    examples=(
+        "rdetoolkit validate invoice-schema data/tasksupport/invoice.schema.json",
+        "rdetoolkit validate invoice-schema invoice.schema.json --format json",
+    ),
+    exit_codes=_EXIT_CODES,
+    see_also=("rdetoolkit validate invoice", "rdetoolkit new invoice"),
+)
+
+METADATA_DEF_HELP = CommandHelp(
+    summary="Validate the structure of a metadata-def.json file.",
+    inputs=("`METADATA_DEF_PATH`: a `metadata-def.json` file.",),
+    outputs=(_FORMAT_OUTPUT,),
+    examples=(
+        "rdetoolkit validate metadata-def data/tasksupport/metadata-def.json",
+        "rdetoolkit validate metadata-def metadata-def.json --format json",
+    ),
+    exit_codes=_EXIT_CODES,
+    see_also=("rdetoolkit validate metadata",),
+)
+
+INVOICE_HELP = CommandHelp(
+    summary="Validate an invoice.json file against its invoice.schema.json.",
+    inputs=("`INVOICE_PATH`: an `invoice.json` file.", "`--schema/-s`: the `invoice.schema.json` to check against (required)."),
+    outputs=(_FORMAT_OUTPUT,),
+    examples=(
+        "rdetoolkit validate invoice data/invoice/invoice.json \\",
+        "    --schema data/tasksupport/invoice.schema.json",
+        "rdetoolkit validate invoice invoice.json -s invoice.schema.json -f json",
+    ),
+    exit_codes=_EXIT_CODES,
+    see_also=("rdetoolkit validate invoice-schema", "rdetoolkit new invoice"),
+)
+
+METADATA_HELP = CommandHelp(
+    summary="Validate a metadata.json file against its metadata-def.json.",
+    inputs=("`METADATA_PATH`: a `metadata.json` file.", "`--schema/-s`: the `metadata-def.json` to check against (required)."),
+    outputs=(_FORMAT_OUTPUT,),
+    examples=(
+        "rdetoolkit validate metadata data/meta/metadata.json \\",
+        "    --schema data/tasksupport/metadata-def.json",
+        "rdetoolkit validate metadata metadata.json -s metadata-def.json -f json",
+    ),
+    exit_codes=_EXIT_CODES,
+    see_also=("rdetoolkit validate metadata-def",),
+)
+
+ALL_HELP = CommandHelp(
+    summary="Find and validate every standard RDE file in a project directory.",
+    inputs=("`PROJECT_DIR`: the project root created by `rdetoolkit init` (default: the current directory).",),
+    outputs=(
+        "Checks `container/data/tasksupport/{invoice.schema.json,metadata-def.json}`, "
+        "`templates/tasksupport/{invoice.schema.json,metadata-def.json}`, `input/invoice/invoice.json`, and "
+        "`input/metadata/metadata.json` when they exist.",
+        "Prints one report per file (a JSON array with `--format json`); prints the expected locations when none is found. Writes no files.",
+    ),
+    examples=(
+        "rdetoolkit validate all",
+        "rdetoolkit validate all path/to/project --format json",
+        "rdetoolkit validate all --strict",
+    ),
+    exit_codes=_EXIT_CODES,
+    see_also=("rdetoolkit init", "rdetoolkit run"),
+)
+
 app = typer.Typer(
     name="validate",
-    help="""Validate RDE schema and data files.
-
-All validate commands use standardized exit codes:
-  0 = Success (validation passed)
-  1 = Validation failure (data/schema issues)
-  2 = Usage error (invalid arguments, missing files)
-""",
+    help=VALIDATE_HELP.render(),
+    short_help=VALIDATE_HELP.summary,
     no_args_is_help=True,
 )
 
@@ -68,7 +155,7 @@ def handle_file_not_found(path: Path, file_type: str) -> None:
     Raises:
         typer.Exit: Always raises with exit code 2
     """
-    msg = f"Error: {file_type} file not found: {path}"
+    msg = f"Error: {file_type} file not found: {path}\nRemediation: check the path; 'rdetoolkit init' creates the standard files."
     typer.echo(msg, err=True)
     raise typer.Exit(code=2)
 
@@ -187,7 +274,7 @@ QuietOption = Annotated[
 ]
 
 
-@app.command("invoice-schema")
+@app.command("invoice-schema", help=INVOICE_SCHEMA_HELP.render(), short_help=INVOICE_SCHEMA_HELP.summary)
 def invoice_schema(
     schema_path: Annotated[
         Path,
@@ -231,7 +318,7 @@ def invoice_schema(
         handle_validation_error(e, "invoice schema validation")
 
 
-@app.command("metadata-def")
+@app.command("metadata-def", help=METADATA_DEF_HELP.render(), short_help=METADATA_DEF_HELP.summary)
 def metadata_def(
     metadata_def_path: Annotated[
         Path,
@@ -275,7 +362,7 @@ def metadata_def(
         handle_validation_error(e, "metadata definition validation")
 
 
-@app.command("invoice")
+@app.command("invoice", help=INVOICE_HELP.render(), short_help=INVOICE_HELP.summary)
 def invoice(
     invoice_path: InvoicePathArg,
     schema_path: InvoiceSchemaPathOpt,
@@ -318,7 +405,7 @@ def invoice(
         handle_validation_error(e, "invoice validation")
 
 
-@app.command("metadata")
+@app.command("metadata", help=METADATA_HELP.render(), short_help=METADATA_HELP.summary)
 def metadata(
     metadata_path: MetadataPathArg,
     schema_path: MetadataSchemaPathOpt,
@@ -361,7 +448,7 @@ def metadata(
         handle_validation_error(e, "metadata validation")
 
 
-@app.command("all")
+@app.command("all", help=ALL_HELP.render(), short_help=ALL_HELP.summary)
 def validate_all(
     project_dir: ProjectDirArg = None,
     format_type: FormatOption = OutputFormat.TEXT,
