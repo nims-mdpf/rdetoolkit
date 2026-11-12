@@ -802,3 +802,18 @@ ERROR_CATALOG[1004] = ErrorDef(
     message_template="Unsupported metadata source matching mode: {mode}",
     remediation="Pass match='key', match='original_name' or match='both' to build_meta().",
 )
+
+
+ERROR_CATALOG[2007] = ErrorDef(
+    name="DuplicateFlowId",
+    message_template=(
+        "Duplicate flow id registered: {flow_id} is already owned by "
+        "{registered_source_location}; rejected {rejected_source_location}"
+    ),
+    remediation=(
+        "Give one of the flows a different explicit id via @flow(id=...), or rename or move one "
+        "of the functions. Flow ids are never replaced: a module that defines a flow cannot be "
+        "re-executed (importlib.reload, re-running a notebook cell) in the same process, so "
+        "restart the interpreter instead."
+    ),
+)
