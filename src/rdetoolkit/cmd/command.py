@@ -13,6 +13,14 @@ from tomlkit import document
 from tomlkit.toml_file import TOMLFile
 
 from rdetoolkit import __version__
+from rdetoolkit.cmd._project_layout import (
+    LEGACY_TEMPLATE_DIR,
+    TASKSUPPORT_DIR,
+    TEMPLATE_DIR,
+    has_legacy_template_layout,
+    legacy_template_tasksupport_dir,
+    template_tasksupport_dir,
+)
 from rdetoolkit.cmd.default import INVOICE_JSON, PROPERTIES
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson, Properties
 from rdetoolkit.rdelogger import get_logger
@@ -237,7 +245,7 @@ class InitCommand:
         Path("container/data/tasksupport"),
         Path("input/invoice"),
         Path("input/inputdata"),
-        Path("templates/tasksupport"),
+        Path(TEMPLATE_DIR, TASKSUPPORT_DIR),
     ]
 
     def __init__(
@@ -253,12 +261,16 @@ class InitCommand:
         try:
             self._info_msg("Ready to develop a structured program for RDE.")
             current_dir = Path.cwd()
+            # A v1 project keeps its schemas in templates/tasksupport. Creating
+            # template/ next to it would leave two copies that migrate apply
+            # refuses to merge, so init leaves it alone and says how to rename.
+            legacy_layout = has_legacy_template_layout(current_dir)
             template_config = self.__merge_template_configs(
                 self.__load_template_config(), self.cli_template_config,
             )
             if self.cli_template_config and self.cli_template_config.has_templates():
                 self.__persist_cli_templates(self.cli_template_config)
-            self.__make_dirs()
+            self.__make_dirs(skip_template=legacy_layout)
             main_script_path = current_dir / "container" / "main.py"
             if template_config and template_config.entry_point:
                 self.__copy_entry_point_template(template_config.entry_point, main_script_path)
@@ -271,19 +283,10 @@ class InitCommand:
                 self.__populate_from_template(template_config.modules, modules_dir)
             # container
             self.__make_invoice_json(current_dir / "container" / "data" / "invoice" / "invoice.json")
-            container_tasksupport_dir = current_dir / "container" / "data" / "tasksupport"
-            template_tasksupport_dir = current_dir / "templates" / "tasksupport"
-            if template_config and template_config.tasksupport:
-                self.__apply_directory_template(
-                    template_config.tasksupport,
-                    [container_tasksupport_dir, template_tasksupport_dir],
-                )
-            else:
-                self.__make_template_json(container_tasksupport_dir / "invoice.schema.json")
-                self.__make_metadata_def_json(container_tasksupport_dir / "metadata-def.json")
-                # templates
-                self.__make_template_json(template_tasksupport_dir / "invoice.schema.json")
-                self.__make_metadata_def_json(template_tasksupport_dir / "metadata-def.json")
+            tasksupport_dirs = [current_dir / "container" / "data" / "tasksupport"]
+            if not legacy_layout:
+                tasksupport_dirs.append(template_tasksupport_dir(current_dir))
+            self.__make_tasksupport(template_config, tasksupport_dirs)
             container_inputdata_dir = current_dir / "container" / "data" / "inputdata"
             input_inputdata_dir = current_dir / "input" / "inputdata"
             if template_config and template_config.inputdata:
@@ -293,9 +296,14 @@ class InitCommand:
                 )
             if template_config and template_config.other:
                 self.__apply_other_templates(template_config.other, current_dir / "container")
-            # templates
             # input
             self.__make_invoice_json(current_dir / "input" / "invoice" / "invoice.json")
+            if legacy_layout:
+                self._warning_msg(
+                    f"Found the v1 directory {legacy_template_tasksupport_dir(current_dir)}. "
+                    f"Skipped creating {TEMPLATE_DIR}/{TASKSUPPORT_DIR}/. "
+                    f"Run 'rdetoolkit migrate apply' to rename {LEGACY_TEMPLATE_DIR}/ to {TEMPLATE_DIR}/.",
+                )
             self._info_msg(f"\nCheck the folder: {current_dir}")
             self._success_msg("Done!")
         except InitTemplateError as e:
@@ -412,6 +420,14 @@ class InitCommand:
         shutil.copy2(source, destination)
         self._info_msg(f"Created from template: {destination}")
 
+    def __make_tasksupport(self, template_config: Optional[InitTemplateConfig], destinations: list[Path]) -> None:
+        if template_config and template_config.tasksupport:
+            self.__apply_directory_template(template_config.tasksupport, destinations)
+            return
+        for tasksupport_dir in destinations:
+            self.__make_template_json(tasksupport_dir / "invoice.schema.json")
+            self.__make_metadata_def_json(tasksupport_dir / "metadata-def.json")
+
     def __apply_directory_template(self, source: Path, destinations: list[Path]) -> None:
         for dest in destinations:
             self.__populate_from_template(source, dest)
@@ -461,8 +477,10 @@ class InitCommand:
         generator.generate()
         self._info_msg(f"Created: {path}")
 
-    def __make_dirs(self) -> None:
+    def __make_dirs(self, *, skip_template: bool = False) -> None:
         for d in self.default_dirs:
+            if skip_template and d.parts[0] == TEMPLATE_DIR:
+                continue
             try:
                 d.mkdir(parents=True, exist_ok=True)
             except Exception as e:
@@ -501,6 +519,9 @@ class InitCommand:
 
     def _info_msg(self, msg: str) -> None:
         typer.echo(msg)
+
+    def _warning_msg(self, msg: str) -> None:
+        typer.echo(typer.style(f"Warning: {msg}", fg=typer.colors.YELLOW))
 
     def _success_msg(self, msg: str) -> None:
         typer.echo(typer.style(msg, fg=typer.colors.GREEN))

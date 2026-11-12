@@ -40,7 +40,7 @@ sample_project/
 │   ├── inputdata
 │   └── invoice
 │       └── invoice.json
-└── templates
+└── template
     └── tasksupport
         ├── invoice.schema.json
         └── metadata-def.json

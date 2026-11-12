@@ -4,8 +4,8 @@ Created: {ROOT}/container/Dockerfile
 Created: {ROOT}/container/data/invoice/invoice.json
 Created: {ROOT}/container/data/tasksupport/invoice.schema.json
 Created: {ROOT}/container/data/tasksupport/metadata-def.json
-Created: {ROOT}/templates/tasksupport/invoice.schema.json
-Created: {ROOT}/templates/tasksupport/metadata-def.json
+Created: {ROOT}/template/tasksupport/invoice.schema.json
+Created: {ROOT}/template/tasksupport/metadata-def.json
 Created: {ROOT}/input/invoice/invoice.json
 
 Check the folder: {ROOT}

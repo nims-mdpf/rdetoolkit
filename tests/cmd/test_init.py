@@ -36,7 +36,7 @@ def test_init_command_applies_cli_templates__tc_ep_001(tmp_path: Path, monkeypat
     workspace.mkdir()
     monkeypatch.chdir(workspace)
 
-    templates_dir = workspace / "templates"
+    templates_dir = workspace / "tpl"
     templates_dir.mkdir()
 
     entry_template = templates_dir / "custom_main.py"
@@ -76,7 +76,7 @@ def test_init_command_applies_cli_templates__tc_ep_001(tmp_path: Path, monkeypat
     assert (workspace / "container" / "main.py").read_text(encoding="utf-8") == "print('custom')\n"
     assert (workspace / "container" / "modules" / "mod.py").read_text(encoding="utf-8") == "print('mod')\n"
     assert (workspace / "container" / "data" / "tasksupport" / "metadata-def.json").read_text(encoding="utf-8") == "{}"
-    assert (workspace / "templates" / "tasksupport" / "metadata-def.json").read_text(encoding="utf-8") == "{}"
+    assert (workspace / "template" / "tasksupport" / "metadata-def.json").read_text(encoding="utf-8") == "{}"
     assert (workspace / "container" / "data" / "inputdata" / "data.txt").read_text(encoding="utf-8") == "data\n"
     assert (workspace / "input" / "inputdata" / "data.txt").read_text(encoding="utf-8") == "data\n"
     assert (workspace / "container" / "extra.txt").read_text(encoding="utf-8") == "extra\n"
@@ -84,11 +84,11 @@ def test_init_command_applies_cli_templates__tc_ep_001(tmp_path: Path, monkeypat
 
     pyproject = tomllib.loads((workspace / "pyproject.toml").read_text(encoding="utf-8"))
     init_section = pyproject["tool"]["rdetoolkit"]["init"]
-    assert init_section["entry_point"] == "templates/custom_main.py"
-    assert init_section["modules"] == "templates/modules"
-    assert init_section["tasksupport"] == "templates/tasksupport"
-    assert init_section["inputdata"] == "templates/inputdata"
-    assert init_section["other"] == ["templates/extra.txt", "templates/extras"]
+    assert init_section["entry_point"] == "tpl/custom_main.py"
+    assert init_section["modules"] == "tpl/modules"
+    assert init_section["tasksupport"] == "tpl/tasksupport"
+    assert init_section["inputdata"] == "tpl/inputdata"
+    assert init_section["other"] == ["tpl/extra.txt", "tpl/extras"]
 
 
 def test_init_template_loader_rejects_empty_other_entry__tc_ep_002(tmp_path: Path) -> None:

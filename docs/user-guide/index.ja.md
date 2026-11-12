@@ -23,7 +23,7 @@
 
 - [テンプレートファイルガイド](../usage/metadata_definition_file.ja.md) - `invoice.schema.json` / `invoice.json` / `metadata-def.json` / `metadata.json` の役割と構造
 - [init CLI](../usage/cli.ja.md#init-スタートアッププロジェクトの作成) - 主要テンプレートとディレクトリ骨格を自動生成
-- リポジトリ内のサンプル: `templates/tasksupport/invoice.schema.json`, `templates/tasksupport/metadata-def.json`
+- リポジトリ内のサンプル: `template/tasksupport/invoice.schema.json`, `template/tasksupport/metadata-def.json`
 
 ### 実践的な使用方法
 
