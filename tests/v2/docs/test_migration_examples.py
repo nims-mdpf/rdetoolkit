@@ -9,6 +9,7 @@ Example               Partition               Expected                       Tes
 migration commands    check and dry-run apply commands accepted by CLI       TC-DOC-MIG-EP-001
 ``as_node`` bridge    legacy handler method  callable node preserves result TC-DOC-MIG-EP-002
 custom field cast     label-keyed row         keys resolved, values cast     GA603-DOC
+default_value.csv     defaults + measured     measured wins in build_meta    629-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -108,6 +109,27 @@ def test_custom_fields_example_executes__ga603_doc(doc: Path) -> None:
 
 
 @DOCS
+def test_read_key_values_example_executes__629_doc(doc: Path, tmp_path: Path) -> None:
+    """629-DOC: tasksupport defaults and measured values reach build_meta."""
+    from types import SimpleNamespace
+
+    # Given: a tasksupport directory with default_value.csv and metadata-def.json
+    tasksupport = tmp_path / "tasksupport"
+    tasksupport.mkdir()
+    (tasksupport / "default_value.csv").write_text("key,value\norigin,experiments\ncount,3\n", encoding="utf-8")
+    (tasksupport / "metadata-def.json").write_text(
+        '{"origin": {"name": {"ja": "由来", "en": "origin"}, "schema": {"type": "string"}},'
+        ' "count": {"name": {"ja": "回数", "en": "count"}, "schema": {"type": "integer"}}}',
+        encoding="utf-8",
+    )
+    namespace: dict[str, object] = {"paths": SimpleNamespace(tasksupport=tasksupport), "measured": {"count": "5"}}
+    # When: executing the documented example
+    exec(_examples(doc)["read-key-values"][1], namespace)  # noqa: S102
+    # Then: defaults fill the metadata and measured values override them
+    assert namespace["metadata"].custom == {"origin": "experiments", "count": 5}  # type: ignore[attr-defined]
+
+
+@DOCS
 def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None:
     """TC-DOC-MIG-BV-001: no unmarked migration-guide code fence can bypass execution."""
     # Given: all fenced examples in the migration guide
@@ -115,7 +137,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "read-key-values"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 

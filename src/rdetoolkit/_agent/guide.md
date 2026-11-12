@@ -78,6 +78,8 @@ using save_invoice(), without overwriting another tile's source or output.
 Import helpers from `rdetoolkit.nodes`. read_text and read_json share v1 encoding
 rules, including Shift-JIS to CP932. read_excel supports sheet/header/row/column
 selection and pandas options; read_excel_fills gives row fill colours.
+read_key_values reads tasksupport/default_value.csv like v1 get_default_values
+(chardet, string values; missing_ok=True for an optional file) for build_meta.
 save_csv supports float_format, header and index. save_json and save_text accept
 an output kind. save_invoice and save_meta keep v1 four-space JSON. save_figure
 leaves figure ownership with callers. plot_lines accepts x/y columns or pairs,

@@ -92,6 +92,25 @@ definitions become one row. `Metadata.units` holds constant units and
 the same rules to the invoice's nested `custom` section. User flows do not need
 `rde2util.Meta` or a v1 object adapter.
 
+Read `tasksupport/default_value.csv` (`key,value` rows), which v1 read with
+`rde2util.get_default_values`, with `read_key_values(path)` (#629). By default
+it detects the encoding with chardet as v1 does and keeps every value a string,
+so the result equals `get_default_values`. Merge it with the measured values for
+`build_meta`:
+
+<!-- test: read-key-values -->
+```python
+from rdetoolkit.nodes import build_meta, read_key_values
+
+defaults = read_key_values(paths.tasksupport / "default_value.csv", missing_ok=True)
+metadata = build_meta({**defaults, **measured}, paths.tasksupport / "metadata-def.json")
+```
+
+`key=` and `value=` name the columns and `encoding=` sets the encoding. chardet
+can misdetect a short, mostly ASCII Shift-JIS file, as in v1; pass
+`encoding="cp932"` for such files. A missing file raises `FileNotFoundError`;
+with `missing_ok=True` it returns an empty dict.
+
 Values may be keyed by the definition key or by its `originalName`. As in v1
 `Meta.assign_vals`, the definition key wins when both spellings are present,
 and `originalName` is read only when the definition key is absent (a key that

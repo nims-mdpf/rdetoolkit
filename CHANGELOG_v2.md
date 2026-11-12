@@ -4,6 +4,12 @@
 
 ### Added
 
+- The builtin `read_key_values(path, *, key="key", value="value",
+  encoding=None, missing_ok=False)` node reads a two-column CSV such as
+  `tasksupport/default_value.csv` into a `dict[str, str]`. With the default
+  options the result equals v1 `rde2util.get_default_values`, and it appears
+  in the call log and `rdetoolkit nodes list`. A missing column or a row
+  without its cell raises `ValueError` (#629).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
