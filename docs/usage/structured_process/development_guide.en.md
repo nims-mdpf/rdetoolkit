@@ -81,8 +81,8 @@ flowchart TD
 
 For reusable data registration in RDE, the following files are mandatory:
 
-- `templates/tasksupport/invoice.schema.json`
-- `templates/tasksupport/metadata-def.json`
+- `template/tasksupport/invoice.schema.json`
+- `template/tasksupport/metadata-def.json`
 
 RDE uses a predefined metadata definition file `metadata-def.json` to extract metadata from files output by measurement equipment and daily experimental data files, and `invoice.schema.json` which allows flexible customization of data input forms for sample information (synthesis conditions, etc.) and measurement conditions that need to be recorded routinely in daily experiments.
 

@@ -374,10 +374,16 @@ def validate_all(
     RDE project structure created by the 'init' command:
     - container/data/tasksupport/invoice.schema.json
     - container/data/tasksupport/metadata-def.json
-    - templates/tasksupport/invoice.schema.json
-    - templates/tasksupport/metadata-def.json
+    - template/tasksupport/invoice.schema.json
+    - template/tasksupport/metadata-def.json
     - input/invoice/invoice.json (with schema)
     - input/metadata/metadata.json (if exists, with schema)
+
+    A project created by v1 keeps its schemas in the deprecated templates/
+    directory. When template/tasksupport/ does not exist, that directory is
+    read instead and a warning is reported. The warning does not change the
+    exit code unless --strict is given. Run 'rdetoolkit migrate apply' to
+    rename templates/ to template/.
 
     Exit Codes:
         0: Success - all validations passed
@@ -406,8 +412,8 @@ def validate_all(
                 typer.echo("\nExpected file locations:")
                 typer.echo("  - container/data/tasksupport/invoice.schema.json")
                 typer.echo("  - container/data/tasksupport/metadata-def.json")
-                typer.echo("  - templates/tasksupport/invoice.schema.json")
-                typer.echo("  - templates/tasksupport/metadata-def.json")
+                typer.echo("  - template/tasksupport/invoice.schema.json")
+                typer.echo("  - template/tasksupport/metadata-def.json")
                 typer.echo("  - input/invoice/invoice.json")
                 typer.echo("  - input/metadata/metadata.json (optional)")
             raise typer.Exit(code=0)

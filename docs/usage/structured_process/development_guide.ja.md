@@ -81,8 +81,8 @@ flowchart TD
 
 RDEは再利用なデータ登録において、下記ファイルは必須となります。
 
-- `templates/tasksupport/invoice.shcema.json`
-- `templates/tasksupport/metadata-def.json`
+- `template/tasksupport/invoice.schema.json`
+- `template/tasksupport/metadata-def.json`
 
 RDEは、計測装置から出力されたファイルや日々の実験データファイルから抽出するべき事前メタデータ定義ファイル`metadata-def.json`と、サンプル情報(合成条件など)や計測条件など日々の実験で定型的に記録が必要な情報を、データ入力フォームを柔軟にカスタマイズできる`invoice.schema.json`。
 
@@ -953,7 +953,7 @@ uv run python -m rdetoolkit init
 - continer/: 構造化処理の実行環境を定義するディレクトリ
 - container/data/: 構造化処理で使用するデータを配置するディレクトリ
 - input/: 入力データを配置するディレクトリ(ローカル開発・デバッグでは利用必須ではありません。)
-- templates/: 構造化処理で使用するテンプレートファイルを配置するディレクトリ(ローカル開発・デバッグでは利用必須ではありません。)
+- template/: 構造化処理で使用するテンプレートファイルを配置するディレクトリ(ローカル開発・デバッグでは利用必須ではありません。)
 
 ```bash
 rde-struct-project/
@@ -973,22 +973,20 @@ rde-struct-project/
 │   ├── inputdata
 │   └── invoice
 │       └── invoice.json
-└── templates
+└── template
     └── tasksupport
         ├── invoice.schema.json
         └── metadata-def.json
 ```
 
-さきほど作成した、`metadata-def.json`と`invoice.schema.json`、テンプレート生成ツールで作成した`invoice.json`を`container/data/tasksupport/`と、`templates/`に配置します。
+さきほど作成した、`metadata-def.json`と`invoice.schema.json`、テンプレート生成ツールで作成した`invoice.json`を`container/data/tasksupport/`と、`template/tasksupport/`に配置します。
 
 ```bash
 cp metadata-def.json container/data/tasksupport/
 cp invoice.schema.json container/data/tasksupport/
 cp invoice.json container/data/invoice/
-cp metadata-def.json templates/tasksupport
-cp invoice.schema.json templates/tasksupport
-cp metadata-def.json templates/tasksupport/tasksupport/
-cp invoice.schema.json templates/tasksupport/tasksupport/
+cp metadata-def.json template/tasksupport/
+cp invoice.schema.json template/tasksupport/
 ```
 
 また、ダウンロードしてきた入力データ[XRD_RIGAKU.ras](https://github.com/nims-mdpf/M-DaC_XRD/blob/master/source/XRD_RIGAKU.ras)も`container/data/inputdata/`に配置します。
