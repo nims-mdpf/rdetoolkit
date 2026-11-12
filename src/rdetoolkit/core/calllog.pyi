@@ -28,6 +28,10 @@ class CallSequence:
 def get_active_recorder() -> CallLogRecorder | None: ...
 def type_name_of(target: type) -> str: ...
 
+# Internal: the single summary implementation, shared with runner/execute.py
+# (#641). Declared here so the Runner's import type-checks; not public API.
+def _summarize_outputs(value: Any, *, repr_head: str, repr_head_len: int) -> tuple[TypeSummary, ...]: ...
+
 class CallLogRecorder:
     repr_head: Literal["on", "off"]
     repr_head_len: int
