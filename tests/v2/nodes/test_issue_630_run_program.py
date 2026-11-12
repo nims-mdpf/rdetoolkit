@@ -19,6 +19,7 @@ BV table
 |---|---|---|---|
 | ``run_program`` | empty argument list / a bare string | ``ValueError`` / ``TypeError`` before anything runs | GA630-BV-1 |
 | ``run_program`` | stderr longer than the tail | only the last lines in the message | GA630-BV-2 |
+| ``run_program`` | timeout with a child of the launcher running | child stopped, no late output | GA630-BV-3 |
 """
 from __future__ import annotations
 
@@ -135,6 +136,27 @@ def test_missing_program_and_timeout__ga630_ep_6(args: list[str], timeout: float
     # Then: the template code applies and the message says what happened
     assert excinfo.value.ecode == 52
     assert expected in excinfo.value.emsg
+
+
+def test_timeout_stops_child_processes__ga630_bv_3(tmp_path: Path) -> None:
+    """GA630-BV-3: after a timeout, processes the launcher started write nothing more."""
+    import time
+
+    from rdetoolkit.nodes import run_program
+
+    # Given: a launcher whose child writes an output after the timeout
+    target = tmp_path / "late-output.txt"
+    child = f"import time, pathlib; time.sleep(1.0); pathlib.Path({str(target)!r}).write_text('late')"
+    launcher = f"import subprocess, sys, time; subprocess.Popen([sys.executable, '-c', {child!r}]); time.sleep(30)"
+    # When: the launcher times out
+    started = time.monotonic()
+    with pytest.raises(StructuredError, match="timed out"):
+        run_program(_script(launcher), timeout=0.3)
+    elapsed = time.monotonic() - started
+    time.sleep(1.5)
+    # Then: the failure returned promptly and the child no longer changes outputs
+    assert elapsed < 10
+    assert not target.exists()
 
 
 @pytest.fixture

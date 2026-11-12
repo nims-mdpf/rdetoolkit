@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shlex
+import signal
 import subprocess
+import sys
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -18,6 +21,7 @@ from rdetoolkit.rdelogger import get_logger
 _WINE = "wine"
 _STDERR_TAIL_LINES = 5
 _STDERR_TAIL_CHARS = 1000
+_DRAIN_SECONDS = 5
 
 logger = get_logger(__name__)
 
@@ -81,6 +85,40 @@ def _command(args: Sequence[str | Path], *, wine: bool | Literal["auto"]) -> tup
     return (_WINE, *(to_wine_path(arg) if isinstance(arg, Path) else arg for arg in args))
 
 
+def _kill_tree(process: subprocess.Popen[str]) -> None:
+    # subprocess.run kills only the direct child on timeout, so processes a
+    # launcher started kept writing outputs after the failure (PR #656 review).
+    if sys.platform == "win32":
+        subprocess.run(  # noqa: S603 - fixed system command
+            ["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True, check=False,  # noqa: S607
+        )
+    else:
+        with contextlib.suppress(ProcessLookupError, PermissionError):
+            os.killpg(process.pid, signal.SIGKILL)
+    process.kill()
+
+
+def _run(
+    command: tuple[str, ...], *, cwd: Path | None, env: dict[str, str] | None, timeout: float | None,
+) -> tuple[int, str, str]:
+    """Run ``command`` in its own process group, stopping the whole group if it does not finish."""
+    with subprocess.Popen(  # noqa: S603 - the command is the caller's, never a shell string
+        command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        encoding="utf-8", errors="replace", start_new_session=sys.platform != "win32",
+    ) as process:
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except BaseException:
+            # Timeout, KeyboardInterrupt or a run interruption: nothing the
+            # program started may outlive the failed call.
+            _kill_tree(process)
+            # Drain the pipes; a process that escaped the group may hold them.
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                process.communicate(timeout=_DRAIN_SECONDS)
+            raise
+    return process.returncode, stdout, stderr
+
+
 def _stderr_tail(stderr: str) -> str:
     lines = [line.strip() for line in stderr.splitlines() if line.strip()]
     return " | ".join(lines[-_STDERR_TAIL_LINES:])[-_STDERR_TAIL_CHARS:]
@@ -106,7 +144,9 @@ def run_program(
         args: Program and its arguments. ``Path`` arguments are converted for
             wine; text arguments are passed unchanged.
         cwd: Working directory of the program.
-        timeout: Seconds to wait before the program is killed.
+        timeout: Seconds to wait before the program, and the processes it
+            started, are killed. Processes that leave its process group
+            (POSIX) or process tree (Windows) are not tracked.
         env: Variables added to, or overriding, the inherited environment.
         wine: ``True`` runs the program with ``wine`` and converts ``Path``
             arguments with ``to_wine_path``; ``"auto"`` does so only outside
@@ -131,10 +171,7 @@ def run_program(
     logger.info(f"run_program: {cmdline}")
     start = time.perf_counter()
     try:
-        completed = subprocess.run(  # noqa: S603 - the command is the caller's, never a shell string
-            command, cwd=cwd, env=environment, timeout=timeout, capture_output=True,
-            text=True, encoding="utf-8", errors="replace", check=False,
-        )
+        returncode, stdout, stderr = _run(command, cwd=cwd, env=environment, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         detail = f"External program timed out after {timeout}s; command: {cmdline}"
         logger.error(detail)
@@ -143,7 +180,7 @@ def run_program(
         detail = f"Cannot start external program {command[0]!r}: {exc.strerror or exc}; command: {cmdline}"
         logger.error(detail)
         raise StructuredError(error_message or detail, code) from exc
-    result = CompletedProgram(command, completed.returncode, completed.stdout, completed.stderr, time.perf_counter() - start)
+    result = CompletedProgram(command, returncode, stdout, stderr, time.perf_counter() - start)
     if result.returncode == 0:
         logger.info(f"run_program: exit code 0 after {result.duration:.2f}s")
         return result
