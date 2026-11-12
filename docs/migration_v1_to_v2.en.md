@@ -183,6 +183,10 @@ assert invoice.raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}
 
 For file and image artifacts, `read_excel` accepts worksheet, header, row and
 column selections; `save_csv` accepts precision, header and index options.
+`save_csv(..., preamble=...)` writes a block of lines before the table, such as
+the `#title` / `#legend` header `rdetoolkit.graph` reads: rows (which may differ
+in length) are written in the table's CSV format, a str is written verbatim, and
+`blank_line_after_preamble=True` adds one empty line before the table.
 `save_json` and `save_text` accept an output `kind`. Use `read_json` for detected
 encoding, `save_invoice` for the tile invoice formatting contract, and
 `save_figure` for caller-owned matplotlib figures. `plot_lines` accepts x/y

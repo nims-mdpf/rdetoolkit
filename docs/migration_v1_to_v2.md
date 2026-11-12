@@ -168,7 +168,10 @@ assert invoice.raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}
 ```
 
 ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
-`save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は
+`save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_csv` の `preamble=` には
+表の前に書く `#title` / `#legend` などのヘッダー行(フィールド数は行ごとに異なってよく、
+表と同じ CSV 形式で書かれます)か、そのまま書く文字列を渡せ、
+`blank_line_after_preamble=True` でヘッダー行と表の間に空行を 1 行入れます。`save_json` と `save_text` は
 出力先の `kind` を選べます。文字コードを検出する `read_json`、タイルの invoice を
 所定の書式で保存する `save_invoice`、利用者が作った Figure を保存する `save_figure`
 も利用できます。`plot_lines` は x/y 列または列ペア、ラベル・タイトル・軸スケール・

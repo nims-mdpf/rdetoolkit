@@ -4,6 +4,11 @@
 
 ### Added
 
+- `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
+  block of lines before the table, such as the `#title` / `#legend` metadata
+  header that `rdetoolkit.graph` parses. Rows may have different numbers of
+  fields and use the table's CSV dialect and line ending; a str is written
+  verbatim. The default `preamble=None` keeps the current bytes (#628).
 - The builtin `read_key_values(path, *, key="key", value="value",
   encoding=None, missing_ok=False)` node reads a two-column CSV such as
   `tasksupport/default_value.csv` into a `dict[str, str]`. With the default
