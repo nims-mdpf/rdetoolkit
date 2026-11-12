@@ -53,6 +53,32 @@ def two_page_pdf(tmp_path: Path) -> Path:
     return path
 
 
+def _filled_form_pdf() -> bytes:
+    """A 200 x 100 pt page whose only content is a filled AcroForm text field.
+
+    The widget's appearance stream fills its 180 x 80 pt box (at 10, 10) with
+    black, so the field is visible only when form fields are rendered.
+    """
+    stream = b"0 g 0 0 180 80 re f"
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [4 0 R] >> >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Annots [4 0 R] >>",
+        b"<< /Type /Annot /Subtype /Widget /FT /Tx /T (name) /V (filled) /F 4 /Rect [10 10 190 90] /P 3 0 R /AP << /N 5 0 R >> >>",
+        b"<< /Type /XObject /Subtype /Form /BBox [0 0 180 80] /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream",
+    ]
+    data = b"%PDF-1.7\n"
+    offsets = []
+    for number, body in enumerate(objects, start=1):
+        offsets.append(len(data))
+        data += b"%d 0 obj\n" % number + body + b"\nendobj\n"
+    xref = len(data)
+    data += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    data += b"".join(b"%010d 00000 n \n" % offset for offset in offsets)
+    data += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, xref)
+    return data
+
+
 def _png(path: Path) -> Image.Image:
     with Image.open(path) as image:
         image.load()
@@ -104,6 +130,19 @@ class TestPdf:
             render_png(two_page_pdf, output_context, "missing.png", page=3)
         assert not (output_context.main_image / "missing.png").exists()
 
+    def test_filled_form_fields_are_rendered(self, tmp_path: Path, output_context: OutputContext) -> None:
+        """A filled AcroForm field is drawn, as pdf2image (poppler) draws it in v1."""
+        from rdetoolkit.nodes import render_png
+
+        source = tmp_path / "form.pdf"
+        source.write_bytes(_filled_form_pdf())
+
+        image = _png(render_png(source, output_context, "form.png", dpi=72))
+
+        assert image.size == (200, 100)
+        assert image.getpixel((100, 50)) == (0, 0, 0)
+        assert image.getpixel((2, 2)) == (255, 255, 255)
+
     def test_corrupt_pdf_raises(self, tmp_path: Path, output_context: OutputContext) -> None:
         """A file that is not a PDF raises and writes nothing."""
         from rdetoolkit.nodes import render_png
@@ -118,9 +157,20 @@ class TestPdf:
 
 @needs_cairo
 class TestSvg:
-    @pytest.mark.parametrize(("name", "content"), [("drawing.svg", _SVG), ("drawing.SVGZ", gzip.compress(_SVG))])
+    @pytest.mark.parametrize(
+        ("name", "content"),
+        [
+            ("drawing.svg", _SVG),
+            ("drawing.SVGZ", gzip.compress(_SVG)),
+            ("sample#1.svg", _SVG),
+            ("sample%20.svg", _SVG),
+        ],
+    )
     def test_svg_is_rasterized_at_its_own_size(self, tmp_path: Path, output_context: OutputContext, name: str, content: bytes) -> None:
-        """SVG and gzip-compressed SVGZ render at their own size; dpi does not apply."""
+        """SVG and SVGZ render at their own size; dpi does not apply.
+
+        A filename with URL characters (``#``, ``%xx``) is read as a plain path.
+        """
         from rdetoolkit.nodes import render_png
 
         source = tmp_path / name

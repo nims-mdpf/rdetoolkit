@@ -91,6 +91,9 @@ def _render_pdf_page(source_path: Path, page: int, dpi: int) -> bytes:
     pdfium = _import_pdfium()
     document = pdfium.PdfDocument(source_path)
     try:
+        # Without a form environment PDFium skips form fields, so a filled
+        # AcroForm would render blank. It must be set up before any page loads.
+        document.init_forms()
         page_count = len(document)
         if not 1 <= page <= page_count:
             msg = f"page must be between 1 and {page_count} for {source_path.name}, got {page}"
@@ -109,8 +112,10 @@ def _render_pdf_page(source_path: Path, page: int, dpi: int) -> bytes:
 
 def _render_svg(source_path: Path) -> bytes:
     cairosvg = _import_cairosvg()
-    # cairosvg >= 2.7 does not fetch external resources unless ``unsafe=True``.
-    png: bytes = cairosvg.svg2png(url=str(source_path))
+    # Pass the bytes, not ``url=``: cairosvg parses a URL, so ``#`` or ``%xx``
+    # in a local filename would change the path it opens. No base URL is lost,
+    # because cairosvg >= 2.7 fetches only data: URLs unless ``unsafe=True``.
+    png: bytes = cairosvg.svg2png(bytestring=source_path.read_bytes())
     return png
 
 
