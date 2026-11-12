@@ -7,17 +7,24 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
-from typing import Any, TypeVar, overload
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.registry import FlowSpec, register_flow
 from rdetoolkit.exceptions import StructuredError
+
+if TYPE_CHECKING:
+    from rdetoolkit.types import RdeConfig
 
 F = TypeVar("F", bound=Callable[..., Any])
 _flow_stack_var: ContextVar[tuple[str, ...]] = ContextVar("rdetoolkit_flow_stack", default=())
 #: The only placeholders of ``@flow(error_message=...)``. Every other brace is
 #: literal text, so existing fixed messages never hit ``str.format`` errors.
 _MESSAGE_PLACEHOLDER = re.compile(r"\{(error|error_type)\}")
+#: ``@flow(prepare=...)``: called by the Runner with the run's ``inputdata``
+#: directory and effective config, after config load and before mode discovery.
+PrepareFn = Callable[[Path, "RdeConfig"], None]
 
 
 def current_flow_id() -> str | None:
@@ -96,10 +103,24 @@ def flow(func: F, /) -> F: ...
 
 
 @overload
-def flow(*, id: str | None = None, error_code: int | None = None, error_message: str | None = None) -> Callable[[F], F]: ...
+def flow(
+    *,
+    id: str | None = None,
+    error_code: int | None = None,
+    error_message: str | None = None,
+    prepare: PrepareFn | None = None,
+) -> Callable[[F], F]: ...
 
 
-def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | None = None, error_message: str | None = None) -> F | Callable[[F], F]:  # noqa: A002
+def flow(  # noqa: PLR0913
+    func: F | None = None,
+    /,
+    *,
+    id: str | None = None,  # noqa: A002
+    error_code: int | None = None,
+    error_message: str | None = None,
+    prepare: PrepareFn | None = None,
+) -> F | Callable[[F], F]:
     """Decorate a plain Python function as a registered eager flow.
 
     Args:
@@ -115,11 +136,31 @@ def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | N
             body exception's text and ``{error_type}`` by its class name; all
             other text, including other braces, is kept verbatim. With only a
             code supplied, the original exception's message is retained.
+        prepare: Optional run-level input preparation, called by the Runner
+            as ``prepare(inputdata, config)`` once per run, after the config
+            is loaded and before the mode is resolved -- so files it writes
+            to ``inputdata`` (a split instrument file, a SmartTable CSV and
+            its zip) decide the mode and the tiles. Both v2 entries
+            (``workflows.run(flow=...)`` and ``rdetoolkit run --flow``) run
+            it, ``--validate-only`` included, and it is recorded as
+            ``prepare.*`` run events. ``config`` is a copy: changing it does
+            not change the run. It should be idempotent, since a re-run sees
+            the already-prepared inputs.
 
     Returns:
         A transparent decorated function, or its decorator. Direct calls retain
-        ordinary exception semantics, including when error options are set.
+        ordinary exception semantics, including when error options are set,
+        and never run ``prepare``.
+
+    Raises:
+        TypeError: If ``prepare`` is given and is not callable.
     """
+    if prepare is not None and not callable(prepare):
+        msg = (
+            "flow prepare must be callable or None. Remediation: pass the "
+            "preparation function itself, e.g. @flow(prepare=split_inputs)."
+        )
+        raise TypeError(msg)
 
     def _decorator(fn: F) -> F:
         spec = _build_flow_spec(fn, id)
@@ -132,12 +173,26 @@ def flow(func: F | None = None, /, *, id: str | None = None, error_code: int | N
         wrapper.__flow_spec__ = spec  # type: ignore[attr-defined]
         wrapper.__flow_error_code__ = error_code  # type: ignore[attr-defined]
         wrapper.__flow_error_message__ = error_message  # type: ignore[attr-defined]
+        wrapper.__flow_prepare__ = prepare  # type: ignore[attr-defined]
         register_flow(spec, wrapper)
         return wrapper  # type: ignore[return-value]
 
     if func is not None:
         return _decorator(func)
     return _decorator
+
+
+def flow_prepare(fn: Callable[..., Any]) -> PrepareFn | None:
+    """Return the input preparation a flow declared, if any.
+
+    Args:
+        fn: Registered or plain flow callable selected for execution.
+
+    Returns:
+        The ``@flow(prepare=...)`` callable, or ``None`` when none is declared.
+    """
+    prepare = getattr(fn, "__flow_prepare__", None)
+    return prepare if callable(prepare) else None
 
 
 def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
