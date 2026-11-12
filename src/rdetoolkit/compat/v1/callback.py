@@ -101,7 +101,12 @@ def accepts_unified_argument(callback: Callable[..., Any]) -> bool | None:
     return None
 
 
-def to_legacy_dataset_paths(context: RunContext, *, material: TileMaterial) -> RdeDatasetPaths:
+def to_legacy_dataset_paths(
+    context: RunContext,
+    *,
+    material: TileMaterial,
+    legacy_config: Config | None = None,
+) -> RdeDatasetPaths:
     """Convert one tile's v2 material into the v1 dataset path bundle.
 
     Args:
@@ -111,6 +116,8 @@ def to_legacy_dataset_paths(context: RunContext, *, material: TileMaterial) -> R
             (ruling #2), so this adapter neither re-decides the source from
             what happens to exist under ``temp/`` nor reads a process-global
             handoff a concurrent run could have erased.
+        legacy_config: The v1 ``Config`` the run was configured from, if any;
+            see ``to_legacy_config``.
 
     Returns:
         The unified v1 path bundle, which also exposes the legacy pair through
@@ -136,7 +143,7 @@ def to_legacy_dataset_paths(context: RunContext, *, material: TileMaterial) -> R
         inputdata=v1.path(paths.inputdata),
         invoice=v1.path(paths.invoice),
         tasksupport=v1.path(paths.tasksupport),
-        config=to_legacy_config(context.config),
+        config=to_legacy_config(context.config, legacy_config=legacy_config),
     )
     tile_root = out.invoice.parent
     # v1.7 (#503): the row CSV is carried explicitly by the tile, never
@@ -287,7 +294,11 @@ class LegacyCallbackInvoker:
         # outside the recorder context means a conversion defect stays an
         # ordinary framework failure instead of being reported as a tile's node
         # execution failure. A callback-free v1 run converts nothing.
-        dataset_paths = None if callback is None else to_legacy_dataset_paths(context, material=material)
+        dataset_paths = (
+            None
+            if callback is None
+            else to_legacy_dataset_paths(context, material=material, legacy_config=target.legacy_config)
+        )
         recorder = CallLogRecorder(
             repr_head=config.provenance.repr_head,
             repr_head_len=config.provenance.repr_head_len,
@@ -358,7 +369,7 @@ def _looks_like_arity_mismatch(error: TypeError) -> bool:
     return any(keyword in message for keyword in _ARITY_ERROR_KEYWORDS)
 
 
-def to_legacy_config(config: RdeConfig | None) -> Config:
+def to_legacy_config(config: RdeConfig | None, *, legacy_config: Config | None = None) -> Config:
     """Project the canonical v2 config back onto the v1 Config contract.
 
     Public because the Runner's tile iterator needs the same projection for the
@@ -373,14 +384,27 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
     them. A key spelled like a v1 field is skipped: there the structured v1
     field is authoritative.
 
+    When the run was configured from a v1 ``Config``, its own extra fields are
+    restored verbatim instead (#586). Normalization flattens the ``custom:``
+    section into ``RdeConfig.custom`` for flows (#566), so ``RdeConfig.custom``
+    alone can no longer tell a top-level ``threshold`` from ``custom:
+    {threshold: ...}``; v1.7.1 kept the section as ``Config.custom``.
+
     Args:
         config: Effective canonical configuration, or ``None``.
+        legacy_config: The v1 ``Config`` the run was configured from, or
+            ``None`` when it was configured from a v2 source.
 
     Returns:
         Equivalent v1 configuration.
     """
+    extras = (
+        _legacy_extra_fields(config.custom if config is not None else {})
+        if legacy_config is None
+        else copy.deepcopy(legacy_config.model_extra or {})
+    )
     if config is None:
-        return Config()
+        return Config(**extras)
     system = config.system
     extended_mode = system.extended_mode if system.extended_mode in _V1_EXTENDED_MODES else None
     return Config(
@@ -397,7 +421,7 @@ def to_legacy_config(config: RdeConfig | None) -> Config:
             ignore_errors=config.execution.on_iteration_error == "continue",
         ),
         smarttable=SmartTableSettings(save_table_file=config.smarttable.save_table_file),
-        **_legacy_extra_fields(config.custom),
+        **extras,
     )
 
 
