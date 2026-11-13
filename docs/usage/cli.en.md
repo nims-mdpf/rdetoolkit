@@ -401,7 +401,7 @@ Runs structured processing from the project root. The Runner reads `data/inputda
 | REF | `pkg.mod:callable` for a v2 flow (the current directory is importable), or `module_or_file::attr` with `--legacy` |
 | --legacy | Run a v1 dataset function, as passed to `workflows.run(custom_dataset_function=...)` |
 | --config | YAML overrides merged over the discovered `rdeconfig.yaml` (v2 flows only) |
-| --validate-only | Check the config, mode, and invoice without calling the flow (v2 flows only). Writes no outputs |
+| --validate-only | Check the config, mode, and invoice without calling the flow (v2 flows only). In ExcelInvoice / SmartTable mode only the invoice files and the schema are checked, because the rows complete the invoice. Writes no outputs |
 
 Outputs: the RDE output tree under `data/` (`structured/`, `meta/`, `raw/`, images, `logs/`, and `job.failed` on failure). A v2 run prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`; a v1 run prints the legacy status JSON.
 

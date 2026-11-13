@@ -400,7 +400,7 @@ fi
 | REF | v2 flow を指す `pkg.mod:callable`(カレントディレクトリは import 可能)、または `--legacy` 付きの `module_or_file::attr` |
 | --legacy | v1 のデータセット関数(`workflows.run(custom_dataset_function=...)` に渡していた関数)を実行 |
 | --config | 検出した `rdeconfig.yaml` に重ねる YAML の上書き設定(v2 flow のみ) |
-| --validate-only | flow を呼ばずに設定、モード、インボイスだけを検証(v2 flow のみ)。出力は書き込みません |
+| --validate-only | flow を呼ばずに設定、モード、インボイスだけを検証(v2 flow のみ)。ExcelInvoice / SmartTable モードでは行がインボイスを補うため、インボイスのファイルとスキーマだけを検証します。出力は書き込みません |
 
 出力: `data/` 配下の RDE 出力ツリー(`structured/`、`meta/`、`raw/`、画像、`logs/`、失敗時は `job.failed`)。v2 の実行は実行レポートの JSON を表示し、`data/logs/run_report_<run_id>.json` として保存します。v1 の実行は従来のステータス JSON を表示します。
 
