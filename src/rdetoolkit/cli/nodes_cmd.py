@@ -5,10 +5,12 @@ from __future__ import annotations
 import ast
 import inspect
 import json
+import sys
 import textwrap
 from collections import Counter
 from collections.abc import Sequence
-from dataclasses import asdict
+from contextlib import redirect_stdout
+from dataclasses import asdict, dataclass
 from typing import Annotated, Any, cast
 
 import typer
@@ -20,6 +22,7 @@ from rdetoolkit.core import registry
 from rdetoolkit.core.injection import find_duplicate_reserved_annotations
 from rdetoolkit.core.node import NodeSpec
 from rdetoolkit.errors import ERROR_CATALOG, WARNING_CATALOG, RdeRegistryError
+from rdetoolkit.report.diagnostics import diagnostic, envelope
 
 _MODULE_INPUT = (
     "`--module`: import a project module first so its nodes are registered (repeatable). "
@@ -62,10 +65,19 @@ LINT_HELP = CommandHelp(
         "flows with two parameters of one reserved type (E2006), skeleton declaration errors (E2101-E2105), "
         "and skeleton slots that read instance state (W1101)."
     ),
-    inputs=(_MODULE_INPUT,),
-    outputs=("Prints one line per violation, or `0 violations`. Writes no files.",),
-    examples=("rdetoolkit nodes lint --module modules.processing", "rdetoolkit nodes lint --module modules.processing --module modules.extra"),
-    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "one or more violations, or a module that fails to import")),
+    inputs=(
+        _MODULE_INPUT + " Importing a module runs its top-level code; lint is not a sandbox.",
+        (
+            "`--json`: print the versioned diagnostics envelope instead (`schema_version`, `status`, `diagnostics`); "
+            "an import failure becomes a `ModuleImportFailed` finding, and import output goes to stderr."
+        ),
+    ),
+    outputs=("Prints one line per violation, or `0 violations`; with `--json`, one JSON object. Writes no files.",),
+    examples=(
+        "rdetoolkit nodes lint --module modules.processing",
+        "rdetoolkit nodes lint --module modules.processing --json",
+    ),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "one or more violations (warnings included), or a module that fails to import")),
     see_also=("rdetoolkit nodes list", "rdetoolkit run"),
 )
 
@@ -157,35 +169,72 @@ def show(
         typer.echo(f"{name}: {field_value}")
 
 
-def _lint_messages() -> list[str]:
+@dataclass(frozen=True)
+class _LintFinding:
+    """One lint result: its text-mode line and its ``--json`` finding."""
+
+    text: str
+    value: dict[str, Any]
+
+
+def _catalog_finding(code: int, subject: str, text: str, *, message: str, location: dict[str, str] | None = None) -> _LintFinding:
+    entry = ERROR_CATALOG[code]
+    return _LintFinding(text, diagnostic(
+        code=code, severity="error", name=entry.name, message=message,
+        remediation=entry.remediation, subject=subject, location=location,
+    ))
+
+
+def _annotation_findings(spec: NodeSpec) -> list[_LintFinding]:
+    # The signature, not ``input_schema``: the schema renders an absent
+    # annotation and an explicit ``typing.Any`` identically (#601).
+    parameters = inspect.signature(registry.get_node_function(spec.id)).parameters
+    findings = []
+    for name, parameter in parameters.items():
+        if parameter.annotation is not inspect.Parameter.empty:
+            continue
+        text = f"Missing type annotation: {spec.id}.{name}"
+        findings.append(_LintFinding(text, diagnostic(
+            code=None, severity="error", name="MissingTypeAnnotation", message=text,
+            remediation="Annotate the node parameter; use typing.Any to accept any value on purpose.",
+            subject=f"{spec.id}.{name}", location={"source": spec.source_location, "parameter": name},
+        )))
+    return findings
+
+
+def _lint_findings() -> list[_LintFinding]:
     nodes = cast(tuple[NodeSpec, ...], registry.list_nodes())
-    messages = [
-        f"E2001 duplicate node id {node_id}. {ERROR_CATALOG[2001].remediation}"
+    findings = [
+        _catalog_finding(
+            2001, node_id, f"E2001 duplicate node id {node_id}. {ERROR_CATALOG[2001].remediation}",
+            message=ERROR_CATALOG[2001].message_template.format(node_id=node_id),
+        )
         for node_id in find_duplicate_node_ids(nodes)
     ]
     for spec in nodes:
-        # The signature, not ``input_schema``: the schema renders an absent
-        # annotation and an explicit ``typing.Any`` identically (#601).
-        parameters = inspect.signature(registry.get_node_function(spec.id)).parameters
-        messages.extend(
-            f"Missing type annotation: {spec.id}.{name}"
-            for name, parameter in parameters.items()
-            if parameter.annotation is inspect.Parameter.empty
+        findings.extend(_annotation_findings(spec))
+    sources = {spec.id: spec.source_location for spec in nodes}
+    findings.extend(
+        _catalog_finding(
+            2005, node_id, f"E2005 unstable node id {node_id}. {ERROR_CATALOG[2005].remediation}",
+            message=ERROR_CATALOG[2005].message_template.format(node_id=node_id),
+            location={"source": sources[node_id]} if node_id in sources else None,
         )
-    messages.extend(
-        f"E2005 unstable node id {node_id}. {ERROR_CATALOG[2005].remediation}"
         for node_id in registry.find_unstable_node_ids()
     )
     for flow_spec in registry.list_flows():
         duplicates = find_duplicate_reserved_annotations(registry.get_flow_function(flow_spec.id))
         for reserved_type, parameter_names in duplicates.items():
             type_name = getattr(reserved_type, "__name__", str(reserved_type))
-            messages.append(
+            message = ERROR_CATALOG[2006].message_template.format(type_name=type_name, param_names=", ".join(parameter_names))
+            findings.append(_catalog_finding(
+                2006, flow_spec.id,
                 f"E2006 duplicate reserved annotation {type_name} on "
                 f"{flow_spec.id}: {', '.join(parameter_names)}. {ERROR_CATALOG[2006].remediation}",
-            )
-    messages.extend(_template_self_state_messages())
-    return messages
+                message=message, location={"source": flow_spec.source_location},
+            ))
+    findings.extend(_template_self_state_findings())
+    return findings
 
 
 def _self_attributes(method: object) -> set[str]:
@@ -203,11 +252,11 @@ def _self_attributes(method: object) -> set[str]:
     }
 
 
-def _template_self_state_messages() -> list[str]:
+def _template_self_state_findings() -> list[_LintFinding]:
     from rdetoolkit.templates import registry as template_registry
 
     warning = WARNING_CATALOG[1101]
-    messages: list[str] = []
+    findings: list[_LintFinding] = []
     for template_cls in template_registry.list_concrete_templates():
         init_attributes = _self_attributes(vars(template_cls).get("__init__"))
         for method_name, method in vars(template_cls).items():
@@ -219,24 +268,53 @@ def _template_self_state_messages() -> list[str]:
                     qualified_name=qualified_name,
                     attribute_name=attribute_name,
                 )
-                messages.append(f"W1101 {warning.name}: {detail}")
-    return messages
+                findings.append(_LintFinding(f"W1101 {warning.name}: {detail}", diagnostic(
+                    code=1101, severity="warning", name=warning.name, message=detail,
+                    remediation="Initialize the attribute in __init__, or pass the state through slot arguments and return values.",
+                    subject=f"{qualified_name}.{attribute_name}",
+                    location={"source": f"{template_cls.__module__}:{template_cls.__qualname__}.{method_name}"},
+                )))
+    return findings
 
 
-def _load_modules_for_lint(module_names: Sequence[str]) -> list[str]:
-    messages: list[str] = []
+#: Registry errors that text-mode lint reports as violations; any other
+#: ``RdeRegistryError`` raised by an import propagates, as before ``--json``.
+_TEXT_REPORTED_IMPORT_CODES = frozenset({2101, 2102, 2103, 2104, 2105})
+
+
+def _import_failure(module_name: str) -> _LintFinding:
+    message = f"Unable to import module {module_name}."
+    return _LintFinding(message, diagnostic(
+        code=None, severity="error", name="ModuleImportFailed", message=message,
+        remediation=IMPORT_REMEDIATION.removeprefix("Remediation: "), subject=module_name,
+    ))
+
+
+def _import_findings(module_names: Sequence[str], *, as_json: bool) -> list[_LintFinding]:
+    """Import ``--module`` modules; failures become findings (always, with ``--json``).
+
+    The JSON finding carries the catalog message template, never ``exc.message``
+    or ``str(exc)``: an import error can quote arbitrary project data.
+    """
+    findings: list[_LintFinding] = []
     for module_name in module_names:
         try:
             import_project_module(module_name)
         except RdeRegistryError as exc:
-            code = exc.code
-            if not isinstance(code, int) or code not in {2101, 2102, 2103, 2104, 2105}:
+            code = exc.code if isinstance(exc.code, int) and exc.code in ERROR_CATALOG else None
+            if not as_json and code not in _TEXT_REPORTED_IMPORT_CODES:
                 raise
-            messages.append(f"{ERROR_CATALOG[code].name} (E{code}): {exc.message}")
+            findings.append(_import_failure(module_name) if code is None else _catalog_finding(
+                code, module_name, f"{ERROR_CATALOG[code].name} (E{code}): {exc.message}",
+                message=ERROR_CATALOG[code].message_template,
+            ))
         except Exception as exc:  # noqa: BLE001
+            if as_json:
+                findings.append(_import_failure(module_name))
+                continue
             typer.echo(f"Unable to import module {module_name}: {exc}\n{IMPORT_REMEDIATION}", err=True)
             raise typer.Exit(code=3) from exc
-    return messages
+    return findings
 
 
 @app.command("lint", help=LINT_HELP.render(), short_help=LINT_HELP.summary)
@@ -245,13 +323,18 @@ def lint(
         list[str] | None,
         typer.Option("--module", help="Import a project module before linting; repeatable."),
     ] = None,
+    as_json: Annotated[bool, typer.Option("--json", help="Emit the versioned diagnostics envelope.")] = False,
 ) -> None:
-    """Run static checks over the current node and flow registries."""
-    messages = _load_modules_for_lint(modules or [])
-    messages.extend(_lint_messages())
-    if not messages:
-        typer.echo("0 violations")
-        return
-    for message in messages:
-        typer.echo(message)
-    raise typer.Exit(code=3)
+    """Run checks over the current node and flow registries (importing modules runs their code)."""
+    if as_json:
+        # Imports are ordinary Python, not sandboxed: keep anything they print
+        # off stdout so stdout stays one JSON document.
+        with redirect_stdout(sys.stderr):
+            findings = _import_findings(modules or [], as_json=True) + _lint_findings()
+        payload = envelope([finding.value for finding in findings], command="nodes lint")
+        typer.echo(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2))
+    else:
+        findings = _import_findings(modules or [], as_json=False) + _lint_findings()
+        typer.echo("\n".join(finding.text for finding in findings) if findings else "0 violations")
+    if findings:
+        raise typer.Exit(code=3)
