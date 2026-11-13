@@ -6,7 +6,7 @@ from glob import glob
 from pathlib import Path
 
 from rdetoolkit.core import resize_image_aspect_ratio
-from rdetoolkit.errors import catch_exception_with_message
+from rdetoolkit.errors import _catch_exception_with_message
 from rdetoolkit.exceptions import StructuredError
 
 
@@ -36,7 +36,7 @@ def __find_img_path(dirname: str, target_name: str) -> str:
     return ""
 
 
-@catch_exception_with_message(error_message="ERROR: failed to copy image files", error_code=50)
+@_catch_exception_with_message(error_message="ERROR: failed to copy image files", error_code=50)
 def copy_images_to_thumbnail(
     out_dir_thumb_img: str | Path,
     out_dir_main_img: str | Path,
@@ -52,6 +52,32 @@ def copy_images_to_thumbnail(
         target_image_name (str, optional): Specify the name of the image file to be copied to the thumbnail folder.
         img_ext (str, optional): image file extension.
     """
+    _copy_images_to_thumbnail_impl(
+        out_dir_thumb_img,
+        out_dir_main_img,
+        target_image_name=target_image_name,
+        img_ext=img_ext,
+    )
+
+
+def _copy_images_to_thumbnail_impl(
+    out_dir_thumb_img: str | Path,
+    out_dir_main_img: str | Path,
+    *,
+    target_image_name: str | None = None,
+    img_ext: str | None = None,
+) -> None:
+    """Copy the representative image without translating exceptions.
+
+    Internal callers own failure tolerance so that Runner interruptions retain
+    their exception type and code. The public wrapper retains v1 translation.
+
+    Args:
+        out_dir_thumb_img: Destination directory for the thumbnail image.
+        out_dir_main_img: Directory containing main images.
+        target_image_name: Optional image name to find recursively.
+        img_ext: Optional extension filter, with or without a leading dot.
+    """
     default_img_exts = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tif", ".tiff"}
     normalized_img_exts = (
         default_img_exts
@@ -62,11 +88,7 @@ def copy_images_to_thumbnail(
     main_img_dir = Path(out_dir_main_img)
     if not main_img_dir.is_dir():
         return
-    img_path_main = [
-        str(path)
-        for path in sorted(main_img_dir.iterdir())
-        if path.is_file() and path.suffix.lower() in normalized_img_exts
-    ]
+    img_path_main = _matching_main_images(main_img_dir, normalized_img_exts)
 
     # When there are multiple images in the main image folder, copy one at the leading index as the representative image.
     __main_img_path: str = ""
@@ -77,6 +99,11 @@ def copy_images_to_thumbnail(
 
     if __main_img_path:
         __copy_img_to_thumb(str(out_dir_thumb_img), __main_img_path)
+
+
+def _matching_main_images(main_img_dir: Path, extensions: set[str]) -> list[str]:
+    """Return matching main images in their established sort order."""
+    return [str(path) for path in sorted(main_img_dir.iterdir()) if path.is_file() and path.suffix.lower() in extensions]
 
 
 def resize_image(path: str | Path, width: int = 640, height: int = 480, output_path: str | Path | None = None) -> str:
