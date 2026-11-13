@@ -299,133 +299,140 @@ def write_job_errorlog_file(code: int, message: str, *, filename: str = "job.fai
     """
     from rdetoolkit.rde2util import StorageDir
 
-    with open(
-        os.path.join(StorageDir.get_datadir(False), filename),
-        "w",
-        encoding="utf_8",
-    ) as f:
+    _write_job_failed_marker(os.path.join(StorageDir.get_datadir(False), filename), code, message)
+
+
+def _write_job_failed_marker(path: str | os.PathLike[str], code: int, message: str) -> None:
+    """Write the RDE job-failure marker to an explicit destination.
+
+    The format is exactly two newline-terminated UTF-8 lines,
+    ``ErrorCode=<code>`` and ``ErrorMessage=<message>``. The text-mode
+    ``open`` call is v1's own, so the bytes (including newline translation)
+    match what ``write_job_errorlog_file`` has always produced. Callers own
+    the destination: the v2 finalizer passes ``<data_root>/job.failed``, and
+    the v1 wrapper passes its legacy ``StorageDir`` location.
+
+    Args:
+        path: Marker file to create or overwrite; its parent must exist.
+        code: Integer error code.
+        message: Error message text.
+    """
+    with open(path, "w", encoding="utf_8") as f:
         f.write(f"ErrorCode={code}\n")
         f.write(f"ErrorMessage={message}\n")
 
 
 # ---------------------------------------------------------------------------
-# v2 Error Hierarchy (append-only below this line)
+# v2 Error Hierarchy (Design §9.2)
 # ---------------------------------------------------------------------------
+# The pre-GA draft taxonomy (string ``ErrorCode`` E001-E025, ``RdeGraphError``,
+# ``RdeCompileError``, ``RdeIOError``, ``UnconnectedInputError`` and the
+# ``E_CYCLE``-style constants) belonged to the retired Trace/Compile design and
+# was removed before GA (issue #646). It never shipped in a v1 release. Those
+# identifiers must never be reintroduced with a new meaning.
 
-import enum
 from typing import Any as _Any
 
 
-class ErrorCode(enum.Enum):
-    """Machine-readable error codes for rdetoolkit v2.
-
-    Ranges:
-        E001-E005: Graph/DAG errors
-        E006-E010: Compilation errors
-        E011-E015: Execution errors
-        E016-E020: Configuration errors
-        E021-E025: I/O errors
-    """
-
-    E001 = "E001"  # DAG cycle detected
-    E002 = "E002"  # Node not found in DAG
-    E003 = "E003"  # Duplicate node ID
-    E004 = "E004"  # Invalid edge (port mismatch)
-    E005 = "E005"  # Unconnected node
-    E006 = "E006"  # Type mismatch in compilation
-    E007 = "E007"  # Ambiguous dependency
-    E008 = "E008"  # Missing required input
-    E009 = "E009"  # Compile validation failed
-    E010 = "E010"  # Warnings treated as errors
-    E011 = "E011"  # Node execution failed
-    E012 = "E012"  # Unconnected input at runtime
-    E013 = "E013"  # DI resolution failed
-    E014 = "E014"  # Execution timeout
-    E015 = "E015"  # Iteration error
-    E016 = "E016"  # Invalid configuration
-    E017 = "E017"  # Missing configuration key
-    E018 = "E018"  # Invalid mode
-    E019 = "E019"  # Schema validation failed
-    E020 = "E020"  # Config file not found
-    E021 = "E021"  # File not found
-    E022 = "E022"  # File read error
-    E023 = "E023"  # File write error
-    E024 = "E024"  # Directory creation error
-    E025 = "E025"  # Path resolution error
-
-
 class RdeError(Exception):
-    """Base exception for rdetoolkit v2 with machine-readable error codes.
+    """Base exception for rdetoolkit v2.
+
+    The canonical form carries an int ``code`` from ``ERROR_CATALOG`` and its
+    stable ``name``. A string ``code`` is still accepted at runtime (pre-GA
+    tolerance); its display name then defaults to the code itself.
+
+    Args:
+        code: Catalogued int error code (e.g. ``3001``).
+        message: Human-readable error description.
+        name: Stable error name. Defaults to the catalog name for a catalogued
+            int code, ``E{code}`` for an uncatalogued int code, or the code
+            itself for a string code.
+        detail: Optional structured context about the error.
 
     Attributes:
-        code: Error code string (e.g. 'E001').
+        code: The error code as passed.
+        name: The resolved stable error name.
         message: Human-readable error description.
-        detail: Optional additional context about the error.
+        detail: Optional structured context, or None.
     """
 
-    def __init__(self, *, code: str, message: str, detail: dict[str, _Any] | None = None) -> None:
+    code: int | str
+    name: str
+    message: str
+    detail: dict[str, _Any] | None
+
+    def __init__(
+        self,
+        *,
+        code: int | str,
+        message: str,
+        name: str | None = None,
+        detail: dict[str, _Any] | None = None,
+    ) -> None:
+        error_name = _coerce_error_name(code, name)
         self.code = code
+        self.name = error_name
         self.message = message
         self.detail = detail
-        super().__init__(f"[{code}] {message}")
+        super().__init__(f"[{error_name}] {message}")
 
     def to_dict(self) -> dict[str, _Any]:
-        """Serialize error to a dictionary.
+        """Serialize the error to a dictionary.
 
         Returns:
-            Dictionary with code, message, and optional detail.
+            Dictionary with ``code``, ``name`` and ``message``, plus ``detail``
+            when it is not None.
         """
-        d: dict[str, _Any] = {"code": self.code, "message": self.message}
+        error_dict: dict[str, _Any] = {"code": self.code, "name": self.name, "message": self.message}
         if self.detail is not None:
-            d["detail"] = self.detail
-        return d
-
-
-class RdeGraphError(RdeError):
-    """Error related to DAG graph operations (E001-E005)."""
-
-
-class RdeCompileError(RdeError):
-    """Error related to DAG compilation (E006-E010)."""
+            error_dict["detail"] = self.detail
+        return error_dict
 
 
 class RdeExecutionError(RdeError):
-    """Error related to node execution (E011-E015)."""
+    """Execution error for v2 3xxx codes.
+
+    Preserves the Python ``__cause__`` chain when raised with ``from``.
+
+    Args:
+        code: Catalogued int error code (e.g. ``3001``).
+        message: Human-readable error description.
+        name: Stable error name; see ``RdeError``.
+        detail: Optional structured context about the error.
+        call_id: Call-log identifier of the failing node call, if any.
+
+    Attributes:
+        call_id: Call-log identifier of the failing node call, or None.
+    """
+
+    call_id: str | None
+
+    def __init__(
+        self,
+        *,
+        code: int | str,
+        message: str,
+        name: str | None = None,
+        detail: dict[str, _Any] | None = None,
+        call_id: str | None = None,
+    ) -> None:
+        self.call_id = call_id
+        super().__init__(code=code, name=name, message=message, detail=detail)
 
 
 class RdeConfigError(RdeError):
-    """Error related to configuration (E016-E020)."""
+    """Configuration or usage error for v2 1xxx codes."""
 
 
-class RdeIOError(RdeError):
-    """Error related to I/O operations (E021-E025)."""
-
-
-class UnconnectedInputError(RdeExecutionError):
-    """Raised when DI resolution cannot find a value for a node input parameter.
-
-    This means the parameter has no upstream DAG edge result and does not match
-    a Runner reserved type by both name AND type.
-
-    Attributes:
-        node_id: The node whose input could not be resolved.
-        param_name: The parameter that has no source.
-        param_type: The declared type of the unresolved parameter.
-    """
-
-    def __init__(self, node_id: str, param_name: str, param_type: type | None = None) -> None:
-        self.node_id = node_id
-        self.param_name = param_name
-        self.param_type = param_type
-        type_info = f" (type: {param_type.__name__})" if param_type is not None else ""
-        super().__init__(
-            code=ErrorCode.E012.value,
-            message=(
-                f"Cannot resolve input '{param_name}'{type_info} for node '{node_id}': "
-                f"no DAG edge result and not a reserved type"
-            ),
-            detail={"node_id": node_id, "param_name": param_name, "param_type": str(param_type)},
-        )
+def _coerce_error_name(code: int | str, name: str | None) -> str:
+    if name is not None:
+        return name
+    if isinstance(code, int):
+        catalog_entry = ERROR_CATALOG.get(code)
+        if catalog_entry is not None:
+            return catalog_entry.name
+        return f"E{code}"
+    return code
 
 
 # ---------------------------------------------------------------------------
@@ -656,85 +663,6 @@ WARNING_CATALOG: dict[int, WarningDef] = {
     ),
 }
 
-E_CYCLE = "E_CYCLE"
-E_UNCONNECTED_INPUT = "E_UNCONNECTED_INPUT"
-E_DUPLICATE_ID = "E_DUPLICATE_ID"
-E_AMBIGUOUS_DEPENDENCY = "E_AMBIGUOUS_DEPENDENCY"
-
-ErrorCode.__doc__ = (
-    "Deprecated legacy v2 draft error codes. 廃番、Design §9 参照. "
-    "Use ERROR_CATALOG int codes instead."
-)
-
-
-def _coerce_error_name(code: int | str, name: str | None) -> str:
-    if name is not None:
-        return name
-    if isinstance(code, int):
-        catalog_entry = ERROR_CATALOG.get(code)
-        if catalog_entry is not None:
-            return catalog_entry.name
-        return f"E{code}"
-    return code
-
-
-def _rde_error_init(
-    self: RdeError,
-    *,
-    code: int | str,
-    message: str,
-    name: str | None = None,
-    detail: dict[str, _Any] | None = None,
-) -> None:
-    error_name = _coerce_error_name(code, name)
-    error_self: _Any = self
-    error_self.code = code
-    error_self.name = error_name
-    error_self.message = message
-    error_self.detail = detail
-    Exception.__init__(self, f"[{error_name}] {message}")
-
-
-def _rde_error_to_dict(self: RdeError) -> dict[str, _Any]:
-    error_self: _Any = self
-    error_dict: dict[str, _Any] = {
-        "code": error_self.code,
-        "name": error_self.name,
-        "message": error_self.message,
-    }
-    detail = error_self.detail
-    if detail is not None:
-        error_dict["detail"] = detail
-    return error_dict
-
-
-def _rde_execution_error_init(
-    self: RdeExecutionError,
-    *,
-    code: int | str,
-    message: str,
-    name: str | None = None,
-    detail: dict[str, _Any] | None = None,
-    call_id: str | None = None,
-) -> None:
-    error_self: _Any = self
-    error_self.call_id = call_id
-    _rde_error_init(self, code=code, name=name, message=message, detail=detail)
-
-
-RdeError.__doc__ = (
-    "Base exception for rdetoolkit v2. "
-    "The canonical v2 form carries code: int and name: str; legacy string codes remain accepted."
-)
-RdeError.__init__ = _rde_error_init  # type: ignore[method-assign]
-RdeError.to_dict = _rde_error_to_dict  # type: ignore[method-assign]
-RdeExecutionError.__init__ = _rde_execution_error_init  # type: ignore[assignment, method-assign]
-RdeExecutionError.__doc__ = (
-    "Execution error for v2 3xxx codes. Preserves Python __cause__ when raised with 'from'."
-)
-RdeConfigError.__doc__ = "Configuration or usage error for v2 1xxx codes."
-
-
 ERROR_CATALOG[3004] = ErrorDef(
     name="RunInterrupted",
     message_template="The run was interrupted by an external termination signal.",
@@ -862,7 +790,7 @@ class ProcessingError(RdeExecutionError):
         Returns:
             Dictionary with code, name, message and remediation.
         """
-        return {**_rde_error_to_dict(self), "remediation": self.remediation}
+        return {**super().to_dict(), "remediation": self.remediation}
 
 
 def _required_text(field: str, value: object) -> str:

@@ -157,8 +157,37 @@
   rename and writes `template/` into its output directory; it exits 3 when
   both directories exist (#615).
 
+### Removed
+
+- The package-embedded AI-agent guide is retired before GA: the
+  `rdetoolkit.get_agent_guide()` function, the `rdetoolkit agent-guide`
+  command, the private `rdetoolkit._agent` module with its bundled Markdown
+  guides, and the package-local `src/rdetoolkit/.agents/` guidance (whose
+  `preferred-apis.md` recommended `rdetoolkit.fileops` imports that do not
+  exist). The wheel and sdist no longer carry agent Markdown; `py.typed` and
+  the `.pyi` stubs still ship. This is an intentional pre-GA API removal with
+  no replacement in the package (#644).
+- The pre-GA draft error taxonomy of the retired Trace/Compile design is
+  removed from `rdetoolkit.errors` (and its stub): the string `ErrorCode` enum
+  (`E001`-`E025`), `RdeGraphError`, `RdeCompileError`, `RdeIOError`,
+  `UnconnectedInputError`, and the `E_CYCLE` / `E_UNCONNECTED_INPUT` /
+  `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY` constants. None of them was in a
+  v1 release or raised by any v2 code path. Raise the canonical `RdeError`
+  subclasses with an int code from `ERROR_CATALOG` instead. The removed
+  identifiers are never reused for a new meaning. `RdeError.__init__` /
+  `to_dict` and `RdeExecutionError.__init__` are now defined in their classes
+  with unchanged behaviour, and the stub types `code` / `name` / `message` /
+  `detail` precisely (#646).
+
 ### Fixed
 
+- A failed v2 run writes `<data_root>/job.failed` directly instead of going
+  through v1 `write_job_errorlog_file`, so v2 finalization no longer calls the
+  deprecated `StorageDir.get_datadir` or suppresses its `DeprecationWarning`.
+  The file bytes (`ErrorCode=<int>\nErrorMessage=<text>\n`, UTF-8), error-code
+  selection and `StructuredError` passthrough are unchanged, and
+  `write_job_errorlog_file` keeps its signature, cwd-relative `data/` location
+  and contents for v1 callers (#645).
 - A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
   with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
   exception and translated it (`StructuredError`, `ValueError`,

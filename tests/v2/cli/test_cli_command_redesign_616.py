@@ -84,7 +84,6 @@ EXPECTED_TREE = {
     "migrate",
     "migrate check",
     "migrate apply",
-    "agent-guide",
     "version",
     *V1_ALIASES,
 }

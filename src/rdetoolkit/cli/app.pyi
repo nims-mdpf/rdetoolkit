@@ -18,7 +18,6 @@ PLOT_HELP: CommandHelp
 CSV2GRAPH_HELP: CommandHelp
 RUN_HELP: CommandHelp
 PACKAGE_HELP: CommandHelp
-AGENT_GUIDE_HELP: CommandHelp
 VERSION_HELP: CommandHelp
 GEN_CONFIG_HELP: CommandHelp
 GEN_INVOICE_HELP: CommandHelp
@@ -96,7 +95,6 @@ def package(
     output: Optional[pathlib.Path] = None,
     exclude: Optional[list[str]] = None,
 ) -> None: ...
-def agent_guide(detailed: bool = False) -> None: ...
 def version() -> None: ...
 def gen_config(
     output_dir: Optional[pathlib.Path] = None,

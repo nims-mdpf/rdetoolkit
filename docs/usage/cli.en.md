@@ -27,7 +27,7 @@ Commands follow the form `rdetoolkit <noun> <verb>` (for example `rdetoolkit new
 | Inspect | `report show`, `report trace`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
 | Package | `package`, `repro export`, `repro import` | Create the submission archive, export and re-import a run |
 | Migrate | `migrate check`, `migrate apply` | Find and convert v1 code and CLI calls for v2 |
-| Info | `agent-guide`, `version` | Show the AI agent guide and the installed version |
+| Info | `version` | Show the installed version |
 | Deprecated (removed in v2.1) | v1 command names | Kept as aliases that print a warning; see [Renamed commands in v2.0](#renamed-commands-in-v20) |
 
 ## Available Commands
@@ -622,34 +622,6 @@ python3 -m rdetoolkit migrate apply container --no-dry-run -o container_v2
 Exit codes: `0` success, `2` invalid command line (for `migrate apply`, also a missing input path), `3` the path does not exist (`migrate check`), or no Python files were found or the output directory exists or is inside the input (`migrate apply`).
 
 See [Migrating from v1 to v2](../migration_v1_to_v2.en.md) for the migration procedure.
-
-### agent-guide: Display AI Agent Guide
-
-Displays the embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit agent-guide [--detailed]
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit agent-guide [--detailed]
-    ```
-
-This command outputs guide text about rdetoolkit usage, architecture, and best practices as Markdown. `--detailed` adds advanced patterns and the full API reference. You can add it to your AI assistant's context to improve code generation accuracy when working with rdetoolkit.
-
-#### Usage from Python
-
-```python
-import rdetoolkit
-
-# Get the agent guide
-guide = rdetoolkit.agent_guide()
-print(guide)
-```
 
 ### version: Version Check
 

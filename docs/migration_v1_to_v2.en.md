@@ -567,6 +567,23 @@ Code that imports any of these directly should go back to calling
 The `smarttable_rowfile=` argument of `RdeOutputResourcePath` also remains, as in
 v1.7, a deprecated alias of `smarttable_rawfile`.
 
+### What was removed (after 2.0.0rc1, before GA)
+
+- The package-embedded AI-agent guide added in v1.6.0:
+  `rdetoolkit.get_agent_guide()`, the `agent-guide` CLI command, the
+  private `rdetoolkit._agent` module with its bundled Markdown, and the
+  package-local `.agents/` guidance. The installed package no longer ships
+  agent-facing documents, and there is no replacement API. Remove calls to it
+  from code and scripts (#644).
+- The draft error taxonomy of the v2 prereleases: the string
+  `rdetoolkit.errors.ErrorCode` enum (`E001`-`E025`), `RdeGraphError`,
+  `RdeCompileError`, `RdeIOError`, `UnconnectedInputError`, and the `E_CYCLE` /
+  `E_UNCONNECTED_INPUT` / `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY`
+  constants. They appeared only in the 2.0.0a1 / 2.0.0rc1 prereleases, never
+  in v1. Use the `RdeError` subclasses (`RdeConfigError`, `RdeRegistryError`,
+  `RdeExecutionError`, `RdeValidationError`, `RdeInternalError`) with an int
+  code from `ERROR_CATALOG` (#646).
+
 ### Behaviour changes
 
 **Introduced in the v1.7 line (unchanged in v2)**

@@ -1,4 +1,4 @@
-"""Docs, the agent guide and the skills name only commands the CLI has (#616).
+"""The docs and README name only commands the CLI has (#616).
 
 The command list lives in the CLI itself; these documents may quote commands
 but must not drift from it. Every ``rdetoolkit <command>`` invocation in a code
@@ -38,7 +38,7 @@ _INVOCATION = re.compile(r"^(?:\$ )?(?:(?:uv run )?python3? -m |py -m )?rdetoolk
 
 
 def _documents() -> list[Path]:
-    roots = [REPO_ROOT / "docs", REPO_ROOT / "src" / "rdetoolkit" / "_agent", REPO_ROOT / "src" / "rdetoolkit" / ".agents"]
+    roots = [REPO_ROOT / "docs"]
     files = [REPO_ROOT / "README.md"]
     for root in roots:
         files.extend(sorted(root.rglob("*.md")))
