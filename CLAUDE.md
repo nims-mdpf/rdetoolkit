@@ -1,14 +1,17 @@
 # CLAUDE.md
 
-This file provides Claude Code-specific guidance when working with code in this repository.
+This file provides Claude Code-specific guidance for repository contributors.
+Downstream processing authors use the [Skills pack](docs/usage/agent_skills.en.md).
 
 > **📋 Development Rules**: For comprehensive development rules (testing methodology,
 > code style, language boundary, branch strategy, environment setup), see
 > **[AGENTS.md](./AGENTS.md)**. This file focuses on Claude Code-specific guidance,
 > architecture, agent usage patterns, and Codex delegation (including `/goal`).
 
-> **⚠️ Canonical design**: `local/develop/v2/Design.md` (**v2.2, 2026-07-15** — eager
-> execution + call-log recording; R1–R10 revisions, ADR-020/021/022). `Plan.md`,
+> **⚠️ Canonical design**: the checked-in summary `docs/v2_architecture.md` (eager
+> execution + call-log recording; ADR-020/021/022/023). Maintainers' private
+> design notes (`local/develop/v2/Design.md`) are optional detail, not a
+> prerequisite; report any conflict with the checked-in summary. `Plan.md`,
 > the 2026-02 note, and v2.0 (retired to Design_v2.0_20260622.md) are superseded.
 > **Never implement Trace proxies, Build/Compile phases, or pre-execution DAGs** —
 > if you remember those from this repo, that is the retired design.
@@ -33,8 +36,8 @@ PyO3/Maturin (Rust is v1-only; v2.0 adds no Rust).
 
 - **v1.x** — stable, maintenance mode. Bug fixes and minor improvements only.
 - **v2.x** — active development, **redesigned 2026-06**.
-  - Canonical spec: `local/develop/v2/Design.md`
-  - Phase instructions: `local/develop/v2/Phase{A..F}_prompts.md`
+  - Canonical spec: `docs/v2_architecture.md`
+  - Phase instructions: the current issue/task specification (private phase notes are optional)
   - Branch: `develop/v2`, work on `v2/phase-<a..f>`
 
 ---
@@ -63,9 +66,8 @@ Key invariants (Design §1):
    tree, invoice, job.failed, exit codes), and Tier-1 public API (rde2types,
    rde2util, invoicefile, errors/exceptions) are guaranteed by frozen contract
    fixtures. The v1 *implementation* (workflows loop / modeproc dispatch /
-   pipeline) is being unified into the single Runner across Phase G–K
-   (`local/develop/v2/merge_v1/Plan.md`); old orchestration is deleted before
-   v2.0 GA. Bridges (triple implementation) remain forbidden.
+   pipeline) is being unified into the single Runner across Phase G–K;
+   old orchestration is deleted before v2.0 GA. Bridges (triple implementation) remain forbidden.
 
 ### Rust Core Modules
 
@@ -94,7 +96,7 @@ Extension module: `rdetoolkit._core` (stub: `src/rdetoolkit/_core.pyi`).
 ### Agent Roster
 
 #### Orchestration
-- **task-decomposer** — Reads `local/develop/v2/Phase{X}_prompts.md`, classifies
+- **task-decomposer** — Reads the current issue/task specification, classifies
   session type, dispatches the correct pipeline. **Entry point for all v2 work.**
 - **task-executor** — Executes decomposed tasks via Claude (non-Codex tasks).
 
@@ -122,7 +124,7 @@ Extension module: `rdetoolkit._core` (stub: `src/rdetoolkit/_core.pyi`).
 
 ### v2 Development Workflow (Primary)
 
-Input: `local/develop/v2/Phase{A..F}_prompts.md` (each references Design.md sections)
+Input: the current issue or task specification (citing `docs/v2_architecture.md` sections where relevant; private phase notes are optional)
 
 ```
 task-decomposer
@@ -178,9 +180,9 @@ PR:        quality-checker (final) → pr-generator
 - `processing/pipeline.py`, `models/config.py`, `result.py`, `rde2util.py`, `fileops.py`
 
 ### v2.x (In Development)
-- `local/develop/v2/Design.md` — **canonical architecture spec**
-- `local/develop/v2/Phase{A..F}_prompts.md` — session instructions
-- `local/develop/v2/goals/` — per-phase `/goal` templates (see below)
+- `docs/v2_architecture.md` — **canonical architecture spec**
+- The current issue or task specification — session instructions (private phase notes are optional)
+- The goal skeleton below — self-contained task templates
 - `src/rdetoolkit/core/` — node / flow / registry / calllog / injection / context
 - `src/rdetoolkit/runner/` — lifecycle / paths / iterator / execute / aggregator / finalize
 - `src/rdetoolkit/report/`, `nodes/`, `protocols/`, `plugin/`, `testing/`, `cli/`
@@ -298,12 +300,11 @@ blocked-stop condition is rejected — that clause is what stops Codex from
 
 ### Shared goal skeleton (all phases)
 
-Stored at `local/develop/v2/goals/_skeleton.goal.md`; phase files below fill the
-`{...}` slots:
+Use this checked-in skeleton; fill the `{...}` slots from the issue/task specification:
 
 ```
 /goal Complete rdetoolkit v2 Session {SESSION} exactly as specified in
-local/develop/v2/Phase{P}_prompts.md (§Session {SESSION}), with Design.md as the
+the current issue/task specification (§Session {SESSION}), with the checked-in architecture reference as the
 overriding spec. DONE means: {OUTCOME}, verified by {VERIFICATION} — all of:
 `.venv/bin/tox -e py312-module` fully GREEN (v1+v2), `.venv/bin/tox -e py312-ruff`
 and `.venv/bin/tox -e py312-mypy` clean, run in this thread with output shown.
@@ -314,14 +315,14 @@ modules; do not git commit; {EXTRA_CONSTRAINTS}. Boundaries: create/edit only
 {TARGET_FILES}; read anything. Iteration policy: strict TDD — write or run the
 failing test first, confirm RED, make the smallest change, re-run, and after each
 cycle state what changed and the next experiment. Blocked stop condition: if a
-tests/-root (v1) test goes RED, if the session spec conflicts with Design.md, if
+tests/-root (v1) test goes RED, if the session spec conflicts with the checked-in architecture reference, if
 an append-only rule would have to be broken to proceed, or if the same failure
 survives 3 distinct fix attempts — STOP immediately, do not work around it, and
 report: attempted paths, evidence (test output), the exact blocker, and the
 decision/input you need.
 ```
 
-### Per-phase goal parameters (`local/develop/v2/goals/phase-{a..f}.goal.md`)
+### Per-phase goal parameters (historical examples)
 
 **Phase A — contracts & settlement**
 - OUTCOME: error catalog unified to int codes with hierarchy (A1) / canonical
@@ -400,8 +401,8 @@ decision/input you need.
 ```
 [GOAL CONTRACT]
 Complete rdetoolkit v2 Session {SESSION} exactly as specified in
-local/develop/v2/Phase{P}_prompts.md (§Session {SESSION}), with
-local/develop/v2/Design.md as the overriding spec.
+the current issue/task specification (§Session {SESSION}), with
+docs/v2_architecture.md as the overriding spec.
 
 DONE means: {OUTCOME}
 Verified by: {VERIFICATION}
@@ -416,7 +417,7 @@ Blocked stop condition: {BLOCKED_STOP_CONDITION}
 
 [CONTEXT]
 - Python 3.12, strict mypy, ruff; test runner: .venv/bin/tox -e py312-module
-- Canonical spec: local/develop/v2/Design.md (§ refs in the task)
+- Canonical spec: docs/v2_architecture.md (§ refs in the task)
 - Rules: AGENTS.md (read in full; §8.2 Forbidden Actions especially)
 - Execution model: eager + call log (v2.1). NO trace, NO compile, NO RustDAG,
   NO value lineage (ADR-022), NO name-based DI.
@@ -435,7 +436,7 @@ On blocker: follow the Goal's blocked stop condition exactly.
 **Delegate to Codex via agmsg (with goal contract):** all session implementation in Phases A1, A2,
 B–F; large test-suite authoring; mechanical refactors.
 **Keep in Claude:** Phase A3 settlement (deletion-heavy), architecture decisions,
-Design.md edits, goal authoring/review, anything requiring judgment about
+edits to `docs/v2_architecture.md`, goal authoring/review, anything requiring judgment about
 *whether* a spec is right rather than *how* to satisfy it.
 
 ### Choosing between subagent and Skill
@@ -511,8 +512,8 @@ system:
 ## Additional Resources
 
 - Documentation: https://nims-mdpf.github.io/rdetoolkit/
-- v2 Design: `local/develop/v2/Design.md` / Phase prompts: `Phase{A..F}_prompts.md`
-- Goal templates: `local/develop/v2/goals/`
+- v2 architecture: `docs/v2_architecture.md`
+- Goal templates: the checked-in skeleton above (private local notes are optional)
 - Contributing Guide: `CONTRIBUTING.md`
 
 ---
@@ -539,5 +540,5 @@ system:
   `src/rdetoolkit/__init__.py`, and the tag must all be identical canonical
   PEP 440 (`python scripts/check_version_consistency.py --tag vX.Y.Z` must pass);
   CI's `check-version` gate enforces this and must never be weakened. Full
-  procedure: `local/develop/v2/release_flow.md`. Note: PyPI version `2.0.0` is
+  procedure: AGENTS.md §6.6. Note: PyPI version `2.0.0` is
   permanently burned (2026-07 incident, yanked) — GA cannot be `2.0.0`.

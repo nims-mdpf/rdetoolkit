@@ -408,7 +408,8 @@ Dockerfile を新しい名前に更新してください。
   内部モジュール `rdetoolkit._agent` と同梱 Markdown、およびパッケージ内の
   `.agents/` ガイド。インストールされたパッケージにはエージェント向け文書を
   同梱しません。代替 API はありません。呼び出しているコードやスクリプトからは
-  削除してください(#644)。
+  削除してください(#644)。v2 向けのエージェント用ガイダンスは、別配布の
+  バージョン一致 [Agent Skills pack](usage/agent_skills.ja.md) として提供します。
 - v2 プレリリースの草案エラー体系: 文字列の `rdetoolkit.errors.ErrorCode` 列挙
   (`E001`〜`E025`)、`RdeGraphError`、`RdeCompileError`、`RdeIOError`、
   `UnconnectedInputError`、および定数 `E_CYCLE` / `E_UNCONNECTED_INPUT` /

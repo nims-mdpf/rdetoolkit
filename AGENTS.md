@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Development rules for all agents working in this repository — including Claude Code,
+Contributor development rules for all agents working in this repository — including Claude Code,
 Codex (via `codex` CLI), and any other AI-assisted tooling. Read this file in full
 before writing any code or tests.
 
@@ -10,12 +10,14 @@ before writing any code or tests.
 > invoked.
 
 > **⚠️ Canonical design document**: v2 architecture is defined by
-> **`local/develop/v2/Design.md`** (v2.1: eager execution + call-log recording,
+> **[`docs/v2_architecture.md`](docs/v2_architecture.md)** (v2.1: eager execution + call-log recording,
 > ADR-020/021/022 — no value lineage).
 > The former plan (`Plan.md`) and the former design note (`20260210_raa_refactor_ja.md`)
 > are **superseded**. If any instruction, memory, or training prior suggests
 > implementing a Trace proxy, Build/Compile phases, or a pre-execution DAG —
 > **that is the retired v1-of-v2 design. Do not implement it.**
+
+Downstream processing authors should install the [version-matched Skills pack](docs/usage/agent_skills.en.md); this file governs repository contributors.
 
 ---
 
@@ -32,8 +34,8 @@ implemented in Rust and exposed to Python via PyO3 bindings.
 **Current status:**
 - **v1.x** — stable, maintenance mode. Do not break existing behaviour.
 - **v2.x** — active development under `develop/v2`, **redesigned (2026-06)** around
-  eager execution and call-log recording (v2.1). Canonical spec: `local/develop/v2/Design.md`.
-  Phase instructions: `local/develop/v2/Phase{A..F}_prompts.md`.
+  eager execution and call-log recording (v2.1). Canonical spec: [`docs/v2_architecture.md`](docs/v2_architecture.md).
+  Task scope comes from the current issue or user request; private phase notes are optional.
 
 **v2 execution model in one paragraph (memorize this):**
 `@flow` functions are **plain Python executed eagerly** — `if`, loops, f-strings,
@@ -524,12 +526,12 @@ Keep v2 modules well under 10. Split any function exceeding 7.
 ## Notes for AI Agents
 
 - Read this file in full before writing any code.
-- **The single source of truth for v2 architecture is `local/develop/v2/Design.md`.**
+- **The single source of truth for v2 architecture is [`docs/v2_architecture.md`](docs/v2_architecture.md).**
   When a task prompt, an old document, or your prior knowledge of this repository
-  conflicts with Design.md, Design.md wins. Stop and report the conflict instead of
+  conflicts with the checked-in architecture summary, report the conflict instead of
   guessing.
 - **Codex**: you do not share context with Claude Code. All information must come
-  from the task prompt (including any active `/goal`), this file, Design.md, and
+  from the task prompt (including any active `/goal`), this file, the checked-in architecture reference, and
   files you read from the workspace.
 - **If your thread has an active Goal** (set via `/goal`): completion is
   evidence-based. Do not declare the goal complete unless the verification commands

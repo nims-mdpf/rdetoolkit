@@ -46,6 +46,16 @@
 
 ### Added
 
+- Five canonical v2 Agent Skills under the repository-root `.agents/skills/`
+  cover flow authoring, metadata, debugging, testing and v1 migration. They
+  replace the package-embedded guide removed in #644. Each GitHub release
+  attaches a version-matched offline Skills pack
+  (`rdetoolkit-skills-<version>.zip` + `.sha256`), separate from the wheel and
+  sdist, with a copy-based installer for Codex and Claude Code that refuses
+  conflicts and keeps locally edited Skills on uninstall. CI executes the exact
+  shipped Python and CLI examples (including a failure/repair run and a v1
+  migration fixture) and rejects wheels or sdists that carry agent
+  instructions (#664, #665, #666; part of #662).
 - `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
   block of lines before the table, such as the `#title` / `#legend` metadata
   header that `rdetoolkit.graph` parses. Rows may have different numbers of
@@ -98,6 +108,10 @@
 
 ### Changed
 
+- `AGENTS.md` and `CLAUDE.md` now point contributors to the checked-in
+  `docs/v2_architecture.md` summary instead of untracked local design notes,
+  and the Agent Skills guide (`docs/usage/agent_skills.*.md`) documents the
+  separately distributed Skills pack (#663, #665).
 - `rdetoolkit init` generates `template/tasksupport/` instead of
   `templates/tasksupport/`, matching the singular `container/` and `input/`
   directories. In a directory that already has `templates/tasksupport/`, init
