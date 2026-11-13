@@ -190,7 +190,12 @@
   `rdetoolkit.graph.api.csv2graph` stub declared `csv2graph` twice and mypy
   used the stale first declaration, which rejected `html_output_dir=`; it now
   has one declaration matching the runtime signature (#639, #642).
-
+- `rde2util.castval` converts a `string` value only for the date formats
+  `date` / `date-time` / `time`. Any other `format` (`uri`, `uuid`,
+  `markdown`, ...) keeps the value unchanged instead of failing in the date
+  parser, as `set_custom_fields` already did. This fixes ExcelInvoice custom
+  columns, SmartTable `custom/` and `meta/` columns, and metadata-def values
+  with such a format. Date formats are converted as before (#622).
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
   defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check
