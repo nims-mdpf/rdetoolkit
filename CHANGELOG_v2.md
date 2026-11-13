@@ -158,6 +158,19 @@
   exception fails the run with 3001 (naming the preparation) before any tile.
   Only the flow the Runner executes is prepared, and direct calls of the flow
   do not run it (#573).
+- The `rdetoolkit-v1-migration` Skill now carries a tested check → preview →
+  explicit `-o` apply → compare → accept/revert workflow (#672). Its
+  `scripts/compare_artifacts.py` compares two preserved data roots: invoice and
+  metadata JSON by value (scalar types, units and variable-row order kept),
+  every other file by bytes, empty directories included, and only the Runner's
+  `logs/` contents excluded; missing, symlinked or malformed evidence is
+  refused. `scripts/exercise_migration.py` converts a shipped callback, runs it
+  through the v1 entry and both the converted and an artifact-node flow on a
+  valid and a failing input, and requires equal artifacts and outcomes.
+  `scripts/check_mode_parity.py` replays 24 frozen v1 contract cases over the
+  five modes and fails on any skip or xfail. The Skill lists the dynamic
+  constructs that need manual review and keeps `custom_dataset_function` as a
+  supported compatibility target. CI executes the exact commands.
 
 ### Changed
 
@@ -197,6 +210,19 @@
   `to_dict` and `RdeExecutionError.__init__` are now defined in their classes
   with unchanged behaviour, and the stub types `code` / `name` / `message` /
   `detail` precisely (#646).
+- The Qodo PR-Agent workflow and `.pr_agent.toml` are removed (#674; the
+  workflow deletion also appears in #654). The job used the moving
+  `qodo-ai/pr-agent@main` ref, ran on PR and unfiltered issue-comment events
+  with `OPENAI_KEY` and issue/PR write permissions, and had no recorded
+  provider authorization. `docs/development/tooling-policy.md` records the
+  audit and the conditions for any future opt-in integration; no CI job needs
+  external AI credentials. Revoking the old key and reviewing historical logs
+  are administrator actions outside this change.
+- The generated code index `docs/search/rdetoolkit_code_index.jsonl`, its
+  generator `tools/build_index.py` and the `build-index.yml` workflow that
+  pushed it back to the branch are removed (#675). No documentation, command,
+  test, agent instruction or release job read the index; MkDocs' native search
+  is unchanged. Tests keep the retired files and references from returning.
 
 ### Fixed
 
