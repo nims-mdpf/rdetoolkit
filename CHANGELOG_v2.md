@@ -159,6 +159,17 @@
 
 ### Fixed
 
+- A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
+  with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
+  exception and translated it (`StructuredError`, `ValueError`,
+  `DataRetrievalError`, a `Failure` value) or logged and skipped it, so the
+  interruption was reported with another code: `SmartTableFile.read_table` /
+  `generate_row_csvs_with_file_mapping`, `fileops.readf_json`,
+  `SystemFilesCleaner.clean_directory`, `img2thumb.resize_image`,
+  `ExcelInvoiceFile.save`, `invoice_generator.generate_invoice_from_schema`,
+  `Meta`, `SpecificTermRegistry.search`, `try_result` and
+  `workflows.check_files_result`. Only the interruption passes through;
+  every other exception keeps its v1 translation and `__cause__` (#635).
 - `rde2util.castval` converts a `string` value only for the date formats
   `date` / `date-time` / `time`. Any other `format` (`uri`, `uuid`,
   `markdown`, ...) keeps the value unchanged instead of failing in the date
