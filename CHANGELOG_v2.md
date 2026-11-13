@@ -39,6 +39,18 @@
   v2 commands now end with a `Remediation:` line, and the remediation of
   error 2102 (`TemplateSlotSignatureMismatch`) names
   `rdetoolkit skeletons show <name>`.
+- `repro export` warns that a full archive may contain confidential data
+  and prints the files and bytes per directory to stderr before writing it.
+  It no longer replaces an existing `-o` file, and refuses inputs that are
+  symbolic links or special files, and unreadable directories, instead of
+  following or skipping them (#671). The full manifest stays
+  `schema_version: "1"`.
+- The legacy traceback page is now a compatibility matrix (#673):
+  `handle_exception`, `CompactTraceFormatter`, `SecretsSanitizer`,
+  `TracebackSettings` and `TRACE_*` are kept unchanged without new warnings,
+  and `report diagnose --json` replaces `<STACKTRACE>` as the recommended
+  format for coding agents. The debugging Skill says which output can be
+  shared after review and never to share a full `repro export` zip without it.
 - `rdetoolkit run --legacy module_or_file::attr` reports a target that
   cannot be loaded (missing file, attribute, or a non-function) with exit
   code 3, like every other `run` usage error, instead of Click's exit code 2,
@@ -81,6 +93,22 @@
     a later run's detail (the files are reused by index) to an older report;
     a detail without them is reported as unverified. The run report
     (`schema_version: "2"`), event and call-record formats are unchanged.
+- The diagnostics envelope states its provenance and bounds its contents
+  (#670, part of #678). Every document carries `format:
+  "rdetoolkit.diagnostics"`, `producer` (`name`, `version`) and `truncated`;
+  `report diagnose` adds `source` (`format`, `schema_version` of the report).
+  `diagnostics`, `failures` and `evidence.iterations` keep at most 200
+  entries. A `node_id` or `call_id` read from a report that rdetoolkit could
+  not have written is printed as `null` and named in the failure's new
+  `redacted` list. `doctor` never prints an absolute path. The diagnostics
+  page documents these limits and that leaving out free text is not
+  anonymisation, so output must be reviewed before it is shared.
+- `repro export --manifest-only` writes a metadata-only zip (#671): one
+  `repro_manifest.json` with `schema_version: "2"`, `archive_kind:
+  "manifest-only"` and `replayable: false`, holding file counts, sizes and
+  SHA-256 digests without file names, the `config_digest`, and the
+  `report diagnose` envelope. It contains no input bytes, invoice or config
+  values, and `repro import` refuses it.
 - `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
   block of lines before the table, such as the `#title` / `#legend` metadata
   header that `rdetoolkit.graph` parses. Rows may have different numbers of
@@ -172,6 +200,17 @@
 
 ### Fixed
 
+- `repro import` checks every member before extracting anything (#671): it
+  accepts only the export layout and refuses absolute, `..` and
+  NUL-shortened names, backslashes and control characters, links and special
+  entries, encrypted or non-stored/deflate entries, names that differ only in
+  case or Unicode normalisation, more than 100,000 entries or 16 GiB, and
+  archives that expand beyond what deflate can (zip bombs); on Windows also
+  drive, stream and device names. It extracts into a staging directory next
+  to the target and renames it into place only after the archived config
+  reloads to the manifest's and the report's `config_digest`, so a failed
+  import leaves the target as it was. A matching digest shows consistency,
+  not authenticity.
 - A failed v2 run writes `<data_root>/job.failed` directly instead of going
   through v1 `write_job_errorlog_file`, so v2 finalization no longer calls the
   deprecated `StorageDir.get_datadir` or suppresses its `DeprecationWarning`.
