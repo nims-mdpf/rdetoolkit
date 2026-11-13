@@ -261,6 +261,62 @@ with tempfile.TemporaryDirectory() as struct:
     assert export.read_text(encoding="utf-8") == "exported"
 ```
 
+To write a processing log as a tile artifact, as v1
+`rdelogger.get_logger(name, file_path=Path(resource_paths.struct, "structured_log.txt"))`
+did, use `artifact_logger(out, filename, name=..., kind="struct")` as a context
+manager (#631). It adds a file handler to the `name` logger for the block and
+removes it when the block ends, also when the block raises. Only records logged
+inside the block reach the file, so a logger shared by the module never writes
+one tile's lines into the next tile's file. The call is a node call, recorded in
+the call log and in the RunReport `node_calls`.
+
+- Lines use the v1 format `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s`; pass `fmt=` to change it.
+- An existing file is appended to (`mode="a"`, as in v1); `mode="w"` truncates it at the first record.
+- No file is created when nothing is logged (as in v1).
+- Records below `level=` (default `DEBUG`) are not written. A logger whose own level is higher is lowered for the block and restored afterwards.
+- To keep the ERROR line of a failure, log it inside the block with `logger.exception(...)` and re-raise.
+- A record logged in the context that entered the block (the tile's code and the nodes it calls) is written to that block's file only. Runners that use the same logger concurrently in one process do not mix their lines.
+- A record logged in a context that is inside no block, such as a worker thread started inside the block, is written to every block active on that logger.
+- Records from other processes are never written, also from a worker forked inside the block that keeps running after it.
+- When blocks overlap, the logger level returns to its value before the first block once the last block ends.
+- Without `name`, the logger is named after the filename without its suffix.
+
+<!-- test: ga631-artifact-logger -->
+```python
+import logging
+import tempfile
+from pathlib import Path
+
+from rdetoolkit import flow
+from rdetoolkit.nodes import artifact_logger
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import OutputContext
+
+logger = logging.getLogger("eis")
+
+
+def fit() -> None:
+    logger.info("fitting started")
+    logger.warning("baseline drift")
+
+
+@flow
+def pipeline(out: OutputContext) -> None:
+    with artifact_logger(out, "structured_log.txt", name="eis"):
+        try:
+            fit()
+        except Exception:
+            logger.exception("fitting failed")
+            raise
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = make_output_context(Path(tmp))
+    pipeline(out)
+    lines = (out.struct / "structured_log.txt").read_text(encoding="utf-8").splitlines()
+    assert [line.split(" - ", 1)[1] for line in lines] == ["[eis](INFO) - fitting started", "[eis](WARNING) - baseline drift"]
+```
+
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
 produce repeated paths. Existing containment checks, including outward symlinks,
@@ -596,7 +652,7 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 | Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
 | `rde2util.Meta.assign_vals` receives a `None` value (#570) | `None` is converted as the string `"None"`. A `number` / `integer` / `boolean` field raises `StructuredError` (`ERROR: failed to cast metaDef value` or similar). If the callback does not catch it, `job.failed` has `ErrorCode=1` and the later outputs, such as `metadata.json`, are not created. A `string` field is written as the value `"None"`, and a `$`-referenced unit as `"unit": "None"` | The key is not assigned, and `metadata.json` is written without it (without `unit` for a referenced unit). The callback's other outputs are created as usual. A value other than `None` that cannot be converted is still `ErrorCode=1` |
-| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | A `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails. An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. The v1 functions themselves are unchanged |
+| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | Up to v1.7.1, a `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails (fixed by #622 in v1.7.2 and v2). An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. Apart from the #622 fix, which `castval` shares with `set_custom_fields`, the v1 functions themselves are unchanged |
 | A callback or flow writes the run-level invoice (`paths.invoice_org`; `temp/invoice_org.json` in MultiDataTile / ExcelInvoice / RDEformat) during processing (#603) | Later tiles were built from the edited file, so a value written by an earlier tile carried over to later ones, depending on tile order | Not supported. `paths.invoice_org` is read-only input. The Runner seeds every tile's invoice from the registration invoice (ExcelInvoice and SmartTable overlay their row), and a flow overrides tile-specific values with `save_invoice`. Each tile starts from the registration state; v2 does not define whether a write to `invoice_org` reaches later tiles |
 
 The `Meta.assign_vals` row is a bug fix in the Tier 1 API, so it also applies on the

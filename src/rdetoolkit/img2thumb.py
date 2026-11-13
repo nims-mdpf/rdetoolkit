@@ -5,6 +5,7 @@ import shutil
 from glob import glob
 from pathlib import Path
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core import resize_image_aspect_ratio
 from rdetoolkit.errors import _catch_exception_with_message
 from rdetoolkit.exceptions import StructuredError
@@ -137,6 +138,8 @@ def resize_image(path: str | Path, width: int = 640, height: int = 480, output_p
     try:
         resize_image_aspect_ratio(image_path, _output_path, width, height)
     except Exception as e:
+        if is_run_interrupted(e):
+            raise
         msg = f"Failed to resize image: {e}"
         raise StructuredError(msg) from e
 
