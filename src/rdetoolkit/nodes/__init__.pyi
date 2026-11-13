@@ -15,6 +15,7 @@ from rdetoolkit.nodes.meta import build_meta as build_meta
 from rdetoolkit.nodes.plot import save_figure as save_figure, save_html_figure as save_html_figure
 from rdetoolkit.nodes.structured import save_invoice as save_invoice, save_text as save_text
 from rdetoolkit.nodes.image import render_png as render_png
+from rdetoolkit.nodes.logfile import ArtifactLogger as ArtifactLogger, artifact_logger as artifact_logger
 
 def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..., Any]: ...
 
