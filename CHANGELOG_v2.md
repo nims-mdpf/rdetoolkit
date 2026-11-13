@@ -129,6 +129,20 @@
   files keep distinct ids on one page.
   plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
   extra raises an `ImportError` naming it (#625).
+- `rdetoolkit.nodes.artifact_logger(out, filename, *, name=None, kind="struct",
+  fmt=..., level=logging.DEBUG, mode="a", encoding="utf-8")` declares a log
+  file that a logger streams into during a tile, the v2 counterpart of v1
+  `rdelogger.get_logger(name, file_path=...)`. Use the returned
+  `ArtifactLogger` as a context manager: it attaches a `logging.FileHandler`
+  for `out.<kind>/<filename>` to the logger for the block and removes it when
+  the block ends, also on error, so a logger shared by every tile writes each
+  tile's records into that tile's file only. Records logged in the block's
+  context go to that block's file only, so concurrent in-process runs on one
+  logger do not mix their lines; records from other processes, including
+  workers forked inside the block, are never written. Lines use the v1 format
+  by default, an existing file is appended to, and no file is created when
+  nothing is logged. The call is a builtin node call, so it appears in the
+  call log and in the RunReport `node_calls` (#631).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
@@ -278,6 +292,23 @@
   selection and `StructuredError` passthrough are unchanged, and
   `write_job_errorlog_file` keeps its signature, cwd-relative `data/` location
   and contents for v1 callers (#645).
+- A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
+  with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
+  exception and translated it (`StructuredError`, `ValueError`,
+  `DataRetrievalError`, a `Failure` value) or logged and skipped it, so the
+  interruption was reported with another code: `SmartTableFile.read_table` /
+  `generate_row_csvs_with_file_mapping`, `fileops.readf_json`,
+  `SystemFilesCleaner.clean_directory`, `img2thumb.resize_image`,
+  `ExcelInvoiceFile.save`, `invoice_generator.generate_invoice_from_schema`,
+  `Meta`, `SpecificTermRegistry.search`, `try_result` and
+  `workflows.check_files_result`. Only the interruption passes through;
+  every other exception keeps its v1 translation and `__cause__` (#635).
+- `rde2util.castval` converts a `string` value only for the date formats
+  `date` / `date-time` / `time`. Any other `format` (`uri`, `uuid`,
+  `markdown`, ...) keeps the value unchanged instead of failing in the date
+  parser, as `set_custom_fields` already did. This fixes ExcelInvoice custom
+  columns, SmartTable `custom/` and `meta/` columns, and metadata-def values
+  with such a format. Date formats are converted as before (#622).
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
   defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check

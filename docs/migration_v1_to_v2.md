@@ -237,6 +237,60 @@ with tempfile.TemporaryDirectory() as struct:
     assert export.read_text(encoding="utf-8") == "exported"
 ```
 
+v1 の `rdelogger.get_logger(name, file_path=Path(resource_paths.struct, "structured_log.txt"))` のように
+処理ログをタイルの成果物として書き出すには、`artifact_logger(out, filename, name=..., kind="struct")` を
+`with` で使います(#631)。ブロックの間だけ `name` のロガーへファイルハンドラーを追加し、終了時に
+例外の有無にかかわらず取り除きます。ブロック内で記録した行だけがファイルに入るため、
+モジュールで共有するロガーでも次のタイルのファイルに行が重複しません。呼び出しはノード呼び出しとして
+コールログと RunReport の `node_calls` に記録されます。
+
+- 行の書式は v1 と同じ `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s` で、`fmt=` で変更できます。
+- 既存ファイルには追記します(`mode="a"`、v1 と同じ)。`mode="w"` は最初の行で切り詰めます。
+- 1 行も記録しなければファイルは作られません(v1 と同じ)。
+- `level=`(既定 `DEBUG`)より低い行は書きません。ロガー自身のレベルが高い場合はブロックの間だけ下げ、終了時に戻します。
+- 失敗時の ERROR 行は、ブロック内で `logger.exception(...)` を記録してから再送出すると残ります。
+- ブロックに入ったコンテキスト(タイルのコードと、そこから呼ぶノード)で記録した行は、そのブロックのファイルにだけ書き込まれます。同じロガーを使う Runner を同じプロセスで並行に実行しても、行は混ざりません。
+- どのブロックにも入っていないコンテキストの行(ブロック内で起動したワーカースレッドなど)は、そのロガーで有効なすべてのブロックのファイルに書き込まれます。
+- 別プロセスの行は書き込まれません。ブロック内で fork したワーカーがブロック後も動き続ける場合も同じです。
+- ブロックが重なっても、ロガーのレベルは最後のブロックが終わった時点で最初のブロックの前の値に戻ります。
+- `name` を省略するとファイル名から拡張子を除いた名前のロガーを使います。
+
+<!-- test: ga631-artifact-logger -->
+```python
+import logging
+import tempfile
+from pathlib import Path
+
+from rdetoolkit import flow
+from rdetoolkit.nodes import artifact_logger
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import OutputContext
+
+logger = logging.getLogger("eis")
+
+
+def fit() -> None:
+    logger.info("fitting started")
+    logger.warning("baseline drift")
+
+
+@flow
+def pipeline(out: OutputContext) -> None:
+    with artifact_logger(out, "structured_log.txt", name="eis"):
+        try:
+            fit()
+        except Exception:
+            logger.exception("fitting failed")
+            raise
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = make_output_context(Path(tmp))
+    pipeline(out)
+    lines = (out.struct / "structured_log.txt").read_text(encoding="utf-8").splitlines()
+    assert [line.split(" - ", 1)[1] for line in lines] == ["[eis](INFO) - fitting started", "[eis](WARNING) - baseline drift"]
+```
+
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
 外向きシンボリックリンクを含む展開先の境界チェックは維持します。
@@ -560,7 +614,7 @@ invoice シート自体がないブックについては既存のエラー契約
 | `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python の v1 コールバック入口は失敗で `SystemExit(1)` を維持。flow 入口は `exit_on_failure=True` で失敗1・一部失敗2を反映し、同じ値を `RunReport.exit_code` でも公開 |
 | `multidata_tile.ignore_errors: true` で全タイルが失敗 | MultiDataTile のみ全件 `failed` の JSON を返し終了コード 0。他モードではフラグは無視され最初の失敗で停止 | v1 コールバック入口は全モードで v1 と同じ。flow 入口では全タイル失敗は `failed` となり `job.failed` を書きます |
 | `rde2util.Meta.assign_vals` が値 `None` を受け取る(#570) | `None` を文字列 `"None"` として変換します。`number` / `integer` / `boolean` の項目は `StructuredError`(`ERROR: failed to cast metaDef value` など)。コールバックが捕捉しなければ `job.failed` に `ErrorCode=1` となり、`metadata.json` など以降の出力は作られません。`string` の項目は値 `"None"`、`$` 参照の単位は `"unit": "None"` として書き出されます | そのキーは代入されず、`metadata.json` はそのキー(参照単位なら `unit`)を含めずに書き出されます。コールバックの他の出力もそのまま作られます。`None` 以外の変換できない値は従来どおり `ErrorCode=1` |
-| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT`・`pd.NA`(NumPy の NaN / NaT を含む)はすべての型で `None` として格納し、NumPy のスカラーは Python の値として変換します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。v1 の関数自体は変更していません |
+| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | v1.7.1 までは、format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します(v1.7.2 と v2 で #622 により修正)。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT`・`pd.NA`(NumPy の NaN / NaT を含む)はすべての型で `None` として格納し、NumPy のスカラーは Python の値として変換します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。#622 の修正で `castval` も `set_custom_fields` と同じ扱いになった点を除き、v1 の関数自体は変更していません |
 | コールバックや flow が処理中に run 単位の invoice(`paths.invoice_org`。MultiDataTile / ExcelInvoice / RDEformat では `temp/invoice_org.json`)へ書き込む(#603) | 後続タイルは書き換え後のファイルから作られるため、前のタイルが書いた値がタイル順に依存して後続へ引き継がれました | サポートしません。`paths.invoice_org` は読み取り専用の入力です。Runner は各タイルの invoice を登録時の invoice から作り(ExcelInvoice と SmartTable はその行を上書き)、タイル固有の値は flow が `save_invoice` で上書きします。各タイルは登録時の状態から始まります。`invoice_org` への書き込みが後続タイルに届くかどうかは v2 では定めていません |
 
 `Meta.assign_vals` の行は Tier 1 API の不具合修正です。そのため v1 コールバック入口にも
