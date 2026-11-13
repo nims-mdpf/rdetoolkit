@@ -218,6 +218,104 @@ Templates that select rows by cell colour use
 data-frame row. `OutputContext` has no run-scoped temp directory (v1
 `resource_paths.temp`); use `tempfile.TemporaryDirectory()` for scratch files,
 which are removed when the block ends.
+To build the main image from an uploaded PDF or SVG, as the v1
+simple-registration template does, use
+`render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)`.
+A `.pdf` file has that page rendered at `dpi`, a `.svg` / `.svgz` file is
+rendered at its own size, and any other file is converted with Pillow like
+`to_png`. The defaults (page 1, 350 dpi) match the v1 template. PDF and SVG
+need `pip install 'rdetoolkit[render]'`, and SVG also needs the Cairo system
+library; without them the node raises an `ImportError` that names the extra
+and the library. PDF pages are rendered with pypdfium2 instead of v1's
+pdf2image (poppler), so the pixels can differ from v1.
+
+To run an external converter, as v1 templates did with `subprocess.run`, use
+`run_program(args, ...)` (#630). The converter writes into directories you pass
+as arguments, such as `out.struct` and `out.logs`. Output streams are captured
+and returned in a `CompletedProgram` (`args`, `returncode`, `stdout`, `stderr`,
+`duration` in seconds). A non-zero exit, a program that cannot start, or a
+`timeout` is a `StructuredError` with `error_code` (default 1) instead of
+ErrorCode 3001. `error_message` replaces the default message, which names the
+command line, the exit code, the run time and the last stderr lines; the command
+line and the outcome are also logged. `env` adds to the inherited environment.
+For a Windows converter, `wine="auto"` prefixes `wine` outside Windows and writes
+`Path` arguments in Windows form (`/data/structured` becomes
+`Z:\data\structured`). Convert a path inside an option string with
+`to_wine_path`, for example
+`f"-OutputFolder:{to_wine_path(out.struct)}"`. Text arguments are passed
+unchanged.
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
+
+To write a processing log as a tile artifact, as v1
+`rdelogger.get_logger(name, file_path=Path(resource_paths.struct, "structured_log.txt"))`
+did, use `artifact_logger(out, filename, name=..., kind="struct")` as a context
+manager (#631). It adds a file handler to the `name` logger for the block and
+removes it when the block ends, also when the block raises. Only records logged
+inside the block reach the file, so a logger shared by the module never writes
+one tile's lines into the next tile's file. The call is a node call, recorded in
+the call log and in the RunReport `node_calls`.
+
+- Lines use the v1 format `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s`; pass `fmt=` to change it.
+- An existing file is appended to (`mode="a"`, as in v1); `mode="w"` truncates it at the first record.
+- No file is created when nothing is logged (as in v1).
+- Records below `level=` (default `DEBUG`) are not written. A logger whose own level is higher is lowered for the block and restored afterwards.
+- To keep the ERROR line of a failure, log it inside the block with `logger.exception(...)` and re-raise.
+- A record logged in the context that entered the block (the tile's code and the nodes it calls) is written to that block's file only. Runners that use the same logger concurrently in one process do not mix their lines.
+- A record logged in a context that is inside no block, such as a worker thread started inside the block, is written to every block active on that logger.
+- Records from other processes are never written, also from a worker forked inside the block that keeps running after it.
+- When blocks overlap, the logger level returns to its value before the first block once the last block ends.
+- Without `name`, the logger is named after the filename without its suffix.
+
+<!-- test: ga631-artifact-logger -->
+```python
+import logging
+import tempfile
+from pathlib import Path
+
+from rdetoolkit import flow
+from rdetoolkit.nodes import artifact_logger
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import OutputContext
+
+logger = logging.getLogger("eis")
+
+
+def fit() -> None:
+    logger.info("fitting started")
+    logger.warning("baseline drift")
+
+
+@flow
+def pipeline(out: OutputContext) -> None:
+    with artifact_logger(out, "structured_log.txt", name="eis"):
+        try:
+            fit()
+        except Exception:
+            logger.exception("fitting failed")
+            raise
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = make_output_context(Path(tmp))
+    pipeline(out)
+    lines = (out.struct / "structured_log.txt").read_text(encoding="utf-8").splitlines()
+    assert [line.split(" - ", 1)[1] for line in lines] == ["[eis](INFO) - fitting started", "[eis](WARNING) - baseline drift"]
+```
 
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
@@ -341,6 +439,47 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   If you do not need the `Error: ` prefix, `error_code=1, error_message="m"`
   and, without arguments, `error_code=1` alone keep the same code (the
   message is then `m` or the exception's text respectively).
+- **`catch_exception_with_message` is deprecated.** Applying it emits a
+  `DeprecationWarning`; its behavior is unchanged and it is not removed in v2.
+  When the `job.failed` `ErrorCode` must stay at its v1 value, rewrite it with
+  the table above. Otherwise raise `ProcessingError` for failures the user
+  should see and drop the decorator. You choose no error code: the Runner
+  writes it to `RunReport`, the iteration log and `job.failed` as 3007
+  `ProcessingFailed`, with `Remediation: <guidance>` appended to the message.
+  Without `remediation` the catalog default is used. `raise ... from exc` keeps
+  the original exception. Ordinary exceptions such as `ValueError` stay 3001.
+  The example below replaces the `FileNotFoundError` of a missing file with a
+  `ProcessingError`.
+
+<!-- test: processing-error -->
+```python
+from pathlib import Path
+
+from rdetoolkit.exceptions import ProcessingError
+
+
+def read_sample(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+
+
+try:
+    read_sample(Path("missing.csv"))
+except ProcessingError as error:
+    caught = error
+
+assert caught.code == 3007
+assert isinstance(caught.__cause__, FileNotFoundError)
+```
+
+  Neither the flow's `error_code` / `error_message` nor
+  `catch_exception_with_message` remaps a `ProcessingError`; it keeps 3007 and
+  its remediation.
 - `InputPaths` injected into a flow uses paths relative to the working directory,
   like v1 input paths. Path-based user error messages therefore keep the v1
   spelling. The Runner still resolves the data root once for its internal work.
@@ -496,7 +635,7 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 | Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
 | `rde2util.Meta.assign_vals` receives a `None` value (#570) | `None` is converted as the string `"None"`. A `number` / `integer` / `boolean` field raises `StructuredError` (`ERROR: failed to cast metaDef value` or similar). If the callback does not catch it, `job.failed` has `ErrorCode=1` and the later outputs, such as `metadata.json`, are not created. A `string` field is written as the value `"None"`, and a `$`-referenced unit as `"unit": "None"` | The key is not assigned, and `metadata.json` is written without it (without `unit` for a referenced unit). The callback's other outputs are created as usual. A value other than `None` that cannot be converted is still `ErrorCode=1` |
-| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | A `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails. An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. The v1 functions themselves are unchanged |
+| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | Up to v1.7.1, a `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails (fixed by #622 in v1.7.2 and v2). An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. Apart from the #622 fix, which `castval` shares with `set_custom_fields`, the v1 functions themselves are unchanged |
 | A callback or flow writes the run-level invoice (`paths.invoice_org`; `temp/invoice_org.json` in MultiDataTile / ExcelInvoice / RDEformat) during processing (#603) | Later tiles were built from the edited file, so a value written by an earlier tile carried over to later ones, depending on tile order | Not supported. `paths.invoice_org` is read-only input. The Runner seeds every tile's invoice from the registration invoice (ExcelInvoice and SmartTable overlay their row), and a flow overrides tile-specific values with `save_invoice`. Each tile starts from the registration state; v2 does not define whether a write to `invoice_org` reaches later tiles |
 
 The `Meta.assign_vals` row is a bug fix in the Tier 1 API, so it also applies on the

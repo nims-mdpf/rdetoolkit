@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from rdetoolkit.templates import ProcessingTemplate
 
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.report.events import _best_effort_stderr
 
@@ -71,6 +72,9 @@ def check_files_result(srcpaths: RdeInputDirPaths, *, mode: str | None, config: 
     except StructuredError as e:
         return Failure(e)
     except Exception as e:
+        # The run interruption (3004) keeps its own code (#635).
+        if is_run_interrupted(e):
+            raise
         # Wrap unexpected exceptions in StructuredError
         emsg = f"Unexpected error in check_files: {e}"
         error = StructuredError(

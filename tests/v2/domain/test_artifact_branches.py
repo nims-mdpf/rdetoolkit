@@ -113,7 +113,7 @@ def test_image_generation_disabled_skips_converter__tc_ep_hr_f6_205(
     """TC-EP-HR-F6-205: the disabled boundary has no converter side effect."""
     # Given: a converter that would fail if called and thumbnail generation disabled
     monkeypatch.setattr(
-        "rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail",
+        "rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl",
         lambda thumbnail, main: (_ for _ in ()).throw(AssertionError("called")),
     )
 

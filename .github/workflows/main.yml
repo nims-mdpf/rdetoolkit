@@ -30,6 +30,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Print
         run: echo "Running tests for Python ${{ matrix.python-version }} with ${{ matrix.tox-env }}"
+      - name: Install the Cairo library for the SVG render tests
+        if: matrix.tox-env == 'module'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends libcairo2
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -126,15 +129,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install build maturin
           python -m build --wheel --outdir dist
+      - name: Install the Cairo library for the SVG render tests
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends libcairo2
       - name: Install the wheel into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheel-venv"
           "$RUNNER_TEMP/wheel-venv/bin/python" -m pip install --upgrade pip
           wheel="$(ls dist/rdetoolkit-*.whl)"
-          # Extras mirror tox (minio, plotly) so every shipped module imports;
+          # Extras mirror tox (minio, plotly, render) so every shipped module imports;
           # pytest-mpl because pyproject's addopts pass --mpl; build/maturin so
           # the wheel-content tests run instead of skipping.
-          "$RUNNER_TEMP/wheel-venv/bin/python" -m pip install "${wheel}[minio,plotly]" pytest pytest-mpl build maturin
+          "$RUNNER_TEMP/wheel-venv/bin/python" -m pip install "${wheel}[minio,plotly,render]" pytest pytest-mpl build maturin
       - name: Assert rdetoolkit resolves to the installed wheel
         run: |
           "$RUNNER_TEMP/wheel-venv/bin/python" - <<'PY'

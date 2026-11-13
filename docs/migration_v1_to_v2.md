@@ -200,6 +200,96 @@ v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 塗りつぶし色（ARGB 16 進文字列、`theme:<n>`、または `None`）を返します。
 `OutputContext` には v1 の `resource_paths.temp` に当たる一時ディレクトリはありません。
 作業用ファイルには `tempfile.TemporaryDirectory()` を使ってください（ブロック終了時に削除されます）。
+v1 の simple-registration テンプレートのように、アップロードされた PDF や SVG から
+代表画像を作る場合は `render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)` を使います。
+拡張子が `.pdf` ならそのページを `dpi` で描画し、`.svg` / `.svgz` なら SVG 自身のサイズで描画し、
+それ以外は `to_png` と同じく Pillow で PNG に変換します。既定値(1 ページ目、350 dpi)は v1 テンプレートと同じです。
+PDF と SVG には `pip install 'rdetoolkit[render]'` が必要で、SVG には Cairo のシステムライブラリも必要です。
+未導入の場合は、必要な extra とライブラリ名を示す `ImportError` になります。
+PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため、画素単位では v1 と一致しないことがあります。
+
+v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
+`run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
+など引数で渡したディレクトリへ書き込みます。標準出力と標準エラーは取り込まれ、
+`CompletedProgram`（`args`、`returncode`、`stdout`、`stderr`、秒単位の `duration`）で返ります。
+0 以外の終了コード、起動できないプログラム、`timeout` の超過は、ErrorCode 3001 ではなく
+`error_code`（既定 1）の `StructuredError` になります。既定のメッセージはコマンドライン・
+終了コード・実行時間・標準エラーの末尾行を含み、`error_message` を指定するとそれに置き換わります。
+コマンドラインと結果はログにも出力されます。`env` は引き継いだ環境変数に追加されます。
+Windows 用の変換プログラムでは、`wine="auto"` を指定すると Windows 以外で `wine` を前置し、
+`Path` の引数を Windows 形式に変換します（`/data/structured` は `Z:\data\structured`）。
+オプション文字列に埋め込むパスは `to_wine_path` で変換してください。例:
+`f"-OutputFolder:{to_wine_path(out.struct)}"`。文字列の引数はそのまま渡します。
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
+
+v1 の `rdelogger.get_logger(name, file_path=Path(resource_paths.struct, "structured_log.txt"))` のように
+処理ログをタイルの成果物として書き出すには、`artifact_logger(out, filename, name=..., kind="struct")` を
+`with` で使います(#631)。ブロックの間だけ `name` のロガーへファイルハンドラーを追加し、終了時に
+例外の有無にかかわらず取り除きます。ブロック内で記録した行だけがファイルに入るため、
+モジュールで共有するロガーでも次のタイルのファイルに行が重複しません。呼び出しはノード呼び出しとして
+コールログと RunReport の `node_calls` に記録されます。
+
+- 行の書式は v1 と同じ `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s` で、`fmt=` で変更できます。
+- 既存ファイルには追記します(`mode="a"`、v1 と同じ)。`mode="w"` は最初の行で切り詰めます。
+- 1 行も記録しなければファイルは作られません(v1 と同じ)。
+- `level=`(既定 `DEBUG`)より低い行は書きません。ロガー自身のレベルが高い場合はブロックの間だけ下げ、終了時に戻します。
+- 失敗時の ERROR 行は、ブロック内で `logger.exception(...)` を記録してから再送出すると残ります。
+- ブロックに入ったコンテキスト(タイルのコードと、そこから呼ぶノード)で記録した行は、そのブロックのファイルにだけ書き込まれます。同じロガーを使う Runner を同じプロセスで並行に実行しても、行は混ざりません。
+- どのブロックにも入っていないコンテキストの行(ブロック内で起動したワーカースレッドなど)は、そのロガーで有効なすべてのブロックのファイルに書き込まれます。
+- 別プロセスの行は書き込まれません。ブロック内で fork したワーカーがブロック後も動き続ける場合も同じです。
+- ブロックが重なっても、ロガーのレベルは最後のブロックが終わった時点で最初のブロックの前の値に戻ります。
+- `name` を省略するとファイル名から拡張子を除いた名前のロガーを使います。
+
+<!-- test: ga631-artifact-logger -->
+```python
+import logging
+import tempfile
+from pathlib import Path
+
+from rdetoolkit import flow
+from rdetoolkit.nodes import artifact_logger
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import OutputContext
+
+logger = logging.getLogger("eis")
+
+
+def fit() -> None:
+    logger.info("fitting started")
+    logger.warning("baseline drift")
+
+
+@flow
+def pipeline(out: OutputContext) -> None:
+    with artifact_logger(out, "structured_log.txt", name="eis"):
+        try:
+            fit()
+        except Exception:
+            logger.exception("fitting failed")
+            raise
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = make_output_context(Path(tmp))
+    pipeline(out)
+    lines = (out.struct / "structured_log.txt").read_text(encoding="utf-8").splitlines()
+    assert [line.split(" - ", 1)[1] for line in lines] == ["[eis](INFO) - fitting started", "[eis](WARNING) - baseline drift"]
+```
 
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
@@ -314,6 +404,45 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   `Error: ` 接頭辞が不要なら `error_code=1, error_message="m"`、
   引数なしの場合は `error_code=1` だけで構いません(コードは同じで、メッセージは
   それぞれ `m`、例外の文字列になります)。
+- **`catch_exception_with_message` は非推奨です。** デコレータを付けた時点で
+  `DeprecationWarning` が出ます。動作は変わらず、v2 では削除しません。
+  `job.failed` の `ErrorCode` を v1 と同じ値に保つ必要があるときは上の表で書き換えます。
+  そうでなければ、利用者に伝えたい失敗を `ProcessingError` で送出し、
+  デコレータを外してください。エラーコードは指定しません。Runner が 3007
+  `ProcessingFailed` として `RunReport`・反復ログ・`job.failed` に書き込み、
+  メッセージの後ろに `Remediation: <対処法>` を付けます。`remediation` を省略すると
+  カタログの既定文になります。`raise ... from exc` で元の例外を残せます。
+  `ValueError` などの通常の例外はこれまでどおり 3001 です。次の例は、ファイルが
+  見つからないときの `FileNotFoundError` を `ProcessingError` に置き換えます。
+
+<!-- test: processing-error -->
+```python
+from pathlib import Path
+
+from rdetoolkit.exceptions import ProcessingError
+
+
+def read_sample(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+
+
+try:
+    read_sample(Path("missing.csv"))
+except ProcessingError as error:
+    caught = error
+
+assert caught.code == 3007
+assert isinstance(caught.__cause__, FileNotFoundError)
+```
+
+  `ProcessingError` は flow の `error_code` / `error_message` でも
+  `catch_exception_with_message` でも変換されず、3007 と対処法を保ちます。
 - flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
   入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
   Runner 内部では、開始時に一度確定した data root を引き続き使います。
@@ -468,7 +597,7 @@ invoice シート自体がないブックについては既存のエラー契約
 | `rdetoolkit run` CLI の終了コード | v1 に `run` コマンドはなし | `0` 成功 / `1` 失敗 / `2` 一部失敗 / `3` 使い方の誤り。Python の v1 コールバック入口は失敗で `SystemExit(1)` を維持。flow 入口は `exit_on_failure=True` で失敗1・一部失敗2を反映し、同じ値を `RunReport.exit_code` でも公開 |
 | `multidata_tile.ignore_errors: true` で全タイルが失敗 | MultiDataTile のみ全件 `failed` の JSON を返し終了コード 0。他モードではフラグは無視され最初の失敗で停止 | v1 コールバック入口は全モードで v1 と同じ。flow 入口では全タイル失敗は `failed` となり `job.failed` を書きます |
 | `rde2util.Meta.assign_vals` が値 `None` を受け取る(#570) | `None` を文字列 `"None"` として変換します。`number` / `integer` / `boolean` の項目は `StructuredError`(`ERROR: failed to cast metaDef value` など)。コールバックが捕捉しなければ `job.failed` に `ErrorCode=1` となり、`metadata.json` など以降の出力は作られません。`string` の項目は値 `"None"`、`$` 参照の単位は `"unit": "None"` として書き出されます | そのキーは代入されず、`metadata.json` はそのキー(参照単位なら `unit`)を含めずに書き出されます。コールバックの他の出力もそのまま作られます。`None` 以外の変換できない値は従来どおり `ErrorCode=1` |
-| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT`・`pd.NA`(NumPy の NaN / NaT を含む)はすべての型で `None` として格納し、NumPy のスカラーは Python の値として変換します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。v1 の関数自体は変更していません |
+| `invoice.custom` の値の変換: v1 の `castval` / `_assign_invoice_val` と v2 の `set_custom_fields`(#603) | v1.7.1 までは、format が `uri` / `uuid` / `markdown` の `string` 項目も日付として解釈しようとして失敗します(v1.7.2 と v2 で #622 により修正)。解釈できない日付や日付 format への文字列以外の値は dateutil の `ValueError` / `TypeError` になります。`boolean` 項目の `None` は `False`、`integer` / `number` 項目の `None` は失敗します。スキーマにないキーは `KeyError`。`3.0` のような整数値の float は `integer` で失敗します | `date` / `date-time` / `time` 以外の format は値をそのまま保持します。不一致はすべて v1 と同じメッセージの `StructuredError`(コード 1)で、原因の例外を連鎖します。`None`・NaN・`NaT`・`pd.NA`(NumPy の NaN / NaT を含む)はすべての型で `None` として格納し、NumPy のスカラーは Python の値として変換します。スキーマにないキーは `StructuredError`(コード 1)。`3.0` は `3` になり、`date` / `datetime` オブジェクトも受け付けます。#622 の修正で `castval` も `set_custom_fields` と同じ扱いになった点を除き、v1 の関数自体は変更していません |
 | コールバックや flow が処理中に run 単位の invoice(`paths.invoice_org`。MultiDataTile / ExcelInvoice / RDEformat では `temp/invoice_org.json`)へ書き込む(#603) | 後続タイルは書き換え後のファイルから作られるため、前のタイルが書いた値がタイル順に依存して後続へ引き継がれました | サポートしません。`paths.invoice_org` は読み取り専用の入力です。Runner は各タイルの invoice を登録時の invoice から作り(ExcelInvoice と SmartTable はその行を上書き)、タイル固有の値は flow が `save_invoice` で上書きします。各タイルは登録時の状態から始まります。`invoice_org` への書き込みが後続タイルに届くかどうかは v2 では定めていません |
 
 `Meta.assign_vals` の行は Tier 1 API の不具合修正です。そのため v1 コールバック入口にも

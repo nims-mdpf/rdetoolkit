@@ -40,7 +40,7 @@ from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import compute_config_digest
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
 from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
-from rdetoolkit.runner.finalize import RunFinalizer, structured_error_record, write_run_report
+from rdetoolkit.runner.finalize import RunFinalizer, processing_error_record, structured_error_record, write_run_report
 from rdetoolkit.runner.invoker import InvokerRegistry, record_run_failure
 from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
@@ -772,10 +772,11 @@ def _run_error(exc: Exception) -> dict[str, Any]:
 
     Any v1 ``StructuredError`` — raised by user code or by the framework's own
     v1-derived helpers — publishes its ``ecode``/``emsg`` verbatim and bypasses
-    the 1002 mapping (Design §6.3). Everything else is catalogued; validation
-    keeps 4001/4002/4003 because those steps raise ``RdeValidationError``.
+    the 1002 mapping (Design §6.3). A ``ProcessingError`` keeps the user's
+    remediation (#634). Everything else is catalogued; validation keeps
+    4001/4002/4003 because those steps raise ``RdeValidationError``.
     """
-    passthrough = structured_error_record(exc)
+    passthrough = structured_error_record(exc) or processing_error_record(exc)
     if passthrough is not None:
         return passthrough
     return _exception_error(_lifecycle_error(exc))
