@@ -25,6 +25,15 @@ python -m rdetoolkit flows list --json
 python -m rdetoolkit skeletons list --json
 ```
 
+Lint the registered declarations as part of the regression suite. Pass
+`--module` for project modules (importing them runs their code). With no
+findings it prints `"status": "passed"` and exits 0; any finding exits 3.
+
+<!-- example: testing-lint -->
+```console
+python -m rdetoolkit nodes lint --json
+```
+
 The [complete executed fixture](references/testing.md) creates local input and
 runs the real Runner. Use different fixture roots for distinct processing modes
 and success/failure cases; do not assume an invoice fixture covers SmartTable,

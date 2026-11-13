@@ -1,7 +1,9 @@
 """``rdetoolkit report``: read versioned run-report files.
 
 ``show`` summarizes a run; ``trace`` renders the recorded Call Sequence (the
-node calls in the order they ran -- a call log, not a dataflow graph).
+node calls in the order they ran -- a call log, not a dataflow graph);
+``diagnose`` reports its failures with catalog guidance and checks which
+supporting logs belong to the same run.
 """
 
 from __future__ import annotations
@@ -27,12 +29,13 @@ _REPORT_INPUT = (
 _EXIT_CODES = (EXIT_OK, EXIT_CLICK_USAGE, (3, "the report file is missing or is not a run report"))
 
 REPORT_HELP = CommandHelp(
-    summary="Read run reports written by `rdetoolkit run`: summarize them or trace their node calls.",
+    summary="Read run reports written by `rdetoolkit run`: summarize, trace, or diagnose them.",
     examples=(
         "rdetoolkit report show data/logs/run_report_<id>.json",
         "rdetoolkit report trace data/logs/run_report_<id>.json --format mermaid",
+        "rdetoolkit report diagnose data/logs/run_report_<id>.json --json",
     ),
-    exit_codes=_EXIT_CODES,
+    exit_codes=(EXIT_OK, (1, "`diagnose --fail-on-error`: the run recorded failures"), *_EXIT_CODES[1:]),
     see_also=("rdetoolkit run", "rdetoolkit repro export"),
 )
 
@@ -62,6 +65,32 @@ TRACE_HELP = CommandHelp(
     ),
     exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "the report file is missing or invalid, or `--format` is not json, mermaid, or html")),
     see_also=("rdetoolkit report show", "rdetoolkit run"),
+)
+
+DIAGNOSE_HELP = CommandHelp(
+    summary="Diagnose a run report: failed iterations, node and call ids, catalog codes, and remediation.",
+    details=(
+        "Failures come from the report only; they are observed calls, not inferred dependencies. "
+        "The `iterations/` details and `events_<run_id>.jsonl` next to the report are used as evidence only "
+        "when their run id matches, and are otherwise flagged (missing, unverified, mismatched, ...). "
+        "Runtime error messages, tracebacks and argument previews are never printed."
+    ),
+    inputs=(
+        _REPORT_INPUT + " Keep it next to its `iterations/` and `events_<run_id>.jsonl`.",
+        "`--json`: print the versioned diagnostics envelope. `--fail-on-error`: exit 1 when the run recorded a failure.",
+    ),
+    outputs=("Prints one line per failure and evidence warning, or one JSON object with `--json`. Writes no files.",),
+    examples=(
+        "rdetoolkit report diagnose data/logs/run_report_<id>.json",
+        "rdetoolkit report diagnose run_report_<id>.json --json --fail-on-error",
+    ),
+    exit_codes=(
+        (0, "the report was diagnosed (also when the run itself failed)"),
+        (1, "with `--fail-on-error`: the run recorded at least one failure"),
+        EXIT_CLICK_USAGE,
+        (3, "the report file is missing, unreadable, or not a supported run report"),
+    ),
+    see_also=("rdetoolkit report show", "rdetoolkit report trace", "rdetoolkit doctor"),
 )
 
 app = typer.Typer(help=REPORT_HELP.render(), short_help=REPORT_HELP.summary, no_args_is_help=True)
@@ -120,3 +149,45 @@ def trace(
     except ValueError as exc:
         _usage_error(f"{exc}\nRemediation: pass --format json, --format mermaid, or --format html.")
     typer.echo(rendered)
+
+
+@app.command("diagnose", help=DIAGNOSE_HELP.render(), short_help=DIAGNOSE_HELP.summary)
+def diagnose(
+    run_report: Annotated[Path, typer.Argument(metavar="RUN_REPORT", help="Path to run_report_<run_id>.json.")],
+    as_json: Annotated[bool, typer.Option("--json", help="Emit the versioned diagnostics envelope.")] = False,
+    fail_on_error: Annotated[bool, typer.Option("--fail-on-error", help="Exit 1 when the run recorded a failure.")] = False,
+) -> None:
+    """Diagnose the failures recorded in ``run_report`` with run-bound evidence."""
+    import json
+
+    from rdetoolkit.report.diagnosis import diagnose_report
+    from rdetoolkit.report.diagnostics import diagnostic, envelope
+
+    try:
+        result = diagnose_report(run_report)
+    except (OSError, UnicodeError, KeyError, TypeError, ValueError, RecursionError):
+        # The exception text is not printed: it can quote the file's contents.
+        finding = diagnostic(
+            code=None, severity="error", name="ReportInputInvalid", subject="run_report",
+            message="Unable to read a supported run report.",
+            remediation="Pass the run_report_<run_id>.json file that 'rdetoolkit run' wrote under data/logs/, unmodified.",
+        )
+        if as_json:
+            typer.echo(json.dumps(envelope([finding], command="report diagnose"), ensure_ascii=False, sort_keys=True, indent=2))
+        else:
+            typer.echo(f"{finding['message']}\nRemediation: {finding['remediation']}", err=True)
+        raise typer.Exit(code=3) from None
+    if as_json:
+        typer.echo(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
+    else:
+        typer.echo(f"run_id: {result['run_id']}")
+        typer.echo(f"status: {result['run_status']}")
+        for failure in result["failures"]:
+            where = "run" if failure["iteration_index"] is None else f"iteration {failure['iteration_index']}"
+            typer.echo(f"{where}: {failure['call_id'] or 'no node call'}: {failure['name']} ({failure['code']})")
+            typer.echo(f"  Remediation: {failure['remediation']}")
+        for finding in result["diagnostics"]:
+            if finding["severity"] == "warning":
+                typer.echo(f"warning: {finding['subject']}: {finding['message']}")
+    if fail_on_error and result["failures"]:
+        raise typer.Exit(code=1)
