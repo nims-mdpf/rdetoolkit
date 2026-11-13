@@ -81,8 +81,8 @@ flowchart TD
 
 For reusable data registration in RDE, the following files are mandatory:
 
-- `templates/tasksupport/invoice.schema.json`
-- `templates/tasksupport/metadata-def.json`
+- `template/tasksupport/invoice.schema.json`
+- `template/tasksupport/metadata-def.json`
 
 RDE uses a predefined metadata definition file `metadata-def.json` to extract metadata from files output by measurement equipment and daily experimental data files, and `invoice.schema.json` which allows flexible customization of data input forms for sample information (synthesis conditions, etc.) and measurement conditions that need to be recorded routinely in daily experiments.
 
@@ -819,7 +819,7 @@ Logs are output to timestamped files (e.g., `rdesys_20260106_092845.log`) under 
 If there are no problems with operation, submit the structured processing to RDE. Execute the following command to generate a zip file, then submit this zip file to RDE.
 
 ```bash
-uv run python -m rdetoolkit artifact -s . -o rde_submit_files.zip
+uv run python -m rdetoolkit package -s . -o rde_submit_files.zip
 ```
 
 ```bash

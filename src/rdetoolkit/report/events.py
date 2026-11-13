@@ -115,6 +115,61 @@ class Event:
         )
 
     @classmethod
+    def prepare_started(cls, *, run_id: str, prepare_id: str) -> Event:
+        """Create a prepare.started event for ``@flow(prepare=...)``.
+
+        Args:
+            run_id: Run identifier (required, non-empty).
+            prepare_id: Dotted ``module.qualname`` of the preparation callable.
+
+        Returns:
+            Event named ``prepare.started``.
+        """
+        _require_nonempty(run_id, "run_id")
+        _require_nonempty(prepare_id, "prepare_id")
+        return cls(run_id=run_id, name="prepare.started", payload={"prepare_id": prepare_id})
+
+    @classmethod
+    def prepare_completed(cls, *, run_id: str, prepare_id: str, duration_ms: float = 0.0) -> Event:
+        """Create a prepare.completed event.
+
+        Args:
+            run_id: Run identifier (required, non-empty).
+            prepare_id: Dotted ``module.qualname`` of the preparation callable.
+            duration_ms: Preparation duration in milliseconds.
+
+        Returns:
+            Event named ``prepare.completed``.
+        """
+        _require_nonempty(run_id, "run_id")
+        _require_nonempty(prepare_id, "prepare_id")
+        return cls(
+            run_id=run_id,
+            name="prepare.completed",
+            payload={"prepare_id": prepare_id, "duration_ms": duration_ms},
+        )
+
+    @classmethod
+    def prepare_failed(cls, *, run_id: str, prepare_id: str, error: BaseException) -> Event:
+        """Create a prepare.failed event.
+
+        Args:
+            run_id: Run identifier (required, non-empty).
+            prepare_id: Dotted ``module.qualname`` of the preparation callable.
+            error: Exception raised by the preparation callable.
+
+        Returns:
+            Event named ``prepare.failed``.
+        """
+        _require_nonempty(run_id, "run_id")
+        _require_nonempty(prepare_id, "prepare_id")
+        return cls(
+            run_id=run_id,
+            name="prepare.failed",
+            payload={"prepare_id": prepare_id, "error_type": type(error).__name__, "error_msg": str(error)},
+        )
+
+    @classmethod
     def node_started(cls, *, run_id: str, node_id: str, call_id: str) -> Event:
         """Create a node.started event.
 
@@ -460,7 +515,7 @@ def _best_effort_stderr(message: str) -> None:
 
     No explicit flush: ``sys.stderr`` is line-buffered (Python 3.9+), and
     forcing one would reorder the notice ahead of a command's already-echoed
-    stdout in captured output (``rdetoolkit run --flow`` prints its RunReport
+    stdout in captured output (``rdetoolkit run pkg.mod:flow`` prints its RunReport
     JSON first, and callers parse that leading document).
 
     The run interruption (3004) raised by the SIGTERM handler while the

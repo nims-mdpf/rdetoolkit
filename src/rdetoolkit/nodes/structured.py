@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import csv
 import json
+import os
+from io import StringIO
 from pathlib import Path
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import pandas as pd
@@ -14,12 +17,27 @@ from rdetoolkit.types import InvoiceData, OutputContext, OutputKind
 
 
 @node(tags=["builtin", "structured"], version="2.0.0", idempotent=True)
-def save_csv(df: pd.DataFrame, out: OutputContext, filename: str, *, float_format: str | None = None, header: bool | list[str] = True, index: bool = False) -> Path:
+def save_csv(
+    df: pd.DataFrame,
+    out: OutputContext,
+    filename: str,
+    *,
+    float_format: str | None = None,
+    header: bool | list[str] = True,
+    index: bool = False,
+    preamble: Sequence[Sequence[object]] | str | None = None,
+    blank_line_after_preamble: bool = False,
+) -> Path:
     """Save a data frame as UTF-8 CSV with optional headers and numeric formatting.
 
     Migrated from ``retired/outputcontext_save_methods_v20.py::save_csv``.
     Multi-level columns are rejected because they serialize as multiple
     header rows, violating the v2 structured-data contract.
+
+    A ``preamble`` writes a block of lines before the table, such as the
+    ``#title`` / ``#legend`` metadata header that ``rdetoolkit.graph`` parses.
+    Rows may have different numbers of fields and are written with the same
+    csv dialect and line ending as the table.
 
     Args:
         df: Data frame with a flat column index.
@@ -28,18 +46,40 @@ def save_csv(df: pd.DataFrame, out: OutputContext, filename: str, *, float_forma
         float_format: Optional pandas floating-point format string.
         header: Whether to write headers, or explicit column aliases.
         index: Whether to write the data frame's index.
+        preamble: Rows written before the table, or a str written verbatim
+            (it should end with its own line ending).
+        blank_line_after_preamble: Write one empty line between a non-empty
+            preamble and the table.
 
     Returns:
         Path to the CSV under ``out.struct``.
 
     Raises:
         ValueError: If the data frame would require multiple header rows.
+        TypeError: If a preamble row is a single string instead of a
+            sequence of fields.
     """
     if df.columns.nlevels != 1:
         msg = "save_csv requires a one-row header; MultiIndex columns are not supported"
         raise ValueError(msg)
-    content = df.to_csv(index=index, header=header, float_format=float_format).encode("utf-8")
-    return out.write_bytes("struct", filename, content)
+    lead = _preamble_text(preamble)
+    if lead and blank_line_after_preamble:
+        lead += os.linesep
+    table = df.to_csv(index=index, header=header, float_format=float_format, lineterminator=os.linesep)
+    return out.write_bytes("struct", filename, (lead + table).encode("utf-8"))
+
+
+def _preamble_text(preamble: Sequence[Sequence[object]] | str | None) -> str:
+    if preamble is None or isinstance(preamble, str):
+        return preamble or ""
+    buffer = StringIO()
+    writer = csv.writer(buffer, lineterminator=os.linesep)
+    for row in preamble:
+        if isinstance(row, (str, bytes)):
+            msg = f"save_csv preamble rows must be sequences of fields, not {type(row).__name__}: {row!r}"
+            raise TypeError(msg)
+        writer.writerow(row)
+    return buffer.getvalue()
 
 
 @node(tags=["builtin", "structured"], version="2.0.0", idempotent=True)

@@ -31,16 +31,16 @@ class PackageSkeleton(ProcessingTemplate):
     def __flow__(self, paths: InputPaths) -> None:
         self.read(paths)
 ''', encoding="utf-8")
-    arguments = ["templates", "list", "--json"] if command == "list" else ["init", "--processing-template", "PackageSkeleton"]
+    arguments = ["skeletons", "list", "--json"] if command == "list" else ["new", "processing", "PackageSkeleton"]
     # When: invoking the installed CLI in a fresh production-like process
     invocation = [sys.executable, "-m", "rdetoolkit", *arguments]
     if command == "explicit_then_auto":
         script = (
             "from typer.testing import CliRunner\n"
             "from rdetoolkit.cli.app import app\n"
-            f"first = CliRunner().invoke(app, ['templates', 'list', '--json', '--module', {module_name!r}])\n"
+            f"first = CliRunner().invoke(app, ['skeletons', 'list', '--json', '--module', {module_name!r}])\n"
             "assert first.exit_code == 0, first.output\n"
-            "second = CliRunner().invoke(app, ['templates', 'list', '--json'])\n"
+            "second = CliRunner().invoke(app, ['skeletons', 'list', '--json'])\n"
             "assert second.exit_code == 0, second.output\n"
             "print(second.output)\n"
         )

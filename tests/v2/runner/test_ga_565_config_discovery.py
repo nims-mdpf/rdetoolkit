@@ -36,7 +36,7 @@ def test_unrelated_pyproject_preserves_artifacts__ga565_neg_1(tmp_path: Path, mo
     if entry == "cli":
         monkeypatch.syspath_prepend(str(tmp_path))
         (tmp_path / "ga565_flow.py").write_text("from rdetoolkit import flow\n@flow\ndef pipeline() -> None:\n    pass\n", encoding="utf-8")
-        result = CliRunner().invoke(app, ["run", "--flow", "ga565_flow:pipeline"])
+        result = CliRunner().invoke(app, ["run", "ga565_flow:pipeline"])
         assert result.exit_code == 0, result.output
     elif entry == "v1":
         workflows.run()

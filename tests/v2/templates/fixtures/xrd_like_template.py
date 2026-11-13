@@ -18,7 +18,7 @@ from rdetoolkit.types import InputPaths, InvoiceData
 
 
 class DemoSkeletonTemplate(ProcessingTemplate):
-    """Depth-1 skeleton fixture -- must appear in ``templates list``
+    """Depth-1 skeleton fixture -- must appear in ``skeletons list``
     (Conflict #6: the Template Registry holds skeletons only)."""
 
     @slot

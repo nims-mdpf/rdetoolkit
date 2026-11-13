@@ -74,10 +74,10 @@ def test_project_templates_discovered_without_module__ga579_ep_1(tmp_path: Path,
     # Given: an unimported local skeleton
     name = _provider(tmp_path, monkeypatch, package)
     # When: listing then describing without --module
-    result = CliRunner().invoke(app, ["templates", "list", "--json"])
+    result = CliRunner().invoke(app, ["skeletons", "list", "--json"])
     assert result.exit_code == 0, result.output
     assert any(item["id"] == f"{name}.Ga579Skeleton" for item in json.loads(result.output))
-    described = CliRunner().invoke(app, ["templates", "describe", f"{name}.Ga579Skeleton", "--json"])
+    described = CliRunner().invoke(app, ["skeletons", "show", f"{name}.Ga579Skeleton", "--json"])
     # Then: documentation names real domain types and omits stdlib Path
     assert described.exit_code == 0, described.output
     value = json.loads(described.output)
@@ -90,7 +90,7 @@ def test_init_generates_wired_main_and_usable_sample__ga579_bv_1(tmp_path: Path,
     """GA579-BV-1: generated main calls the concrete class and reports failure."""
     # Given: a skeleton whose first slot accepts Path, not InputPaths
     name = _provider(tmp_path, monkeypatch)
-    result = CliRunner().invoke(app, ["init", "--processing-template", f"{name}.Ga579Skeleton", "--module", name])
+    result = CliRunner().invoke(app, ["new", "processing", f"{name}.Ga579Skeleton", "--module", name])
     assert result.exit_code == 0, result.output
     sample = (tmp_path / "tests/test_processing.py").read_text()
     assert "read(rde_paths)" not in sample
@@ -119,7 +119,7 @@ def test_existing_main_rejected_before_other_writes__ga579_neg_2(tmp_path: Path,
     name = _provider(tmp_path, monkeypatch)
     (tmp_path / "main.py").write_text("# user-owned entry\n", encoding="utf-8")
     # When: generating without the explicit force option
-    result = CliRunner().invoke(app, ["init", "--processing-template", f"{name}.Ga579Skeleton", "--module", name])
+    result = CliRunner().invoke(app, ["new", "processing", f"{name}.Ga579Skeleton", "--module", name])
     # Then: every output remains untouched
     assert result.exit_code == 3
     assert (tmp_path / "main.py").read_text() == "# user-owned entry\n"
@@ -151,7 +151,7 @@ def test_alias_discovery_skips_unrelated_and_broken_sources__ga579_neg_3(tmp_pat
     (tmp_path / "unrelated.py").write_text("raise RuntimeError('do not import')\n", encoding="utf-8")
     (tmp_path / "broken.py").write_text("def broken(:\n", encoding="utf-8")
     # When: discovering project providers
-    result = CliRunner().invoke(app, ["templates", "list", "--json"])
+    result = CliRunner().invoke(app, ["skeletons", "list", "--json"])
     # Then: only the declared template provider runs
     assert result.exit_code == 0, result.output
     assert any(item["id"] == f"{name}.Ga579Skeleton" for item in json.loads(result.output))
@@ -164,7 +164,7 @@ def test_broken_provider_is_a_usage_error__ga579_neg_3(tmp_path: Path, monkeypat
     with (tmp_path / f"{name}.py").open("a", encoding="utf-8") as target:
         target.write("raise RuntimeError('broken provider')\n")
     # When: an explicit module import is requested
-    result = CliRunner().invoke(app, ["templates", "list", "--module", name])
+    result = CliRunner().invoke(app, ["skeletons", "list", "--module", name])
     # Then: the existing usage-error path explains the import failure
     assert result.exit_code == 3
     assert "broken provider" in result.output

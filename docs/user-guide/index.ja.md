@@ -17,13 +17,13 @@
 
 - [設定ファイル](config.ja.md) - rdeconfig.yamlとpyproject.tomlによる動作制御
 - [Magic Variable](config.ja.md#magic-variable機能) - 動的なメタデータ置換機能
-- [gen-config CLI](../usage/cli.ja.md#gen-config-rdeconfigyamlテンプレートの生成) - 用途別テンプレートや対話形式でrdeconfig.yamlを生成
+- [new config CLI](../usage/cli.ja.md#new-config) - 用途別テンプレートや対話形式でrdeconfig.yamlを生成
 
 ### テンプレートファイル
 
 - [テンプレートファイルガイド](../usage/metadata_definition_file.ja.md) - `invoice.schema.json` / `invoice.json` / `metadata-def.json` / `metadata.json` の役割と構造
 - [init CLI](../usage/cli.ja.md#init-スタートアッププロジェクトの作成) - 主要テンプレートとディレクトリ骨格を自動生成
-- リポジトリ内のサンプル: `templates/tasksupport/invoice.schema.json`, `templates/tasksupport/metadata-def.json`
+- リポジトリ内のサンプル: `template/tasksupport/invoice.schema.json`, `template/tasksupport/metadata-def.json`
 
 ### 実践的な使用方法
 
@@ -38,7 +38,7 @@
 ## 使用方法の流れ
 
 1. **概念理解**: [構造化処理とは](structured-processing.ja.md)と[構造化処理開発ガイド](../usage/structured_process/development_guide.ja.md)で全体像を把握
-2. **テンプレート準備**: [init CLI](../usage/cli.ja.md#init-スタートアッププロジェクトの作成)や[gen-config CLI](../usage/cli.ja.md#gen-config-rdeconfigyamlテンプレートの生成)で初期ファイルを生成
+2. **テンプレート準備**: [init CLI](../usage/cli.ja.md#init-スタートアッププロジェクトの作成)や[new config CLI](../usage/cli.ja.md#new-config)で初期ファイルを生成
 3. **環境設定**: [設定ファイル](config.ja.md)や[テンプレートファイルガイド](../usage/metadata_definition_file.ja.md)を基にrdeconfig.yamlやinvoice/metadata定義を調整
 4. **実践応用**: [CLIツール](../usage/cli.ja.md)や[バリデーション](../usage/validation.ja.md)でワークフローを運用し、必要に応じて高度な機能へ拡張
 

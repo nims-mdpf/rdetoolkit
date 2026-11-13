@@ -1,4 +1,9 @@
-"""Commands for discovering templates and generating concrete skeletons."""
+"""``rdetoolkit skeletons``: list and show registered processing skeletons.
+
+A processing skeleton is a ``ProcessingTemplate`` subclass whose slots a
+project implements. ``rdetoolkit new processing`` renders the code for one;
+the rendering helpers live here so both commands share one skeleton lookup.
+"""
 
 from __future__ import annotations
 
@@ -13,22 +18,58 @@ from typing import Annotated, NoReturn
 
 import typer
 
+from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli._v2_common import load_modules
 from rdetoolkit.templates import registry
 from rdetoolkit.templates.registry import TemplateMethodSpec, TemplateParameterSpec, TemplateSpec
 
-app = typer.Typer(help="Inspect registered ProcessingTemplate skeletons.")
+_SOURCES = (
+    "`--module`: import a module that declares skeletons first (repeatable). Without it, skeletons are "
+    "found in `*.py` files of the current directory, its `modules/` package, and installed plugins."
+)
+
+SKELETONS_HELP = CommandHelp(
+    summary="List and show registered processing skeletons (ProcessingTemplate subclasses).",
+    details="A skeleton declares the slots a structured process implements; `rdetoolkit new processing` generates code for one.",
+    examples=(
+        "rdetoolkit skeletons list",
+        "rdetoolkit skeletons show XrdTemplate --module modules.skeletons",
+        "rdetoolkit skeletons list --json",
+    ),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "unknown skeleton or a module that fails to import")),
+    see_also=("rdetoolkit new processing",),
+)
+
+LIST_HELP = CommandHelp(
+    summary="List registered processing skeletons, one id per line.",
+    inputs=(_SOURCES,),
+    outputs=("Prints skeleton ids, or a JSON array of skeleton specs with `--json`. Writes no files.",),
+    examples=("rdetoolkit skeletons list", "rdetoolkit skeletons list --module modules.skeletons --json"),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "a module given with `--module` fails to import")),
+    see_also=("rdetoolkit skeletons show", "rdetoolkit new processing"),
+)
+
+SHOW_HELP = CommandHelp(
+    summary="Show one processing skeleton: its id, slots, and slot signatures.",
+    inputs=("`NAME`: a skeleton id or unambiguous class name from `rdetoolkit skeletons list`.", _SOURCES),
+    outputs=("Prints `field: value` lines, or one JSON object with `--json`. Writes no files.",),
+    examples=("rdetoolkit skeletons show XrdTemplate", "rdetoolkit skeletons show modules.skeletons.XrdTemplate --json"),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "unknown skeleton or a module that fails to import")),
+    see_also=("rdetoolkit new processing",),
+)
+
+app = typer.Typer(help=SKELETONS_HELP.render(), short_help=SKELETONS_HELP.summary, no_args_is_help=True)
 
 
-def _emit_usage_error(message: str) -> NoReturn:
-    typer.echo(message, err=True)
+def _emit_usage_error(message: str, remediation: str) -> NoReturn:
+    typer.echo(f"{message}\nRemediation: {remediation}", err=True)
     raise typer.Exit(code=3)
 
 
 def _load_template_sources(modules: Sequence[str]) -> None:
     """Register every template source a templates command can resolve.
 
-    ``list``, ``describe`` and processing-template generation share this so
+    ``list``, ``show`` and ``new processing`` share this so
     a template that ``list`` shows (project modules plus installed
     ``rdetoolkit.plugins`` entry points) is never unknown to the others.
     """
@@ -76,10 +117,14 @@ def _find_template(name: str) -> TemplateSpec:
     try:
         return registry.get_template(name)
     except KeyError:
-        _emit_usage_error(f"Unknown processing template: {name}")
+        _emit_usage_error(
+            f"Unknown processing skeleton: {name}",
+            "run 'rdetoolkit skeletons list' to see registered skeletons, and pass --module "
+            "for a module that is not found automatically.",
+        )
 
 
-@app.command("list")
+@app.command("list", help=LIST_HELP.render(), short_help=LIST_HELP.summary)
 def list_templates(
     as_json: Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")] = False,
     modules: Annotated[
@@ -87,7 +132,7 @@ def list_templates(
         typer.Option("--module", help="Import a project module before listing; repeatable."),
     ] = None,
 ) -> None:
-    """List registered depth-1 template skeletons."""
+    """List registered processing skeletons."""
     _load_template_sources(modules or [])
     values = [asdict(spec) for spec in registry.list_templates()]
     if as_json:
@@ -97,16 +142,16 @@ def list_templates(
         typer.echo(value["id"])
 
 
-@app.command()
-def describe(
-    template_id: Annotated[str, typer.Argument(metavar="<name>")],
+@app.command("show", help=SHOW_HELP.render(), short_help=SHOW_HELP.summary)
+def show(
+    template_id: Annotated[str, typer.Argument(metavar="NAME")],
     as_json: Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")] = False,
     modules: Annotated[
         list[str] | None,
-        typer.Option("--module", help="Import a project module before describing; repeatable."),
+        typer.Option("--module", help="Import a project module before showing; repeatable."),
     ] = None,
 ) -> None:
-    """Describe a registered template skeleton."""
+    """Show a registered processing skeleton."""
     _load_template_sources(modules or [])
     value = asdict(_find_template(template_id))
     if as_json:
@@ -305,8 +350,8 @@ def generate_processing_template(
     if existing_paths and not force:
         rendered_paths = ", ".join(str(path) for path in existing_paths)
         _emit_usage_error(
-            f"Refusing to overwrite existing file(s): {rendered_paths}. "
-            "To overwrite existing files, rerun with --force.",
+            f"Refusing to overwrite existing file(s): {rendered_paths}.",
+            "rerun with --force to overwrite them, or pass -o with another directory.",
         )
     output_dir.mkdir(parents=True, exist_ok=True)
     test_path.parent.mkdir(parents=True, exist_ok=True)

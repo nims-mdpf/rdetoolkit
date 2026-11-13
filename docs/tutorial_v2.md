@@ -30,17 +30,18 @@ class InstrumentTemplate(ProcessingTemplate):
         self.extract_meta(invoice)
 ```
 
-利用者は `templates list` / `templates describe` でテンプレートを発見し、次の
+利用者は `skeletons list` / `skeletons show` でテンプレートを発見し、次の
 コマンドで雛形とサンプルテストを生成します。
 
 <!-- test: level-1-init -->
 ```bash
-$ python -m rdetoolkit init --processing-template InstrumentTemplate --module instrument_template
+$ python -m rdetoolkit new processing InstrumentTemplate --module instrument_template
 ```
 
 生成されたクラスの `read` と `extract_meta`、つまり 2 つの TODO slot を実装し、
-生成されたテストを通したら `python -m rdetoolkit run --flow <module>:<class>` で
-実行します。`--processing-template` はドメイン処理テンプレート名を受け取ります。
+生成されたテストを通したら `python -m rdetoolkit run <module>:<class>` で
+実行します。`new processing` は `skeletons list` が表示するドメイン処理テンプレートの
+id またはクラス名を受け取ります。
 
 ## レベル 2: plain `@flow` を書く
 

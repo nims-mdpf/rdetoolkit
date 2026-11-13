@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import re
+import hashlib
+import importlib
 from io import BytesIO
 from pathlib import Path
+from typing import Any
 from collections.abc import Sequence
 
 import matplotlib as mpl
@@ -19,9 +23,14 @@ from rdetoolkit.types import OutputContext, OutputKind  # noqa: E402
 _DPI = 150
 _FONT_SIZE = 10
 _PAIR_WITH_LABEL = 3
+_DIV_ID_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
+_DIV_ID_DIGEST_LEN = 8
+_PLOTLY_MISSING = 'save_html_figure requires plotly, which is not installed; install it with: pip install "rdetoolkit[plotly]"'
 
 #: A line-series pair: x column, y column and an optional legend label.
 LinePair = tuple[str, str] | tuple[str, str, str]
+#: Axis range ``(lower, upper)``; a ``None`` bound keeps matplotlib's automatic limit.
+AxisLimits = tuple[float | None, float | None]
 
 
 def _figure_bytes(
@@ -38,16 +47,17 @@ def _figure_bytes(
 
 @node(tags=["builtin", "plot"], version="2.0.0", idempotent=True)
 def plot_lines(
-    df: pd.DataFrame, out: OutputContext, filename: str, *, x: str | None = None,
+    df: pd.DataFrame | Sequence[pd.DataFrame], out: OutputContext, filename: str, *, x: str | None = None,
     y: str | Sequence[str] | None = None, pairs: Sequence[LinePair] | None = None,
     labels: Sequence[str] | None = None,
     title: str | None = None, xlabel: str | None = None, ylabel: str | None = None,
-    yscale: str = "linear", legend: bool = True, grid: bool = False,
+    xscale: str = "linear", yscale: str = "linear", xlim: AxisLimits | None = None, ylim: AxisLimits | None = None,
+    legend: bool = True, grid: bool = False,
     label_fontsize: float | str | None = None, figsize: tuple[float, float] | None = None,
     dpi: float = _DPI, bbox_inches: str | None = "tight", pad_inches: float | None = None,
     kind: OutputKind = "main_image",
 ) -> Path:
-    """Plot selected columns or independent x/y pairs.
+    """Plot selected columns or independent x/y pairs of one or more frames.
 
     The scientific-plot defaults are a headless Agg renderer, 150 DPI and a
     tight bounding box. Axis-label font sizes follow matplotlib rcParams
@@ -56,7 +66,10 @@ def plot_lines(
     ``retired/outputcontext_save_methods_v20.py::save_graph``.
 
     Args:
-        df: Data frame whose columns become line series.
+        df: Data frame whose columns become line series, or a sequence of
+            frames drawn in one image. The selection (x and y, or pairs)
+            applies to each frame, so frames keep their own x values and
+            length; the series follow frame order, then selection order.
         out: Output resource context.
         filename: Simple raster-image filename.
         x: Horizontal coordinate column; omitted to use the index.
@@ -64,12 +77,19 @@ def plot_lines(
         pairs: Independent ``(x, y)`` or ``(x, y, label)`` column pairs,
             mutually exclusive with x and y. A pair without a label is
             labelled with its y column.
-        labels: Legend label of each series, in series order. Defaults to the
-            y column names. Cannot be combined with labelled pairs.
+        labels: Legend label of each series, in series order (across all
+            frames). Defaults to the y column names. Cannot be combined with
+            labelled pairs.
         title: Optional plot title.
         xlabel: Optional horizontal axis label.
-        ylabel: Optional vertical axis label.
+        ylabel: Optional vertical axis label. Defaults to the y column
+            names, each named once.
+        xscale: Matplotlib horizontal axis scale.
         yscale: Matplotlib vertical axis scale.
+        xlim: Horizontal axis range ``(lower, upper)``, applied after the
+            scale; a None bound keeps the automatic limit, so ``(0, None)``
+            starts the axis at 0. None keeps both automatic.
+        ylim: Vertical axis range, with the same rules as ``xlim``.
         legend: Whether to show series labels.
         grid: Whether to draw the major grid lines.
         label_fontsize: Axis-label font size; None follows rcParams
@@ -86,19 +106,18 @@ def plot_lines(
         Path to the rendered plot.
 
     Raises:
-        ValueError: If the data frame has no columns, or the series, pairs or
-            labels are inconsistent.
+        ValueError: If no frame is given, a frame has no columns, or the
+            series, pairs or labels are inconsistent.
     """
-    if df.shape[1] == 0:
-        msg = "plot_lines requires at least one data column"
-        raise ValueError(msg)
-    selections = _line_selections(df, x=x, y=y, pairs=pairs)
+    frames = _frames(df)
+    series = [(frame, selection) for frame in frames for selection in _line_selections(frame, x=x, y=y, pairs=pairs)]
+    selections = [selection for _, selection in series]
     series_labels = _series_labels(selections, labels)
-    x_label, y_label = _line_labels(df, x, selections, xlabel, ylabel)
+    x_label, y_label = _line_labels(frames[0], x, selections, xlabel, ylabel)
     fig, ax = plt.subplots(figsize=figsize)
     try:
-        for (x_column, y_column, _), label in zip(selections, series_labels, strict=True):
-            ax.plot(df.index if x_column is None else df[x_column], df[y_column], label=label)
+        for (frame, (x_column, y_column, _)), label in zip(series, series_labels, strict=True):
+            ax.plot(frame.index if x_column is None else frame[x_column], frame[y_column], label=label)
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         # ``set_xlabel(fontsize=None)`` would reset the label to ``font.size``,
@@ -106,7 +125,12 @@ def plot_lines(
         if label_fontsize is not None:
             ax.xaxis.label.set_fontsize(label_fontsize)
             ax.yaxis.label.set_fontsize(label_fontsize)
-        ax.set(title=title or "", yscale=yscale)
+        ax.set(title=title or "", xscale=xscale, yscale=yscale)
+        # Limits follow the scale so they are not re-derived by a scale change.
+        if xlim is not None:
+            ax.set_xlim(*xlim)
+        if ylim is not None:
+            ax.set_ylim(*ylim)
         if grid:
             ax.grid(True)
         if legend:
@@ -117,6 +141,17 @@ def plot_lines(
 
 
 _Selection = tuple[str | None, str, str | None]
+
+
+def _frames(df: pd.DataFrame | Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
+    frames = [df] if isinstance(df, pd.DataFrame) else list(df)
+    if not frames:
+        msg = "plot_lines requires at least one data frame"
+        raise ValueError(msg)
+    if any(frame.shape[1] == 0 for frame in frames):
+        msg = "plot_lines requires at least one data column"
+        raise ValueError(msg)
+    return frames
 
 
 def _line_selections(df: pd.DataFrame, *, x: str | None, y: str | Sequence[str] | None, pairs: Sequence[LinePair] | None) -> list[_Selection]:
@@ -162,7 +197,8 @@ def _line_columns(df: pd.DataFrame, x: str | None, y: str | Sequence[str] | None
 
 def _line_labels(df: pd.DataFrame, x: str | None, selections: Sequence[_Selection], xlabel: str | None, ylabel: str | None) -> tuple[str, str]:
     default_x = str(x if x is not None else df.index.name or "index")
-    default_y = ", ".join(str(column) for _, column, _ in selections)
+    # dict.fromkeys names a y column once when several frames repeat it.
+    default_y = ", ".join(dict.fromkeys(str(column) for _, column, _ in selections))
     return xlabel if xlabel is not None else default_x, ylabel if ylabel is not None else default_y
 
 
@@ -223,3 +259,60 @@ def plot_scatter(df: pd.DataFrame, out: OutputContext, filename: str, x: str, y:
         return out.write_bytes("main_image", filename, _figure_bytes(fig, filename))
     finally:
         plt.close(fig)
+
+
+@node(tags=["builtin", "plot"], version="2.0.0", idempotent=True)
+def save_html_figure(
+    fig: Any, out: OutputContext, filename: str, *, kind: OutputKind = "struct",
+    include_plotlyjs: str | bool = "cdn", full_html: bool = True, div_id: str | None = None,
+) -> Path:
+    """Save a plotly figure as an interactive HTML file.
+
+    The HTML is ``plotly.io.to_html`` output. Plotly gives the chart ``<div>``
+    a random id, so the same figure would produce a different file on every
+    run; this node derives a stable id from ``filename`` instead (``chart.html``
+    becomes ``plotly-chart-<digest>``), making the artifact reproducible. plotly is
+    imported only when the node runs, from the optional ``rdetoolkit[plotly]``
+    extra.
+
+    Args:
+        fig: ``plotly.graph_objects.Figure``, or its dict form, created and
+            managed by the caller.
+        out: Output resource context.
+        filename: Simple output filename, normally ending in ``.html``.
+        kind: Output directory kind.
+        include_plotlyjs: How plotly.js is included, as for
+            ``plotly.io.to_html``: ``"cdn"`` references the CDN, True embeds
+            the library, False omits it.
+        full_html: Whether to write a complete HTML page; False writes only
+            the ``<div>`` fragment.
+        div_id: Id of the chart ``<div>``; None derives
+            ``plotly-<stem>-<digest>`` from ``filename``: the stem with
+            characters other than ASCII letters, digits, ``_`` and ``-``
+            collapsed to ``-`` (``figure`` when nothing is left), then the
+            first 8 hex digits of the SHA-256 of ``filename``, so different
+            filenames give different ids.
+
+    Returns:
+        Path to the saved HTML file.
+
+    Raises:
+        ImportError: If plotly is not installed.
+    """
+    try:
+        plotly_io = importlib.import_module("plotly.io")
+    except ImportError as exc:
+        raise ImportError(_PLOTLY_MISSING) from exc
+    html: str = plotly_io.to_html(
+        fig, include_plotlyjs=include_plotlyjs, full_html=full_html, div_id=div_id or _html_div_id(filename),
+    )
+    return out.write_bytes(kind, filename, html.encode("utf-8"))
+
+
+def _html_div_id(filename: str) -> str:
+    # The slug keeps the id readable but is lossy (``a b`` and ``a-b``, or any
+    # two non-ASCII stems, collapse alike); the filename digest keeps ids of
+    # different files distinct when their fragments share one page (#625).
+    slug = _DIV_ID_UNSAFE.sub("-", Path(filename).stem).strip("-") or "figure"
+    digest = hashlib.sha256(filename.encode("utf-8")).hexdigest()[:_DIV_ID_DIGEST_LEN]
+    return f"plotly-{slug}-{digest}"

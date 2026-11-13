@@ -29,7 +29,7 @@ def test_unresolved_callback_keeps_whole_project__ga562_neg_1(tmp_path: Path, ta
         (source / name).write_text(content, encoding="utf-8")
     output = tmp_path / "migrated"
     # When: the public tool cannot resolve a callback within its source file
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     # Then: it explains the manual step and every original file remains intact
     assert result.exit_code == 0, result.output
     assert "manual" in result.output.lower()
@@ -58,7 +58,7 @@ workflows.run(custom_dataset_function=dataset)  # entry comment
     source.write_bytes(text.encode(encoding))
     output = tmp_path / "converted"
     # When: converting and importing the resulting UTF-8 flow module
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     assert result.exit_code == 0, result.output
     converted = (output / source.name).read_text(encoding="utf-8")
     for comment in ["# Copyright header 日本語", "# copy the first raw file", "# preserve this comment", "# entry comment"]:
@@ -84,7 +84,7 @@ def test_mixed_callbacks_are_not_partially_converted__ga562_neg_2(tmp_path: Path
     source.write_text(text, encoding="utf-8")
     output = tmp_path / "output"
     # When: applying migration with an unsupported sibling entry
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     # Then: the whole module is left intact and the unresolved target is reported
     assert result.exit_code == 0, result.output
     assert "foreign.dataset" in result.output and "manual" in result.output.lower()
@@ -107,7 +107,7 @@ run(custom_dataset_function=dataset)
     source.write_text(text, encoding="utf-8")
     output = tmp_path / "output"
     # When: editing source rather than regenerating the complete AST
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     # Then: the flow is importable, its literal content stays intact and its path is mapped
     assert result.exit_code == 0, result.output
     converted = (output / source.name).read_text()
@@ -132,7 +132,7 @@ else:
     source.write_text(text, encoding="utf-8")
     output = tmp_path / "output"
     # When: removing the converted callback's legacy entry
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     # Then: only that call changes and its removal is explicitly reported
     assert result.exit_code == 0, result.output
     converted = (output / source.name).read_text()
@@ -156,7 +156,7 @@ def test_unicode_edits_are_idempotent__ga562_bv_3(tmp_path: Path, label: str) ->
         first, second = root / "first", root / "second"
         # When: applying the public tool twice
         for input_path, output in [(source, first), (first / source.name, second)]:
-            result = CliRunner().invoke(app, ["migrate", "apply", str(input_path), "--out", str(output), "--no-dry-run"])
+            result = CliRunner().invoke(app, ["migrate", "apply", str(input_path), "--output", str(output), "--no-dry-run"])
             assert result.exit_code == 0, result.output
         # Then: the literal remains verbatim, the mapping is valid and no second edit occurs
         converted = (first / source.name).read_text()
