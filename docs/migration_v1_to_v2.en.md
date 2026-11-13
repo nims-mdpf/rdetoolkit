@@ -526,6 +526,26 @@ For the run-level invoice row, rely on the seeded tile invoice for registration
 values and compute any tile-specific value inside that tile's flow, then write it
 with `save_invoice`.
 
+### Diagnostics and legacy tracebacks
+
+For v2 troubleshooting, with or without a coding agent, use
+`rdetoolkit report diagnose <run_report.json> --json`. Its versioned envelope
+leaves out exception text, locals, environment values and input paths (see
+[Diagnostic commands](usage/diagnostics.en.md)). The legacy traceback API
+(`handle_exception`, `CompactTraceFormatter`, `SecretsSanitizer`,
+`Config.traceback`, `TRACE_VERBOSE` / `TRACE_FORMAT`) is unchanged and raises no
+new deprecation warning; its `<STACKTRACE>` output is kept for local use on the
+v1 callback entry and is no longer the recommended format to hand to an agent.
+Name-based masking is not anonymisation. See the
+[compatibility matrix](usage/structured_process/traceback.en.md).
+
+`repro export` archives now come in two kinds: the full archive, which holds
+your raw inputs and needs a review before it leaves your machine, and
+`--manifest-only`, which holds digests and diagnostics and cannot be replayed.
+`repro export` no longer replaces an existing `-o` file, and `repro import`
+refuses unsafe or inconsistent archives (see
+[repro](usage/cli.en.md)). Nothing is uploaded automatically.
+
 ### Rollback
 
 If v2 causes problems, pin `1.7.1`, the latest v1 release (for example
