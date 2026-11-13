@@ -218,6 +218,48 @@ Templates that select rows by cell colour use
 data-frame row. `OutputContext` has no run-scoped temp directory (v1
 `resource_paths.temp`); use `tempfile.TemporaryDirectory()` for scratch files,
 which are removed when the block ends.
+To build the main image from an uploaded PDF or SVG, as the v1
+simple-registration template does, use
+`render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)`.
+A `.pdf` file has that page rendered at `dpi`, a `.svg` / `.svgz` file is
+rendered at its own size, and any other file is converted with Pillow like
+`to_png`. The defaults (page 1, 350 dpi) match the v1 template. PDF and SVG
+need `pip install 'rdetoolkit[render]'`, and SVG also needs the Cairo system
+library; without them the node raises an `ImportError` that names the extra
+and the library. PDF pages are rendered with pypdfium2 instead of v1's
+pdf2image (poppler), so the pixels can differ from v1.
+
+To run an external converter, as v1 templates did with `subprocess.run`, use
+`run_program(args, ...)` (#630). The converter writes into directories you pass
+as arguments, such as `out.struct` and `out.logs`. Output streams are captured
+and returned in a `CompletedProgram` (`args`, `returncode`, `stdout`, `stderr`,
+`duration` in seconds). A non-zero exit, a program that cannot start, or a
+`timeout` is a `StructuredError` with `error_code` (default 1) instead of
+ErrorCode 3001. `error_message` replaces the default message, which names the
+command line, the exit code, the run time and the last stderr lines; the command
+line and the outcome are also logged. `env` adds to the inherited environment.
+For a Windows converter, `wine="auto"` prefixes `wine` outside Windows and writes
+`Path` arguments in Windows form (`/data/structured` becomes
+`Z:\data\structured`). Convert a path inside an option string with
+`to_wine_path`, for example
+`f"-OutputFolder:{to_wine_path(out.struct)}"`. Text arguments are passed
+unchanged.
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
 
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
@@ -341,6 +383,47 @@ removal of the legacy entry is explicitly reported with the flow CLI invocation.
   If you do not need the `Error: ` prefix, `error_code=1, error_message="m"`
   and, without arguments, `error_code=1` alone keep the same code (the
   message is then `m` or the exception's text respectively).
+- **`catch_exception_with_message` is deprecated.** Applying it emits a
+  `DeprecationWarning`; its behavior is unchanged and it is not removed in v2.
+  When the `job.failed` `ErrorCode` must stay at its v1 value, rewrite it with
+  the table above. Otherwise raise `ProcessingError` for failures the user
+  should see and drop the decorator. You choose no error code: the Runner
+  writes it to `RunReport`, the iteration log and `job.failed` as 3007
+  `ProcessingFailed`, with `Remediation: <guidance>` appended to the message.
+  Without `remediation` the catalog default is used. `raise ... from exc` keeps
+  the original exception. Ordinary exceptions such as `ValueError` stay 3001.
+  The example below replaces the `FileNotFoundError` of a missing file with a
+  `ProcessingError`.
+
+<!-- test: processing-error -->
+```python
+from pathlib import Path
+
+from rdetoolkit.exceptions import ProcessingError
+
+
+def read_sample(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+
+
+try:
+    read_sample(Path("missing.csv"))
+except ProcessingError as error:
+    caught = error
+
+assert caught.code == 3007
+assert isinstance(caught.__cause__, FileNotFoundError)
+```
+
+  Neither the flow's `error_code` / `error_message` nor
+  `catch_exception_with_message` remaps a `ProcessingError`; it keeps 3007 and
+  its remediation.
 - `InputPaths` injected into a flow uses paths relative to the working directory,
   like v1 input paths. Path-based user error messages therefore keep the v1
   spelling. The Runner still resolves the data root once for its internal work.
