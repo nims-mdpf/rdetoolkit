@@ -20,7 +20,7 @@ EP / BV table:
 | TC-F03D1-011  | EP valid | tile error (``call_id``) + both kinds recorded                | the tile failure (tile rule unchanged)                 |
 | TC-F03D1-012  | BV       | tile error, no tile capture, a run failure recorded           | ``None`` (never paired across kinds)                   |
 | TC-F03D1-013  | BV       | run error without ``call_id``, nothing recorded               | ``None``                                               |
-| TC-F03D1-020  | EP valid | Runner pre-validation fails inside ``capture_run_failures``   | that exception is recorded; report still returned      |
+| TC-F03D1-020  | EP valid | Runner validation fails inside ``capture_run_failures``       | that exception is recorded; report still returned      |
 | TC-F03D1-021  | EP valid | the same run outside any capture                              | report returned, nothing recorded, no error            |
 | TC-F03D1-022  | BV       | nested captures                                               | inner records only its own; outer restored after       |
 | TC-F03D1-023  | EP valid | successful run inside a capture                               | nothing recorded                                       |
@@ -127,7 +127,7 @@ def test_invalid_invoice_prints_python_traceback__tc_f03d1_001(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """TC-F03D1-001: pre-validation failure writes v1's python-form traceback."""
+    """TC-F03D1-001: a run-level validation failure writes v1's python-form traceback."""
     # Given: an invoice that violates the schema, nothing configured
     capsys.readouterr()
     # When: the v1 entry runs
