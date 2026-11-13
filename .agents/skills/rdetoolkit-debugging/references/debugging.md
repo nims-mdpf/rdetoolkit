@@ -75,3 +75,13 @@ CI checks that it identifies the same run and failed node. Keep this copy local.
 ```console
 python -m rdetoolkit report show failure-report.json
 ```
+
+The same failure as structured data follows. In the copy, `evidence` reports
+the iteration detail and event log as `missing`, because they stay beside the
+original under `data/logs/`; diagnose the original to check that they belong
+to this run. CI checks that both identify the failed `positive_measurement` call.
+
+<!-- example: debugging-diagnose -->
+```console
+python -m rdetoolkit report diagnose failure-report.json --json
+```

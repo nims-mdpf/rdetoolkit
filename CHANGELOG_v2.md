@@ -56,6 +56,31 @@
   shipped Python and CLI examples (including a failure/repair run and a v1
   migration fixture) and rejects wheels or sdists that carry agent
   instructions (#664, #665, #666; part of #662).
+- Machine-readable diagnostics for scripts and coding agents (#677). Three
+  commands print one versioned JSON envelope (`schema_version: "1"`,
+  `command`, `status`, `diagnostics` of `code`/`severity`/`name`/`message`/
+  `remediation`/`subject`), published as JSON Schema with
+  `docs/usage/diagnostics`. No field copies exception text, tracebacks,
+  argument previews, input values or config values.
+  - `nodes lint --json` (#667). Text output and exit codes are unchanged
+    (findings, warnings included, and import failures exit 3); an import
+    failure is a `ModuleImportFailed` finding.
+  - `rdetoolkit doctor [PROJECT_DIR] [--ref pkg.mod:callable] [--format text|json]`
+    (#668), in the Validate panel: required inputs, effective config, invoice
+    and metadata definitions, and `Runner.run(validate_only=True)` on a
+    temporary copy of the inputs, so the mode and W1001 match a real run.
+    It never calls the flow or its `prepare=` hook and writes nothing into the
+    project. Exit codes: 0 passed, 1 a check failed, 3 invalid input.
+  - `report diagnose RUN_REPORT [--json] [--fail-on-error]` (#669): each
+    recorded failure with its iteration, node id, call id, catalog code and
+    remediation, plus flags for the supporting iteration details and event log.
+    Exit 0 when the report was diagnosed (also for a failed run), 1 with
+    `--fail-on-error` for a recorded failure, 3 for an unusable report.
+  - `logs/iterations/iteration_<index>.json` now carries
+    `schema_version: "1"` and `run_id`, so `report diagnose` never attributes
+    a later run's detail (the files are reused by index) to an older report;
+    a detail without them is reported as unverified. The run report
+    (`schema_version: "2"`), event and call-record formats are unchanged.
 - `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
   block of lines before the table, such as the `#title` / `#legend` metadata
   header that `rdetoolkit.graph` parses. Rows may have different numbers of

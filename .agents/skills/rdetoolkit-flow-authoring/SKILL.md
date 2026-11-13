@@ -14,9 +14,12 @@ or existing v1 code, select the corresponding rdetoolkit Skill instead.
    Import reserved types from `rdetoolkit.types`. Injection occurs only at the
    flow boundary; pass node arguments explicitly. Helpers can return ordinary
    values; do not wrap every helper in `Result`.
-3. Execute using `workflows.run(flow=pipeline)` from a complete local RDE project
-   (or `rdetoolkit run processing:pipeline` after saving the example as
-   `processing.py`). For production entry scripts use `exit_on_failure=True`.
+3. Before the first run, `rdetoolkit doctor --format json --ref processing:pipeline`
+   checks inputs, config, mode and the flow's injectable parameters without
+   calling the flow. Then execute using `workflows.run(flow=pipeline)` from a
+   complete local RDE project (or `rdetoolkit run processing:pipeline` after
+   saving the example as `processing.py`). For production entry scripts use
+   `exit_on_failure=True`.
 4. Inspect the returned `RunReport`, actual files and invoice; fix the smallest
    demonstrated failure and rerun with the same local fixture.
 

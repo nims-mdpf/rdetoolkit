@@ -33,8 +33,18 @@ the CLI reserves 3 for usage errors. A successful invoice-mode run writes
 `data/structured/structured-0.txt` for the first input. Other processing modes
 may split artifacts under `data/divided/`; verify their actual output trees.
 
-After saving the block as `processing.py`, execute the installed CLI from the
-project root. CI runs this exact command in an independent Python process.
+After saving the block as `processing.py`, check the project from its root.
+Doctor imports `processing` but never calls `pipeline`, and writes nothing.
+Expect `"status": "passed"` and `"mode": "invoice"`; each finding names its
+check, path and remediation.
+
+<!-- example: authoring-doctor -->
+```console
+python -m rdetoolkit doctor --format json --ref processing:pipeline
+```
+
+Then execute the installed CLI from the project root. CI runs both exact
+commands in an independent Python process.
 
 <!-- example: authoring-run -->
 ```console

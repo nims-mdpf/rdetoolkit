@@ -13,16 +13,20 @@ metadata design and test fixture construction belong to their own Skills.
    `node_calls`, including `node_id`, `call_id`, `status` and errors. A failure
    during setup may have no iteration or node at all; do not invent one.
 3. Read the matching `data/logs/run_report_<run_id>.json` and `job.failed`
-   locally. `rdetoolkit report show <report-path>` summarizes a saved report.
-   Match its `run_id` to the run being investigated; do not use the newest
-   filename as proof of provenance. Error descriptions come from the installed
-   error catalog and API docs, not a second table in this Skill.
+   locally. `rdetoolkit report diagnose <report-path> --json` lists each
+   recorded failure with its iteration, `node_id`, `call_id`, catalog code and
+   remediation, and flags iteration details or event logs from another run;
+   `rdetoolkit report show <report-path>` prints a short summary. Match the
+   `run_id` to the run being investigated; do not use the newest filename as
+   proof of provenance. Error descriptions come from the installed error
+   catalog and API docs, not a second table in this Skill.
 4. Fix the smallest demonstrated cause, rerun the same fixture, and compare
    the actual artifact and report. See the [failure/repair recipe](references/debugging.md).
 
 A call log records observed execution, without value lineage. It is not a
 pre-execution DAG. Event logs are supplementary diagnostics; they do not replace
-the primary run results. Do not claim a future diagnosis command exists.
+the primary run results. `report diagnose` reports observed failures; it does
+not establish a root cause or print error messages, so read those locally.
 
 Keep invoice values, raw text, filenames, stack traces, environment values,
 reports and reproduction archives local. Review and redact before explicitly
