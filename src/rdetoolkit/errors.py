@@ -299,11 +299,25 @@ def write_job_errorlog_file(code: int, message: str, *, filename: str = "job.fai
     """
     from rdetoolkit.rde2util import StorageDir
 
-    with open(
-        os.path.join(StorageDir.get_datadir(False), filename),
-        "w",
-        encoding="utf_8",
-    ) as f:
+    _write_job_failed_marker(os.path.join(StorageDir.get_datadir(False), filename), code, message)
+
+
+def _write_job_failed_marker(path: str | os.PathLike[str], code: int, message: str) -> None:
+    """Write the RDE job-failure marker to an explicit destination.
+
+    The format is exactly two newline-terminated UTF-8 lines,
+    ``ErrorCode=<code>`` and ``ErrorMessage=<message>``. The text-mode
+    ``open`` call is v1's own, so the bytes (including newline translation)
+    match what ``write_job_errorlog_file`` has always produced. Callers own
+    the destination: the v2 finalizer passes ``<data_root>/job.failed``, and
+    the v1 wrapper passes its legacy ``StorageDir`` location.
+
+    Args:
+        path: Marker file to create or overwrite; its parent must exist.
+        code: Integer error code.
+        message: Error message text.
+    """
+    with open(path, "w", encoding="utf_8") as f:
         f.write(f"ErrorCode={code}\n")
         f.write(f"ErrorMessage={message}\n")
 

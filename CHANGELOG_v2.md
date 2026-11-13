@@ -82,6 +82,13 @@
 
 ### Fixed
 
+- A failed v2 run writes `<data_root>/job.failed` directly instead of going
+  through v1 `write_job_errorlog_file`, so v2 finalization no longer calls the
+  deprecated `StorageDir.get_datadir` or suppresses its `DeprecationWarning`.
+  The file bytes (`ErrorCode=<int>\nErrorMessage=<text>\n`, UTF-8), error-code
+  selection and `StructuredError` passthrough are unchanged, and
+  `write_job_errorlog_file` keeps its signature, cwd-relative `data/` location
+  and contents for v1 callers (#645).
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
   defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check

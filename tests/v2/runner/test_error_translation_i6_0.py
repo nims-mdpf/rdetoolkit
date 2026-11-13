@@ -191,8 +191,8 @@ def _run_failing_lifecycle(
     error: Exception,
     monkeypatch: pytest.MonkeyPatch,
 ) -> RunReport:
-    # write_job_errorlog_file resolves its target cwd-relative, so the run must
-    # own the working directory to keep the repository tree clean.
+    # The run owns the working directory so no cwd-relative write can reach the
+    # repository tree.
     (tmp_path / "data").mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(tmp_path)
     runner = _FailingStepRunner(error=error, root=tmp_path)

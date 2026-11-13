@@ -8,9 +8,11 @@ Session authority: local/develop/v2/tasks/session_b2.md (B2.4/B2.5/B2.6)
 
 Contract exercised here:
     finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None
-      - status == "failed"  -> calls rdetoolkit.errors.write_job_errorlog_file
-                                with an int ERROR_CATALOG code and a message;
-                                v1 owns the "ErrorCode=/ErrorMessage=" format.
+      - status == "failed"  -> writes ``data_root/job.failed`` with an int
+                                ERROR_CATALOG code and a message, in the exact
+                                v1 "ErrorCode=/ErrorMessage=" format (issue
+                                #645: the bytes, not the v1 writer call, are
+                                the contract).
       - status in {"success", "partial"} -> job.failed is NOT written.
       - Regardless of status, RunReport is persisted as JSON below
         ``data_root/logs/run_report_{run_id}.json``. The data root is decided
@@ -32,14 +34,15 @@ BV table:
 | Runner.finalize | one failed report and root != cwd | job.failed is written below root | TC-HR-F1-BV-001 |
 | finalize | flat root | no nested ``root/data/logs`` is created | TC-BV-HR2-B-001 |
 
-``write_job_errorlog_file`` itself is v1 public surface and MUST NOT be
-reimplemented by finalize.py; finalize.py only calls it.
+The marker format lives in one primitive shared with v1
+``write_job_errorlog_file``; finalize.py must not re-spell the format, and must
+not go through the v1 wrapper's deprecated ``StorageDir`` path resolution
+(see ``test_job_failed_marker_645.py``).
 """
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -72,9 +75,8 @@ def _make_report(status: str, *, error: dict[str, object] | None = None, run_id:
 def _cwd_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Chdir into a fresh tmp_path with a pre-created ``data/`` directory.
 
-    ``write_job_errorlog_file`` resolves its target via
-    ``StorageDir.get_datadir(False)``, which is always cwd-relative "data" and
-    does not create the directory itself.
+    finalize writes below its explicit ``data_root``; the chdir only keeps any
+    stray cwd-relative write inside tmp_path instead of the repository tree.
     """
     monkeypatch.chdir(tmp_path)
     (tmp_path / "data").mkdir()
@@ -134,35 +136,26 @@ class TestFinalizeJobFailedFormat:
 
 
 class TestFinalizeSingleResponsibility:
-    """TC-FIN-006: finalize is the sole, exactly-once caller of write_job_errorlog_file."""
+    """TC-FIN-006: finalize writes exactly one marker, at ``data_root/job.failed``, only on failure."""
 
-    def test_finalize_calls_write_job_errorlog_file_exactly_once(
-        self, _cwd_data_dir: Path, monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """finalize must delegate to write_job_errorlog_file exactly once, with the int code."""
-        mock_write = MagicMock()
-        monkeypatch.setattr("rdetoolkit.runner.finalize.write_job_errorlog_file", mock_write)
+    def test_failed_finalize_writes_exactly_one_marker_at_data_root(self, _cwd_data_dir: Path) -> None:
+        """The data root holds job.failed (exact bytes) plus logs/, and nothing else."""
         report = _make_report("failed", error={"code": _NODE_EXECUTION_FAILED_CODE, "message": "boom"})
 
         finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
-        mock_write.assert_called_once_with(
-            _NODE_EXECUTION_FAILED_CODE,
-            "boom",
-            filename=str((_cwd_data_dir / "job.failed").resolve()),
+        assert sorted(path.name for path in _cwd_data_dir.iterdir()) == ["job.failed", "logs"]
+        assert (_cwd_data_dir / "job.failed").read_bytes() == (
+            f"ErrorCode={_NODE_EXECUTION_FAILED_CODE}\nErrorMessage=boom\n".encode()
         )
 
-    def test_finalize_does_not_call_write_job_errorlog_file_on_success(
-        self, _cwd_data_dir: Path, monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """finalize must not invoke write_job_errorlog_file at all for a successful report."""
-        mock_write = MagicMock()
-        monkeypatch.setattr("rdetoolkit.runner.finalize.write_job_errorlog_file", mock_write)
+    def test_successful_finalize_writes_no_marker(self, _cwd_data_dir: Path) -> None:
+        """A successful report leaves only logs/ below the data root."""
         report = _make_report("success")
 
         finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
-        mock_write.assert_not_called()
+        assert sorted(path.name for path in _cwd_data_dir.iterdir()) == ["logs"]
 
 
 class TestFinalizePersistsRunReport:
