@@ -70,7 +70,7 @@ def _convert(tmp_path: Path, body: str) -> str:
         encoding="utf-8",
     )
     output = tmp_path / "migrated"
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     assert result.exit_code == 0, result.output
     return (output / source.name).read_text(encoding="utf-8")
 

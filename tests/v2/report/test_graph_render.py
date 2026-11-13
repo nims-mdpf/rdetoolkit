@@ -242,7 +242,7 @@ class TestRenderCallSequenceRepeatedNodeId:
 
 class TestRenderCallSequenceUnknownFormat:
     """Bonus guard (not a numbered TC): an unrecognized format raises
-    ValueError so ``graph_cmd.py`` can translate it into exit code 3."""
+    ValueError so ``report trace`` (cli/report_cmd.py) can translate it into exit code 3."""
 
     def test_unknown_format_raises_value_error(self) -> None:
         report = _two_tile_report()

@@ -519,8 +519,8 @@ ls -la data/tasksupport/
 ## Related Commands
 
 - `rdetoolkit init`: Initialize RDE project structure
-- `rdetoolkit gen-excelinvoice`: Generate Excel invoice template
-- `rdetoolkit archive`: Create deployment archive
+- `rdetoolkit new excelinvoice`: Generate Excel invoice template
+- `rdetoolkit package`: Create the RDE submission archive
 
 ---
 

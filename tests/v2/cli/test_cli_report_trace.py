@@ -1,10 +1,10 @@
-"""Tests for ``rdetoolkit graph`` (Session E2, TC-CLI-GRAPH-*).
+"""Tests for ``rdetoolkit report trace`` (Session E2, TC-CLI-GRAPH-*).
 
 Written before implementation (TDD Red phase). Target: make all tests pass
 in codex-worker Green phase. Authority: local/develop/v2/tasks/session_e2.md
 Conflicts #1/#2/#5, Known Traps 1/6/7.
 
-Binding API-shape pin: ``rdetoolkit graph <run_report.json> [--format
+Binding API-shape pin: ``rdetoolkit report trace <run_report.json> [--format
 mermaid|html|json]`` is a **bare top-level command** (no subcommand verb,
 per Design §10's CLI tree: ``graph <run_report.json> [--format ...]`` has no
 sibling verb, unlike ``report show``/``repro export``/``migrate check``).
@@ -75,11 +75,11 @@ def isolated_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def _run_success_flow_and_get_report_path(cli_runner: CliRunner, root: Path) -> Path:
-    """Execute a real ``run --flow`` invocation and return the path finalize.py
+    """Execute a real ``run`` invocation and return the path finalize.py
     writes it to (``data/logs/run_report_<run_id>.json``, per
     ``runner/finalize.py::_write_run_report``)."""
     _build_data_fixture(root)
-    result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline"])
+    result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:success_pipeline"])
     assert result.exit_code == 0, f"fixture flow run must succeed: {result.output}"
     report_data = json.loads(result.output)
     return root / "data" / "logs" / f"run_report_{report_data['run_id']}.json"
@@ -96,7 +96,7 @@ class TestGraphFormats:
     ) -> None:
         report_path = _run_success_flow_and_get_report_path(cli_runner, isolated_root)
 
-        result = cli_runner.invoke(app, ["graph", str(report_path), "--format", "json"])
+        result = cli_runner.invoke(app, ["report", "trace", str(report_path), "--format", "json"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -109,7 +109,7 @@ class TestGraphFormats:
     ) -> None:
         report_path = _run_success_flow_and_get_report_path(cli_runner, isolated_root)
 
-        result = cli_runner.invoke(app, ["graph", str(report_path), "--format", "mermaid"])
+        result = cli_runner.invoke(app, ["report", "trace", str(report_path), "--format", "mermaid"])
 
         assert result.exit_code == 0
         assert "Call Sequence" in result.output
@@ -122,7 +122,7 @@ class TestGraphFormats:
     ) -> None:
         report_path = _run_success_flow_and_get_report_path(cli_runner, isolated_root)
 
-        result = cli_runner.invoke(app, ["graph", str(report_path), "--format", "html"])
+        result = cli_runner.invoke(app, ["report", "trace", str(report_path), "--format", "html"])
 
         assert result.exit_code == 0
         assert "Call Sequence" in result.output
@@ -137,7 +137,7 @@ class TestGraphFormats:
     ) -> None:
         report_path = _run_success_flow_and_get_report_path(cli_runner, isolated_root)
 
-        result = cli_runner.invoke(app, ["graph", str(report_path)])
+        result = cli_runner.invoke(app, ["report", "trace", str(report_path)])
 
         assert result.exit_code == 0
         data = json.loads(result.output)  # default format is documented as "json"
@@ -152,7 +152,7 @@ class TestGraphUsageErrors:
         cli_runner: CliRunner,
         isolated_root: Path,
     ) -> None:
-        result = cli_runner.invoke(app, ["graph", str(isolated_root / "does_not_exist.json")])
+        result = cli_runner.invoke(app, ["report", "trace", str(isolated_root / "does_not_exist.json")])
 
         assert result.exit_code == 3
 
@@ -164,7 +164,7 @@ class TestGraphUsageErrors:
         bad_report = isolated_root / "bad_report.json"
         bad_report.write_text(json.dumps({"not": "a valid run report"}), encoding="utf-8")
 
-        result = cli_runner.invoke(app, ["graph", str(bad_report)])
+        result = cli_runner.invoke(app, ["report", "trace", str(bad_report)])
 
         assert result.exit_code == 3
 
@@ -175,7 +175,7 @@ class TestGraphUsageErrors:
     ) -> None:
         report_path = _run_success_flow_and_get_report_path(cli_runner, isolated_root)
 
-        result = cli_runner.invoke(app, ["graph", str(report_path), "--format", "svg"])
+        result = cli_runner.invoke(app, ["report", "trace", str(report_path), "--format", "svg"])
 
         assert result.exit_code == 3
 
@@ -194,12 +194,12 @@ class TestGraphNeverPartialOrFailedExitCode:
         bad_report.write_text(json.dumps({"not": "a valid run report"}), encoding="utf-8")
 
         invocations = [
-            ["graph", str(report_path), "--format", "json"],
-            ["graph", str(report_path), "--format", "mermaid"],
-            ["graph", str(report_path), "--format", "html"],
-            ["graph", str(isolated_root / "does_not_exist.json")],
-            ["graph", str(bad_report)],
-            ["graph", str(report_path), "--format", "svg"],
+            ["report", "trace", str(report_path), "--format", "json"],
+            ["report", "trace", str(report_path), "--format", "mermaid"],
+            ["report", "trace", str(report_path), "--format", "html"],
+            ["report", "trace", str(isolated_root / "does_not_exist.json")],
+            ["report", "trace", str(bad_report)],
+            ["report", "trace", str(report_path), "--format", "svg"],
         ]
 
         for args in invocations:

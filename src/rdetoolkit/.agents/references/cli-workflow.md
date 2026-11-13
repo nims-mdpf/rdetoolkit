@@ -2,15 +2,20 @@
 
 ## Command Overview
 
+The commands this workflow uses. `rdetoolkit --help` lists every command, and
+each command's `--help` gives its inputs, outputs, examples, and exit codes.
+
 | Command | Purpose |
 |---------|---------|
 | `rdetoolkit init` | Scaffold a new project |
+| `rdetoolkit new invoice <schema>` | Generate invoice.json from invoice.schema.json |
 | `rdetoolkit validate invoice-schema <path>` | Validate schema syntax |
 | `rdetoolkit validate invoice <path> --schema <schema>` | Validate invoice against schema |
 | `rdetoolkit validate metadata-def <path>` | Validate metadata definition |
 | `rdetoolkit validate metadata <path> --schema <def>` | Validate metadata against definition |
 | `rdetoolkit validate all [path]` | Run all validations at once |
 | `python3 main.py` | Execute structured processing |
+| `rdetoolkit package -s container -o <zip>` | Create the RDE submission archive |
 
 ---
 

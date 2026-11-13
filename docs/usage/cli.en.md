@@ -2,18 +2,39 @@
 
 ## Overview
 
-RDEToolKit provides a comprehensive command-line interface to support the development and execution of RDE structured processing. It supports the entire development workflow from project initialization to Excel invoice generation and archive creation.
+RDEToolKit provides a command-line interface that covers the whole development workflow of an RDE structured program: creating the project, generating configuration and invoice files, validating them, running the processing, inspecting the results, and packaging the submission archive.
+
+Commands follow the form `rdetoolkit <noun> <verb>` (for example `rdetoolkit new config` or `rdetoolkit report show`). A typical project runs `init` → `new config` → `validate all` → `run` → `package`.
+
+!!! tip "Every command documents itself"
+    Every command's `--help` lists its inputs, outputs and side effects, examples, and exit codes. Run `rdetoolkit --help` for the grouped command list and `rdetoolkit <command> --help` (for example `rdetoolkit new config --help`) for the details of one command. This page summarizes them; `--help` is the authoritative reference for your installed version.
 
 ## Prerequisites
 
 - Python 3.10 or higher
 - rdetoolkit package installation
 
+## Command Overview
+
+`rdetoolkit --help` groups the commands into the following panels:
+
+| Panel | Commands | Purpose |
+| ----- | -------- | ------- |
+| Scaffold | `init` | Create the project scaffold |
+| Generate | `new config`, `new invoice`, `new excelinvoice`, `new processing`, `plot` | Generate project files and graphs |
+| Validate | `validate invoice`, `validate invoice-schema`, `validate metadata`, `validate metadata-def`, `validate all` | Validate RDE schema and data files |
+| Run | `run` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`) |
+| Inspect | `report show`, `report trace`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
+| Package | `package`, `repro export`, `repro import` | Create the submission archive, export and re-import a run |
+| Migrate | `migrate check`, `migrate apply` | Find and convert v1 code and CLI calls for v2 |
+| Info | `agent-guide`, `version` | Show the AI agent guide and the installed version |
+| Deprecated (removed in v2.1) | v1 command names | Kept as aliases that print a warning; see [Renamed commands in v2.0](#renamed-commands-in-v20) |
+
 ## Available Commands
 
-### init: Create Startup Project
+### init: Create a Startup Project
 
-Creates a startup project for RDE structured processing.
+Creates a startup project for RDE structured processing in the current directory.
 
 === "Unix/macOS"
 
@@ -40,8 +61,11 @@ container
 │       └── metadata-def.json
 ├── main.py
 ├── modules
-└── requirements.txt
+├── requirements.txt
+└── Dockerfile
 ```
+
+`init` also creates `input/` (`inputdata/`, `invoice/invoice.json`) and `template/tasksupport/` next to `container/`.
 
 Description of each file:
 
@@ -53,7 +77,10 @@ Description of each file:
 - **data/tasksupport**: Place files that support structured processing.
 
 !!! tip "File Overwriting"
-    Existing files will be skipped from overwriting or generation.
+    Existing files are kept (printed as `Skip: ... already exists.`); nothing is overwritten.
+
+!!! note "Processing code from a skeleton"
+    To generate `processing.py`, `main.py`, and a sample test from a registered processing skeleton, use [`new processing`](#new-processing-generate-processing-code-from-a-skeleton).
 
 #### Template-based Initialization
 
@@ -62,7 +89,7 @@ Pass `--template <path>` to reuse your own boilerplate. The path can point to ei
 - A directory that contains `pyproject.toml` or `rdeconfig.yaml`/`rdeconfig.yml`
 - A direct path to one of the files above
 
-When `--template .` is used, the command searches for `pyproject.toml` in the current directory first.  
+When `--template .` is used, the command searches for `pyproject.toml` in the current directory first.
 The configuration file must define template paths under `[tool.rdetoolkit.init]` (pyproject) or an `init` block (rdeconfig):
 
 ```toml
@@ -129,49 +156,23 @@ Created: /private/tmp/rdt-init-check/input/invoice/invoice.json
 
 After the run, `[tool.rdetoolkit.init]` (or `init` in `rdeconfig.yaml`) is written with the provided paths, stored as relative paths when possible.
 
-### make-excelinvoice: Generate Excel Invoice
+### new config: Generate rdeconfig.yaml
 
-Generates an Excel invoice from `invoice.schema.json`.
+Creates an `rdeconfig.yaml` file from a preset or an interactive questionnaire.
 
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    python3 -m rdetoolkit new config [-o <output dir>] [--preset <preset>] [--force] [--lang <en|ja>]
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    py -m rdetoolkit new config [-o <output dir>] [--preset <preset>] [--force] [--lang <en|ja>]
     ```
 
-#### Options
-
-| Option       | Description                                                                                                      | Required |
-| ------------ | ---------------------------------------------------------------------------------------------------------------- | -------- |
-| -o(--output) | Output file path. The file path should end with `_excel_invoice.xlsx`.                                          | ○        |
-| -m           | Mode selection. Choose registration mode. You can select file mode `file` or folder mode `folder`.              | -        |
-
-!!! tip "Default Output"
-    If `-o` is not specified, it will be created as `template_excel_invoice.xlsx` in the execution directory.
-
-### gen-config: Generate rdeconfig.yaml Templates
-
-Creates an `rdeconfig.yaml` file based on predefined templates or an interactive questionnaire.
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit gen-config [OUTPUT_DIR] --template <template> [--overwrite] [--lang <ja|en>]
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit gen-config [OUTPUT_DIR] --template <template> [--overwrite] [--lang <ja|en>]
-    ```
-
-Available templates:
+Available presets:
 
 - `minimal` (default): System and traceback keys only.
 - `full`: Includes `multidata_tile` defaults.
@@ -184,52 +185,52 @@ Available templates:
 
 | Option          | Description                                                                                   | Required |
 | --------------- | --------------------------------------------------------------------------------------------- | -------- |
-| OUTPUT_DIR      | Directory to place `rdeconfig.yaml`. Defaults to the current directory.                       | -        |
-| --template      | Template name (`minimal`, `full`, `multitile`, `rdeformat`, `smarttable`, `interactive`).     | -        |
-| --overwrite     | Force overwrite of an existing `rdeconfig.yaml` without confirmation. Omit to be prompted.    | -        |
-| --lang          | Prompt language (`en` or `ja`). Applicable only when `--template interactive` is selected.    | -        |
+| -o(--output)    | Directory that receives `rdeconfig.yaml`. Defaults to the current directory; created if needed. | -        |
+| --preset        | Preset name (`minimal`, `full`, `multitile`, `rdeformat`, `smarttable`, `interactive`). Default: `minimal` | -        |
+| --force         | Replace an existing `rdeconfig.yaml` without asking. Omit to be prompted.                      | -        |
+| --lang          | Prompt language (`en` or `ja`). Applicable only with `--preset interactive`. Default: `en`     | -        |
+
+#### Usage Examples
+
+```bash title="Default (minimal) preset in the current directory"
+python3 -m rdetoolkit new config
+```
+
+```bash title="MultiDataTile preset into the tasksupport directory"
+python3 -m rdetoolkit new config --preset multitile -o container/data/tasksupport
+```
+
+```bash title="Interactive questionnaire in Japanese, replacing an existing file"
+python3 -m rdetoolkit new config --preset interactive --lang ja --force
+```
 
 !!! tip "Interactive Mode"
-    When `--template interactive` is used, the command asks about system, MultiDataTile, SmartTable, and traceback
+    When `--preset interactive` is used, the command asks about system, MultiDataTile, SmartTable, and traceback
     settings. Responses are written back into the generated `rdeconfig.yaml` so teams start with validated defaults.
 
-### version: Version Check
+Exit codes: `0` success, `1` writing failed or you declined to overwrite, `2` invalid command line.
 
-Check the version of rdetoolkit.
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit version
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit version
-    ```
-
-### gen-invoice: Generate invoice.json
+### new invoice: Generate invoice.json
 
 Automatically generates `invoice.json` from `invoice.schema.json`. Sets default values based on schema definitions and performs automatic validation after generation.
 
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit gen-invoice <invoice.schema.json path> [OPTIONS]
+    python3 -m rdetoolkit new invoice <invoice.schema.json path> [OPTIONS]
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit gen-invoice <invoice.schema.json path> [OPTIONS]
+    py -m rdetoolkit new invoice <invoice.schema.json path> [OPTIONS]
     ```
 
 #### Options
 
 | Option | Description | Required |
 | ------ | ----------- | -------- |
-| -o(--output) | Output file path. Creates `invoice.json` in current directory if omitted | - |
+| -o(--output) | Output file path. Creates `invoice.json` in current directory if omitted. Parent directories are created and an existing file is overwritten | - |
 | --fill-defaults/--no-fill-defaults | Whether to fill default values (default: enabled) | - |
 | --required-only | Include only required fields | - |
 | --format | Output format (`pretty` or `compact`). Default: `pretty` | - |
@@ -237,15 +238,15 @@ Automatically generates `invoice.json` from `invoice.schema.json`. Sets default 
 #### Usage Examples
 
 ```bash title="Basic usage"
-python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json
+python3 -m rdetoolkit new invoice tasksupport/invoice.schema.json
 ```
 
 ```bash title="Specify output path"
-python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
+python3 -m rdetoolkit new invoice tasksupport/invoice.schema.json -o container/data/invoice/invoice.json
 ```
 
 ```bash title="Required fields only, compact format"
-python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only --format compact
+python3 -m rdetoolkit new invoice tasksupport/invoice.schema.json --required-only --format compact
 ```
 
 #### Default Value Priority
@@ -257,33 +258,64 @@ python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-onl
 !!! tip "Detailed API Documentation"
     For programmatic usage, see [Invoice Generator API](../rdetoolkit/cmd/gen_invoice.en.md).
 
-### agent-guide: Display AI Agent Guide
+Exit codes: `0` success, `1` the schema could not be read or the invoice could not be written, `2` invalid command line.
 
-Displays the embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
+### new excelinvoice: Generate an ExcelInvoice
+
+Generates an Excel invoice (`*_excel_invoice.xlsx`) from `invoice.schema.json`.
 
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit agent-guide
+    python3 -m rdetoolkit new excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit agent-guide
+    py -m rdetoolkit new excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
     ```
 
-This command outputs guide text about rdetoolkit usage, architecture, and best practices. You can add it to your AI assistant's context to improve code generation accuracy when working with rdetoolkit.
+#### Options
 
-#### Usage from Python
+| Option       | Description                                                                                                      | Required |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- | -------- |
+| -o(--output) | Output file path. The file name must end with `_excel_invoice.xlsx`. An existing file is overwritten.           | -        |
+| -m(--mode)   | Registration mode: file mode `file` (default, one row per file) or folder mode `folder` (one row per folder).   | -        |
 
-```python
-import rdetoolkit
+!!! tip "Default Output"
+    If `-o` is not specified, it will be created as `template_excel_invoice.xlsx` in the execution directory.
 
-# Get the agent guide
-guide = rdetoolkit.agent_guide()
-print(guide)
+Exit codes: `0` success, `1` the schema is invalid, the file name is wrong, or writing failed, `2` invalid command line.
+
+### new processing: Generate Processing Code from a Skeleton
+
+Generates `processing.py`, `main.py`, and a sample test (`tests/test_processing.py`) from a registered processing skeleton (a `ProcessingTemplate` subclass). Implement the generated TODO slots, then run the result with [`run`](#run-run-structured-processing).
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit new processing <skeleton> [--module <module>] [-o <output dir>] [--force]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit new processing <skeleton> [--module <module>] [-o <output dir>] [--force]
+    ```
+
+| Option / Argument | Description | Required |
+| ----------------- | ----------- | -------- |
+| SKELETON | A skeleton id or unambiguous class name as printed by `rdetoolkit skeletons list` | ○ |
+| --module | Import a module that declares skeletons before the lookup (repeatable). Without it, skeletons are found in `*.py` files of the current directory, its `modules/` package, and installed plugins | - |
+| -o(--output) | Directory that receives the generated files. Default: the current directory | - |
+| --force | Overwrite existing generated files. Without it, the command refuses (exit code `3`) when any of them exists | - |
+
+```bash title="Generate code for a skeleton declared in modules/skeletons.py"
+python3 -m rdetoolkit new processing XrdTemplate --module modules.skeletons
 ```
+
+Exit codes: `0` success, `2` invalid command line, `3` unknown skeleton, module import failure, or an output file already exists.
 
 ### validate: Validate RDE Files
 
@@ -318,7 +350,7 @@ All validate subcommands return standardized exit codes:
 | Exit Code | Status | Description |
 |-----------|--------|-------------|
 | 0 | Success | All validations passed |
-| 1 | Validation Failure | Data or schema errors found |
+| 1 | Validation Failure | Data or schema errors found (or warnings with `--strict`) |
 | 2 | Usage Error | Invalid arguments or missing files |
 
 #### Usage Examples
@@ -342,33 +374,152 @@ fi
 !!! tip "Detailed Documentation"
     For comprehensive validation documentation including CI/CD integration examples, see [Validation Features](validation.en.md).
 
-### artifact: Create RDE Submission Archive
+### run: Run Structured Processing
 
-Creates an archive (.zip) for submission to RDE. Compresses the specified source directory and excludes files or directories that match exclusion patterns.
+Runs structured processing from the project root. The Runner reads `data/inputdata`, `data/invoice`, and `data/tasksupport`, finds `rdeconfig.yaml`, and processes every tile.
 
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit artifact --source-dir <source directory> --output-archive <output archive file> --exclude <exclusion pattern>
+    # v2 flow (a flow function or a ProcessingTemplate subclass)
+    python3 -m rdetoolkit run <pkg.mod:callable> [--config <overrides.yaml>] [--validate-only]
+    # v1 dataset function def f(srcpaths, resource_paths)
+    python3 -m rdetoolkit run --legacy <module_or_file::attr>
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit artifact --source-dir <source directory> --output-archive <output archive file> --exclude <exclusion pattern>
+    # v2 flow (a flow function or a ProcessingTemplate subclass)
+    py -m rdetoolkit run <pkg.mod:callable> [--config <overrides.yaml>] [--validate-only]
+    # v1 dataset function def f(srcpaths, resource_paths)
+    py -m rdetoolkit run --legacy <module_or_file::attr>
+    ```
+
+| Option / Argument | Description |
+| ----------------- | ----------- |
+| REF | `pkg.mod:callable` for a v2 flow (the current directory is importable), or `module_or_file::attr` with `--legacy` |
+| --legacy | Run a v1 dataset function, as passed to `workflows.run(custom_dataset_function=...)` |
+| --config | YAML overrides merged over the discovered `rdeconfig.yaml` (v2 flows only) |
+| --validate-only | Check the config, mode, and invoice without calling the flow (v2 flows only). Writes no outputs |
+
+Outputs: the RDE output tree under `data/` (`structured/`, `meta/`, `raw/`, images, `logs/`, and `job.failed` on failure). A v2 run prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`; a v1 run prints the legacy status JSON.
+
+```bash title="Run a v2 flow"
+python3 -m rdetoolkit run modules.processing:pipeline
+```
+
+```bash title="Run a v1 dataset function"
+python3 -m rdetoolkit run --legacy main.py::dataset
+```
+
+!!! note "The v1 form without --legacy"
+    In v2.0.x a `module_or_file::attr` reference without `--legacy` still runs as a v1 dataset function (without a warning, to keep the output unchanged). `--legacy` becomes required in v2.1, so add it now.
+
+| Exit Code | Description |
+|-----------|-------------|
+| 0 | Every tile succeeded (or `--validate-only` passed) |
+| 1 | The run failed (or validation failed) |
+| 2 | Partial: some tiles failed (also used by the parser for an unknown option) |
+| 3 | Invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy` |
+
+### report show / report trace: Inspect Run Reports
+
+Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes to `data/logs/`.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit report show <run_report.json>
+    python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit report show <run_report.json>
+    py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    ```
+
+- `report show` prints the run id, status, iteration count, one `failed` line per failed node call, and the error message when set.
+- `report trace` renders the Call Sequence recorded in the report: every node call in the order it ran (call ids, parent flow, status, argument previews). It is a call log and does not draw data dependencies. `--format` selects `json` (default), `mermaid` (a sequence diagram), or `html` (a standalone page). The rendering goes to stdout; redirect it to save a file.
+
+```bash title="Save the Call Sequence as an HTML page"
+python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
+```
+
+Exit codes: `0` success, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace`, an unknown `--format`).
+
+### plot: Draw Graphs from CSV
+
+Draws graphs (PNG, optionally interactive HTML) from a CSV file. The options are the same as the Python `csv2graph()` API; see [Visualizing CSV as Graphs](structured_process/csv2graph.en.md) and the [Sample Gallery](structured_process/csv2graph_samples.en.md) for every option.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit plot <csv path> [OPTIONS]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit plot <csv path> [OPTIONS]
+    ```
+
+```bash title="Overlay and per-series PNGs into data/other_image"
+python3 -m rdetoolkit plot sample.csv -o data/other_image --title 'XRD pattern'
+```
+
+Exit codes: `0` success, `1` the CSV could not be read or plotted, `2` invalid command line.
+
+### nodes / flows / skeletons / formats: List Registered Components
+
+These commands list what is registered in the current environment. Pass `--module <module>` (repeatable) to import a project module first, and `--json` for machine-readable output.
+
+| Command | Description |
+| ------- | ----------- |
+| `rdetoolkit nodes list` | List registered node ids (`--plugin` lists only nodes from discovered plugins) |
+| `rdetoolkit nodes show <node id>` | Show one node: id, version, tags, and input/output schema |
+| `rdetoolkit nodes lint` | Check registered nodes and flows for problems that break runs or reproducibility (duplicate or unstable ids, missing type annotations, and so on) |
+| `rdetoolkit flows list` | List registered flow ids |
+| `rdetoolkit flows show <flow id>` | Show one flow: id, version, and signature |
+| `rdetoolkit skeletons list` | List registered processing skeletons (`ProcessingTemplate` subclasses) |
+| `rdetoolkit skeletons show <skeleton>` | Show one skeleton: its id, slots, and slot signatures |
+| `rdetoolkit formats list` | List file format handlers that installed plugins declare |
+
+```bash title="List the nodes of a project module"
+python3 -m rdetoolkit nodes list --module modules.processing
+```
+
+Exit codes: `0` success, `2` invalid command line, `3` unknown id, a module that fails to import, or (for `nodes lint`) lint violations.
+
+### package: Create RDE Submission Archive
+
+Creates an archive (.zip) for submission to RDE. Compresses the specified source directory and excludes directories that match exclusion patterns.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit package --source-dir <source directory> --output <output archive file> --exclude <exclusion pattern>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit package --source-dir <source directory> --output <output archive file> --exclude <exclusion pattern>
     ```
 
 #### Options
 
 | Option               | Description                                                                                      | Required |
 | -------------------- | ------------------------------------------------------------------------------------------------ | -------- |
-| -s(--source-dir)     | Source directory to compress and scan                                                           | ○        |
-| -o(--output-archive) | Output archive file (e.g., rde_template.zip)                                                    | -        |
-| -e(--exclude)        | Directory names to exclude. By default, 'venv' and 'site-packages' are excluded                | -        |
+| -s(--source-dir)     | Source directory to compress and scan (usually `container/`)                                     | ○        |
+| -o(--output)         | Output archive file (e.g., rde_submission.zip). The name must end with `.zip`; an existing file is replaced | -        |
+| -e(--exclude)        | Directory names to exclude (repeatable). By default, `.*`, `venv`, `.venv`, and `site-packages` are excluded | -        |
 
 #### Execution Report
 
-When an archive is created, the following execution report is generated:
+When an archive is created, an execution report is written next to the zip (same name, `.md`):
 
 - Existence check of Dockerfile and requirements.txt
 - List of included directories and files
@@ -417,8 +568,123 @@ def insecure():
 ```
 
 !!! tip "Option Details"
-    - If `--output-archive` is not specified, an archive will be created with a default filename.
+    - If `-o/--output` is not specified, the archive is created next to the source directory as `<YYYYMMDD>_<id>_rde_artifact.zip`.
     - The `--exclude` option can be specified multiple times (e.g., `--exclude venv --exclude .git`).
+
+Exit codes: `0` success, `1` the output name is not `.zip`, or archiving or the report failed, `2` invalid command line.
+
+### repro: Export and Re-run a Finished Run
+
+`repro export` archives a run report, the run's input directories (`data/inputdata`, `data/invoice`, `data/tasksupport`), and its effective `rdeconfig.yaml` into one zip. `repro import` unpacks such a zip into a new or empty directory, ready for `rdetoolkit run`.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    python3 -m rdetoolkit repro import <archive.zip> <target dir>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    py -m rdetoolkit repro import <archive.zip> <target dir>
+    ```
+
+- `--config` is required when the run used `rdetoolkit run --config`: the config is archived only if it reproduces the report's `config_digest`.
+- `repro import` never overwrites: a non-empty target directory is refused.
+
+Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing input directory, a config that does not reproduce the digest, a non-empty target, or an unsafe member path.
+
+### migrate: Find and Convert v1 Code
+
+- `migrate check [PATH]` reports the lines that need v2 migration, one `path:line: finding` per line, and never changes files. Python files are scanned for `custom_dataset_function=` entry calls, `RdeOutputResourcePath` references, v1 handler-shaped classes, and CLI command names renamed in v2.0. Shell, CI, and container files (`*.sh`, `*.yml`, `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`) are scanned for renamed CLI commands only.
+- `migrate apply [PATH]` converts v1 `custom_dataset_function` callbacks into v2 flows. It previews the converted sources by default (`--dry-run`); with `--no-dry-run` it writes the converted copy to `-o/--output DIR` (default: `<PATH>_migrated` next to the input). The input is never edited.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit migrate check [PATH]
+    python3 -m rdetoolkit migrate apply [PATH] [--no-dry-run] [-o <output dir>]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit migrate check [PATH]
+    py -m rdetoolkit migrate apply [PATH] [--no-dry-run] [-o <output dir>]
+    ```
+
+```bash title="Write the converted copy of container/ to container_v2/"
+python3 -m rdetoolkit migrate apply container --no-dry-run -o container_v2
+```
+
+Exit codes: `0` success, `2` invalid command line (for `migrate apply`, also a missing input path), `3` the path does not exist (`migrate check`), or no Python files were found or the output directory exists or is inside the input (`migrate apply`).
+
+See [Migrating from v1 to v2](../migration_v1_to_v2.en.md) for the migration procedure.
+
+### agent-guide: Display AI Agent Guide
+
+Displays the embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit agent-guide [--detailed]
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit agent-guide [--detailed]
+    ```
+
+This command outputs guide text about rdetoolkit usage, architecture, and best practices as Markdown. `--detailed` adds advanced patterns and the full API reference. You can add it to your AI assistant's context to improve code generation accuracy when working with rdetoolkit.
+
+#### Usage from Python
+
+```python
+import rdetoolkit
+
+# Get the agent guide
+guide = rdetoolkit.agent_guide()
+print(guide)
+```
+
+### version: Version Check
+
+Check the version of rdetoolkit.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit version
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit version
+    ```
+
+## Renamed commands in v2.0
+
+v2.0 reorganized the CLI into `rdetoolkit <noun> <verb>` commands. Commands from v1 keep working in v2.0.x as deprecated aliases that print a warning, and are removed in v2.1. Names that existed only in v2 release candidates were removed without an alias. `rdetoolkit migrate check` reports the old names in your scripts, CI, and container files.
+
+| Old | New | Origin |
+|---|---|---|
+| `gen-config [OUTPUT_DIR] [--template X] [--overwrite]` | `new config [-o DIR] [--preset X] [--force]` | v1 — deprecated alias kept in v2.0.x, prints a warning, removed in v2.1 |
+| `gen-invoice` | `new invoice` | v1 — deprecated alias |
+| `make-excelinvoice` | `new excelinvoice` | v1 — deprecated alias |
+| `csv2graph` | `plot` | v1 — deprecated alias |
+| `artifact --output-archive` | `package -o/--output` | v1 — deprecated alias |
+| `run TARGET` (`module::attr`) | `run --legacy TARGET` | v1 — the `::` form without `--legacy` still runs (no warning, for output compatibility); `--legacy` becomes required in v2.1 |
+| `init --processing-template X` | `new processing X` | v2 rc only — removed, no alias |
+| `run --flow X` | `run X` | v2 rc only — removed |
+| `graph REPORT` | `report trace REPORT` | v2 rc only — removed |
+| `templates list/describe` | `skeletons list/show` | v2 rc only — removed |
+| `nodes describe`, `flows describe` | `nodes show`, `flows show` | v2 rc only — removed |
+| `migrate apply --out DIR` | `migrate apply -o/--output DIR` | v2 rc only — removed |
 
 ## Shell Completion
 
@@ -477,15 +743,19 @@ After installing the completion feature, press the Tab key to display candidates
 ```bash
 # Command name completion
 python -m rdetoolkit <Tab>
-# → init, version, gen-config, etc. will be displayed
+# → init, new, plot, validate, run, report, package, etc. will be displayed
+
+# Subcommand completion
+python -m rdetoolkit new <Tab>
+# → config, invoice, excelinvoice, processing will be displayed
 
 # Option name completion
-python -m rdetoolkit gen-config --<Tab>
-# → --template, --overwrite, --lang, etc. will be displayed
+python -m rdetoolkit new config --<Tab>
+# → --output, --preset, --force, --lang, etc. will be displayed
 
-# Option value completion
-python -m rdetoolkit gen-config --template <Tab>
-# → static, interactive will be displayed
+# Option values: --preset takes a preset name (no candidates are offered)
+python -m rdetoolkit new config --preset <Tab>
+# → type minimal, full, multitile, rdeformat, smarttable, or interactive
 ```
 
 ### Uninstallation

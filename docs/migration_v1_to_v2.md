@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
 `migrate check` は移行点を報告する読み取り専用コマンドです。`migrate apply` は
 既定で dry-run になり、変換後の flow 関数を表示します。内容を確認した後だけ
-`--no-dry-run --out <別ディレクトリ>` を指定してください。入力ファイルを
+`--no-dry-run -o <別ディレクトリ>` を指定してください。入力ファイルを
 直接書き換えることはありません。
 
 <!-- test: migration-commands -->
@@ -69,8 +69,8 @@ assert result == "SAMPLE.TXT"
 
 ## 3. 最終形を選ぶ
 
-対応するドメインテンプレートがある場合は、`templates describe <name>` で slot を
-確認し、`init --processing-template <name>` が生成したクラスの TODO slot だけを
+対応するドメインテンプレートがある場合は、`skeletons show <name>` で slot を
+確認し、`new processing <name>` が生成したクラスの TODO slot だけを
 実装します。骨格、保存順序、出力規約はテンプレートが所有します。
 
 テンプレートがない非定型処理では flow デコレータ付きの関数を 1 つ書きます。`if`、ループ、
@@ -168,21 +168,74 @@ assert invoice.raw["custom"] == {"measured_date": "2023-07-19", "cycles": 12}
 ```
 
 ファイル・画像の保存では、`read_excel` にシート・ヘッダー・行・列の選択を、
-`save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_json` と `save_text` は
+`save_csv` に数値書式・ヘッダー・index の指定を渡せます。`save_csv` の `preamble=` には
+表の前に書く `#title` / `#legend` などのヘッダー行(フィールド数は行ごとに異なってよく、
+表と同じ CSV 形式で書かれます)か、そのまま書く文字列を渡せ、
+`blank_line_after_preamble=True` でヘッダー行と表の間に空行を 1 行入れます。`save_json` と `save_text` は
 出力先の `kind` を選べます。文字コードを検出する `read_json`、タイルの invoice を
 所定の書式で保存する `save_invoice`、利用者が作った Figure を保存する `save_figure`
 も利用できます。`plot_lines` は x/y 列または列ペア、ラベル・タイトル・軸スケール・
 凡例・サイズ・DPI・出力先を指定できます。
 列ペアは `(x, y, label)` でも指定でき、`labels=` で全系列の凡例名を指定することもできます。
 `grid=True` でグリッドを描き、軸ラベルの文字サイズは `label_fontsize` を指定しない限り
-matplotlib の rcParams に従います。2 つの描画ノードは既定で tight な bounding box で保存します。
+matplotlib の rcParams に従います。
+v1 の `csv2graph(..., xlim=..., ylim=...)` や `ax.set_xlim` / `ax.set_ylim` に当たる軸範囲は
+`xlim` / `ylim` で、x 軸のスケールは `xscale` で指定します。片側を `None` にするとその側は
+自動のままなので、`ylim=(0, None)` で軸を 0 から始められます。
+複数領域の測定のように x 値や長さが異なる系列は、データフレームのリストで渡せます。
+x/y 列または列ペアの指定は各データフレームに適用され、`labels=` はデータフレーム順の
+全系列に名前を付けます（`pd.concat(axis=1)` で 1 つのデータフレームにまとめる必要はありません）。
+2 つの描画ノードは既定で tight な bounding box で保存します。
 v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 `savefig(path, bbox_inches="tight", pad_inches=0)` と同じ画像には `pad_inches=0` を指定してください。
+インタラクティブなグラフは `save_html_figure(fig, out, "chart.html")` で、plotly の Figure を
+`plotly.io.to_html` により既定で `structured/` に保存できます。plotly.js は既定で CDN から読み込みます
+（`include_plotlyjs=`・`full_html=`・`kind=` で変更できます）。グラフの `<div>` の id は plotly の
+ランダムな値ではなく、ファイル名の英数字部分とファイル名の短いハッシュから決まります
+（`plotly-chart-3e67baf8`）。そのため毎回同じファイルになり、別ファイルの断片（`full_html=False`）を
+1 ページに並べても id は重なりません。`div_id=` で指定することもできます。plotly はオプションの `rdetoolkit[plotly]` で導入し、
+ノードの実行時にだけ import されます。
 セルの塗りつぶし色で行を選ぶテンプレートでは、`read_excel` と同じシート・行指定で
 `read_excel_fills(path, column="A", ...)` を呼ぶと、データフレームの各行に対応する
 塗りつぶし色（ARGB 16 進文字列、`theme:<n>`、または `None`）を返します。
 `OutputContext` には v1 の `resource_paths.temp` に当たる一時ディレクトリはありません。
 作業用ファイルには `tempfile.TemporaryDirectory()` を使ってください（ブロック終了時に削除されます）。
+v1 の simple-registration テンプレートのように、アップロードされた PDF や SVG から
+代表画像を作る場合は `render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)` を使います。
+拡張子が `.pdf` ならそのページを `dpi` で描画し、`.svg` / `.svgz` なら SVG 自身のサイズで描画し、
+それ以外は `to_png` と同じく Pillow で PNG に変換します。既定値(1 ページ目、350 dpi)は v1 テンプレートと同じです。
+PDF と SVG には `pip install 'rdetoolkit[render]'` が必要で、SVG には Cairo のシステムライブラリも必要です。
+未導入の場合は、必要な extra とライブラリ名を示す `ImportError` になります。
+PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため、画素単位では v1 と一致しないことがあります。
+
+v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
+`run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
+など引数で渡したディレクトリへ書き込みます。標準出力と標準エラーは取り込まれ、
+`CompletedProgram`（`args`、`returncode`、`stdout`、`stderr`、秒単位の `duration`）で返ります。
+0 以外の終了コード、起動できないプログラム、`timeout` の超過は、ErrorCode 3001 ではなく
+`error_code`（既定 1）の `StructuredError` になります。既定のメッセージはコマンドライン・
+終了コード・実行時間・標準エラーの末尾行を含み、`error_message` を指定するとそれに置き換わります。
+コマンドラインと結果はログにも出力されます。`env` は引き継いだ環境変数に追加されます。
+Windows 用の変換プログラムでは、`wine="auto"` を指定すると Windows 以外で `wine` を前置し、
+`Path` の引数を Windows 形式に変換します（`/data/structured` は `Z:\data\structured`）。
+オプション文字列に埋め込むパスは `to_wine_path` で変換してください。例:
+`f"-OutputFolder:{to_wine_path(out.struct)}"`。文字列の引数はそのまま渡します。
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
 
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
@@ -262,8 +315,8 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   flow デコレータの `prepare=prepare_inputs` オプションとして宣言します。シグネチャは
   `def prepare_inputs(inputdata: Path, config: RdeConfig) -> None` です。Runner は
   設定の読み込み後、モード判定の前に 1 回だけ呼ぶため、`workflows.run(flow=...)`
-  と `rdetoolkit run --flow` のどちらでも準備後の入力でモードが決まります。宣言しない
-  場合、`run --flow` は準備前のファイルでモードを判定します。`--validate-only` でも
+  と `rdetoolkit run <pkg.mod:flow>` のどちらでも準備後の入力でモードが決まります。宣言しない
+  場合、`rdetoolkit run` は準備前のファイルでモードを判定します。`--validate-only` でも
   実行されるため、事前チェックは本番と同じモードで検証しますが、`inputdata/` を
   変更することがあります。再実行や `rdetoolkit repro` は準備済みの入力に対して再び呼ぶので、
   冪等にしてください。渡される設定は複製なので、変更しても実行には影響しません。
@@ -354,6 +407,32 @@ assert isinstance(caught.__cause__, FileNotFoundError)
   `multidata_tile.order: filesystem` を設定してください(既定は `name`)。
   列挙順はファイルシステムに依存します(#597)。
 
+## CLI コマンド名の変更 { #cli-command-renames }
+
+v2.0 で CLI は `rdetoolkit <名詞> <動詞>` 形式に再編されました。v1 のコマンドは
+v2.0.x では警告を表示する非推奨の別名として動作し、v2.1 で削除されます。v2 の
+リリース候補版にだけ存在した名前は別名なしで削除されました。スクリプト、CI 定義、
+Dockerfile を新しい名前に更新してください。
+
+| 旧 | 新 | 由来 |
+|---|---|---|
+| `gen-config [OUTPUT_DIR] [--template X] [--overwrite]` | `new config [-o DIR] [--preset X] [--force]` | v1 — v2.0.x では非推奨の別名として残り、警告を表示、v2.1 で削除 |
+| `gen-invoice` | `new invoice` | v1 — 非推奨の別名 |
+| `make-excelinvoice` | `new excelinvoice` | v1 — 非推奨の別名 |
+| `csv2graph` | `plot` | v1 — 非推奨の別名 |
+| `artifact --output-archive` | `package -o/--output` | v1 — 非推奨の別名 |
+| `run TARGET` (`module::attr`) | `run --legacy TARGET` | v1 — `--legacy` なしの `::` 形式も実行される(出力互換のため警告なし)。v2.1 で `--legacy` が必須 |
+| `init --processing-template X` | `new processing X` | v2 rc のみ — 別名なしで削除 |
+| `run --flow X` | `run X` | v2 rc のみ — 削除 |
+| `graph REPORT` | `report trace REPORT` | v2 rc のみ — 削除 |
+| `templates list/describe` | `skeletons list/show` | v2 rc のみ — 削除 |
+| `nodes describe`, `flows describe` | `nodes show`, `flows show` | v2 rc のみ — 削除 |
+| `migrate apply --out DIR` | `migrate apply -o/--output DIR` | v2 rc のみ — 削除 |
+
+`rdetoolkit migrate check` は、Python の文字列リテラルと `*.sh`、`*.yml`、`*.yaml`、
+`*.toml`、`*.cfg`、`Makefile`、`Dockerfile` に残っている旧コマンド名を報告します。
+各コマンドの詳細は[コマンドライン機能](usage/cli.md)を参照してください。
+
 ## v1 ユーザー向け互換範囲とスケジュール
 
 この節は 2.0.0rc1 時点の確定内容です。v1 の実行経路(反復ループとモード別処理)は
@@ -373,8 +452,9 @@ assert isinstance(caught.__cause__, FileNotFoundError)
   `rdetoolkit.invoicefile`、`rdetoolkit.errors`、`rdetoolkit.exceptions`、
   `workflows.check_files` / `check_files_result`、
   `workflows.generate_folder_paths_iterator`。
-- `rdetoolkit init` / `gen-invoice` / `make-excelinvoice` / `artifact` などの
-  既存 CLI コマンド。
+- v1 の CLI コマンド。`rdetoolkit init` と `rdetoolkit validate` は名前もそのままで、
+  名前が変わった v1 コマンドも v2.0.x では非推奨の別名として動作します
+  ([CLI コマンド名の変更](#cli-command-renames)を参照)。
 
 ### 削除されたもの(2.0.0rc1)
 
@@ -453,7 +533,7 @@ invoice シート自体がないブックについては既存のエラー契約
 |---|---|---|
 | コールバックが `StructuredError(msg, ecode)` を送出 | `job.failed` に `ecode` と `msg` | 同じ |
 | コールバックが素の例外を送出 | `ErrorCode=999`、`Unexpected error in <mode> mode: ...` | `ErrorCode=3001`。メッセージはエラーカタログ E3001 の文で、ユーザーの例外メッセージを含みます |
-| コールバック失敗時の stderr トレースバック(`traceback:` 設定 / `TRACE_*`) | `errors.handle_exception` が `Config.traceback`、なければ `TRACE_*`、なければ python 形式で `compact` / `python` / `duplex` を出力 | v1 コールバック入口では同じフォーマッタ・同じ設定・同じ優先順で出力し、設定は警告を出しません。素の例外では、最外の例外が `StructuredError: Unexpected error in <mode> mode: ...` ではなく E3001 メッセージの `TileExecutionError`(ユーザーの例外から連鎖)になります。`run()` 自体を `except` ブロックの中から呼んだ場合も、例外の連鎖は Python が記録したとおりに表示します(1.7.1 はこの場合にコールバック自身の暗黙の連鎖を失っていました)。コールバック外の失敗(設定、invoice 検証、出力の検証など)でも、`job.failed` が報告するエラーのトレースバックを同じ形式で出力します。flow 入口(`run(flow=...)`、`rdetoolkit run --flow`)はこのトレースバックを出さず、プロジェクト直下の v2 形式 `rdeconfig.yaml` では `traceback:` はエラー(E1002)です |
+| コールバック失敗時の stderr トレースバック(`traceback:` 設定 / `TRACE_*`) | `errors.handle_exception` が `Config.traceback`、なければ `TRACE_*`、なければ python 形式で `compact` / `python` / `duplex` を出力 | v1 コールバック入口では同じフォーマッタ・同じ設定・同じ優先順で出力し、設定は警告を出しません。素の例外では、最外の例外が `StructuredError: Unexpected error in <mode> mode: ...` ではなく E3001 メッセージの `TileExecutionError`(ユーザーの例外から連鎖)になります。`run()` 自体を `except` ブロックの中から呼んだ場合も、例外の連鎖は Python が記録したとおりに表示します(1.7.1 はこの場合にコールバック自身の暗黙の連鎖を失っていました)。コールバック外の失敗(設定、invoice 検証、出力の検証など)でも、`job.failed` が報告するエラーのトレースバックを同じ形式で出力します。flow 入口(`run(flow=...)`、`rdetoolkit run <module>:<flow>`)はこのトレースバックを出さず、プロジェクト直下の v2 形式 `rdeconfig.yaml` では `traceback:` はエラー(E1002)です |
 | `invoice.schema.json` 自体が不正で、コールバックも失敗 | コールバック側のエラーコード(検証はコールバックの後) | `ErrorCode=4001`(スキーマ検証の理由付き)。コールバックは呼ばれません |
 | invoice がスキーマに違反 | モードごとに異なるコード、一部モードではコールバック実行済み・出力も生成済み | `ErrorCode=4001`。コールバックは呼ばれず、タイルの成果物は作られません(`job.failed`・ログ・run report は残ります) |
 | 設定ファイルの探索(`config=None`) | `data/tasksupport` から読み込み | 同じ。不正な設定ファイルは v1 と同じく `ErrorCode=999` |

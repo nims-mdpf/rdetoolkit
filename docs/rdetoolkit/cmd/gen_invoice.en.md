@@ -104,19 +104,19 @@ When using directly from the command line:
 
 ```bash
 # Basic usage
-rdetoolkit gen-invoice tasksupport/invoice.schema.json
+rdetoolkit new invoice tasksupport/invoice.schema.json
 
 # Specify output path
-rdetoolkit gen-invoice tasksupport/invoice.schema.json -o invoice/invoice.json
+rdetoolkit new invoice tasksupport/invoice.schema.json -o invoice/invoice.json
 
 # Generate required fields only
-rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only
+rdetoolkit new invoice tasksupport/invoice.schema.json --required-only
 
 # Don't fill default values
-rdetoolkit gen-invoice tasksupport/invoice.schema.json --no-fill-defaults
+rdetoolkit new invoice tasksupport/invoice.schema.json --no-fill-defaults
 
 # Output in compact format
-rdetoolkit gen-invoice tasksupport/invoice.schema.json --format compact
+rdetoolkit new invoice tasksupport/invoice.schema.json --format compact
 ```
 
 ## Default Value Strategy

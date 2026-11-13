@@ -18,7 +18,7 @@ Authority: `local/develop/v2/Design.md` §9.
 | 2005 | UnstableNodeId | Node id is unstable because it is derived from a local function qualname: {node_id} | Move the node function to module scope or pass a stable explicit id via @node(id=...). |
 | 2006 | DuplicateReservedTypeAnnotation | Reserved type {type_name} is annotated on more than one flow parameter: {param_names} | A flow signature may declare each reserved type at most once; merge the duplicated parameters into one. |
 | 2101 | TemplateSlotMissing | Template slot is not implemented: {slot_name} | Implement the required slot method declared by the template; 'rdetoolkit nodes lint' lists missing slots. |
-| 2102 | TemplateSlotSignatureMismatch | Template slot signature mismatch: {slot_name} | Match the slot's declared signature (parameter names and type annotations); see 'rdetoolkit templates describe <name>'. |
+| 2102 | TemplateSlotSignatureMismatch | Template slot signature mismatch: {slot_name} | Match the slot's declared signature (parameter names and type annotations); see 'rdetoolkit skeletons show <name>'. |
 | 2103 | TemplateFinalOverride | Template skeleton method must not be overridden: {method_name} | Implement only the declared slots and hooks; if you need a different pipeline shape, write a plain @flow instead. |
 | 2104 | TemplateDeepInheritance | Template subclass must not be inherited further: {class_name} | Inherit directly from the provider's template class (one level only); compose behavior via slots/hooks or a plain @flow. |
 | 2105 | TemplateCtorNotDefault | Template class must be constructible with no arguments: {class_name} | Remove required __init__ parameters; receive parameters via config.custom instead. |

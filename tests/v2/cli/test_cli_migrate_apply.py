@@ -84,7 +84,7 @@ def test_apply_converts_at_least_four_of_five_corpus_cases__tc_mig_apply_ep_001_
     # When: apply writes converted files to a separate tree
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
 
     # Then: at least four converted pipelines import and execute through the public level-3 helper
@@ -126,7 +126,7 @@ def test_apply_marks_dynamic_dispatch_with_todo__tc_mig_apply_ep_003(tmp_path: P
     # When: apply writes its best-effort conversion
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
 
     # Then: the command exits zero and the output embeds an actionable TODO
@@ -154,7 +154,7 @@ def test_apply_rejects_output_inside_input__tc_mig_apply_ep_005(tmp_path: Path) 
     # When: explicit writing targets a child of the input
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(source / "migrated"), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(source / "migrated"), "--no-dry-run"],
     )
     # Then: an application usage error embeds remediation
     assert result.exit_code == 3
@@ -170,7 +170,7 @@ def test_apply_rejects_existing_output__tc_mig_apply_ep_006(tmp_path: Path) -> N
     # When: apply would overwrite that destination
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
     # Then: it fails as a remediable usage error
     assert result.exit_code == 3
@@ -199,7 +199,7 @@ def test_apply_single_file_writes_one_external_file__tc_mig_apply_bv_001(tmp_pat
     # When: apply is explicitly allowed to write
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
     # Then: one converted file is written and the input remains byte-identical
     assert result.exit_code == 0, result.output
@@ -225,7 +225,7 @@ def test_apply_reads_pep263_cp932_source__tc_mig_apply_ep_008(tmp_path: Path) ->
     # When: apply reads using the declared PEP 263 encoding
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
 
     # Then: conversion succeeds and the output contract remains UTF-8
@@ -254,7 +254,7 @@ def test_apply_reports_broken_encoding_and_continues__tc_mig_apply_ep_009(tmp_pa
     # When: apply processes the directory
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
 
     # Then: it diagnoses the file, continues, and preserves the current success exit convention
@@ -281,7 +281,7 @@ def _apply_single(tmp_path: Path, text: str) -> str:
     output = tmp_path / "converted"
     result = CliRunner().invoke(
         app,
-        ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"],
+        ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"],
     )
     assert result.exit_code == 0, result.output
     return str(output / source.name)

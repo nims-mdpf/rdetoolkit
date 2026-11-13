@@ -595,7 +595,7 @@ ERROR_CATALOG: dict[int, ErrorDef] = {
     2102: ErrorDef(
         name="TemplateSlotSignatureMismatch",
         message_template="Template slot signature mismatch: {slot_name}",
-        remediation="Match the slot's declared signature (parameter names and type annotations); see 'rdetoolkit templates describe <name>'.",
+        remediation="Match the slot's declared signature (parameter names and type annotations); see 'rdetoolkit skeletons show <name>'.",
     ),
     2103: ErrorDef(
         name="TemplateFinalOverride",
