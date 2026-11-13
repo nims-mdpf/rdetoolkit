@@ -6,7 +6,7 @@ from glob import glob
 from pathlib import Path
 
 from rdetoolkit.core import resize_image_aspect_ratio
-from rdetoolkit.errors import catch_exception_with_message
+from rdetoolkit.errors import _catch_exception_with_message
 from rdetoolkit.exceptions import StructuredError
 
 
@@ -36,7 +36,7 @@ def __find_img_path(dirname: str, target_name: str) -> str:
     return ""
 
 
-@catch_exception_with_message(error_message="ERROR: failed to copy image files", error_code=50)
+@_catch_exception_with_message(error_message="ERROR: failed to copy image files", error_code=50)
 def copy_images_to_thumbnail(
     out_dir_thumb_img: str | Path,
     out_dir_main_img: str | Path,

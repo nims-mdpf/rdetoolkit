@@ -110,6 +110,25 @@
   exception fails the run with 3001 (naming the preparation) before any tile.
   Only the flow the Runner executes is prepared, and direct calls of the flow
   do not run it (#573).
+- `rdetoolkit.exceptions.ProcessingError(message, *, remediation=None)`
+  reports a processing failure without an error code. It is an
+  `RdeExecutionError` with the new catalog entry 3007 `ProcessingFailed`. Every
+  entry point (`@flow` body or `prepare`, and the v1 callback) publishes it as
+  3007 in `RunReport.error`, the iteration log and `job.failed`. The message is
+  followed by `Remediation: <remediation>`, and `remediation` defaults to the
+  catalog guidance. `@flow(error_code=..., error_message=...)` does not remap
+  it. A non-str or blank `message` / `remediation` raises `TypeError` /
+  `ValueError`. Ordinary exceptions stay 3001 and `StructuredError` keeps its
+  `ecode`/`emsg` (#634).
+
+### Deprecated
+
+- `rdetoolkit.errors.catch_exception_with_message` emits a
+  `DeprecationWarning` when it is applied; raise `ProcessingError` instead. It
+  keeps its v1 behavior and is not removed in v2, except that a
+  `ProcessingError` now propagates unchanged instead of being converted to a
+  `StructuredError`. rdetoolkit's own use of the decorator in `img2thumb` does
+  not warn (#634).
 
 ### Changed
 

@@ -112,6 +112,38 @@ def validate_against_schema(data, schema_path):
 
 ### 4. RDEToolKitのエラーハンドリング機能を使用する
 
+#### ProcessingErrorの使用(v2 推奨)
+
+入力を処理できないことを利用者に伝えるときは `ProcessingError` を送出します。
+何が起きたかを `message` に、次に何をすればよいかを `remediation` に書きます。
+エラーコードは指定しません。Runner が 3007 `ProcessingFailed` として `RunReport`・
+反復ログ・`job.failed` に書き込みます。
+
+```python title="ProcessingError の送出"
+from rdetoolkit.exceptions import ProcessingError
+
+def read_sample(path):
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "入力ファイルが見つかりません。",
+            remediation="inputdata にファイルがあるか確認してください。",
+        ) from exc
+```
+
+このとき `job.failed` は次のようになります。
+
+```text
+ErrorCode=3007
+ErrorMessage=入力ファイルが見つかりません。 Remediation: inputdata にファイルがあるか確認してください。
+```
+
+- `remediation` を省略すると、カタログ 3007 の既定の対処法が使われます。
+- `raise ... from exc` で元の例外を `__cause__` に残せます。
+- `ValueError` などの通常の例外は、これまでどおり 3001 `NodeExecutionFailed` になります。
+- flow の `error_code` / `error_message` オプションは `ProcessingError` を変換しません。
+
 #### StructuredErrorの使用
 
 ```python title="構造化エラーの実装"
@@ -139,7 +171,13 @@ def dataset_with_error_handling(srcpaths, resource_paths):
     return process_data(config)
 ```
 
-#### エラーデコレーターの使用
+#### エラーデコレーターの使用(非推奨)
+
+!!! warning "非推奨"
+    `catch_exception_with_message` は非推奨です。デコレータを付けた時点で
+    `DeprecationWarning` が出ます。動作は変わらず、v2 では削除しません。
+    新しいコードでは `ProcessingError` を送出してください。デコレータは
+    `ProcessingError` を `StructuredError` に変換せず、そのまま送出します。
 
 ```python title="エラーデコレーター"
 from rdetoolkit.errors import catch_exception_with_message
