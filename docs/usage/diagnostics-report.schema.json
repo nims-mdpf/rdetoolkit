@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RDEToolKit report diagnosis version 1",
+  "allOf": [
+    {
+      "$ref": "diagnostics.schema.json"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "run_id",
+    "run_status",
+    "failures",
+    "evidence"
+  ],
+  "properties": {
+    "command": {
+      "const": "report diagnose"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "run_status": {
+      "enum": [
+        "success",
+        "failed",
+        "partial"
+      ]
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "iteration_index",
+          "node_id",
+          "call_id",
+          "code",
+          "name",
+          "message",
+          "remediation",
+          "source"
+        ],
+        "properties": {
+          "iteration_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "node_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "call_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "remediation": {
+            "type": "string"
+          },
+          "source": {
+            "const": "report"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "iterations",
+        "events"
+      ],
+      "properties": {
+        "iterations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "iteration_index",
+              "iteration_detail"
+            ],
+            "properties": {
+              "iteration_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "iteration_detail": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "state",
+                  "flags"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "verified",
+                      "missing",
+                      "corrupt",
+                      "unverified",
+                      "unsupported",
+                      "mismatched",
+                      "truncated"
+                    ]
+                  },
+                  "flags": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "missing",
+                        "corrupt",
+                        "unverified",
+                        "unsupported",
+                        "mismatched",
+                        "truncated",
+                        "incomplete"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "events": {
+          "type": "object",
+          "required": [
+            "path",
+            "flags",
+            "verified_records"
+          ],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "flags": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "missing",
+                  "corrupt",
+                  "unverified",
+                  "unsupported",
+                  "mismatched",
+                  "truncated",
+                  "incomplete"
+                ]
+              }
+            },
+            "verified_records": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

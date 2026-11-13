@@ -7,7 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from rdetoolkit.report.run_report import RunReport
+from rdetoolkit.report.run_report import ITERATION_DETAIL_SCHEMA_VERSION, RunReport
 from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.finalize import atomic_write_text
 
@@ -52,7 +52,7 @@ class RunAggregator:
         Args:
             result: Tile execution result.
         """
-        payload = _result_payload(result)
+        payload = {"schema_version": ITERATION_DETAIL_SCHEMA_VERSION, "run_id": self.run_id, **_result_payload(result)}
         self._write_iteration(result.iteration_index, payload)
         self.iterations.append(_summary_payload(result))
 
