@@ -61,6 +61,7 @@ EXPECTED_TREE = {
     "validate metadata",
     "validate metadata-def",
     "validate all",
+    "doctor",
     "run",
     "report",
     "report show",

@@ -64,6 +64,7 @@ ROOT_HELP = CommandHelp(
     examples=(
         "rdetoolkit init",
         "rdetoolkit validate all",
+        "rdetoolkit doctor --format json",
         "rdetoolkit run modules.processing:pipeline",
         "rdetoolkit report show data/logs/run_report_<id>.json",
         "rdetoolkit package -s container -o rde_submission.zip",
@@ -83,6 +84,7 @@ _COMMAND_ORDER = (
     "new",
     "plot",
     "validate",
+    "doctor",
     "run",
     "report",
     "nodes",
@@ -511,6 +513,15 @@ def _register_validate_commands() -> typer.Typer:
 
 
 validate_app = _register_validate_commands()
+
+
+def _register_doctor_command() -> None:
+    from rdetoolkit.cli.doctor_cmd import DOCTOR_HELP, doctor
+
+    app.command("doctor", help=DOCTOR_HELP.render(), short_help=DOCTOR_HELP.summary, rich_help_panel=PANEL_VALIDATE)(doctor)
+
+
+_register_doctor_command()
 
 
 # --------------------------------------------------------------------------
