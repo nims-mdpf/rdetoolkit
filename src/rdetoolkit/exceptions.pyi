@@ -1,6 +1,8 @@
 from _typeshed import Incomplete
 from typing import Any
 
+from rdetoolkit.errors import ProcessingError as ProcessingError
+
 class StructuredError(Exception):
     emsg: Incomplete
     ecode: Incomplete

@@ -11,7 +11,7 @@ EP table:
 | API | Partition | Expected | Test ID |
 | --- | --- | --- | --- |
 | _write_job_failed_marker | ASCII message | exact UTF-8 marker bytes | TC-645-EP-001 |
-| _write_job_failed_marker | non-ASCII message | UTF-8 encoded bytes, LF endings | TC-645-EP-002 |
+| _write_job_failed_marker | non-ASCII message | UTF-8 encoded bytes, platform line endings | TC-645-EP-002 |
 | finalize | ordinary catalog failure, custom root | ``custom_root/job.failed`` bytes | TC-645-EP-003 |
 | finalize | v1 StructuredError passthrough | user ecode/emsg bytes verbatim | TC-645-EP-004 |
 | finalize | failed, get_datadir raising, warnings as errors | marker written, no warning | TC-645-EP-005 |
@@ -32,6 +32,7 @@ BV table:
 
 from __future__ import annotations
 
+import os
 import warnings
 from pathlib import Path
 from typing import Any
@@ -64,6 +65,11 @@ def _report(status: str, *, error: dict[str, Any] | None = None, run_id: str = "
     )
 
 
+def _marker_bytes(code: int, message: str) -> bytes:
+    """The bytes v1's text-mode writer produces on this platform (CRLF on Windows)."""
+    return f"ErrorCode={code}{os.linesep}ErrorMessage={message}{os.linesep}".encode()
+
+
 def _forbid_get_datadir(monkeypatch: pytest.MonkeyPatch) -> None:
     def _raise(*_args: object, **_kwargs: object) -> str:
         msg = "v2 finalization must not resolve the v1 data directory"
@@ -81,7 +87,7 @@ class TestMarkerPrimitive:
 
         _write_job_failed_marker(target, 3001, "boom")
 
-        assert target.read_bytes() == b"ErrorCode=3001\nErrorMessage=boom\n"
+        assert target.read_bytes() == _marker_bytes(3001, "boom")
 
     def test_non_ascii_marker_is_utf8__tc_645_ep_002(self, tmp_path: Path) -> None:
         """TC-645-EP-002: a non-ASCII message is encoded as UTF-8."""
@@ -89,7 +95,7 @@ class TestMarkerPrimitive:
 
         _write_job_failed_marker(target, 21, "読み込み失敗: 試料")
 
-        assert target.read_bytes() == "ErrorCode=21\nErrorMessage=読み込み失敗: 試料\n".encode()
+        assert target.read_bytes() == _marker_bytes(21, "読み込み失敗: 試料")
 
     def test_existing_marker_is_overwritten__tc_645_bv_003(self, tmp_path: Path) -> None:
         """TC-645-BV-003: a stale marker is replaced, not appended to."""
@@ -98,7 +104,7 @@ class TestMarkerPrimitive:
 
         _write_job_failed_marker(target, 7, "new")
 
-        assert target.read_bytes() == b"ErrorCode=7\nErrorMessage=new\n"
+        assert target.read_bytes() == _marker_bytes(7, "new")
 
 
 class TestV2FinalizeMarker:
@@ -117,7 +123,7 @@ class TestV2FinalizeMarker:
 
         finalize(_report("failed", error={"code": 3001, "message": "boom"}), RdeConfig(), data_root=data_root)
 
-        assert (data_root / "job.failed").read_bytes() == b"ErrorCode=3001\nErrorMessage=boom\n"
+        assert (data_root / "job.failed").read_bytes() == _marker_bytes(3001, "boom")
         assert not (caller / "data").exists()
         assert list(caller.iterdir()) == []
 
@@ -128,7 +134,7 @@ class TestV2FinalizeMarker:
 
         finalize(_report("failed", error=record), RdeConfig(), data_root=tmp_path)
 
-        assert (tmp_path / "job.failed").read_bytes() == "ErrorCode=999\nErrorMessage=ユーザー定義エラー\n".encode()
+        assert (tmp_path / "job.failed").read_bytes() == _marker_bytes(999, "ユーザー定義エラー")
 
     def test_failed_finalize_never_touches_get_datadir__tc_645_ep_005(
         self,
@@ -144,7 +150,7 @@ class TestV2FinalizeMarker:
             finalize(_report("failed", error={"code": 3001, "message": "boom"}), RdeConfig(), data_root=data_root)
 
         assert caught == []
-        assert (data_root / "job.failed").read_bytes() == b"ErrorCode=3001\nErrorMessage=boom\n"
+        assert (data_root / "job.failed").read_bytes() == _marker_bytes(3001, "boom")
 
     def test_success_writes_no_marker__tc_645_ep_006(self, tmp_path: Path) -> None:
         """TC-645-EP-006: a successful report writes the run report but no marker."""
@@ -220,14 +226,12 @@ class TestV1WriterKeepsLegacyLocation:
         with pytest.warns(DeprecationWarning, match="get_datadir is deprecated"):
             write_job_errorlog_file(404, "Not Found")
 
-        assert (legacy_cwd / "data" / "job.failed").read_bytes() == b"ErrorCode=404\nErrorMessage=Not Found\n"
+        assert (legacy_cwd / "data" / "job.failed").read_bytes() == _marker_bytes(404, "Not Found")
 
     def test_custom_filename__tc_645_ep_010(self, legacy_cwd: Path) -> None:
         """TC-645-EP-010: a custom filename lands at cwd-relative ``data/<filename>``."""
         with pytest.warns(DeprecationWarning, match="get_datadir is deprecated"):
             write_job_errorlog_file(999, "ユーザー定義エラー", filename="custom.failed")
 
-        assert (legacy_cwd / "data" / "custom.failed").read_bytes() == (
-            "ErrorCode=999\nErrorMessage=ユーザー定義エラー\n".encode()
-        )
+        assert (legacy_cwd / "data" / "custom.failed").read_bytes() == _marker_bytes(999, "ユーザー定義エラー")
         assert not (legacy_cwd / "data" / "job.failed").exists()
