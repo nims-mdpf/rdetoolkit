@@ -194,7 +194,10 @@ the call log and in the RunReport `node_calls`.
 - No file is created when nothing is logged (as in v1).
 - Records below `level=` (default `DEBUG`) are not written. A logger whose own level is higher is lowered for the block and restored afterwards.
 - To keep the ERROR line of a failure, log it inside the block with `logger.exception(...)` and re-raise.
-- The handler is `logging` state of this process: records from threads are written, records from worker processes are not.
+- A record logged in the context that entered the block (the tile's code and the nodes it calls) is written to that block's file only. Runners that use the same logger concurrently in one process do not mix their lines.
+- A record logged in a context that is inside no block, such as a worker thread started inside the block, is written to every block active on that logger.
+- Records from other processes are never written, also from a worker forked inside the block that keeps running after it.
+- When blocks overlap, the logger level returns to its value before the first block once the last block ends.
 - Without `name`, the logger is named after the filename without its suffix.
 
 <!-- test: ga631-artifact-logger -->

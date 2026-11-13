@@ -14,6 +14,8 @@ output kind                     kind="logs"                         file under o
 threads in the process          4 workers x 50 records              every record written once           GA631-EP-6
 call log                        call inside an active recorder      completed record, ArtifactLogger    GA631-EP-7
 Runner run, MultiDataTile       logger shared by every tile         per-tile file, no duplicated lines  GA631-EP-8
+two Runners run concurrently    same logger, overlapping blocks     each file holds only its own run    GA631-EP-9
+forked worker process           Pool forked in tile 1, reused       no worker line in either file       GA631-EP-10
 ==============================  ==================================  ==================================  ============
 
 BV table
@@ -27,13 +29,16 @@ nothing logged                  empty block                         no file crea
 invalid filename / kind / mode  "../x", "temp", "x"                 ValueError, nothing created         GA631-BV-3
 re-entering an active block     nested ``with`` of the same object  RuntimeError, outer stays active    GA631-BV-4
 logger name omitted             name=None                           filename without suffix             GA631-BV-5
+overlapping blocks end unsorted A enters, B enters, A exits first     level held for B, then restored     GA631-BV-6
 ==============================  ==================================  ==================================  ============
 """
 
 from __future__ import annotations
 
 import logging
+import multiprocessing
 import re
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -43,6 +48,7 @@ import pytest
 from rdetoolkit import flow, workflows
 from rdetoolkit.core.calllog import CallLogRecorder
 from rdetoolkit.nodes import ArtifactLogger, artifact_logger
+from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.testing import make_output_context
 from rdetoolkit.types import OutputContext
 from tests.v2.runner.test_event_log_robustness_k4 import _build_tree
@@ -214,6 +220,76 @@ def test_flow_tiles_each_get_their_own_log__ga631_ep_8(tmp_path: Path, monkeypat
         assert [call["node_id"].rsplit(".", 1)[-1] for call in iteration["node_calls"]] == ["artifact_logger"]
 
 
+def test_concurrent_runners_keep_their_logs_apart__ga631_ep_9(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, logger_name: str) -> None:
+    """GA631-EP-9: two Runners in one process, same logger, overlapping blocks: no mixing, level restored."""
+    # Given: two projects and a flow whose blocks overlap; run "a" leaves its block first
+    monkeypatch.chdir(tmp_path)
+    module_logger = logging.getLogger(logger_name)
+    module_logger.setLevel(logging.WARNING)
+    both_inside = threading.Barrier(2, timeout=30)
+    a_left = threading.Event()
+
+    @flow
+    def pipeline(out: OutputContext) -> None:
+        run = out.struct.parents[1].name
+        with artifact_logger(out, "structured_log.txt", name=logger_name):
+            module_logger.info("%s entered", run)
+            both_inside.wait()
+            if run == "b":
+                assert a_left.wait(timeout=30)
+            module_logger.info("%s leaving", run)
+        if run == "a":
+            a_left.set()
+
+    reports: dict[str, Any] = {}
+
+    def run(name: str) -> None:
+        root = tmp_path / name
+        _build_tree(root / "data")
+        runner = Runner(root=root, inputdata_path=root / "data" / "inputdata", unpacked_dir_path=root / "data" / "temp")
+        reports[name] = runner.run(pipeline)
+
+    # When: running both concurrently
+    threads = [threading.Thread(target=run, args=(name,)) for name in ("a", "b")]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=60)
+    # Then: both succeed, each file holds only its own run's lines, and the level is back
+    for name in ("a", "b"):
+        assert reports[name].status == "success", reports[name].error
+        (log,) = (tmp_path / name).glob("**/structured/structured_log.txt")
+        assert _messages(log) == [f"{name} entered", f"{name} leaving"]
+    assert module_logger.level == logging.WARNING
+    assert module_logger.handlers == []
+
+
+def _log_from_worker(logger_name: str, message: str) -> None:
+    logging.getLogger(logger_name).info(message)
+
+
+@pytest.mark.skipif("fork" not in multiprocessing.get_all_start_methods(), reason="needs the fork start method")
+def test_forked_worker_never_writes_to_a_tile_file__ga631_ep_10(tmp_path: Path, logger_name: str) -> None:
+    """GA631-EP-10: a worker forked in tile 1 and reused in tile 2 writes into neither file."""
+    # Given: two tile output contexts
+    first, second = make_output_context(tmp_path / "t1"), make_output_context(tmp_path / "t2")
+    # When: a fork pool created inside the first block logs in both tiles
+    with artifact_logger(first, "structured_log.txt", name=logger_name) as logger:
+        logger.info("tile 1 parent")
+        pool = multiprocessing.get_context("fork").Pool(1)
+        pool.apply(_log_from_worker, (logger_name, "tile 1 worker"))
+    try:
+        with artifact_logger(second, "structured_log.txt", name=logger_name) as logger:
+            logger.info("tile 2 parent")
+            pool.apply(_log_from_worker, (logger_name, "tile 2 worker"))
+    finally:
+        pool.close()
+        pool.join()
+    # Then: each file holds only its own parent's line
+    assert _messages(first.struct / "structured_log.txt") == ["tile 1 parent"]
+    assert _messages(second.struct / "structured_log.txt") == ["tile 2 parent"]
+
+
 def test_level_filters_records_and_is_restored__ga631_bv_1(tmp_path: Path, logger_name: str) -> None:
     """GA631-BV-1: level=INFO drops DEBUG; the logger's own level is restored afterwards."""
     # Given: a logger whose level is unset (effective WARNING through the root)
@@ -285,3 +361,22 @@ def test_logger_name_defaults_to_filename_stem__ga631_bv_5(tmp_path: Path) -> No
     # Then: the logger name is the file stem and the path is under out.struct
     assert artifact.logger.name == "ga631_default_name"
     assert artifact.path == out.struct / "ga631_default_name.txt"
+
+
+def test_overlapping_blocks_restore_level_in_any_order__ga631_bv_6(tmp_path: Path, logger_name: str) -> None:
+    """GA631-BV-6: A enters, B enters, A exits first: B keeps its level, the original returns after B."""
+    # Given: a WARNING logger and two blocks on it
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.WARNING)
+    first = artifact_logger(make_output_context(tmp_path / "a"), "log.txt", name=logger_name, level=logging.INFO)
+    second = artifact_logger(make_output_context(tmp_path / "b"), "log.txt", name=logger_name, level=logging.DEBUG)
+    # When: the blocks end in the order they were entered
+    first.__enter__()
+    second.__enter__()
+    assert logger.level == logging.DEBUG
+    first.__exit__(None, None, None)
+    # Then: the remaining block still has its level, and the original returns after it
+    assert logger.level == logging.DEBUG
+    second.__exit__(None, None, None)
+    assert logger.level == logging.WARNING
+    assert logger.handlers == []

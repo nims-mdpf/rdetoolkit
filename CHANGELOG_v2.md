@@ -11,8 +11,11 @@
   `ArtifactLogger` as a context manager: it attaches a `logging.FileHandler`
   for `out.<kind>/<filename>` to the logger for the block and removes it when
   the block ends, also on error, so a logger shared by every tile writes each
-  tile's records into that tile's file only. Lines use the v1 format by
-  default, an existing file is appended to, and no file is created when
+  tile's records into that tile's file only. Records logged in the block's
+  context go to that block's file only, so concurrent in-process runs on one
+  logger do not mix their lines; records from other processes, including
+  workers forked inside the block, are never written. Lines use the v1 format
+  by default, an existing file is appended to, and no file is created when
   nothing is logged. The call is a builtin node call, so it appears in the
   call log and in the RunReport `node_calls` (#631).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
