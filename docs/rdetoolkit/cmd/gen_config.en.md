@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This module provides the implementation of the `gen-config` CLI command. It creates validated `rdeconfig.yaml` files using predefined templates or an interactive questionnaire so new projects can start with consistent defaults.
+This module provides the implementation of the `rdetoolkit new config` CLI command. It creates validated `rdeconfig.yaml` files using predefined presets (`--preset`) or an interactive questionnaire so new projects can start with consistent defaults.
 
 ## Key Features
 
 ### Template Generation
 - Minimal, full, MultiDataTile, RDEFormat, and SmartTable presets
-- Prompts before overwriting unless the `--overwrite` flag forces replacement
+- Prompts before overwriting unless the `--force` flag forces replacement
 - Structured YAML output that matches `rdetoolkit` configuration models
 
 ### Interactive Workflow

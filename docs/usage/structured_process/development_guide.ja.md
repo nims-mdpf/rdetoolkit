@@ -1332,7 +1332,7 @@ container/data
 もし動作等問題がなければ、RDEに構造化処理を提出します。以下のコマンドを実行しzipが生成されるので、このzipファイルをRDEに提出します。
 
 ```bash
-uv run python -m rdetoolkit artifact -s . -o rde_submit_files.zip
+uv run python -m rdetoolkit package -s . -o rde_submit_files.zip
 ```
 
 ```bash

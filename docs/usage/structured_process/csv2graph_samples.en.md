@@ -59,7 +59,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
   ```bash
-  rdetoolkit csv2graph 'sample1/data.csv' --no-individual
+  rdetoolkit plot 'sample1/data.csv' --no-individual
   ```
 
 ### Option Details
@@ -121,7 +121,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample2/data.csv \
+    rdetoolkit plot sample2/data.csv \
       --logy \
       --no-individual \
       --title "I-V_Curve_of_a_Diode_(log scale)"
@@ -192,7 +192,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph 'sample3/data.csv' --invert-x --no-individual
+    rdetoolkit plot 'sample3/data.csv' --invert-x --no-individual
     ```
 
 #### Inverting the Y Axis
@@ -214,7 +214,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph 'sample3/data.csv' --invert-y --no-individual
+    rdetoolkit plot 'sample3/data.csv' --invert-y --no-individual
     ```
 
 ### Option Details
@@ -287,7 +287,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample4/data.csv \
+    rdetoolkit plot sample4/data.csv \
         --mode overlay \
         --x-col 1 --x-col 4 --x-col 7 \
         --y-cols 0 --y-cols 3 --y-cols 6 \
@@ -357,7 +357,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample5/data.csv \
+    rdetoolkit plot sample5/data.csv \
       --x-col 0 \
       --y-cols 1 --y-cols 2 --y-cols 3 --y-cols 4 --y-cols 5 \
       --no-individual \
@@ -427,7 +427,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample6/data.csv \
+    rdetoolkit plot sample6/data.csv \
       --x-col 0 \
       --y-cols 1 --y-cols 2 --y-cols 3 --y-cols 4 --y-cols 5 \
       --no-individual \
@@ -484,7 +484,7 @@ Switch between the Python script and CLI examples using the tabs below.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample7/data.csv \
+    rdetoolkit plot sample7/data.csv \
       --x-col 1 --x-col 7 --x-col 13 --x-col 19 --x-col 25 --x-col 31 \
       --y-cols 5 --y-cols 11 --y-cols 17 --y-cols 23 --y-cols 29 --y-cols 35 \
       --direction-cols 0 --direction-cols 6 --direction-cols 12 \
@@ -556,7 +556,7 @@ sample8/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample8/data.csv \
+    rdetoolkit plot sample8/data.csv \
       --title "sample_legend_info" \
       --legend-info "Sample: Raman Map\nLaser: 532 nm" \
       --no-individual
@@ -615,7 +615,7 @@ sample9/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample9/data.csv \
+    rdetoolkit plot sample9/data.csv \
       --grid \
       --no-individual
     ```
@@ -675,7 +675,7 @@ sample10/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample10/data.csv \
+    rdetoolkit plot sample10/data.csv \
       --xlim 15 30 \
       --ylim 180 240 \
       --no-individual
@@ -739,7 +739,7 @@ total 472
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample11/data.csv \
+    rdetoolkit plot sample11/data.csv \
       --main-image-dir sample11/main_image \
       --output-dir sample11/other_image
     ```
@@ -809,7 +809,7 @@ sample12/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample12/data.csv \
+    rdetoolkit plot sample12/data.csv \
       --output-dir plots \
       --html \
       --no-individual
@@ -950,7 +950,7 @@ This is the default when `legend_policy` is not specified. The legend is rendere
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -988,7 +988,7 @@ This is the default when `legend_policy` is not specified. The legend is rendere
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data_few.csv \
+    rdetoolkit plot sample14/data_few.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1026,7 +1026,7 @@ Twelve series exceeds `legend_outside_threshold=8`, so `auto` moves the legend o
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1063,7 +1063,7 @@ Places the legend outside the plot on the right regardless of the item count.
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1100,7 +1100,7 @@ Places the legend below the graph in 4 columns. The number of rows follows from 
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1135,7 +1135,7 @@ Places the legend below the graph in 4 columns. The number of rows follows from 
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1172,7 +1172,7 @@ With `max_legend_items=5` and 12 series, `auto` hides the legend because the cap
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1280,7 +1280,7 @@ Thirty-two series is at or above the default `legend_bottom_threshold=21`, so `a
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1320,7 +1320,7 @@ Passing `legend_bottom_threshold=None` (`--legend-bottom-threshold 0` on the CLI
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1366,7 +1366,7 @@ The switch to outside-right happens when the item count **exceeds** the threshol
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1410,7 +1410,7 @@ The switch to bottom placement happens **at or above** the threshold. With 32 se
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1455,7 +1455,7 @@ These examples pin the placement explicitly instead of using `auto`. With `outsi
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1495,7 +1495,7 @@ An explicit `hide`, and an `auto` case where 32 series exceeds `max_legend_items
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \

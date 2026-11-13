@@ -37,7 +37,7 @@ EP table:
         one ``@node`` is compared with a ``@flow`` calling the same ``@node``:
         event-name sequence, ``node_calls`` columns, the
         ``parent_flow == RunReport.flow_id`` invariant, RunReport shape, and the
-        ``graph`` / ``report show`` / ``repro export`` surfaces (matrix columns
+        ``report trace`` / ``report show`` / ``repro export`` surfaces (matrix columns
         6/7/8/12). A negative-control cell reinstates the pre-J1 recorder-less
         invoker to prove the five cells detect the difference.
 
@@ -1330,7 +1330,7 @@ def _run_cb_obs(mode: str, root: Path, target: Any, monkeypatch: pytest.MonkeyPa
 
 
 def _cb_obs_cli_views(mode: str, root: Path, report_path: Path) -> tuple[str, str, set[str]]:
-    """Return the ``graph`` / ``report show`` output and the repro archive listing.
+    """Return the ``report trace`` / ``report show`` output and the repro archive listing.
 
     Both entries run with the in-memory ``oracle_config(mode)``, an override no
     file reproduces. Column 12 (amended 2026-11-09, RC1 F09): a plain
@@ -1344,7 +1344,7 @@ def _cb_obs_cli_views(mode: str, root: Path, report_path: Path) -> tuple[str, st
     from rdetoolkit.config.normalize import ConfigNormalizer  # noqa: PLC0415
 
     cli = CliRunner()
-    graph = cli.invoke(app, ["graph", str(report_path), "--format", "json"])
+    graph = cli.invoke(app, ["report", "trace", str(report_path), "--format", "json"])
     assert graph.exit_code == 0, graph.output
     show = cli.invoke(app, ["report", "show", str(report_path)])
     assert show.exit_code == 0, show.output
@@ -1375,7 +1375,7 @@ def test_callback_observability_matches_the_flow_entry(
     """CB-OBS cells: the callback entry point is observable exactly like a flow.
 
     Columns compared (contract_matrix §2): 6 RunReport, 7 Events, 8 Provenance,
-    12 repro archive plus ``graph`` / ``report show`` usability. ``flow_id`` is
+    12 repro archive plus ``report trace`` / ``report show`` usability. ``flow_id`` is
     the one value that legitimately differs -- it identifies the callback on one
     side and the flow on the other -- and the invariant that replaces equality is
     ``parent_flow == flow_id`` on **both** sides (ruling #1).
@@ -1432,7 +1432,7 @@ def test_callback_observability_matches_the_flow_entry(
     assert cb_archive == flow_archive
     assert "data/logs/<RUN_REPORT>" in cb_archive
 
-    # And: ``graph`` renders the recorded calls instead of the empty placeholder
+    # And: ``report trace`` renders the recorded calls instead of the empty placeholder
     for rendered in (cb_graph, flow_graph):
         assert _CB_OBS_NODE_ID in rendered
         assert "No recorded calls" not in rendered
@@ -1440,7 +1440,7 @@ def test_callback_observability_matches_the_flow_entry(
 
     # And: ``report show`` is non-empty and identical once the run id line is
     # dropped. It prints failed call ids only, so a successful run shows no node
-    # id there by design; ``graph`` above is what carries the node identity.
+    # id there by design; ``report trace`` above is what carries the node identity.
     assert cb_show.splitlines()[1:] == flow_show.splitlines()[1:]
     assert f"iterations: {tiles}" in cb_show
 
@@ -1453,7 +1453,7 @@ def test_callback_observability_seats_detect_the_pre_j1_behaviour__tc_um_cb_obs_
 
     Before Session J1 the callback was invoked *outside* any recorder context, so
     its ``@node`` calls were plain function calls: ``node_calls`` was empty, no
-    ``node.*`` event existed, and ``graph`` printed "No recorded calls". This cell
+    ``node.*`` event existed, and ``report trace`` printed "No recorded calls". This cell
     reinstates that behaviour through an invoker substituted at the registry
     boundary and asserts the difference is visible -- without it, the five cells
     above could be satisfied by an implementation that records nothing on either
@@ -1532,7 +1532,7 @@ def test_callback_observability_seats_detect_the_pre_j1_behaviour__tc_um_cb_obs_
     assert recorded_parent_flows(root / "data") == set()
     rendered = CliRunner().invoke(
         app,
-        ["graph", str(run_report_path(root / "data", report.run_id)), "--format", "mermaid"],
+        ["report", "trace", str(run_report_path(root / "data", report.run_id)), "--format", "mermaid"],
     )
     assert rendered.exit_code == 0, rendered.output
     assert "No recorded calls" in rendered.output

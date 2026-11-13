@@ -3,7 +3,7 @@
 The flow writes ``config.custom["label"]`` to ``structured/label.txt`` so a
 round trip that loses configuration is visible in the output bytes, not only
 in the report digest. Ids are explicit so the module can be resolved by
-``run --flow`` any number of times in one pytest session.
+``run`` any number of times in one pytest session.
 """
 
 from __future__ import annotations

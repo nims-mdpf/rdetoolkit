@@ -819,7 +819,7 @@ Logs are output to timestamped files (e.g., `rdesys_20260106_092845.log`) under 
 If there are no problems with operation, submit the structured processing to RDE. Execute the following command to generate a zip file, then submit this zip file to RDE.
 
 ```bash
-uv run python -m rdetoolkit artifact -s . -o rde_submit_files.zip
+uv run python -m rdetoolkit package -s . -o rde_submit_files.zip
 ```
 
 ```bash

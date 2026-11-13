@@ -19,7 +19,7 @@ def test_guide_describes_v2_and_compatibility__ga580_ep_1_neg_1(detailed: bool) 
     # When: loading it through the package API
     guide = get_agent_guide(detailed=detailed)
     # Then: the v2 surface and frozen compatibility entry are explicit
-    for term in ("@flow", "@node", "InputPaths", "OutputContext", "InvoiceData", "IterationInfo", "RdeConfig", "ProcessingTemplate", "build_meta", "rdetoolkit run --flow", "rdetoolkit.testing", "frozen compatibility"):
+    for term in ("@flow", "@node", "InputPaths", "OutputContext", "InvoiceData", "IterationInfo", "RdeConfig", "ProcessingTemplate", "build_meta", "rdetoolkit run", "rdetoolkit.testing", "frozen compatibility"):
         assert term in guide
     for obsolete in ("from rdetoolkit.processing", "core.cpython-", "rdetoolkit validate", "rdetoolkit gen-excelinvoice"):
         assert obsolete not in guide

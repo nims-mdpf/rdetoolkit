@@ -59,7 +59,7 @@ sample1/
 
 === "CLI"
   ```bash
-  rdetoolkit csv2graph 'sample1/data.csv' --no-individual
+  rdetoolkit plot 'sample1/data.csv' --no-individual
   ```
 
 ### オプションの説明
@@ -116,7 +116,7 @@ sample2/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample2/data.csv \
+    rdetoolkit plot sample2/data.csv \
       --logy \
       --no-individual \
       --title "I–V_Curve_of_a_Diode_(log scale)"
@@ -187,7 +187,7 @@ sample3/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph 'sample3/data.csv' --invert-x --no-individual
+    rdetoolkit plot 'sample3/data.csv' --invert-x --no-individual
     ```
 
 #### Y軸を反転させる例
@@ -209,7 +209,7 @@ sample3/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph 'sample3/data.csv' --invert-y --no-individual
+    rdetoolkit plot 'sample3/data.csv' --invert-y --no-individual
     ```
 
 ### オプションの説明
@@ -282,7 +282,7 @@ sample4/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample4/data.csv \
+    rdetoolkit plot sample4/data.csv \
         --mode overlay \
         --x-col 1 --x-col 4 --x-col 7 \
         --y-cols 0 --y-cols 3 --y-cols 6 \
@@ -352,7 +352,7 @@ sample5/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample5/data.csv \
+    rdetoolkit plot sample5/data.csv \
       --x-col 0 \
       --y-cols 1 --y-cols 2 --y-cols 3 --y-cols 4 --y-cols 5 \
       --no-individual
@@ -422,7 +422,7 @@ sample6/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample6/data.csv \
+    rdetoolkit plot sample6/data.csv \
       --x-col 0 \
       --y-cols 1 --y-cols 2 --y-cols 3 --y-cols 4 --y-cols 5 \
       --no-individual \
@@ -480,7 +480,7 @@ Charge,2.0,1,0.9930867849414408,0.5693531709169787,3.1401720080365,Discharge,2.0
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample7/data.csv \
+    rdetoolkit plot sample7/data.csv \
       --x-col 1 --x-col 7 --x-col 13 --x-col 19 --x-col 25 --x-col 31 \
       --y-cols 5 --y-cols 11 --y-cols 17 --y-cols 23 --y-cols 29 --y-cols 35 \
       --direction-cols 0 --direction-cols 6 --direction-cols 12 \
@@ -561,7 +561,7 @@ sample8/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample8/data.csv \
+    rdetoolkit plot sample8/data.csv \
       --title "sample_legend_info" \
       --legend-info "Sample: Raman Map\nLaser: 532 nm" \
       --no-individual
@@ -620,7 +620,7 @@ sample9/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample9/data.csv \
+    rdetoolkit plot sample9/data.csv \
       --grid \
       --no-individual
     ```
@@ -680,7 +680,7 @@ sample10/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample10/data.csv \
+    rdetoolkit plot sample10/data.csv \
       --xlim 15 30 \
       --ylim 180 240 \
       --no-individual
@@ -744,7 +744,7 @@ total 472
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample11/data.csv \
+    rdetoolkit plot sample11/data.csv \
       --main-image-dir sample11/main_image \
       --output-dir sample11/other_image
     ```
@@ -814,7 +814,7 @@ sample12/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample12/data.csv \
+    rdetoolkit plot sample12/data.csv \
       --output-dir plots \
       --html \
       --no-individual
@@ -955,7 +955,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -993,7 +993,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data_few.csv \
+    rdetoolkit plot sample14/data_few.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1031,7 +1031,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1068,7 +1068,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1105,7 +1105,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1140,7 +1140,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1177,7 +1177,7 @@ sample14/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample14/data.csv \
+    rdetoolkit plot sample14/data.csv \
       --output-dir sample14 \
       --x-col x \
       --no-individual --grid \
@@ -1285,7 +1285,7 @@ sample15/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1325,7 +1325,7 @@ sample15/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1371,7 +1371,7 @@ sample15/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1415,7 +1415,7 @@ sample15/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1460,7 +1460,7 @@ sample15/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \
@@ -1500,7 +1500,7 @@ sample15/
 
 === "CLI"
     ```bash
-    rdetoolkit csv2graph sample15/data.csv \
+    rdetoolkit plot sample15/data.csv \
       --output-dir sample15 \
       --x-col x \
       --no-individual --grid \

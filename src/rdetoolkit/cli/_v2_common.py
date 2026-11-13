@@ -10,6 +10,12 @@ from types import ModuleType
 
 import typer
 
+#: Printed after every failed ``--module`` import.
+IMPORT_REMEDIATION = (
+    "Remediation: run the command from the project root (the current directory is put on sys.path), "
+    "check the dotted module name, and fix any error the module raises on import."
+)
+
 
 def ensure_cwd_on_sys_path() -> None:
     """Give project-module imports ``python -m`` semantics.
@@ -53,5 +59,5 @@ def load_modules(module_names: Sequence[str]) -> None:
         try:
             import_project_module(module_name)
         except Exception as exc:  # noqa: BLE001
-            typer.echo(f"Unable to import module {module_name}: {exc}", err=True)
+            typer.echo(f"Unable to import module {module_name}: {exc}\n{IMPORT_REMEDIATION}", err=True)
             raise typer.Exit(code=3) from exc

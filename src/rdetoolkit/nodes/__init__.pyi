@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+from rdetoolkit.nodes.external import CompletedProgram as CompletedProgram, run_program as run_program, to_wine_path as to_wine_path
 from rdetoolkit.nodes.image import copy_raw as copy_raw, make_thumbnail as make_thumbnail, save_main_image as save_main_image, to_jpeg as to_jpeg, to_png as to_png
 from rdetoolkit.nodes.io import read_csv_with_header as read_csv_with_header, read_excel as read_excel, read_text as read_text, unzip_inputs as unzip_inputs
 from rdetoolkit.nodes.meta import parse_invoice_meta as parse_invoice_meta, save_meta as save_meta
@@ -8,10 +9,12 @@ from rdetoolkit.nodes.plot import plot_lines as plot_lines, plot_scatter as plot
 from rdetoolkit.nodes.structured import save_csv as save_csv, save_json as save_json
 from rdetoolkit.nodes.io import read_json as read_json
 from rdetoolkit.nodes.io import read_excel_fills as read_excel_fills
+from rdetoolkit.nodes.io import read_key_values as read_key_values
 from rdetoolkit.nodes.invoice import resolve_custom_key as resolve_custom_key, set_custom_fields as set_custom_fields
 from rdetoolkit.nodes.meta import build_meta as build_meta
-from rdetoolkit.nodes.plot import save_figure as save_figure
+from rdetoolkit.nodes.plot import save_figure as save_figure, save_html_figure as save_html_figure
 from rdetoolkit.nodes.structured import save_invoice as save_invoice, save_text as save_text
+from rdetoolkit.nodes.image import render_png as render_png
 from rdetoolkit.nodes.logfile import ArtifactLogger as ArtifactLogger, artifact_logger as artifact_logger
 
 def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..., Any]: ...

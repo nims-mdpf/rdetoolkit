@@ -66,7 +66,21 @@ Plotlyは、Pythonなどでインタラクティブなグラフやダッシュ�
     pip install 'rdetoolkit[plotly]'
     ```
 
-### 4. 開発版インストール
+### 4. PDF / SVG レンダリング付きインストール
+
+builtin ノード `render_png` で PDF のページや SVG を PNG 画像に変換する場合は、追加の依存関係をインストールします。PDF は pypdfium2(PDFium 同梱のため追加のシステムパッケージは不要)、SVG は cairosvg で描画します。SVG の描画には Cairo のシステムライブラリも必要です(例: Debian/Ubuntu は `sudo apt install libcairo2`、macOS は `brew install cairo`)。
+
+=== "Unix/macOS"
+    ```bash title="terminal"
+    pip install 'rdetoolkit[render]'
+    ```
+
+=== "Windows"
+    ```cmd title="command_prompt"
+    pip install 'rdetoolkit[render]'
+    ```
+
+### 5. 開発版インストール
 
 最新の開発版を使用する場合は、GitHubリポジトリから直接インストールします。
 
@@ -83,7 +97,7 @@ Plotlyは、Pythonなどでインタラクティブなグラフやダッシュ�
 !!! warning "開発版の注意事項"
     開発版は不安定な場合があります。プロダクション環境では安定版の使用を推奨します。
 
-### 5. 仮想環境でのインストール
+### 6. 仮想環境でのインストール
 
 プロジェクトごとに独立した環境を作成する場合の手順です。
 

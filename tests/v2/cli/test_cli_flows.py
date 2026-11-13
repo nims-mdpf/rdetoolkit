@@ -5,7 +5,7 @@ Written before implementation (TDD Red phase). Target: make all tests pass
 in codex-worker Green phase. Authority: local/develop/v2/tasks/session_e1.md
 Conflicts #4/#6/#7.
 
-These commands mirror ``nodes list``/``nodes describe`` (test_cli_nodes.py)
+These commands mirror ``nodes list``/``nodes show`` (test_cli_nodes.py)
 using ``core/registry.list_flows()``/``get_flow()`` (Conflict #4's boundary
 amendment for enumeration; ``get_flow`` itself already existed). No lint
 counterpart exists for flows -- E2006 is checked as part of ``nodes lint``
@@ -69,7 +69,7 @@ class TestFlowsDescribe:
             return None
 
         flow_id = _fixture_flow_ep003.__flow_spec__.id
-        result = cli_runner.invoke(app, ["flows", "describe", flow_id])
+        result = cli_runner.invoke(app, ["flows", "show", flow_id])
 
         assert result.exit_code == 0
         for field_name in _FLOW_SPEC_FIELDS:
@@ -81,7 +81,7 @@ class TestFlowsDescribe:
             return None
 
         flow_id = _fixture_flow_ep004.__flow_spec__.id
-        result = cli_runner.invoke(app, ["flows", "describe", flow_id, "--json"])
+        result = cli_runner.invoke(app, ["flows", "show", flow_id, "--json"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -89,6 +89,6 @@ class TestFlowsDescribe:
         assert data["id"] == flow_id
 
     def test_describe_unknown_name_exits_3__tc_cli_flows_ep_005(self, cli_runner: CliRunner) -> None:
-        result = cli_runner.invoke(app, ["flows", "describe", "definitely.not.a.registered.flow.id.e1"])
+        result = cli_runner.invoke(app, ["flows", "show", "definitely.not.a.registered.flow.id.e1"])
 
         assert result.exit_code == 3

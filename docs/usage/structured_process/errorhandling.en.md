@@ -112,6 +112,38 @@ def validate_against_schema(data, schema_path):
 
 ### 4. Use RDEToolKit Error Handling Features
 
+#### Using ProcessingError (recommended in v2)
+
+Raise `ProcessingError` to tell the user that the input cannot be processed.
+Put what happened in `message` and what to do next in `remediation`. You
+choose no error code: the Runner writes it to `RunReport`, the iteration log
+and `job.failed` as 3007 `ProcessingFailed`.
+
+```python title="Raising ProcessingError"
+from rdetoolkit.exceptions import ProcessingError
+
+def read_sample(path):
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+```
+
+`job.failed` then reads:
+
+```text
+ErrorCode=3007
+ErrorMessage=Input file was not found. Remediation: Check that the file is in inputdata.
+```
+
+- Without `remediation`, the default guidance of catalog entry 3007 is used.
+- `raise ... from exc` keeps the original exception as `__cause__`.
+- Ordinary exceptions such as `ValueError` still become 3001 `NodeExecutionFailed`.
+- The flow's `error_code` / `error_message` options do not remap a `ProcessingError`.
+
 #### Using StructuredError
 
 ```python title="Structured Error Implementation"
@@ -139,7 +171,13 @@ def dataset_with_error_handling(srcpaths, resource_paths):
     return process_data(config)
 ```
 
-#### Using Error Decorator
+#### Using Error Decorator (deprecated)
+
+!!! warning "Deprecated"
+    `catch_exception_with_message` is deprecated. Applying it emits a
+    `DeprecationWarning`; its behavior is unchanged and it is not removed in
+    v2. Raise `ProcessingError` in new code. The decorator passes a
+    `ProcessingError` through instead of converting it to `StructuredError`.
 
 ```python title="Error Decorator"
 from rdetoolkit.errors import catch_exception_with_message

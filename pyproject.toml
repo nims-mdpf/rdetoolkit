@@ -50,6 +50,7 @@ requires-python = ">= 3.10"
 [project.optional-dependencies]
 minio = ["minio>=7.2.15"]
 plotly = ["plotly>=6.3.1"]
+render = ["pypdfium2>=4.30", "cairosvg>=2.7"]
 
 [tool.setuptools]
 package_data = { "rdetoolkit" = ["py.typed", "*.pyi", "_agent/*.md"] }

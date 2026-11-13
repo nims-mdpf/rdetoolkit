@@ -26,7 +26,7 @@ from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
 from rdetoolkit.report.events import Event, EventSink, _best_effort_stderr
 from rdetoolkit.runner.execute import ExecutionResult, TileExecutionError
-from rdetoolkit.runner.finalize import structured_error_record
+from rdetoolkit.runner.finalize import processing_error_record, structured_error_record
 from rdetoolkit.runner.invoker import FlowInvoker, TargetInvoker
 from rdetoolkit.runner.planner import TileMaterial, TilePreparation
 
@@ -498,8 +498,9 @@ def _catalogued_stage_error(code: int, exc: Exception) -> dict[str, Any]:
 
 
 def _execution_error(exc: Exception) -> dict[str, Any]:
-    # A StructuredError carries ecode/emsg, not code/message (Design §6.3).
-    passthrough = structured_error_record(exc)
+    # A StructuredError carries ecode/emsg, not code/message (Design §6.3);
+    # a ProcessingError carries its own remediation (#634).
+    passthrough = structured_error_record(exc) or processing_error_record(exc)
     if passthrough is not None:
         return passthrough
     code = getattr(exc, "code", 3001)
