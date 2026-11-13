@@ -42,6 +42,8 @@ def _documents() -> list[Path]:
     files = [REPO_ROOT / "README.md"]
     for root in roots:
         files.extend(sorted(root.rglob("*.md")))
+    # The shipped Agent Skills (#664) quote CLI commands for agents to run.
+    files.extend(sorted((REPO_ROOT / ".agents" / "skills").glob("rdetoolkit-*/**/*.md")))
     return [path for path in files if not any(path == excluded or excluded in path.parents for excluded in _EXCLUDED)]
 
 
