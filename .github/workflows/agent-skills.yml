@@ -23,6 +23,10 @@ jobs:
         run: uv sync --frozen
       - name: Execute shipped examples and distribution tests
         run: uv run pytest tests/v2/docs/ -v
+      - name: Lint the migration Skill's scripts and examples
+        run: |
+          uv run ruff check .agents/skills/rdetoolkit-v1-migration/scripts .agents/skills/rdetoolkit-v1-migration/examples
+          uv run mypy .agents/skills/rdetoolkit-v1-migration/scripts .agents/skills/rdetoolkit-v1-migration/examples
       - name: Build version-matched offline Skills pack
         run: |
           uv run python scripts/check_version_consistency.py
