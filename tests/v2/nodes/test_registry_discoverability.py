@@ -61,6 +61,7 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "run_program",
     "render_png",
     "read_key_values",
+    "artifact_logger",
 )
 
 

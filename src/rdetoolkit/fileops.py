@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 
 @lru_cache(maxsize=1)
@@ -47,6 +48,9 @@ def readf_json(path: str | Path) -> dict[str, Any]:  # pragma: no cover
         with open(_path, encoding=normalize_enc) as f:
             return json.load(f)
     except Exception as e:
+        # The run interruption (3004) is not a file error; keep its code (#635).
+        if is_run_interrupted(e):
+            raise
         emsg = f"An error occurred while processing the file: {str(e)}"
         _get_logger().error(emsg)
         raise StructuredError(emsg) from e
