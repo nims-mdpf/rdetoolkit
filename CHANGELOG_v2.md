@@ -137,6 +137,21 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- The builtin node `run_program` runs an external converter from a flow and
+  returns a `CompletedProgram` (command line, exit code, output streams, run
+  time). A non-zero exit, a program that cannot start, or a timeout raises
+  `StructuredError` with the caller's `error_code` (default 1) instead of
+  surfacing as ErrorCode 3001; the default message names the command line, the
+  exit code and the end of stderr. `wine="auto"` runs a Windows program with
+  `wine` outside Windows and converts `Path` arguments, and `to_wine_path`
+  converts paths embedded in option strings (#630).
+- Builtin node `render_png(source_path, out, filename, *, kind="main_image",
+  page=1, dpi=350)` renders an image, a PDF page or an SVG drawing to PNG under
+  `main_image` (or `other_image` / `thumbnail`). PDF pages are rendered with
+  pypdfium2 and SVG drawings with cairosvg, both from the new optional extra
+  `rdetoolkit[render]`; SVG also needs the Cairo system library. A missing
+  backend raises an `ImportError` that names the extra and the library. Other
+  files are converted with Pillow like `to_png` (#627).
 - `plot_lines` accepts `xlim` / `ylim` (`(lower, upper)`, a `None` bound keeps
   matplotlib's automatic limit, so `ylim=(0, None)` starts the axis at 0) and
   `xscale`, so a fixed axis range no longer needs an own figure and
@@ -158,6 +173,25 @@
   exception fails the run with 3001 (naming the preparation) before any tile.
   Only the flow the Runner executes is prepared, and direct calls of the flow
   do not run it (#573).
+- `rdetoolkit.exceptions.ProcessingError(message, *, remediation=None)`
+  reports a processing failure without an error code. It is an
+  `RdeExecutionError` with the new catalog entry 3007 `ProcessingFailed`. Every
+  entry point (`@flow` body or `prepare`, and the v1 callback) publishes it as
+  3007 in `RunReport.error`, the iteration log and `job.failed`. The message is
+  followed by `Remediation: <remediation>`, and `remediation` defaults to the
+  catalog guidance. `@flow(error_code=..., error_message=...)` does not remap
+  it. A non-str or blank `message` / `remediation` raises `TypeError` /
+  `ValueError`. Ordinary exceptions stay 3001 and `StructuredError` keeps its
+  `ecode`/`emsg` (#634).
+
+### Deprecated
+
+- `rdetoolkit.errors.catch_exception_with_message` emits a
+  `DeprecationWarning` when it is applied; raise `ProcessingError` instead. It
+  keeps its v1 behavior and is not removed in v2, except that a
+  `ProcessingError` now propagates unchanged instead of being converted to a
+  `StructuredError`. rdetoolkit's own use of the decorator in `img2thumb` does
+  not warn (#634).
 
 ### Changed
 

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.registry import FlowSpec, register_flow
+from rdetoolkit.errors import ProcessingError
 from rdetoolkit.exceptions import StructuredError
 
 if TYPE_CHECKING:
@@ -213,14 +214,15 @@ def flow_error(fn: Callable[..., Any], error: Exception) -> StructuredError | No
     Returns:
         The mapped ``StructuredError``, or ``None`` when the flow declares no
         error options or ``error`` keeps its own identity -- a
-        ``StructuredError`` (v1 ``catch_exception_with_message`` parity) or
-        the Runner's SIGTERM interruption.
+        ``StructuredError`` (v1 ``catch_exception_with_message`` parity), a
+        ``ProcessingError`` (it states its own message and remediation, #634)
+        or the Runner's SIGTERM interruption.
     """
     code = getattr(fn, "__flow_error_code__", None)
     message = getattr(fn, "__flow_error_message__", None)
     if code is None and message is None:
         return None
-    if isinstance(error, StructuredError) or is_run_interrupted(error):
+    if isinstance(error, (StructuredError, ProcessingError)) or is_run_interrupted(error):
         return None
     text = str(error) if message is None else _format_message(message, error)
     return StructuredError(text, 3001 if code is None else code)
@@ -236,7 +238,8 @@ def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
         A callable preserving the signature and exception chain. Only ordinary
         exceptions raised by the body are mapped; a ``StructuredError`` keeps
         its own code and message (v1 ``catch_exception_with_message`` parity),
-        and process-control exceptions and the Runner's SIGTERM interruption
+        a ``ProcessingError`` keeps 3007 and its remediation, and
+        process-control exceptions and the Runner's SIGTERM interruption
         propagate unchanged.
     """
     code = getattr(fn, "__flow_error_code__", None)
@@ -250,8 +253,9 @@ def flow_for_runner(fn: Callable[..., Any]) -> Callable[..., Any]:
             return fn(*args, **kwargs)
         except Exception as error:
             # A user-raised StructuredError already carries its own ecode/emsg
-            # (v1 catch_exception_with_message parity, #589); flow_error
-            # leaves it, and the SIGTERM interruption, unmapped.
+            # (v1 catch_exception_with_message parity, #589) and a
+            # ProcessingError its own texts (#634); flow_error leaves them,
+            # and the SIGTERM interruption, unmapped.
             mapped_error = flow_error(fn, error)
             if mapped_error is None:
                 raise

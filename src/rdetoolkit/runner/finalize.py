@@ -8,7 +8,7 @@ from pathlib import Path
 from collections.abc import Callable
 from typing import Any
 
-from rdetoolkit.errors import ERROR_CATALOG, _write_job_failed_marker
+from rdetoolkit.errors import ERROR_CATALOG, ProcessingError, _write_job_failed_marker
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.types import RdeConfig
@@ -54,6 +54,30 @@ def structured_error_record(exc: BaseException | None) -> dict[str, Any] | None:
     code = exc.ecode if isinstance(exc.ecode, int) and not isinstance(exc.ecode, bool) else _DEFAULT_FAILURE_CODE
     message = str(exc.emsg or str(exc) or _EMPTY_PASSTHROUGH_MESSAGE)
     return {"code": code, "name": PASSTHROUGH_ERROR_NAME, "message": message}
+
+
+def processing_error_record(exc: BaseException | None) -> dict[str, Any] | None:
+    """Return the error record for a user-raised ``ProcessingError`` (#634).
+
+    Framework errors embed their catalog remediation in ``message`` when they
+    are raised; a ``ProcessingError`` carries the user's message and
+    remediation separately, so the published message is composed here. Both
+    halves reach ``job.failed``, whose only text field is the message.
+
+    Args:
+        exc: Candidate exception, typically a raised error or its ``__cause__``.
+
+    Returns:
+        The 3007 record, or ``None`` when ``exc`` is not a ``ProcessingError``.
+    """
+    if not isinstance(exc, ProcessingError):
+        return None
+    return {
+        "code": exc.code,
+        "name": exc.name,
+        "message": f"{exc.message} Remediation: {exc.remediation}",
+        "remediation": exc.remediation,
+    }
 
 
 class RunFinalizer:
