@@ -45,12 +45,12 @@ def test_dot_retains_usage_errors__ga561_neg_1(tmp_path: Path, monkeypatch: pyte
     elif failure == "existing_file":
         (tmp_path / "container_migrated").write_text("user output", encoding="utf-8")
     elif failure == "source_itself":
-        args += ["--out", "."]
+        args += ["--output", "."]
     elif failure == "symlink_parent":
         (tmp_path / "alias").symlink_to(source, target_is_directory=True)
-        args += ["--out", "../alias/nested"]
+        args += ["--output", "../alias/nested"]
     elif failure == "inside":
-        args += ["--out", "nested"]
+        args += ["--output", "nested"]
     monkeypatch.chdir(source)
     # When: the actual command validates its destination
     result = CliRunner().invoke(app, args)

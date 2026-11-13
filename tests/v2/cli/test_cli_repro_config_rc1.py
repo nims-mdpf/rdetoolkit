@@ -105,7 +105,7 @@ def _project(base: Path, case: str) -> tuple[Path, Path]:
 
 def _run(root: Path, *extra: str) -> dict[str, Any]:
     with _cwd(root):
-        result = CliRunner().invoke(app, ["run", "--flow", FLOW, *extra])
+        result = CliRunner().invoke(app, ["run", FLOW, *extra])
     assert result.exit_code == 0, result.output
     return json.loads(result.output)
 

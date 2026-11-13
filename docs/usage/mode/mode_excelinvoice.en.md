@@ -26,19 +26,19 @@ Run the following commands to create a template ExcelInvoice file.
 \=== "Unix/macOS"
 
 ```shell
-python3 -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+python3 -m rdetoolkit new excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
 
 # Example
-python3 -m rdetoolkit make-excelinvoice template/invoice.schema.json
+python3 -m rdetoolkit new excelinvoice template/invoice.schema.json
 ```
 
 \=== "Windows"
 
 ```powershell
-py -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+py -m rdetoolkit new excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
 
 # Example
-py -m rdetoolkit make-excelinvoice template/invoice.schema.json
+py -m rdetoolkit new excelinvoice template/invoice.schema.json
 ```
 
 An Excel file like the one below will be generated. This Excel file is registered on a “`1 row` = `1 dataset tile`” basis. Therefore, please fill in each row with the information you want to register as a dataset tile.

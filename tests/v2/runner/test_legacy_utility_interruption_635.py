@@ -20,7 +20,6 @@ EP table (interruption passes through unchanged):
 | TC-635-EP-004 | ``fileops.readf_json`` | ``json.load`` | same 3004 object |
 | TC-635-EP-005 | ``SystemFilesCleaner.clean_directory`` | ``Path.unlink`` | same 3004 object (not logged and skipped) |
 | TC-635-EP-006 | ``SystemFilesCleaner.clean_directory`` | ``shutil.rmtree`` | same 3004 object |
-| TC-635-EP-007 | ``catch_exception_with_message`` | decorated body | same 3004 object |
 | TC-635-EP-008 | ``img2thumb.resize_image`` | ``resize_image_aspect_ratio`` | same 3004 object |
 | TC-635-EP-009 | ``ExcelInvoiceFile.save`` | ``DataFrame.to_excel`` | same 3004 object |
 | TC-635-EP-010 | ``invoice_generator._load_and_validate_schema`` | ``readf_json`` / model | same 3004 object |
@@ -35,7 +34,6 @@ Integration table (real SIGTERM through the Runner, ``continue`` policy):
 | TC-635-INT-001 | smarttable / input parse (``read_table``) | ``pd.read_excel`` | failed / 3004 / ``job.failed`` ErrorCode=3004 |
 | TC-635-INT-002 | smarttable / row-CSV generation | ``pd.DataFrame`` | failed / 3004 / ``job.failed`` ErrorCode=3004 |
 | TC-635-INT-003 | invoice / JSON read (``readf_json``) | ``detect_encoding`` | failed / 3004 / ``job.failed`` ErrorCode=3004 |
-| TC-635-INT-004 | invoice / thumbnail stage (decorated converter) | ``shutil.copy`` | failed / 3004 / ``job.failed`` ErrorCode=3004 |
 
 Negative table (v1 behaviour unchanged):
 | TC | Utility | Input | Expected |
@@ -45,7 +43,6 @@ Negative table (v1 behaviour unchanged):
 | TC-635-NEG-003 | ``readf_json`` | malformed JSON | ``StructuredError`` "An error occurred while processing the file", ``__cause__`` kept |
 | TC-635-NEG-004 | ``readf_json`` / ``read_table`` | ``RdeExecutionError(3001)`` | still translated (only 3004 passes) |
 | TC-635-NEG-005 | ``clean_directory`` | ``OSError`` | logged and skipped |
-| TC-635-NEG-006 | ``catch_exception_with_message`` | ``RuntimeError`` | ``StructuredError`` with the decorator code |
 | TC-635-NEG-007 | ``try_result`` | ``RuntimeError`` | ``Failure`` |
 | TC-635-NEG-008 | invoice run / ``readf_json`` | malformed invoice.json | not 3004 (ordinary failure) |
 """
@@ -63,7 +60,7 @@ from typing import Any
 import pytest
 
 from rdetoolkit import fileops, flow, img2thumb, invoice_generator, workflows
-from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError, catch_exception_with_message
+from rdetoolkit.errors import ERROR_CATALOG, RdeExecutionError
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl import compressed_controller
 from rdetoolkit.impl.compressed_controller import SystemFilesCleaner
@@ -316,32 +313,11 @@ class TestSystemFilesCleaner:
 
 
 # --------------------------------------------------------------------------
-# errors.catch_exception_with_message / img2thumb
+# img2thumb
 # --------------------------------------------------------------------------
 
 
-class TestCatchExceptionWithMessage:
-    def test_interrupt_in_decorated_body_propagates__tc_635_ep_007(self) -> None:
-        # Given: a decorated function interrupted while it runs
-        interrupt = _interrupt_error()
-        decorated = catch_exception_with_message(error_message="failed", error_code=50)(_raising(interrupt))
-
-        # When / Then: not re-raised as StructuredError(50)
-        with pytest.raises(RdeExecutionError) as exc_info:
-            decorated()
-        assert exc_info.value is interrupt
-
-    def test_ordinary_failure_keeps_v1_translation__tc_635_neg_006(self) -> None:
-        # Given: a decorated function failing in an ordinary way
-        cause = RuntimeError("broke")
-        decorated = catch_exception_with_message(error_message="failed", error_code=50)(_raising(cause))
-
-        # When / Then
-        with pytest.raises(StructuredError) as exc_info:
-            decorated()
-        assert exc_info.value.ecode == 50
-        assert exc_info.value.__cause__ is cause
-
+class TestImg2Thumb:
     def test_interrupt_in_resize_propagates__tc_635_ep_008(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # Given: the image resize is interrupted
         interrupt = _interrupt_error()
@@ -539,25 +515,6 @@ class TestRunnerKeepsInterruption:
 
         # Then
         assert calls
-        _assert_interrupted(report, data)
-        assert sigterm_guard == []
-
-    def test_sigterm_inside_decorated_thumbnail_converter__tc_635_int_004(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sigterm_guard: list[int]
-    ) -> None:
-        # Given: a main image, and a real SIGTERM inside the v1 converter's copy
-        # (the converter itself runs, decorated by catch_exception_with_message)
-        data = _seed_invoice_run(tmp_path / "data")
-        (data / "main_image").mkdir()
-        (data / "main_image" / "a.png").write_bytes(b"png")
-        copy, calls = _first_call_does(_send_sigterm, shutil.copy)
-        monkeypatch.setattr(img2thumb, "shutil", _ModuleProxy(shutil, copy=copy))
-
-        # When
-        report = _run(data, system={"save_thumbnail_image": True, "feature_description": False})
-
-        # Then: the tolerant thumbnail stage sees 3004, not StructuredError(50)
-        assert calls == [1]
         _assert_interrupted(report, data)
         assert sigterm_guard == []
 

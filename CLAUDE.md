@@ -44,7 +44,7 @@ PyO3/Maturin (Rust is v1-only; v2.0 adds no Rust).
 ### v2 Execution Model (eager + call log, v2.1)
 
 ```
-Layer 4:  CLI / Entry Points      rdetoolkit run / nodes / flows / graph / report / repro / migrate
+Layer 4:  CLI / Entry Points      rdetoolkit init / new / run / report / nodes / flows / skeletons / repro / migrate / package
 Layer 3:  Runner (Orchestration)  config → mode → validate → iterate tiles → flow call → validate → finalize
 Layer 2:  Domain Services         config / mode / validation / paths / invoice
 Layer 1:  Node Registry + Call Log     @node / @flow / NodeSpec / NodeCallRecord / flow-boundary DI (type-based)

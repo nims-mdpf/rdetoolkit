@@ -103,7 +103,7 @@ def test_prepare_is_recorded_in_run_events__ga573_ep_2(tmp_path: Path, monkeypat
 
 
 def test_cli_run_flow_honors_prepare_declaration__ga573_ep_3(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """GA573-EP-3: ``rdetoolkit run --flow`` runs the same preparation as ``workflows.run``."""
+    """GA573-EP-3: ``rdetoolkit run <pkg.mod:flow>`` runs the same preparation as ``workflows.run``."""
     # Given: an importable flow with a preparation step and an unprepared project
     data_root = _concatenated_project(tmp_path, monkeypatch)
     monkeypatch.syspath_prepend(str(tmp_path))
@@ -123,7 +123,7 @@ def test_cli_run_flow_honors_prepare_declaration__ga573_ep_3(tmp_path: Path, mon
     config = tmp_path / "rdeconfig.yaml"
     config.write_text("system:\n  extended_mode: MultiDataTile\n  save_thumbnail_image: false\n", encoding="utf-8")
     # When: running the actual CLI entry
-    result = CliRunner().invoke(app, ["run", "--flow", "ga573_cli_flow:pipeline", "--config", str(config)])
+    result = CliRunner().invoke(app, ["run", "ga573_cli_flow:pipeline", "--config", str(config)])
     # Then: three tiles were run, not the single unprepared one
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)

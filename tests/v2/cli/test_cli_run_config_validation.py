@@ -26,7 +26,6 @@ def test_config_non_mapping_exits_3__tc_cli_run_ep_013(tmp_path: Path) -> None:
         app,
         [
             "run",
-            "--flow",
             "tests.v2.cli.fixtures.run_flows:success_pipeline",
             "--config",
             str(config_path),

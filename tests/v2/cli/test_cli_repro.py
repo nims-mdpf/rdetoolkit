@@ -20,7 +20,7 @@ corrupt/missing archive, conflicting import target); never 1 or 2
 (Conflict #5).
 
 Reuses Session E1's ``tests/v2/cli/fixtures/run_flows.py`` (read-only,
-unmodified) via a real ``run --flow`` invocation to produce a genuine
+unmodified) via a real ``run`` invocation to produce a genuine
 on-disk ``RunReport`` + sibling ``data/{inputdata,invoice,tasksupport}``
 tree (golden principle) for the export source. The round-trip test
 (TC-CLI-REPRO-EP-003) additionally creates an empty ``data/temp`` scratch
@@ -123,7 +123,7 @@ def isolated_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 def _run_success_flow_and_get_report_path(cli_runner: CliRunner, root: Path) -> Path:
     _build_data_fixture(root)
-    result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline"])
+    result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:success_pipeline"])
     assert result.exit_code == 0, f"fixture flow run must succeed: {result.output}"
     report_data = json.loads(result.output)
     return root / "data" / "logs" / f"run_report_{report_data['run_id']}.json"
@@ -213,7 +213,7 @@ class TestReproImport:
 
 class TestReproRoundTrip:
     """TC-CLI-REPRO-EP-003 (E2.4 acceptance criterion): export -> import ->
-    run --flow from the reconstructed directory reproduces an identical
+    run from the reconstructed directory reproduces an identical
     output directory tree to the original run's (excluding run-specific
     logs/ and scratch temp/, per this file's module docstring)."""
 
@@ -240,7 +240,7 @@ class TestReproRoundTrip:
         previous_cwd = Path.cwd()
         os.chdir(target_dir)
         try:
-            rerun_result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline"])
+            rerun_result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:success_pipeline"])
         finally:
             os.chdir(previous_cwd)
 

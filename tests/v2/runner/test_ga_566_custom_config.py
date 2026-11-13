@@ -31,7 +31,7 @@ def test_cli_custom_is_flat_without_warning__ga566_ep_1(tmp_path: Path, monkeypa
         'from rdetoolkit.nodes import save_json\n@flow\ndef pipeline(config: RdeConfig, out: OutputContext) -> None:\n'
         '    save_json(config.custom, out, "custom.json")\n', encoding="utf-8",
     )
-    arguments = ["run", "--flow", "ga566_flow:pipeline"]
+    arguments = ["run", "ga566_flow:pipeline"]
     if explicit:
         arguments += ["--config", str(path)]
     # When: executing the actual CLI boundary
