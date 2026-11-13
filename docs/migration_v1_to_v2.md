@@ -200,6 +200,42 @@ v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 塗りつぶし色（ARGB 16 進文字列、`theme:<n>`、または `None`）を返します。
 `OutputContext` には v1 の `resource_paths.temp` に当たる一時ディレクトリはありません。
 作業用ファイルには `tempfile.TemporaryDirectory()` を使ってください（ブロック終了時に削除されます）。
+v1 の simple-registration テンプレートのように、アップロードされた PDF や SVG から
+代表画像を作る場合は `render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)` を使います。
+拡張子が `.pdf` ならそのページを `dpi` で描画し、`.svg` / `.svgz` なら SVG 自身のサイズで描画し、
+それ以外は `to_png` と同じく Pillow で PNG に変換します。既定値(1 ページ目、350 dpi)は v1 テンプレートと同じです。
+PDF と SVG には `pip install 'rdetoolkit[render]'` が必要で、SVG には Cairo のシステムライブラリも必要です。
+未導入の場合は、必要な extra とライブラリ名を示す `ImportError` になります。
+PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため、画素単位では v1 と一致しないことがあります。
+
+v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
+`run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
+など引数で渡したディレクトリへ書き込みます。標準出力と標準エラーは取り込まれ、
+`CompletedProgram`（`args`、`returncode`、`stdout`、`stderr`、秒単位の `duration`）で返ります。
+0 以外の終了コード、起動できないプログラム、`timeout` の超過は、ErrorCode 3001 ではなく
+`error_code`（既定 1）の `StructuredError` になります。既定のメッセージはコマンドライン・
+終了コード・実行時間・標準エラーの末尾行を含み、`error_message` を指定するとそれに置き換わります。
+コマンドラインと結果はログにも出力されます。`env` は引き継いだ環境変数に追加されます。
+Windows 用の変換プログラムでは、`wine="auto"` を指定すると Windows 以外で `wine` を前置し、
+`Path` の引数を Windows 形式に変換します（`/data/structured` は `Z:\data\structured`）。
+オプション文字列に埋め込むパスは `to_wine_path` で変換してください。例:
+`f"-OutputFolder:{to_wine_path(out.struct)}"`。文字列の引数はそのまま渡します。
+
+<!-- test: ga630-run-program -->
+```python
+import sys
+import tempfile
+from pathlib import Path
+
+from rdetoolkit.nodes import run_program
+
+with tempfile.TemporaryDirectory() as struct:
+    export = Path(struct) / "export.txt"
+    code = "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('exported')"
+    result = run_program([sys.executable, "-c", code, export], error_code=51, error_message="Converter failed")
+    assert result.returncode == 0
+    assert export.read_text(encoding="utf-8") == "exported"
+```
 
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
@@ -314,6 +350,45 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
   `Error: ` 接頭辞が不要なら `error_code=1, error_message="m"`、
   引数なしの場合は `error_code=1` だけで構いません(コードは同じで、メッセージは
   それぞれ `m`、例外の文字列になります)。
+- **`catch_exception_with_message` は非推奨です。** デコレータを付けた時点で
+  `DeprecationWarning` が出ます。動作は変わらず、v2 では削除しません。
+  `job.failed` の `ErrorCode` を v1 と同じ値に保つ必要があるときは上の表で書き換えます。
+  そうでなければ、利用者に伝えたい失敗を `ProcessingError` で送出し、
+  デコレータを外してください。エラーコードは指定しません。Runner が 3007
+  `ProcessingFailed` として `RunReport`・反復ログ・`job.failed` に書き込み、
+  メッセージの後ろに `Remediation: <対処法>` を付けます。`remediation` を省略すると
+  カタログの既定文になります。`raise ... from exc` で元の例外を残せます。
+  `ValueError` などの通常の例外はこれまでどおり 3001 です。次の例は、ファイルが
+  見つからないときの `FileNotFoundError` を `ProcessingError` に置き換えます。
+
+<!-- test: processing-error -->
+```python
+from pathlib import Path
+
+from rdetoolkit.exceptions import ProcessingError
+
+
+def read_sample(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessingError(
+            "Input file was not found.",
+            remediation="Check that the file is in inputdata.",
+        ) from exc
+
+
+try:
+    read_sample(Path("missing.csv"))
+except ProcessingError as error:
+    caught = error
+
+assert caught.code == 3007
+assert isinstance(caught.__cause__, FileNotFoundError)
+```
+
+  `ProcessingError` は flow の `error_code` / `error_message` でも
+  `catch_exception_with_message` でも変換されず、3007 と対処法を保ちます。
 - flow に注入される `InputPaths` は v1 と同じく作業ディレクトリからの相対パスです。
   入力パスを含むユーザーのエラーメッセージも v1 と同じ表記になります。
   Runner 内部では、開始時に一度確定した data root を引き続き使います。

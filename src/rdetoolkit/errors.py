@@ -730,3 +730,148 @@ ERROR_CATALOG[1004] = ErrorDef(
     message_template="Unsupported metadata source matching mode: {mode}",
     remediation="Pass match='key', match='original_name' or match='both' to build_meta().",
 )
+
+
+ERROR_CATALOG[3007] = ErrorDef(
+    name="ProcessingFailed",
+    message_template="{message}",
+    remediation=(
+        "The structured-processing code reported that it could not process this input. "
+        "Follow the reported message, fix the input data or settings it names, then rerun."
+    ),
+)
+
+_PROCESSING_FAILED_CODE = 3007
+
+
+class ProcessingError(RdeExecutionError):
+    """A processing failure reported by structured-processing code (#634).
+
+    Raise it when the input cannot be processed and the user should be told
+    what went wrong and what to do about it. The caller chooses no error code:
+    the Runner publishes it as the catalogued ``3007 ProcessingFailed`` with
+    ``message`` and ``remediation`` in ``RunReport``, the iteration log and
+    ``job.failed``. Chain the underlying exception with ``raise ... from exc``
+    to keep it traceable. ``@flow(error_code=..., error_message=...)`` and the
+    deprecated ``catch_exception_with_message`` do not remap this error.
+
+    Args:
+        message: What went wrong, written for the person who submitted the data.
+        remediation: What to do next. Defaults to the catalog 3007 guidance.
+
+    Raises:
+        TypeError: If ``message`` or ``remediation`` is not a ``str``.
+        ValueError: If ``message`` or ``remediation`` is empty or blank.
+
+    Example:
+        ```python
+        from rdetoolkit.exceptions import ProcessingError
+
+        if not path.exists():
+            raise ProcessingError(
+                "Input file was not found.",
+                remediation="Verify the input file location.",
+            )
+        ```
+    """
+
+    name: str
+    remediation: str
+
+    def __init__(self, message: str, *, remediation: str | None = None) -> None:
+        definition = ERROR_CATALOG[_PROCESSING_FAILED_CODE]
+        error_init: _Any = RdeExecutionError.__init__
+        error_init(self, code=_PROCESSING_FAILED_CODE, name=definition.name, message=_required_text("message", message))
+        self.remediation = definition.remediation if remediation is None else _required_text("remediation", remediation)
+
+    def to_dict(self) -> dict[str, _Any]:
+        """Serialize the error, including its remediation.
+
+        Returns:
+            Dictionary with code, name, message and remediation.
+        """
+        return {**super().to_dict(), "remediation": self.remediation}
+
+
+def _required_text(field: str, value: object) -> str:
+    if not isinstance(value, str):
+        msg = f"ProcessingError {field} must be a str, got {type(value).__name__}"
+        raise TypeError(msg)
+    if not value.strip():
+        msg = f"ProcessingError {field} must not be empty"
+        raise ValueError(msg)
+    return value
+
+
+import warnings as _warnings
+
+
+def _catch_exception_with_message(
+    *,
+    error_message: str | None = None,
+    error_code: int | None = None,
+    eobj: Any | None = None,
+    verbose: bool = False,
+) -> Callable:
+    """Warning-free form of ``catch_exception_with_message`` for rdetoolkit's own use.
+
+    Identical to the v1 behavior except that a ``ProcessingError`` propagates
+    unchanged: it already states its message and remediation, and wrapping it
+    into a ``StructuredError`` would discard both (#634).
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs) -> None:
+            try:
+                return func(*args, **kwargs)
+            except ProcessingError:
+                raise
+            except Exception as e:
+                _emsg = e.emsg if hasattr(e, "emsg") else error_message
+                _ecode = e.ecode if hasattr(e, "ecode") else error_code
+                _eobj = e.eobj if hasattr(e, "eobj") else eobj
+                raise handle_exception(e, error_message=_emsg, error_code=_ecode, eobj=_eobj, verbose=verbose) from e
+
+        return wrapper
+
+    return decorator
+
+
+# Rebinds the v1 name defined at the top of this module, which stays in place
+# because this file is append-only.
+def catch_exception_with_message(  # type: ignore[no-redef]  # noqa: F811
+    *,
+    error_message: str | None = None,
+    error_code: int | None = None,
+    eobj: Any | None = None,
+    verbose: bool = False,
+) -> Callable:
+    """A decorator that catches exceptions and re-raises a StructuredError with a customized message and error code.
+
+    Deprecated since v2: raise ``ProcessingError`` for failures the user should
+    see and let other exceptions reach the Runner. Applying the decorator emits
+    a ``DeprecationWarning``; it keeps working and is not removed in v2.
+
+    An exception raised in the decorated function is re-raised as a
+    StructuredError carrying the exception's own ``emsg``/``ecode``/``eobj``
+    when it has them, else the decorator's ``error_message``/``error_code``/
+    ``eobj``. A ``ProcessingError`` propagates unchanged. ``verbose`` controls
+    whether the original traceback is also written to stderr.
+
+    Args:
+        error_message (Optional[str]): Customized message to be used in case of an error. Defaults to None.
+        error_code (Optional[int]): Error code to be used in case of an error. Defaults to None.
+        eobj (Optional[Any]): Additional object to include in the error. Defaults to None.
+        verbose (bool): If set to True, provides detailed error messages. Defaults to False.
+
+    Returns:
+        Callable: A function decorator that provides customized error handling on exception occurrence.
+    """
+    _warnings.warn(
+        "catch_exception_with_message is deprecated: raise rdetoolkit.exceptions.ProcessingError "
+        "for failures the user should see, and let other exceptions reach the Runner.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _catch_exception_with_message(error_message=error_message, error_code=error_code, eobj=eobj, verbose=verbose)
