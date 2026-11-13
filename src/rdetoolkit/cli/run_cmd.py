@@ -14,6 +14,7 @@ import yaml
 from rdetoolkit import workflows
 from rdetoolkit.api.request import build_run_request
 from rdetoolkit.cli._v2_common import import_project_module
+from rdetoolkit.errors import RdeRegistryError
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.paths import resolve_data_root
@@ -55,7 +56,7 @@ def resolve_flow(flow_ref: str) -> Callable[..., Any]:
         value: Any = import_project_module(module_name)
         for attribute in attribute_path.split("."):
             value = getattr(value, attribute)
-    except (ImportError, AttributeError) as exc:
+    except (ImportError, AttributeError, RdeRegistryError) as exc:
         usage_error(f"Unable to resolve --flow {flow_ref}: {exc}")
     if inspect.isclass(value):
         from rdetoolkit.templates.base import is_template_class

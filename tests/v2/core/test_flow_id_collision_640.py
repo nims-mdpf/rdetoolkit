@@ -29,6 +29,7 @@ EP Table:
 | after failed duplicate  | direct invocation of the surviving flow           | plain call semantics, body exceptions unchanged  | TC-640-EP-010   |
 | after failed duplicate  | CLI ``flows describe`` / ``flows list``           | reports the first flow                           | TC-640-EP-011   |
 | CLI ``--module``        | module whose import hits a duplicate flow id      | exit 3, message names DuplicateFlowId            | TC-640-EP-012   |
+| CLI ``run --flow``      | flow module whose import hits a duplicate flow id | exit 3, message names DuplicateFlowId            | TC-640-EP-015   |
 | error payload           | message / detail                                  | id + both source locations, catalog remediation  | TC-640-EP-013   |
 | node registry           | duplicate node id                                 | still RdeRegistryError 2001                      | TC-640-EP-014   |
 | suite registry guard    | flow defined locally / by executed snippet        | dropped after the test                           | TC-640-GUARD-EP-001 |
@@ -374,6 +375,22 @@ class TestRegistryAfterFailedDuplicate:
 
         # Then: usage-error exit code and an actionable message
         assert result.exit_code == 3
+        assert "DuplicateFlowId" in result.output
+        assert unique_id in result.output
+
+    def test_cli_run_flow_with_duplicate_flow_exits_3__tc_640_ep_015(self, module_dir: Path, unique_id: str) -> None:
+        # Given: a module already registered and a second module reusing its flow id
+        stem = f"issue640_run_{uuid.uuid4().hex}"
+        _write_module(module_dir, f"{stem}_a", unique_id)
+        _write_module(module_dir, f"{stem}_b", unique_id)
+        importlib.import_module(f"{stem}_a")
+
+        # When: ``run --flow`` resolves a flow in the conflicting module
+        result = CliRunner().invoke(app, ["run", "--flow", f"{stem}_b:entry", "--validate-only"])
+
+        # Then: the Design §9.3 usage-error code, not a traceback
+        assert result.exit_code == 3, result.output
+        assert not isinstance(result.exception, RdeRegistryError)
         assert "DuplicateFlowId" in result.output
         assert unique_id in result.output
 
