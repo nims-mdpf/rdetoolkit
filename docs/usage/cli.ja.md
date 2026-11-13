@@ -591,10 +591,16 @@ def insecure():
 
 `repro export` は実行レポート、実行時の入力ディレクトリ(`data/inputdata`、`data/invoice`、`data/tasksupport`)、実際に使われた `rdeconfig.yaml` を 1 つの zip にまとめます。`repro import` はその zip を新規または空のディレクトリに展開し、`rdetoolkit run` を実行できる状態にします。
 
+アーカイブには 2 種類あります。
+
+- **完全なアーカイブ**(既定): ローカルで再現するためのものです。すべての入力ファイル、invoice、実行レポートそのもの、実際に使われた設定を含むため、未公開の研究データ、個人情報、認証情報が入っている場合があります。`repro export` は書き出す前に、ディレクトリごとのファイル数とバイト数を警告とともに標準エラー出力に表示します。アップロードはしません。共有する前に中身を確認してください。外部のエージェントや issue に、確認なしで添付しないでください。
+- **メタデータのみ**(`--manifest-only`): zip には `repro_manifest.json` が 1 つだけ入ります(`schema_version` は `"2"`、`archive_kind: "manifest-only"`、`replayable: false`)。内容は、ディレクトリごとのファイル数とバイト数、番号(`file_id`)で区別した各ファイルのサイズと SHA-256(ファイル名は含めません)、レポートの `config_digest`、[`report diagnose` の出力](diagnostics.ja.md)です。入力ファイルの中身、invoice や設定の値、レポートの文面は含まず、`repro import` では読み込めません。同じファイルを持っている人にはダイジェストからファイルを特定されるため、匿名化にはなりません。
+
 === "Unix/macOS"
 
     ```shell
     python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    python3 -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
     python3 -m rdetoolkit repro import <archive.zip> <展開先ディレクトリ>
     ```
 
@@ -602,13 +608,16 @@ def insecure():
 
     ```powershell
     py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    py -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
     py -m rdetoolkit repro import <archive.zip> <展開先ディレクトリ>
     ```
 
-- 実行時に `rdetoolkit run --config` を使った場合は `--config` が必須です。設定はレポートの `config_digest` を再現できる場合にだけアーカイブされます。
-- `repro import` は上書きしません。空でない展開先は拒否されます。
+- 実行時に `rdetoolkit run --config` を使った場合は `--config` が必須です。設定はレポートの `config_digest` を再現できる場合にだけアーカイブされます。このダイジェストは YAML ファイルではなく、実際に使われた設定をキー順に並べた JSON の SHA-256 です。そのため、アーカイブ内の `rdeconfig.yaml` は書き方が違っても一致します。
+- `repro export` は既存の `-o` のファイルを置き換えません。シンボリックリンクや特殊ファイルの入力、読めないディレクトリは、たどったり飛ばしたりせずに拒否します(データはプロジェクト内にコピーしてください)。名前が `run_report_` で始まらないレポートは `data/logs/run_report_export.json` として格納します。
+- `repro import` は上書きしません。空でない展開先と、シンボリックリンクの展開先は拒否されます。受け付けるのは書き出し時の構成(`data/{inputdata,invoice,tasksupport}/…`、1 つの `data/logs/run_report_*.json`、`rdeconfig.yaml`、`schema_version` が `"1"` の `repro_manifest.json`)だけです。次のものは、何も展開する前に拒否します: 絶対パスや `..` を含むパス、空のパス要素、バックスラッシュ、制御文字(名前を途中で切る NUL を含む)、リンク・デバイスなどの特殊なエントリー、暗号化されたエントリー、無圧縮(stored)と deflate 以外の圧縮方式、大文字小文字や Unicode の正規化の違いだけの 2 つの名前、ディレクトリとして使われているファイル、100,000 を超えるエントリー、展開後 16 GiB を超える合計、1,024 文字または 64 階層を超えるパス、1 MiB を超える manifest、1,100 倍を超えて展開されるアーカイブ(deflate ではありえない比率なので、重なったエントリーや偽装されたエントリーだけが該当します)。Windows ではさらに `:`、`.` や空白で終わる名前、`CON` や `AUX` などのデバイス名も拒否します。書き出し時にも同じ制限を確認するため、インポートで拒否されるアーカイブを書き出すことはありません。
+- アーカイブは展開先の隣にある隠しディレクトリにいったん展開し、格納された設定を読み直して、manifest とレポートと同じ `config_digest` になるかを確認します。一致した場合に限り、その一時ディレクトリを展開先の名前に変更します。失敗した場合は一時ディレクトリを削除し、展開先は元のままです。ダイジェストが一致しても、各部分の組み合わせが正しいことがわかるだけで、誰が作ったかや、データと設定が信頼できるかはわかりません。flow を実行する前に内容を確認してください。
 
-終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力ディレクトリがない、設定が digest を再現しない、展開先が空でない、または安全でないメンバーパスを含む場合。
+終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力がないか安全でない、出力先が既にある、設定が digest を再現しない、展開先が空でない、またはインポートで受け付けないメンバー・manifest・ダイジェストがある場合。
 
 ### migrate: v1 コードの検出と変換
 

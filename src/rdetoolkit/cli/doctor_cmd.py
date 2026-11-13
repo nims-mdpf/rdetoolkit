@@ -84,7 +84,8 @@ class _Checks:
         self.diagnostics: list[dict[str, Any]] = []
 
     def relative(self, path: Path) -> str:
-        return path.relative_to(self.root).as_posix() if path.is_relative_to(self.root) else path.as_posix()
+        # Never an absolute path: it names the user's directories (#670).
+        return path.relative_to(self.root).as_posix() if path.is_relative_to(self.root) else "<outside PROJECT_DIR>"
 
     def passed(self, check_id: str, path: Path | None = None) -> None:
         record: dict[str, Any] = {"check_id": check_id, "status": "passed"}

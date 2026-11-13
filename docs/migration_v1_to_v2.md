@@ -626,6 +626,23 @@ invoice シート自体がないブックについては既存のエラー契約
 run 単位の invoice の行について: 登録時の値は各タイルに用意された invoice を使い、
 タイル固有の値はそのタイルの flow の中で求めて `save_invoice` で書き出してください。
 
+### 診断と従来のトレースバック
+
+v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず
+`rdetoolkit report diagnose <run_report.json> --json` を使います。バージョン付きの出力は、
+例外メッセージ、ローカル変数、環境変数の値、入力ファイルのパスを含みません
+([診断コマンド](usage/diagnostics.ja.md)を参照)。従来のトレースバック API
+(`handle_exception`、`CompactTraceFormatter`、`SecretsSanitizer`、`Config.traceback`、
+`TRACE_VERBOSE` / `TRACE_FORMAT`)は変更せず、新しい非推奨警告も出しません。
+`<STACKTRACE>` 形式は v1 コールバック入口でのローカル利用のために残しますが、
+エージェントに渡す形式としては推奨しません。変数名によるマスキングは匿名化ではありません。
+[互換性表](usage/structured_process/traceback.ja.md)を参照してください。
+
+`repro export` のアーカイブは 2 種類になりました。生の入力を含み、手元から出す前に確認が必要な
+完全なアーカイブと、ダイジェストと診断だけを含み再実行には使えない `--manifest-only` です。
+`repro export` は既存の `-o` のファイルを置き換えなくなり、`repro import` は安全でないアーカイブや
+整合しないアーカイブを拒否します([repro](usage/cli.ja.md)を参照)。自動アップロードは行いません。
+
 ### ロールバック
 
 v2 で問題が出た場合は、v1 系の最新版 `1.7.1` を固定してください(例:

@@ -2,13 +2,34 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RDEToolKit agent diagnostics envelope version 1",
   "type": "object",
-  "required": ["schema_version", "command", "status", "diagnostics"],
+  "required": ["schema_version", "format", "producer", "command", "status", "diagnostics", "truncated"],
   "properties": {
     "schema_version": {"const": "1"},
+    "format": {"const": "rdetoolkit.diagnostics"},
+    "producer": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "rdetoolkit"},
+        "version": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "command": {"enum": ["nodes lint", "doctor", "report diagnose"]},
     "status": {"enum": ["passed", "warning", "failed"]},
+    "truncated": {"type": "boolean"},
+    "source": {
+      "type": "object",
+      "required": ["format", "schema_version"],
+      "properties": {
+        "format": {"type": "string"},
+        "schema_version": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "diagnostics": {
       "type": "array",
+      "maxItems": 200,
       "items": {
         "type": "object",
         "required": ["code", "severity", "name", "message", "remediation", "subject"],
