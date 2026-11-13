@@ -1,7 +1,7 @@
 """CLI command for generating invoice.json from schema.
 
 This module provides the GenerateInvoiceCommand class which implements
-the CLI functionality for the 'rdetoolkit gen-invoice' command. It handles
+the CLI functionality for the 'rdetoolkit new invoice' command. It handles
 user input, calls the invoice generator service, and manages output formatting.
 """
 

@@ -9,10 +9,12 @@ from rdetoolkit.nodes.plot import plot_lines as plot_lines, plot_scatter as plot
 from rdetoolkit.nodes.structured import save_csv as save_csv, save_json as save_json
 from rdetoolkit.nodes.io import read_json as read_json
 from rdetoolkit.nodes.io import read_excel_fills as read_excel_fills
+from rdetoolkit.nodes.io import read_key_values as read_key_values
 from rdetoolkit.nodes.invoice import resolve_custom_key as resolve_custom_key, set_custom_fields as set_custom_fields
 from rdetoolkit.nodes.meta import build_meta as build_meta
-from rdetoolkit.nodes.plot import save_figure as save_figure
+from rdetoolkit.nodes.plot import save_figure as save_figure, save_html_figure as save_html_figure
 from rdetoolkit.nodes.structured import save_invoice as save_invoice, save_text as save_text
+from rdetoolkit.nodes.image import render_png as render_png
 
 def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..., Any]: ...
 

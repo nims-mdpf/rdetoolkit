@@ -3,7 +3,7 @@
 Equivalence Partitioning Table
 | API | Input/State Partition | Rationale | Expected Outcome | Test ID |
 | --- | --- | --- | --- | --- |
-| `rdetoolkit.cli.init` | pyproject template file passed explicitly | Validate happy-path template expansion | Custom files copied into container/templates/input folders | `TC-EP-INIT-001` |
+| `rdetoolkit.cli.init` | pyproject template file passed explicitly | Validate happy-path template expansion | Custom files copied into container/template/input folders | `TC-EP-INIT-001` |
 | `rdetoolkit.cli.init` | `--template .` with relative template paths | Boundary for directory lookup and relative resolution | Current directory pyproject drives template copy | `TC-EP-INIT-002` |
 | `rdetoolkit.cli.init` | Unsupported template file extension | Invalid type rejection | Command aborts with helpful error | `TC-EP-INIT-003` |
 | `rdetoolkit.cli.init` | pyproject lacks `[tool.rdetoolkit.init]` | Invalid configuration shape | Command aborts describing missing section | `TC-EP-INIT-004` |
@@ -119,7 +119,7 @@ def test_init_templates_apply_pyproject__tc_ep_init_001(cli_runner: CliRunner) -
         assert "INIT_FLAG" in module_init.read_text(encoding="utf-8")
         template_schema = Path("container/data/tasksupport/custom.schema.json")
         assert template_schema.exists()
-        mirrored_schema = Path("templates/tasksupport/custom.schema.json")
+        mirrored_schema = Path("template/tasksupport/custom.schema.json")
         assert mirrored_schema.exists()
         input_marker = Path("input/inputdata/README.txt")
         assert input_marker.read_text(encoding="utf-8").strip() == "prepared payload"
@@ -145,7 +145,7 @@ def test_init_templates_use_dot_option__tc_ep_init_002(cli_runner: CliRunner) ->
         assert "VALUE = 42" in single_module.read_text(encoding="utf-8")
         tasksupport_file = Path("container/data/tasksupport/tasksupport.json")
         assert tasksupport_file.exists()
-        assert Path("templates/tasksupport/tasksupport.json").exists()
+        assert Path("template/tasksupport/tasksupport.json").exists()
         assert Path("input/inputdata/README.txt").exists()
 
 

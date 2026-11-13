@@ -121,7 +121,7 @@ def test_cli_honors_flow_error_declaration__ga577_neg_1(tmp_path: Path, monkeypa
     config = tmp_path / "rdeconfig.yaml"
     config.write_text("system:\n  save_thumbnail_image: false\n", encoding="utf-8")
     # When: running the actual --flow command
-    result = CliRunner().invoke(app, ["run", "--flow", "ga577_cli_flow:pipeline", "--config", str(config)])
+    result = CliRunner().invoke(app, ["run", "ga577_cli_flow:pipeline", "--config", str(config)])
     # Then: the CLI exits nonzero and the selected code/message reach RDE
     assert result.exit_code == 1, result.output
     assert (tmp_path / "data" / "job.failed").read_text(encoding="utf-8") == "ErrorCode=7\nErrorMessage=mapped\n"

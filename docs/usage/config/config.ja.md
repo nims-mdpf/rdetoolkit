@@ -209,7 +209,7 @@ smarttable:
 ```
 
 !!! note
-    v1.7.0時点で、`rdetoolkit gen-config smarttable`が生成するテンプレートも
+    v1.7.0以降、`rdetoolkit new config --preset smarttable`が生成するテンプレートも
     このデフォルトに合わせて`save_table_file: false`となっています。
     `true`に設定した場合の登録先変更（`divided/0001`）については
     [SmartTableInvoiceモード](../mode/mode_smarttableinvoice.ja.md)の

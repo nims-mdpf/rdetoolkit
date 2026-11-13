@@ -2,8 +2,70 @@
 
 ## Unreleased
 
+### Changed
+
+- **The CLI uses `rdetoolkit <noun> <verb>` commands (#616).** Every command's
+  `--help` now lists its inputs, outputs and side effects, at least two
+  examples, its exit codes, and related commands, and the root `--help`
+  groups commands by workflow phase (Scaffold / Generate / Validate / Run /
+  Inspect / Package / Migrate / Info). Renamed commands:
+
+  | Before | Now | Old name in v2.0.x |
+  |---|---|---|
+  | `gen-config [DIR] [--template X] [--overwrite]` | `new config [-o DIR] [--preset X] [--force]` | deprecated alias, removed in v2.1 |
+  | `gen-invoice` | `new invoice` | deprecated alias, removed in v2.1 |
+  | `make-excelinvoice` | `new excelinvoice` | deprecated alias, removed in v2.1 |
+  | `csv2graph` | `plot` | deprecated alias, removed in v2.1 |
+  | `artifact --output-archive` | `package -o/--output` | deprecated alias, removed in v2.1 |
+  | `run module::attr` | `run --legacy module::attr` | still accepted; `--legacy` becomes required in v2.1 |
+  | `init --processing-template X` | `new processing X` | removed (v2 release candidates only) |
+  | `run --flow X` | `run X` | removed (v2 release candidates only) |
+  | `graph REPORT` | `report trace REPORT` | removed (v2 release candidates only) |
+  | `templates list` / `templates describe` | `skeletons list` / `skeletons show` | removed (v2 release candidates only) |
+  | `nodes describe` / `flows describe` | `nodes show` / `flows show` | removed (v2 release candidates only) |
+  | `migrate apply --out DIR` | `migrate apply -o/--output DIR` | removed (v2 release candidates only) |
+
+  A deprecated alias runs the same code as its replacement after printing a
+  warning with a `Remediation:` line on stderr; its options and exit codes are
+  unchanged. The v1.7 Python names in `rdetoolkit.cli.app` (`gen_invoice`,
+  `make_excelinvoice`, `csv2graph`, `gen_config`, `artifact`) stay importable
+  with their v1 keyword arguments and emit a `DeprecationWarning` naming the
+  replacement (removed in v2.1); `run(target=...)` keeps its v1 keyword.
+  `rdetoolkit migrate check` reports the old
+  names in Python string literals and argv lists (also when other arguments
+  are variables) and in shell, CI and container files (`*.sh`, `*.yml`,
+  `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`; a command continued
+  with a trailing `\` is read as one line). Usage errors of the
+  v2 commands now end with a `Remediation:` line, and the remediation of
+  error 2102 (`TemplateSlotSignatureMismatch`) names
+  `rdetoolkit skeletons show <name>`.
+- `rdetoolkit run --legacy module_or_file::attr` reports a target that
+  cannot be loaded (missing file, attribute, or a non-function) with exit
+  code 3, like every other `run` usage error, instead of Click's exit code 2,
+  which `run` uses for a partial run.
+
 ### Added
 
+- `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
+  block of lines before the table, such as the `#title` / `#legend` metadata
+  header that `rdetoolkit.graph` parses. Rows may have different numbers of
+  fields and use the table's CSV dialect and line ending; a str is written
+  verbatim. The default `preamble=None` keeps the current bytes (#628).
+- The builtin `read_key_values(path, *, key="key", value="value",
+  encoding=None, missing_ok=False)` node reads a two-column CSV such as
+  `tasksupport/default_value.csv` into a `dict[str, str]`. With the default
+  options the result equals v1 `rde2util.get_default_values`, and it appears
+  in the call log and `rdetoolkit nodes list`. A missing column or a row
+  without its cell raises `ValueError` (#629).
+- Builtin node `save_html_figure(fig, out, filename, *, kind="struct",
+  include_plotlyjs="cdn", full_html=True, div_id=None)` writes a plotly figure
+  (or its dict form) as interactive HTML with `plotly.io.to_html`. Without
+  `div_id` the chart `<div>` id is derived from the filename
+  (`plotly-<stem>-<8 hex digits of its SHA-256>`) instead of plotly's random
+  one, so the artifact is identical on every run and fragments of different
+  files keep distinct ids on one page.
+  plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
+  extra raises an `ImportError` naming it (#625).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
@@ -20,6 +82,47 @@
   exit code and the end of stderr. `wine="auto"` runs a Windows program with
   `wine` outside Windows and converts `Path` arguments, and `to_wine_path`
   converts paths embedded in option strings (#630).
+- Builtin node `render_png(source_path, out, filename, *, kind="main_image",
+  page=1, dpi=350)` renders an image, a PDF page or an SVG drawing to PNG under
+  `main_image` (or `other_image` / `thumbnail`). PDF pages are rendered with
+  pypdfium2 and SVG drawings with cairosvg, both from the new optional extra
+  `rdetoolkit[render]`; SVG also needs the Cairo system library. A missing
+  backend raises an `ImportError` that names the extra and the library. Other
+  files are converted with Pillow like `to_png` (#627).
+- `plot_lines` accepts `xlim` / `ylim` (`(lower, upper)`, a `None` bound keeps
+  matplotlib's automatic limit, so `ylim=(0, None)` starts the axis at 0) and
+  `xscale`, so a fixed axis range no longer needs an own figure and
+  `save_figure`. It also takes a sequence of data frames: the `x` / `y` or
+  `pairs` selection applies to each frame, each frame keeps its own x values and
+  length, and `labels` name the series in frame order. With several frames the
+  default y axis label names a repeated y column once. Defaults keep the
+  current output (#626).
+- `@flow(prepare=fn)` declares run-level input preparation,
+  `fn(inputdata: Path, config: RdeConfig) -> None`, that the Runner calls after
+  config load and before mode resolution, so `workflows.run(flow=...)` and
+  `rdetoolkit run <pkg.mod:flow>` (including `--validate-only`) resolve the mode and
+  tiles from the prepared inputs. It is recorded as `prepare.started` /
+  `prepare.completed` / `prepare.failed` events. `--validate-only` runs it
+  too, so the pre-flight checks the same mode as the real run and may modify
+  `inputdata/`; the preparation must be idempotent. A failure is published
+  like a body failure: the flow's `error_code` / `error_message` declaration
+  maps it, a `StructuredError` keeps its own code, and otherwise an ordinary
+  exception fails the run with 3001 (naming the preparation) before any tile.
+  Only the flow the Runner executes is prepared, and direct calls of the flow
+  do not run it (#573).
+
+### Changed
+
+- `rdetoolkit init` generates `template/tasksupport/` instead of
+  `templates/tasksupport/`, matching the singular `container/` and `input/`
+  directories. In a directory that already has `templates/tasksupport/`, init
+  creates no `template/`, prints a warning, and points to
+  `rdetoolkit migrate apply`. `validate all` reads `templates/tasksupport/`
+  when `template/tasksupport/` does not exist and reports a
+  `deprecated_layout` warning, which fails only under `--strict`.
+  `migrate check` reports the old directory, and `migrate apply` previews the
+  rename and writes `template/` into its output directory; it exits 3 when
+  both directories exist (#615).
 
 ### Fixed
 

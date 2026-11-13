@@ -231,7 +231,7 @@ class TestPluginCli:
         # When: each plugin-aware listing command is invoked
         formats_result = runner.invoke(app, ["formats", "list", "--json"])
         nodes_result = runner.invoke(app, ["nodes", "list", "--plugin", "--json"])
-        templates_result = runner.invoke(app, ["templates", "list", "--json"])
+        templates_result = runner.invoke(app, ["skeletons", "list", "--json"])
 
         # Then: each command succeeds and reports plugin provenance
         assert formats_result.exit_code == 0, formats_result.output
