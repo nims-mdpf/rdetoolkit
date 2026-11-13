@@ -17,7 +17,6 @@ EP table:
 | TC-K2-UNREACH-004 | public ``run()`` on both targets in a fresh interpreter | deleted modules never enter ``sys.modules`` |
 | TC-K2-UNREACH-005 | ``pkgutil.walk_packages`` over the installed package | every module imports; no deleted module listed |
 | TC-K2-UNREACH-007 | ``.pyi`` stubs shipped with the package | each has a ``.py`` twin, a package directory or the extension module |
-| TC-K2-UNREACH-010 | shipped agent guide | no reference to ``rdetoolkit.processing`` |
 
 CLI exit codes (item 8) stay pinned by ``tests/v2/cli/test_cli_run.py``; the
 Tier-1 surface (item 9) by ``tests/v2/compat/test_tier1_surface.py``; the
@@ -199,12 +198,3 @@ def test_every_stub_has_a_module_twin__tc_k2_unreach_007() -> None:
         if not (twin.exists() or package_dir.is_dir() or extension):
             orphans.append(stub.relative_to(package_root).as_posix())
     assert orphans == []
-
-
-def test_shipped_agent_guide_does_not_mention_the_processing_package__tc_k2_unreach_010() -> None:
-    """TC-K2-UNREACH-010: the guide shipped in the wheel no longer teaches the deleted API."""
-    from rdetoolkit import get_agent_guide
-
-    guide = get_agent_guide()
-    assert "rdetoolkit.processing" not in guide
-    assert "rdetoolkit.modeproc" not in guide

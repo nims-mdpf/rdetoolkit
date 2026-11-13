@@ -256,34 +256,6 @@ python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-onl
 !!! tip "詳細なAPIドキュメント"
     プログラムからの使用方法については、[Invoice Generator API](../rdetoolkit/cmd/gen_invoice.md)を参照してください。
 
-### agent-guide: AIエージェントガイドの表示
-
-AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor等）向けの組み込みガイドを表示します。
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit agent-guide
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit agent-guide
-    ```
-
-このコマンドはrdetoolkitの使用方法、アーキテクチャ、ベストプラクティスに関するガイドテキストを出力します。AIアシスタントのコンテキストに追加して、rdetoolkitを使用したコード生成の精度を向上させることができます。
-
-#### Pythonからの使用
-
-```python
-import rdetoolkit
-
-# エージェントガイドを取得
-guide = rdetoolkit.agent_guide()
-print(guide)
-```
-
 ### validate: RDEファイルの検証
 
 CI/CD統合のための標準化された終了コードを使用して、RDE関連ファイルを検証します。

@@ -664,8 +664,6 @@ def run(  # pragma: no cover
 
         - The workflow creates backups of invoice.json files before processing.
 
-        - Use get_agent_guide() or `rdetoolkit agent-guide` for comprehensive usage documentation.
-
     See Also:
         - Config: Configuration schema and options
         - RdeDatasetPaths: Unified input/output path structure

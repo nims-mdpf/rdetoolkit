@@ -392,6 +392,15 @@ Code that imports any of these directly should go back to calling
 The `smarttable_rowfile=` argument of `RdeOutputResourcePath` also remains, as in
 v1.7, a deprecated alias of `smarttable_rawfile`.
 
+### What was removed (after 2.0.0rc1, before GA)
+
+- The package-embedded AI-agent guide added in v1.6.0:
+  `rdetoolkit.get_agent_guide()`, the `rdetoolkit agent-guide` command, the
+  private `rdetoolkit._agent` module with its bundled Markdown, and the
+  package-local `.agents/` guidance. The installed package no longer ships
+  agent-facing documents, and there is no replacement API. Remove calls to it
+  from code and scripts.
+
 ### Behaviour changes
 
 **Introduced in the v1.7 line (unchanged in v2)**

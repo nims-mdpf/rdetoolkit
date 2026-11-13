@@ -257,34 +257,6 @@ python3 -m rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-onl
 !!! tip "Detailed API Documentation"
     For programmatic usage, see [Invoice Generator API](../rdetoolkit/cmd/gen_invoice.en.md).
 
-### agent-guide: Display AI Agent Guide
-
-Displays the embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit agent-guide
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit agent-guide
-    ```
-
-This command outputs guide text about rdetoolkit usage, architecture, and best practices. You can add it to your AI assistant's context to improve code generation accuracy when working with rdetoolkit.
-
-#### Usage from Python
-
-```python
-import rdetoolkit
-
-# Get the agent guide
-guide = rdetoolkit.agent_guide()
-print(guide)
-```
-
 ### validate: Validate RDE Files
 
 Validate RDE-related files with standardized exit codes for CI/CD integration.

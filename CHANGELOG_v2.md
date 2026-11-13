@@ -58,6 +58,17 @@
   rename and writes `template/` into its output directory; it exits 3 when
   both directories exist (#615).
 
+### Removed
+
+- The package-embedded AI-agent guide is retired before GA: the
+  `rdetoolkit.get_agent_guide()` function, the `rdetoolkit agent-guide`
+  command, the private `rdetoolkit._agent` module with its bundled Markdown
+  guides, and the package-local `src/rdetoolkit/.agents/` guidance (whose
+  `preferred-apis.md` recommended `rdetoolkit.fileops` imports that do not
+  exist). The wheel and sdist no longer carry agent Markdown; `py.typed` and
+  the `.pyi` stubs still ship. This is an intentional pre-GA API removal with
+  no replacement in the package (#644).
+
 ### Fixed
 
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of

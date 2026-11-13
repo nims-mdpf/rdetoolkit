@@ -367,6 +367,15 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 ください。`RdeOutputResourcePath` の `smarttable_rowfile=` 引数も、v1.7 と同じく
 `smarttable_rawfile` への非推奨エイリアスです。
 
+### 削除されたもの(2.0.0rc1 以降、GA 前)
+
+- v1.6.0 で追加されたパッケージ同梱の AI エージェントガイド:
+  `rdetoolkit.get_agent_guide()`、`rdetoolkit agent-guide` コマンド、
+  内部モジュール `rdetoolkit._agent` と同梱 Markdown、およびパッケージ内の
+  `.agents/` ガイド。インストールされたパッケージにはエージェント向け文書を
+  同梱しません。代替 API はありません。呼び出しているコードやスクリプトからは
+  削除してください。
+
 ### 挙動の変更
 
 **v1.7 系で入った変更(v2 でもそのまま)**
