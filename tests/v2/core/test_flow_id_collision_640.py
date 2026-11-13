@@ -27,9 +27,9 @@ EP Table:
 | importlib.reload        | module defining a flow is reloaded                | RdeRegistryError 2007; original pair retained    | TC-640-EP-008   |
 | after failed duplicate  | registry lookup / list / function map             | first flow still owns the id                     | TC-640-EP-009   |
 | after failed duplicate  | direct invocation of the surviving flow           | plain call semantics, body exceptions unchanged  | TC-640-EP-010   |
-| after failed duplicate  | CLI ``flows describe`` / ``flows list``           | reports the first flow                           | TC-640-EP-011   |
+| after failed duplicate  | CLI ``flows show`` / ``flows list``               | reports the first flow                           | TC-640-EP-011   |
 | CLI ``--module``        | module whose import hits a duplicate flow id      | exit 3, message names DuplicateFlowId            | TC-640-EP-012   |
-| CLI ``run --flow``      | flow module whose import hits a duplicate flow id | exit 3, message names DuplicateFlowId            | TC-640-EP-015   |
+| CLI ``run <ref>``       | flow module whose import hits a duplicate flow id | exit 3, message names DuplicateFlowId            | TC-640-EP-015   |
 | error payload           | message / detail                                  | id + both source locations, catalog remediation  | TC-640-EP-013   |
 | node registry           | duplicate node id                                 | still RdeRegistryError 2001                      | TC-640-EP-014   |
 | suite registry guard    | flow defined locally / by executed snippet        | dropped after the test                           | TC-640-GUARD-EP-001 |
@@ -350,7 +350,7 @@ class TestRegistryAfterFailedDuplicate:
         survivor = self._register_then_fail(unique_id)
 
         # When: the flow is described and listed
-        described = runner.invoke(app, ["flows", "describe", unique_id, "--json"])
+        described = runner.invoke(app, ["flows", "show", unique_id, "--json"])
         listed = runner.invoke(app, ["flows", "list", "--json"])
 
         # Then: the first flow's metadata is reported, once
@@ -371,22 +371,22 @@ class TestRegistryAfterFailedDuplicate:
         importlib.import_module(f"{stem}_a")
 
         # When: the CLI is asked to import the conflicting module
-        result = CliRunner().invoke(app, ["flows", "describe", unique_id, "--module", f"{stem}_b"])
+        result = CliRunner().invoke(app, ["flows", "show", unique_id, "--module", f"{stem}_b"])
 
         # Then: usage-error exit code and an actionable message
         assert result.exit_code == 3
         assert "DuplicateFlowId" in result.output
         assert unique_id in result.output
 
-    def test_cli_run_flow_with_duplicate_flow_exits_3__tc_640_ep_015(self, module_dir: Path, unique_id: str) -> None:
+    def test_cli_run_ref_with_duplicate_flow_exits_3__tc_640_ep_015(self, module_dir: Path, unique_id: str) -> None:
         # Given: a module already registered and a second module reusing its flow id
         stem = f"issue640_run_{uuid.uuid4().hex}"
         _write_module(module_dir, f"{stem}_a", unique_id)
         _write_module(module_dir, f"{stem}_b", unique_id)
         importlib.import_module(f"{stem}_a")
 
-        # When: ``run --flow`` resolves a flow in the conflicting module
-        result = CliRunner().invoke(app, ["run", "--flow", f"{stem}_b:entry", "--validate-only"])
+        # When: ``run <ref>`` resolves a flow in the conflicting module
+        result = CliRunner().invoke(app, ["run", f"{stem}_b:entry", "--validate-only"])
 
         # Then: the Design §9.3 usage-error code, not a traceback
         assert result.exit_code == 3, result.output

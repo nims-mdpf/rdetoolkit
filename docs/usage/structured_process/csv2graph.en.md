@@ -185,7 +185,7 @@ csv2graph(
 ```
 
 ```bash
-rdetoolkit csv2graph data.csv --y-tick-format eng
+rdetoolkit plot data.csv --y-tick-format eng
 ```
 
 If an axis `label` already includes a unit (e.g. `Voltage (V)`), the unit is

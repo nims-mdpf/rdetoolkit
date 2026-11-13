@@ -65,7 +65,7 @@ from rdetoolkit.runner import executor as executor_module
 from rdetoolkit.runner import lifecycle as lifecycle_module
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.templates import base as template_base
-from rdetoolkit.types import RdeConfig
+from rdetoolkit.types import OutputContext, RdeConfig
 
 _RUN_INTERRUPTED = 3004
 
@@ -145,6 +145,68 @@ _THUMBNAIL_CONFIG = {"system": {"save_thumbnail_image": True, "feature_descripti
 _DESCRIPTION_CONFIG = {"system": {"save_thumbnail_image": False, "feature_description": True}}
 
 
+@flow(id="tests.v2.runner.issue633.thumbnail")
+def _thumbnail_flow(out: OutputContext) -> None:
+    """Create a main image for the real thumbnail-copying stage."""
+    (out.main_image / "representative.PNG").write_bytes(b"image bytes")
+
+
+class TestRealThumbnailCopy:
+    """Issue #633: exercise the copy leaf, including legacy error translation.
+
+    EP table:
+    | Test ID | Copy leaf | Expected |
+    |---------|-----------|----------|
+    | TC-633-EP-006 | SIGTERM, continue / fail_fast | failed, 3004 in report and job.failed |
+    | TC-633-EP-007 | OSError / RdeExecutionError(3001) | success, no job.failed |
+    """
+
+    @pytest.mark.parametrize("policy", ["continue", "fail_fast"])
+    def test_real_thumbnail_copy_interruption__tc_633_ep_006(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sigterm_guard: list[int], policy: str
+    ) -> None:
+        """TC-633-EP-006: real copy interruptions fail both error policies."""
+        # Given: a real main image and SIGTERM arriving at the actual copy leaf
+        root = _seed(tmp_path)
+        copy, calls = _counting(_send_sigterm)
+        monkeypatch.setattr("rdetoolkit.img2thumb.shutil.copy", copy)
+
+        # When: the Runner executes the complete thumbnail-selection/copy path
+        report = _run(root, _thumbnail_flow, execution={"on_iteration_error": policy}, **_THUMBNAIL_CONFIG)
+
+        # Then: the interruption survives thumbnail processing and finalization
+        assert calls == [1]
+        _assert_interrupted(report, root)
+        assert (root / "job.failed").read_text(encoding="utf-8").splitlines()[0] == "ErrorCode=3004"
+        saved_report = json.loads((root / "logs" / f"run_report_{report.run_id}.json").read_text(encoding="utf-8"))
+        assert saved_report["status"] == "failed"
+        assert saved_report["error"]["code"] == _RUN_INTERRUPTED
+        assert sigterm_guard == []
+
+    @pytest.mark.parametrize("error", [OSError("copy failed"), _ordinary_rde_error()], ids=["oserror", "execution-3001"])
+    def test_real_thumbnail_copy_failure_is_tolerated__tc_633_ep_007(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, error: Exception
+    ) -> None:
+        """TC-633-EP-007: real copy failures remain optional."""
+        # Given: an ordinary failure at the copy leaf, with selection left intact
+        root = _seed(tmp_path)
+
+        def fail_copy(*_args: Any, **_kwargs: Any) -> None:
+            raise error
+
+        copy, calls = _counting(fail_copy)
+        monkeypatch.setattr("rdetoolkit.img2thumb.shutil.copy", copy)
+
+        # When: the complete thumbnail stage runs after the flow
+        report = _run(root, _thumbnail_flow, **_THUMBNAIL_CONFIG)
+
+        # Then: ordinary failures remain optional and never fail the run
+        assert calls == [1]
+        assert report.status == "success"
+        assert report.error is None
+        assert not (root / "job.failed").exists()
+
+
 class TestOptionalStagesReraiseInterruption:
     def test_sigterm_in_thumbnail_stage_fails_the_run__tc_rc1_f01_ep_001(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sigterm_guard: list[int]
@@ -152,7 +214,7 @@ class TestOptionalStagesReraiseInterruption:
         # Given: the thumbnail converter receives a real SIGTERM while it runs
         root = _seed(tmp_path)
         converter, calls = _counting(_send_sigterm)
-        monkeypatch.setattr("rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail", converter)
+        monkeypatch.setattr("rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl", converter)
 
         # When: the run reaches the optional thumbnail stage
         report = _run(root, **_THUMBNAIL_CONFIG)
@@ -184,7 +246,7 @@ class TestOptionalStagesReraiseInterruption:
         # Given: the thumbnail converter fails in an ordinary way
         root = _seed(tmp_path)
         converter, calls = _counting(_raise_runtime)
-        monkeypatch.setattr("rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail", converter)
+        monkeypatch.setattr("rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl", converter)
 
         # When: the run reaches the thumbnail stage
         report = _run(root, **_THUMBNAIL_CONFIG)
@@ -218,7 +280,7 @@ class TestOptionalStagesReraiseInterruption:
         def converter(*_args: Any, **_kwargs: Any) -> None:
             raise _ordinary_rde_error()
 
-        monkeypatch.setattr("rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail", converter)
+        monkeypatch.setattr("rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl", converter)
         config = RdeConfig(system={"save_thumbnail_image": True})
 
         # When / Then: the service swallows it (only the code decides)
@@ -233,7 +295,7 @@ class TestOptionalStagesReraiseInterruption:
         def converter(*_args: Any, **_kwargs: Any) -> None:
             raise interrupt
 
-        monkeypatch.setattr("rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail", converter)
+        monkeypatch.setattr("rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl", converter)
         config = RdeConfig(system={"save_thumbnail_image": True})
 
         # When / Then: the very same exception object propagates

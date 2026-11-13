@@ -1,14 +1,14 @@
-# gen-config コマンド
+# new config コマンド
 
 ## 目的
 
-このモジュールは `gen-config` CLI コマンドの実装を提供します。定義済みテンプレートまたは対話形式の質問に基づき、検証済みの `rdeconfig.yaml` を生成し、プロジェクト開始時点から設定の整合性を保ちます。
+このモジュールは `rdetoolkit new config` CLI コマンドの実装を提供します。定義済みプリセット（`--preset`）または対話形式の質問に基づき、検証済みの `rdeconfig.yaml` を生成し、プロジェクト開始時点から設定の整合性を保ちます。
 
 ## 主な機能
 
 ### テンプレート生成
 - Minimal / Full / MultiDataTile / RDEFormat / SmartTable のプリセットを提供
-- `--overwrite` 指定時は直ちに上書きし、未指定なら確認プロンプトを表示
+- `--force` 指定時は直ちに上書きし、未指定なら確認プロンプトを表示
 - `rdetoolkit` の設定モデルに準拠した YAML を出力
 
 ### 対話モード

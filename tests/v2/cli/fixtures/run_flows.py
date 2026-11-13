@@ -1,4 +1,4 @@
-"""Fixture flows/nodes for ``rdetoolkit run --flow`` CLI tests (Session E1).
+"""Fixture flows/nodes for ``rdetoolkit run`` CLI tests (Session E1).
 
 These are real, module-scope ``@node``/``@flow`` definitions living in an
 actual dotted-importable package (``tests.v2.cli.fixtures.run_flows``) --
@@ -40,7 +40,7 @@ except ImportError:  # pragma: no cover - Session F2 Red phase only.
     slot = None  # type: ignore[assignment]
 
 # TC-CLI-RUN-EP-009/EP-010: appended to by validate_only_pipeline. Must
-# remain empty after any ``run --flow ... --validate-only`` invocation --
+# remain empty after any ``run ... --validate-only`` invocation --
 # this is the E1.3-mandated side-effect sentinel (Conflict #3). Tests must
 # snapshot ``len(VALIDATE_ONLY_SENTINEL)`` before invoking the CLI and
 # assert it is unchanged afterward (module-level list persists across the
@@ -100,7 +100,7 @@ def _touch_validate_only_sentinel(paths: InputPaths) -> None:
 @flow(id="e1_cli_fixture_validate_only_pipeline")
 def validate_only_pipeline(paths: InputPaths) -> None:
     """TC-CLI-RUN-EP-009/EP-010: appends to VALIDATE_ONLY_SENTINEL when
-    actually called. ``run --flow ... --validate-only`` must NEVER call
+    actually called. ``run ... --validate-only`` must NEVER call
     this flow (Conflict #3) -- the sentinel must stay unchanged."""
     _touch_validate_only_sentinel(paths)
 

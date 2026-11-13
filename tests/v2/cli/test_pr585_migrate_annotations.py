@@ -31,7 +31,7 @@ def test_annotation_only_edits_produce_runnable_flow__r585_mig_1(tmp_path: Path,
     )
     output = tmp_path / "converted"
     # When: using the public migration command and importing its output
-    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--out", str(output), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(source), "--output", str(output), "--no-dry-run"])
     assert result.exit_code == 0, result.output
     spec = importlib.util.spec_from_file_location(f"r585_migrate_{tmp_path.name}", output / source.name)
     assert spec is not None and spec.loader is not None

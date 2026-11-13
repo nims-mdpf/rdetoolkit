@@ -16,6 +16,7 @@ from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.core.injection import resolve_flow_kwargs
 from rdetoolkit.errors import ERROR_CATALOG, RdeError, RdeExecutionError
 from rdetoolkit.report.events import Event, EventSink
+from rdetoolkit.runner.finalize import processing_error_record
 from rdetoolkit.types import RdeConfig
 
 
@@ -131,6 +132,9 @@ def _failed_error(exc: Exception, records: tuple[NodeCallRecord, ...]) -> dict[s
     error_def = ERROR_CATALOG[3001]
     failed_record = next((record for record in reversed(records) if record.status == "failed"), None)
     call_id = failed_record.call_id if failed_record is not None else "unknown"
+    processing = processing_error_record(exc)
+    if processing is not None:
+        return {**processing, "call_id": call_id}
     if isinstance(exc, RdeError) and isinstance(exc.code, int):
         code = exc.code
         catalog_entry = ERROR_CATALOG.get(code, error_def)

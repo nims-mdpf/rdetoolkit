@@ -17,7 +17,7 @@ This section explains detailed usage methods and advanced features of RDEToolKit
 
 - [Configuration File](config.en.md) - Behavior control using rdeconfig.yaml and pyproject.toml
 - [Magic Variables](config.en.md#magic-variables) - Dynamic metadata replacement functionality
-- [gen-config CLI](../usage/cli.en.md#gen-config-generate-rdeconfigyaml-templates) - Generate rdeconfig.yaml using ready-made templates or interactive prompts
+- [new config CLI](../usage/cli.en.md#new-config-generate-rdeconfigyaml) - Generate rdeconfig.yaml using ready-made templates or interactive prompts
 
 ### Template Files
 
@@ -38,7 +38,7 @@ This section explains detailed usage methods and advanced features of RDEToolKit
 ## Usage Flow
 
 1. **Concept Understanding**: Grasp the big picture via [What is Structuring Processing](structured-processing.en.md) and the [Structuring Processing Development Guide](../usage/structured_process/development_guide.en.md)
-2. **Template Preparation**: Use the [init CLI](../usage/cli.en.md#init-create-a-startup-project) and [gen-config CLI](../usage/cli.en.md#gen-config-generate-rdeconfigyaml-templates) to generate initial files
+2. **Template Preparation**: Use the [init CLI](../usage/cli.en.md#init-create-a-startup-project) and [new config CLI](../usage/cli.en.md#new-config-generate-rdeconfigyaml) to generate initial files
 3. **Environment Configuration**: Refine `rdeconfig.yaml` and invoice/metadata definitions with the [Configuration File](config.en.md) docs and [Template File Guide](../usage/metadata_definition_file.en.md)
 4. **Practical Application**: Operate workflows with the [CLI Tools](../usage/cli.en.md) and [Validation](../usage/validation.en.md) guides, expanding into advanced features as needed
 

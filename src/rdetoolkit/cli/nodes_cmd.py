@@ -14,13 +14,62 @@ from typing import Annotated, Any, cast
 import typer
 import rdetoolkit.nodes  # noqa: F401  # Design v2.1 §5.1: builtin nodes must always appear in `nodes list`, no --module required
 
-from rdetoolkit.cli._v2_common import import_project_module, load_modules
+from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
+from rdetoolkit.cli._v2_common import IMPORT_REMEDIATION, import_project_module, load_modules
 from rdetoolkit.core import registry
 from rdetoolkit.core.injection import find_duplicate_reserved_annotations
 from rdetoolkit.core.node import NodeSpec
 from rdetoolkit.errors import ERROR_CATALOG, WARNING_CATALOG, RdeRegistryError
 
-app = typer.Typer(help="Inspect and lint registered v2 nodes.")
+_MODULE_INPUT = (
+    "`--module`: import a project module first so its nodes are registered (repeatable). "
+    "Builtin nodes are always registered."
+)
+
+NODES_HELP = CommandHelp(
+    summary="List, show, and lint registered nodes (functions decorated with node()).",
+    examples=(
+        "rdetoolkit nodes list --module modules.processing",
+        "rdetoolkit nodes show rdetoolkit.nodes.io.read_json",
+        "rdetoolkit nodes lint --module modules.processing",
+    ),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "unknown node id, module import failure, or lint violations")),
+    see_also=("rdetoolkit flows list", "rdetoolkit run"),
+)
+
+LIST_HELP = CommandHelp(
+    summary="List registered node ids, one per line.",
+    inputs=(_MODULE_INPUT, "`--plugin`: only nodes registered by discovered plugins (adds a `plugin` field)."),
+    outputs=("Prints node ids, or a JSON array of node specs with `--json`. Writes no files.",),
+    examples=("rdetoolkit nodes list", "rdetoolkit nodes list --module modules.processing --json"),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "a module given with `--module` fails to import")),
+    see_also=("rdetoolkit nodes show", "rdetoolkit nodes lint"),
+)
+
+SHOW_HELP = CommandHelp(
+    summary="Show one registered node: id, version, tags, and input/output schema.",
+    inputs=("`ID`: a node id as printed by `rdetoolkit nodes list`.", _MODULE_INPUT),
+    outputs=("Prints `field: value` lines, or one JSON object with `--json`. Writes no files.",),
+    examples=("rdetoolkit nodes show rdetoolkit.nodes.io.read_json", "rdetoolkit nodes show rdetoolkit.nodes.io.read_json --json"),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "unknown node id or a module that fails to import")),
+    see_also=("rdetoolkit nodes list",),
+)
+
+LINT_HELP = CommandHelp(
+    summary="Check registered nodes and flows for problems that break runs or reproducibility.",
+    details=(
+        "Reports duplicate node ids (E2001), unstable node ids (E2005), parameters without type annotations, "
+        "flows with two parameters of one reserved type (E2006), skeleton declaration errors (E2101-E2105), "
+        "and skeleton slots that read instance state (W1101)."
+    ),
+    inputs=(_MODULE_INPUT,),
+    outputs=("Prints one line per violation, or `0 violations`. Writes no files.",),
+    examples=("rdetoolkit nodes lint --module modules.processing", "rdetoolkit nodes lint --module modules.processing --module modules.extra"),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "one or more violations, or a module that fails to import")),
+    see_also=("rdetoolkit nodes list", "rdetoolkit run"),
+)
+
+app = typer.Typer(help=NODES_HELP.render(), short_help=NODES_HELP.summary, no_args_is_help=True)
 
 
 def find_duplicate_node_ids(specs: Sequence[NodeSpec]) -> Sequence[str]:
@@ -34,7 +83,7 @@ def _emit_usage_error(message: str) -> None:
     raise typer.Exit(code=3)
 
 
-@app.command("list")
+@app.command("list", help=LIST_HELP.render(), short_help=LIST_HELP.summary)
 def list_nodes(
     as_json: Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")] = False,
     plugin_only: Annotated[
@@ -83,21 +132,24 @@ def _node_values(
     ]
 
 
-@app.command()
-def describe(
-    node_id: Annotated[str, typer.Argument(metavar="<id>")],
+@app.command("show", help=SHOW_HELP.render(), short_help=SHOW_HELP.summary)
+def show(
+    node_id: Annotated[str, typer.Argument(metavar="ID")],
     as_json: Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")] = False,
     modules: Annotated[
         list[str] | None,
-        typer.Option("--module", help="Import a project module before describing; repeatable."),
+        typer.Option("--module", help="Import a project module before showing; repeatable."),
     ] = None,
 ) -> None:
-    """Describe a registered node."""
+    """Show a registered node."""
     load_modules(modules or [])
     try:
         value = asdict(cast(NodeSpec, registry.get_node(node_id)))
     except KeyError:
-        _emit_usage_error(f"Unknown node id: {node_id}")
+        _emit_usage_error(
+            f"Unknown node id: {node_id}\n"
+            "Remediation: run 'rdetoolkit nodes list' for registered ids, and pass --module for the module that defines the node.",
+        )
     if as_json:
         typer.echo(json.dumps(value, sort_keys=True))
         return
@@ -182,12 +234,12 @@ def _load_modules_for_lint(module_names: Sequence[str]) -> list[str]:
                 raise
             messages.append(f"{ERROR_CATALOG[code].name} (E{code}): {exc.message}")
         except Exception as exc:  # noqa: BLE001
-            typer.echo(f"Unable to import module {module_name}: {exc}", err=True)
+            typer.echo(f"Unable to import module {module_name}: {exc}\n{IMPORT_REMEDIATION}", err=True)
             raise typer.Exit(code=3) from exc
     return messages
 
 
-@app.command()
+@app.command("lint", help=LINT_HELP.render(), short_help=LINT_HELP.summary)
 def lint(
     modules: Annotated[
         list[str] | None,

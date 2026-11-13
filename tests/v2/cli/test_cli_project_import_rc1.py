@@ -1,7 +1,7 @@
 """Project-module import from the working directory (Session RC1-INT-CLI, review item F02).
 
 The installed ``rdetoolkit`` console script starts with the venv ``bin/`` as
-``sys.path[0]``, so ``run --flow demo_flow:pipeline`` and ``--module demo_flow``
+``sys.path[0]``, so ``run demo_flow:pipeline`` and ``--module demo_flow``
 failed with ``No module named 'demo_flow'`` while ``python -m rdetoolkit``
 succeeded. Every CLI path that imports a user-named module now gets
 ``python -m`` semantics: the working directory is put at the front of
@@ -12,7 +12,7 @@ These tests launch the real installed console script (located beside
 handling nor an inherited variable can mask the defect.
 
 EP table:
-    TC-RC1-F02-EP-001 | console script, ``run --flow`` cwd module, --validate-only | exit 0
+    TC-RC1-F02-EP-001 | console script, ``run`` cwd module, --validate-only | exit 0
     TC-RC1-F02-EP-002 | console script, ``flows list --module`` cwd module            | exit 0, flow id listed
     TC-RC1-F02-EP-003 | console script, ``nodes lint --module`` cwd module            | exit 0
     TC-RC1-F02-EP-004 | console script, v1 ``run module::attr`` cwd module            | callback imported, run succeeds (exit 0)
@@ -101,7 +101,7 @@ def test_console_run_flow_imports_cwd_module__tc_rc1_f02_ep_001(project: Path) -
     """TC-RC1-F02-EP-001: the console script resolves a flow defined in the project directory."""
     # Given: a project directory holding demo_flow.py and a valid input tree
     # When: the installed console script validates that flow without PYTHONPATH
-    result = _console(project, "run", "--flow", "demo_flow:pipeline", "--validate-only")
+    result = _console(project, "run", "demo_flow:pipeline", "--validate-only")
     # Then: the module is found exactly as under ``python -m rdetoolkit``
     assert result.returncode == 0, result.stdout + result.stderr
     assert "Validation succeeded" in result.stdout
@@ -151,10 +151,10 @@ def test_console_missing_module_is_usage_error__tc_rc1_f02_ep_005(project: Path)
 
 
 def test_console_missing_flow_module_is_usage_error__tc_rc1_f02_ep_006(project: Path) -> None:
-    """TC-RC1-F02-EP-006: ``run --flow`` against a missing module still exits 3."""
+    """TC-RC1-F02-EP-006: ``run`` against a missing module still exits 3."""
     # Given: a flow reference whose module does not exist
     # When: the console script tries to resolve it
-    result = _console(project, "run", "--flow", "rc1_f02_missing_module:pipeline", "--validate-only")
+    result = _console(project, "run", "rc1_f02_missing_module:pipeline", "--validate-only")
     # Then: the usage error names the missing module
     assert result.returncode == 3, result.stdout + result.stderr
     assert "No module named 'rc1_f02_missing_module'" in result.stderr

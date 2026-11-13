@@ -237,7 +237,7 @@ def test_migrate_apply_writes_template_dir__ga615_ep_9(tmp_path: Path, monkeypat
     before = _snapshot(project)
     destination = tmp_path / "out"
     # When: writing the migration to --out
-    result = CliRunner().invoke(app, ["migrate", "apply", str(project), "--out", str(destination), "--no-dry-run"])
+    result = CliRunner().invoke(app, ["migrate", "apply", str(project), "--output", str(destination), "--no-dry-run"])
     # Then: the schemas move to template/ in the output only
     assert result.exit_code == 0, result.output
     assert "Renamed templates/ to template/" in result.output

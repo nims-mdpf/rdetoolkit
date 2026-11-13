@@ -7,13 +7,13 @@ Conflict #5 (the core rule this file exists to pin), Design.md v2.1 §9.3.
 This file pins, in one place, the full v2 CLI exit-code contract across
 every v2 subcommand family:
 
-- ``run --flow``: 0 = RunReport.status == "success"; 1 = "failed";
+- ``run``: 0 = RunReport.status == "success"; 1 = "failed";
   2 = "partial"; 3 = usage error (E1 regression pin, re-asserted here).
 - ``nodes lint``: 0 = zero violations; 3 = one or more violations
   (E1 regression pin, re-asserted here).
-- ``graph`` / ``report show`` / ``repro export`` / ``repro import`` /
+- ``report trace`` / ``report show`` / ``repro export`` / ``repro import`` /
   ``migrate check``: **0 or 3 only** -- 1 and 2 are reserved exclusively for
-  ``run --flow``'s ``RunReport.status`` mapping (Conflict #5, the new
+  ``run``'s ``RunReport.status`` mapping (Conflict #5, the new
   negative guard TC-CLI-EXIT-003 exists to add).
 
 Per Design §9.3, these CLI exit codes are an **independent contract** from
@@ -87,26 +87,26 @@ def isolated_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 class TestRunFlowExitCodeRegressionPin:
-    """TC-CLI-EXIT-001: run --flow's 0/1/2/3 mapping (E1 regression pin)."""
+    """TC-CLI-EXIT-001: run's 0/1/2/3 mapping (E1 regression pin)."""
 
     def test_success_exits_0__tc_cli_exit_001_success(self, cli_runner: CliRunner, isolated_root: Path) -> None:
         _build_data_fixture(isolated_root)
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:success_pipeline"])
         assert result.exit_code == 0
 
     def test_failed_exits_1__tc_cli_exit_001_failed(self, cli_runner: CliRunner, isolated_root: Path) -> None:
         _build_data_fixture(isolated_root)
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:failing_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:failing_pipeline"])
         assert result.exit_code == 1
 
     def test_partial_exits_2__tc_cli_exit_001_partial(self, cli_runner: CliRunner, isolated_root: Path) -> None:
         _build_data_fixture(isolated_root, input_files={"a.txt": "a", "b.txt": "b"})
         _write_rdeconfig(isolated_root, {"system": {"extended_mode": "MultiDataTile"}})
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:second_tile_fails_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:second_tile_fails_pipeline"])
         assert result.exit_code == 2
 
     def test_usage_error_exits_3__tc_cli_exit_001_usage_error(self, cli_runner: CliRunner, isolated_root: Path) -> None:
-        result = cli_runner.invoke(app, ["run", "--flow", "tests.v2.cli.fixtures.totally_nonexistent_module:pipeline"])
+        result = cli_runner.invoke(app, ["run", "tests.v2.cli.fixtures.totally_nonexistent_module:pipeline"])
         assert result.exit_code == 3
 
 
@@ -167,7 +167,7 @@ class TestReportingCommandsExitCodeContract:
 
     def _real_report_path(self, cli_runner: CliRunner, root: Path) -> Path:
         _build_data_fixture(root)
-        result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:success_pipeline"])
+        result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:success_pipeline"])
         assert result.exit_code == 0
         report_data = json.loads(result.output)
         return root / "data" / "logs" / f"run_report_{report_data['run_id']}.json"
@@ -179,8 +179,8 @@ class TestReportingCommandsExitCodeContract:
     ) -> None:
         report_path = self._real_report_path(cli_runner, isolated_root)
 
-        success = cli_runner.invoke(app, ["graph", str(report_path)])
-        usage_error = cli_runner.invoke(app, ["graph", str(isolated_root / "nope.json")])
+        success = cli_runner.invoke(app, ["report", "trace", str(report_path)])
+        usage_error = cli_runner.invoke(app, ["report", "trace", str(isolated_root / "nope.json")])
 
         assert success.exit_code == 0
         assert usage_error.exit_code == 3

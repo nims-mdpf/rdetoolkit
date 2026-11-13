@@ -26,19 +26,19 @@ ExcelInvoiceモードは、`ivnoice.shcema.json`が作成されていること�
 === "Unix/macOS"
 
     ```shell
-    python3 -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    python3 -m rdetoolkit new excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
 
     # 例
-    python3 -m rdetoolkit make-excelinvoice template/invoice.schema.json
+    python3 -m rdetoolkit new excelinvoice template/invoice.schema.json
     ```
 
 === "Windows"
 
     ```powershell
-    py -m rdetoolkit make-excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
+    py -m rdetoolkit new excelinvoice <invoice.schema.json path> -o <save file path> -m <file or folder>
 
     # 例
-    py -m rdetoolkit make-excelinvoice template/invoice.schema.json
+    py -m rdetoolkit new excelinvoice template/invoice.schema.json
     ```
 
 下記のようなExcelファイルが生成されます。このExcelファイルは、`1行` = `1データセットタイル`で登録されます。そのため、各行でデータセットタイルで登録したい情報を記述してください。

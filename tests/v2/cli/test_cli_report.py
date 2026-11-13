@@ -14,7 +14,7 @@ on a missing/malformed path. ``schema_version`` != the current known value
 it can and exits 0.
 
 Reuses Session E1's ``tests/v2/cli/fixtures/run_flows.py`` (read-only,
-unmodified) via real ``run --flow`` invocations to produce genuine
+unmodified) via real ``run`` invocations to produce genuine
 ``RunReport`` files on disk (golden principle) for the success/failed
 display cases. Only the malformed-JSON and unknown-schema_version cases are
 hand-written, since those test rejection/tolerance of invalid or unexpected
@@ -86,8 +86,8 @@ def isolated_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 def _run_flow_and_get_report_path(cli_runner: CliRunner, root: Path, flow_name: str) -> tuple[Path, int]:
     _build_data_fixture(root)
-    result = cli_runner.invoke(app, ["run", "--flow", f"{FIXTURE_MODULE}:{flow_name}"])
-    # E1's run --flow echoes the RunReport JSON first; failing runs may append
+    result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:{flow_name}"])
+    # E1's run echoes the RunReport JSON first; failing runs may append
     # diagnostic lines after it — parse only the leading JSON document.
     report_data, _ = json.JSONDecoder().raw_decode(result.output.lstrip())
     report_path = root / "data" / "logs" / f"run_report_{report_data['run_id']}.json"

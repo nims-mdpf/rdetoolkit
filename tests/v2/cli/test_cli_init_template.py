@@ -1,4 +1,4 @@
-"""Tests for ``rdetoolkit init --processing-template`` and the bare-``init``
+"""Tests for ``rdetoolkit new processing`` (formerly ``new processing``) and the bare-``init``
 byte-identity golden (Session F2, TC-CLI-INIT-TPL-*).
 
 Written before implementation (TDD Red phase). Authority:
@@ -7,7 +7,7 @@ local/develop/v2/tasks/session_f2.md Conflict #1 (RULING: the flag is
 Known Trap #8; Design.md v2.1 §5.2.4, §13.3.
 
 Binding API-shape pins asserted by this file (precision standard):
-- ``init --processing-template <name> --module <dotted>`` (repeatable
+- ``new processing <name> --module <dotted>`` (repeatable
   ``--module``, mirroring ``nodes_cmd.py``'s convention) generates a
   TODO-annotated skeleton file (containing the declared slot names) plus a
   sample test file using ``rdetoolkit.testing.plugin``'s §13 fixtures
@@ -257,8 +257,8 @@ class TestBareInitGoldenIsVersionIndependent:
 
 
 class TestV1TemplateOptionUntouched:
-    """TC-CLI-INIT-TPL-V1-001/002 (Conflict #1: --template <Path> and
-    --processing-template <name> must coexist without collision)."""
+    """TC-CLI-INIT-TPL-V1-001/002 (Conflict #1: --template <Path> stays on
+    init; skeleton generation is 'new processing' since issue #616)."""
 
     def test_v1_template_path_option_still_present_in_help(self, cli_runner: CliRunner) -> None:
         # Given: deterministic terminal settings for the init help renderer
@@ -275,22 +275,24 @@ class TestV1TemplateOptionUntouched:
         # typer's own Path(exists=True) validation rejects this before
         # application code runs at all -- Click's default BadParameter
         # exit code (2), distinct from this session's usage-error
-        # convention (3) used by --processing-template's own validation.
+        # convention (3) used by 'new processing' validation.
         assert result.exit_code == 2
 
-    def test_processing_template_option_appears_in_help(self, cli_runner: CliRunner) -> None:
-        # Given: deterministic terminal settings for the init help renderer
-        # When: requesting help that includes the v2 processing-template option
-        result = cli_runner.invoke(app, ["init", "--help"], env={"NO_COLOR": "1", "COLUMNS": "200"})
+    def test_processing_template_option_is_gone_from_init(self, cli_runner: CliRunner) -> None:
+        # Given: issue #616 moved skeleton generation to 'new processing'
+        # When: requesting init help and passing the removed option
+        help_result = cli_runner.invoke(app, ["init", "--help"], env={"NO_COLOR": "1", "COLUMNS": "200"})
+        removed = cli_runner.invoke(app, ["init", "--processing-template", "DemoSkeletonTemplate"])
 
-        # Then: ANSI styling and wrapping cannot hide the complete option name
-        assert result.exit_code == 0
-        assert "--processing-template" in _normalize_help_output(result.output)
+        # Then: init no longer offers it, and the parser rejects it (rc-only name, no alias)
+        assert help_result.exit_code == 0
+        assert "--processing-template" not in _normalize_help_output(help_result.output)
+        assert removed.exit_code == 2
 
     def test_force_option_appears_in_help__tc_cli_init_tpl_overwrite_005(self, cli_runner: CliRunner) -> None:
-        # Given: deterministic terminal settings for the init help renderer
-        # When: requesting help for processing-template generation controls
-        result = cli_runner.invoke(app, ["init", "--help"], env={"NO_COLOR": "1", "COLUMNS": "200"})
+        # Given: deterministic terminal settings for the new processing help renderer
+        # When: requesting help for skeleton generation controls
+        result = cli_runner.invoke(app, ["new", "processing", "--help"], env={"NO_COLOR": "1", "COLUMNS": "200"})
 
         # Then: explicit overwrite consent is discoverable
         assert result.exit_code == 0
@@ -307,13 +309,13 @@ class TestInitProcessingTemplateGeneratesSkeleton:
     ) -> None:
         result = cli_runner.invoke(
             app,
-            ["init", "--processing-template", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
+            ["new", "processing", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
         )
 
         assert result.exit_code == 0, result.output
 
         generated_py_files = list(isolated_root.rglob("*.py"))
-        assert generated_py_files, "init --processing-template must generate at least one .py file"
+        assert generated_py_files, "new processing must generate at least one .py file"
         combined_source = "\n".join(p.read_text(encoding="utf-8") for p in generated_py_files)
 
         # TODO-annotated, naming the declared slots (Design §5.2.4).
@@ -324,7 +326,7 @@ class TestInitProcessingTemplateGeneratesSkeleton:
         # A sample test using the §13 rdetoolkit.testing.plugin fixtures
         # must be generated alongside the skeleton (Design §13.3).
         sample_test_files = [p for p in generated_py_files if p.name.startswith("test_")]
-        assert sample_test_files, "init --processing-template must also generate a sample test file"
+        assert sample_test_files, "new processing must also generate a sample test file"
         sample_source = "\n".join(p.read_text(encoding="utf-8") for p in sample_test_files)
         assert "rde_paths" in sample_source or "rde_out" in sample_source
 
@@ -335,7 +337,7 @@ class TestInitProcessingTemplateGeneratesSkeleton:
     ) -> None:
         result = cli_runner.invoke(
             app,
-            ["init", "--processing-template", "DefinitelyNotARegisteredTemplateName", "--module", FIXTURE_MODULE],
+            ["new", "processing", "DefinitelyNotARegisteredTemplateName", "--module", FIXTURE_MODULE],
         )
 
         assert result.exit_code == 3
@@ -356,7 +358,7 @@ class TestInitProcessingTemplateOverwriteProtection:
         # When: generating without explicit overwrite consent
         result = cli_runner.invoke(
             app,
-            ["init", "--processing-template", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
+            ["new", "processing", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
         )
 
         # Then: generation is rejected without changing or partially creating files
@@ -379,7 +381,7 @@ class TestInitProcessingTemplateOverwriteProtection:
         # When: generating without explicit overwrite consent
         result = cli_runner.invoke(
             app,
-            ["init", "--processing-template", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
+            ["new", "processing", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
         )
 
         # Then: generation is rejected without changing or partially creating files
@@ -404,7 +406,7 @@ class TestInitProcessingTemplateOverwriteProtection:
         # When: generation is requested without --force
         result = cli_runner.invoke(
             app,
-            ["init", "--processing-template", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
+            ["new", "processing", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE],
         )
 
         # Then: the preflight rejects before either write begins
@@ -427,7 +429,7 @@ class TestInitProcessingTemplateOverwriteProtection:
         # When: generation is requested with explicit overwrite consent
         result = cli_runner.invoke(
             app,
-            ["init", "--processing-template", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE, "--force"],
+            ["new", "processing", "DemoSkeletonTemplate", "--module", FIXTURE_MODULE, "--force"],
         )
 
         # Then: both outputs are regenerated together

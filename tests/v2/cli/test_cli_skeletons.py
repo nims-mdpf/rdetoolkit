@@ -7,8 +7,8 @@ local/develop/v2/tasks/session_f2.md Conflicts #1, #6; Design.md v2.1
 conventions.
 
 Binding API-shape pins asserted by this file (precision standard):
-- ``rdetoolkit templates list [--json] [--module <dotted>]...`` and
-  ``rdetoolkit templates describe <name> [--json] [--module <dotted>]...``
+- ``rdetoolkit skeletons list [--json] [--module <dotted>]...`` and
+  ``rdetoolkit skeletons show <name> [--json] [--module <dotted>]...``
   exist as a new ``templates`` sub-app, mirroring ``nodes_cmd.py``'s
   ``--module`` convention exactly (repeatable option, no filesystem scan --
   a caller must ``import`` the providing module first, either inline
@@ -21,7 +21,7 @@ Binding API-shape pins asserted by this file (precision standard):
   (including an empty list -- absence of registrations is not an error,
   mirroring ``nodes list``'s precedent), 3 usage error (unknown
   ``describe`` name).
-- ``templates list --json`` entries carry an ``"id"`` key (same minimal
+- ``skeletons list --json`` entries carry an ``"id"`` key (same minimal
   contract every other ``--json`` list command in this codebase already
   provides -- ``nodes list --json``, mirrored here since ``describe``
   needs some literal id string that ``list`` must supply).
@@ -76,7 +76,7 @@ class TestTemplatesList:
                 self.read(paths)
 
         # When
-        result = cli_runner.invoke(app, ["templates", "list"])
+        result = cli_runner.invoke(app, ["skeletons", "list"])
 
         # Then
         assert result.exit_code == 0
@@ -96,7 +96,7 @@ class TestTemplatesList:
             def __flow__(self, paths: InputPaths) -> None:
                 self.read(paths)
 
-        result = cli_runner.invoke(app, ["templates", "list", "--json"])
+        result = cli_runner.invoke(app, ["skeletons", "list", "--json"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -105,7 +105,7 @@ class TestTemplatesList:
         assert any("_LocalSkeletonEp002" in entry_id for entry_id in ids)
 
     def test_list_via_module_option_shows_fixture_skeleton__tc_cli_templates_ep_003(self, cli_runner: CliRunner) -> None:
-        result = cli_runner.invoke(app, ["templates", "list", "--module", FIXTURE_MODULE])
+        result = cli_runner.invoke(app, ["skeletons", "list", "--module", FIXTURE_MODULE])
 
         assert result.exit_code == 0
         assert "DemoSkeletonTemplate" in result.output
@@ -117,13 +117,13 @@ class TestTemplatesList:
         # Regression-testable form of Verification command #11's manual
         # scope-guard check (Conflict #6): the depth-2 concrete class must
         # never appear, even though its module was --module-imported.
-        result = cli_runner.invoke(app, ["templates", "list", "--module", FIXTURE_MODULE])
+        result = cli_runner.invoke(app, ["skeletons", "list", "--module", FIXTURE_MODULE])
 
         assert result.exit_code == 0
         assert "DemoConcreteProcessing" not in result.output
 
     def test_list_does_not_crash_with_no_new_registrations__tc_cli_templates_bv_002(self, cli_runner: CliRunner) -> None:
-        result = cli_runner.invoke(app, ["templates", "list"])
+        result = cli_runner.invoke(app, ["skeletons", "list"])
 
         assert result.exit_code == 0
 
@@ -132,7 +132,7 @@ class TestTemplatesDescribe:
     """TC-CLI-TEMPLATES-EP-004/005, TC-CLI-TEMPLATES-EP-006."""
 
     def _fixture_template_id(self, cli_runner: CliRunner) -> str:
-        list_result = cli_runner.invoke(app, ["templates", "list", "--module", FIXTURE_MODULE, "--json"])
+        list_result = cli_runner.invoke(app, ["skeletons", "list", "--module", FIXTURE_MODULE, "--json"])
         assert list_result.exit_code == 0, list_result.output
         entries = json.loads(list_result.output)
         matches = [entry for entry in entries if "DemoSkeletonTemplate" in entry["id"]]
@@ -142,7 +142,7 @@ class TestTemplatesDescribe:
     def test_describe_shows_declared_slot_and_hook_names__tc_cli_templates_ep_004(self, cli_runner: CliRunner) -> None:
         template_id = self._fixture_template_id(cli_runner)
 
-        result = cli_runner.invoke(app, ["templates", "describe", template_id])
+        result = cli_runner.invoke(app, ["skeletons", "show", template_id])
 
         assert result.exit_code == 0
         assert "read" in result.output
@@ -155,7 +155,7 @@ class TestTemplatesDescribe:
     ) -> None:
         template_id = self._fixture_template_id(cli_runner)
 
-        result = cli_runner.invoke(app, ["templates", "describe", template_id, "--json"])
+        result = cli_runner.invoke(app, ["skeletons", "show", template_id, "--json"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -164,6 +164,6 @@ class TestTemplatesDescribe:
         assert "extract_meta" in rendered
 
     def test_describe_unknown_name_exits_3__tc_cli_templates_ep_006(self, cli_runner: CliRunner) -> None:
-        result = cli_runner.invoke(app, ["templates", "describe", "definitely.not.a.registered.template.f2"])
+        result = cli_runner.invoke(app, ["skeletons", "show", "definitely.not.a.registered.template.f2"])
 
         assert result.exit_code == 3
