@@ -11,6 +11,13 @@ RDEToolKit's API documentation is structured using a hybrid approach:
 - **Auto-generated parts**: Detailed technical specifications generated from docstrings in source code
 - **Manually created parts**: Practical usage examples and inter-module collaboration methods
 
+## v2 API
+
+The API added in v2 (`node` / `flow`, reserved types, built-in nodes, templates,
+`rdetoolkit.testing`, plugins, Runner, RunReport and the v2 error hierarchy) is
+collected in the [v2 API Overview](../rdetoolkit/v2/index.md), and every command
+and option is listed in the [CLI Reference](../reference/cli.md).
+
 ## Core Modules
 
 ### Workflow Management
