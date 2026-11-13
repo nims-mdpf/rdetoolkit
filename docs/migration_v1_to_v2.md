@@ -200,6 +200,13 @@ v1 の `fig.savefig(path)` と同じ画像には `bbox_inches=None` を、
 塗りつぶし色（ARGB 16 進文字列、`theme:<n>`、または `None`）を返します。
 `OutputContext` には v1 の `resource_paths.temp` に当たる一時ディレクトリはありません。
 作業用ファイルには `tempfile.TemporaryDirectory()` を使ってください（ブロック終了時に削除されます）。
+v1 の simple-registration テンプレートのように、アップロードされた PDF や SVG から
+代表画像を作る場合は `render_png(source_path, out, filename, *, kind="main_image", page=1, dpi=350)` を使います。
+拡張子が `.pdf` ならそのページを `dpi` で描画し、`.svg` / `.svgz` なら SVG 自身のサイズで描画し、
+それ以外は `to_png` と同じく Pillow で PNG に変換します。既定値(1 ページ目、350 dpi)は v1 テンプレートと同じです。
+PDF と SVG には `pip install 'rdetoolkit[render]'` が必要で、SVG には Cairo のシステムライブラリも必要です。
+未導入の場合は、必要な extra とライブラリ名を示す `ImportError` になります。
+PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため、画素単位では v1 と一致しないことがあります。
 
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。

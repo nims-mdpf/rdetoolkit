@@ -74,6 +74,13 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- Builtin node `render_png(source_path, out, filename, *, kind="main_image",
+  page=1, dpi=350)` renders an image, a PDF page or an SVG drawing to PNG under
+  `main_image` (or `other_image` / `thumbnail`). PDF pages are rendered with
+  pypdfium2 and SVG drawings with cairosvg, both from the new optional extra
+  `rdetoolkit[render]`; SVG also needs the Cairo system library. A missing
+  backend raises an `ImportError` that names the extra and the library. Other
+  files are converted with Pillow like `to_png` (#627).
 - `plot_lines` accepts `xlim` / `ylim` (`(lower, upper)`, a `None` bound keeps
   matplotlib's automatic limit, so `ylim=(0, None)` starts the axis at 0) and
   `xscale`, so a fixed axis range no longer needs an own figure and
