@@ -127,7 +127,7 @@ class TestNodesDescribe:
             return "x"
 
         node_id = _fixture_node_ep003.__node_spec__.id
-        result = cli_runner.invoke(app, ["nodes", "describe", node_id])
+        result = cli_runner.invoke(app, ["nodes", "show", node_id])
 
         assert result.exit_code == 0
         for field_name in _NODE_SPEC_FIELDS:
@@ -139,7 +139,7 @@ class TestNodesDescribe:
             return None
 
         node_id = _fixture_node_ep004.__node_spec__.id
-        result = cli_runner.invoke(app, ["nodes", "describe", node_id, "--json"])
+        result = cli_runner.invoke(app, ["nodes", "show", node_id, "--json"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -147,7 +147,7 @@ class TestNodesDescribe:
         assert data["id"] == node_id
 
     def test_describe_unknown_id_exits_3__tc_cli_nodes_ep_005(self, cli_runner: CliRunner) -> None:
-        result = cli_runner.invoke(app, ["nodes", "describe", "definitely.not.a.registered.node.id.e1"])
+        result = cli_runner.invoke(app, ["nodes", "show", "definitely.not.a.registered.node.id.e1"])
 
         assert result.exit_code == 3
 

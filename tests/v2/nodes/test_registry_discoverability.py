@@ -55,6 +55,7 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "save_invoice",
     "save_text",
     "save_figure",
+    "save_html_figure",
     "read_excel_fills",
     "set_custom_fields",
     "read_key_values",

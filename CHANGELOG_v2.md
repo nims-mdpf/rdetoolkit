@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+### Changed
+
+- **The CLI uses `rdetoolkit <noun> <verb>` commands (#616).** Every command's
+  `--help` now lists its inputs, outputs and side effects, at least two
+  examples, its exit codes, and related commands, and the root `--help`
+  groups commands by workflow phase (Scaffold / Generate / Validate / Run /
+  Inspect / Package / Migrate / Info). Renamed commands:
+
+  | Before | Now | Old name in v2.0.x |
+  |---|---|---|
+  | `gen-config [DIR] [--template X] [--overwrite]` | `new config [-o DIR] [--preset X] [--force]` | deprecated alias, removed in v2.1 |
+  | `gen-invoice` | `new invoice` | deprecated alias, removed in v2.1 |
+  | `make-excelinvoice` | `new excelinvoice` | deprecated alias, removed in v2.1 |
+  | `csv2graph` | `plot` | deprecated alias, removed in v2.1 |
+  | `artifact --output-archive` | `package -o/--output` | deprecated alias, removed in v2.1 |
+  | `run module::attr` | `run --legacy module::attr` | still accepted; `--legacy` becomes required in v2.1 |
+  | `init --processing-template X` | `new processing X` | removed (v2 release candidates only) |
+  | `run --flow X` | `run X` | removed (v2 release candidates only) |
+  | `graph REPORT` | `report trace REPORT` | removed (v2 release candidates only) |
+  | `templates list` / `templates describe` | `skeletons list` / `skeletons show` | removed (v2 release candidates only) |
+  | `nodes describe` / `flows describe` | `nodes show` / `flows show` | removed (v2 release candidates only) |
+  | `migrate apply --out DIR` | `migrate apply -o/--output DIR` | removed (v2 release candidates only) |
+
+  A deprecated alias runs the same code as its replacement after printing a
+  warning with a `Remediation:` line on stderr; its options and exit codes are
+  unchanged. The v1.7 Python names in `rdetoolkit.cli.app` (`gen_invoice`,
+  `make_excelinvoice`, `csv2graph`, `gen_config`, `artifact`) stay importable
+  with their v1 keyword arguments and emit a `DeprecationWarning` naming the
+  replacement (removed in v2.1); `run(target=...)` keeps its v1 keyword.
+  `rdetoolkit migrate check` reports the old
+  names in Python string literals and argv lists (also when other arguments
+  are variables) and in shell, CI and container files (`*.sh`, `*.yml`,
+  `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`; a command continued
+  with a trailing `\` is read as one line). Usage errors of the
+  v2 commands now end with a `Remediation:` line, and the remediation of
+  error 2102 (`TemplateSlotSignatureMismatch`) names
+  `rdetoolkit skeletons show <name>`.
+- `rdetoolkit run --legacy module_or_file::attr` reports a target that
+  cannot be loaded (missing file, attribute, or a non-function) with exit
+  code 3, like every other `run` usage error, instead of Click's exit code 2,
+  which `run` uses for a partial run.
+
 ### Added
 
 - `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
@@ -15,6 +57,15 @@
   options the result equals v1 `rde2util.get_default_values`, and it appears
   in the call log and `rdetoolkit nodes list`. A missing column or a row
   without its cell raises `ValueError` (#629).
+- Builtin node `save_html_figure(fig, out, filename, *, kind="struct",
+  include_plotlyjs="cdn", full_html=True, div_id=None)` writes a plotly figure
+  (or its dict form) as interactive HTML with `plotly.io.to_html`. Without
+  `div_id` the chart `<div>` id is derived from the filename
+  (`plotly-<stem>-<8 hex digits of its SHA-256>`) instead of plotly's random
+  one, so the artifact is identical on every run and fragments of different
+  files keep distinct ids on one page.
+  plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
+  extra raises an `ImportError` naming it (#625).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
@@ -34,7 +85,7 @@
 - `@flow(prepare=fn)` declares run-level input preparation,
   `fn(inputdata: Path, config: RdeConfig) -> None`, that the Runner calls after
   config load and before mode resolution, so `workflows.run(flow=...)` and
-  `rdetoolkit run --flow` (including `--validate-only`) resolve the mode and
+  `rdetoolkit run <pkg.mod:flow>` (including `--validate-only`) resolve the mode and
   tiles from the prepared inputs. It is recorded as `prepare.started` /
   `prepare.completed` / `prepare.failed` events. `--validate-only` runs it
   too, so the pre-flight checks the same mode as the real run and may modify

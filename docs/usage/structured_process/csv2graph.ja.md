@@ -179,7 +179,7 @@ csv2graph(
 ```
 
 ```bash
-rdetoolkit csv2graph data.csv --y-tick-format eng
+rdetoolkit plot data.csv --y-tick-format eng
 ```
 
 軸の`label`にすでに単位が含まれている場合（例: `Voltage (V)`）は、二重に合成されず指定通りに表示されます。CSVヘッダから軸ラベルや単位がどのように導出されるかについては、後述の「ヘッダ名の自動変換」セクションを参照してください。
