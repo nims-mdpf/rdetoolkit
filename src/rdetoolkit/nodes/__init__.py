@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 from rdetoolkit.core.node import node
+from rdetoolkit.nodes.external import CompletedProgram, run_program, to_wine_path
 from rdetoolkit.nodes.image import copy_raw, make_thumbnail, render_png, save_main_image, to_jpeg, to_png
 from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
 from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_key_values, read_text, unzip_inputs
@@ -67,5 +68,8 @@ __all__ = [
     "copy_raw",
     "plot_lines",
     "plot_scatter",
+    "run_program",
+    "CompletedProgram",
+    "to_wine_path",
     "as_node",
 ]
