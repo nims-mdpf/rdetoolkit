@@ -22,7 +22,7 @@ entry returns that report by default. In production main.py, use
 `workflows.run(flow=pipeline, exit_on_failure=True)` to exit after finalization
 with 1 for failed and 2 for partial. Alternatively use `raise SystemExit(report.exit_code)`.
 The public report.exit_code and CLI share success 0, failed 1 and partial 2;
-CLI usage errors use 3. The default programmatic call keeps returning its report.
+CLI usage errors use 3.
 
 ## Executable v2 example
 
@@ -85,6 +85,7 @@ an output kind. save_invoice and save_meta keep v1 four-space JSON. save_figure
 leaves figure ownership with callers. plot_lines accepts x/y columns or pairs,
 labels, grid, title, scale, legend, size, DPI and kind; it always closes
 internally created figures. bbox_inches=None matches v1 fig.savefig(path).
+save_html_figure writes plotly HTML with a stable div id (rdetoolkit[plotly]).
 
 Use build_meta(values, metadef_path, repeated=...) to construct Metadata from
 metadata-def.json. It filters unknown keys, casts schema types/formats, resolves

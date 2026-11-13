@@ -57,6 +57,15 @@
   options the result equals v1 `rde2util.get_default_values`, and it appears
   in the call log and `rdetoolkit nodes list`. A missing column or a row
   without its cell raises `ValueError` (#629).
+- Builtin node `save_html_figure(fig, out, filename, *, kind="struct",
+  include_plotlyjs="cdn", full_html=True, div_id=None)` writes a plotly figure
+  (or its dict form) as interactive HTML with `plotly.io.to_html`. Without
+  `div_id` the chart `<div>` id is derived from the filename
+  (`plotly-<stem>-<8 hex digits of its SHA-256>`) instead of plotly's random
+  one, so the artifact is identical on every run and fragments of different
+  files keep distinct ids on one page.
+  plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
+  extra raises an `ImportError` naming it (#625).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists

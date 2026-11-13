@@ -8,7 +8,7 @@ from rdetoolkit.nodes.image import copy_raw, make_thumbnail, save_main_image, to
 from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
 from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_key_values, read_text, unzip_inputs
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
-from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure
+from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure, save_html_figure
 from rdetoolkit.nodes.structured import save_csv, save_invoice, save_json, save_text
 
 
@@ -55,6 +55,7 @@ __all__ = [
     "set_custom_fields",
     "resolve_custom_key",
     "save_figure",
+    "save_html_figure",
     "parse_invoice_meta",
     "save_meta",
     "build_meta",
