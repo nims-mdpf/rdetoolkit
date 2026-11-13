@@ -68,6 +68,17 @@
   exist). The wheel and sdist no longer carry agent Markdown; `py.typed` and
   the `.pyi` stubs still ship. This is an intentional pre-GA API removal with
   no replacement in the package (#644).
+- The pre-GA draft error taxonomy of the retired Trace/Compile design is
+  removed from `rdetoolkit.errors` (and its stub): the string `ErrorCode` enum
+  (`E001`-`E025`), `RdeGraphError`, `RdeCompileError`, `RdeIOError`,
+  `UnconnectedInputError`, and the `E_CYCLE` / `E_UNCONNECTED_INPUT` /
+  `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY` constants. None of them was in a
+  v1 release or raised by any v2 code path. Raise the canonical `RdeError`
+  subclasses with an int code from `ERROR_CATALOG` instead. The removed
+  identifiers are never reused for a new meaning. `RdeError.__init__` /
+  `to_dict` and `RdeExecutionError.__init__` are now defined in their classes
+  with unchanged behaviour, and the stub types `code` / `name` / `message` /
+  `detail` precisely (#646).
 
 ### Fixed
 

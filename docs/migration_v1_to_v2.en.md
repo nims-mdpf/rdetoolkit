@@ -386,6 +386,15 @@ protected by tests that compare against contract snapshots frozen from the v1 ex
 Code that imports any of these directly should go back to calling
 `run(custom_dataset_function=...)` or move to a flow function.
 
+**Removed before GA (v2 prerelease drafts only, #646)**: the string
+`rdetoolkit.errors.ErrorCode` enum (`E001`-`E025`), `RdeGraphError`,
+`RdeCompileError`, `RdeIOError`, `UnconnectedInputError`, and the `E_CYCLE` /
+`E_UNCONNECTED_INPUT` / `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY` constants.
+They appeared only in the 2.0.0a1 / 2.0.0rc1 prereleases, never in v1. Use the
+`RdeError` subclasses (`RdeConfigError`, `RdeRegistryError`,
+`RdeExecutionError`, `RdeValidationError`, `RdeInternalError`) with an int code
+from `ERROR_CATALOG`.
+
 **Deprecated (no caller left, kept only for compatibility)**:
 `rdetoolkit.errors.handle_and_exit_on_structured_error` and
 `rdetoolkit.models.result.WorkflowResultManager`. Do not use them in new code.

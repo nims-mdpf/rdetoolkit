@@ -106,8 +106,8 @@ Tools: **Ruff** (lint + format) and **mypy** (strict type checking).
 | Rule | Detail |
 |------|--------|
 | `types.py` is append-only | Never modify existing v1 lines. v2 canonical types per Design §4.2. |
-| `errors.py` is append-only | Single int-coded catalog per Design §9. Old `E001–E025` / `E_CYCLE` IDs are retired markers — never delete, never reuse. |
-| `errors.pyi` is append-only | Stub files follow the same rule as their modules. Declarations must never silently disappear. |
+| `errors.py` is append-only | Single int-coded catalog per Design §9. v1 APIs and `ERROR_CATALOG` entries are never deleted (retire a number with `retired=True`). The pre-GA draft identifiers (string `ErrorCode` `E001–E025`, `E_CYCLE`-style constants, `RdeGraphError` / `RdeCompileError` / `RdeIOError` / `UnconnectedInputError`) were removed once, by approved issue #646 — never reintroduce or reuse them for a new meaning. |
+| `errors.pyi` is append-only | Stub files follow the same rule as their modules. Declarations must never silently disappear (the #646 draft removal is the only approved exception). |
 | `core/result.py` must not be created | Use existing `result.py` (`Success`, `Failure`, `Result`) as-is. |
 | Re-export pattern for direct refactors | When moving functions, keep `from rdetoolkit.<new> import <fn>  # noqa: F401` in the original module. |
 | `@node` transparency | Decorated functions remain plain functions: direct calls pass args verbatim, exceptions propagate unwrapped when no run is active, `functools.wraps` metadata preserved. |

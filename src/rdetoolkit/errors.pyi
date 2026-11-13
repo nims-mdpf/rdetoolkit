@@ -1,8 +1,6 @@
 import contextlib
-import enum
 import logging
 import traceback
-from _typeshed import Incomplete
 from collections.abc import Callable as Callable, Generator
 from rdetoolkit.exceptions import StructuredError as StructuredError
 from rdetoolkit.models.config import Config as Config
@@ -17,43 +15,14 @@ def handle_and_exit_on_structured_error(e: StructuredError, logger: logging.Logg
 def handle_generic_error(e: Exception, logger: logging.Logger, config: Config | None = None) -> None: ...
 def write_job_errorlog_file(code: int, message: str, *, filename: str = 'job.failed') -> None: ...
 
-class ErrorCode(enum.Enum):
-    E001 = 'E001'
-    E002 = 'E002'
-    E003 = 'E003'
-    E004 = 'E004'
-    E005 = 'E005'
-    E006 = 'E006'
-    E007 = 'E007'
-    E008 = 'E008'
-    E009 = 'E009'
-    E010 = 'E010'
-    E011 = 'E011'
-    E012 = 'E012'
-    E013 = 'E013'
-    E014 = 'E014'
-    E015 = 'E015'
-    E016 = 'E016'
-    E017 = 'E017'
-    E018 = 'E018'
-    E019 = 'E019'
-    E020 = 'E020'
-    E021 = 'E021'
-    E022 = 'E022'
-    E023 = 'E023'
-    E024 = 'E024'
-    E025 = 'E025'
-
 class RdeError(Exception):
-    code: Incomplete
-    name: Incomplete
-    message: Incomplete
-    detail: Incomplete
+    code: int | str
+    name: str
+    message: str
+    detail: dict[str, _Any] | None
     def __init__(self, *, code: int | str, message: str, name: str | None = None, detail: dict[str, _Any] | None = None) -> None: ...
     def to_dict(self) -> dict[str, _Any]: ...
 
-class RdeGraphError(RdeError): ...
-class RdeCompileError(RdeError): ...
 class RdeExecutionError(RdeError):
     call_id: str | None
     def __init__(
@@ -66,13 +35,6 @@ class RdeExecutionError(RdeError):
         call_id: str | None = None,
     ) -> None: ...
 class RdeConfigError(RdeError): ...
-class RdeIOError(RdeError): ...
-
-class UnconnectedInputError(RdeExecutionError):
-    node_id: str
-    param_name: str
-    param_type: type | None
-    def __init__(self, node_id: str, param_name: str, param_type: type | None = None) -> None: ...
 
 class ErrorDef:
     name: str
@@ -88,10 +50,6 @@ class WarningDef:
 
 ERROR_CATALOG: dict[int, ErrorDef]
 WARNING_CATALOG: dict[int, WarningDef]
-E_CYCLE: str
-E_UNCONNECTED_INPUT: str
-E_DUPLICATE_ID: str
-E_AMBIGUOUS_DEPENDENCY: str
 
 class RdeRegistryError(RdeError): ...
 class RdeValidationError(RdeError): ...

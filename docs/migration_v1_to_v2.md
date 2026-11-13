@@ -361,6 +361,15 @@ slot の引数名と種類を含むシグネチャの一致、深さ2までの�
 これらを直接 import しているコードは、`run(custom_dataset_function=...)` 経由の
 呼び出しに戻すか、flow 関数へ移行してください。
 
+**GA 前に削除(v2 プレリリースの草案のみ、#646)**: 文字列の
+`rdetoolkit.errors.ErrorCode` 列挙(`E001`〜`E025`)、`RdeGraphError`、
+`RdeCompileError`、`RdeIOError`、`UnconnectedInputError`、および定数 `E_CYCLE` /
+`E_UNCONNECTED_INPUT` / `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY`。いずれも
+2.0.0a1 / 2.0.0rc1 のプレリリースにのみ存在し、v1 には含まれていません。
+`ERROR_CATALOG` の int コードを持つ `RdeError` の派生クラス(`RdeConfigError`、
+`RdeRegistryError`、`RdeExecutionError`、`RdeValidationError`、`RdeInternalError`)
+を使ってください。
+
 **非推奨(呼び出し元なし、互換のためだけに残存)**:
 `rdetoolkit.errors.handle_and_exit_on_structured_error` と
 `rdetoolkit.models.result.WorkflowResultManager`。新しいコードでは使わないで
