@@ -38,6 +38,7 @@ BV table:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -255,7 +256,8 @@ class TestReportWritersAreAtomic:
         )
         # Then: job.failed holds the exact v1 marker bytes, and only the report
         # went through the atomic writer
-        assert (tmp_path / "job.failed").read_bytes() == b"ErrorCode=3001\nErrorMessage=boom\n"
+        # (text-mode write: the platform line ending, CRLF on Windows)
+        assert (tmp_path / "job.failed").read_bytes() == f"ErrorCode=3001{os.linesep}ErrorMessage=boom{os.linesep}".encode()
         assert atomic_targets == ["run_report_k3-atomic.json"]
 
 

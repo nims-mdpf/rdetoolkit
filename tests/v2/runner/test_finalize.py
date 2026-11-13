@@ -42,6 +42,7 @@ not go through the v1 wrapper's deprecated ``StorageDir`` path resolution
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -145,8 +146,9 @@ class TestFinalizeSingleResponsibility:
         finalize(report, RdeConfig(), data_root=_cwd_data_dir)
 
         assert sorted(path.name for path in _cwd_data_dir.iterdir()) == ["job.failed", "logs"]
+        # v1 writes in text mode, so the line ending is the platform's (CRLF on Windows).
         assert (_cwd_data_dir / "job.failed").read_bytes() == (
-            f"ErrorCode={_NODE_EXECUTION_FAILED_CODE}\nErrorMessage=boom\n".encode()
+            f"ErrorCode={_NODE_EXECUTION_FAILED_CODE}{os.linesep}ErrorMessage=boom{os.linesep}".encode()
         )
 
     def test_successful_finalize_writes_no_marker(self, _cwd_data_dir: Path) -> None:
