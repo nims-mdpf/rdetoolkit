@@ -2,7 +2,7 @@
 
 | Test ID | Target | Condition | Expected |
 |---|---|---|---|
-| TC-616-TREE-001 | registered commands | walk the click tree | exactly the proposed noun-verb tree plus the five v1 aliases |
+| TC-616-TREE-001 | registered commands | walk the command tree | exactly the proposed noun-verb tree plus the five v1 aliases |
 | TC-616-HELP-001 | every command and group | render ``--help`` | Examples and Exit codes sections present |
 | TC-616-HELP-002 | every example line | inspect the help source | starts with ``rdetoolkit``, fits 74 columns, names a real command |
 | TC-616-HELP-003 | root ``--help`` | render | panels in workflow order, Deprecated panel last |
@@ -30,10 +30,9 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-import click
 import pytest
 import typer
-from typer.testing import CliRunner
+from typer.testing import CliRunner, Result
 
 from rdetoolkit.cli._help import PANEL_DEPRECATED, SECTION_EXAMPLES, SECTION_EXIT_CODES
 from rdetoolkit.cli._renames import COMMAND_RENAMES, find_renamed_commands
@@ -94,28 +93,44 @@ ROOT_PANEL_ORDER = ("Scaffold", "Generate", "Validate", "Run", "Inspect", "Packa
 _MAX_EXAMPLE_WIDTH = 74
 
 
-def _root() -> click.Group:
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _is_group(command: Any) -> bool:
+    """Whether ``command`` has subcommands.
+
+    Duck-typed: typer >= 0.26 builds commands on its vendored ``typer._click``,
+    so they are not instances of ``click.Group`` (#740).
+    """
+    return hasattr(command, "commands")
+
+
+def _root() -> Any:
     command = typer.main.get_command(app)
-    assert isinstance(command, click.Group)
+    assert _is_group(command)
     return command
 
 
-def _walk(command: click.Command, path: tuple[str, ...] = ()) -> Iterator[tuple[tuple[str, ...], click.Command]]:
+def _walk(command: Any, path: tuple[str, ...] = ()) -> Iterator[tuple[tuple[str, ...], Any]]:
     yield path, command
-    if isinstance(command, click.Group):
+    if _is_group(command):
         for name, sub in command.commands.items():
             yield from _walk(sub, (*path, name))
 
 
-def _all_commands() -> list[tuple[tuple[str, ...], click.Command]]:
+def _all_commands() -> list[tuple[tuple[str, ...], Any]]:
     return [(path, command) for path, command in _walk(_root())]
 
 
 def _plain(text: str) -> str:
-    return click.unstyle(text)
+    return _ANSI_ESCAPE.sub("", text)
 
 
-def _examples(command: click.Command) -> list[str]:
+def _options(command: Any) -> list[Any]:
+    return [parameter for parameter in command.params if parameter.param_type_name == "option"]
+
+
+def _examples(command: Any) -> list[str]:
     match = re.search(r"```\n(.*?)\n```", command.help or "", re.S)
     assert match, f"no Examples block in the help source of {command.name}"
     return match.group(1).splitlines()
@@ -123,14 +138,14 @@ def _examples(command: click.Command) -> list[str]:
 
 def _resolves(argv: list[str]) -> bool:
     """Whether ``argv`` (after ``rdetoolkit``) starts with a registered command path."""
-    command: click.Command = _root()
+    command = _root()
     consumed = 0
     for token in argv:
-        if not isinstance(command, click.Group) or token not in command.commands:
+        if not _is_group(command) or token not in command.commands:
             break
         command = command.commands[token]
         consumed += 1
-    return consumed > 0 and not isinstance(command, click.Group)
+    return consumed > 0 and not _is_group(command)
 
 
 # --------------------------------------------------------------------------
@@ -162,7 +177,7 @@ def test_every_help_has_examples_and_exit_codes__tc_616_help_001(path: str) -> N
 
 
 @pytest.mark.parametrize(("path", "command"), [(" ".join(p), c) for p, c in _all_commands()], ids=lambda value: value if isinstance(value, str) else "")
-def test_examples_are_copy_pasteable__tc_616_help_002(path: str, command: click.Command) -> None:
+def test_examples_are_copy_pasteable__tc_616_help_002(path: str, command: Any) -> None:
     # Given: the example lines of one help text
     examples = _examples(command)
 
@@ -207,8 +222,7 @@ def test_option_names_are_unified__tc_616_opt_001() -> None:
         (" ".join(path), option)
         for path, command in _all_commands()
         if path and path[0] not in V1_ALIASES
-        for parameter in command.params
-        if isinstance(parameter, click.Option)
+        for parameter in _options(command)
         for option in parameter.opts
         if option in retired
     ]
@@ -223,7 +237,7 @@ def test_option_names_are_unified__tc_616_opt_001() -> None:
 )
 def test_single_output_commands_use_dash_o_output__tc_616_opt_002(path: str) -> None:
     command = {" ".join(p): c for p, c in _all_commands()}[path]
-    opts = {tuple(sorted(parameter.opts)) for parameter in command.params if isinstance(parameter, click.Option)}
+    opts = {tuple(sorted(parameter.opts)) for parameter in _options(command)}
     assert ("--output", "-o") in opts
 
 
@@ -232,7 +246,7 @@ def test_single_output_commands_use_dash_o_output__tc_616_opt_002(path: str) -> 
 # --------------------------------------------------------------------------
 
 
-def _warning_lines(result: click.testing.Result) -> str:
+def _warning_lines(result: Result) -> str:
     return _plain(result.stderr)
 
 

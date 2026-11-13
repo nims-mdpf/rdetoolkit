@@ -331,6 +331,49 @@ markers = [
 ]
 
 
+[tool.towncrier]
+# Changelog fragments for CHANGELOG_v2.md; see changelog.d/README.md (#740).
+directory = "changelog.d"
+filename = "CHANGELOG_v2.md"
+start_string = "<!-- towncrier release notes start -->\n"
+title_format = "## {version} — {project_date}"
+template = "changelog.d/template.md.jinja"
+underlines = ["", "", ""]
+# Files in changelog.d/ that are not fragments. Setting this list also makes
+# towncrier reject a fragment with an unknown type instead of dropping it.
+ignore = ["README.md", "template.md.jinja"]
+
+# Fragment types, in Keep a Changelog order (the order of the release headings).
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "deprecated"
+name = "Deprecated"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removed"
+name = "Removed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "security"
+name = "Security"
+showcontent = true
+
 [tool.rye]
 managed = true
 

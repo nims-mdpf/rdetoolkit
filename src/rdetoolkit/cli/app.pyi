@@ -4,7 +4,6 @@ from __future__ import annotations
 import pathlib
 from typing import Any, Optional, Union
 
-import click
 import typer
 from typer.core import TyperCommand, TyperGroup
 
@@ -37,11 +36,11 @@ repro_app: typer.Typer
 migrate_app: typer.Typer
 
 class _WorkflowOrderedGroup(TyperGroup):
-    def list_commands(self, ctx: click.Context) -> list[str]: ...
+    def list_commands(self, ctx: Any) -> list[str]: ...
 
 class _DeprecatedCommand(TyperCommand):
     replacement: str
-    def invoke(self, ctx: click.Context) -> Any: ...
+    def invoke(self, ctx: Any) -> Any: ...
 
 def validate_json_file(value: pathlib.Path) -> pathlib.Path: ...
 def parse_column(col: str) -> Union[int, str]: ...
