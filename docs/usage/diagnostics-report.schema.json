@@ -8,6 +8,7 @@
   ],
   "type": "object",
   "required": [
+    "source",
     "run_id",
     "run_status",
     "failures",
@@ -16,6 +17,21 @@
   "properties": {
     "command": {
       "const": "report diagnose"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "format",
+        "schema_version"
+      ],
+      "properties": {
+        "format": {
+          "const": "rdetoolkit.run-report"
+        },
+        "schema_version": {
+          "const": "2"
+        }
+      }
     },
     "run_id": {
       "type": "string"
@@ -35,6 +51,7 @@
           "iteration_index",
           "node_id",
           "call_id",
+          "redacted",
           "code",
           "name",
           "message",
@@ -61,6 +78,16 @@
               "null"
             ]
           },
+          "redacted": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "call_id",
+                "node_id"
+              ]
+            },
+            "uniqueItems": true
+          },
           "code": {
             "type": [
               "integer",
@@ -81,7 +108,8 @@
           }
         },
         "additionalProperties": false
-      }
+      },
+      "maxItems": 200
     },
     "evidence": {
       "type": "object",
@@ -142,7 +170,8 @@
                 }
               }
             }
-          }
+          },
+          "maxItems": 200
         },
         "events": {
           "type": "object",
