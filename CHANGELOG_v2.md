@@ -1,5 +1,10 @@
 # rdetoolkit v2 changelog
 
+<!-- New entries go in changelog.d/ (see changelog.d/README.md), not in this
+     file. `towncrier build` inserts them below this marker at release. -->
+
+<!-- towncrier release notes start -->
+
 ## Unreleased
 
 ### Changed

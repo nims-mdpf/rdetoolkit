@@ -14,6 +14,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changelog:
+    # Changelog entries are files under changelog.d/ (#740), so pull requests
+    # do not conflict over CHANGELOG_v2.md. Runs for docs branches too.
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - name: Render the changelog fragments
+        # Fails on a fragment whose type is unknown; towncrier would drop it
+        # without a message at release.
+        run: pipx run --spec towncrier==26.9.0 towncrier build --draft --version Unreleased
+      - name: Reject new entries written into CHANGELOG_v2.md
+        if: ${{ startsWith(github.base_ref, 'develop') }}
+        run: |
+          # HEAD is the merge commit of the pull request; HEAD^1 is its base.
+          # An added top-level bullet is a new entry; other edits are allowed.
+          if git diff --unified=0 HEAD^1 HEAD -- CHANGELOG_v2.md | grep -q '^+- '; then
+            echo "::error file=CHANGELOG_v2.md::Add the entry as a file in changelog.d/ instead (see changelog.d/README.md)."
+            exit 1
+          fi
+
   test:
     runs-on: ubuntu-latest
     if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||

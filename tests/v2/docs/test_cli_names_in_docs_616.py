@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
-import click
 import pytest
 import typer
 
@@ -60,9 +60,14 @@ def _code_lines(text: str) -> list[tuple[int, str]]:
     return found
 
 
-def _root() -> click.Group:
+def _is_group(command: Any) -> bool:
+    """Whether ``command`` has subcommands (duck-typed for typer's vendored click, #740)."""
+    return hasattr(command, "commands")
+
+
+def _root() -> Any:
     command = typer.main.get_command(app)
-    assert isinstance(command, click.Group)
+    assert _is_group(command)
     return command
 
 
@@ -75,7 +80,7 @@ def _check_invocation(words: list[str]) -> str | None:
     if head in _DEPRECATED_ROOT_COMMANDS:
         return f"deprecated command {head!r}"
     command = root.commands[head]
-    if isinstance(command, click.Group) and len(words) > 1 and words[1] not in command.commands:
+    if _is_group(command) and len(words) > 1 and words[1] not in command.commands:
         return f"unknown subcommand {' '.join(words)!r}"
     return None
 

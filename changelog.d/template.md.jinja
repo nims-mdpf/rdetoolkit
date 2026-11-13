@@ -1,0 +1,13 @@
+{#- Renders each fragment verbatim as one bullet under its type heading.
+    Authors write the issue reference "(#NNN)" in the text themselves, as the
+    entries of CHANGELOG_v2.md always have, so none is appended here. -#}
+{%- for section, _ in sections.items() %}
+{%- for category, val in definitions.items() if category in sections[section] %}
+### {{ definitions[category]['name'] }}
+
+{% for text, values in sections[section][category].items() -%}
+- {{ text }}
+{% endfor %}
+
+{% endfor %}
+{%- endfor %}

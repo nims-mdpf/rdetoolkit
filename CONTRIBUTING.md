@@ -225,6 +225,13 @@ git push origin develop-v<x.y.z>/<任意の名称>
 
 もし、pre-commitのチェックでコミットできない場合、全てのエラーを解消した上でコミットをお願いします。
 
+### 変更履歴 (v2)
+
+v2 の変更履歴は `CHANGELOG_v2.md` を直接編集せず、`changelog.d/<issue番号>.<種別>.md`
+（例: `changelog.d/740.fixed.md`）を 1 ファイル追加して書きます。PR ごとに別ファイルになるので、
+`develop/v2` を取り込むときに変更履歴のコンフリクトが起きません。種別の一覧と書き方は
+[changelog.d/README.md](changelog.d/README.md) を参照してください。
+
 ### 変更リクエスト (Merge Request)
 
 :warning: **この時、`main`ブランチにプルリクエストを発行してないでください。**
