@@ -209,3 +209,6 @@ src/rdetoolkit/core.cpython-*.so
 
 # test-suite cwd leak artifacts (see merge_v1 debt: data/ pollution)
 data/logs/
+
+# Migration skill executable helpers are not Windows virtualenv scripts.
+!/.agents/skills/rdetoolkit-v1-migration/scripts/

@@ -8,9 +8,11 @@ EP table (written before implementation)
 | AS-04 | testing example and migration fixture | real outputs and v1/v2 artifact parity |
 | AS-05 | CLI discovery examples | successful commands, parseable JSON schemas |
 | AS-06 | diagnostic examples (doctor, report diagnose, nodes lint --json) | versioned envelope naming the real fixture's state |
+| AS-07 | migration compare/exercise/mode-parity commands | parity verdicts from an installed copy and the frozen v1 corpus |
 | AS-N1 | old new-code imports/callback/proxy advice | static audit rejects each |
 | AS-N2 | untracked or broken example | manifest/fence check rejects |
 | AS-N3 | missing API mutation | exact-text execution fails |
+| AS-N4 | one changed artifact between compared data roots | compare command exits 1 naming that path |
 
 BV table
 | ID | Boundary | Expected |
@@ -43,7 +45,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SKILLS = ROOT / ".agents" / "skills"
 NAMES = {f"rdetoolkit-{name}" for name in ("flow-authoring", "metadata", "debugging", "testing", "v1-migration")}
 EXAMPLE = re.compile(r"<!-- example: ([\w-]+) -->\n```(python|console)\n(.*?)```", re.DOTALL)
-COVERED_EXAMPLES = {"authoring-discovery", "authoring-flow", "authoring-doctor", "authoring-run", "metadata-discovery", "metadata-flow", "debugging-flow", "debugging-repair", "debugging-report", "debugging-diagnose", "testing-discovery", "testing-lint", "testing-roundtrip", "migration-commands"}
+COVERED_EXAMPLES = {"authoring-discovery", "authoring-flow", "authoring-doctor", "authoring-run", "metadata-discovery", "metadata-flow", "debugging-flow", "debugging-repair", "debugging-report", "debugging-diagnose", "testing-discovery", "testing-lint", "testing-roundtrip", "migration-commands", "migration-compare", "migration-exercise", "migration-mode-parity"}
 OBSOLETE = (r"custom_dataset_function\s*=", r"\bRdeDatasetPaths\b", r"from rdetoolkit\.rde2util import.*\bMeta\b", r"from rdetoolkit\.processing", r"\b(?:Trace|NodeProxy|OutputProxy|RustDAG)\b", r"\bget_agent_guide\b|\bagent-guide\b")
 
 
@@ -372,3 +374,63 @@ def test_lint_json_example__as_06(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stdout + result.stderr
     payload = json.loads(result.stdout)
     assert (payload["schema_version"], payload["command"], payload["status"], payload["diagnostics"]) == ("1", "nodes lint", "passed", [])
+
+
+def _migration_command(example_id: str) -> list[str]:
+    command = shlex.split(_code(example_id))
+    assert command[0] == "python"
+    return [sys.executable, *command[1:]]
+
+
+def _install_migration_skill(project: Path) -> None:
+    """Place the Skill where a Codex install puts it, outside the source checkout."""
+    shutil.copytree(SKILLS / "rdetoolkit-v1-migration", project / ".agents/skills/rdetoolkit-v1-migration", ignore=shutil.ignore_patterns("__pycache__"))
+
+
+def test_migration_compare_command__as_07_n4(tmp_path: Path) -> None:
+    """AS-07/N4: the exact compare command reports parity, then the one changed file."""
+    # Given: an installed Skill copy and two identical preserved data roots
+    _install_migration_skill(tmp_path)
+    _tree(tmp_path / "v1")
+    _tree(tmp_path / "v2")
+    command = _migration_command("migration-compare")
+    # When: comparing them with the documented command
+    same = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=60, check=False)
+    # Then: parity is reported
+    assert same.returncode == 0, same.stdout + same.stderr
+    assert json.loads(same.stdout) == {"parity": True, "differences": []}
+    # When: one raw input differs in the candidate
+    (tmp_path / "v2/data/inputdata/input-0.txt").write_text("changed\n", encoding="utf-8")
+    changed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=60, check=False)
+    # Then: the comparison fails and names exactly that path
+    assert changed.returncode == 1, changed.stdout + changed.stderr
+    assert json.loads(changed.stdout) == {"parity": False, "differences": ["inputdata/input-0.txt"]}
+
+
+def test_migration_exercise_command__as_07(tmp_path: Path) -> None:
+    """AS-07: the worked example converts, runs and compares a passing and a failing input."""
+    # Given: an installed Skill copy and the documented, not yet existing work directory
+    _install_migration_skill(tmp_path)
+    source = tmp_path / ".agents/skills/rdetoolkit-v1-migration/examples/legacy_callback.py"
+    before = source.read_bytes()
+    # When: running the exact documented command
+    result = subprocess.run(_migration_command("migration-exercise"), cwd=tmp_path, capture_output=True, text=True, timeout=300, check=False)
+    # Then: the v1 entry, converted flow and artifact-node flow agree on both inputs
+    assert result.returncode == 0, result.stdout + result.stderr
+    summary = json.loads((tmp_path / "migration-exercise/summary.json").read_text(encoding="utf-8"))
+    assert (summary["success"]["status"], summary["success"]["exit_code"]) == ("success", 0)
+    assert (summary["failure"]["status"], summary["failure"]["exit_code"], summary["failure"]["error_code"]) == ("failed", 1, 999)
+    assert summary["parity"] is True
+    assert (tmp_path / "migration-exercise/migrated/source.py").is_file()
+    assert source.read_bytes() == before
+
+
+def test_migration_mode_parity_command__as_07() -> None:
+    """AS-07: the exact gate command replays all 24 frozen v1 contract cases."""
+    # Given: the source checkout holding the frozen v1 corpus
+    # When: running the documented gate command from the checkout root
+    result = subprocess.run(_migration_command("migration-mode-parity"), cwd=ROOT, capture_output=True, text=True, timeout=600, check=False)
+    # Then: every selected case passed; none was skipped or deselected
+    assert result.returncode == 0, result.stdout[-4000:] + result.stderr[-4000:]
+    assert re.search(r"\b24 passed\b", result.stdout)
+    assert not re.search(r"\b(?:skipped|xfailed|xpassed|deselected)\b", result.stdout)
