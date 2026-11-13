@@ -1,5 +1,7 @@
 # Developer Guide
 
+Repository automation and code-search decisions are maintained in the [tooling policy](tooling-policy.md).
+
 ## Purpose
 
 This section explains how to contribute to the RDEToolKit project and set up a development environment. We welcome various forms of contribution, including bug fixes, new feature additions, and documentation improvements.

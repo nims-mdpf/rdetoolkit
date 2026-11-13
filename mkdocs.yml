@@ -131,6 +131,7 @@ plugins:
                 - ソースコードへの貢献: development/contributing.md
                 - v2 アーキテクチャ: v2_architecture.md
                 - Agent Skills の検証記録: development/agent-skills-verification.md
+                - リポジトリ自動化の方針: development/tooling-policy.md
                 - ドキュメントワークフロー: contribute/documents_contributing.md
                 - コントリビューションガイド: contribute/home.md
                 - ソースコードワークフロー: contribute/sourcecode_contributing.md
@@ -233,6 +234,7 @@ plugins:
                 - Source Code: development/contributing.md
                 - v2 Architecture: v2_architecture.md
                 - Agent Skills Verification: development/agent-skills-verification.md
+                - Repository Tooling Policy: development/tooling-policy.md
                 - Documentation Workflow: contribute/documents_contributing.md
                 - Contribution Home: contribute/home.md
                 - Source Contribution Workflow: contribute/sourcecode_contributing.md
