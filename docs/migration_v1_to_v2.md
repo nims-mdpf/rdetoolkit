@@ -460,7 +460,8 @@ invoice シート自体がないブックについては既存のエラー契約
 | コールバックが素の例外を送出 | `ErrorCode=999`、`Unexpected error in <mode> mode: ...` | `ErrorCode=3001`。メッセージはエラーカタログ E3001 の文で、ユーザーの例外メッセージを含みます |
 | コールバック失敗時の stderr トレースバック(`traceback:` 設定 / `TRACE_*`) | `errors.handle_exception` が `Config.traceback`、なければ `TRACE_*`、なければ python 形式で `compact` / `python` / `duplex` を出力 | v1 コールバック入口では同じフォーマッタ・同じ設定・同じ優先順で出力し、設定は警告を出しません。素の例外では、最外の例外が `StructuredError: Unexpected error in <mode> mode: ...` ではなく E3001 メッセージの `TileExecutionError`(ユーザーの例外から連鎖)になります。`run()` 自体を `except` ブロックの中から呼んだ場合も、例外の連鎖は Python が記録したとおりに表示します(1.7.1 はこの場合にコールバック自身の暗黙の連鎖を失っていました)。コールバック外の失敗(設定、invoice 検証、出力の検証など)でも、`job.failed` が報告するエラーのトレースバックを同じ形式で出力します。flow 入口(`run(flow=...)`、`rdetoolkit run <module>:<flow>`)はこのトレースバックを出さず、プロジェクト直下の v2 形式 `rdeconfig.yaml` では `traceback:` はエラー(E1002)です |
 | `invoice.schema.json` 自体が不正で、コールバックも失敗 | コールバック側のエラーコード(検証はコールバックの後) | `ErrorCode=4001`(スキーマ検証の理由付き)。コールバックは呼ばれません |
-| invoice がスキーマに違反 | モードごとに異なるコード、一部モードではコールバック実行済み・出力も生成済み | `ErrorCode=4001`。コールバックは呼ばれず、タイルの成果物は作られません(`job.failed`・ログ・run report は残ります) |
+| invoice の必須項目を行やコールバックで補完 | 行の反映・コールバックの後に検証 | ExcelInvoice / SmartTable は両入口とも元の invoice の内容検証を省略し、行反映後のタイルを検証します。v1 コールバック入口では全モードで内容検証を遅らせるため、コールバックで必須項目を補完できます。ファイルの存在確認(4003)とスキーマ自体の検証(4001)は事前に行います |
+| 最終 invoice がスキーマに違反 | モードごとに異なるコード、一部モードではコールバック実行済み・出力も生成済み | 最終成果物の検証で `ErrorCode=4001`。作成済みの成果物は残ります。この検証は最後のタイルの後に行うため、複数タイルの run ではすべてのコールバックが実行済みです(1.7.1 は invoice が不正な最初のタイルで停止)。invoice / MultiDataTile / RDEformat の flow 入口は元の invoice も事前検証するため、flow で必須項目の欠落を補完できません。この早期検証で失敗した場合、flow は呼ばれずタイルの成果物も作られません(`job.failed`・ログ・run report は残ります) |
 | 設定ファイルの探索(`config=None`) | `data/tasksupport` から読み込み | 同じ。不正な設定ファイルは v1 と同じく `ErrorCode=999` |
 | `rdesys_<タイムスタンプ>.log` の場所 | `data/logs` | 標準構成では同じ |
 | 実行中の SIGTERM | プロセスが終了するだけで `job.failed` も記録も残らない | `job.failed` に `ErrorCode=3004`(`RunInterrupted`)、`RunReport` も書き出し、完了済みタイルの成果物は残ります。公開入口の終了コードは 1 |

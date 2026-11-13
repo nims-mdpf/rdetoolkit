@@ -111,6 +111,15 @@
 
 ### Fixed
 
+- An uploaded `invoice.json` whose required fields are filled by the
+  ExcelInvoice / SmartTable rows, or by a v1 callback, no longer fails with
+  4001 before the rows are applied or the callback runs. `Runner.pre_validate`
+  skips the source invoice's content in ExcelInvoice / SmartTable mode on both
+  entries and in every mode on the v1 callback entry; the final invoices are
+  still validated (4001). The file checks (4003) and the check of
+  `invoice.schema.json` itself (4001) still run first, and a flow in invoice /
+  MultiDataTile / RDEformat mode keeps the early source-invoice check. The
+  `pre_validate(config)` signature is unchanged (#647).
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
   defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check
