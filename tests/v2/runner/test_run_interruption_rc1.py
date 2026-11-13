@@ -34,6 +34,7 @@ BV / negative table:
 | TC-RC1-F01-BV-001 | predicate | 3004 / 3001 / other RdeError with 3004 / plain error | only RdeExecutionError 3004 |
 | TC-RC1-F01-BV-001b | single source | every tolerant module | uses ``rdetoolkit._interrupt.is_run_interrupted`` itself |
 | TC-RC1-F01-BV-001c | single source | AST scan of the package | exactly one definition |
+| TC-RC1-F01-BV-001d | single source | ``runner.execute`` repr capture (#641) | is ``core.calllog``'s function, no copy left |
 
 The event-log helpers (``report/events.py``) are tabled further down.
 """
@@ -426,11 +427,17 @@ class TestAuditedCatchesReraiseInterruption:
             def __repr__(self) -> str:
                 raise ValueError("no repr")
 
-        # When / Then: both capture helpers still fall back to None
+        # When / Then: the capture helper still falls back to None
         assert calllog._safe_repr_head(BrokenRepr(), enabled=True, length=10) is None
         from rdetoolkit.runner import execute
 
-        assert execute._safe_repr_head(BrokenRepr(), enabled=True, length=10) is None
+        # And: the Runner has no capture helper of its own (#641) -- its tile
+        # outputs go through the call log's single implementation, so the same
+        # fallback (and the same interruption pass-through) applies there
+        assert not hasattr(execute, "_safe_repr_head")
+        assert execute._summarize_outputs is calllog._summarize_outputs
+        (summary,) = execute._summarize_outputs(BrokenRepr(), repr_head="on", repr_head_len=10)
+        assert summary.repr_head is None
 
     def test_sigterm_in_pre_validate_keeps_code_3004__tc_rc1_f01_ep_006(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sigterm_guard: list[int]
@@ -567,7 +574,9 @@ _PREDICATE_USERS = (
     "rdetoolkit.domain.artifacts",
     "rdetoolkit.domain.invoice_service",
     "rdetoolkit.report.events",
-    "rdetoolkit.runner.execute",
+    # rdetoolkit.runner.execute left this list with #641: it no longer holds a
+    # tolerant block of its own -- its only one (repr capture) was a copy of
+    # core.calllog's, which it now calls; see the delegation test below.
     "rdetoolkit.runner.executor",
     "rdetoolkit.runner.lifecycle",
     "rdetoolkit.modes.rdeformat",
@@ -601,6 +610,17 @@ class TestInterruptPredicate:
         # When / Then: it uses the shared-kernel function object itself
         assert module.is_run_interrupted is interrupt_module.is_run_interrupted
         assert not hasattr(module, "_is_run_interrupted")
+
+    def test_runner_execute_delegates_repr_capture_to_calllog__tc_rc1_f01_bv_001d(self) -> None:
+        # Given: the Runner's tile executor, whose only tolerant block used to
+        # be a private copy of the call log's repr capture (#641)
+        from rdetoolkit.runner import execute
+
+        # When / Then: it now uses the call log's summary function itself (a
+        # predicate user above), keeps no copy, and has no predicate of its own
+        assert execute._summarize_outputs is calllog._summarize_outputs
+        for name in ("_safe_repr_head", "_summarize", "_type_name", "is_run_interrupted", "_is_run_interrupted"):
+            assert not hasattr(execute, name), name
 
     def test_no_other_definition_exists_in_the_package__tc_rc1_f01_bv_001c(self) -> None:
         # Given: every source module of the installed package

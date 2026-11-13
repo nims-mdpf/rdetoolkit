@@ -947,3 +947,18 @@ def catch_exception_with_message(  # type: ignore[no-redef]  # noqa: F811
         stacklevel=2,
     )
     return _catch_exception_with_message(error_message=error_message, error_code=error_code, eobj=eobj, verbose=verbose)
+
+
+ERROR_CATALOG[2007] = ErrorDef(
+    name="DuplicateFlowId",
+    message_template=(
+        "Duplicate flow id registered: {flow_id} is already owned by "
+        "{registered_source_location}; rejected {rejected_source_location}"
+    ),
+    remediation=(
+        "Give one of the flows a different explicit id via @flow(id=...), or rename or move one "
+        "of the functions. Flow ids are never replaced: a module that defines a flow cannot be "
+        "re-executed (importlib.reload, re-running a notebook cell) in the same process, so "
+        "restart the interpreter instead."
+    ),
+)

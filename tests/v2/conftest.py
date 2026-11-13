@@ -7,6 +7,8 @@ EP table:
 | repository guard | unchanged session delta | suite completes | TC-H0-GUARD-EP-001 |
 | repository guard | changed tracked or new untracked path | teardown fails with remediation | TC-H0-GUARD-EP-002 |
 | sys.path guard | in-process CLI prepends its working directory | entry removed after the test | TC-RC1-F02-GUARD-EP-001 |
+| flow registry guard | a test registers a local flow | registration dropped after the test | TC-640-GUARD-EP-001 |
+| flow registry guard | a test imports a module defining a flow | registration kept (matches the import cache) | TC-640-GUARD-EP-002 |
 
 BV table:
 
@@ -26,6 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+
+from rdetoolkit.core import registry
 
 _REMEDIATION = "Isolate repository-relative writes with tmp_path and monkeypatch.chdir(tmp_path)."
 
@@ -143,3 +147,34 @@ def restore_sys_path() -> Iterator[None]:
     saved = list(sys.path)
     yield
     sys.path[:] = saved
+
+
+def _bound_in_loaded_module(fn: object) -> bool:
+    """Return whether ``fn`` is the attribute its loaded module exposes.
+
+    Such a flow came from a cached import: dropping it would leave the module
+    in ``sys.modules`` without its registration, and a later import would not
+    re-run the decorator to restore it.
+    """
+    target: object = sys.modules.get(getattr(fn, "__module__", None) or "")
+    for part in getattr(fn, "__qualname__", "<locals>").split("."):
+        target = getattr(target, part, None)
+    return target is fn
+
+
+@pytest.fixture(autouse=True)
+def isolate_flow_registry() -> Iterator[None]:
+    """Drop the throwaway flows a test registers once it finishes (issue #640).
+
+    A flow id now belongs to exactly one callable per process (E2007), and a
+    flow defined inside a test, helper or executed docs example gets the same
+    id on every parametrized run. Flows bound in an imported module stay, so
+    the registry keeps matching the import cache; both maps are restored
+    together so they never disagree.
+    """
+    saved = set(registry._flow_specs)
+    yield
+    for flow_id in [flow_id for flow_id in registry._flow_specs if flow_id not in saved]:
+        if not _bound_in_loaded_module(registry._flow_functions[flow_id]):
+            del registry._flow_specs[flow_id]
+            del registry._flow_functions[flow_id]

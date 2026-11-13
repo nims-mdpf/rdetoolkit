@@ -8,8 +8,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal, cast
 
-from rdetoolkit._interrupt import is_run_interrupted
-from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, TypeSummary
+# Tile outputs are summarized by the call log's own helper, never a copy: a
+# Runner-side duplicate drifted from it (public-module type names, #641), so
+# one value read differently in a node record and in the tile outputs.
+from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, TypeSummary, _summarize_outputs
 from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.core.injection import resolve_flow_kwargs
 from rdetoolkit.errors import ERROR_CATALOG, RdeError, RdeExecutionError
@@ -126,14 +128,6 @@ def run_tile(
     )
 
 
-def _summarize_outputs(value: Any, *, repr_head: str, repr_head_len: int) -> tuple[TypeSummary, ...]:
-    if value is None:
-        return ()
-    if isinstance(value, tuple):
-        return tuple(_summarize(item, repr_head=repr_head, repr_head_len=repr_head_len) for item in value)
-    return (_summarize(value, repr_head=repr_head, repr_head_len=repr_head_len),)
-
-
 def _failed_error(exc: Exception, records: tuple[NodeCallRecord, ...]) -> dict[str, Any]:
     error_def = ERROR_CATALOG[3001]
     failed_record = next((record for record in reversed(records) if record.status == "failed"), None)
@@ -174,35 +168,6 @@ def _datatile_id(run_context: RunContext) -> str:
     if run_context.iteration is None:
         return "0"
     return str(run_context.iteration.index)
-
-
-def _summarize(value: Any, *, repr_head: str, repr_head_len: int) -> TypeSummary:
-    return TypeSummary(
-        type_name=_type_name(value),
-        repr_head=_safe_repr_head(value, enabled=repr_head == "on", length=repr_head_len),
-    )
-
-
-def _type_name(value: Any) -> str:
-    target = type(value)
-    if target is type(None):
-        return "None"
-    if target.__module__ == "builtins":
-        return target.__qualname__
-    return f"{target.__module__}.{target.__qualname__}"
-
-
-def _safe_repr_head(value: Any, *, enabled: bool, length: int) -> str | None:
-    if not enabled:
-        return None
-    try:
-        return repr(value)[:length]
-    except Exception as exc:  # noqa: BLE001
-        # A repr that cannot be taken is "no repr"; the run interruption is
-        # the run being stopped and must reach the Runner (review rc1 F01).
-        if is_run_interrupted(exc):
-            raise
-        return None
 
 
 def _emit_node_events(event_sink: EventSink, *, run_id: str, records: tuple[NodeCallRecord, ...]) -> None:
