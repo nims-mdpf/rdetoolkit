@@ -31,7 +31,7 @@ def pipeline(paths: InputPaths, out: OutputContext) -> None:
         save_text(normalize_text(read_text(source)), out, f"structured-{index}.txt")
 ```
 
-Run `rdetoolkit run --flow modules.processing:pipeline` from the project root,
+Run `rdetoolkit run modules.processing:pipeline` from the project root,
 or call `workflows.run(flow=pipeline)` after importing `rdetoolkit.workflows`.
 For production main.py, use `workflows.run(flow=pipeline, exit_on_failure=True)`.
 The default library call returns RunReport; its public exit_code is 0 for success,
@@ -58,7 +58,7 @@ OutputContext through its factory or test builders; the Runner creates dirs.
 
 Use `ProcessingTemplate` for a reusable domain skeleton. Implement its required
 slots; keep the final __flow__ skeleton intact. Templates use the same Runner.
-Inspect `rdetoolkit nodes list` and `rdetoolkit templates list` before rebuilding
+Inspect `rdetoolkit nodes list` and `rdetoolkit skeletons list` before rebuilding
 existing functionality. Use `rdetoolkit.testing` builders make_input_paths,
 make_output_context and make_invoice, or run_flow for Runner integration
 (run_flow(flow, data_root=root) keeps a real RDE tree and its outputs).

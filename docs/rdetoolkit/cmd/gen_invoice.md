@@ -104,19 +104,19 @@ print(f"\n成功: {len(results['success'])}, 失敗: {len(results['failed'])}")
 
 ```bash
 # 基本的な使用方法
-rdetoolkit gen-invoice tasksupport/invoice.schema.json
+rdetoolkit new invoice tasksupport/invoice.schema.json
 
 # 出力パスを指定
-rdetoolkit gen-invoice tasksupport/invoice.schema.json -o invoice/invoice.json
+rdetoolkit new invoice tasksupport/invoice.schema.json -o invoice/invoice.json
 
 # 必須フィールドのみ生成
-rdetoolkit gen-invoice tasksupport/invoice.schema.json --required-only
+rdetoolkit new invoice tasksupport/invoice.schema.json --required-only
 
 # デフォルト値を埋めない
-rdetoolkit gen-invoice tasksupport/invoice.schema.json --no-fill-defaults
+rdetoolkit new invoice tasksupport/invoice.schema.json --no-fill-defaults
 
 # コンパクトフォーマットで出力
-rdetoolkit gen-invoice tasksupport/invoice.schema.json --format compact
+rdetoolkit new invoice tasksupport/invoice.schema.json --format compact
 ```
 
 ## Default Value Strategy

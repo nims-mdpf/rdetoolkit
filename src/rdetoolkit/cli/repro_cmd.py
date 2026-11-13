@@ -18,6 +18,7 @@ from typing import Annotated, Any
 import typer
 import yaml
 
+from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli.run_cmd import load_config_overrides
 from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.report.run_report import RunReport
@@ -31,7 +32,51 @@ else:
     from typing_extensions import Never
 
 
-app = typer.Typer(help="Export and import reproducible run inputs.")
+REPRO_HELP = CommandHelp(
+    summary="Export a finished run's inputs and effective config to a zip, and import such a zip to rerun it.",
+    examples=(
+        "rdetoolkit repro export data/logs/run_report_<id>.json -o repro.zip",
+        "rdetoolkit repro import repro.zip ./replay",
+    ),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "unreadable report or archive, missing inputs, or an unreproducible config")),
+    see_also=("rdetoolkit run", "rdetoolkit report show"),
+)
+
+EXPORT_HELP = CommandHelp(
+    summary="Archive a run report, the run's input directories, and its effective rdeconfig.yaml into one zip.",
+    inputs=(
+        "`RUN_REPORT`: `data/logs/run_report_<run_id>.json`; `data/inputdata`, `data/invoice`, and "
+        "`data/tasksupport` next to it must still exist.",
+        "`--config`: the YAML overrides the run used (`rdetoolkit run --config`). Required when the run used "
+        "overrides, because the config is only archived if it reproduces the report's `config_digest`.",
+    ),
+    outputs=(
+        "Writes the zip given by `-o/--output` (parent directories are created; an existing file is replaced). "
+        "It holds `data/{inputdata,invoice,tasksupport}`, `data/logs/<report>`, `rdeconfig.yaml`, and `repro_manifest.json`.",
+        "Prints the archive path.",
+    ),
+    examples=(
+        "rdetoolkit repro export data/logs/run_report_<id>.json -o repro.zip",
+        "rdetoolkit repro export data/logs/run_report_<id>.json -o r.zip \\",
+        "    --config overrides.yaml",
+    ),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "unreadable report, a missing input directory, or a config that does not reproduce the digest")),
+    see_also=("rdetoolkit repro import", "rdetoolkit run"),
+)
+
+IMPORT_HELP = CommandHelp(
+    summary="Unpack a `repro export` zip into an empty directory, ready for `rdetoolkit run`.",
+    inputs=("`ARCHIVE`: a zip written by `rdetoolkit repro export`.", "`TARGET_DIR`: a new or empty directory."),
+    outputs=("Extracts the archive into `TARGET_DIR` (created if missing) and prints its path. Never overwrites: a non-empty target is refused.",),
+    examples=(
+        "rdetoolkit repro import repro.zip ./replay",
+        "rdetoolkit repro import downloads/repro.zip ../replays/run_0001",
+    ),
+    exit_codes=(EXIT_OK, EXIT_CLICK_USAGE, (3, "the target is not empty, the zip is unreadable, or a member path is unsafe")),
+    see_also=("rdetoolkit repro export", "rdetoolkit run"),
+)
+
+app = typer.Typer(help=REPRO_HELP.render(), short_help=REPRO_HELP.summary, no_args_is_help=True)
 _INPUT_DIRS = ("inputdata", "invoice", "tasksupport")
 
 
@@ -44,7 +89,10 @@ def _validate_report(path: Path) -> RunReport:
     try:
         return RunReport.from_json(path.read_text(encoding="utf-8"))
     except (OSError, KeyError, TypeError, ValueError) as exc:
-        _usage_error(f"Unable to read run report {path}: {exc}")
+        _usage_error(
+            f"Unable to read run report {path}: {exc}\n"
+            "Remediation: pass the run_report_<run_id>.json file that 'rdetoolkit run' wrote under data/logs/.",
+        )
 
 
 def _project_roots(data_root: Path) -> list[Path]:
@@ -82,7 +130,7 @@ def _config_candidates(data_root: Path, overrides: dict[str, Any] | None) -> Ite
     (``data_root.parent`` first, then ``data_root``),
 
     1. the v2 Runner discovery, ``load_config(root, overrides, data_root=...)``
-       (``rdetoolkit run --flow`` and the v2 Python API);
+       (``rdetoolkit run pkg.mod:flow`` and the v2 Python API);
     2. only when no ``--config`` overrides were given, the v1 callback entry
        config from :func:`_v1_entry_config` (``workflows.run`` with
        ``config=None``), because that entry never merges overrides.
@@ -113,12 +161,12 @@ def _effective_config(report: RunReport, data_root: Path, config_option: Path | 
     if config_option is not None:
         _usage_error(
             f"The configuration discovered for {data_root} merged with --config {config_option} does not "
-            f"reproduce the run's config_digest {report.config_digest}. Pass the override YAML the run used.",
+            f"reproduce the run's config_digest {report.config_digest}.\nRemediation: pass the override YAML the run used.",
         )
     _usage_error(
         f"The run's config_digest {report.config_digest} does not match the configuration discovered for "
         f"{data_root}: the run used overrides (run --config or the Python API) that cannot be recovered "
-        "from files. Pass the same override YAML with 'rdetoolkit repro export --config <yaml>'.",
+        "from files.\nRemediation: pass the same override YAML with 'rdetoolkit repro export --config <yaml>'.",
     )
 
 
@@ -151,10 +199,10 @@ def _config_yaml(config: RdeConfig, digest: str) -> str:
     _usage_error(f"The effective configuration cannot be written in a form that reproduces config_digest {digest}.")
 
 
-@app.command("export")
+@app.command("export", help=EXPORT_HELP.render(), short_help=EXPORT_HELP.summary)
 def export_run(
-    run_report: Annotated[Path, typer.Argument(metavar="<run_report.json>")],
-    output: Annotated[Path, typer.Option("--output", help="Destination zip archive.")],
+    run_report: Annotated[Path, typer.Argument(metavar="RUN_REPORT", help="Path to run_report_<run_id>.json.")],
+    output: Annotated[Path, typer.Option("-o", "--output", help="Destination zip archive.")],
     config: Annotated[
         Path | None,
         typer.Option("--config", help="The YAML overrides the run used (same form as 'run --config')."),
@@ -167,7 +215,11 @@ def export_run(
     for dirname in _INPUT_DIRS:
         source = data_root / dirname
         if not source.is_dir():
-            _usage_error(f"Missing source directory: {source}")
+            _usage_error(
+                f"Missing source directory: {source}\n"
+                "Remediation: export from the project whose data/ directory produced the report; "
+                "the input directories must still exist.",
+            )
 
     # Resolved before the archive is opened, so a refusal leaves no file behind.
     config_text = _config_yaml(_effective_config(report, data_root, config), report.config_digest)
@@ -181,7 +233,7 @@ def export_run(
             manifest = {"schema_version": "1", "config_included": True, "config_digest": report.config_digest}
             archive.writestr("repro_manifest.json", json.dumps(manifest, indent=2))
     except OSError as exc:
-        _usage_error(f"Unable to write archive {output}: {exc}")
+        _usage_error(f"Unable to write archive {output}: {exc}\nRemediation: pass an -o path in a writable directory.")
     typer.echo(str(output))
 
 
@@ -201,23 +253,23 @@ def _write_directory(archive: zipfile.ZipFile, destination: Path) -> None:
     archive.writestr(info, b"")
 
 
-@app.command("import")
+@app.command("import", help=IMPORT_HELP.render(), short_help=IMPORT_HELP.summary)
 def import_run(
-    archive_path: Annotated[Path, typer.Argument(metavar="<archive>")],
-    target: Annotated[Path, typer.Argument(metavar="<target_dir>")],
+    archive_path: Annotated[Path, typer.Argument(metavar="ARCHIVE", help="Zip written by 'rdetoolkit repro export'.")],
+    target: Annotated[Path, typer.Argument(metavar="TARGET_DIR", help="New or empty directory to extract into.")],
 ) -> None:
     """Reconstruct archived run inputs beneath a fresh target directory."""
     if target.exists() and not target.is_dir():
-        _usage_error(f"Import target is not a directory: {target}")
+        _usage_error(f"Import target is not a directory: {target}\nRemediation: pass a new or empty directory.")
     if target.exists() and any(target.iterdir()):
-        _usage_error(f"Import target is not empty: {target}")
+        _usage_error(f"Import target is not empty: {target}\nRemediation: pass a new or empty directory.")
     try:
         with zipfile.ZipFile(archive_path) as archive:
             _validate_members(archive.infolist())
             target.mkdir(parents=True, exist_ok=True)
             archive.extractall(target)
     except (OSError, zipfile.BadZipFile) as exc:
-        _usage_error(f"Unable to import archive {archive_path}: {exc}")
+        _usage_error(f"Unable to import archive {archive_path}: {exc}\nRemediation: pass a zip written by 'rdetoolkit repro export'.")
     typer.echo(str(target))
 
 
@@ -225,4 +277,4 @@ def _validate_members(members: list[zipfile.ZipInfo]) -> None:
     for member in members:
         path = PurePosixPath(member.filename)
         if path.is_absolute() or ".." in path.parts:
-            _usage_error(f"Unsafe archive member: {member.filename}")
+            _usage_error(f"Unsafe archive member: {member.filename}\nRemediation: only import archives written by 'rdetoolkit repro export'.")

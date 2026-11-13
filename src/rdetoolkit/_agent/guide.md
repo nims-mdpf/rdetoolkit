@@ -15,7 +15,7 @@ explicitly between nodes; direct calls support ordinary unit tests. Recorded
 graphs describe call order after execution.
 
 Use `workflows.run(flow=pipeline)` from Python or
-`rdetoolkit run --flow modules.processing:pipeline` from the CLI. The Runner loads
+`rdetoolkit run modules.processing:pipeline` from the CLI. The Runner loads
 config, detects mode, validates inputs, iterates tiles, calls the flow once per
 tile, validates outputs, then writes job.failed and a RunReport. The Python flow
 entry returns that report by default. In production main.py, use
@@ -101,7 +101,7 @@ no v1 Meta import or object adapter.
 ProcessingTemplate provides a wired flow skeleton. Implement required slots and
 preserve the final __flow__. Slot signatures are checked at class definition.
 Pass values explicitly instead of hiding state in self. Templates share the
-Runner, call log and CLI. Inspect templates list/describe and nodes list/describe.
+Runner, call log and CLI. Inspect skeletons list/show and nodes list/show.
 
 `rdetoolkit.testing` provides make_input_paths, make_output_context, make_invoice,
 run_flow and assert_output_tree. make_invoice puts bare measurement overrides in

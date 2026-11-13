@@ -46,9 +46,9 @@ def project_modules(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[st
     ("command", "expected"),
     [
         (["nodes", "list"], "review.node.one"),
-        (["nodes", "describe", "review.node.one"], "review.node.one"),
+        (["nodes", "show", "review.node.one"], "review.node.one"),
         (["flows", "list"], "review.flow.one"),
-        (["flows", "describe", "review.flow.one"], "review.flow.one"),
+        (["flows", "show", "review.flow.one"], "review.flow.one"),
     ],
 )
 def test_command_imports_project_module_before_enumeration__tc_e_review_f2_002(
@@ -101,10 +101,10 @@ def test_lint_imports_project_module_before_enumeration__tc_e_review_f2_002(
     "command",
     [
         ["nodes", "list"],
-        ["nodes", "describe", "missing"],
+        ["nodes", "show", "missing"],
         ["nodes", "lint"],
         ["flows", "list"],
-        ["flows", "describe", "missing"],
+        ["flows", "show", "missing"],
     ],
 )
 def test_module_import_failure_is_usage_error__tc_e_review_f2_003(command: list[str]) -> None:

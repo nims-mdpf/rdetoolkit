@@ -2,7 +2,7 @@
 
 Design authority: PhaseK_prompts ruling #6(a) / Q6 — once the data root is
 resolved the Runner writes ``<data_root>/logs/events_<run_id>.jsonl`` unless a
-sink was injected. Every production entry (CLI ``run --flow``, CLI
+sink was injected. Every production entry (CLI ``run``, CLI
 ``--validate-only``, ``workflows.run(flow=...)``, the public callback entry
 ``workflows.run(custom_dataset_function=...)``) builds its Runner without a
 sink, so each of them now leaves the file behind. ``data/logs/**`` is excluded
@@ -17,7 +17,7 @@ EP table:
 | TC-K3-DEF-003 | validate-only request                       | events file written, no iteration events                   |
 | TC-K3-DEF-004 | workflows.run(flow=...)                     | events file under data/logs                                 |
 | TC-K3-DEF-005 | workflows.run(custom_dataset_function=...)  | events file under data/logs with one iteration per tile        |
-| TC-K3-DEF-006 | CLI run --flow --validate-only with W1001   | W1001 warning recorded in the CLI's events file             |
+| TC-K3-DEF-006 | CLI run --validate-only with W1001   | W1001 warning recorded in the CLI's events file             |
 | TC-K3-DEF-007 | failed run (pre_validate fails)             | events file still ends with run.completed status failed     |
 
 BV table:
@@ -288,7 +288,7 @@ class TestProductionEntriesWriteEvents:
         # When: validating through the CLI
         result = CliRunner().invoke(
             app,
-            ["run", "--flow", f"{_FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"],
+            ["run", f"{_FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"],
         )
         # Then: the CLI's events file carries exactly one W1001 with its run id
         assert result.exit_code == 0, result.output
