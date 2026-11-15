@@ -74,6 +74,7 @@ plugins:
                 - テンプレートファイルと検証:
                     - テンプレートファイル: usage/metadata_definition_file.md
                     - データ検証: usage/validation.md
+                    - 構造化処理のテスト: usage/testing.md
                 - 統合:
                     - オブジェクトストレージ (MinIO): usage/object_storage.md
                     - Docker の使用: usage/docker.md
@@ -177,6 +178,7 @@ plugins:
                 - Templates & Validation:
                     - Template Files: usage/metadata_definition_file.md
                     - Data Validation: usage/validation.md
+                    - Testing Structured Processing: usage/testing.md
                 - Integrations:
                     - Object Storage (MinIO): usage/object_storage.md
                     - Docker Usage: usage/docker.md
