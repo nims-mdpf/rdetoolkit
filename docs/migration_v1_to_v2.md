@@ -629,7 +629,7 @@ run 単位の invoice の行について: 登録時の値は各タイルに用�
 
 ### csv2graph / Graph Engine
 
-グラフの入口で意図して変えた振る舞いには、IC-1 から IC-14 までの固定の ID が付いています。
+グラフの入口で意図して変えた振る舞いには、IC-1 から IC-15 までの固定の ID が付いています。
 以下の表は話題ごとにまとめ、各表の行は ID の順に並べています。
 仕様起点の API(`render_graph`、`GraphSpec`、独自の表の読み取りと描画エンジン)は [Graph Engine](usage/structured_process/graph_engine.ja.md) を参照してください。
 
@@ -692,6 +692,7 @@ Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列
 | IC-9 | 出力先のファイルがシンボリックリンクで、出力ディレクトリと文字列の先頭が同じ別のディレクトリ(例: `out` に対する `out2`)を指す。`csv2graph`・`plot_from_dataframe`・`rdetoolkit plot`・`FileWriter` が使う `PathValidator` | 文字列の前方一致で判定していたため、ディレクトリの内側として書き込んだ | パスの構成要素で判定し、`ValueError`("Security violation")とする。従来の保存処理は、最初のファイルを書く前にすべての出力先を検査する | なし(セキュリティ修正) |
 | IC-13 | `OutputConfig.formats` に PNG 以外の画像形式(例: `["png", "svg"]`)を指定して `IndividualStrategy` で描画する | 個別グラフは常に PNG だけ | 系列ごとに、HTML 以外の各形式で 1 ファイルずつ(同じファイル名で拡張子だけが異なる)出力する。画像形式が 1 つもなければ従来どおり PNG。`csv2graph` と `plot_from_dataframe` の出力は変わらない | PNG だけにしたい場合は `formats=["png"]` を指定する |
 | IC-14 | `xlim`/`ylim`(または `AxisSpec.limits`)を指定して HTML を出力する(`html=True`、`PlotlyRenderer`、`render_graph`) | HTML では軸範囲を無視し、常に自動範囲 | 画像と同じ範囲を HTML の軸にも適用する。対数軸は 10 を底とする対数で指定し、`None` の側は自動のまま | 自動範囲にしたい場合は範囲を指定しない |
+| IC-15 | `MatplotlibRenderer.render_individual(df, config, y_col_index)` に、フレームの列数を超える `y_col_index` を渡す | 描画中に pandas の `IndexError` | 図を作る前に `PlotRequestError`(`reason="unknown_column"`、`ValueError` であり `IndexError` ではない)。フレームにあるが `config.y_cols` に含まれない列は、v1 と同じく描画する | `IndexError` ではなく `ValueError` か `PlotRequestError` を捕捉する |
 
 組み込みノード `plot_lines` と `plot_scatter` は、列・ペア・複数フレーム・系列ラベルの解決と軸範囲の検証に、`render_graph` と同じ計画処理と検証を使います。同じ依頼は両方の API で同じ系列・ラベル・データになります。ノード ID、引数、呼び出し記録、出力先、画像は変わらず、csv2graph 用のスタイルも適用しません。`save_figure` は従来どおり呼び出し側の図を閉じずに保存します。
 

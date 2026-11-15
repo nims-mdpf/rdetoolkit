@@ -26,7 +26,16 @@ from matplotlib.figure import Figure
 
 from rdetoolkit.graph.exceptions import ArtifactCollisionError, PlotRequestError
 from rdetoolkit.graph.naming import GraphDiagnostic, collision_key
-from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan, _as_frames, build_plot_plan
+from rdetoolkit.graph.plan import (
+    UNIT_MISMATCH,
+    UNIT_UNKNOWN,
+    FigurePlan,
+    PlotData,
+    PlotPlan,
+    SeriesPlan,
+    _as_frames,
+    build_plot_plan,
+)
 from rdetoolkit.graph.readers.base import DetectionDecision, TableData, TableReader
 from rdetoolkit.graph.readers.registry import AUTO, ReaderRegistry, _load_table
 from rdetoolkit.graph.renderers.base import GraphRenderer
@@ -173,10 +182,16 @@ def _artifact_job(figure: FigurePlan, fmt: str, output: OutputSpec, renderer: Gr
 
 
 def _check_unique_destinations(jobs: Sequence[_ArtifactJob]) -> None:
-    """Fail when two artifacts of one run would land on the same file (case-insensitively)."""
-    seen: dict[str, str] = {}
+    """Fail when two artifacts of one run would land on the same file.
+
+    Two destinations clash when they are in the same directory (compared exactly,
+    after resolving symlinks) and their file names share a collision key (case and
+    Unicode normalization, as on macOS / Windows). Directories differing only by
+    case are different directories on a case-sensitive filesystem.
+    """
+    seen: dict[tuple[Path, str], str] = {}
     for job in jobs:
-        key = collision_key(str(job.path))
+        key = (job.path.parent.resolve(), collision_key(job.path.name))
         if key in seen:
             msg = f"Artifacts {seen[key]!r} and {job.filename!r} resolve to the same destination {str(job.path)!r}"
             raise ArtifactCollisionError(msg)
@@ -288,7 +303,7 @@ def _artifact(
         path=path,
         figure=figure_handle,
         replaced_existing=replaced,
-        diagnostics=_figure_diagnostics(plan.diagnostics, figure) + _style_diagnostics(plan, renderer),
+        diagnostics=_figure_diagnostics(plan, figure) + _style_diagnostics(plan, renderer),
     )
 
 
@@ -310,8 +325,30 @@ def _result_diagnostics(plan: PlotPlan, artifacts: Sequence[Artifact]) -> tuple[
     return plan.diagnostics + tuple(dict.fromkeys(extra))
 
 
-def _figure_diagnostics(diagnostics: Sequence[GraphDiagnostic], figure: FigurePlan) -> tuple[GraphDiagnostic, ...]:
-    return tuple(item for item in diagnostics if figure.figure_id in item.series_ids)
+def _figure_diagnostics(plan: PlotPlan, figure: FigurePlan) -> tuple[GraphDiagnostic, ...]:
+    """The plan diagnostics that describe this figure, in plan order."""
+    return tuple(item for item in plan.diagnostics if _applies_to(plan, item, figure))
+
+
+def _applies_to(plan: PlotPlan, diagnostic: GraphDiagnostic, figure: FigurePlan) -> bool:
+    """Whether a plan diagnostic describes ``figure``.
+
+    Unit diagnostics name series (not figures) and describe a shared overlay axis:
+    ``unit_mismatch`` belongs to the overlay figures of those series that mix units,
+    ``unit_unknown`` to the overlay figures holding the unit-less series. Every other
+    diagnostic (``filename_collision``) names the figures it concerns.
+    """
+    overlaps = not set(diagnostic.series_ids).isdisjoint(figure.series_ids)
+    if diagnostic.code == UNIT_MISMATCH:
+        return figure.kind == "overlay" and overlaps and _mixes_units(plan, figure)
+    if diagnostic.code == UNIT_UNKNOWN:
+        return figure.kind == "overlay" and overlaps
+    return figure.figure_id in diagnostic.series_ids
+
+
+def _mixes_units(plan: PlotPlan, figure: FigurePlan) -> bool:
+    units = {_series_of(plan, series_id).unit for series_id in figure.series_ids} - {None}
+    return len(units) > 1
 
 
 def _series_of(plan: PlotPlan, series_id: str) -> SeriesPlan:

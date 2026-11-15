@@ -5,6 +5,7 @@ from typing import Final
 
 import pandas as pd
 
+from rdetoolkit.graph import compat
 from rdetoolkit.graph.models import PlotConfig, RenderResult
 from rdetoolkit.graph.renderers.base import BaseRenderer
 from rdetoolkit.graph.exceptions import GraphUserWarning
@@ -69,10 +70,12 @@ class IndividualStrategy:
         formats = _image_formats(config)
 
         results: list[RenderResult] = []
-        for position, (col_idx, stem) in enumerate(zip(positions, stems, strict=True)):
-            # One figure per series, written once per requested image format.
-            figure = self.renderer.render_individual(df, config, col_idx, position)
-            results.extend(RenderResult(figure=figure, filename=f"{stem}.{fmt}", format=fmt) for fmt in formats)
+        # One legacy call: every individual figure reuses the same plan.
+        with compat.legacy_call():
+            for position, (col_idx, stem) in enumerate(zip(positions, stems, strict=True)):
+                # One figure per series, written once per requested image format.
+                figure = self.renderer.render_individual(df, config, col_idx, position)
+                results.extend(RenderResult(figure=figure, filename=f"{stem}.{fmt}", format=fmt) for fmt in formats)
 
         return results
 

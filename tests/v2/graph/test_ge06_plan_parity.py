@@ -29,7 +29,7 @@ EP table:
 | plan_from_config | legacy label functions (C-12) | mpl humanized, plotly not; one label per series each | TC-GE06-EP-009 |
 | spec API | label_style humanized | identical labels for both backends | TC-GE06-EP-010 |
 | render_overlay / render_html | legacy adapters | draw exactly the plan_from_config plan | TC-GE06-EP-011 |
-| render_individual x N | one renderer instance | plan built once; a mutated config rebuilds it | TC-GE06-EP-012 |
+| render_individual x N | one legacy call | plan built once; a mutated config rebuilds it; no reuse outside a call | TC-GE06-EP-012 |
 | renderers | data access | rows come only from PlotData.segments; columns addressed by plan position | TC-GE06-EP-013 |
 | renderers | deleted resolution helpers | no competing column/label/direction resolution left | TC-GE06-EP-014 |
 | plot_from_dataframe | duplicate column labels, default selection (IC-11) | overlay + one figure per column written | TC-GE06-EP-015 |
@@ -47,7 +47,7 @@ Negative table:
 | plan_from_config | x_col or y_cols None | ValueError "must be specified", no figure | TC-GE06-NEG-005 |
 | plot_from_dataframe | ambiguous label addressed by name | PlotRequestError(ambiguous_column), nothing written | TC-GE06-NEG-006 |
 | plot_from_dataframe | unknown y name / out-of-range position | ColumnNotFoundError (legacy type), nothing written | TC-GE06-NEG-007 |
-| render_individual | y column not a planned series / position out of range | ValueError, no figure | TC-GE06-NEG-008 |
+| render_individual | y column not a planned series / position out of range | drawn as v1 (column vs the x of the position), one figure | TC-GE06-NEG-008 |
 | render(plan) mpl + plotly | direction filter removes every row | no line, no trace, no legend entry, series not in legend | TC-GE06-NEG-009 |
 | plot_from_dataframe | direction list longer than y | ValueError "cannot exceed", nothing written | TC-GE06-NEG-010 |
 
@@ -358,9 +358,10 @@ def test_render_individual_builds_the_plan_once__tc_ge06_ep_012(monkeypatch: pyt
     frame = _two_series()
     config = _legacy_config(y_cols=[1, 2])
     renderer = MatplotlibRenderer()
-    # When: one overlay and two individual figures are rendered by one instance
-    figures = [renderer.render_overlay(frame, config)]
-    figures += [renderer.render_individual(frame, config, column, position) for position, column in enumerate([1, 2])]
+    # When: one overlay and two individual figures are rendered in one legacy call
+    with compat.legacy_call():
+        figures = [renderer.render_overlay(frame, config)]
+        figures += [renderer.render_individual(frame, config, column, position) for position, column in enumerate([1, 2])]
     # Then: the plan was built once and every figure follows it
     assert len(calls) == 1
     assert [_mpl_lines(fig)[0][1] for fig in figures[1:]] == [[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]]
@@ -370,6 +371,9 @@ def test_render_individual_builds_the_plan_once__tc_ge06_ep_012(monkeypatch: pyt
     # Then: the plan is rebuilt and reflects the change
     assert len(calls) == 2
     assert figure.axes[0].get_title() == "changed - Volt B"
+    # And: outside a legacy call no plan is reused (fix round 1, R-5), even unchanged
+    renderer.render_individual(frame, config, 2, 1)
+    assert len(calls) == 3
 
 
 def test_renderers_read_rows_only_through_plan_positions__tc_ge06_ep_013(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -544,14 +548,20 @@ def test_plot_from_dataframe_unknown_column_keeps_legacy_type__tc_ge06_neg_007(t
 
 
 @pytest.mark.parametrize(("column", "position"), [(1, 1), (0, None), (1, 5)])
-def test_render_individual_rejects_unplanned_series__tc_ge06_neg_008(column: int, position: int | None) -> None:
-    # Given: y column / position pairs that name no planned series
+def test_render_individual_draws_unplanned_series_as_v1__tc_ge06_neg_008(column: int, position: int | None) -> None:
+    # Given: y column / position pairs that name no planned series (fix round 1, R-4:
+    # v1 drew any column against the x column of the position, the first x beyond it)
     config = _legacy_config(y_cols=[1, 2])
+    frame = _two_series()
     before = set(plt.get_fignums())
-    # When/Then
-    with pytest.raises(ValueError, match="series"):
-        MatplotlibRenderer().render_individual(_two_series(), config, column, position)
-    assert set(plt.get_fignums()) == before
+    # When
+    fig = MatplotlibRenderer().render_individual(frame, config, column, position)
+    # Then: exactly one new caller-owned figure with that column against column 0
+    assert set(plt.get_fignums()) == before | {fig.number}
+    (line,) = fig.axes[0].lines
+    assert list(line.get_xdata()) == list(frame.iloc[:, 0])
+    assert list(line.get_ydata()) == list(frame.iloc[:, column])
+    assert fig.axes[0].get_ylabel() == "value"
 
 
 def test_filter_removing_every_row_draws_nothing__tc_ge06_neg_009() -> None:

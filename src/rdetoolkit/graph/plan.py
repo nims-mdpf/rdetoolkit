@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import dataclasses
 import warnings
-from collections.abc import Mapping, Sequence
+from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -38,6 +38,7 @@ __all__ = [
     "PlotPlan",
     "SeriesPlan",
     "build_plot_plan",
+    "column_position",
 ]
 
 OVERLAY_FIGURE_ID = "overlay"
@@ -365,20 +366,57 @@ def _resolve_column(frame: pd.DataFrame, ref: ColumnRef, role: str) -> int:
             an unmatched label, ``reason="ambiguous_column"`` for a label carried by
             several columns (address those by position).
     """
-    columns = list(frame.columns)
     if isinstance(ref, int):
-        if 0 <= ref < len(columns):
+        count = frame.shape[1]
+        if 0 <= ref < count:
             return ref
-        msg = f"{role} column position {ref} is out of range for {len(columns)} columns"
+        msg = f"{role} column position {ref} is out of range for {count} columns"
         raise PlotRequestError(msg, reason="unknown_column")
-    matches = [position for position, label in enumerate(columns) if label == ref]
+    return column_position(frame, ref, role)
+
+
+def column_position(frame: pd.DataFrame, label: Hashable, role: str) -> int:
+    """Resolve an exact column label (never a position) to its column position.
+
+    This is the single label resolver of the Graph Engine: the planner uses it for
+    ``str`` references, and callers whose column references are labels of any type
+    (the builtin plot nodes address ``df[x]``-style labels such as ``0``) use it to
+    turn labels into positions before building a ``GraphSpec``.
+
+    Args:
+        frame: The DataFrame.
+        label: The column label, compared with ``==``; a ``bool`` only matches a
+            ``bool`` label (``True == 1`` in Python, but they are different labels).
+        role: ``"x"``, ``"y"`` or ``"direction"``, used in messages.
+
+    Returns:
+        The position of the only column carrying ``label``.
+
+    Raises:
+        PlotRequestError: ``reason="unknown_column"`` if no column carries the
+            label, ``reason="ambiguous_column"`` if several columns do (address
+            those by position).
+    """
+    columns = list(frame.columns)
+    matches = [position for position, column in enumerate(columns) if _same_label(column, label)]
     if len(matches) == 1:
         return matches[0]
     if not matches:
-        msg = f"{role} column {ref!r} not found. Available columns: {[str(label) for label in columns]}"
+        msg = f"{role} column {label!r} not found. Available columns: {[str(column) for column in columns]}"
         raise PlotRequestError(msg, reason="unknown_column")
-    msg = f"{role} column {ref!r} matches columns {matches}; address one of them by position"
+    msg = f"{role} column {label!r} matches columns {matches}; address one of them by position"
     raise PlotRequestError(msg, reason="ambiguous_column")
+
+
+def _same_label(column: Any, label: Hashable) -> bool:
+    """Exact label equality; a bool and a non-bool never match each other."""
+    if isinstance(column, bool) != isinstance(label, bool):
+        return False
+    try:
+        return bool(column == label)
+    except (TypeError, ValueError):
+        # An array-like or incomparable label is not the requested one.
+        return False
 
 
 def _series_plan(

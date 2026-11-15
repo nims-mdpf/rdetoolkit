@@ -669,7 +669,7 @@ with `save_invoice`.
 ### csv2graph / Graph Engine
 
 Every intentional behaviour change of the graph entry points has a stable id, IC-1 to
-IC-14. The tables below are grouped by topic, and the rows of each table are ordered by
+IC-15. The tables below are grouped by topic, and the rows of each table are ordered by
 id. The spec-first API (`render_graph`, `GraphSpec`, custom readers and renderers) is
 described in [Graph Engine](usage/structured_process/graph_engine.en.md).
 
@@ -746,6 +746,7 @@ Destinations are checked by name and by real path (symlink targets included); on
 | IC-9 | A destination file is a symlink into a different directory whose path starts with the same text as the output directory (for example `out2` for `out`), in the `PathValidator` used by `csv2graph`, `plot_from_dataframe`, `rdetoolkit plot` and `FileWriter` | Accepted as inside, because containment was a string prefix comparison | Containment is decided on path components and raises `ValueError` ("Security violation"). The legacy saver checks every destination before it writes the first file | None (security fix) |
 | IC-13 | `IndividualStrategy` with image formats other than PNG in `OutputConfig.formats` (for example `["png", "svg"]`) | Individual figures were always PNG only | One file per series in every non-HTML format (same name, different extension); PNG when no image format is requested. `csv2graph` and `plot_from_dataframe` output is unchanged | Pass `formats=["png"]` for PNG only |
 | IC-14 | HTML output (`html=True`, `PlotlyRenderer`, `render_graph`) with `xlim`/`ylim` (or `AxisSpec.limits`) | The HTML axes ignored the limits and stayed automatic | The HTML axes use the same limits as the images (in log10 units on a log axis); a `None` side stays automatic | Omit the limits for automatic axes |
+| IC-15 | `MatplotlibRenderer.render_individual(df, config, y_col_index)` with a `y_col_index` beyond the frame's columns | `IndexError` from pandas, raised while drawing | `PlotRequestError` (`reason="unknown_column"`, a `ValueError`, not an `IndexError`) before a figure is created. A column that exists but is not in `config.y_cols` is still drawn, as in v1 | Catch `ValueError` or `PlotRequestError` instead of `IndexError` |
 
 The builtin `plot_lines` and `plot_scatter` nodes resolve columns, pairs, several frames and series labels, and validate axis limits, with the same planner and validator as `render_graph`. The same request therefore gives the same series, labels and data through both APIs. Node ids, arguments, call-log records, output locations and images are unchanged, and no csv2graph style is applied. `save_figure` still saves the caller's figure without closing it.
 

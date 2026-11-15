@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
+from numbers import Integral
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal
 
@@ -48,17 +49,22 @@ def _check_choice(value: object, choices: Iterable[str], name: str) -> None:
         raise PlotRequestError(msg, reason=INVALID_SPEC)
 
 
-def _check_column_ref(value: object, name: str, *, optional: bool) -> None:
-    """Reject a column reference that is neither a position (int) nor a label (str).
+def _check_column_ref(instance: object, field_name: str, name: str, *, optional: bool) -> None:
+    """Reject a column reference that is neither a position (integer) nor a label (str).
 
-    ``bool`` is rejected explicitly: it is an ``int`` subclass, so ``True`` would
-    otherwise silently address column 1.
+    Any ``numbers.Integral`` (``np.int64`` from a NumPy computation, for example) is a
+    position and is stored as a plain ``int``. ``bool`` is rejected explicitly: it is
+    an ``int`` subclass, so ``True`` would otherwise silently address column 1.
     """
+    value = getattr(instance, field_name)
     if value is None and optional:
         return
-    if isinstance(value, bool) or not isinstance(value, (int, str)):
+    if isinstance(value, str):
+        return
+    if isinstance(value, bool) or not isinstance(value, Integral):
         msg = f"{name} must be a column position (int) or label (str), got {value!r}"
         raise TypeError(msg)
+    object.__setattr__(instance, field_name, int(value))
 
 
 def _freeze_mapping(instance: object, name: str, value: Mapping[Any, Any]) -> None:
@@ -105,9 +111,9 @@ class SeriesSpec:
 
     def __post_init__(self) -> None:
         """Validate the column references."""
-        _check_column_ref(self.y, "SeriesSpec.y", optional=False)
-        _check_column_ref(self.x, "SeriesSpec.x", optional=True)
-        _check_column_ref(self.direction, "SeriesSpec.direction", optional=True)
+        _check_column_ref(self, "y", "SeriesSpec.y", optional=False)
+        _check_column_ref(self, "x", "SeriesSpec.x", optional=True)
+        _check_column_ref(self, "direction", "SeriesSpec.direction", optional=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,7 +256,7 @@ class GraphSpec:
         if isinstance(self.version, bool) or self.version != SPEC_VERSION:
             msg = f"Unsupported GraphSpec version {self.version!r}; this release supports {SPEC_VERSION}"
             raise PlotRequestError(msg, reason=INVALID_SPEC)
-        _check_column_ref(self.x, "GraphSpec.x", optional=True)
+        _check_column_ref(self, "x", "GraphSpec.x", optional=True)
         self._check_choices()
         if self.x is not None and self.x_default == "index":
             msg = "GraphSpec.x and x_default='index' contradict each other; drop one of them"

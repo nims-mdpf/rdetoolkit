@@ -4,6 +4,7 @@ from typing import Any, Protocol
 
 import pandas as pd
 
+from rdetoolkit.graph import compat
 from rdetoolkit.graph.models import PlotConfig, RenderResult
 from rdetoolkit.graph.renderers.base import BaseRenderer, GraphRenderer
 from rdetoolkit.graph.renderers.registry import builtin_renderers, check_requirements
@@ -113,15 +114,17 @@ class OverlayStrategy:
         html_renderer = self._resolve_html_renderer() if "html" in normalized_formats else None
 
         image_formats = [fmt for fmt in normalized_formats if fmt != "html"]
-        if config.output.return_fig or image_formats:
-            figure = self.renderer.render_overlay(df, config)
-            results.extend(
-                RenderResult(figure=figure, filename=f"{base_filename}.{fmt}", format=fmt) for fmt in image_formats
-            )
+        # The image and the HTML overlay are one legacy call: one mixed-unit warning.
+        with compat.legacy_call():
+            if config.output.return_fig or image_formats:
+                figure = self.renderer.render_overlay(df, config)
+                results.extend(
+                    RenderResult(figure=figure, filename=f"{base_filename}.{fmt}", format=fmt) for fmt in image_formats
+                )
 
-        if html_renderer is not None:
-            html_fig = html_renderer.render_html(df, config)
-            results.append(RenderResult(figure=html_fig, filename=f"{base_filename}.html", format="html"))
+            if html_renderer is not None:
+                html_fig = html_renderer.render_html(df, config)
+                results.append(RenderResult(figure=html_fig, filename=f"{base_filename}.html", format="html"))
 
         return results
 

@@ -1,7 +1,7 @@
 """Plotly renderer: draws a ``PlotPlan`` as an interactive HTML figure.
 
 ``render(plan, figure, data)`` is the plan-consuming entry point; the legacy
-``render_html(df, config)`` builds the plan with ``compat.plan_from_config`` (Plotly
+``render_html(df, config)`` builds the plan with ``compat.legacy_plan`` (Plotly
 legacy labels, C-12) and draws it. Series selection, direction splits, legend roles
 and colours come from the plan, exactly as for Matplotlib (GE-06).
 
@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+from numbers import Real
 from typing import Any, Final
 
 import pandas as pd
@@ -114,13 +115,15 @@ class PlotlyRenderer:
             ValueError: For column specs that cannot be planned.
         """
         self._ensure_plotly_available()
-        plan = compat.plan_from_config(
+        plan = compat.legacy_plan(
             df,
             config,
             label_of=compat.legacy_plotly_label,
             axis_label_of=compat.legacy_plotly_axis_label,
         )
-        return self.render(plan, plan.figures[0], PlotData(frames=(df,)))
+        figure = self.render(plan, plan.figures[0], PlotData(frames=(df,)))
+        compat.warn_mixed_overlay(plan)
+        return figure
 
     def render(self, plan: PlotPlan, figure: FigurePlan, data: PlotData) -> go.Figure:
         """Draw one planned figure as a Plotly figure.
@@ -343,12 +346,13 @@ class PlotlyRenderer:
 def _plotly_range(limits: tuple[float | None, float | None], scale: str) -> list[float | None]:
     """The plan's limits as a Plotly axis range; ``None`` keeps that side automatic.
 
-    Plotly expects the range of a log axis in log10 units. Log limits are validated
-    positive when the plan is built, so the logarithm is defined.
+    Plotly expects the range of a log axis in log10 units. Numeric log limits are
+    validated positive when the plan is built, so the logarithm is defined; a
+    datetime-like bound has no log10 and leaves that side automatic.
     """
     if scale != "log":
         return list(limits)
-    return [None if bound is None else math.log10(bound) for bound in limits]
+    return [math.log10(bound) if isinstance(bound, Real) else None for bound in limits]
 
 
 def _stable_div_id(handle: Any) -> str:

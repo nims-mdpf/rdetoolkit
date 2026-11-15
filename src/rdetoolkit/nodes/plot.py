@@ -27,7 +27,7 @@ import pandas as pd  # noqa: E402
 from matplotlib.axes import Axes  # noqa: E402
 
 from rdetoolkit.core.node import node  # noqa: E402
-from rdetoolkit.graph.plan import PlotData, PlotPlan, build_plot_plan  # noqa: E402
+from rdetoolkit.graph.plan import PlotData, PlotPlan, build_plot_plan, column_position  # noqa: E402
 from rdetoolkit.graph.renderers.mpl_runtime import draw_series, export_figure  # noqa: E402
 from rdetoolkit.graph.spec import GraphSpec, SeriesSpec  # noqa: E402
 from rdetoolkit.graph.validation import validate_axis_limits  # noqa: E402
@@ -132,10 +132,10 @@ def plot_lines(
             inconsistent.
     """
     frames = _frames(df)
-    plan = _line_plan(frames, x=x, y=y, pairs=pairs, labels=labels)
+    plan, selected = _line_plan(frames, x=x, y=y, pairs=pairs, labels=labels)
     limits = (_checked_limits(xlim, xscale, "x"), _checked_limits(ylim, yscale, "y"))
     x_label, y_label = _axis_labels(plan, frames[0], x=x, xlabel=xlabel, ylabel=ylabel)
-    data = PlotData(frames=tuple(frames))
+    data = PlotData(frames=selected)
     # Deliberately a pyplot figure (closed below), not the engine's pyplot-free
     # new_figure: node contracts observe ``figure.number`` of the drawn axes.
     fig, ax = plt.subplots(figsize=figsize)
@@ -174,43 +174,82 @@ def _frames(df: pd.DataFrame | Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
 def _line_plan(
     frames: list[pd.DataFrame], *, x: str | None, y: str | Sequence[str] | None,
     pairs: Sequence[LinePair] | None, labels: Sequence[str] | None,
-) -> PlotPlan:
-    series = _line_series(x=x, y=y, pairs=pairs)
+) -> tuple[PlotPlan, tuple[pd.DataFrame, ...]]:
+    selection = _line_request(x=x, y=y, pairs=pairs)
+    # Node columns are labels (as in v1 frame indexing), while a GraphSpec ``int`` is a
+    # position: every frame is reduced to its selected columns, in selection order,
+    # so the spec addresses positions that mean the same thing in every frame.
+    selected = tuple(_select_columns(frame, x, selection) for frame in frames)
+    series, x_ref = _positional_series(selection, has_x=x is not None)
     # The spec forbids an explicit x together with x_default="index".
     # The caller names every series explicitly, so a mixed-unit selection is deliberate.
     common: dict[str, Any] = {"series": series, "layout": "overlay", "label_style": "raw", "unit_policy": "allow"}
-    spec = GraphSpec(x=x, **common) if x is not None else GraphSpec(x_default="index", **common)
-    plan = build_plot_plan(frames, spec)
+    spec = GraphSpec(x=x_ref, **common) if x_ref is not None else GraphSpec(x_default="index", **common)
+    plan = build_plot_plan(selected, spec)
     # The engine skips a frame without default series; the node never did.
     if {entry.frame for entry in plan.series} != set(range(len(frames))):
         raise ValueError(_NO_SERIES)
-    return plan if labels is None else _relabelled(plan, labels, pairs)
+    return (plan if labels is None else _relabelled(plan, labels, pairs)), selected
 
 
-def _line_series(*, x: str | None, y: str | Sequence[str] | None, pairs: Sequence[LinePair] | None) -> tuple[SeriesSpec, ...]:
+#: One requested series: x label (None: the node-level x or the index), y label, legend label.
+_Request = tuple[Any, Any, str | None]
+
+
+def _line_request(*, x: Any, y: Any, pairs: Sequence[LinePair] | None) -> tuple[_Request, ...] | None:
+    """Return the requested series, or None for the default (every column except x)."""
     if pairs is not None:
         if x is not None or y is not None:
             msg = "Specify either pairs or x/y column selection"
             raise ValueError(msg)
-        series = tuple(_pair_series(pair) for pair in pairs)
+        selection = tuple(_pair_request(pair) for pair in pairs)
     elif y is None:
-        # The planner's default: every column except x, per frame.
-        return ()
+        return None
     else:
-        series = tuple(SeriesSpec(y=column) for column in ([y] if isinstance(y, str) else y))
+        selection = tuple((None, column, None) for column in ([y] if isinstance(y, str) or not isinstance(y, Sequence) else y))
     # An empty selection must not fall back to the planner's "every column" default.
-    if not series:
+    if not selection:
         raise ValueError(_NO_SERIES)
-    return series
+    return selection
 
 
-def _pair_series(pair: Sequence[str]) -> SeriesSpec:
+def _pair_request(pair: Sequence[str]) -> _Request:
     if len(pair) == _PAIR_WITH_LABEL:
-        return SeriesSpec(x=pair[0], y=pair[1], label=pair[2])
+        return pair[0], pair[1], pair[2]
     if len(pair) == _PAIR_WITH_LABEL - 1:
-        return SeriesSpec(x=pair[0], y=pair[1])
+        return pair[0], pair[1], None
     msg = f"plot_lines pairs must be (x, y) or (x, y, label), got {len(pair)} items"
     raise ValueError(msg)
+
+
+def _select_columns(frame: pd.DataFrame, x: Any, selection: tuple[_Request, ...] | None) -> pd.DataFrame:
+    """Reorder ``frame`` to the selected columns: [x], then each selection's (x,) y."""
+    x_positions = [] if x is None else [column_position(frame, x, "x")]
+    if selection is None:
+        rest = [position for position in range(frame.shape[1]) if position not in x_positions]
+        return frame.iloc[:, x_positions + rest]
+    order = list(x_positions)
+    for pair_x, column, _ in selection:
+        if pair_x is not None:
+            order.append(column_position(frame, pair_x, "x"))
+        order.append(column_position(frame, column, "y"))
+    return frame.iloc[:, order]
+
+
+def _positional_series(selection: tuple[_Request, ...] | None, *, has_x: bool) -> tuple[tuple[SeriesSpec, ...], int | None]:
+    """Series specs addressing the columns laid out by ``_select_columns``, and the x position."""
+    x_ref = 0 if has_x else None
+    if selection is None:
+        return (), x_ref
+    series: list[SeriesSpec] = []
+    position = 1 if has_x else 0
+    for pair_x, _, label in selection:
+        pair_ref = None
+        if pair_x is not None:
+            pair_ref, position = position, position + 1
+        series.append(SeriesSpec(x=pair_ref, y=position, label=label))
+        position += 1
+    return tuple(series), x_ref
 
 
 def _relabelled(plan: PlotPlan, labels: Sequence[str], pairs: Sequence[LinePair] | None) -> PlotPlan:
@@ -295,15 +334,17 @@ def plot_scatter(df: pd.DataFrame, out: OutputContext, filename: str, x: str, y:
             is absent, ``reason="ambiguous_column"`` if several columns carry
             the name; raised before any figure exists. It is a ``ValueError``.
     """
+    # Labels, not positions (see _line_plan): x and y become positions 0 and 1.
+    selected = df.iloc[:, [column_position(df, x, "x"), column_position(df, y, "y")]]
     spec = GraphSpec(
-        x=x, series=(SeriesSpec(y=y),), mark="scatter", layout="overlay", label_style="raw", unit_policy="allow",
+        x=0, series=(SeriesSpec(y=1),), mark="scatter", layout="overlay", label_style="raw", unit_policy="allow",
     )
-    plan = build_plot_plan(df, spec)
+    plan = build_plot_plan(selected, spec)
     figure = plan.figures[0]
     # A pyplot figure, closed below, for the same reason as in plot_lines.
     fig, ax = plt.subplots()
     try:
-        draw_series(ax, plan, plan.series[0], PlotData(frames=(df,)))
+        draw_series(ax, plan, plan.series[0], PlotData(frames=(selected,)))
         ax.set_xlabel(figure.x_label, fontsize=_FONT_SIZE)
         ax.set_ylabel(figure.y_label, fontsize=_FONT_SIZE)
         return out.write_bytes("main_image", filename, _figure_bytes(fig, filename))

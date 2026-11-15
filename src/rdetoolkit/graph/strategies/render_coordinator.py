@@ -88,9 +88,11 @@ def collect_render_results(
     overlay = _overlay_strategy(registry, config) if plot_mode == PlotMode.OVERLAY else None
     individual = None if config.output.no_individual else IndividualStrategy(_legacy(registry, _INDIVIDUAL_FORMAT, "individual"))
 
-    overlay_results: list[RenderResult] = [] if overlay is None else overlay.render(df, config)
-    # IndividualStrategy returns None only for no_individual, which built no strategy.
-    individual_results: list[RenderResult] = [] if individual is None else individual.render(df, config) or []
+    # One legacy call: the figures share one plan per backend and warn once (IC-6).
+    with compat.legacy_call():
+        overlay_results: list[RenderResult] = [] if overlay is None else overlay.render(df, config)
+        # IndividualStrategy returns None only for no_individual, which built no strategy.
+        individual_results: list[RenderResult] = [] if individual is None else individual.render(df, config) or []
 
     return RenderCollections(
         overlay=overlay_results,

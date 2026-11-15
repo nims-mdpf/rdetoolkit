@@ -344,12 +344,13 @@ def test_style_ignored_is_reported_for_html_only__tc_ge07_ep_009(tmp_path: Path)
     plain = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "b"), formats=("png", "html")))
     # Then: only the html artifact of the styled request carries one style_ignored info diagnostic
     png, html = with_rc.artifacts
-    assert png.diagnostics == ()
-    assert [(d.code, d.severity) for d in html.diagnostics] == [("style_ignored", "info")]
-    assert "plotly" in html.diagnostics[0].message and "rc_params" in html.diagnostics[0].message
-    # GE-11: the deliberately shared V + A axis adds one plan-level unit diagnostic to both runs
+    # GE-11 + fix round 1 (R-7): the deliberately shared V + A axis is described on
+    # every artifact of that overlay figure, in plan order before render-time items
+    assert [(d.code, d.severity) for d in png.diagnostics] == [("unit_mismatch", "info")]
+    assert [(d.code, d.severity) for d in html.diagnostics] == [("unit_mismatch", "info"), ("style_ignored", "info")]
+    assert "plotly" in html.diagnostics[1].message and "rc_params" in html.diagnostics[1].message
     assert [(d.code, d.severity) for d in with_rc.diagnostics] == [("unit_mismatch", "info"), ("style_ignored", "info")]
-    assert [a.diagnostics for a in plain.artifacts] == [(), ()]
+    assert [[d.code for d in a.diagnostics] for a in plain.artifacts] == [["unit_mismatch"], ["unit_mismatch"]]
     assert [(d.code, d.severity) for d in plain.diagnostics] == [("unit_mismatch", "info")]
 
 

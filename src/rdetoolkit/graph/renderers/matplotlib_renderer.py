@@ -2,14 +2,14 @@
 
 ``render(plan, figure, data)`` is the plan-consuming entry point. The legacy methods
 ``render_overlay(df, config)`` and ``render_individual(df, config, ...)`` are adapters:
-they build the plan with ``compat.plan_from_config`` (Matplotlib legacy labels, C-12)
-and draw it, so no column, label or direction spec is interpreted here (GE-06).
+they build the plan with ``compat.legacy_plan`` / ``compat.individual_plan``
+(Matplotlib legacy labels, C-12) and draw it, so no column, label or direction spec
+is interpreted here (GE-06). The renderer keeps no plan between calls.
 """
 
 from __future__ import annotations
 
 import dataclasses
-from dataclasses import dataclass
 from typing import Any, Final, Literal, Protocol
 
 import matplotlib.dates as mdates
@@ -61,22 +61,11 @@ class _LegendSource(Protocol):
     def legend(self) -> LegendConfig | LegendSpec: ...
 
 
-@dataclass(frozen=True)
-class _PlanMemo:
-    """The last legacy plan, valid while the same frame and an unchanged config are passed."""
-
-    df: pd.DataFrame
-    config: PlotConfig
-    fingerprint: str
-    plan: PlotPlan
-
-
 class MatplotlibRenderer:
     """Matplotlib-based renderer for static plots."""
 
     def __init__(self) -> None:
-        """Create a renderer; it remembers the last legacy plan it built."""
-        self._memo: _PlanMemo | None = None
+        """Create a stateless renderer (plans are shared only within one legacy call)."""
 
     @property
     def capabilities(self) -> RendererCapabilities:
@@ -147,8 +136,10 @@ class MatplotlibRenderer:
             ValueError: For column specs that cannot be planned (raised before a
                 figure exists).
         """
-        plan = self._plan_for(df, config)
-        return self._render_legacy(plan, plan.figures[0], df, config)
+        plan = compat.legacy_plan(df, config, label_of=compat.legacy_mpl_label)
+        figure = self._render_legacy(plan, plan.figures[0], df, config)
+        compat.warn_mixed_overlay(plan)
+        return figure
 
     def render_individual(
         self,
@@ -159,32 +150,26 @@ class MatplotlibRenderer:
     ) -> Figure:
         """Render the individual graph of one series (legacy adapter).
 
+        Any column can be drawn, as in v1: a column that is not the planned series
+        at ``series_position`` is plotted against the x (and direction) column of
+        that position (see ``compat.individual_plan``).
+
         Args:
             df: DataFrame containing plot data
-            config: Plot configuration
+            config: Plot configuration (``x_col`` and ``y_cols`` are required)
             y_col_index: Column position of the series' y values.
             series_position: Position of the series within ``config.y_cols``;
-                ``None`` selects the first series plotting ``y_col_index``.
+                ``None`` selects the first series plotting ``y_col_index`` (or
+                position 0 for a column outside ``y_cols``).
 
         Returns:
             A pyplot figure owned by the caller.
 
         Raises:
-            ValueError: For column specs that cannot be planned, or a position /
-                column pair that names no planned series (before a figure exists).
+            ValueError: For column specs that cannot be planned (before a figure exists).
         """
-        plan = self._plan_for(df, config)
-        return self._render_legacy(plan, _individual_figure(plan, y_col_index, series_position), df, config)
-
-    def _plan_for(self, df: pd.DataFrame, config: PlotConfig) -> PlotPlan:
-        """Plan a legacy pair once per renderer, so N individual figures share one plan."""
-        fingerprint = repr(config)
-        memo = self._memo
-        if memo is not None and memo.df is df and memo.config is config and memo.fingerprint == fingerprint:
-            return memo.plan
-        plan = compat.plan_from_config(df, config, label_of=compat.legacy_mpl_label)
-        self._memo = _PlanMemo(df=df, config=config, fingerprint=fingerprint, plan=plan)
-        return plan
+        plan, figure = compat.individual_plan(df, config, y_col_index, series_position, label_of=compat.legacy_mpl_label)
+        return self._render_legacy(plan, figure, df, config)
 
     def _render_legacy(self, plan: PlotPlan, figure: FigurePlan, df: pd.DataFrame, config: PlotConfig) -> Figure:
         """Draw a legacy figure: house style globally (C-07), explicit style for this call only."""
@@ -773,22 +758,3 @@ def _axis_config(axis: AxisSpec, label: str) -> AxisConfig:
         lim=axis.limits,
         tick_format=axis.tick_format,
     )
-
-
-def _individual_figure(plan: PlotPlan, y_col_index: int, series_position: int | None) -> FigurePlan:
-    """The planned individual figure of a legacy ``render_individual`` call."""
-    if series_position is None:
-        position = next((entry_position for entry_position, entry in enumerate(plan.series) if entry.y_index == y_col_index), None)
-        if position is None:
-            msg = f"y column {y_col_index} is not a planned series"
-            raise ValueError(msg)
-    else:
-        position = series_position
-    if not 0 <= position < len(plan.series):
-        msg = f"series position {position} is out of range for {len(plan.series)} planned series"
-        raise ValueError(msg)
-    entry = plan.series[position]
-    if entry.y_index != y_col_index:
-        msg = f"y column {y_col_index} does not match planned series {position} (column {entry.y_index})"
-        raise ValueError(msg)
-    return next(figure for figure in plan.figures if figure.kind == "individual" and figure.figure_id == entry.series_id)
