@@ -7,6 +7,7 @@ EP table (written before implementation)
 | AS-03 | debugging failure and repaired input | failing call, code, job.failed, then success |
 | AS-04 | testing example and migration fixture | real outputs and v1/v2 artifact parity |
 | AS-05 | CLI discovery examples | successful commands, parseable JSON schemas |
+| AS-06 | diagnostic examples (doctor, report diagnose, nodes lint --json) | versioned envelope naming the real fixture's state |
 | AS-N1 | old new-code imports/callback/proxy advice | static audit rejects each |
 | AS-N2 | untracked or broken example | manifest/fence check rejects |
 | AS-N3 | missing API mutation | exact-text execution fails |
@@ -42,7 +43,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SKILLS = ROOT / ".agents" / "skills"
 NAMES = {f"rdetoolkit-{name}" for name in ("flow-authoring", "metadata", "debugging", "testing", "v1-migration")}
 EXAMPLE = re.compile(r"<!-- example: ([\w-]+) -->\n```(python|console)\n(.*?)```", re.DOTALL)
-COVERED_EXAMPLES = {"authoring-discovery", "authoring-flow", "authoring-run", "metadata-discovery", "metadata-flow", "debugging-flow", "debugging-repair", "debugging-report", "testing-discovery", "testing-roundtrip", "migration-commands"}
+COVERED_EXAMPLES = {"authoring-discovery", "authoring-flow", "authoring-doctor", "authoring-run", "metadata-discovery", "metadata-flow", "debugging-flow", "debugging-repair", "debugging-report", "debugging-diagnose", "testing-discovery", "testing-lint", "testing-roundtrip", "migration-commands"}
 OBSOLETE = (r"custom_dataset_function\s*=", r"\bRdeDatasetPaths\b", r"from rdetoolkit\.rde2util import.*\bMeta\b", r"from rdetoolkit\.processing", r"\b(?:Trace|NodeProxy|OutputProxy|RustDAG)\b", r"\bget_agent_guide\b|\bagent-guide\b")
 
 
@@ -205,6 +206,16 @@ def test_debug_failure_repair_exact_example__as_03_b3(tmp_path: Path, monkeypatc
     assert shown.exit_code == 0, shown.output
     assert failed.run_id in shown.output
     assert "positive_measurement" in shown.output
+    # And: the diagnosis example names the same failed call, from the copy and the original
+    diagnose = shlex.split(_code("debugging-diagnose"))
+    for path, detail_state in (("failure-report.json", "missing"), (str(report_path), "verified")):
+        diagnosed = CliRunner().invoke(app, [*diagnose[3:-2], path, "--json"])
+        assert diagnosed.exit_code == 0, diagnosed.output
+        payload = json.loads(diagnosed.stdout)
+        assert payload["schema_version"] == "1" and payload["run_id"] == failed.run_id
+        assert payload["run_status"] == "failed"
+        assert any("positive_measurement" in (item["node_id"] or "") for item in payload["failures"])
+        assert payload["evidence"]["iterations"][0]["iteration_detail"]["state"] == detail_state
     # When: applying the exact shipped repair and rerunning the same flow
     exec(compile(_code("debugging-repair"), "<skill:debugging-repair>", "exec"), namespace)  # noqa: S102
     repaired = namespace["report"]
@@ -314,8 +325,15 @@ def test_exact_flow_cli_command__as_05(tmp_path: Path, monkeypatch: pytest.Monke
     data = _tree(tmp_path)
     monkeypatch.chdir(tmp_path)
     (tmp_path / "processing.py").write_text(_code("authoring-flow"), encoding="utf-8")
+    # When: preflighting with the documented doctor command (AS-06), which must not run the flow
+    doctor = shlex.split(_code("authoring-doctor"))
+    checked = subprocess.run([sys.executable, *doctor[1:]], capture_output=True, text=True, timeout=60, check=False)
+    assert checked.returncode == 0, checked.stdout + checked.stderr
+    preflight = json.loads(checked.stdout)
+    assert (preflight["command"], preflight["status"], preflight["mode"]) == ("doctor", "passed", "invoice")
+    assert not (data / "structured").exists() and not (data / "logs").exists()
     command = shlex.split(_code("authoring-run"))
-    # When: executing the documented CLI entry using the installed interpreter
+    # And: executing the documented CLI entry using the installed interpreter
     result = subprocess.run([sys.executable, *command[1:]], capture_output=True, text=True, timeout=60, check=False)
     # Then: status, saved versioned report, and structured file all agree
     assert result.returncode == 0, result.stderr
@@ -341,3 +359,16 @@ def test_untracked_or_duplicate_example_rejected__as_n2(text: str) -> None:
     # When / Then: extraction rejects it before example execution
     with pytest.raises(AssertionError, match="example"):
         _extract(text, "broken-skill.md")
+
+
+def test_lint_json_example__as_06(tmp_path: Path) -> None:
+    """AS-06: the testing Skill's lint command prints a clean versioned envelope."""
+    # Given: the exact shipped command and an empty downstream directory
+    command = shlex.split(_code("testing-lint"))
+    assert command[:3] == ["python", "-m", "rdetoolkit"]
+    # When: running it in a fresh process, so only builtin nodes are registered
+    result = subprocess.run([sys.executable, *command[1:]], cwd=tmp_path, capture_output=True, text=True, timeout=60, check=False)
+    # Then: it passes with the documented JSON fields
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert (payload["schema_version"], payload["command"], payload["status"], payload["diagnostics"]) == ("1", "nodes lint", "passed", [])

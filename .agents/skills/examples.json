@@ -66,6 +66,24 @@
       "path": "rdetoolkit-debugging/references/debugging.md",
       "language": "console",
       "fixture": "invoice-invalid-then-repaired"
+    },
+    {
+      "id": "authoring-doctor",
+      "path": "rdetoolkit-flow-authoring/references/flow.md",
+      "language": "console",
+      "fixture": "invoice-text"
+    },
+    {
+      "id": "debugging-diagnose",
+      "path": "rdetoolkit-debugging/references/debugging.md",
+      "language": "console",
+      "fixture": "invoice-invalid-then-repaired"
+    },
+    {
+      "id": "testing-lint",
+      "path": "rdetoolkit-testing/SKILL.md",
+      "language": "console",
+      "fixture": "empty-project"
     }
   ]
 }

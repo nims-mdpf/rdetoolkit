@@ -9,6 +9,11 @@ from typing import Any
 
 RUN_REPORT_SCHEMA_VERSION = "2"
 
+#: Version of ``logs/iterations/iteration_<index>.json``. Independent of the
+#: RunReport version; the detail also carries ``run_id`` so a reader can tell a
+#: later run's detail (the files are reused by index) from this run's.
+ITERATION_DETAIL_SCHEMA_VERSION = "1"
+
 
 @dataclass(frozen=True, slots=True)
 class RunReport:

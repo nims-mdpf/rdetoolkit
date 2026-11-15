@@ -70,6 +70,7 @@ plugins:
                     - ファイル/フォルダモード: usage/config/file_folder_mode.md
                     - マジック変数: usage/config/magic_variable.md
                     - コマンドライン操作: usage/cli.md
+                    - 診断コマンド (JSON): usage/diagnostics.md
                 - テンプレートファイルと検証:
                     - テンプレートファイル: usage/metadata_definition_file.md
                     - データ検証: usage/validation.md
@@ -171,6 +172,7 @@ plugins:
                     - File/Folder Modes: usage/config/file_folder_mode.md
                     - Magic Variables: usage/config/magic_variable.md
                     - Command Line Interface: usage/cli.md
+                    - Diagnostic Commands (JSON): usage/diagnostics.md
                 - Templates & Validation:
                     - Template Files: usage/metadata_definition_file.md
                     - Data Validation: usage/validation.md

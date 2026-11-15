@@ -22,9 +22,9 @@ Commands follow the form `rdetoolkit <noun> <verb>` (for example `rdetoolkit new
 | ----- | -------- | ------- |
 | Scaffold | `init` | Create the project scaffold |
 | Generate | `new config`, `new invoice`, `new excelinvoice`, `new processing`, `plot` | Generate project files and graphs |
-| Validate | `validate invoice`, `validate invoice-schema`, `validate metadata`, `validate metadata-def`, `validate all` | Validate RDE schema and data files |
+| Validate | `validate invoice`, `validate invoice-schema`, `validate metadata`, `validate metadata-def`, `validate all`, `doctor` | Validate RDE schema and data files; check that a project can run |
 | Run | `run` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`) |
-| Inspect | `report show`, `report trace`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
+| Inspect | `report show`, `report trace`, `report diagnose`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
 | Package | `package`, `repro export`, `repro import` | Create the submission archive, export and re-import a run |
 | Migrate | `migrate check`, `migrate apply` | Find and convert v1 code and CLI calls for v2 |
 | Info | `version` | Show the installed version |
@@ -374,6 +374,16 @@ fi
 !!! tip "Detailed Documentation"
     For comprehensive validation documentation including CI/CD integration examples, see [Validation Features](validation.en.md).
 
+### doctor: Check That a Project Can Run
+
+Checks the inputs, config, mode, invoice and metadata definitions of a project with the Runner's own validate-only preflight, run on a temporary copy of the inputs. `--ref pkg.mod:callable` also imports a flow and checks that the Runner can inject its parameters. Doctor never calls the flow or its `prepare=` hook and writes nothing into the project.
+
+```bash title="Preflight a project, with a flow, as JSON"
+python3 -m rdetoolkit doctor --format json --ref modules.processing:pipeline
+```
+
+Exit codes: `0` passed (warnings allowed), `1` a check failed, `2` invalid command line, `3` `PROJECT_DIR` is not a directory or `--format` is not `text`/`json`. The JSON format and every check are described in [Diagnostic Commands (JSON)](diagnostics.en.md).
+
 ### run: Run Structured Processing
 
 Runs structured processing from the project root. The Runner reads `data/inputdata`, `data/invoice`, and `data/tasksupport`, finds `rdeconfig.yaml`, and processes every tile.
@@ -423,7 +433,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 2 | Partial: some tiles failed (also used by the parser for an unknown option) |
 | 3 | Invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy` |
 
-### report show / report trace: Inspect Run Reports
+### report show / report trace / report diagnose: Inspect Run Reports
 
 Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes to `data/logs/`.
 
@@ -432,6 +442,7 @@ Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes t
     ```shell
     python3 -m rdetoolkit report show <run_report.json>
     python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    python3 -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
     ```
 
 === "Windows"
@@ -439,16 +450,18 @@ Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes t
     ```powershell
     py -m rdetoolkit report show <run_report.json>
     py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    py -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
     ```
 
 - `report show` prints the run id, status, iteration count, one `failed` line per failed node call, and the error message when set.
 - `report trace` renders the Call Sequence recorded in the report: every node call in the order it ran (call ids, parent flow, status, argument previews). It is a call log and does not draw data dependencies. `--format` selects `json` (default), `mermaid` (a sequence diagram), or `html` (a standalone page). The rendering goes to stdout; redirect it to save a file.
+- `report diagnose` lists each recorded failure with its iteration, node id, call id, catalog code, and remediation, and checks which `iterations/` details and event log next to the report belong to the same run. It never prints exception text or argument previews. `--json` prints the [diagnostics envelope](diagnostics.en.md); it exits `0` when the report was diagnosed, even for a failed run, and `1` with `--fail-on-error` when the run recorded a failure.
 
 ```bash title="Save the Call Sequence as an HTML page"
 python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
 ```
 
-Exit codes: `0` success, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace`, an unknown `--format`).
+Exit codes: `0` success, `1` `report diagnose --fail-on-error` found a recorded failure, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace`, an unknown `--format`).
 
 ### plot: Draw Graphs from CSV
 
@@ -490,6 +503,8 @@ These commands list what is registered in the current environment. Pass `--modul
 ```bash title="List the nodes of a project module"
 python3 -m rdetoolkit nodes list --module modules.processing
 ```
+
+`nodes lint --json` prints the findings in the [diagnostics envelope](diagnostics.en.md) instead of text, with the same exit codes.
 
 Exit codes: `0` success, `2` invalid command line, `3` unknown id, a module that fails to import, or (for `nodes lint`) lint violations.
 

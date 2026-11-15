@@ -22,9 +22,9 @@ RDEToolKitは、RDE構造化処理の開発ワークフロー全体を支援す�
 | ------ | -------- | ---- |
 | Scaffold | `init` | プロジェクトの雛形を作成 |
 | Generate | `new config`、`new invoice`、`new excelinvoice`、`new processing`、`plot` | プロジェクトファイルやグラフを生成 |
-| Validate | `validate invoice`、`validate invoice-schema`、`validate metadata`、`validate metadata-def`、`validate all` | RDEのスキーマとデータファイルを検証 |
+| Validate | `validate invoice`、`validate invoice-schema`、`validate metadata`、`validate metadata-def`、`validate all`、`doctor` | RDEのスキーマとデータファイルを検証し、プロジェクトを実行できるか確認 |
 | Run | `run` | 構造化処理を実行(v2 flow、または `--legacy` で v1 のデータセット関数) |
-| Inspect | `report show`、`report trace`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
+| Inspect | `report show`、`report trace`、`report diagnose`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
 | Package | `package`、`repro export`、`repro import` | 提出用アーカイブの作成、実行の書き出しと再取り込み |
 | Migrate | `migrate check`、`migrate apply` | v2 移行が必要な v1 コードと CLI 呼び出しの検出・変換 |
 | Info | `version` | インストール済みバージョンの表示 |
@@ -373,6 +373,16 @@ fi
 !!! tip "詳細なドキュメント"
     CI/CD統合例を含む包括的なバリデーションドキュメントについては、[バリデーション機能](validation.ja.md)を参照してください。
 
+### doctor: プロジェクトを実行できるかの確認
+
+入力ファイル、設定、モード、invoice とメタデータの定義を、Runner 自身の validate-only の事前検証で確認します。事前検証は入力の一時コピーに対して実行します。`--ref pkg.mod:callable` を指定すると flow を import し、Runner が引数を注入できるかも確認します。doctor は flow も `prepare=` フックも呼び出さず、プロジェクトには何も書き込みません。
+
+```bash title="flow を含めてプロジェクトを事前確認し、JSON で出力"
+python3 -m rdetoolkit doctor --format json --ref modules.processing:pipeline
+```
+
+終了コード: `0` 合格(警告は可)、`1` 失敗したチェックあり、`2` コマンドラインが不正、`3` `PROJECT_DIR` がディレクトリでない、または `--format` が `text`/`json` 以外。JSON の形式と各チェックの内容は[診断コマンド (JSON)](diagnostics.ja.md)を参照してください。
+
 ### run: 構造化処理の実行 { #run }
 
 プロジェクトのルートで構造化処理を実行します。Runner は `data/inputdata`、`data/invoice`、`data/tasksupport` を読み、`rdeconfig.yaml` を探して、すべてのタイルを処理します。
@@ -422,7 +432,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 2 | 部分成功: 一部のタイルが失敗(未知のオプションなどパーサーのエラーでも使用) |
 | 3 | REF が不正、flow を解決できない、`--config` を読めない、または `--legacy` に適用できないオプションを指定 |
 
-### report show / report trace: 実行レポートの確認
+### report show / report trace / report diagnose: 実行レポートの確認
 
 `rdetoolkit run` が `data/logs/` に書き出す実行レポート(`run_report_<run_id>.json`)を読みます。
 
@@ -431,6 +441,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
     ```shell
     python3 -m rdetoolkit report show <run_report.json>
     python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    python3 -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
     ```
 
 === "Windows"
@@ -438,16 +449,18 @@ python3 -m rdetoolkit run --legacy main.py::dataset
     ```powershell
     py -m rdetoolkit report show <run_report.json>
     py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    py -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
     ```
 
 - `report show` は run id、ステータス、反復回数、失敗した node 呼び出しごとの `failed` 行、設定されていればエラーメッセージを表示します。
 - `report trace` はレポートに記録された Call Sequence(実行順の node 呼び出し一覧。call id、親 flow、ステータス、引数のプレビュー)を描画します。これは呼び出しログであり、データの依存関係は描きません。`--format` で `json`(デフォルト)、`mermaid`(シーケンス図)、`html`(単体の HTML ページ)を選びます。結果は標準出力に出るので、ファイルに保存する場合はリダイレクトしてください。
+- `report diagnose` は記録された失敗ごとに、反復番号、node id、call id、カタログのコード、対処方法を表示します。あわせて、レポートの隣にある `iterations/` の詳細ファイルとイベントログが同じ実行のものかを確認します。例外のメッセージや引数のプレビューは表示しません。`--json` を付けると[診断結果の JSON](diagnostics.ja.md)を出力します。レポートを診断できれば、実行が失敗していても終了コードは `0` です。`--fail-on-error` を付けると、失敗の記録がある場合に `1` で終了します。
 
 ```bash title="Call Sequence を HTML ページとして保存"
 python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
 ```
 
-終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートファイルが存在しないか不正(`report trace` では未知の `--format` も含む)。
+終了コード: `0` 成功、`1` `report diagnose --fail-on-error` で失敗の記録あり、`2` コマンドラインが不正、`3` レポートファイルが存在しないか不正(`report trace` では未知の `--format` も含む)。
 
 ### plot: CSVからグラフを描画
 
@@ -489,6 +502,8 @@ python3 -m rdetoolkit plot sample.csv -o data/other_image --title 'XRD pattern'
 ```bash title="プロジェクトのモジュールに含まれる node を一覧"
 python3 -m rdetoolkit nodes list --module modules.processing
 ```
+
+`nodes lint --json` は、検出結果をテキストではなく[診断結果の JSON](diagnostics.ja.md)で出力します。終了コードは同じです。
 
 終了コード: `0` 成功、`2` コマンドラインが不正、`3` 未知の id、import に失敗したモジュール、または(`nodes lint` で)違反の検出。
 

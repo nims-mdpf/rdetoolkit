@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 
 RUN_REPORT_SCHEMA_VERSION: str
+ITERATION_DETAIL_SCHEMA_VERSION: str
 
 @dataclass(frozen=True, slots=True)
 class RunReport:
