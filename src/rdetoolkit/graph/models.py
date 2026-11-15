@@ -42,7 +42,7 @@ class AxisConfig:
         scale: Axis scale ('linear' or 'log')
         grid: Whether to show grid lines
         invert: Whether to invert axis direction
-        lim: Axis limits as (min, max) tuple (optional)
+        lim: Axis limits as (min, max) tuple (optional); a None side stays automatic
         tick_format: Tick label formatting mode.
             - "auto": Phase 1 default behavior (ScalarFormatter with scilimits-based
               automatic switch to ×10^n notation)
@@ -58,7 +58,7 @@ class AxisConfig:
     scale: Literal["linear", "log"] = "linear"
     grid: bool = True
     invert: bool = False
-    lim: tuple[float, float] | None = None
+    lim: tuple[float | None, float | None] | None = None
     tick_format: Literal["auto", "plain", "sci", "eng"] = "auto"
     scilimits: tuple[int, int] = (-3, 4)
 

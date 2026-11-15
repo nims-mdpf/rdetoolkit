@@ -689,6 +689,17 @@ drawn, so no artifact of a run overwrites another one:
 |---|---|---|---|---|
 | IC-3 | Two series whose individual file names differ only by case, spacing or Unicode normalization (for example `Voltage` and `voltage`, or `A B` and `A_B`), or a header containing `/`, `\` or `..` | The later figure overwrote the earlier one; an unsafe header failed after the overlay image was written | Every colliding series gets its series id appended (`plot_voltage_s000.png`, `plot_voltage_s001.png`) and a `GraphUserWarning` is emitted; unsafe characters become `_`. Names that do not collide are unchanged | Rename the columns if you need specific file names |
 
+Axis limits are validated by one rule shared by `csv2graph`, `plot_from_dataframe`,
+`rdetoolkit plot` and `GraphSpec` (`AxisSpec.limits`). A `None` side keeps the
+automatic limit, so `xlim=(0, None)` fixes only the lower bound. Reversed bounds
+(`min > max`) are still accepted and invert the axis. On the CLI, `--xmin`, `--xmax`,
+`--ymin` and `--ymax` set one side each; combining one of them with `--xlim`/`--ylim`
+on the same axis is a usage error (exit code 2).
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-4 | One-sided `xlim`/`ylim` such as `(0, None)` or `(None, 10)`; limits with a non-finite bound, equal bounds, or a bound `<= 0` on a log axis (`logx`/`logy`) | One-sided limits were dropped (both sides automatic); invalid limits were passed to Matplotlib, which ignored them with a warning | The given side is applied and the other side stays automatic; invalid limits raise `PlotRequestError` (`reason="invalid_axis_limits"`) naming the axis and the bound, before anything is written; exit code 2 on the CLI | Omit the limit to get the old fully automatic result; pass positive bounds on a log axis |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

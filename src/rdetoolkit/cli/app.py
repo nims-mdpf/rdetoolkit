@@ -374,6 +374,75 @@ def _reject_contradictory_plot_switches(mode: str, no_individual: bool | None) -
         raise typer.BadParameter(msg, param_hint="--no-individual")
 
 
+def _plot_axis_limits(
+    axis: str,
+    *,
+    limits: tuple[float, float] | None,
+    lower: float | None,
+    upper: float | None,
+    log: bool,
+) -> tuple[float | None, float | None] | None:
+    """Combine `--{axis}lim` or `--{axis}min/--{axis}max` into one validated limit pair.
+
+    The one-sided options exist because a click tuple option needs both values; a
+    side left out stays automatic. Validation is the same as the Python API's, but
+    reported as a usage error (exit 2) naming the offending option.
+
+    Args:
+        axis: ``"x"`` or ``"y"``.
+        limits: Value of ``--{axis}lim`` (both bounds) or ``None``.
+        lower: Value of ``--{axis}min`` or ``None``.
+        upper: Value of ``--{axis}max`` or ``None``.
+        log: Whether the axis uses a log scale (``--log{axis}``).
+
+    Returns:
+        The validated ``(min, max)`` pair (a ``None`` side stays automatic), or ``None``.
+
+    Raises:
+        typer.BadParameter: When ``--{axis}lim`` is combined with a one-sided option,
+            or the limits are invalid (non-finite, equal, or ``<= 0`` on a log axis).
+    """
+    from rdetoolkit.graph.exceptions import PlotRequestError
+    from rdetoolkit.graph.validation import validate_axis_limits
+
+    hint = _axis_limit_option_hint(axis, limits=limits, lower=lower, upper=upper)
+    requested = limits if limits is not None else (lower, upper)
+    try:
+        return validate_axis_limits(requested, scale="log" if log else "linear", axis=axis)
+    except PlotRequestError as exc:
+        raise typer.BadParameter(str(exc), param_hint=hint) from exc
+
+
+def _axis_limit_option_hint(
+    axis: str,
+    *,
+    limits: tuple[float, float] | None,
+    lower: float | None,
+    upper: float | None,
+) -> str:
+    """Return the option names that carried the limits, rejecting `--{axis}lim` mixed with a one-sided option.
+
+    Args:
+        axis: ``"x"`` or ``"y"``.
+        limits: Value of ``--{axis}lim`` or ``None``.
+        lower: Value of ``--{axis}min`` or ``None``.
+        upper: Value of ``--{axis}max`` or ``None``.
+
+    Returns:
+        The ``param_hint`` naming the options the user gave for this axis.
+
+    Raises:
+        typer.BadParameter: When ``--{axis}lim`` is combined with ``--{axis}min``/``--{axis}max``.
+    """
+    given = " / ".join(f"--{axis}{side}" for side, value in (("min", lower), ("max", upper)) if value is not None)
+    if limits is None:
+        return given
+    if given:
+        msg = f"--{axis}lim cannot be combined with {given}; give both bounds with --{axis}lim or one side with --{axis}min/--{axis}max"
+        raise typer.BadParameter(msg, param_hint=given)
+    return f"--{axis}lim"
+
+
 @app.command("plot", help=PLOT_HELP.render(), short_help=PLOT_HELP.summary, rich_help_panel=PANEL_GENERATE)
 def plot(
     csv_path: Annotated[Path, typer.Argument(metavar="CSV_PATH", help="Path to CSV file", exists=False, dir_okay=False)],
@@ -424,6 +493,10 @@ def plot(
     ] = None,
     x_tick_format: Annotated[str, typer.Option("--x-tick-format", help="X-axis tick label format: auto, plain, sci, or eng")] = "auto",
     y_tick_format: Annotated[str, typer.Option("--y-tick-format", help="Y-axis tick label format: auto, plain, sci, or eng")] = "auto",
+    xmin: Annotated[float | None, typer.Option("--xmin", help="X-axis lower limit only; the upper side stays automatic")] = None,
+    xmax: Annotated[float | None, typer.Option("--xmax", help="X-axis upper limit only; the lower side stays automatic")] = None,
+    ymin: Annotated[float | None, typer.Option("--ymin", help="Y-axis lower limit only; the upper side stays automatic")] = None,
+    ymax: Annotated[float | None, typer.Option("--ymax", help="Y-axis upper limit only; the lower side stays automatic")] = None,
 ) -> None:
     """Generate graphs from CSV files."""
     # Lazy imports
@@ -467,6 +540,9 @@ def plot(
         msg = f"Invalid y-tick-format: {y_tick_format}. Choose from ['auto', 'plain', 'sci', 'eng']"
         raise typer.BadParameter(msg, param_hint="--y-tick-format")
 
+    resolved_xlim = _plot_axis_limits("x", limits=xlim, lower=xmin, upper=xmax, log=logx)
+    resolved_ylim = _plot_axis_limits("y", limits=ylim, lower=ymin, upper=ymax, log=logy)
+
     # Parse column specifications
     parsed_x_col = [parse_column(c) for c in x_col] if x_col else None
     parsed_y_cols = [parse_column(c) for c in y_cols] if y_cols else None
@@ -500,8 +576,8 @@ def plot(
         title=title,
         legend_info=legend_info,
         legend_loc=legend_loc,
-        xlim=xlim,
-        ylim=ylim,
+        xlim=resolved_xlim,
+        ylim=resolved_ylim,
         grid=grid,
         invert_x=invert_x,
         invert_y=invert_y,

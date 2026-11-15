@@ -82,6 +82,10 @@ def plot(
     legend_ncol: Optional[int] = None,
     x_tick_format: str = "auto",
     y_tick_format: str = "auto",
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    ymin: Optional[float] = None,
+    ymax: Optional[float] = None,
 ) -> None: ...
 def run(
     target: Optional[str] = None,

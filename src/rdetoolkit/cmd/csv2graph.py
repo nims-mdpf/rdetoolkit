@@ -35,8 +35,8 @@ class Csv2GraphCommand:
         title: Optional[str] = None,
         legend_info: Optional[str] = None,
         legend_loc: Optional[str] = None,
-        xlim: Optional[tuple[float, float]] = None,
-        ylim: Optional[tuple[float, float]] = None,
+        xlim: Optional[tuple[Optional[float], Optional[float]]] = None,
+        ylim: Optional[tuple[Optional[float], Optional[float]]] = None,
         grid: bool = False,
         invert_x: bool = False,
         invert_y: bool = False,
@@ -71,8 +71,8 @@ class Csv2GraphCommand:
             title: Plot title
             legend_info: Legend information
             legend_loc: Legend location
-            xlim: X-axis limits
-            ylim: Y-axis limits
+            xlim: X-axis limits (min, max); a None side stays automatic
+            ylim: Y-axis limits (min, max); a None side stays automatic
             grid: Show grid
             invert_x: Invert x-axis
             invert_y: Invert y-axis

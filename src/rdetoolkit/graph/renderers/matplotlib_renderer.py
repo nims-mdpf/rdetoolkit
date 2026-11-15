@@ -267,10 +267,12 @@ class MatplotlibRenderer:
         else:
             self._apply_tick_formatting(ax.yaxis, config.y_axis)
 
-        if config.x_axis.lim:
-            ax.set_xlim(config.x_axis.lim)
-        if config.y_axis.lim:
-            ax.set_ylim(config.y_axis.lim)
+        # A None side keeps Matplotlib's automatic limit, so (0, None) fixes the
+        # lower bound only. Limits follow the scale so a scale change cannot re-derive them.
+        if config.x_axis.lim is not None:
+            ax.set_xlim(*config.x_axis.lim)
+        if config.y_axis.lim is not None:
+            ax.set_ylim(*config.y_axis.lim)
 
         if config.x_axis.grid or config.y_axis.grid:
             ax.grid(True, alpha=0.3)

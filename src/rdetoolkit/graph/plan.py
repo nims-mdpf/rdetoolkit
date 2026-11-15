@@ -27,6 +27,7 @@ from rdetoolkit.graph.exceptions import PlotRequestError
 from rdetoolkit.graph.naming import DEFAULT_BASE_STEM, GraphDiagnostic, reserve_stems, sanitize_stem, series_stem
 from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec
 from rdetoolkit.graph.textutils import parse_header
+from rdetoolkit.graph.validation import validate_axis_limits
 
 __all__ = [
     "FigurePlan",
@@ -245,11 +246,15 @@ def build_plot_plan(
     Raises:
         TypeError: If ``frames`` is not a DataFrame or a sequence of DataFrames.
         PlotRequestError: ``reason="unknown_column"`` / ``"ambiguous_column"`` for
-            a column reference that matches no / several columns.
+            a column reference that matches no / several columns;
+            ``reason="invalid_axis_limits"`` for invalid ``AxisSpec.limits``.
         ValueError: If the request selects no series ("at least one y column").
     """
     frames_tuple = _as_frames(frames)
     spec = GraphSpec() if spec is None else spec
+    # Reject invalid limits before any column is resolved; the plan keeps them as given.
+    validate_axis_limits(spec.x_axis.limits, scale=spec.x_axis.scale, axis="x")
+    validate_axis_limits(spec.y_axis.limits, scale=spec.y_axis.scale, axis="y")
     series = _plan_series(frames_tuple, spec)
     if not series:
         raise ValueError(_NO_SERIES_MESSAGE)

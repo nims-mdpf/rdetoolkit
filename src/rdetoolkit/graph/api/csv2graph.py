@@ -8,7 +8,6 @@ from rdetoolkit.graph.config import (
     PlotConfigBuilder,
     determine_formats,
     determine_titles,
-    normalize_axis_limits,
 )
 from rdetoolkit.graph.io.file_writer import FileWriter
 from rdetoolkit.graph.io.path_validator import PathValidator
@@ -30,7 +29,7 @@ from rdetoolkit.graph.strategies.render_coordinator import (
     collect_render_results,
 )
 from rdetoolkit.graph.textutils import parse_header
-from rdetoolkit.graph.validation import validate_plot_request
+from rdetoolkit.graph.validation import validate_axis_limits, validate_plot_request
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -189,7 +188,7 @@ def _build_plot_config(
         AxisConfig(
             label=x_label or normalized.derived_x_label,
             scale="log" if logx else "linear",
-            lim=normalize_axis_limits(xlim),
+            lim=validate_axis_limits(xlim, scale="log" if logx else "linear", axis="x"),
             grid=grid,
             invert=invert_x,
             tick_format=x_tick_format,
@@ -199,7 +198,7 @@ def _build_plot_config(
         AxisConfig(
             label=y_label or normalized.derived_y_label,
             scale="log" if logy else "linear",
-            lim=normalize_axis_limits(ylim),
+            lim=validate_axis_limits(ylim, scale="log" if logy else "linear", axis="y"),
             grid=grid,
             invert=invert_y,
             tick_format=y_tick_format,
