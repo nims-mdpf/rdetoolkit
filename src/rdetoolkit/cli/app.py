@@ -333,7 +333,8 @@ PLOT_HELP = CommandHelp(
     ),
     outputs=(
         "Writes one overlay PNG plus one PNG per series into `-o/--output-dir` (default: the CSV's directory). "
-        "`--mode individual` writes per-series PNGs only; a single-series overlay skips per-series PNGs unless `--individual`.",
+        "`--mode individual` writes per-series PNGs only (combining it with `--no-individual` is a usage error); "
+        "a single-series overlay skips per-series PNGs unless `--individual`.",
         "`--main-image-dir` sends the overlay to another directory; `--html` also writes interactive HTML into "
         "`--html-output-dir` (default: the CSV's directory). Existing files with the same names are overwritten.",
     ),
@@ -353,6 +354,24 @@ CSV2GRAPH_HELP = CommandHelp(
     exit_codes=PLOT_HELP.exit_codes,
     see_also=("rdetoolkit plot",),
 )
+
+
+def _reject_contradictory_plot_switches(mode: str, no_individual: bool | None) -> None:
+    """Reject `--mode individual --no-individual`, which can never produce a plot.
+
+    Mirrors ``validate_plot_request`` of the Python API as a usage error (exit 2)
+    so the CLI and the API agree on which requests are invalid.
+
+    Args:
+        mode: Value of ``--mode`` (already checked to be a supported mode).
+        no_individual: Value of ``--no-individual/--individual`` (``None`` = automatic).
+
+    Raises:
+        typer.BadParameter: For individual mode combined with ``--no-individual``.
+    """
+    if mode == "individual" and no_individual is True:
+        msg = "--mode individual cannot be combined with --no-individual: no plot would be produced"
+        raise typer.BadParameter(msg, param_hint="--no-individual")
 
 
 @app.command("plot", help=PLOT_HELP.render(), short_help=PLOT_HELP.summary, rich_help_panel=PANEL_GENERATE)
@@ -426,6 +445,7 @@ def plot(
             msg,
             param_hint="--mode",
         )
+    _reject_contradictory_plot_switches(mode, no_individual)
 
     # Validate legend_policy
     valid_legend_policies = [

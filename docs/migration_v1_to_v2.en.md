@@ -665,6 +665,23 @@ For the run-level invoice row, rely on the seeded tile invoice for registration
 values and compute any tile-specific value inside that tile's flow, then write it
 with `save_invoice`.
 
+### csv2graph / Graph Engine
+
+`csv2graph`, `plot_from_dataframe` and `rdetoolkit plot` validate the request before
+any figure is drawn. The requests below raise `PlotRequestError`, which is a
+`PlotConfigError` and also a `ValueError`, so existing code that catches `ValueError`
+keeps working; its `reason` attribute tells the cases apart. The error is raised
+before any file or directory is created. The CLI reports the same conditions as a
+usage error with exit code 2.
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-1 | `mode` is neither `"overlay"` nor `"individual"` (including a different case or `"dual_axis"`) | Plotted as individual figures | `PlotRequestError` (`reason="invalid_mode"`) | Pass a valid `mode` |
+| IC-2 | `mode="individual"` together with `no_individual=True` (`--mode individual --no-individual` on the CLI) | Finished without writing anything | `PlotRequestError` (`reason="contradictory_switches"`); exit code 2 on the CLI | Drop one of the two |
+
+A table without columns still raises `ColumnNotFoundError`, and a table without a
+y series still raises `ValueError`, as before.
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

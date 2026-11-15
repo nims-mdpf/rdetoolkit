@@ -30,6 +30,7 @@ from rdetoolkit.graph.strategies.render_coordinator import (
     collect_render_results,
 )
 from rdetoolkit.graph.textutils import parse_header
+from rdetoolkit.graph.validation import validate_plot_request
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -121,7 +122,13 @@ def _normalize_columns(
 
 
 def _resolve_plot_mode(mode: Literal["overlay", "individual"]) -> PlotMode:
-    """Convert user-facing mode flag into PlotMode enum."""
+    """Convert user-facing mode flag into PlotMode enum.
+
+    Raises:
+        PlotRequestError: ``reason="invalid_mode"`` for any value other than
+            ``"overlay"`` or ``"individual"`` (v1 silently fell back to individual).
+    """
+    validate_plot_request(mode=mode, no_individual=None)
     return PlotMode.OVERLAY if mode == "overlay" else PlotMode.INDIVIDUAL
 
 
@@ -513,6 +520,10 @@ def plot_from_dataframe(
     if html_output_dir is not None and not isinstance(html_output_dir, (str, Path)):
         msg = "html_output_dir must be a str, Path, or None"
         raise TypeError(msg)
+
+    # Reject the request before any column resolution or filesystem access so an
+    # invalid mode or a switch combination that yields no figure never writes anything.
+    validate_plot_request(mode=mode, no_individual=no_individual)
 
     output_dir_path = Path(output_dir)
     main_image_dir_path = Path(main_image_dir) if main_image_dir is not None else None

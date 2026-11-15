@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from rdetoolkit.graph.exceptions import PlotRequestError
 from rdetoolkit.graph.models import (
     MatplotlibArtifact,
     PlotMode,
@@ -44,6 +45,10 @@ def collect_render_results(
     Returns:
         RenderCollections containing overlay and individual render results
 
+    Raises:
+        PlotRequestError: ``reason="no_figures"`` when individual mode is requested
+            while ``config.output.no_individual`` disables individual plots.
+
     Examples:
         >>> from rdetoolkit.graph.models import PlotMode, PlotConfig
         >>> import pandas as pd
@@ -64,6 +69,11 @@ def collect_render_results(
             if individual_output is not None:
                 individual_results = individual_output
     else:
+        if config.output.no_individual:
+            # Individual-only rendering with individual plots disabled can produce
+            # nothing; an empty result must not look like a successful run.
+            msg = "mode='individual' with no_individual=True produces no figures"
+            raise PlotRequestError(msg, reason="no_figures")
         individual_output = IndividualStrategy(renderer).render(df, config)
         if individual_output is not None:
             individual_results = individual_output

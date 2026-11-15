@@ -24,6 +24,8 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "DualAxisError": ("rdetoolkit.graph.exceptions", "DualAxisError"),
     "PlotConfigError": ("rdetoolkit.graph.exceptions", "PlotConfigError"),
     "RendererError": ("rdetoolkit.graph.exceptions", "RendererError"),
+    "PlotRequestError": ("rdetoolkit.graph.exceptions", "PlotRequestError"),
+    "GraphUserWarning": ("rdetoolkit.graph.exceptions", "GraphUserWarning"),
     "PlotMode": ("rdetoolkit.graph.models", "PlotMode"),
     "CSVFormat": ("rdetoolkit.graph.models", "CSVFormat"),
     "Direction": ("rdetoolkit.graph.models", "Direction"),

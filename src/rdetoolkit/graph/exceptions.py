@@ -61,3 +61,30 @@ class PlotConfigError(GraphPlottingError):
 
 class RendererError(GraphPlottingError):
     """Raised when rendering fails."""
+
+
+class PlotRequestError(PlotConfigError, ValueError):
+    """Raised when a plot request is invalid before anything is rendered or written.
+
+    It is a ``PlotConfigError`` for graph-aware callers and a ``ValueError`` so that
+    callers catching the builtin type (for example the CLI command) keep working.
+
+    Args:
+        message: Human-readable description of the problem.
+        reason: Stable machine-readable identifier, for example ``"invalid_mode"``,
+            ``"contradictory_switches"`` or ``"no_figures"``.
+    """
+
+    def __init__(self, message: str, *, reason: str) -> None:
+        """Initialize PlotRequestError.
+
+        Args:
+            message: Human-readable description of the problem.
+            reason: Stable machine-readable identifier of the problem.
+        """
+        self.reason = reason
+        super().__init__(message)
+
+
+class GraphUserWarning(UserWarning):
+    """Warning category for graph requests that succeed with a caveat."""

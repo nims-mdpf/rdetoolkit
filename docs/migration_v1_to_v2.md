@@ -626,6 +626,20 @@ invoice シート自体がないブックについては既存のエラー契約
 run 単位の invoice の行について: 登録時の値は各タイルに用意された invoice を使い、
 タイル固有の値はそのタイルの flow の中で求めて `save_invoice` で書き出してください。
 
+### csv2graph / Graph Engine
+
+`csv2graph`、`plot_from_dataframe`、`rdetoolkit plot` は、図を描画する前に依頼内容を検証します。
+次の依頼は `PlotRequestError` になります。これは `PlotConfigError` であり、同時に `ValueError` でもあるため、
+`ValueError` を捕捉する既存のコードはそのまま動きます。理由は属性 `reason` で判別できます。
+エラーはファイルやディレクトリを作る前に発生します。CLI は同じ条件を終了コード 2 の使い方の誤りとして扱います。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-1 | `mode` に `"overlay"` / `"individual"` 以外の値を渡す(大文字小文字の違いや `"dual_axis"` を含む) | 個別グラフとして描画 | `PlotRequestError`(`reason="invalid_mode"`) | 正しい `mode` を渡す |
+| IC-2 | `mode="individual"` と `no_individual=True`(CLI では `--mode individual --no-individual`)を同時に指定 | 何も出力せずに終了 | `PlotRequestError`(`reason="contradictory_switches"`)。CLI は終了コード 2 | どちらか一方を外す |
+
+列が 1 つもない表は従来どおり `ColumnNotFoundError`、y 系列がない表は従来どおり `ValueError` です。
+
 ### 診断と従来のトレースバック
 
 v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず
