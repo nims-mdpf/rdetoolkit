@@ -10,6 +10,7 @@ from collections.abc import Callable
 
 import pandas as pd
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl._zip_encoding import extract_zip_with_encoding
 from rdetoolkit.interfaces.filechecker import IArtifactPackageCompressor, ICompressedFileStructParser
@@ -17,6 +18,26 @@ from rdetoolkit.invoicefile import check_exist_rawfiles
 from rdetoolkit.rdelogger import get_logger
 
 logger = get_logger(__name__)
+
+
+def _remove_best_effort(path: Path, remove: Callable[[Path], object], kind: str) -> bool:
+    """Remove ``path``, logging an ordinary failure instead of raising it.
+
+    Removal is best-effort, but the run interruption (3004) is the run being
+    stopped, not a removal failure, so it always propagates (#635).
+
+    Returns:
+        Whether ``path`` was removed.
+    """
+    try:
+        remove(path)
+    except Exception as e:
+        if is_run_interrupted(e):
+            raise
+        logger.warning(f"Failed to remove {kind} {path}: {e}")
+        return False
+    logger.debug(f"Removed {kind}: {path}")
+    return True
 
 
 class SystemFilesCleaner:
@@ -134,23 +155,13 @@ class SystemFilesCleaner:
                 elif path.is_dir():
                     to_remove_dirs.append(path)
 
-        # Remove files first
+        # Remove files first, then directories (deepest first)
         for file_path in to_remove_files:
-            try:
-                file_path.unlink()
+            if _remove_best_effort(file_path, Path.unlink, "file"):
                 removed_paths.append(file_path)
-                logger.debug(f"Removed file: {file_path}")
-            except Exception as e:
-                logger.warning(f"Failed to remove file {file_path}: {e}")
-
-        # Remove directories (deepest first)
         for dir_path in sorted(to_remove_dirs, key=lambda p: -len(p.parts)):
-            try:
-                shutil.rmtree(dir_path)
+            if _remove_best_effort(dir_path, shutil.rmtree, "directory"):
                 removed_paths.append(dir_path)
-                logger.debug(f"Removed directory: {dir_path}")
-            except Exception as e:
-                logger.warning(f"Failed to remove directory {dir_path}: {e}")
 
         return removed_paths
 

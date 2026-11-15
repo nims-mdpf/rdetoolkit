@@ -1,5 +1,10 @@
 # rdetoolkit v2 changelog
 
+<!-- New entries go in changelog.d/ (see changelog.d/README.md), not in this
+     file. `towncrier build` inserts them below this marker at release. -->
+
+<!-- towncrier release notes start -->
+
 ## Unreleased
 
 ### Changed
@@ -66,6 +71,20 @@
   files keep distinct ids on one page.
   plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
   extra raises an `ImportError` naming it (#625).
+- `rdetoolkit.nodes.artifact_logger(out, filename, *, name=None, kind="struct",
+  fmt=..., level=logging.DEBUG, mode="a", encoding="utf-8")` declares a log
+  file that a logger streams into during a tile, the v2 counterpart of v1
+  `rdelogger.get_logger(name, file_path=...)`. Use the returned
+  `ArtifactLogger` as a context manager: it attaches a `logging.FileHandler`
+  for `out.<kind>/<filename>` to the logger for the block and removes it when
+  the block ends, also on error, so a logger shared by every tile writes each
+  tile's records into that tile's file only. Records logged in the block's
+  context go to that block's file only, so concurrent in-process runs on one
+  logger do not mix their lines; records from other processes, including
+  workers forked inside the block, are never written. Lines use the v1 format
+  by default, an existing file is appended to, and no file is created when
+  nothing is logged. The call is a builtin node call, so it appears in the
+  call log and in the RunReport `node_calls` (#631).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
@@ -132,25 +151,6 @@
 
 ### Changed
 
-- `rdetoolkit.graph` has one documented export inventory (CSV to Graph API →
-  Package Export Inventory). `__all__`, `dir()` and the package stub list only
-  the supported and compatibility exports. Twelve internal helpers
-  (`RenderResult`, `MatplotlibArtifact`, `NormalizedColumns`,
-  `RenderCollections`, `normalize_direction_filter`, `build_direction_config`,
-  `resolve_column_index`, `determine_titles`, `determine_formats`,
-  `normalize_axis_limits`, `collect_render_results`,
-  `build_matplotlib_artifacts`) are no longer exported from the package root;
-  they still resolve at runtime but are private, so import them from their
-  defining submodules if needed (#639).
-- Registering a flow under an id that another flow already owns raises
-  `RdeRegistryError` code 2007 (`DuplicateFlowId`) at decoration time, naming
-  the id and both source locations, instead of silently keeping the first
-  registration. Re-registering the same callable object is a no-op. Reloading
-  a module that defines a flow, or re-running a notebook cell that defines
-  one, also raises 2007; restart the interpreter instead. Tests that define a
-  flow inside a parametrized test function need a unique `id=` per case
-  (#640).
-
 - `rdetoolkit init` generates `template/tasksupport/` instead of
   `templates/tasksupport/`, matching the singular `container/` and `input/`
   directories. In a directory that already has `templates/tasksupport/`, init
@@ -164,32 +164,17 @@
 
 ### Fixed
 
-- `node` and `flow` are listed in `rdetoolkit.__all__`, and `__init__.pyi`
-  types every lazy top-level export, including `Result`, `Success`,
-  `Failure`, `try_result`, `DirectoryOps`, `ManagedDirectory`,
-  `detect_encoding` and the `storage`, `traceback`, `invoice` and `models`
-  modules. A test keeps the runtime exports, `__all__`, `dir()`, the stub and
-  the docs in sync. No top-level export was removed (#637).
-- The stubs declare `Success.is_failure()` and `Failure.is_failure()` and type
-  both result classes as frozen dataclasses, matching the runtime. The
-  `OutputContext` stub is factory-only: direct construction and
-  `dataclasses.replace()` are type errors, and
-  `OutputContext.from_resource_paths()` and its methods type-check. The stub no
-  longer declares `OutputContext` as a dataclass, so `dataclasses.fields()` /
-  `asdict()` on it are rejected by type checkers. Runtime behavior is unchanged
-  (#638).
-- The Runner summarizes tile outputs with the call log's implementation, so a
-  value's recorded type name no longer depends on the recording path (a flow
-  returning a `Path` is recorded as `pathlib.PosixPath`, not
-  `pathlib._local.PosixPath`, on Python 3.13). JSON shapes and schema versions
-  are unchanged (#641).
-- Removed the module-level stubs `rdetoolkit/cli.pyi`, `graph.pyi` and
-  `invoicefile.pyi`, which type checkers never selected over the packages and
-  which held stale declarations. The new `rdetoolkit/cli/__init__.pyi` types
-  the CLI command exports as `typer.core.TyperCommand` instead of `Any`. The
-  `rdetoolkit.graph.api.csv2graph` stub declared `csv2graph` twice and mypy
-  used the stale first declaration, which rejected `html_output_dir=`; it now
-  has one declaration matching the runtime signature (#639, #642).
+- A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
+  with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
+  exception and translated it (`StructuredError`, `ValueError`,
+  `DataRetrievalError`, a `Failure` value) or logged and skipped it, so the
+  interruption was reported with another code: `SmartTableFile.read_table` /
+  `generate_row_csvs_with_file_mapping`, `fileops.readf_json`,
+  `SystemFilesCleaner.clean_directory`, `img2thumb.resize_image`,
+  `ExcelInvoiceFile.save`, `invoice_generator.generate_invoice_from_schema`,
+  `Meta`, `SpecificTermRegistry.search`, `try_result` and
+  `workflows.check_files_result`. Only the interruption passes through;
+  every other exception keeps its v1 translation and `__cause__` (#635).
 - `rde2util.castval` converts a `string` value only for the date formats
   `date` / `date-time` / `time`. Any other `format` (`uri`, `uuid`,
   `markdown`, ...) keeps the value unchanged instead of failing in the date

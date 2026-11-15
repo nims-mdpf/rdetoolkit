@@ -8,6 +8,7 @@ from rdetoolkit.nodes.external import CompletedProgram, run_program, to_wine_pat
 from rdetoolkit.nodes.image import copy_raw, make_thumbnail, render_png, save_main_image, to_jpeg, to_png
 from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
 from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_key_values, read_text, unzip_inputs
+from rdetoolkit.nodes.logfile import ArtifactLogger, artifact_logger
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
 from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure, save_html_figure
 from rdetoolkit.nodes.structured import save_csv, save_invoice, save_json, save_text
@@ -71,5 +72,7 @@ __all__ = [
     "run_program",
     "CompletedProgram",
     "to_wine_path",
+    "artifact_logger",
+    "ArtifactLogger",
     "as_node",
 ]

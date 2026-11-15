@@ -261,6 +261,62 @@ with tempfile.TemporaryDirectory() as struct:
     assert export.read_text(encoding="utf-8") == "exported"
 ```
 
+To write a processing log as a tile artifact, as v1
+`rdelogger.get_logger(name, file_path=Path(resource_paths.struct, "structured_log.txt"))`
+did, use `artifact_logger(out, filename, name=..., kind="struct")` as a context
+manager (#631). It adds a file handler to the `name` logger for the block and
+removes it when the block ends, also when the block raises. Only records logged
+inside the block reach the file, so a logger shared by the module never writes
+one tile's lines into the next tile's file. The call is a node call, recorded in
+the call log and in the RunReport `node_calls`.
+
+- Lines use the v1 format `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s`; pass `fmt=` to change it.
+- An existing file is appended to (`mode="a"`, as in v1); `mode="w"` truncates it at the first record.
+- No file is created when nothing is logged (as in v1).
+- Records below `level=` (default `DEBUG`) are not written. A logger whose own level is higher is lowered for the block and restored afterwards.
+- To keep the ERROR line of a failure, log it inside the block with `logger.exception(...)` and re-raise.
+- A record logged in the context that entered the block (the tile's code and the nodes it calls) is written to that block's file only. Runners that use the same logger concurrently in one process do not mix their lines.
+- A record logged in a context that is inside no block, such as a worker thread started inside the block, is written to every block active on that logger.
+- Records from other processes are never written, also from a worker forked inside the block that keeps running after it.
+- When blocks overlap, the logger level returns to its value before the first block once the last block ends.
+- Without `name`, the logger is named after the filename without its suffix.
+
+<!-- test: ga631-artifact-logger -->
+```python
+import logging
+import tempfile
+from pathlib import Path
+
+from rdetoolkit import flow
+from rdetoolkit.nodes import artifact_logger
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import OutputContext
+
+logger = logging.getLogger("eis")
+
+
+def fit() -> None:
+    logger.info("fitting started")
+    logger.warning("baseline drift")
+
+
+@flow
+def pipeline(out: OutputContext) -> None:
+    with artifact_logger(out, "structured_log.txt", name="eis"):
+        try:
+            fit()
+        except Exception:
+            logger.exception("fitting failed")
+            raise
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = make_output_context(Path(tmp))
+    pipeline(out)
+    lines = (out.struct / "structured_log.txt").read_text(encoding="utf-8").splitlines()
+    assert [line.split(" - ", 1)[1] for line in lines] == ["[eis](INFO) - fitting started", "[eis](WARNING) - baseline drift"]
+```
+
 `unzip_inputs` returns absolute paths to extracted files in archive order.
 Directory entries and unsafe destinations are excluded; repeated archive members
 produce repeated paths. Existing containment checks, including outward symlinks,

@@ -237,6 +237,60 @@ with tempfile.TemporaryDirectory() as struct:
     assert export.read_text(encoding="utf-8") == "exported"
 ```
 
+v1 の `rdelogger.get_logger(name, file_path=Path(resource_paths.struct, "structured_log.txt"))` のように
+処理ログをタイルの成果物として書き出すには、`artifact_logger(out, filename, name=..., kind="struct")` を
+`with` で使います(#631)。ブロックの間だけ `name` のロガーへファイルハンドラーを追加し、終了時に
+例外の有無にかかわらず取り除きます。ブロック内で記録した行だけがファイルに入るため、
+モジュールで共有するロガーでも次のタイルのファイルに行が重複しません。呼び出しはノード呼び出しとして
+コールログと RunReport の `node_calls` に記録されます。
+
+- 行の書式は v1 と同じ `%(asctime)s - [%(name)s](%(levelname)s) - %(message)s` で、`fmt=` で変更できます。
+- 既存ファイルには追記します(`mode="a"`、v1 と同じ)。`mode="w"` は最初の行で切り詰めます。
+- 1 行も記録しなければファイルは作られません(v1 と同じ)。
+- `level=`(既定 `DEBUG`)より低い行は書きません。ロガー自身のレベルが高い場合はブロックの間だけ下げ、終了時に戻します。
+- 失敗時の ERROR 行は、ブロック内で `logger.exception(...)` を記録してから再送出すると残ります。
+- ブロックに入ったコンテキスト(タイルのコードと、そこから呼ぶノード)で記録した行は、そのブロックのファイルにだけ書き込まれます。同じロガーを使う Runner を同じプロセスで並行に実行しても、行は混ざりません。
+- どのブロックにも入っていないコンテキストの行(ブロック内で起動したワーカースレッドなど)は、そのロガーで有効なすべてのブロックのファイルに書き込まれます。
+- 別プロセスの行は書き込まれません。ブロック内で fork したワーカーがブロック後も動き続ける場合も同じです。
+- ブロックが重なっても、ロガーのレベルは最後のブロックが終わった時点で最初のブロックの前の値に戻ります。
+- `name` を省略するとファイル名から拡張子を除いた名前のロガーを使います。
+
+<!-- test: ga631-artifact-logger -->
+```python
+import logging
+import tempfile
+from pathlib import Path
+
+from rdetoolkit import flow
+from rdetoolkit.nodes import artifact_logger
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import OutputContext
+
+logger = logging.getLogger("eis")
+
+
+def fit() -> None:
+    logger.info("fitting started")
+    logger.warning("baseline drift")
+
+
+@flow
+def pipeline(out: OutputContext) -> None:
+    with artifact_logger(out, "structured_log.txt", name="eis"):
+        try:
+            fit()
+        except Exception:
+            logger.exception("fitting failed")
+            raise
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = make_output_context(Path(tmp))
+    pipeline(out)
+    lines = (out.struct / "structured_log.txt").read_text(encoding="utf-8").splitlines()
+    assert [line.split(" - ", 1)[1] for line in lines] == ["[eis](INFO) - fitting started", "[eis](WARNING) - baseline drift"]
+```
+
 `unzip_inputs` は展開したファイルの絶対パスをアーカイブ順で返します。
 ディレクトリエントリーと危険な展開先は含めず、重複メンバーは重複したパスを返します。
 外向きシンボリックリンクを含む展開先の境界チェックは維持します。

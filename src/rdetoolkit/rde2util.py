@@ -12,6 +12,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from typing import Any, Final, TypeAlias, TypedDict, cast
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.models.rde2types import MetadataDefJson, MetaItem, MetaType, RdeFsPath, RepeatedMetaType, ValueUnitPair
@@ -527,7 +528,9 @@ class Meta:
             return list(map(str, value))
         try:
             return str(value)
-        except Exception:
+        except Exception as exc:
+            if is_run_interrupted(exc):
+                raise
             return ""
 
     def to_dict(self) -> dict[str, Any]:

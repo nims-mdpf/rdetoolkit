@@ -47,7 +47,8 @@ SmartTable row CSVs use smarttable_rawfile and are excluded from rawfiles.
 InvoiceData.get_custom_fields() reads raw["custom"]; mode is the resolved mode.
 
 Use `rdetoolkit.nodes` for saving: save_csv, save_json, save_text, save_invoice,
-save_meta, plot_lines, save_figure and save_html_figure (rdetoolkit[plotly]).
+save_meta, plot_lines, save_figure and save_html_figure (rdetoolkit[plotly]);
+`with artifact_logger(...)` for a tile log.
 `build_meta(values, metadef_path)` applies metadata definition types, units,
 variable rows and ordering before save_meta.
 save_meta and save_invoice keep v1 four-space JSON. For v1 image parity pass

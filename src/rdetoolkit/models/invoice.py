@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import DataRetrievalError, InvalidSearchParametersError
 from rdetoolkit.models.invoice_schema import GeneralAttribute, SpecificAttribute
 
@@ -222,6 +223,8 @@ class SpecificTermRegistry(BaseTermRegistry):
         except InvalidSearchParametersError:
             raise
         except Exception as e:
+            if is_run_interrupted(e):
+                raise
             terms = ",".join(
                 f"{col}={val}" for col, val in zip(columns, values, strict=False)
             )

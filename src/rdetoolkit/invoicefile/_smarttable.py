@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.invoicefile._helpers import _ensure_pandas
 from rdetoolkit.rdelogger import get_logger
@@ -101,7 +102,9 @@ class SmartTableFile:
             return self._data
 
         except Exception as e:
-            if isinstance(e, StructuredError):
+            # The run interruption (3004) is the run being stopped, not an
+            # unreadable table: translating it would lose its code (#635).
+            if isinstance(e, StructuredError) or is_run_interrupted(e):
                 raise
             error_msg = f"Failed to read SmartTable file {self.smarttable_path}: {str(e)}"
             raise StructuredError(error_msg) from e
@@ -177,6 +180,8 @@ class SmartTableFile:
         except StructuredError:
             raise
         except Exception as e:
+            if is_run_interrupted(e):
+                raise
             error_msg = f"Failed to generate CSV files with file mapping: {str(e)}"
             raise StructuredError(error_msg) from e
 

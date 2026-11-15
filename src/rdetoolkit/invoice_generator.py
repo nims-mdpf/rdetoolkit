@@ -13,6 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.fileops import readf_json, writef_json
 
 
@@ -317,6 +318,8 @@ def _load_and_validate_schema(schema_path: Path) -> Any:  # Returns InvoiceSchem
     try:
         schema_data = readf_json(schema_path)
     except Exception as e:
+        if is_run_interrupted(e):
+            raise
         emsg = f"Failed to read schema file: {str(e)}"
         raise ValueError(emsg) from e
 
@@ -326,6 +329,8 @@ def _load_and_validate_schema(schema_path: Path) -> Any:  # Returns InvoiceSchem
 
         schema = InvoiceSchemaJson(**schema_data)
     except Exception as e:
+        if is_run_interrupted(e):
+            raise
         emsg = f"Invalid schema structure: {str(e)}"
         raise ValueError(emsg) from e
 
