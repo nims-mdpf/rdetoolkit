@@ -51,6 +51,7 @@ BV table:
 from __future__ import annotations
 
 import dataclasses
+import importlib
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -82,6 +83,8 @@ from rdetoolkit.graph.strategies.individual import IndividualStrategy
 from rdetoolkit.graph.strategies.render_coordinator import collect_render_results
 
 REASON = "dual_axis_unsupported"
+# The submodule (``rdetoolkit.graph.api.csv2graph`` the attribute is the function).
+csv2graph_module = importlib.import_module("rdetoolkit.graph.api.csv2graph")
 ALTERNATIVES = ("unit_policy='split'", "mode='individual'", "twinx", "save_figure")
 
 
@@ -116,7 +119,9 @@ def _files(root: Path) -> list[str]:
 # --------------------------------------------------------------------------- legend mismatch regression
 
 
-def test_two_unit_dual_axis_config_raises_typed_error_not_index_error_v2_0__tc_ge12_ep_001(tmp_path: Path) -> None:
+def test_two_unit_dual_axis_config_raises_typed_error_not_index_error_v2_0__tc_ge12_ep_001(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TC-GE12-EP-001: the documented legend mismatch ends in the typed error, not a fallback."""
     # Given: two series with two units configured for the dual-axis mode with a y2 axis
     config = (
@@ -131,11 +136,26 @@ def test_two_unit_dual_axis_config_raises_typed_error_not_index_error_v2_0__tc_g
     # When: rendering through the legacy coordinator
     with pytest.raises(PlotRequestError) as caught:
         collect_render_results(_two_units(), config, PlotMode.DUAL_AXIS)
-    # Then: typed error (never IndexError), no figure was created and nothing was written
+    # Then: typed error (never IndexError) and no figure was created
     _assert_rejected(caught)
     assert not isinstance(caught.value, IndexError)
     assert plt.get_fignums() == before
-    assert _files(tmp_path) == []
+    # And: through csv2graph, which writes under tmp_path, the same dual-axis config
+    # (injected where the facade builds its config) writes nothing next to the CSV
+    csv_path = tmp_path / "cell.csv"
+    _two_units().to_csv(csv_path, index=False)
+    original = csv2graph_module._build_plot_config
+
+    def dual_axis_config(**kwargs: object) -> PlotConfig:
+        built = original(**kwargs)  # type: ignore[arg-type]
+        return dataclasses.replace(built, mode=PlotMode.DUAL_AXIS, y2_axis=AxisConfig(label="Current (A)"))
+
+    monkeypatch.setattr(csv2graph_module, "_build_plot_config", dual_axis_config)
+    with pytest.raises(PlotRequestError) as through_facade:
+        csv2graph(csv_path, output_dir=tmp_path / "out", html=True)
+    _assert_rejected(through_facade)
+    assert plt.get_fignums() == before
+    assert _files(tmp_path) == ["cell.csv"]
 
 
 def test_dual_axis_plot_mode_no_longer_falls_back_to_individual_v2_0__tc_ge12_ep_002() -> None:

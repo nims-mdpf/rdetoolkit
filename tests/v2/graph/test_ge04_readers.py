@@ -31,7 +31,7 @@ EP table
 | DetectionDecision.explain | forced / auto | names the selection and its evidence | TC-GE04-EP-012 |
 | TableData | mapping metadata | frozen copy, caller mutation does not leak | TC-GE04-EP-013 |
 | csv2graph | default and upper-case legacy id | reads exactly like StandardParser | TC-GE04-EP-014 |
-| read_table | auto, no claimant (str path) | the default "standard" reader | TC-GE04-EP-015 |
+| read_table | auto, no claimant (str path) | content sniffing selects "standard" (header row over numbers) | TC-GE04-EP-015 |
 | public surface | rdetoolkit.graph exports | GE-04 names exported and in the stub | TC-GE04-EP-016 |
 
 Negative table
@@ -451,7 +451,11 @@ def test_csv2graph_legacy_ids_read_like_standard_parser__tc_ge04_ep_014(fmt: str
 
 
 def test_auto_without_claimant_reads_standard__tc_ge04_ep_015(tmp_path: Path, no_entry_points: list[str]) -> None:
-    """TC-GE04-EP-015: "auto" with no suffix claimant falls back to the default reader."""
+    """TC-GE04-EP-015: "auto" with no suffix claimant detects the format from the content.
+
+    No reader claims ``.csv``, so ``detect_table_format`` sniffs the sample: a text
+    header row over numeric rows selects ``standard`` (not a fixed default reader).
+    """
     # Given
     path = _copy_fixture("simple.csv", tmp_path)
     # When
@@ -460,6 +464,8 @@ def test_auto_without_claimant_reads_standard__tc_ge04_ep_015(tmp_path: Path, no
     # Then
     pd.testing.assert_frame_equal(data.frame, StandardParser().parse(path))
     assert (data.reader_id, decision.selected, decision.forced) == ("standard", "standard", False)
+    # And: the selection comes from the content, not from a fallback
+    assert decision.candidates[0].evidence[0] == "row 1 is all text and later rows contain numbers: a header row"
     assert no_entry_points == [READER_ENTRY_POINT_GROUP, READER_ENTRY_POINT_GROUP]
 
 

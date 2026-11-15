@@ -77,6 +77,8 @@ BV table
 | constants | bounds of §2.7 | 65536 / 50 / 2**30 / 0.8 / 0.2 | TC-GE05-BV-007 |
 | detect | truncated metadata-block file | meta_block selected, no column preview | TC-GE05-BV-008 |
 | selection | confidence 0.79 / 0.8, margin 0.19 / 0.2 | not selected / selected | TC-GE05-BV-009 |
+| detect (fixture) | transposed.csv gap 0.6 with SELECT_MIN_MARGIN = 0.6 / 0.61 | selected / ambiguous (margin named, nothing read) | TC-GE05-BV-010 |
+| detect (fixtures) | every committed detection fixture, shipped constants | selected iff top >= 0.8 and gap >= 0.2; no selected gap < 0.2 | TC-GE05-BV-011 |
 """
 
 from __future__ import annotations
@@ -851,3 +853,52 @@ def test_selection_threshold_and_margin__tc_ge05_bv_009(scores: tuple[float, ...
     candidates = tuple(detection.FormatCandidate(name, score, ()) for name, score in zip("abc", scores, strict=False))
     # When/Then
     assert detection._select(candidates) == expected
+
+
+def test_margin_rule_on_a_real_fixture__tc_ge05_bv_010(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TC-GE05-BV-010: the margin rule decides a real sniffed file at its boundary.
+
+    The builtin scores leave a gap of at least 0.6 whenever the top candidate reaches
+    0.8 (BV-011), so the shipped margin is never the deciding rule for a builtin file.
+    Moving the margin onto the gap of ``transposed.csv`` (transpose 0.9, standard 0.3)
+    crosses the boundary with real sniffing: inclusive at the gap, ambiguous above it.
+    """
+    # Given: the transposed fixture and its sniffed gap
+    path = _copy("transposed.csv", tmp_path)
+    first, second = detect_table_format(path).candidates[:2]
+    gap = first.confidence - second.confidence
+    assert (first.reader_id, second.reader_id) == ("transpose", "standard")
+    # When: the margin equals the gap
+    monkeypatch.setattr(detection, "SELECT_MIN_MARGIN", gap)
+    at_boundary = detect_table_format(path)
+    # Then: selected (the boundary is inclusive)
+    assert at_boundary.selected == "transpose"
+    # When: the margin is just above the gap
+    monkeypatch.setattr(detection, "SELECT_MIN_MARGIN", gap + 0.01)
+    above = detect_table_format(path)
+    # Then: nothing selected, and reading under auto fails with the candidates named
+    assert above.selected is None
+    assert [c.reader_id for c in above.candidates] == ["transpose", "standard"]
+    with pytest.raises(AmbiguousFormatError, match="transpose") as info:
+        read_table(path)
+    assert info.value.decision is not None
+    assert info.value.decision.selected is None
+
+
+DETECTION_FIXTURES = ["bom_utf8.csv", "comment_metadata.csv", "duplicate_labels.csv", "mixed.csv", "multi_unit.csv",
+                      "numeric_header.csv", "quoted_commas.csv", "simple.csv", "sjis.csv", "tabs.tsv", "transposed.csv"]
+
+
+@pytest.mark.parametrize("name", DETECTION_FIXTURES)
+def test_fixture_selection_follows_threshold_and_margin__tc_ge05_bv_011(name: str) -> None:
+    """TC-GE05-BV-011: on every committed fixture the decision is the threshold + margin rule."""
+    # Given/When: the sniffed decision of a committed fixture
+    decision = detect_table_format(FIXTURES / name)
+    scores = [c.confidence for c in decision.candidates]
+    gap = scores[0] - scores[1] if len(scores) > 1 else 1.0
+    # Then: selected exactly when both rules hold, and a selection never has a gap below the margin
+    expected = scores[0] >= SELECT_MIN_CONFIDENCE and gap >= SELECT_MIN_MARGIN - 1e-9
+    assert (decision.selected is not None) == expected
+    if decision.selected is not None:
+        assert decision.selected == decision.candidates[0].reader_id
+        assert gap >= SELECT_MIN_MARGIN
