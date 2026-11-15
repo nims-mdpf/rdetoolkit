@@ -29,6 +29,7 @@ intended and not asserted as parity.
 | plot_lines | repeated call | same path and bytes (idempotent) | GE08-EP-11 |
 | plot_lines | engine shared | build_plot_plan once, draw_series once per series | GE08-EP-12 |
 | plot_lines | house style | rcParams unchanged, figure size = rcParams default | GE08-EP-13 |
+| plot_lines | y columns with different units (V, A), as before GE-11 | drawn on one axis, no unit_mismatch | GE08-BV-4 |
 | plot_lines | reversed limits | axis inverted | GE08-BV-1 |
 | plot_lines | log axis, (None, None) / tiny positive bound | accepted | GE08-BV-2 |
 | plot_lines | xscale="symlog", negative bound | accepted (only "log" is checked as log) | GE08-BV-3 |
@@ -550,3 +551,15 @@ def test_no_private_column_resolver_left__ge08_neg_11(name: str) -> None:
     assert "frame[" not in source
     assert "df[x]" not in source
     assert "df[y]" not in source
+
+
+def test_plot_lines_mixed_units_still_drawn__ge08_bv_4(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Given: the caller names y columns whose headers carry different units
+    frame = pd.DataFrame({"t (s)": [0.0, 1.0, 2.0], "voltage (V)": [1.0, 2.0, 3.0], "current (A)": [0.1, 0.2, 0.3]})
+    out = make_output_context(tmp_path)
+    observed = _record_axes(monkeypatch)
+    # When: plotting them with plot_lines (an explicit selection is the caller's acknowledgment)
+    path = plot_lines(frame, out, "mixed.png", x="t (s)", y=["voltage (V)", "current (A)"])
+    # Then: both series are drawn on one axis instead of failing with unit_mismatch
+    assert path.is_file()
+    assert [line.get_label() for line in observed[0].get_lines()] == ["voltage (V)", "current (A)"]

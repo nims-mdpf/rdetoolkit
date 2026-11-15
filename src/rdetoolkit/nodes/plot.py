@@ -177,7 +177,8 @@ def _line_plan(
 ) -> PlotPlan:
     series = _line_series(x=x, y=y, pairs=pairs)
     # The spec forbids an explicit x together with x_default="index".
-    common: dict[str, Any] = {"series": series, "layout": "overlay", "label_style": "raw"}
+    # The caller names every series explicitly, so a mixed-unit selection is deliberate.
+    common: dict[str, Any] = {"series": series, "layout": "overlay", "label_style": "raw", "unit_policy": "allow"}
     spec = GraphSpec(x=x, **common) if x is not None else GraphSpec(x_default="index", **common)
     plan = build_plot_plan(frames, spec)
     # The engine skips a frame without default series; the node never did.
@@ -294,7 +295,9 @@ def plot_scatter(df: pd.DataFrame, out: OutputContext, filename: str, x: str, y:
             is absent, ``reason="ambiguous_column"`` if several columns carry
             the name; raised before any figure exists. It is a ``ValueError``.
     """
-    spec = GraphSpec(x=x, series=(SeriesSpec(y=y),), mark="scatter", layout="overlay", label_style="raw")
+    spec = GraphSpec(
+        x=x, series=(SeriesSpec(y=y),), mark="scatter", layout="overlay", label_style="raw", unit_policy="allow",
+    )
     plan = build_plot_plan(df, spec)
     figure = plan.figures[0]
     # A pyplot figure, closed below, for the same reason as in plot_lines.
