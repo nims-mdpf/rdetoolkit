@@ -5,10 +5,14 @@ on:
     branches:
       - 'develop-*'
       - 'develop/**'
+      - '!develop/v2'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -21,12 +25,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.11"
-      - name: Cache uv
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/uv
-          key: uv-${{ runner.os }}-${{ hashFiles('requirements-dev.lock') }}
-          restore-keys: uv-${{ runner.os }}-
+          enable-cache: true
+          cache-dependency-glob: |
+            requirements-dev.lock
+            pyproject.toml
       - name: Create venv (Python 3.11)
         run: uv venv .venv --python 3.11
       - name: Install dependencies (uv in venv)
@@ -43,14 +45,11 @@ jobs:
         run: |
           source .venv/bin/activate
           coverage-badge -o docs/img/coverage.svg -f
-      - name: Commit coverage badge
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/img/coverage.svg
-          git add pytest.xml
-          git add Cargo.lock
-          git commit -m "chore: Update coverage badge" || echo "No changes to commit"
-          git push origin HEAD || echo "No changes to push"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload coverage badge and reports
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-badge-and-reports
+          path: |
+            docs/img/coverage.svg
+            pytest.xml
+          if-no-files-found: error
