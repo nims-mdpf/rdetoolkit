@@ -37,12 +37,12 @@ TEST_HELP = CommandHelp(
     ),
     inputs=(
         "`PATH`: test files or directories; default: pytest's own discovery from the current directory.",
-        "`PYTEST_ARGS`: any pytest option, e.g. `-k EXPR`, `-m MARK`, `-x`, `-v`, `--rde-update-snapshots`. "
-        "Put `--` first to pass an option rdetoolkit would read itself: `rdetoolkit test -- --help`.",
+        ("`PYTEST_ARGS`: any pytest option, e.g. `-k EXPR`, `-m MARK`, `-x`, `-v`, `--rde-update-snapshots`. "
+        "Put `--` first to pass an option rdetoolkit would read itself: `rdetoolkit test -- --help`."),
     ),
     outputs=(
-        "pytest's own output. A failing test that used `rde_runner` or `rde_run` also gets an `rdetoolkit: retained runs` "
-        "section with each retained data root, run report, diagnostics sidecar and `job.failed`.",
+        ("pytest's own output. A failing test that used `rde_runner` or `rde_run` also gets an `rdetoolkit: retained runs` "
+        "section with each retained data root, run report, diagnostics sidecar and `job.failed`."),
     ),
     examples=(
         "rdetoolkit test",

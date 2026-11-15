@@ -201,8 +201,8 @@ def _check_failures(case: RdeCase, result: RdeTestResult) -> list[str]:
         # The processing outcome already failed the case; output checks on an
         # unexpected outcome would only add noise to the report.
         return [
-            f"rde_case output checks not run ({len(case.checks)}): processing ended with status "
-            f"{result.status!r}, expected {case.expect_status!r}",
+            (f"rde_case output checks not run ({len(case.checks)}): processing ended with status "
+            f"{result.status!r}, expected {case.expect_status!r}"),
         ]
     from rdetoolkit.testing.checks import run_checks  # noqa: PLC0415
 
@@ -315,8 +315,8 @@ def _recorded_codes(result: RdeTestResult) -> Iterator[int]:
 def _phase_failures(expected: str, result: RdeTestResult) -> list[str]:
     if result.diagnostics_path is None:
         return [
-            f"rde_case expected diagnostic phase {expected!r}, but the run wrote no diagnostics sidecar "
-            f"(logs/diagnostics_{result.report.run_id}.json)",
+            (f"rde_case expected diagnostic phase {expected!r}, but the run wrote no diagnostics sidecar "
+            f"(logs/diagnostics_{result.report.run_id}.json)"),
         ]
     try:
         document = json.loads(result.diagnostics_path.read_text(encoding="utf-8"))

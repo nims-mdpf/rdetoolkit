@@ -346,8 +346,8 @@ def _binary_differences(new: bytes, old: bytes) -> list[str]:
     if new == old:
         return []
     return [
-        f"binary content differs: golden {len(old)} bytes sha256 {hashlib.sha256(old).hexdigest()}, "
-        f"actual {len(new)} bytes sha256 {hashlib.sha256(new).hexdigest()}",
+        (f"binary content differs: golden {len(old)} bytes sha256 {hashlib.sha256(old).hexdigest()}, "
+        f"actual {len(new)} bytes sha256 {hashlib.sha256(new).hexdigest()}"),
     ]
 
 

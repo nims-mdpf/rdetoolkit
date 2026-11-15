@@ -15,7 +15,7 @@ BV / negative table:
 |----|--------|----------|
 | GA-TYPE-NEG-001 | ``diagnostics_path`` used as a ``Path`` without a ``None`` check | ``[union-attr]`` |
 | GA-TYPE-NEG-002 | ``expect_error_code="3001"`` | ``[arg-type]`` |
-| GA-TYPE-NEG-003 | positional arguments to ``rde_case`` | ``[misc]`` |
+| GA-TYPE-NEG-003 | positional arguments to ``rde_case`` | ``Too many positional arguments`` |
 | GA-TYPE-NEG-004 | ``RdeTestRunner.run`` without ``project`` | ``[call-arg]`` |
 | GA-TYPE-NEG-005 | an unknown failure phase assigned to ``FailurePhase`` | ``[assignment]`` |
 """
@@ -110,7 +110,8 @@ def test_ga_testing_and_diagnostics_surface_is_typed__ga_type_001(tmp_path: Path
         ),
         pytest.param(
             "from rdetoolkit.testing import rde_case\ndef f() -> None: ...\nrde_case(f, 'p')\n",
-            "[misc]",
+            # mypy files this under [misc] (1.x) or [call-arg] (2.x); the message is stable.
+            'Too many positional arguments for "rde_case"',
             id="ga-type-neg-003-positional",
         ),
         pytest.param(

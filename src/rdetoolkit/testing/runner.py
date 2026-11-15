@@ -128,8 +128,8 @@ class RdeTestResult:
             The status line, run error, failed iterations and artifact paths.
         """
         lines = [
-            f"RDE run status was {self.status!r}, expected {expected_status!r} "
-            f"(flow {self.report.flow_id!r}, mode {self.report.mode!r}, run {self.report.run_id})",
+            (f"RDE run status was {self.status!r}, expected {expected_status!r} "
+            f"(flow {self.report.flow_id!r}, mode {self.report.mode!r}, run {self.report.run_id})"),
         ]
         if self.report.error is not None:
             lines.append(f"run error: {_describe_error(self.report.error)}")

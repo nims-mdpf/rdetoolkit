@@ -106,8 +106,8 @@ EXPLAIN_HELP = CommandHelp(
     ),
     inputs=(
         _REPORT_INPUT + " Keep it next to its `diagnostics_<run_id>.json`, `iterations/` and `events_<run_id>.jsonl`.",
-        "`--format`: `text` (default) or `json`. `--iteration N`: explain only tile N. "
-        "`--full-traceback`: add every recorded frame (file, line, function) of each exception.",
+        ("`--format`: `text` (default) or `json`. `--iteration N`: explain only tile N. "
+        "`--full-traceback`: add every recorded frame (file, line, function) of each exception."),
     ),
     outputs=("Prints the explanation, or one JSON object with `--format json`. Writes no files.",),
     examples=(
