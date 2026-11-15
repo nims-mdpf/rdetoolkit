@@ -23,9 +23,9 @@ Commands follow the form `rdetoolkit <noun> <verb>` (for example `rdetoolkit new
 | Scaffold | `init` | Create the project scaffold |
 | Generate | `new config`, `new invoice`, `new excelinvoice`, `new processing`, `plot` | Generate project files and graphs |
 | Validate | `validate invoice`, `validate invoice-schema`, `validate metadata`, `validate metadata-def`, `validate all`, `doctor` | Validate RDE schema and data files; check that a project can run |
-| Run | `run` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`) |
-| Inspect | `report show`, `report trace`, `report diagnose`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
-| Package | `package`, `repro export`, `repro import`, `repro inspect` | Create the submission archive, export, inspect and re-import a run |
+| Run | `run`, `test` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`); run the project's pytest tests |
+| Inspect | `report show`, `report trace`, `report diagnose`, `report explain`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
+| Package | `package`, `repro export`, `repro import`, `repro inspect`, `repro to-pytest` | Create the submission archive, export, inspect and re-import a run, and turn an archived run into a regression test |
 | Migrate | `migrate check`, `migrate apply` | Find and convert v1 code and CLI calls for v2 |
 | Info | `version` | Show the installed version |
 | Deprecated (removed in v2.1) | v1 command names | Kept as aliases that print a warning; see [Renamed commands in v2.0](#renamed-commands-in-v20) |
@@ -443,7 +443,19 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 2 | Partial: some tiles failed (also used by the parser for an unknown option) |
 | 3 | Invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy` |
 
-### report show / report trace / report diagnose: Inspect Run Reports
+### test: Run the Project's pytest Tests
+
+`rdetoolkit test [PATH] [PYTEST_ARGS]...` runs `python -m pytest` with the same interpreter in the current directory, forwards every argument unchanged, and exits with pytest's exit code. A failing test that used the `rde_runner` or `rde_run` fixture also gets an `rdetoolkit: retained runs` section listing each retained data root, run report, diagnostics sidecar and `job.failed`. Plain `pytest` is fully equivalent and remains the recommended command in CI. pytest is not installed with rdetoolkit: `pip install "rdetoolkit[testing]"`. See [Testing structured processing](testing.en.md#rdetoolkit-test).
+
+```bash title="Run the project's tests, stopping at the first failure"
+python3 -m rdetoolkit test tests/ -k xrd -x
+```
+
+Put `--` first to pass an option rdetoolkit would otherwise read itself: `rdetoolkit test -- --help`.
+
+Exit codes are pytest's: `0` all collected tests passed, `1` some tests failed, `2` pytest is not installed (an installation hint is printed) or the run was interrupted, `3` pytest internal error, `4` pytest rejected the command line, `5` no tests were collected.
+
+### report show / report trace / report diagnose / report explain: Inspect Run Reports
 
 Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes to `data/logs/`.
 
@@ -453,6 +465,7 @@ Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes t
     python3 -m rdetoolkit report show <run_report.json>
     python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
     python3 -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
+    python3 -m rdetoolkit report explain <run_report.json> [--format text|json] [--iteration N] [--full-traceback]
     ```
 
 === "Windows"
@@ -461,17 +474,23 @@ Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes t
     py -m rdetoolkit report show <run_report.json>
     py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
     py -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
+    py -m rdetoolkit report explain <run_report.json> [--format text|json] [--iteration N] [--full-traceback]
     ```
 
 - `report show` prints the run id, status, iteration count, one `failed` line per failed node call, and the error message when set.
 - `report trace` renders the Call Sequence recorded in the report: every node call in the order it ran (call ids, parent flow, status, argument previews). It is a call log and does not draw data dependencies. `--format` selects `json` (default), `mermaid` (a sequence diagram), or `html` (a standalone page). The rendering goes to stdout; redirect it to save a file.
 - `report diagnose` lists each recorded failure with its iteration, node id, call id, catalog code, and remediation, and checks which `iterations/` details and event log next to the report belong to the same run. It never prints exception text or argument previews. `--json` prints the [diagnostics envelope](diagnostics.en.md); it exits `0` when the report was diagnosed, even for a failed run, and `1` with `--fail-on-error` when the run recorded a failure.
+- `report explain` says why one run failed: phase, tile, node, exception, source location and remediation. It reads the [failure diagnostics file](diagnostics.en.md#failure-diagnostics-file) `diagnostics_<run_id>.json` next to the report; without it (an older run, a report copied alone) the explanation uses the report only and says the diagnostics are unavailable. A successful run is given no cause. `--iteration N` explains only tile `N`; `--full-traceback` adds every recorded frame (file, line, function). The text output shows the recorded exception messages; `--format json` prints the [diagnostics envelope](diagnostics.en.md#report-explain) and copies no runtime text. Nothing is written.
 
 ```bash title="Save the Call Sequence as an HTML page"
 python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
 ```
 
-Exit codes: `0` success, `1` `report diagnose --fail-on-error` found a recorded failure, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace`, an unknown `--format`).
+```bash title="Explain a failed run as JSON"
+python3 -m rdetoolkit report explain data/logs/run_report_<id>.json --format json
+```
+
+Exit codes: `0` success (for `report explain`, also when the run itself failed), `1` `report diagnose --fail-on-error` found a recorded failure, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace` and `report explain`, an unknown `--format`; for `report explain`, an `--iteration` that is not in the report).
 
 ### plot: Draw Graphs from CSV
 

@@ -39,7 +39,7 @@ node・flow・call の ID、モジュール名、run ID、プロジェクトま�
 - **パス**: パスは POSIX 形式の相対パスです。`doctor` は `PROJECT_DIR` からの相対パス、`report diagnose` はレポートの隣にある決まった名前(`iterations/iteration_<index>.json`、`events_<run_id>.jsonl`)だけを出力します(`report explain` はこれに加えて `diagnostics_<run_id>.json` と、`..` を含まない相対パスのフレームのファイルと成果物のパスを出力します。それ以外のパスは `null` にして `redacted` に名前を挙げます)。絶対パスや入力ファイルの名前を出力するコマンドはありません。`nodes lint` はファイルパスではなく `module:qualname` を出力します。
 - **入力の大きさ**: `report diagnose` はレポートを最大 16 MiB まで読みます(それより大きいものは終了コード 3)。64 MiB を超える iteration の詳細やイベントログは読まずに `truncated` フラグを付けます。
 - **出力の大きさ**: `diagnostics`、`failures`、`evidence.iterations` はそれぞれ先頭の 200 件までです。切り詰めたときは `truncated` が `true` になります。`status` と終了コードはすべての指摘をもとに決まります。
-- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、`report explain` のテキスト出力、実行レポートやログそのもの([失敗の診断ファイル](#失敗の診断ファイル)を含む)、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
+- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、`report explain` のテキスト出力、実行レポートやログそのもの([失敗の診断ファイル](#failure-diagnostics-file)を含む)、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
 
 この形式は自由記述の文を出力しないことでデータを守っており、文中の秘密情報を見分けようとはしていません。認証情報が ID として使われている場合(トークンを node ID にした場合など)は、ほかの ID と同じように出力します。正規表現や変数名によるマスキング(たとえば[従来のトレースバック](structured_process/traceback.ja.md)の `SecretsSanitizer`)は、パターンに当てはまるものしか見つけられず、匿名化にはなりません。この出力を外部のエージェントやサービス、issue に貼り付ける前に、内容を読み、組織の外に出してよいかを判断してください。その判断は利用者の責任であり、rdetoolkit のコマンドが代わりに判断したり送信したりすることはありません。
 
@@ -60,19 +60,25 @@ lint は指定されたモジュールを import するため、モジュール�
 ```shell
 python3 -m rdetoolkit doctor --format json
 python3 -m rdetoolkit doctor container --format json --ref modules.processing:pipeline
+python3 -m rdetoolkit doctor --strict --module modules.processing
 ```
 
 `PROJECT_DIR`(省略時はカレントディレクトリ)は `rdetoolkit run` と同じ規則で解決します。`data/` を含むプロジェクトルート、`data/` ディレクトリそのもの、`data/` を省いたフラットな配置のいずれにも対応します。doctor は次の順に確認します。
 
-1. `data/inputdata/`、`data/invoice/invoice.json`、`data/tasksupport/invoice.schema.json` があること。ない場合は Runner と同じ E4003 を報告します。`tasksupport/metadata-def.json` がない場合は警告 `MetadataDefinitionMissing` です。実行自体はこのファイルがなくても成功します。
+1. `data/inputdata/`、`data/invoice/invoice.json`、`data/tasksupport/invoice.schema.json` があること。ない場合は Runner と同じ E4003 を報告します。`inputdata/` にファイルが 1 つもない場合は警告 `NoInputFiles`(チェック `inputs.files`)です。invoice だけの登録は正当ですが、実行しても入力データは何も処理されません。`tasksupport/metadata-def.json` がない場合は警告 `MetadataDefinitionMissing` です。実行自体はこのファイルがなくても成功します。
 2. 有効な設定を読み込めること(`load_run_config`。失敗時は E1002)。
 3. JSON ファイルを解析でき、`metadata-def.json` と `invoice.schema.json` が定義として正しいこと(E4002 / E4001)。外部の `$ref` を含むスキーマは `ExternalSchemaReference` として報告します。doctor がスキーマをダウンロードすることはありません。
 4. 設定ファイルと `inputdata/`、`invoice/`、`tasksupport/` を一時ディレクトリにコピーし、代わりの flow を使って `Runner.run(validate_only=True)` を実行します。実際の実行と同じ方法でモードを決定し、invoice を検証します。設定したモードが入力ファイルの検出結果で上書きされる場合は W1001 を報告します(終了コードは 0)。コピーは最後に削除します。
 5. `--ref pkg.mod:callable` を指定した場合は、モジュールを import できること(`FlowImportFailed`)と、Runner がすべての引数を注入できること(E2003、E2006、`FlowSignatureInvalid`)を確認します。flow に `prepare=` がある場合は警告 `FlowPreparationSkipped` を出します。doctor が確認したのは現在あるファイルであり、`prepare=` の実行後はモードが変わる場合があります。
+6. `--module NAME`(複数指定可)を指定した場合は、そのモジュールを import し、[`nodes lint`](#nodes-lint) の指摘をチェック `nodes.lint` として追加します。コードと名前は `nodes lint` と同じです(例: node id の重複は E2001)。モジュールを import するのは `--ref` か `--module` で指定したときだけです。
 
 doctor は flow も `prepare=` フックも呼び出さず、プロジェクトには何も書き込みません。`temp/`、ログ、実行レポート、`job.failed` は作られず、invoice も書き換えられません。`--ref` を指定すると flow のモジュールを import するため、そのトップレベルのコードは実行されます(出力は破棄し、`__pycache__` は書き込みません)。入力のコピーには `inputdata/` の大きさに応じた時間とディスク容量がかかります。
 
-共通の形式に加えて、`data_root`(`PROJECT_DIR` からの相対パス)、`mode`(事前検証を実行できなかった場合は `null`)、`config`(`digest`、`on_iteration_error`、`repr_head` のみ)、`checks`(合否にかかわらず各チェックの `check_id`、`status`、`path`)を出力します。指摘には `check_id` と、ファイルに関するものであれば `location.path` が付きます。
+これらは静的なチェックです。flow は実行しないため、doctor が成功しても処理が成功することの証明にはなりません。テキスト出力では 2 行目でそのことを明示します。
+
+`--strict` を指定すると、`NoInputFiles` を含むすべての警告が失敗(終了コード `1`)になります。これは `validate all --strict --require-files` と同じ方針です。指定しない場合、警告は報告されますが終了コードは `0` です。
+
+共通の形式に加えて、`data_root`(`PROJECT_DIR` からの相対パス)、`mode`(事前検証を実行できなかった場合は `null`)、`config`(`digest`、`on_iteration_error`、`repr_head` のみ)、`checks`(合否にかかわらず各チェックの `check_id`、`status`、`path`)、`flow_executed`(doctor は flow を実行しないため常に `false`)、`strict`(`--strict` を指定したかどうか)を出力します。指摘には `check_id` と、ファイルに関するものであれば `location.path` が付きます。
 
 ## report diagnose
 
@@ -98,7 +104,7 @@ python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json
 python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json --format json --iteration 2 --full-traceback
 ```
 
-`report explain` は、1 回の実行が失敗した理由を示します。実行レポートと、その隣にある[失敗の診断ファイル](#失敗の診断ファイル) `diagnostics_<run_id>.json`、`iterations/` の詳細、イベントログを読みます。どのファイルもレポートの run id を使ってレポートと同じディレクトリから探すため、レポートを別の場所にコピーしても、これらのファイルを一緒にコピーすれば動作します。カレントディレクトリや `data/` は探しません。ファイルは何も書きません。
+`report explain` は、1 回の実行が失敗した理由を示します。実行レポートと、その隣にある[失敗の診断ファイル](#failure-diagnostics-file) `diagnostics_<run_id>.json`、`iterations/` の詳細、イベントログを読みます。どのファイルもレポートの run id を使ってレポートと同じディレクトリから探すため、レポートを別の場所にコピーしても、これらのファイルを一緒にコピーすれば動作します。カレントディレクトリや `data/` は探しません。ファイルは何も書きません。
 
 - 結果を決めるのは実行レポートです。レポートに記録された失敗をそれぞれ 1 回ずつ説明し、診断ファイルの要素があればフェーズ、例外の連鎖、ソースの位置を加えます。`failed`、`partial`(一部のタイルが失敗し、ほかは完了)、`success` を区別して示します。成功した実行に原因は付けません。テキストでは説明することがないと表示し、`explanations` は空です。
 - 診断ファイルは、`format`、`schema_version`、`run_id` が一致する場合だけ使います。一致しない場合(このリリースより前に書かれた実行、移動したレポート、別の実行のファイル)は、レポートに記録された内容だけで説明し、診断を利用できないことを示します。このとき `evidence.diagnostics.state` は `missing`、`corrupt`、`unsupported`、`mismatched`、`truncated` のいずれかで、対応する `SupportingEvidence<Flag>` の警告が付きます。成功した実行は診断ファイルを書かないため、ファイルがなくても指摘しません。
@@ -110,7 +116,7 @@ python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json --format
 
 終了コード: レポートを説明できた場合は、実行が失敗していても `0`。レポートがない、対応していない形式、`--format` が `text` / `json` 以外、または `--iteration` のタイルがレポートにない場合は `3`(`--format json` のときはエラーをエンベロープとして標準出力に書きます)。コマンドラインが誤っている場合は `2`。
 
-## 失敗の診断ファイル
+## 失敗の診断ファイル { #failure-diagnostics-file }
 
 失敗を記録した実行では、Runner が実行レポートの隣に `data/logs/diagnostics_<run_id>.json` を書きます。各失敗がどこで起きたかを示すファイルです。実行レポートは `schema_version: "2"` の形のままで、このファイルは独自のバージョンを持つ別の文書です。失敗のない実行ではファイルを書きません。node が不正な `metadata.json` を書いた場合の例を示します(フレームの一覧は省略しています。行番号はリリースによって変わります)。
 

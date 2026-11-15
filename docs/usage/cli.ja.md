@@ -23,9 +23,9 @@ RDEToolKitは、RDE構造化処理の開発ワークフロー全体を支援す�
 | Scaffold | `init` | プロジェクトの雛形を作成 |
 | Generate | `new config`、`new invoice`、`new excelinvoice`、`new processing`、`plot` | プロジェクトファイルやグラフを生成 |
 | Validate | `validate invoice`、`validate invoice-schema`、`validate metadata`、`validate metadata-def`、`validate all`、`doctor` | RDEのスキーマとデータファイルを検証し、プロジェクトを実行できるか確認 |
-| Run | `run` | 構造化処理を実行(v2 flow、または `--legacy` で v1 のデータセット関数) |
-| Inspect | `report show`、`report trace`、`report diagnose`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
-| Package | `package`、`repro export`、`repro import`、`repro inspect` | 提出用アーカイブの作成、実行の書き出し・確認・再取り込み |
+| Run | `run`、`test` | 構造化処理を実行(v2 flow、または `--legacy` で v1 のデータセット関数)、プロジェクトの pytest テストを実行 |
+| Inspect | `report show`、`report trace`、`report diagnose`、`report explain`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
+| Package | `package`、`repro export`、`repro import`、`repro inspect`、`repro to-pytest` | 提出用アーカイブの作成、実行の書き出し・確認・再取り込み、記録した実行からの回帰テスト生成 |
 | Migrate | `migrate check`、`migrate apply` | v2 移行が必要な v1 コードと CLI 呼び出しの検出・変換 |
 | Info | `version` | インストール済みバージョンの表示 |
 | Deprecated (removed in v2.1) | v1 のコマンド名 | 警告を表示する別名として残っています。[v2.0 でのコマンド名の変更](#renamed-commands)を参照してください |
@@ -442,7 +442,19 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 2 | 部分成功: 一部のタイルが失敗(未知のオプションなどパーサーのエラーでも使用) |
 | 3 | REF が不正、flow を解決できない、`--config` を読めない、または `--legacy` に適用できないオプションを指定 |
 
-### report show / report trace / report diagnose: 実行レポートの確認
+### test: プロジェクトの pytest テストの実行
+
+`rdetoolkit test [PATH] [PYTEST_ARGS]...` は、同じインタプリタ・カレントディレクトリで `python -m pytest` を実行し、引数をすべてそのまま渡して、pytest の終了コードで終了します。`rde_runner` または `rde_run` フィクスチャを使ったテストが失敗すると、残された実行ごとのデータルート、実行レポート、診断ファイル、`job.failed` を示す `rdetoolkit: retained runs` セクションも表示します。`pytest` そのものと完全に等価で、CI では引き続き `pytest` の利用を推奨します。pytest は rdetoolkit と一緒にはインストールされません: `pip install "rdetoolkit[testing]"`。詳しくは[構造化処理のテスト](testing.ja.md#rdetoolkit-test)を参照してください。
+
+```bash title="最初の失敗で止めてプロジェクトのテストを実行"
+python3 -m rdetoolkit test tests/ -k xrd -x
+```
+
+rdetoolkit 自身が読むオプションを pytest に渡すには、先頭に `--` を置きます: `rdetoolkit test -- --help`。
+
+終了コードは pytest のものです: `0` 収集したテストがすべて成功、`1` 失敗したテストあり、`2` pytest が未インストール(インストール方法を表示)または実行の中断、`3` pytest の内部エラー、`4` pytest がコマンドラインを拒否、`5` テストが 1 件も収集されなかった。
+
+### report show / report trace / report diagnose / report explain: 実行レポートの確認
 
 `rdetoolkit run` が `data/logs/` に書き出す実行レポート(`run_report_<run_id>.json`)を読みます。
 
@@ -452,6 +464,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
     python3 -m rdetoolkit report show <run_report.json>
     python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
     python3 -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
+    python3 -m rdetoolkit report explain <run_report.json> [--format text|json] [--iteration N] [--full-traceback]
     ```
 
 === "Windows"
@@ -460,17 +473,23 @@ python3 -m rdetoolkit run --legacy main.py::dataset
     py -m rdetoolkit report show <run_report.json>
     py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
     py -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
+    py -m rdetoolkit report explain <run_report.json> [--format text|json] [--iteration N] [--full-traceback]
     ```
 
 - `report show` は run id、ステータス、反復回数、失敗した node 呼び出しごとの `failed` 行、設定されていればエラーメッセージを表示します。
 - `report trace` はレポートに記録された Call Sequence(実行順の node 呼び出し一覧。call id、親 flow、ステータス、引数のプレビュー)を描画します。これは呼び出しログであり、データの依存関係は描きません。`--format` で `json`(デフォルト)、`mermaid`(シーケンス図)、`html`(単体の HTML ページ)を選びます。結果は標準出力に出るので、ファイルに保存する場合はリダイレクトしてください。
 - `report diagnose` は記録された失敗ごとに、反復番号、node id、call id、カタログのコード、対処方法を表示します。あわせて、レポートの隣にある `iterations/` の詳細ファイルとイベントログが同じ実行のものかを確認します。例外のメッセージや引数のプレビューは表示しません。`--json` を付けると[診断結果の JSON](diagnostics.ja.md)を出力します。レポートを診断できれば、実行が失敗していても終了コードは `0` です。`--fail-on-error` を付けると、失敗の記録がある場合に `1` で終了します。
+- `report explain` は 1 回の実行が失敗した理由(フェーズ、タイル、node、例外、ソースの位置、対処方法)を示します。レポートの隣にある[失敗の診断ファイル](diagnostics.ja.md#failure-diagnostics-file) `diagnostics_<run_id>.json` を読み、それがない場合(古い実行、レポートだけをコピーした場合)はレポートだけから説明し、診断情報がないことを明示します。成功した実行には原因を付けません。`--iteration N` でタイル `N` だけを説明し、`--full-traceback` で記録されたすべてのフレーム(ファイル、行、関数)を追加します。テキスト出力には記録された例外メッセージが含まれます。`--format json` は[診断結果の JSON](diagnostics.ja.md#report-explain) を出力し、実行時の文字列はコピーしません。ファイルは何も書きません。
 
 ```bash title="Call Sequence を HTML ページとして保存"
 python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
 ```
 
-終了コード: `0` 成功、`1` `report diagnose --fail-on-error` で失敗の記録あり、`2` コマンドラインが不正、`3` レポートファイルが存在しないか不正(`report trace` では未知の `--format` も含む)。
+```bash title="失敗した実行を JSON で説明"
+python3 -m rdetoolkit report explain data/logs/run_report_<id>.json --format json
+```
+
+終了コード: `0` 成功(`report explain` では実行自体が失敗した場合も含む)、`1` `report diagnose --fail-on-error` で失敗の記録あり、`2` コマンドラインが不正、`3` レポートファイルが存在しないか不正(`report trace` と `report explain` では未知の `--format`、`report explain` ではレポートにない `--iteration` も含む)。
 
 ### plot: CSVからグラフを描画
 

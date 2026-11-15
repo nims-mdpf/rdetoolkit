@@ -60,19 +60,25 @@ The text output and its exit codes are unchanged. In text mode a module that fai
 ```shell
 python3 -m rdetoolkit doctor --format json
 python3 -m rdetoolkit doctor container --format json --ref modules.processing:pipeline
+python3 -m rdetoolkit doctor --strict --module modules.processing
 ```
 
 `PROJECT_DIR` (default: the current directory) is resolved like `rdetoolkit run` resolves it: a nested `data/`, the `data/` directory itself, or an alias-flat layout. Doctor checks, in order:
 
-1. `data/inputdata/`, `data/invoice/invoice.json` and `data/tasksupport/invoice.schema.json` exist (E4003 when missing, as the Runner reports it). A missing `tasksupport/metadata-def.json` is the warning `MetadataDefinitionMissing`: a run does not need it.
+1. `data/inputdata/`, `data/invoice/invoice.json` and `data/tasksupport/invoice.schema.json` exist (E4003 when missing, as the Runner reports it). An `inputdata/` that holds no file is the warning `NoInputFiles` (check `inputs.files`): an invoice-only registration is valid, but the run would process no input data. A missing `tasksupport/metadata-def.json` is the warning `MetadataDefinitionMissing`: a run does not need it.
 2. The effective config loads (`load_run_config`, E1002 on failure).
 3. The JSON files parse; `metadata-def.json` and `invoice.schema.json` are valid definitions (E4002 / E4001). A schema with an external `$ref` is `ExternalSchemaReference`: doctor never downloads one.
 4. `Runner.run(validate_only=True)` on a temporary copy of the config files and the `inputdata/`, `invoice/` and `tasksupport/` directories, with a stand-in flow. This resolves the mode and validates the invoice exactly as a run does. A configured mode that input files override is reported as W1001 (exit 0). The copy is deleted afterwards.
 5. With `--ref pkg.mod:callable`: the module imports (`FlowImportFailed`), and the Runner can inject every parameter (E2003, E2006, or `FlowSignatureInvalid`). A flow with `prepare=` adds the warning `FlowPreparationSkipped`: doctor checked the files that exist now, and the mode after `prepare=` runs can differ.
+6. With `--module NAME` (repeatable): the module is imported and the [`nodes lint`](#nodes-lint) findings are added under the check `nodes.lint`, with the codes and names `nodes lint` reports (for example E2001 for a duplicate node id). Modules are imported only when `--ref` or `--module` names them.
 
 Doctor never calls the flow or its `prepare=` hook, and writes nothing into the project: no `temp/`, logs, run report or `job.failed`, and the invoice is not rewritten. `--ref` imports the flow's module (its top-level code runs, with its output discarded and no `__pycache__` written). Copying the inputs costs time and disk space in proportion to `inputdata/`.
 
-Besides the envelope, the JSON has `data_root` (relative to `PROJECT_DIR`), `mode` (`null` when the preflight did not run), `config` (`digest`, `on_iteration_error`, `repr_head`; no other values), and `checks` (`check_id`, `status`, `path` for every check, passed or not). Findings carry `check_id` and, when a file is involved, `location.path`.
+These are static checks: the flow is not executed, so a passing doctor does not prove that processing succeeds. The text output says so on its second line.
+
+`--strict` makes every warning fail (exit `1`), `NoInputFiles` included, which matches `validate all --strict --require-files`. Without it, warnings are reported and doctor exits `0`.
+
+Besides the envelope, the JSON has `data_root` (relative to `PROJECT_DIR`), `mode` (`null` when the preflight did not run), `config` (`digest`, `on_iteration_error`, `repr_head`; no other values), `checks` (`check_id`, `status`, `path` for every check, passed or not), `flow_executed` (always `false`: doctor never runs the flow) and `strict` (whether `--strict` was given). Findings carry `check_id` and, when a file is involved, `location.path`.
 
 ## report diagnose
 
