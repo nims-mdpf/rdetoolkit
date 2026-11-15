@@ -27,6 +27,7 @@ EP table:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -41,6 +42,9 @@ SEARCHED = (
     "input/invoice/",
     "input/metadata/",
 )
+
+
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 def _invoke(*args: str):
@@ -234,9 +238,11 @@ class TestRequireFilesPathMessages:
         result = _invoke(str(missing), "--require-files")
         # Then: it is a usage error naming the path (unchanged contract, exit 2)
         assert result.exit_code == 2, result.output
-        # Rich wraps long paths inside its error box at any terminal width, so
-        # compare with box drawing and whitespace removed.
-        flattened = "".join(ch for ch in result.output if not ch.isspace() and ch not in "│╭╮╰╯─")
+        # Rich wraps long paths inside its error box at any terminal width and
+        # colours each wrapped line when it detects CI (GITHUB_ACTIONS), so compare
+        # with ANSI escapes, box drawing and whitespace removed.
+        plain = _ANSI_ESCAPE.sub("", result.output)
+        flattened = "".join(ch for ch in plain if not ch.isspace() and ch not in "│╭╮╰╯─")
         assert "does-not-exist" in flattened
         assert not missing.exists()
 

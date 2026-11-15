@@ -43,6 +43,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -96,6 +97,9 @@ def flow_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[str
     monkeypatch.chdir(tmp_path)
     yield name
     sys.modules.pop(name, None)
+
+
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 def _to_pytest(*args: str):
@@ -264,7 +268,8 @@ def test_ref_is_required(tmp_path: Path) -> None:
     result = _to_pytest(str(archive), "-o", str(tmp_path / "test_x.py"), "--stage-inputs", str(tmp_path / "s"))
     # Then
     assert result.exit_code == 2
-    assert "--ref" in result.output
+    # Rich colours usage errors when it detects CI (GITHUB_ACTIONS), splitting "--ref".
+    assert "--ref" in _ANSI_ESCAPE.sub("", result.output)
     assert not (tmp_path / "test_x.py").exists()
     assert not (tmp_path / "s").exists()
 
