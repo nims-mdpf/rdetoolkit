@@ -148,6 +148,61 @@ def test_measurements(rde_run, label):
 Ordinary `pytest.mark.parametrize` arguments combine with a decorated case as
 usual; each item runs the case on its own copy.
 
+## From a repro archive
+
+A failure captured with `rdetoolkit repro export` can become a regression
+test. `rdetoolkit repro to-pytest` writes the `rde_case` for you (see the
+[CLI reference](cli.en.md#repro-to-pytest-turn-an-archived-run-into-a-regression-test)):
+
+```shell
+rdetoolkit repro import failure.zip tests/cases/failure      # or let to-pytest stage it
+rdetoolkit repro to-pytest failure.zip --ref modules.processing:main \
+    -o tests/test_regression_failure.py --project tests/cases/failure
+```
+
+The generated module looks like this (abridged):
+
+```python
+from pathlib import Path
+
+from rdetoolkit.testing import RdeTestResult, rde_case
+
+from modules.processing import main as flow_under_test
+
+PROJECT = Path(__file__).parent / "cases/failure"
+
+
+@rde_case(
+    flow=flow_under_test,
+    project=PROJECT,
+    # The behaviour expected after the fix, not the archived outcome: the
+    # archived run ended 'failed' (error code 3001).
+    expect_status="success",
+    expect_files=[],
+)
+def test_regression_9f3c2a7e(rde_run: RdeTestResult) -> None:  # named after the run id
+    assert rde_run.status == "success"
+    # Add expectations derived independently of the implementation under test ...
+```
+
+Work through it in this order:
+
+1. Run it before fixing anything: it **fails**, because it expects `success`
+   while the defect is still there. The archived failure is never accepted
+   as the expected result; pass `--expect-status failed` only when you have
+   confirmed that failing is the correct behaviour.
+2. Fix the flow and run it again until it passes.
+3. Record what the fixed flow must produce: list the artifacts in
+   `expect_files` and replace the assertion template with expectations you
+   derived independently, such as values checked by hand or a reviewed
+   golden file. Never copy the current output of the implementation under
+   test into the test; such a test only proves that the code does what it
+   does. When a later change alters an expected artifact, update it the same
+   way: verify the new value independently, then edit the expectation.
+4. Commit the test. If you used `--stage-inputs`, the directory holds the
+   archived raw inputs: commit it only if that data may be stored with your
+   tests.
+
 ## Without pytest
 
 Importing `rdetoolkit.testing` never imports pytest, and `RdeTestRunner`

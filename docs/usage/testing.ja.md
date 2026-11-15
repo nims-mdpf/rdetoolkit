@@ -146,6 +146,60 @@ def test_measurements(rde_run, label):
 通常の `pytest.mark.parametrize` の引数もデコレータ付きのケースと組み合わせられ、
 各項目がそれぞれの複製でケースを実行します。
 
+## repro アーカイブから
+
+`rdetoolkit repro export` で記録した失敗は、回帰テストにできます。
+`rdetoolkit repro to-pytest` が `rde_case` を書き出します
+([CLI リファレンス](cli.ja.md#repro-to-pytest-記録した実行を回帰テストにする)を参照)。
+
+```shell
+rdetoolkit repro import failure.zip tests/cases/failure      # to-pytest に展開させることもできます
+rdetoolkit repro to-pytest failure.zip --ref modules.processing:main \
+    -o tests/test_regression_failure.py --project tests/cases/failure
+```
+
+生成されるモジュールは次のようになります(抜粋)。
+
+```python
+from pathlib import Path
+
+from rdetoolkit.testing import RdeTestResult, rde_case
+
+from modules.processing import main as flow_under_test
+
+PROJECT = Path(__file__).parent / "cases/failure"
+
+
+@rde_case(
+    flow=flow_under_test,
+    project=PROJECT,
+    # The behaviour expected after the fix, not the archived outcome: the
+    # archived run ended 'failed' (error code 3001).
+    expect_status="success",
+    expect_files=[],
+)
+def test_regression_9f3c2a7e(rde_run: RdeTestResult) -> None:  # named after the run id
+    assert rde_run.status == "success"
+    # Add expectations derived independently of the implementation under test ...
+```
+
+次の順に進めてください。
+
+1. 何も修正しないうちに実行します。不具合が残っている間は `success` を期待しているため
+   **失敗します**。アーカイブした失敗が期待値として受け入れられることはありません。
+   失敗することが正しい振る舞いだと確認した場合にだけ `--expect-status failed` を
+   指定してください。
+2. flow を修正し、テストが通るまで実行し直します。
+3. 修正後の flow が出力すべきものを記録します。成果物を `expect_files` に挙げ、
+   アサーションのひな形を、手で確認した値やレビュー済みのゴールデンファイルなど、
+   実装とは独立に導いた期待値に置き換えます。テスト対象の実装の現在の出力を
+   そのままテストにコピーしないでください。そのようなテストは、コードがコードの
+   とおりに動くことしか示しません。後の変更で期待する成果物が変わる場合も同じく、
+   新しい値を独立に確認してから期待値を編集します。
+4. テストをコミットします。`--stage-inputs` を使った場合、そのディレクトリには
+   アーカイブした研究データの生ファイルが入っています。テストと一緒に保存してよい
+   データの場合にだけコミットしてください。
+
 ## pytest がない環境
 
 `rdetoolkit.testing` を import しても pytest は import されず、`RdeTestRunner`

@@ -638,6 +638,35 @@ def insecure():
 
 終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力がないか安全でない、出力先が既にある、設定が digest を再現しない、展開先が空でない、manifest と異なるメンバーがある(import と inspect)、またはインポートで受け付けないメンバー・manifest・ダイジェストがある場合。`repro inspect` は provenance が記録されていないだけなら `0` で終了します。
 
+#### repro to-pytest: 記録した実行を回帰テストにする
+
+`repro to-pytest` は、アーカイブした実行を [`rde_case`](testing.ja.md#repro-アーカイブから) として宣言する、編集可能な pytest モジュールを書き出します。修正した失敗を、以後もテストで確認し続けるためのものです。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --project <インポート先>
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --stage-inputs <新しいディレクトリ>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --project <インポート先>
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --stage-inputs <新しいディレクトリ>
+    ```
+
+- `--ref pkg.mod:callable` は必須です。アーカイブの `flow_id` から flow を推測することはありません。各部分は Python の識別子である必要があります。モジュールは `rdetoolkit run` と同じく作業ディレクトリから import するため、モジュールのトップレベルのコードは実行されます。flow 自体は呼び出さず、バイトコードのキャッシュも書きません。
+- 受け付けるのは完全なアーカイブだけです。`repro inspect` と同じ検査を行い、安全でないメンバー名は拒否し、`repro_manifest.json` と異なるメンバーがあれば中止します。`--manifest-only` のアーカイブは、入力もレポートも含まないため拒否します。
+- ケースの入力をどこから取るかを、どちらか一方だけ指定します。
+    - `--project DIR`: 既存のプロジェクト(通常は `repro import` で作ったもの)。`data/{inputdata,invoice,tasksupport}` のファイルがアーカイブと同じ(名前と SHA-256 が一致)で、実際に使われる設定がアーカイブの `config_digest` を再現する必要があります。異なる場合は違いを列挙し、何も書き出しません。`schema_version` が `"3"` のアーカイブが必要です。
+    - `--stage-inputs DIR`: `repro import` と同じ検査をしてアーカイブを新規または空の `DIR` に展開し、それを使います。研究データの生ファイル、invoice、設定が `DIR`(テストフォルダの中かもしれません)にコピーされるため、そこに置いてよいデータの場合にだけ使い、そうでなければバージョン管理の対象から外してください。`"1"` のアーカイブにも使えます(ファイルごとのチェックサムはなく、生成したファイルにその旨を書きます)。
+- 生成したテストは、修正後の振る舞いである `"success"` を期待します。アーカイブの status はコメントに書きますが、結果を確認したうえで `--expect-status success|partial|failed` を指定しない限り、期待値にはなりません。`failed` か `partial` を指定すると、アーカイブのエラーコードを `expect_error_code` に追加します。したがって、修正前は生成したテストが失敗します。
+- プロジェクトのパスは、生成したファイルからの相対パスで書きます。アーカイブから取り込むのは、run id(テスト名に使用)、status とエラーコード、`#` コメントとしての provenance だけです(rdetoolkit や Python のバージョンなど環境の違いは警告としても表示します)。レポートのメッセージ、`flow_id`、設定値、入力ファイル名はコピーしません。
+- 既存の `-o` のファイルは `--force` を指定した場合にだけ(1 回の rename で)置き換えます。リンクやディレクトリは常に拒否し、ファイル名は `.py` で終わる必要があります。
+
+終了コード: `0` 成功、`2` コマンドラインが不正(`--project` と `--stage-inputs` のどちらも、または両方を指定した場合や、未知の `--expect-status` を含む)、`3` 読めない・安全でない・メタデータのみ・変更されたアーカイブ、不正または import できない `--ref`、アーカイブと異なるプロジェクト、空でない `--stage-inputs` のディレクトリ、既に存在するか書き込めない出力。
+
 ### migrate: v1 コードの検出と変換
 
 - `migrate check [PATH]` は v2 移行が必要な行を 1 行 1 件(`path:line: finding`)で報告し、ファイルは変更しません。Python ファイルでは `custom_dataset_function=` による入口呼び出し、`RdeOutputResourcePath` の参照、v1 のハンドラー形のクラス、v2.0 で名前が変わった CLI コマンドを検出します。シェル、CI、コンテナ関連のファイル(`*.sh`、`*.yml`、`*.yaml`、`*.toml`、`*.cfg`、`Makefile`、`Dockerfile`)では名前が変わった CLI コマンドだけを検出します。

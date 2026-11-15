@@ -639,6 +639,35 @@ No host name, user name, absolute path, git remote or branch name is recorded.
 
 Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing or unsafe input, an existing output, a config that does not reproduce the digest, a non-empty target, a member that differs from the manifest (import and inspect), or an archive member, manifest or digest that import does not accept. `repro inspect` exits `0` when provenance is merely unavailable.
 
+#### repro to-pytest: Turn an Archived Run into a Regression Test
+
+`repro to-pytest` writes an editable pytest module that declares the archived run as an [`rde_case`](testing.en.md#from-a-repro-archive), so a fixed failure stays covered.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --project <imported dir>
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --stage-inputs <new dir>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --project <imported dir>
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --stage-inputs <new dir>
+    ```
+
+- `--ref pkg.mod:callable` is required: the flow is never guessed from the archived `flow_id`. Every part must be a Python identifier. The module is imported from the working directory, as `rdetoolkit run` does, which runs its top-level code; the flow itself is never called, and no bytecode cache is written.
+- Only a full archive is accepted. It is checked like `repro inspect`: unsafe member names are refused, and a member that differs from `repro_manifest.json` stops the command. A `--manifest-only` archive is refused because it holds neither the inputs nor the report.
+- Choose where the case's inputs come from, exactly once:
+    - `--project DIR`: an existing project, typically made with `repro import`. Its `data/{inputdata,invoice,tasksupport}` files must equal the archived ones (same names and SHA-256) and its effective config must reproduce the archived `config_digest`; otherwise the differences are listed and nothing is written. This needs a `schema_version` `"3"` archive.
+    - `--stage-inputs DIR`: extract the archive into the new or empty `DIR` with the same checks as `repro import`, and use it. This copies the raw research inputs, invoice and config into `DIR`, possibly inside your test folder: use it only when that data may be stored there, and keep the directory out of version control otherwise. It also works for a `"1"` archive (no per-file checksums; the generated file says so).
+- The generated test expects `"success"`, the behaviour after the fix. The archived status is quoted in a comment but never becomes the expectation unless you pass `--expect-status success|partial|failed` after confirming the outcome; with `failed` or `partial` the archived error code is added as `expect_error_code`. Before the fix, the generated test therefore fails.
+- The project path is written relative to the generated file. The archive contributes only its run id (in the test name), its status and error code, and the provenance as `#` comments (an environment difference, such as another rdetoolkit or Python version, is also printed as a warning). Report messages, `flow_id`, config values and input file names are never copied.
+- An existing `-o` file is replaced only with `--force` (in one rename); a link or directory is always refused, and the file must end in `.py`.
+
+Exit codes: `0` success, `2` invalid command line (including neither or both of `--project` and `--stage-inputs`, or an unknown `--expect-status`), `3` an unreadable, unsafe, metadata-only or modified archive, an invalid or unimportable `--ref`, a project that differs from the archive, a non-empty `--stage-inputs` directory, or an output that exists or cannot be written.
+
 ### migrate: Find and Convert v1 Code
 
 - `migrate check [PATH]` reports the lines that need v2 migration, one `path:line: finding` per line, and never changes files. Python files are scanned for `custom_dataset_function=` entry calls, `RdeOutputResourcePath` references, v1 handler-shaped classes, and CLI command names renamed in v2.0. Shell, CI, and container files (`*.sh`, `*.yml`, `*.yaml`, `*.toml`, `*.cfg`, `Makefile`, `Dockerfile`) are scanned for renamed CLI commands only.

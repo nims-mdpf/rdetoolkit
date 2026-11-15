@@ -33,11 +33,12 @@ import zlib
 from collections.abc import Callable, Iterator
 from functools import partial
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import typer
 import yaml
 
+from rdetoolkit.cli import _repro_pytest
 from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli._repro_provenance import _file_digest, capture_provenance, read_provenance
 from rdetoolkit.cli.run_cmd import load_config_overrides
@@ -184,6 +185,52 @@ INSPECT_HELP = CommandHelp(
         (3, "the zip is unreadable or unsafe, the manifest is unsupported, a member differs from it, or `--format` is unknown"),
     ),
     see_also=("rdetoolkit repro import", "rdetoolkit repro export"),
+)
+
+TO_PYTEST_HELP = CommandHelp(
+    summary="Write an editable pytest regression test (an `rde_case`) for the run in a full `repro export` zip.",
+    details=(
+        "The flow is never inferred from the archive: `--ref` names it, and it is imported (which runs the module's "
+        "top-level code) but never called. The archive is checked like `repro inspect`, and a member that differs "
+        "from the manifest is refused. The test expects `success`, the behaviour after the fix, unless "
+        "`--expect-status` says otherwise; the archived failure is never taken as the expected result. Review the "
+        "generated file before committing it."
+    ),
+    inputs=(
+        "`ARCHIVE`: a full zip written by `rdetoolkit repro export` (a `--manifest-only` zip is refused).",
+        "`--ref`: the flow `pkg.mod:callable` the test runs, importable from the working directory.",
+        (
+            "`--project DIR`: an existing project for the case, such as one made by `repro import`. Its inputs and "
+            "effective config must match the archive's digests (needs a `schema_version` `\"3\"` archive)."
+        ),
+        (
+            "`--stage-inputs DIR`: extract the archive into the new or empty `DIR` (as `repro import` does) and use it "
+            "as the project. This copies the raw research inputs there: only use it when they may be stored with the tests."
+        ),
+        "`--expect-status`: `success`, `partial` or `failed`, when you have confirmed the expected outcome.",
+    ),
+    outputs=(
+        (
+            "Writes `-o/--output` (a `.py` file) with a test function that requests `rde_run`, the project path relative "
+            "to that file, and the archive's provenance as comments. An existing file is replaced only with `--force`."
+        ),
+        "Prints the file path on stdout and the review steps (and any environment difference) on stderr.",
+    ),
+    examples=(
+        "rdetoolkit repro to-pytest repro.zip --ref modules.processing:main \\",
+        "    -o tests/test_regression.py --project ./replay",
+        "rdetoolkit repro to-pytest repro.zip --ref pkg.flows:main \\",
+        "    -o tests/test_case.py --stage-inputs tests/cases/case1",
+    ),
+    exit_codes=(
+        EXIT_OK,
+        (2, "invalid command line, including neither or both of --project and --stage-inputs"),
+        (3, (
+            "an unreadable, unsafe, metadata-only or modified archive, an invalid or unimportable --ref, a project "
+            "that differs from the archive, a non-empty --stage-inputs directory, or an output that exists or is not a file"
+        )),
+    ),
+    see_also=("rdetoolkit repro inspect", "rdetoolkit repro import", "rdetoolkit doctor"),
 )
 
 app =typer.Typer(help=REPRO_HELP.render(), short_help=REPRO_HELP.summary, no_args_is_help=True)
@@ -568,6 +615,12 @@ def import_run(
     target: Annotated[Path, typer.Argument(metavar="TARGET_DIR", help="New or empty directory to extract into.")],
 ) -> None:
     """Check an archive, stage it next to ``target``, and publish it there only if it is consistent."""
+    _report_verification(_import_archive(archive_path, target))
+    typer.echo(str(target))
+
+
+def _import_archive(archive_path: Path, target: Path) -> dict[str, tuple[int, str]] | None:
+    """Publish a full archive at ``target`` after every check; return the verified listing (None for "1")."""
     _validate_target(target)
     try:
         archive_size = archive_path.stat().st_size
@@ -590,6 +643,10 @@ def import_run(
     # Not RuntimeError: typer.Exit is one, and the refusals above must keep their own message.
     except (OSError, EOFError, ValueError, zlib.error, zipfile.BadZipFile, NotImplementedError) as exc:
         _usage_error(f"Unable to import archive {archive_path}: {exc}\n{_REMEDIATION_ARCHIVE}")
+    return files
+
+
+def _report_verification(files: dict[str, tuple[int, str]] | None) -> None:
     if files is None:
         typer.echo(
             f"Provenance unavailable: this archive's {_MANIFEST} (schema_version \"{_LEGACY_SCHEMA_VERSION}\") predates "
@@ -598,7 +655,6 @@ def import_run(
         )
     else:
         typer.echo(f"Verified {len(files)} archived files against the SHA-256 digests in {_MANIFEST}.", err=True)
-    typer.echo(str(target))
 
 
 def _validate_target(target: Path) -> None:
@@ -1005,3 +1061,161 @@ def _inspect_text(payload: dict[str, Any]) -> str:
         _REPLAY_NOTE,
     ]
     return "\n".join(lines)
+
+
+@app.command("to-pytest", help=TO_PYTEST_HELP.render(), short_help=TO_PYTEST_HELP.summary)
+def to_pytest(  # noqa: PLR0913 -- one parameter per CLI option
+    archive_path: Annotated[Path, typer.Argument(metavar="ARCHIVE", help="Full zip written by 'rdetoolkit repro export'.")],
+    ref: Annotated[str, typer.Option("--ref", metavar="REF", help="The flow pkg.mod:callable the test runs (imported, never called).")],
+    output: Annotated[Path, typer.Option("-o", "--output", help="The test file to write (.py).")],
+    project: Annotated[Path | None, typer.Option("--project", help="Existing project whose inputs match the archive.")] = None,
+    stage_inputs: Annotated[
+        Path | None, typer.Option("--stage-inputs", help="Extract the archived raw inputs into this new or empty directory and use it."),
+    ] = None,
+    expect_status: Annotated[
+        str | None, typer.Option("--expect-status", help="Expected run status (success, partial, failed); default success."),
+    ] = None,
+    force: Annotated[bool, typer.Option("--force", help="Replace an existing output file.")] = False,
+) -> None:
+    """Generate a pytest regression scaffold for the archived run."""
+    if (project is None) == (stage_inputs is None):
+        _command_line_error("Pass exactly one of --project or --stage-inputs: the case needs a project to run.")
+    if expect_status is not None and expect_status not in _repro_pytest.STATUSES:
+        _command_line_error(f"--expect-status must be one of {', '.join(_repro_pytest.STATUSES)}.")
+    _check_output(output, force=force)
+    try:
+        module, attributes = _repro_pytest.parse_ref(ref)
+    except ValueError as exc:
+        _usage_error(f"{exc}\nRemediation: pass the flow as --ref pkg.mod:callable, as for 'rdetoolkit run'.")
+    manifest, files, run = _read_case_archive(archive_path)
+    _import_flow(ref)
+    case_project = _case_project(archive_path, manifest, files, project=project, stage_inputs=stage_inputs)
+    expression, absolute = _repro_pytest.project_expression(case_project, output)
+    if absolute:
+        typer.echo(f"Warning: {case_project} has no path relative to {output.parent}; the test names it absolutely.", err=True)
+    notes, differences = _repro_pytest.provenance_notes(manifest, None if files is None else len(files))
+    for difference in differences:
+        typer.echo(f"Warning: {difference}; a rerun may behave differently.", err=True)
+    source = _repro_pytest.render_test(module=module, attributes=attributes, project=expression, run=run, expect_status=expect_status, notes=notes)
+    _write_test(output, source, force=force)
+    typer.echo(
+        "Review expect_status and replace the assertion template with independent expectations before committing; "
+        f"then run: pytest {output}",
+        err=True,
+    )
+    typer.echo(str(output))
+
+
+def _case_project(
+    archive_path: Path, manifest: dict[str, Any], files: dict[str, tuple[int, str]] | None, *, project: Path | None, stage_inputs: Path | None,
+) -> Path:
+    """Verify ``--project`` against the archive, or stage the archive at ``--stage-inputs`` (the explicit opt-in)."""
+    if project is not None:
+        _verify_project(project, manifest, files)
+        return project
+    target = cast("Path", stage_inputs)  # exactly one of the two is set (checked by the caller)
+    _report_verification(_import_archive(archive_path, target))
+    typer.echo(
+        f"Warning: {target} now holds the archived raw input files, invoice and config. Review them before "
+        "committing; keep the directory out of version control if the data must stay local.",
+        err=True,
+    )
+    return target
+
+
+def _command_line_error(message: str) -> Never:
+    typer.echo(f"Error: {message}", err=True)
+    raise typer.Exit(code=EXIT_CLICK_USAGE[0])
+
+
+def _check_output(output: Path, *, force: bool) -> None:
+    if output.suffix != ".py":
+        _usage_error(f"Output must be a .py file: {output}\nRemediation: pass -o tests/test_<name>.py.")
+    if output.is_symlink() or (output.exists() and not output.is_file()):
+        _usage_error(f"Output is a symbolic link or not a regular file: {output}\nRemediation: pass a new file path.")
+    if output.exists() and not force:
+        _usage_error(f"Output already exists: {output}\nRemediation: pass a new -o path, or --force to replace it.")
+    # Checked before anything is staged, so a doomed write leaves no extracted inputs behind.
+    existing = next(parent for parent in output.absolute().parents if parent.exists())
+    if not existing.is_dir():
+        _usage_error(f"Unable to write {output}: {existing} is not a directory.\nRemediation: pass an -o path in a writable directory.")
+
+
+def _read_case_archive(archive_path: Path) -> tuple[dict[str, Any], dict[str, tuple[int, str]] | None, _repro_pytest.ArchivedRun]:
+    """Return a verified full archive's manifest, file listing and archived-run facts, or exit 3."""
+    try:
+        archive_size = archive_path.stat().st_size
+        with zipfile.ZipFile(archive_path) as archive:
+            _validate_members(archive.infolist(), archive_size=archive_size)
+            manifest = _read_manifest(archive)
+            inputs = _inspect_inputs(archive, manifest)
+            # Members are validated: a file under data/logs/ is a run_report_*.json.
+            reports = [member for member in archive.infolist() if member.filename.startswith("data/logs/") and not member.is_dir()]
+            report_text = archive.read(reports[0]).decode("utf-8") if len(reports) == 1 else None
+    except (OSError, EOFError, ValueError, zlib.error, zipfile.BadZipFile, NotImplementedError) as exc:
+        _usage_error(f"Unable to read archive {archive_path}: {exc}\n{_REMEDIATION_ARCHIVE}")
+    if inputs["status"] == "mismatch":
+        _usage_error(
+            f"Archive members differ from {_MANIFEST}: {', '.join(inputs['mismatched'])}\n"
+            f"Remediation: run 'rdetoolkit repro inspect {archive_path}' and export the run again.",
+        )
+    try:
+        run = _repro_pytest.archived_run(report_text) if report_text is not None else None
+    except (KeyError, TypeError, ValueError, RecursionError):
+        run = None
+    if run is None:
+        _usage_error(f"The archive does not hold exactly one readable run report.\n{_REMEDIATION_ARCHIVE}")
+    return manifest, _manifest_files(manifest), run
+
+
+def _import_flow(ref: str) -> None:
+    """Import ``ref`` as 'rdetoolkit run' would, without calling it or writing bytecode."""
+    from rdetoolkit.cli.run_cmd import resolve_flow  # noqa: PLC0415
+
+    previous_path, previous_bytecode = list(sys.path), sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        resolve_flow(ref)
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001 -- the module's top-level code may raise anything
+        _usage_error(f"Unable to resolve flow {ref}: {type(exc).__name__}: {exc}\nRemediation: check that the module imports from the working directory.")
+    finally:
+        sys.path[:] = previous_path
+        sys.dont_write_bytecode = previous_bytecode
+
+
+def _verify_project(project: Path, manifest: dict[str, Any], files: dict[str, tuple[int, str]] | None) -> None:
+    if not project.is_dir():
+        _usage_error(f"--project is not a directory: {project}\nRemediation: pass the directory 'rdetoolkit repro import' created.")
+    if files is None:
+        _usage_error(
+            f"This archive's {_MANIFEST} (schema_version \"{_LEGACY_SCHEMA_VERSION}\") has no per-file checksums, so "
+            f"{project} cannot be checked against it.\nRemediation: pass --stage-inputs DIR to use the archived inputs.",
+        )
+    problems = _repro_pytest.project_problems(project, files, manifest["config_digest"])
+    if problems:
+        _usage_error(
+            f"--project {project} does not hold the archived inputs and config:\n{_repro_pytest.summarize(problems)}\n"
+            "Remediation: pass the directory 'rdetoolkit repro import' created from this archive, or --stage-inputs DIR.",
+        )
+
+
+def _write_test(output: Path, source: str, *, force: bool) -> None:
+    """Write ``source`` to ``output``: exclusively, or (``force``) by replacing it in one rename."""
+    try:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if not force:
+            with output.open("x", encoding="utf-8") as stream:
+                stream.write(source)
+            return
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=output.parent, prefix=".rdetoolkit-", suffix=".tmp", delete=False) as temporary:
+            temporary.write(source)
+        try:
+            os.replace(temporary.name, output)
+        finally:
+            Path(temporary.name).unlink(missing_ok=True)
+    except FileExistsError:
+        _usage_error(f"Output already exists: {output}\nRemediation: pass a new -o path, or --force to replace it.")
+    except OSError as exc:
+        _usage_error(f"Unable to write {output}: {exc}\nRemediation: pass an -o path in a writable directory.")

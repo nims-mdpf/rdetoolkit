@@ -83,6 +83,7 @@ EXPECTED_TREE = {
     "repro export",
     "repro import",
     "repro inspect",
+    "repro to-pytest",
     "migrate",
     "migrate check",
     "migrate apply",
