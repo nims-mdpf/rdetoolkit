@@ -37,6 +37,9 @@ jobs:
           uv venv .venv --python 3.12
           uv pip install --python .venv/bin/python -r requirements-dev.lock
           uv pip install --python .venv/bin/python -e '.[minio,plotly,render]'
+          # v1 CLI tests spawn bare `python` and `rdetoolkit` from PATH, as the
+          # activated venv of the former coverage workflows provided.
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Record the complete test selection
         # Match the former coverage workflows: pyproject excludes legacy only.
         # In particular, do not inherit tox's exclusion of graph_outputs.

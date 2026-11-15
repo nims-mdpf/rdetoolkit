@@ -92,6 +92,11 @@ def _full_suite_policy(job: dict[str, Any]) -> None:
     assert any(token.startswith("--cov-report=json") for token in command)
     gate_commands = [command for command in commands if "scripts/check_phase_h_coverage.py" in command]
     assert gate_commands == [["python", "scripts/check_phase_h_coverage.py"]]
+    # v1 CLI tests spawn `python`/`rdetoolkit` from PATH, so the venv must be on it first.
+    runs = [step.get("run", "") for step in job["steps"]]
+    path_steps = [index for index, run in enumerate(runs) if '"$PWD/.venv/bin" >> "$GITHUB_PATH"' in run]
+    assert path_steps
+    assert path_steps[0] < next(index for index, run in enumerate(runs) if "python -m pytest tests/" in run)
     for step in job["steps"]:
         if "python -m pytest" in step.get("run", "") or "scripts/check_phase_h_coverage.py" in step.get("run", ""):
             assert step.get("continue-on-error", "false") == "false"
