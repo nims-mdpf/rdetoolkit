@@ -780,8 +780,7 @@ class ProcessingError(RdeExecutionError):
 
     def __init__(self, message: str, *, remediation: str | None = None) -> None:
         definition = ERROR_CATALOG[_PROCESSING_FAILED_CODE]
-        error_init: _Any = RdeExecutionError.__init__
-        error_init(self, code=_PROCESSING_FAILED_CODE, name=definition.name, message=_required_text("message", message))
+        super().__init__(code=_PROCESSING_FAILED_CODE, name=definition.name, message=_required_text("message", message))
         self.remediation = definition.remediation if remediation is None else _required_text("remediation", remediation)
 
     def to_dict(self) -> dict[str, _Any]:
