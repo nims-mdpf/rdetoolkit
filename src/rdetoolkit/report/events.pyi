@@ -47,6 +47,17 @@ class Event:
         error_msg: str = ...,
     ) -> Event: ...
     @classmethod
+    def node_argument_rejected(
+        cls,
+        *,
+        run_id: str,
+        node_id: str,
+        iteration_index: int,
+        parameter: str,
+        expected_type: str,
+        actual_type: str,
+    ) -> Event: ...
+    @classmethod
     def warning(cls, *, run_id: str, code: int, message: str) -> Event: ...
     def to_dict(self) -> dict[str, Any]: ...
     @property

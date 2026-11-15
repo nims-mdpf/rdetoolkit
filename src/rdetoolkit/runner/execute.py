@@ -14,6 +14,7 @@ from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.core.injection import resolve_flow_kwargs
 from rdetoolkit.errors import ERROR_CATALOG, RdeError, RdeExecutionError
 from rdetoolkit.report.events import Event, EventSink
+from rdetoolkit.report.failure import FailureDiagnostic
 from rdetoolkit.runner.finalize import processing_error_record
 from rdetoolkit.types import RdeConfig
 
@@ -31,6 +32,10 @@ class ExecutionResult:
     title: str = ""
     target: str | None = None
     stacktrace: str | None = None
+    #: Phase-aware diagnostic of a failed tile (#686). The Runner moves it to
+    #: the diagnostics sidecar; it is in neither the run report nor the
+    #: per-iteration detail file.
+    diagnostic: FailureDiagnostic | None = None
 
 
 class TileExecutionError(RdeExecutionError):

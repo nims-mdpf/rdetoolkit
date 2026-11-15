@@ -263,6 +263,47 @@ class Event:
             },
         )
 
+    @classmethod
+    def node_argument_rejected(
+        cls,
+        *,
+        run_id: str,
+        node_id: str,
+        iteration_index: int,
+        parameter: str,
+        expected_type: str,
+        actual_type: str,
+    ) -> Event:
+        """Create a node.argument_rejected event (#688, additive).
+
+        Strict type checking rejected an argument before the node body ran,
+        so there is no call and no ``call_id``: this event is not paired with
+        ``node.started``. Only type names are carried, never the value.
+
+        Args:
+            run_id: Run identifier (required, non-empty).
+            node_id: Rejected node's identifier (required, non-empty).
+            iteration_index: Zero-based tile index.
+            parameter: Rejected parameter name.
+            expected_type: The parameter's annotation, as text.
+            actual_type: Type name of the rejected argument.
+
+        Returns:
+            Event named ``node.argument_rejected``.
+        """
+        _require_nonempty(run_id, "run_id")
+        _require_nonempty(node_id, "node_id")
+        return cls(
+            run_id=run_id,
+            name="node.argument_rejected",
+            node_id=node_id,
+            payload={
+                "iteration_index": iteration_index,
+                "parameter": parameter,
+                "expected_type": expected_type,
+                "actual_type": actual_type,
+            },
+        )
 
     @classmethod
     def warning(cls, *, run_id: str, code: int, message: str) -> Event:

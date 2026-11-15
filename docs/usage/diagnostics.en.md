@@ -38,7 +38,7 @@ These rules bound what the JSON on stdout can contain:
 - **Paths.** Paths are relative POSIX paths: to `PROJECT_DIR` for `doctor`, and the fixed names `iterations/iteration_<index>.json` and `events_<run_id>.jsonl` next to the report for `report diagnose`. No command prints an absolute path or the name of an input file. `nodes lint` prints `module:qualname`, not file paths.
 - **Input size.** `report diagnose` reads at most 16 MiB of the report (a larger one is rejected with exit 3) and skips an iteration detail or event log over 64 MiB with the flag `truncated`.
 - **Output size.** `diagnostics`, `failures` and `evidence.iterations` keep at most their first 200 entries. `truncated` is then `true`; `status` and the exit code still count every finding.
-- **What it covers.** Only the JSON document on stdout follows these rules. stderr (output of imported project modules, third-party warnings), `report show`, `report trace`, the run report and logs themselves, `job.failed`, and `repro export` archives carry raw text and paths.
+- **What it covers.** Only the JSON document on stdout follows these rules. stderr (output of imported project modules, third-party warnings), `report show`, `report trace`, the run report and logs themselves (including the [failure diagnostics file](#failure-diagnostics-file)), `job.failed`, and `repro export` archives carry raw text and paths.
 
 Leaving free text out is how the envelope protects data: it does not try to recognise secrets in text. An identifier that is a credential (a node id chosen as a token, say) is printed like any other. Regular-expression or name-based masking, such as the [legacy traceback](structured_process/traceback.en.md) `SecretsSanitizer`, finds only what its patterns describe and is not anonymisation. Before you paste any of this output into an external agent, service or issue, read it and decide that it can leave your organisation; that decision is yours, and no rdetoolkit command makes it or sends anything for you.
 
@@ -89,6 +89,67 @@ Failures come from the run report only. Each entry in `failures` has `iteration_
 Every flag also appears as a warning finding named `SupportingEvidence<Flag>` (for example `SupportingEvidenceMismatched`). Keep the report next to its `iterations/` directory and event log when you move it. The [diagnosis schema](diagnostics-report.schema.json) describes the full document.
 
 Since this release each `iterations/iteration_<index>.json` carries `schema_version: "1"` and `run_id` besides its existing fields. The run report (`schema_version: "2"`), event, and call-record formats are unchanged.
+
+## Failure diagnostics file
+
+When a run records a failure, the Runner writes `data/logs/diagnostics_<run_id>.json` next to the run report. It says where each failure happened. The run report keeps its `schema_version: "2"` shape; this file is a separate document with its own version. A run without a failure writes no file. An abridged example for a node that wrote an invalid `metadata.json` (frame lists are shortened; line numbers differ between releases):
+
+```json
+{
+  "schema_version": "1",
+  "format": "rdetoolkit.failure-diagnostics",
+  "producer": {"name": "rdetoolkit", "version": "<installed version>"},
+  "run_id": "<run_id>",
+  "run_status": "failed",
+  "diagnostics": [
+    {
+      "phase": "post_validate",
+      "code": 4002,
+      "name": "MetadataDefinitionInvalid",
+      "category": "validation",
+      "message": "<the published error message>",
+      "iteration_index": 0,
+      "node_id": null,
+      "call_id": null,
+      "parameter": null,
+      "expected_type": null,
+      "actual_type": null,
+      "artifact_path": "meta/metadata.json",
+      "location": {"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"},
+      "exception": {"relation": "primary", "type": "rdetoolkit.errors.RdeValidationError", "message": "...",
+                    "frames": [{"file": "rdetoolkit/runner/lifecycle.py", "line": 800, "function": "Runner.post_validate"}],
+                    "frames_truncated": false},
+      "causes": [
+        {"relation": "cause", "type": "rdetoolkit.exceptions.MetadataValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 185, "function": "metadata_validate"}],
+         "frames_truncated": false},
+        {"relation": "cause", "type": "pydantic_core._pydantic_core.ValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"}],
+         "frames_truncated": false}
+      ],
+      "causes_truncated": false
+    }
+  ],
+  "truncated": false
+}
+```
+
+- `phase` is one of `config_load`; `mode_resolution` (includes a flow's `prepare=` hook); `pre_validate`; `tile_prepare` (planning the tiles, preparing a tile's invoice, injecting the flow's parameters); `node_execution` (the flow or the v1 callback raised); `node_argument_validation` (strict type checking rejected a node argument before the node ran); `artifact_publish` (raw copy, thumbnails, invoice stages); `post_validate` (the per-tile invoice and metadata checks, including a SmartTable table tile); `finalize` (writing the run report or `job.failed`).
+- `code`, `name` and `message` are the published error: the same values as the run report's `error` (or the tile's `error`) and `job.failed`. A v1 `StructuredError` keeps its `ecode` and has `category: "structured_error"`; the other categories are `config`, `registry`, `execution`, `validation`, `internal` and `unknown`.
+- `iteration_index`, `node_id`, `call_id` and `artifact_path` (relative to the data root) are set when known and `null` otherwise; no value is filled in by guessing.
+- A `node_argument_validation` entry names the `node_id`, the `parameter`, its `expected_type` (the annotation as text) and the `actual_type` of the argument (a type name, never the value). Its `call_id` is `null` because the rejected node never ran. The call log is unchanged: no call is recorded for the rejected node, and the `seq` and `call_id` of every other call stay the same. The event log gets one additive `node.argument_rejected` event (`node_id`, and `iteration_index`, `parameter`, `expected_type`, `actual_type` in its payload), which has no `node.started` partner.
+- `location` is the frame the failure started in, not the rdetoolkit code that turned it into a catalog error. The deepest exception of the chain is searched first, from its innermost frame; a frame in the project wins, then a frame outside rdetoolkit and installed libraries, then an rdetoolkit frame. `location` is `null` when no frame was recorded.
+- `exception` is the exception the failure started as (for a node failure, the exception the node raised), and `causes` is its `__cause__` / `__context__` chain, nearest first.
+
+A failure after the tiles ran (`post_validate`) keeps the tiles and their node calls in the run report, so `report show` and `report trace` still show them. The run is `failed` with the validation error, and each tile keeps the status it ran with.
+
+### Privacy
+
+A frame is recorded as `file`, `line` and `function` only. Local variables, source lines, argument values (`repr`), environment variables and input data are never written, and no option writes them. File paths are relative to the project, or to the `sys.path` entry that contains them (`rdetoolkit/...`, `pydantic/...`); a path in neither is written as Python reported it. Exception messages are kept, up to 2000 characters each, because the run report and `job.failed` already carry the same text. A message can contain values that your code or a library put into it, so read the file before you share it outside your organisation.
+
+The file has fixed limits: at most 200 diagnostics (`truncated: true` when more were recorded; the run-level failure is always kept), the 64 innermost frames per exception (`frames_truncated`), and 8 exceptions per chain (`causes_truncated`).
+
+The file is a record of an outcome that is already decided. If it cannot be written, the run's status, exit code, run report and `job.failed` stay as they are, and one line on stderr says that the diagnostics are unavailable.
 
 ## See also
 

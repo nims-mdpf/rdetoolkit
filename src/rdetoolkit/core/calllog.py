@@ -144,14 +144,54 @@ def _summarize_outputs(value: Any, *, repr_head: str, repr_head_len: int) -> tup
     return (_summarize(value, repr_head=repr_head, repr_head_len=repr_head_len),)
 
 
-def _mismatch_error(node_id: str, param_name: str) -> RdeExecutionError:
+#: ``RdeError.detail["kind"]`` of an argument rejection. The same literal is
+#: ``rdetoolkit.report.failure.NODE_ARGUMENT_REJECTION``; core does not import
+#: the report layer.
+_ARGUMENT_REJECTION_KIND = "node_argument_rejection"
+#: Characters kept of an annotation's text; annotations are code, not data.
+_MAX_ANNOTATION_TEXT = 200
+#: Sentinel for "every bound value matched"; ``None`` is a legal argument.
+_ACCEPTED: Any = object()
+
+
+def _mismatch_error(node_id: str, param_name: str, detail: dict[str, Any] | None = None) -> RdeExecutionError:
     error_def = ERROR_CATALOG[3002]
     error_cls: Any = RdeExecutionError
     return error_cls(
         code=3002,
         name=error_def.name,
         message=error_def.message_template.format(node_id=node_id, param_name=param_name),
+        detail=detail,
     )
+
+
+def _annotation_text(annotation: Any) -> str:
+    """Render an annotation as type text (``int``, ``str | None``, ``pathlib.Path``)."""
+    if isinstance(annotation, type):
+        return type_name_of(annotation)
+    try:
+        text = str(annotation)
+    except Exception as exc:  # noqa: BLE001
+        if is_run_interrupted(exc):
+            raise
+        text = type(annotation).__name__
+    return text[:_MAX_ANNOTATION_TEXT]
+
+
+def _rejection_detail(node_id: str, param_name: str, annotation: Any, value: Any, iteration_index: int) -> dict[str, Any]:
+    """Describe an argument rejection by names only, never by the value (#688).
+
+    The call never ran, so this detail -- not a ``NodeCallRecord`` -- is how
+    the Runner attributes the failure to its node and parameter.
+    """
+    return {
+        "kind": _ARGUMENT_REJECTION_KIND,
+        "node_id": node_id,
+        "parameter": param_name,
+        "expected_type": _annotation_text(annotation),
+        "actual_type": _type_name(value),
+        "iteration_index": iteration_index,
+    }
 
 
 def _matches_annotation(value: Any, annotation: Any) -> bool:
@@ -263,13 +303,14 @@ class CallLogRecorder:
         for name, value in bound.arguments.items():
             parameter = signature.parameters[name]
             annotation = hints.get(name, parameter.annotation)
-            if all(_matches_annotation(item, annotation) for item in _bound_values(value, parameter.kind)):
+            rejected = next((item for item in _bound_values(value, parameter.kind) if not _matches_annotation(item, annotation)), _ACCEPTED)
+            if rejected is _ACCEPTED:
                 continue
             message = f"Node argument type mismatch for {node_id}.{name}"
             if self.type_check == "warn":
                 warnings.warn(message, UserWarning, stacklevel=3)
                 continue
-            raise _mismatch_error(node_id, name)
+            raise _mismatch_error(node_id, name, _rejection_detail(node_id, name, annotation, rejected, self.iteration_index))
 
     def _check_return_type(self, node_id: str, fn: Callable[..., Any], result: Any) -> None:
         """Validate the return value against the return annotation (Design §4.4).

@@ -38,7 +38,7 @@ node・flow・call の ID、モジュール名、run ID、プロジェクトま�
 - **パス**: パスは POSIX 形式の相対パスです。`doctor` は `PROJECT_DIR` からの相対パス、`report diagnose` はレポートの隣にある決まった名前(`iterations/iteration_<index>.json`、`events_<run_id>.jsonl`)だけを出力します。絶対パスや入力ファイルの名前を出力するコマンドはありません。`nodes lint` はファイルパスではなく `module:qualname` を出力します。
 - **入力の大きさ**: `report diagnose` はレポートを最大 16 MiB まで読みます(それより大きいものは終了コード 3)。64 MiB を超える iteration の詳細やイベントログは読まずに `truncated` フラグを付けます。
 - **出力の大きさ**: `diagnostics`、`failures`、`evidence.iterations` はそれぞれ先頭の 200 件までです。切り詰めたときは `truncated` が `true` になります。`status` と終了コードはすべての指摘をもとに決まります。
-- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、実行レポートやログそのもの、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
+- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、実行レポートやログそのもの([失敗の診断ファイル](#失敗の診断ファイル)を含む)、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
 
 この形式は自由記述の文を出力しないことでデータを守っており、文中の秘密情報を見分けようとはしていません。認証情報が ID として使われている場合(トークンを node ID にした場合など)は、ほかの ID と同じように出力します。正規表現や変数名によるマスキング(たとえば[従来のトレースバック](structured_process/traceback.ja.md)の `SecretsSanitizer`)は、パターンに当てはまるものしか見つけられず、匿名化にはなりません。この出力を外部のエージェントやサービス、issue に貼り付ける前に、内容を読み、組織の外に出してよいかを判断してください。その判断は利用者の責任であり、rdetoolkit のコマンドが代わりに判断したり送信したりすることはありません。
 
@@ -89,6 +89,67 @@ python3 -m rdetoolkit report diagnose data/logs/run_report_<run_id>.json --json
 どのフラグも `SupportingEvidence<Flag>`(例: `SupportingEvidenceMismatched`)という名前の警告としても出力します。レポートを移動するときは、`iterations/` ディレクトリとイベントログも一緒に移動してください。出力全体の形式は[診断結果のスキーマ](diagnostics-report.schema.json)を参照してください。
 
 このリリースから、`iterations/iteration_<index>.json` には既存のフィールドに加えて `schema_version: "1"` と `run_id` が入ります。実行レポート(`schema_version: "2"`)、イベント、call record の形式は変わりません。
+
+## 失敗の診断ファイル
+
+失敗を記録した実行では、Runner が実行レポートの隣に `data/logs/diagnostics_<run_id>.json` を書きます。各失敗がどこで起きたかを示すファイルです。実行レポートは `schema_version: "2"` の形のままで、このファイルは独自のバージョンを持つ別の文書です。失敗のない実行ではファイルを書きません。node が不正な `metadata.json` を書いた場合の例を示します(フレームの一覧は省略しています。行番号はリリースによって変わります)。
+
+```json
+{
+  "schema_version": "1",
+  "format": "rdetoolkit.failure-diagnostics",
+  "producer": {"name": "rdetoolkit", "version": "<インストールされているバージョン>"},
+  "run_id": "<run_id>",
+  "run_status": "failed",
+  "diagnostics": [
+    {
+      "phase": "post_validate",
+      "code": 4002,
+      "name": "MetadataDefinitionInvalid",
+      "category": "validation",
+      "message": "<公開されたエラーメッセージ>",
+      "iteration_index": 0,
+      "node_id": null,
+      "call_id": null,
+      "parameter": null,
+      "expected_type": null,
+      "actual_type": null,
+      "artifact_path": "meta/metadata.json",
+      "location": {"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"},
+      "exception": {"relation": "primary", "type": "rdetoolkit.errors.RdeValidationError", "message": "...",
+                    "frames": [{"file": "rdetoolkit/runner/lifecycle.py", "line": 800, "function": "Runner.post_validate"}],
+                    "frames_truncated": false},
+      "causes": [
+        {"relation": "cause", "type": "rdetoolkit.exceptions.MetadataValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 185, "function": "metadata_validate"}],
+         "frames_truncated": false},
+        {"relation": "cause", "type": "pydantic_core._pydantic_core.ValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"}],
+         "frames_truncated": false}
+      ],
+      "causes_truncated": false
+    }
+  ],
+  "truncated": false
+}
+```
+
+- `phase` は次のいずれかです。`config_load`、`mode_resolution`(flow の `prepare=` を含む)、`pre_validate`、`tile_prepare`(タイルの計画、タイルの invoice の準備、flow の引数の注入)、`node_execution`(flow または v1 のコールバックが例外を送出)、`node_argument_validation`(厳密な型チェックが node の実行前に引数を拒否)、`artifact_publish`(raw のコピー、サムネイル、invoice の各段階)、`post_validate`(タイルごとの invoice とメタデータの検証。SmartTable の表のタイルを含む)、`finalize`(実行レポートや `job.failed` の書き込み)。
+- `code`、`name`、`message` は公開されたエラーです。実行レポートの `error`(またはタイルの `error`)や `job.failed` と同じ値になります。v1 の `StructuredError` は `ecode` をそのまま保ち、`category` は `"structured_error"` です。それ以外の `category` は `config`、`registry`、`execution`、`validation`、`internal`、`unknown` です。
+- `iteration_index`、`node_id`、`call_id`、`artifact_path`(データルートからの相対パス)は、わかっている場合だけ値が入り、それ以外は `null` です。推測で値を埋めることはありません。
+- `node_argument_validation` の要素には、`node_id`、`parameter`、その `expected_type`(アノテーションの文字列)、引数の `actual_type`(型名だけで、値は書きません)が入ります。拒否された node は実行されていないため、`call_id` は `null` です。call log は変わりません。拒否された node の呼び出しは記録されず、ほかの呼び出しの `seq` と `call_id` も変わりません。イベントログには追加のイベント `node.argument_rejected`(`node_id` と、payload に `iteration_index`、`parameter`、`expected_type`、`actual_type`)が 1 件記録されます。このイベントに対応する `node.started` はありません。
+- `location` は、失敗が始まったフレームです。rdetoolkit がカタログのエラーに変換した箇所ではありません。例外の連鎖のいちばん深い例外から、内側のフレームの順に探し、プロジェクト内のフレーム、rdetoolkit とインストール済みライブラリの外のフレーム、rdetoolkit のフレームの順に選びます。フレームが記録されていない場合は `null` です。
+- `exception` は失敗の元になった例外(node の失敗では node が送出した例外)、`causes` はその `__cause__` / `__context__` の連鎖で、近いものから並びます。
+
+タイルの実行後の失敗(`post_validate`)でも、実行レポートにはタイルと node の呼び出しが残るため、`report show` や `report trace` で確認できます。実行の状態は検証エラーとともに `failed` になり、各タイルは実行したときの状態のままです。
+
+### プライバシー
+
+フレームは `file`、`line`、`function` だけを記録します。ローカル変数、ソースコードの行、引数の値(`repr`)、環境変数、入力データは書き込まず、書き込むオプションもありません。ファイルパスはプロジェクトからの相対パス、またはそのファイルを含む `sys.path` のエントリからの相対パス(`rdetoolkit/...`、`pydantic/...`)です。どちらにも当てはまらないパスは Python が報告したとおりに書きます。例外のメッセージは 1 件あたり 2000 文字まで残します。実行レポートや `job.failed` にも同じ文がすでに含まれているためです。メッセージには、利用者のコードやライブラリが入れた値が含まれることがあるため、組織の外に共有する前にファイルの内容を確認してください。
+
+ファイルの大きさには上限があります。診断は最大 200 件(それ以上記録された場合は `truncated: true`。実行全体の失敗は必ず残します)、例外ごとに内側から 64 フレーム(`frames_truncated`)、連鎖ごとに 8 個の例外(`causes_truncated`)です。
+
+このファイルは、すでに決まった結果の記録です。書き込めなかった場合でも、実行の状態、終了コード、実行レポート、`job.failed` は変わらず、診断を利用できないことを示す 1 行を標準エラー出力に書きます。
 
 ## 関連項目
 

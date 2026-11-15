@@ -6,6 +6,7 @@ from rdetoolkit.core.calllog import CallSequence, NodeCallRecord, TypeSummary
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.errors import RdeExecutionError
 from rdetoolkit.report.events import EventSink
+from rdetoolkit.report.failure import FailureDiagnostic
 from rdetoolkit.types import RdeConfig
 
 @dataclass(frozen=True, slots=True)
@@ -19,6 +20,7 @@ class ExecutionResult:
     title: str = ...
     target: str | None = ...
     stacktrace: str | None = ...
+    diagnostic: FailureDiagnostic | None = ...
 
 class TileExecutionError(RdeExecutionError):
     result: ExecutionResult
