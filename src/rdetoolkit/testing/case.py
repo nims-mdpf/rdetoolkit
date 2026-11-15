@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 MARKER_NAME = "rde_case"
 
 _STATUSES = ("success", "partial", "failed")
-_PARAMETERS = ("flow", "project", "expect_status", "expect_files", "expect_error_code", "expect_phase", "config")
+_PARAMETERS = ("flow", "project", "expect_status", "expect_files", "expect_error_code", "expect_phase", "config", "checks")
 _REQUIRED = ("flow", "project")
 
 
@@ -51,6 +51,7 @@ class RdeCase:
         expect_error_code: Catalog code expected on the run or a tile.
         expect_phase: Phase expected in the diagnostics sidecar.
         config: Configuration passed to the Runner.
+        checks: Output checks run on the result once the expected status holds.
     """
 
     flow: Callable[..., Any]
@@ -60,6 +61,7 @@ class RdeCase:
     expect_error_code: int | None = None
     expect_phase: str | None = None
     config: RdeConfig | Mapping[str, Any] | None = None
+    checks: tuple[Callable[[RdeTestResult], object], ...] = ()
 
 
 def rde_case(
@@ -71,6 +73,7 @@ def rde_case(
     expect_error_code: int | None = None,
     expect_phase: str | None = None,
     config: RdeConfig | Mapping[str, Any] | None = None,
+    checks: Sequence[Callable[[RdeTestResult], object]] = (),
 ) -> MarkDecorator:
     """Declare an RDE integration case for a test that requests ``rde_run``.
 
@@ -92,6 +95,9 @@ def rde_case(
             (``logs/diagnostics_<run_id>.json``) must record. Only valid with a
             non-success ``expect_status``.
         config: ``RdeConfig`` or override mapping for the run.
+        checks: Reusable output checks (``rde_check`` functions or plain
+            callables taking the ``RdeTestResult``), run after the run once
+            ``expect_status`` holds. Every failing check is reported.
 
     Returns:
         The ``pytest.mark.rde_case`` mark carrying these parameters.
@@ -112,6 +118,7 @@ def rde_case(
         expect_error_code=expect_error_code,
         expect_phase=expect_phase,
         config=config,
+        checks=checks,
     )
 
 
@@ -154,6 +161,7 @@ def case_from_marker(args: Sequence[object], kwargs: Mapping[str, object], *, ro
         expect_error_code=expect_error_code,
         expect_phase=expect_phase,
         config=_config(kwargs.get("config")),
+        checks=_checks(kwargs.get("checks", ())),
     )
 
 
@@ -179,7 +187,23 @@ def check_case(case: RdeCase, result: RdeTestResult) -> list[str]:
     missing = [str(name) for name in case.expect_files if not result.artifact_path(name).exists()]
     if missing:
         failures.append(f"rde_case expected artifact(s) missing below data root {result.data_root}: {missing}")
+    failures.extend(_check_failures(case, result))
     return failures
+
+
+def _check_failures(case: RdeCase, result: RdeTestResult) -> list[str]:
+    if not case.checks:
+        return []
+    if result.status != case.expect_status:
+        # The processing outcome already failed the case; output checks on an
+        # unexpected outcome would only add noise to the report.
+        return [
+            f"rde_case output checks not run ({len(case.checks)}): processing ended with status "
+            f"{result.status!r}, expected {case.expect_status!r}",
+        ]
+    from rdetoolkit.testing.checks import run_checks  # noqa: PLC0415
+
+    return run_checks(result, case.checks)
 
 
 def missing_rde_run_message(nodeid: str) -> str:
@@ -225,6 +249,19 @@ def _config(value: object) -> RdeConfig | Mapping[str, Any] | None:
         return value
     msg = f"rde_case config= must be an RdeConfig or an override mapping, got {type(value).__name__}"
     raise RdeCaseError(msg)
+
+
+def _checks(value: object) -> tuple[Callable[[RdeTestResult], object], ...]:
+    # A single function is callable, not a sequence; say so instead of failing later.
+    if callable(value) or isinstance(value, (str, bytes)) or not isinstance(value, Iterable):
+        msg = f"rde_case checks= must be a sequence of check callables (e.g. checks=(my_check,)), got {type(value).__name__}"
+        raise RdeCaseError(msg)
+    checks = tuple(value)
+    for check in checks:
+        if not callable(check):
+            msg = f"rde_case checks= entry {check!r} is not callable; a check takes the RdeTestResult"
+            raise RdeCaseError(msg)
+    return checks
 
 
 def _status(value: object) -> str:

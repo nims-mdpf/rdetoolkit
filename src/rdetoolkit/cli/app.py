@@ -649,6 +649,23 @@ def _run_legacy(target: str) -> None:
         raise typer.Exit(code=exit_code)
 
 
+def _register_test_command() -> None:
+    from rdetoolkit.cli.test_cmd import TEST_HELP, run_tests
+
+    # Unknown options and extra arguments are kept in order for pytest (#694).
+    app.command(
+        "test",
+        help=TEST_HELP.render(),
+        short_help=TEST_HELP.summary,
+        rich_help_panel=PANEL_RUN,
+        options_metavar="[PATH] [PYTEST_ARGS]...",
+        context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+    )(run_tests)
+
+
+_register_test_command()
+
+
 # --------------------------------------------------------------------------
 # Inspect
 # --------------------------------------------------------------------------

@@ -4,6 +4,7 @@ from typing import Any
 
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.testing.case import rde_case as rde_case
+from rdetoolkit.testing.checks import rde_check as rde_check
 from rdetoolkit.testing.runner import (
     RdeIterationSummary as RdeIterationSummary,
     RdeTestResult as RdeTestResult,

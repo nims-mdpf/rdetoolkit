@@ -62,6 +62,7 @@ EXPECTED_TREE = {
     "validate all",
     "doctor",
     "run",
+    "test",
     "report",
     "report show",
     "report trace",
