@@ -38,6 +38,10 @@ Authority: `local/develop/v2/Design.md` §9.
 | 4002 | MetadataDefinitionInvalid | Metadata definition validation failed: {reason} | Fix metadata-def.json to satisfy the metadata definition schema; the reported reason names the offending field. |
 | 4003 | RequiredArtifactMissing | Required output artifact is missing: {path} | Ensure the flow writes the artifact before finalize (use the save nodes in rdetoolkit.nodes); check that the reported path is produced in the expected output directory. |
 | 4004 | EmptyExcelInvoice | The Excel invoice has no data rows. | Add at least one data row to the Excel invoice, then rerun. |
+| 4005 | InvalidMagicExpression | Invalid v2 magic-variable expression: {reason} | Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits. |
+| 4006 | MissingMagicSource | A requested interpolation source is unavailable or invalid: {reason} | Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values. |
+| 4007 | InvalidMagicOutput | Interpolation produced an invalid invoice field: {reason} | Correct the source or template so each output satisfies the invoice schema, length limits, and dataName character rules. The invoice has not been replaced. |
+| 4008 | InvalidMappingRule | A rule mapping destination is invalid: {reason} | Use nonempty dotted object paths without overlapping parent/child destinations or scalar ancestors. |
 | 5001 | InternalInvariantViolation | Internal rdetoolkit invariant failed: {reason} | This is a bug in rdetoolkit, not in user code. Please report it together with the run report and the stack trace. |
 
 ## Warnings
@@ -47,3 +51,4 @@ Authority: `local/develop/v2/Design.md` §9.
 | W1001 | ModeOverriddenByFileDetection | Configured mode was overridden by input file detection: {mode} |
 | W1002 | EventsLogTruncated | events log truncated at the size cap; node-level events are no longer recorded for this run |
 | W1101 | TemplateSelfStateUsage | Template slot or hook uses hidden self state: {qualified_name}.{attribute_name} |
+| W1102 | InterpolationDiagnostic | Interpolation stage diagnostic: {reason} |

@@ -889,3 +889,36 @@ ERROR_CATALOG[2007] = ErrorDef(
         "restart the interpreter instead."
     ),
 )
+
+
+ERROR_CATALOG[4005] = ErrorDef(
+    name="InvalidMagicExpression",
+    message_template="Invalid v2 magic-variable expression: {reason}",
+    remediation=(
+        "Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key "
+        "inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits."
+    ),
+)
+
+ERROR_CATALOG[4006] = ErrorDef(
+    name="MissingMagicSource",
+    message_template="A requested interpolation source is unavailable or invalid: {reason}",
+    remediation="Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values.",
+)
+
+ERROR_CATALOG[4007] = ErrorDef(
+    name="InvalidMagicOutput",
+    message_template="Interpolation produced an invalid invoice field: {reason}",
+    remediation="Correct the source or template so each output satisfies the invoice schema, length limits, and dataName character rules. The invoice has not been replaced.",
+)
+
+ERROR_CATALOG[4008] = ErrorDef(
+    name="InvalidMappingRule",
+    message_template="A rule mapping destination is invalid: {reason}",
+    remediation="Use nonempty dotted object paths without overlapping parent/child destinations or scalar ancestors.",
+)
+
+WARNING_CATALOG[1102] = WarningDef(
+    name="InterpolationDiagnostic",
+    message_template="Interpolation stage diagnostic: {reason}",
+)

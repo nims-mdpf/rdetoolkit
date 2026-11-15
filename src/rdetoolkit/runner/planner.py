@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import partial
@@ -9,10 +10,12 @@ from itertools import chain
 from pathlib import Path
 from typing import Any, Literal
 
-from rdetoolkit.api.request import ExecutionTarget, LegacyCallbackTarget, RunRequest
+from rdetoolkit.api.request import ExecutionTarget, FlowTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.core.calllog import CallSequence
 from rdetoolkit.domain.invoice_service import InvoiceService, invoice_source_for
+from rdetoolkit.domain.magic_policy import options_from_config
 from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.fileops import readf_json
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
 from rdetoolkit.runner.iterator import EmptyExcelInvoiceError, iterate_tiles, reject_empty_excelinvoice
@@ -81,6 +84,7 @@ class ExecutionPlan:
     #: counter per run; every tile's recorder draws from it through
     #: ``TileMaterial`` so ``seq`` is run-global and ``call_id`` run-unique.
     call_sequence: CallSequence = field(default_factory=CallSequence)
+    original_invoice_snapshot: str | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,6 +163,8 @@ class RunPlanner:
         Returns:
             Frozen plan whose ``tiles`` iterable performs existing tile discovery lazily.
         """
+        if isinstance(request.target, FlowTarget):
+            options_from_config(config)
         context = PlanningContext(
             root=request.root,
             inputdata_path=_resolve_path(self._inputdata_path),
@@ -183,7 +189,15 @@ class RunPlanner:
             tiles=tiles,
             data_root=data_root,
             invoice_source=invoice_source_for(mode, data_root=data_root),
+            original_invoice_snapshot=_original_invoice_snapshot(request.target, data_root),
         )
+
+
+def _original_invoice_snapshot(target: ExecutionTarget, data_root: Path) -> str | None:
+    if isinstance(target, LegacyCallbackTarget):
+        return None
+    path = data_root / "invoice" / "invoice.json"
+    return json.dumps(readf_json(path), ensure_ascii=False) if path.exists() else None
 
 
 def reject_empty_input(target: ExecutionTarget, mode: ModeKind, inputdata_path: Path) -> None:

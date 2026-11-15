@@ -45,7 +45,7 @@ from rdetoolkit.cli.run_cmd import load_config_overrides
 from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.report.diagnostics import diagnostic, envelope
 from rdetoolkit.report.run_report import RunReport
-from rdetoolkit.runner.config_loader import compute_config_digest, load_config
+from rdetoolkit.runner.config_loader import compute_config_digest, config_for_replay, load_config
 from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
 
@@ -366,16 +366,16 @@ def _replays_to(text: str, digest: str) -> bool:
 def _config_yaml(config: RdeConfig, digest: str) -> str:
     """Serialize the effective config as v2-form YAML that replays to ``digest``.
 
-    Only non-default values are written so a replay does not see defaults as
-    explicitly set. If that form ever fails to reload to the same digest, the
-    full dump is used instead; the digest is the contract, not the form.
+    Defaults are omitted except policy-significant flags. If the compact form
+    fails to reload to the same digest, the full replay-safe dump is used
+    instead; the digest is the contract, not the form.
 
     Keys are sorted: ``config_digest`` is computed over key-sorted JSON, so key
     order never affects whether the archived form replays.
     """
     dumps: tuple[Callable[[], dict[str, Any]], ...] = (
-        lambda: config.model_dump(mode="json", exclude_defaults=True),
-        lambda: config.model_dump(mode="json"),
+        lambda: config_for_replay(config, compact=True),
+        lambda: config_for_replay(config),
     )
     for dump in dumps:
         text = yaml.safe_dump(dump(), sort_keys=True, allow_unicode=True)

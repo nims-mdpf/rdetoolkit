@@ -172,6 +172,7 @@ class InvoiceService:
         config: RdeConfig,
         dataset_paths: RdeDatasetPaths,
         feature_updater: Callable[[], None] | None = None,
+        magic_updater: Callable[[], None] | None = None,
     ) -> None:
         """Apply exactly one invoice artifact step.
 
@@ -197,6 +198,7 @@ class InvoiceService:
             config: Canonical run configuration.
             dataset_paths: v1 dataset bundle for the tile being finalized.
             feature_updater: Optional replacement for the description update.
+            magic_updater: Optional v2 operation owning interpolation policy.
 
         Raises:
             FileNotFoundError: If the structured copy is enabled but the source
@@ -206,19 +208,12 @@ class InvoiceService:
                 optional description transfer runs; it is never tolerated.
         """
         resource = dataset_paths.output_paths
-        invoice_path = resource.invoice / "invoice.json"
         if step == INVOICE_STEP_STRUCTURED:
             if config.system.save_invoice_to_structured:
                 self._save_structured_invoice(resource.invoice_org, resource.struct)
             return
         if step == INVOICE_STEP_MAGIC:
-            if config.system.magic_variable and resource.rawfiles:
-                apply_magic_variable(
-                    invoice_path,
-                    resource.rawfiles[0],
-                    save_filepath=invoice_path,
-                    dataset_paths=dataset_paths,
-                )
+            _apply_magic_step(config, dataset_paths, magic_updater)
             return
         if step == INVOICE_STEP_DESCRIPTION:
             if config.system.feature_description:
@@ -236,6 +231,16 @@ class InvoiceService:
         destination = structured_dir / "invoice.json"
         if invoice_org.resolve() != destination.resolve():
             shutil.copy2(invoice_org, destination)
+
+
+def _apply_magic_step(config: RdeConfig, paths: RdeDatasetPaths, updater: Callable[[], None] | None) -> None:
+    if updater is not None:
+        updater()
+        return
+    resource = paths.output_paths
+    if config.system.magic_variable and resource.rawfiles:
+        invoice_path = resource.invoice / "invoice.json"
+        apply_magic_variable(invoice_path, resource.rawfiles[0], save_filepath=invoice_path, dataset_paths=paths)
 
 
 def _update_description(updater: Callable[[], None]) -> None:

@@ -89,13 +89,17 @@ def load_config(
 def compute_config_digest(config: RdeConfig) -> str:
     """Return the digest that identifies an effective config by value.
 
-    The digest is sha256 over the config's JSON dump written canonically:
+    The digest is sha256 over the effective config written canonically:
     mapping keys sorted at every depth, compact separators, UTF-8. Two
-    configs holding the same values therefore share a digest however their
+    configs holding the same effective values share a digest however their
     free-form mappings (such as ``custom``) were ordered, while list order and
     JSON value types (``1`` vs ``1.0``) still count. ``RunReport.config_digest``
     and ``repro export`` both use this function, so "same config" has one
     definition.
+
+    An omitted ``system.magic_variable`` is omitted from the hash input, since
+    it means auto for flows; explicit false means disabled. This distinction
+    also prevents repro export from dropping an explicit false default.
 
     Args:
         config: Effective v2 configuration.
@@ -104,12 +108,30 @@ def compute_config_digest(config: RdeConfig) -> str:
         ``"sha256:"`` followed by 64 lowercase hex digits.
     """
     canonical = json.dumps(
-        config.model_dump(mode="json"),
+        config_for_replay(config),
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
     )
     return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def config_for_replay(config: RdeConfig, *, compact: bool = False) -> dict[str, Any]:
+    """Serialize effective settings while retaining interpolation policy.
+
+    Args:
+        config: Effective configuration with its explicitly configured fields.
+        compact: Omit values equal to defaults except policy-significant flags.
+
+    Returns:
+        Fresh JSON-compatible settings preserving auto versus disabled.
+    """
+    data = config.model_dump(mode="json", exclude_defaults=compact)
+    if "magic_variable" in config.system.model_fields_set:
+        data.setdefault("system", {})["magic_variable"] = config.system.magic_variable
+    else:
+        data.get("system", {}).pop("magic_variable", None)
+    return data
 
 
 def _deep_merge(base: Mapping[str, Any], overlay: Mapping[str, Any]) -> dict[str, Any]:

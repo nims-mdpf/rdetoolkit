@@ -24,6 +24,8 @@ from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.core.flow import derive_flow_id, flow_error, flow_prepare
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
+from rdetoolkit.domain.magic_policy import options_from_config
+from rdetoolkit.domain.magic_service import validate_templates
 from rdetoolkit.domain.validation import InvoiceValidator, invoice_validate, validate_tile_outputs, wrap_validation_error
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.errors import (
@@ -35,6 +37,7 @@ from rdetoolkit.errors import (
     RdeValidationError,
 )
 from rdetoolkit.models.config import Config
+from rdetoolkit.fileops import readf_json
 from rdetoolkit.report.events import Event, EventSink, FileEventSink, _best_effort_stderr
 from rdetoolkit.report.failure import MAX_DIAGNOSTICS, FailureDiagnostic, FailurePhase, failure_diagnostic
 from rdetoolkit.report.run_report import RunReport
@@ -438,6 +441,7 @@ class Runner:
             The iteration report, or a tile-free successful report.
         """
         if request.validate_only:
+            self._validate_interpolation(target, mode, config)
             return RunReport(
                 run_id=self.run_id,
                 status="success",
@@ -507,6 +511,19 @@ class Runner:
             error=_run_error(exc),
             duration_ms=iterated.duration_ms + (time.time() - iterated_at) * 1000.0,
         )
+
+    def _validate_interpolation(self, target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> None:
+        if not isinstance(target, FlowTarget):
+            return
+        options = options_from_config(config)
+        if mode.value == "rdeformat":
+            message = "Interpolation is not applicable to preformatted RDEFormat artifacts."
+        else:
+            path = self.data_root / "invoice" / "invoice.json"
+            if not path.exists() or not validate_templates(readf_json(path), options):
+                return
+            message = "Template syntax is valid; source resolution is deferred until per-tile invoice and metadata exist. SmartTable row previews are not available."
+        self._events.emit(Event.warning(run_id=self.run_id, code=1102, message=message))
 
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.

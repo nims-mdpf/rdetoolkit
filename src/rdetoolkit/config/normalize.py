@@ -114,7 +114,9 @@ class ConfigNormalizer:
         except ConfigError as exc:
             reason = f"could not read {path}: {exc}"
             raise _config_error(reason) from exc
-        return self._build(legacy.model_dump(exclude_none=True), origin="v1")
+        data = legacy.model_dump(exclude_none=True)
+        _preserve_magic_omission(data, legacy)
+        return self._build(data, origin="v1")
 
     def _source_data(
         self,
@@ -126,9 +128,12 @@ class ConfigNormalizer:
         if source is None:
             return _discover_config(root, origin)
         if isinstance(source, RdeConfig):
-            return source.model_dump()
+            return _canonical_model_data(source, origin)
         if isinstance(source, Config):
-            return source.model_dump(exclude_none=True)
+            data = source.model_dump(exclude_none=True)
+            if origin == "v2":
+                _preserve_magic_omission(data, source)
+            return data
         if isinstance(source, Mapping):
             return copy.deepcopy(dict(source))
         if isinstance(source, (str, Path)):
@@ -293,3 +298,17 @@ def _config_error(reason: str) -> RdeConfigError:
     message = f"{message} Remediation: {error_def.remediation}"
     error_cls: Any = RdeConfigError
     return error_cls(code=1002, name=error_def.name, message=message)
+
+
+def _preserve_magic_omission(data: dict[str, Any], source: Config) -> None:
+    if "magic_variable" not in source.system.model_fields_set:
+        data.get("system", {}).pop("magic_variable", None)
+
+
+def _canonical_model_data(source: RdeConfig, origin: ConfigOrigin) -> dict[str, Any]:
+    data = source.model_dump()
+    if origin == "v2":
+        for field in ("extended_mode", "magic_variable"):
+            if field not in source.system.model_fields_set:
+                data["system"].pop(field, None)
+    return data
