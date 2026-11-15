@@ -555,7 +555,7 @@ RUN_HELP = CommandHelp(
         "rdetoolkit run modules.processing:pipeline",
         "rdetoolkit run modules.processing:pipeline --config overrides.yaml",
         "rdetoolkit run modules.processing:pipeline --validate-only",
-        "rdetoolkit run modules.processing:pipeline --validate-only --explain --format json",
+        "rdetoolkit run pipeline:run --validate-only --explain --format json",
         "rdetoolkit run --legacy main.py::dataset",
     ),
     exit_codes=(
@@ -591,18 +591,7 @@ def run(
             "or 'rdetoolkit run --legacy main.py::dataset' for a v1 dataset function.",
         )
     if legacy or "::" in target:
-        if "::" not in target:
-            usage_error(
-                f"Invalid legacy TARGET '{target}': {_LEGACY_TARGET_FORMAT}\n"
-                "Remediation: name the file or module and the function, e.g. 'rdetoolkit run --legacy main.py::dataset', "
-                "or drop --legacy to run a v2 flow 'pkg.mod:callable'.",
-            )
-        if validate_only or config is not None or explain:
-            option = "--explain" if explain else ("--validate-only" if validate_only else "--config")
-            usage_error(
-                f"{option} applies only to v2 flows, not to the legacy form 'module_or_file::attr'.\n"
-                "Remediation: drop the option, or run a v2 flow with 'rdetoolkit run pkg.mod:callable'.",
-            )
+        _validate_legacy_run_options(target, validate_only=validate_only, config=config, explain=explain)
         _run_legacy(target)
         return
     if ":" not in target:
@@ -616,6 +605,23 @@ def run(
         run_flow(target, validate_only_requested=validate_only, config_path=config, explain_requested=True, output_format=output_format)
     else:
         run_flow(target, validate_only_requested=validate_only, config_path=config)
+
+
+def _validate_legacy_run_options(target: str, *, validate_only: bool, config: Path | None, explain: bool) -> None:
+    from rdetoolkit.cli.run_cmd import usage_error
+
+    if "::" not in target:
+        usage_error(
+            f"Invalid legacy TARGET '{target}': {_LEGACY_TARGET_FORMAT}\n"
+            "Remediation: name the file or module and the function, e.g. 'rdetoolkit run --legacy main.py::dataset', "
+            "or drop --legacy to run a v2 flow 'pkg.mod:callable'.",
+        )
+    if validate_only or config is not None or explain:
+        option = "--explain" if explain else ("--validate-only" if validate_only else "--config")
+        usage_error(
+            f"{option} applies only to v2 flows, not to the legacy form 'module_or_file::attr'.\n"
+            "Remediation: drop the option, or run a v2 flow with 'rdetoolkit run pkg.mod:callable'.",
+        )
 
 
 def _run_legacy(target: str) -> None:

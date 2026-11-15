@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, Literal
-from zipfile import BadZipFile, ZipFile
+from zipfile import BadZipFile, ZipFile, ZipInfo
 
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
+from rdetoolkit.impl._zip_encoding import resolve_filename
 
 if TYPE_CHECKING:
     from rdetoolkit.types import RdeConfig
@@ -112,22 +113,49 @@ def _mode_error(code: int, reason: str, *, evidence: tuple[ModeEvidence, ...] = 
     )
 
 
-def _archive_member_names(archive: Path) -> list[str]:
+def _archive_entries(archive: Path) -> list[tuple[ZipInfo, str]]:
     try:
         with ZipFile(archive) as opened:
-            names = [item.filename.replace("\\", "/") for item in opened.infolist() if not item.is_dir()]
-    except (BadZipFile, OSError) as exc:
+            return [(item, resolve_filename(item)) for item in opened.infolist()]
+    except (BadZipFile, OSError, ValueError) as exc:
         raise _mode_error(1008, f"Unreadable ZIP archive {archive.name}") from exc
-    return names
+
+
+def _archive_layout_problem(entries: list[tuple[ZipInfo, str]]) -> str | None:
+    files = [str(PurePosixPath(name)).casefold() for info, name in entries if not info.is_dir()]
+    if len(set(files)) != len(files):
+        return "Duplicate or case-colliding ZIP members"
+    directories: dict[str, str] = {}
+    file_keys = set(files)
+    for info, name in entries:
+        problem = _archive_entry_problem(info, name, file_keys, directories)
+        if problem is not None:
+            return problem
+    return None
+
+
+def _archive_entry_problem(info: ZipInfo, name: str, files: set[str], directories: dict[str, str]) -> str | None:
+    path = PurePosixPath(name)
+    if path.is_absolute() or ".." in path.parts or "\\" in name:
+        return "Unsafe ZIP member paths"
+    parents = (path, *path.parents) if info.is_dir() else tuple(path.parents)
+    return _archive_directory_problem(parents, files, directories)
+
+
+def _archive_directory_problem(parents: tuple[PurePosixPath, ...], files: set[str], directories: dict[str, str]) -> str | None:
+    for parent in parents:
+        name = str(parent)
+        key = name.casefold()
+        if key in files or (key in directories and directories[key] != name):
+            return "Colliding archive directory names"
+        directories[key] = name
+    return None
 
 
 def _validate_archive_members(archive: Path) -> None:
-    names = _archive_member_names(archive)
-    if len(set(names)) != len(names):
-        raise _mode_error(1007, f"Duplicate ZIP members in {archive.name}")
-    for name in names:
-        if name.startswith("/") or ".." in name.split("/"):
-            raise _mode_error(1007, f"Unsafe ZIP member paths in {archive.name}")
+    problem = _archive_layout_problem(_archive_entries(archive))
+    if problem is not None:
+        raise _mode_error(1007, f"{problem} in {archive.name}")
 
 
 def _special_archives(inputdata_path: Path) -> list[Path]:

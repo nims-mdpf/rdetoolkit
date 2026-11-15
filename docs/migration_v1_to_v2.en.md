@@ -360,7 +360,9 @@ if report.status != "success":
 `RdeConfig.model_validate({"system": {"extended_mode": None}})` is also accepted.
 YAML `null` and a `None` override normalize to an unset mode with the default
 value `"invoice"`. SmartTable / ExcelInvoice detection then emits no W1001.
-A conflicting mode explicitly set as a string still emits W1001 (Design §6.2).
+For v2 flows, a conflicting mode explicitly set as a string raises a catalogued
+configuration error. Only the v1 callback entry retains the detection override
+and W1001 (Design §6.2).
 
 ## Runtime changes
 
@@ -723,14 +725,36 @@ Config normalization and new reproduction archives retain whether invoice
 was explicitly requested. Config digests now distinguish automatic selection
 from explicit invoice. Archives created by earlier versions may already have
 lost this information; importing them cannot recover intent that was omitted
-at export. Review their archived `rdeconfig.yaml` and set the intended mode
-before replaying, then generate a new report and archive.
+at export. An older archive that omitted the mode or stored its default can
+also fail the current import's config-digest check with exit code 3. Import
+that archive using the RDEToolKit version that created it. Review the recovered
+`rdeconfig.yaml`, set the intended mode, then rerun with the current version
+and export a new report and archive. Editing the archive's config alone does
+not repair its manifest and report digests.
 
-Use `rdetoolkit run --validate-only --explain --format json` to inspect the
+Use `rdetoolkit run pkg.mod:pipeline --validate-only --explain --format json` to inspect the
 current inputs without running user preparation or the flow, or publishing
 artifacts. The explanation includes groups, order, output paths, and mode-owned
 artifact stages. Ordinary `--validate-only` retains its existing preparation
 and report behavior. A preparation function can change the later run's inputs.
+
+The five modes use the following registration groups after system files are
+filtered. Tile 0 writes directly under the resolved data root; tile 1 and later
+write under `divided/0001/`, `divided/0002/`, and so on. These are output tile
+indices, including when an RDEFormat archive uses different directory numbers.
+
+| Mode | Groups and order | Tile count |
+| --- | --- | --- |
+| `invoice` | All ordinary inputs and ZIP files form one group; ZIPs remain raw inputs. Ordinary files precede ZIPs, with filesystem order within each category. | 1, including empty input |
+| `multidatatile` | One input file per group. Default `name` ordering sorts filenames; `filesystem` preserves the directory's order. | File count, or 1 empty tile |
+| `smarttable` | Each data row supplies its referenced files. The last row is tile 0; earlier rows follow in table order. With `save_table_file=true`, the original table occupies tile 1 and earlier rows begin at tile 2. | Data-row count, plus 1 when saving the original table |
+| `excelinvoice` | One group per workbook data row, in workbook order. Without a ZIP, groups have no raw files; one folder group may be reused for every row. File mappings must identify unique archive filenames. | Data-row count; a workbook with no data rows is rejected |
+| `rdeformat` | ZIP members are grouped by the first four-digit directory component in their path. Members without one join group 0. Groups sort numerically and retain archive-member order internally. | Group count, or 1 empty tile for an empty ZIP |
+
+A header-only SmartTable produces no tiles unless `save_table_file=true`, in
+which case its original table is tile 0. Original-table tiles register the
+table without invoking the flow. These SmartTable indices preserve the RDE
+registration convention in which the root tile is registered last.
 
 V2 RDEFormat preview and execution group tiles by numeric directory and retain
 archive-member order within each group. The callback route retains its legacy

@@ -126,10 +126,12 @@ print(json.dumps({
 
 def test_public_entry_points_never_import_the_deleted_modules__tc_k2_unreach_004(tmp_path: Path) -> None:
     """TC-K2-UNREACH-004: both ``run()`` targets complete without touching the deleted modules."""
+    # Given: separate valid projects for both public entry points.
     callback_root = tmp_path / "callback"
     flow_root = tmp_path / "flow"
     _generate.materialize_sut_case("invoice", callback_root)
     _generate.materialize_sut_case("invoice", flow_root)
+    # When: executing both in a fresh interpreter.
     result = _run_python(
         f"""
 import json, os, sys
@@ -137,6 +139,7 @@ from rdetoolkit.workflows import run
 from rdetoolkit.models.config import Config, SystemSettings
 from rdetoolkit.core.flow import flow
 from rdetoolkit.types import InputPaths
+deleted_modules = {DELETED_MODULES!r}
 
 def callback(srcpaths, resource_paths):
     pass
@@ -154,10 +157,11 @@ print(json.dumps({{
     "legacy_statuses": [s["status"] for s in json.loads(legacy)["statuses"]],
     "flow_status": report.status,
     "flow_error": report.error,
-    "leaked": sorted(m for m in sys.modules if m.startswith(("rdetoolkit.processing", "rdetoolkit.modeproc", "rdetoolkit.domain.mode"))),
+    "leaked": sorted(m for m in sys.modules if any(m == deleted or m.startswith(deleted + ".") for deleted in deleted_modules)),
 }}))
 """,
     )
+    # Then: neither entry point imports a deleted module or its descendants.
     assert result["legacy_statuses"] == ["success"]
     assert result["flow_status"] == "success", result["flow_error"]
     assert result["leaked"] == []
@@ -165,8 +169,10 @@ print(json.dumps({{
 
 def test_every_installed_module_imports__tc_k2_unreach_005() -> None:
     """TC-K2-UNREACH-005: no dangling import survives, and no deleted module is listed."""
+    # Given: the installed package and the exact deleted module names.
+    # When: discovering and importing every installed module.
     result = _run_python(
-        """
+        "deleted_modules = " + repr(DELETED_MODULES) + "\n" + """
 import importlib, json, pkgutil
 import rdetoolkit
 names, failures = [], {}
@@ -177,9 +183,10 @@ for info in pkgutil.walk_packages(rdetoolkit.__path__, "rdetoolkit."):
     except Exception as exc:  # noqa: BLE001
         failures[info.name] = repr(exc)[:200]
 print(json.dumps({"count": len(names), "failures": failures,
-                  "deleted_listed": [n for n in names if n.startswith(("rdetoolkit.processing", "rdetoolkit.modeproc", "rdetoolkit.domain.mode"))]}))
+                  "deleted_listed": [n for n in names if any(n == deleted or n.startswith(deleted + ".") for deleted in deleted_modules)]}))
 """,
     )
+    # Then: all imports succeed and no deleted module or descendant is listed.
     assert result["failures"] == {}
     assert result["deleted_listed"] == []
     assert result["count"] > 100

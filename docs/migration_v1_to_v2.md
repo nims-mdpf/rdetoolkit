@@ -332,8 +332,9 @@ if report.status != "success":
 `RdeConfig.model_validate({"system": {"extended_mode": None}})` も受理します。
 YAML の `null` や上書きの `None` はモード未指定として正規化され、
 値は既定の `"invoice"` になります。SmartTable / ExcelInvoice の検出で
-W1001 は出ません。文字列で明示したモードと検出結果が競合する場合は、
-引き続き W1001 を出します（Design §6.2）。
+W1001 は出ません。文字列で明示したモードと検出結果が競合する場合、
+v2 flow はカタログ登録済みの設定エラーにします。検出結果による上書きと
+W1001 を維持するのは v1 callback 経路だけです（Design §6.2）。
 
 ## 実行時の変更点
 
@@ -676,14 +677,35 @@ v1 callback経路は従来のファイル検出優先順位とW1001を維持し�
 
 設定正規化と新しいrepro archiveは、invoiceが明示指定されたかどうかを保持します。
 config digestも自動選択と明示invoiceを区別します。以前のexportが既に省略した
-明示性は復元できません。過去archiveの`rdeconfig.yaml`を確認し、意図したモードを
-設定して再実行し、新しいレポートとarchiveを生成してください。
+明示性は復元できません。モードが省略されていた、または既定値で保存されていた
+過去archiveは、現行版のimportでconfig digestが一致せず、終了コード3になる場合も
+あります。そのarchiveを作成したRDEToolKitのバージョンでimportしてください。
+復元した`rdeconfig.yaml`を確認して意図したモードを設定し、現行版で再実行して
+新しいレポートとarchiveをexportします。archive内の設定だけを書き換えても、
+manifestとレポートのdigestは修復されません。
 
-`rdetoolkit run --validate-only --explain --format json`は現在の入力を読み取り専用で
+`rdetoolkit run pkg.mod:pipeline --validate-only --explain --format json`は現在の入力を読み取り専用で
 説明します。ユーザーのprepareやflowを実行せず、成果物やレポートを出力しません。
 タイルのグループ・順序・出力先・モード別stageを確認できます。
 既存の`--validate-only`単独はprepareとレポート出力を維持します。
 prepareが入力を変更する場合、後の実行ではその変更後のsnapshotが対象になります。
+
+system fileを除外した後、各モードは次の登録グループを作ります。
+タイル0は解決済みdata root直下、タイル1以降は`divided/0001/`、
+`divided/0002/`のように出力します。この番号は出力タイルのindexであり、
+RDEFormat archive内のディレクトリ番号とは異なる場合があります。
+
+| モード | グループと順序 | タイル数 |
+| --- | --- | --- |
+| `invoice` | 通常ファイルとZIPをすべて1グループにする。ZIPは展開せず生入力として扱う。通常ファイル、ZIPの順で、それぞれの内部はfilesystem順。 | 空入力を含めて1 |
+| `multidatatile` | 1入力ファイルを1グループにする。既定の`name`はファイル名順、`filesystem`はディレクトリの列挙順。 | ファイル数。空入力は1空タイル |
+| `smarttable` | 各データ行が参照するファイルをグループにする。最終行がタイル0、先行する行は表の順。`save_table_file=true`なら元の表がタイル1、先行する行はタイル2から。 | データ行数。元の表を保存する場合はさらに1 |
+| `excelinvoice` | workbookのデータ行ごとに1グループを作り、workbook順に並べる。ZIPがなければ生ファイルは空。フォルダグループが1つなら全行で共有できる。ファイル指定はarchive内で一意なファイル名が必要。 | データ行数。データ行がないworkbookは拒否 |
+| `rdeformat` | ZIPのパスで最初に現れる4桁の数値ディレクトリごとにグループ化し、該当しないmemberはグループ0に入れる。グループは数値順、内部はarchive内の順序。 | グループ数。空ZIPは1空タイル |
+
+ヘッダーだけのSmartTableは0タイルですが、`save_table_file=true`なら元の表だけを
+タイル0にします。元の表のタイルではflowを呼びません。このSmartTableのindexは、
+rootタイルを最後に登録するRDEの慣例を維持しています。
 
 v2 RDEFormatは数値ディレクトリでグループを並べ、各グループ内はarchive内の順序を
 previewと実行で共有します。v1 callback内のfilesystem順序は維持します。

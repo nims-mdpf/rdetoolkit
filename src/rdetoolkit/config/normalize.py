@@ -85,7 +85,7 @@ class ConfigNormalizer:
         try:
             return RdeConfig(**normalized)
         except ValidationError as exc:
-            fields = [".".join(str(part) for part in error["loc"]) + " (" + error["type"] + ")" for error in exc.errors(include_input=False, include_url=False)]
+            fields = [_safe_validation_issue(error) for error in exc.errors(include_input=False, include_url=False)]
             raise _config_error("invalid fields: " + ", ".join(fields)) from exc
 
     def _normalize_tasksupport(self, root: Path, data_root: Path) -> RdeConfig:
@@ -192,6 +192,15 @@ class ConfigNormalizer:
         if isinstance(system, dict) and system.get("extended_mode") is not None:
             system["extended_mode"] = normalize_mode_name(system["extended_mode"]).value
         return result
+
+
+def _safe_validation_issue(error: Mapping[str, Any]) -> str:
+    field = ".".join(str(part) for part in error["loc"])
+    reason = error["type"]
+    if reason == "literal_error":
+        # Literal choices come from the model definition, never the rejected input.
+        reason += f"; expected {error['ctx']['expected']}"
+    return f"{field} ({reason})"
 
 
 def _mapping_section(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:

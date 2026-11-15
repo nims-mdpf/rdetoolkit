@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from rdetoolkit.domain.mode_selection import ModeKind
+from rdetoolkit.domain.mode_selection import ModeKind, _archive_layout_problem
 from rdetoolkit.errors import ERROR_CATALOG, RdeValidationError
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.impl._zip_encoding import extract_zip_with_encoding, resolve_filename
@@ -103,40 +103,16 @@ def _archive_names(archive: Path) -> list[str]:
     except (OSError, ValueError, zipfile.BadZipFile) as exc:
         reason = f"Unreadable archive {archive.name}"
         raise _planning_error(reason) from exc
-    _validate_archive_layout(entries, archive)
+    problem = _archive_layout_problem(entries)
+    if problem is not None:
+        reason = f"{problem} in {archive.name}"
+        raise _planning_error(reason)
     cleaner = SystemFilesCleaner()
     names: list[str] = []
     for info, name in entries:
-        _validate_member_name(name, archive)
         if not info.is_dir() and not cleaner.is_excluded(Path(name)):
             names.append(str(PurePosixPath(name)))
     return names
-
-
-def _validate_archive_layout(entries: list[tuple[zipfile.ZipInfo, str]], archive: Path) -> None:
-    files = {str(PurePosixPath(name)).casefold() for info, name in entries if not info.is_dir()}
-    directories: dict[str, str] = {}
-    for info, name in entries:
-        path = PurePosixPath(name)
-        parents = (path, *path.parents) if info.is_dir() else tuple(path.parents)
-        _validate_archive_directories(parents, files, directories, archive)
-
-
-def _validate_archive_directories(parents: tuple[PurePosixPath, ...], files: set[str], directories: dict[str, str], archive: Path) -> None:
-    for parent in parents:
-        name = str(parent)
-        key = name.casefold()
-        if key in files or (key in directories and directories[key] != name):
-            reason = f"Colliding archive directory names in {archive.name}"
-            raise _planning_error(reason)
-        directories[key] = name
-
-
-def _validate_member_name(name: str, archive: Path) -> None:
-    path = PurePosixPath(name)
-    if path.is_absolute() or ".." in path.parts or "\\" in name:
-        reason = f"Unsafe member name in {archive.name}"
-        raise _planning_error(reason)
 
 
 def _reject_file_directory_collisions(references: list[InputReference]) -> None:
