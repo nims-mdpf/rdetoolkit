@@ -25,7 +25,7 @@ Commands follow the form `rdetoolkit <noun> <verb>` (for example `rdetoolkit new
 | Validate | `validate invoice`, `validate invoice-schema`, `validate metadata`, `validate metadata-def`, `validate all`, `doctor` | Validate RDE schema and data files; check that a project can run |
 | Run | `run` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`) |
 | Inspect | `report show`, `report trace`, `report diagnose`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
-| Package | `package`, `repro export`, `repro import` | Create the submission archive, export and re-import a run |
+| Package | `package`, `repro export`, `repro import`, `repro inspect` | Create the submission archive, export, inspect and re-import a run |
 | Migrate | `migrate check`, `migrate apply` | Find and convert v1 code and CLI calls for v2 |
 | Info | `version` | Show the installed version |
 | Deprecated (removed in v2.1) | v1 command names | Kept as aliases that print a warning; see [Renamed commands in v2.0](#renamed-commands-in-v20) |
@@ -590,18 +590,32 @@ Exit codes: `0` success, `1` the output name is not `.zip`, or archiving or the 
 
 ### repro: Export and Re-run a Finished Run
 
-`repro export` archives a run report, the run's input directories (`data/inputdata`, `data/invoice`, `data/tasksupport`), and its effective `rdeconfig.yaml` into one zip. `repro import` unpacks such a zip into a new or empty directory, ready for `rdetoolkit run`.
+`repro export` archives a run report, the run's input directories (`data/inputdata`, `data/invoice`, `data/tasksupport`), and its effective `rdeconfig.yaml` into one zip. `repro import` unpacks such a zip into a new or empty directory, ready for `rdetoolkit run`. `repro inspect` shows what an archive records for reproduction, and what it does not, without extracting it.
 
 There are two kinds of archive:
 
-- **Full archive** (the default) for local reproduction. It holds every input file, the invoice, the raw run report and the effective config, which may include unpublished research data, personal data or credentials. Before writing it, `repro export` prints to stderr how many files and bytes each directory contributes, with a warning. Nothing is uploaded; review the archive before you share it, and do not attach it to an external agent or issue by default.
-- **Metadata only** (`--manifest-only`). The zip holds one `repro_manifest.json` (`schema_version` `"2"`, `archive_kind: "manifest-only"`, `replayable: false`): file counts and bytes per directory, each file's size and SHA-256 digest under a numeric `file_id` (no file names), the report's `config_digest`, and the [`report diagnose` envelope](diagnostics.en.md). It contains no input bytes, invoice or config values, or report text, and `repro import` refuses it. A digest still identifies a file to anyone who has the same file, so this is not anonymisation.
+- **Full archive** (the default) for local reproduction. It holds every input file, the invoice, the raw run report and the effective config, which may include unpublished research data, personal data or credentials. Before writing it, `repro export` prints to stderr how many files and bytes each directory contributes, with a warning. Nothing is uploaded; review the archive before you share it, and do not attach it to an external agent or issue by default. Its `repro_manifest.json` (`schema_version` `"3"`, `format: "rdetoolkit.repro-manifest"`, `archive_kind: "full"`, `replayable: true`) lists every member (`files`: `path`, `byte_count`, `sha256`, sorted by path), including the report and `rdeconfig.yaml`. Each digest is taken from the bytes as they are written into the zip.
+- **Metadata only** (`--manifest-only`). The zip holds one `repro_manifest.json` (`schema_version` `"3"`, `archive_kind: "manifest-only"`, `replayable: false`): file counts and bytes per directory, each file's size and SHA-256 digest under a numeric `file_id` (no file names), the report's `config_digest`, the provenance below, and the [`report diagnose` envelope](diagnostics.en.md). It contains no input bytes, invoice or config values, or report text, and `repro import` refuses it. A digest still identifies a file to anyone who has the same file, so this is not anonymisation.
+
+Both kinds record `provenance`, captured when `repro export` runs. A run report does not record its interpreter, so these values describe the environment that exported the run, which may differ from the one that ran it. Each attribute has a `status`: `known`, `unavailable` (with a `reason`), or `not_included`.
+
+| Attribute | Recorded |
+| --- | --- |
+| `rdetoolkit` | `version` |
+| `python` | `implementation`, `version` |
+| `platform` | `system`, `release`, `machine` |
+| `git` | `commit` and `dirty` (tracked files differ from the commit) when the project directory is in a git checkout. Git runs locally with prompts, optional locks and `core.fsmonitor` disabled; if git is missing, fails, or takes too long, the attribute is `unavailable` and the export continues. |
+| `lockfile` | `name` and `sha256` of the first regular file among `uv.lock`, `poetry.lock`, `pdm.lock`, `Pipfile.lock`, `pylock.toml` at the project root. The lockfile itself is not archived; a link is ignored. |
+| `source_code` | Always `not_included`: repro never archives your flow's source code. Check it out separately, at the recorded commit when one is known. |
+
+No host name, user name, absolute path, git remote or branch name is recorded.
 
 === "Unix/macOS"
 
     ```shell
     python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
     python3 -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
+    python3 -m rdetoolkit repro inspect <archive.zip> [--format json]
     python3 -m rdetoolkit repro import <archive.zip> <target dir>
     ```
 
@@ -610,15 +624,20 @@ There are two kinds of archive:
     ```powershell
     py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
     py -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
+    py -m rdetoolkit repro inspect <archive.zip> [--format json]
     py -m rdetoolkit repro import <archive.zip> <target dir>
     ```
 
 - `--config` is required when the run used `rdetoolkit run --config`: the config is archived only if it reproduces the report's `config_digest`. The digest is SHA-256 over the effective config's key-sorted JSON, not over the YAML file, so the archived `rdeconfig.yaml` may be written differently and still match.
 - `repro export` never replaces an existing `-o` file. It refuses inputs that are symbolic links or special files (copy the data into the project instead) and an unreadable directory, rather than following or skipping them. A report whose name does not start with `run_report_` is stored as `data/logs/run_report_export.json`.
-- `repro import` never overwrites: a non-empty target directory, or a target that is a symbolic link, is refused. It accepts only the export layout (`data/{inputdata,invoice,tasksupport}/…`, one `data/logs/run_report_*.json`, `rdeconfig.yaml`, `repro_manifest.json` with `schema_version` `"1"`), and refuses before extracting anything: absolute or `..` paths, empty path parts, backslashes, control characters (including a NUL that would shorten a name), links, devices and other special entries, encrypted entries, compression other than stored or deflate, two names that differ only in case or Unicode normalisation, a file used as a directory, more than 100,000 entries, more than 16 GiB uncompressed, a path over 1,024 characters or 64 levels, a manifest over 1 MiB, and an archive that expands more than 1,100:1 (beyond what deflate can do, so only overlapping or forged entries). On Windows it also refuses `:`, names ending in `.` or a space, and device names such as `CON` or `AUX`. The same limits apply when exporting, so a refused export never yields an archive that import would reject.
-- The archive is extracted into a hidden staging directory next to the target, then the archived config is reloaded and must give the same `config_digest` as the manifest and the report. Only then is the staging directory renamed to the target; on any failure it is deleted and the target is left as it was. A matching digest shows that the parts belong together, not who made the archive or that its data or config can be trusted: review them before running your flow on them.
+- `repro import` never overwrites: a non-empty target directory, or a target that is a symbolic link, is refused. It accepts only the export layout (`data/{inputdata,invoice,tasksupport}/…`, one `data/logs/run_report_*.json`, `rdeconfig.yaml`, and a full `repro_manifest.json` with `schema_version` `"3"` or `"1"`), and refuses before extracting anything: absolute or `..` paths, empty path parts, backslashes, control characters (including a NUL that would shorten a name), links, devices and other special entries, encrypted entries, compression other than stored or deflate, two names that differ only in case or Unicode normalisation, a file used as a directory, more than 100,000 entries, more than 16 GiB uncompressed, a path over 1,024 characters or 64 levels, a manifest over 64 MiB, and an archive that expands more than 1,100:1 (beyond what deflate can do, so only overlapping or forged entries). On Windows it also refuses `:`, names ending in `.` or a space, and device names such as `CON` or `AUX`. The same limits apply when exporting, so a refused export never yields an archive that import would reject.
+- For a `"3"` manifest, import first requires the file members and the manifest's `files` list to name the same files with the same sizes, then checks each member's SHA-256 while extracting it. A member that is missing, unlisted, resized or changed is refused with its name, before the target appears.
+- The archive is extracted into a hidden staging directory next to the target, then the archived config is reloaded and must give the same `config_digest` as the manifest and the report. Only then is the staging directory renamed to the target; on any failure it is deleted and the target is left as it was. Matching digests show that the parts belong together, not who made the archive or that its data or config can be trusted: review them before running your flow on them.
+- An archive written before this version (`schema_version` `"1"`) is still imported. It has no per-file checksums (its members are checked only against the zip CRCs) and no provenance, and import says so on stderr: `Provenance unavailable: …`. To get both, export the run again with the current rdetoolkit.
+- `repro inspect` applies the same member checks as import, then reads (never writes) every member of a full `"3"` archive and compares it with the manifest. It prints three groups: the verified inputs, the known provenance, and what is unknown or unavailable (always including `source_code`). `--format json` emits the [diagnostics envelope](diagnostics.en.md) with `command: "repro inspect"`, `archive`, `inputs` (`status` `verified`, `mismatch`, `unverifiable` for `"1"`, or `not_included` for metadata-only), and `provenance` (`captured_at`, `known`, `unavailable`). Its findings have `code: null`: `ReproChecksumMismatch` (error, per member), `ReproProvenanceUnavailable` (warning, per attribute), `ReproInputsUnverifiable` (warning), `ReproInputsNotIncluded` and `ReproSourceNotIncluded` (info). Values read from the manifest are shown only if they are short printable text in the expected form; anything else is reported as unreadable.
+- None of this makes a rerun deterministic. Matching config and file digests mean you have the same inputs and configuration. A different interpreter, dependency set, operating system or flow source can still change the result, and the provenance only tells you which of these the archive could record.
 
-Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing or unsafe input, an existing output, a config that does not reproduce the digest, a non-empty target, or an archive member, manifest or digest that import does not accept.
+Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing or unsafe input, an existing output, a config that does not reproduce the digest, a non-empty target, a member that differs from the manifest (import and inspect), or an archive member, manifest or digest that import does not accept. `repro inspect` exits `0` when provenance is merely unavailable.
 
 ### migrate: Find and Convert v1 Code
 

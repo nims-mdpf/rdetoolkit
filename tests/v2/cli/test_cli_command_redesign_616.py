@@ -82,6 +82,7 @@ EXPECTED_TREE = {
     "repro",
     "repro export",
     "repro import",
+    "repro inspect",
     "migrate",
     "migrate check",
     "migrate apply",
