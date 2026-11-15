@@ -21,9 +21,11 @@ from typing import Any, Final
 import pandas as pd
 from matplotlib.figure import Figure
 
-from rdetoolkit.graph.exceptions import ArtifactCollisionError, UnsupportedFormatError
+from rdetoolkit.graph.exceptions import ArtifactCollisionError, PlotRequestError, UnsupportedFormatError
 from rdetoolkit.graph.naming import GraphDiagnostic, collision_key
 from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan, _as_frames, build_plot_plan
+from rdetoolkit.graph.readers.base import DetectionDecision, TableData, TableReader
+from rdetoolkit.graph.readers.registry import AUTO, ReaderRegistry, _load_table
 from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
 from rdetoolkit.graph.renderers.mpl_runtime import DEFAULT_EXPORT_DPI, detach_figure, export_figure, style_scope
 from rdetoolkit.graph.result import Artifact, ArtifactRole, GraphResult
@@ -34,31 +36,42 @@ IMAGE_FORMATS: Final = ("png", "svg", "pdf")
 
 
 def render_graph(
-    source: pd.DataFrame | Sequence[pd.DataFrame],
+    source: pd.DataFrame | Sequence[pd.DataFrame] | TableData | str | Path,
     spec: GraphSpec | None = None,
     *,
     output: OutputSpec | None = None,
+    reader: str | TableReader = AUTO,
+    readers: ReaderRegistry | None = None,
 ) -> GraphResult:
     """Plan and render a graph from a spec.
 
     Args:
-        source: One DataFrame or a sequence of DataFrames (planned frame-major).
+        source: One DataFrame or a sequence of DataFrames (planned frame-major), a
+            ``TableData``, or a file path read by a table reader.
         spec: What to plot; ``None`` uses ``GraphSpec()``.
         output: Where to write; ``None`` returns caller-owned in-memory figures
             (``Artifact.format == "figure"``).
+        reader: For path sources: a reader id, ``"auto"`` (the reader claiming the
+            suffix) or a ``TableReader`` instance.
+        readers: For path sources: a caller registry consulted before the builtin
+            readers and the ``rdetoolkit.graph.readers`` entry points.
 
     Returns:
         The executed plan and one artifact per figure (and per format when written).
 
     Raises:
-        TypeError: If ``source`` is not a DataFrame or a sequence of DataFrames.
-        PlotRequestError: For an invalid spec or column reference.
+        TypeError: If ``source`` is not a DataFrame, a sequence of DataFrames, a
+            ``TableData`` or a path.
+        PlotRequestError: For an invalid spec or column reference, or
+            (``reason="contradictory_switches"``) reader options with a non-path source.
+        UnknownReaderError: For a reader id registered nowhere.
+        AmbiguousFormatError: When several readers claim the path suffix under ``"auto"``.
         UnsupportedFormatError: For a format no renderer supports, before rendering.
         OutputPathError: For an unsafe destination, before rendering.
         ArtifactCollisionError: For clashing destinations, or an existing file with
             ``on_existing="error"``, before rendering.
     """
-    frames = _load_source(source)
+    frames, detection = _load_source(source, reader, readers)
     plan = build_plot_plan(frames, spec, base_name="plot" if output is None else output.base_name)
     data = PlotData(frames=frames)
     if output is None:
@@ -66,12 +79,24 @@ def render_graph(
     else:
         jobs = _plan_artifacts(plan, output)
         artifacts = _render_to_sink(plan, data, jobs, output)
-    return GraphResult(plan=plan, artifacts=artifacts, detection=None, diagnostics=plan.diagnostics)
+    return GraphResult(plan=plan, artifacts=artifacts, detection=detection, diagnostics=plan.diagnostics)
 
 
-def _load_source(source: pd.DataFrame | Sequence[pd.DataFrame]) -> tuple[pd.DataFrame, ...]:
-    """Turn the source into frames (path sources and readers arrive with GE-04)."""
-    return _as_frames(source)
+def _load_source(
+    source: pd.DataFrame | Sequence[pd.DataFrame] | TableData | str | Path,
+    reader: str | TableReader,
+    readers: ReaderRegistry | None,
+) -> tuple[tuple[pd.DataFrame, ...], DetectionDecision | None]:
+    """Turn the source into frames; a path is read by the resolved table reader."""
+    if isinstance(source, (str, Path)):
+        table, decision = _load_table(source, reader=reader, readers=readers)
+        return (table.frame,), decision
+    if not (isinstance(reader, str) and reader == AUTO) or readers is not None:
+        msg = "reader= and readers= apply to path sources only; this source is already a table"
+        raise PlotRequestError(msg, reason="contradictory_switches")
+    if isinstance(source, TableData):
+        return (source.frame,), None
+    return _as_frames(source), None
 
 
 @dataclass(frozen=True, slots=True)

@@ -443,6 +443,33 @@ def _axis_limit_option_hint(
     return f"--{axis}lim"
 
 
+def _validate_csv_format(csv_format: str) -> None:
+    """Accept a builtin reader id, ``auto``, or the id of an installed reader entry point.
+
+    Entry points are consulted only for an id that is not builtin, so the legacy
+    formats never depend on installed plugins.
+
+    Args:
+        csv_format: Value of ``--csv-format``.
+
+    Raises:
+        typer.BadParameter: For an id registered nowhere, or conflicting reader entry points.
+    """
+    from rdetoolkit.graph.exceptions import DuplicateReaderError
+    from rdetoolkit.graph.readers import builtin_readers, discover_readers
+
+    known = {"auto", *builtin_readers().ids()}
+    if csv_format in known:
+        return
+    try:
+        known.update(discover_readers().ids())
+    except DuplicateReaderError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--csv-format") from exc
+    if csv_format not in known:
+        msg = f"Invalid csv-format: {csv_format}. Choose from {sorted(known)}"
+        raise typer.BadParameter(msg, param_hint="--csv-format")
+
+
 @app.command("plot", help=PLOT_HELP.render(), short_help=PLOT_HELP.summary, rich_help_panel=PANEL_GENERATE)
 def plot(
     csv_path: Annotated[Path, typer.Argument(metavar="CSV_PATH", help="Path to CSV file", exists=False, dir_okay=False)],
@@ -503,13 +530,7 @@ def plot(
     from typing import Literal, cast
     from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
 
-    # Validate csv_format
-    if csv_format not in ["standard", "transpose", "noheader"]:
-        msg = f"Invalid csv-format: {csv_format}. Choose from ['standard', 'transpose', 'noheader']"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--csv-format",
-        )
+    _validate_csv_format(csv_format)
 
     # Validate mode
     if mode not in ["overlay", "individual"]:

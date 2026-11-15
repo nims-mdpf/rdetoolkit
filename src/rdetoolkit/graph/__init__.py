@@ -73,6 +73,19 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "PlotData": ("rdetoolkit.graph.plan", "PlotData"),
     "GraphResult": ("rdetoolkit.graph.result", "GraphResult"),
     "Artifact": ("rdetoolkit.graph.result", "Artifact"),
+    "TableReader": ("rdetoolkit.graph.readers", "TableReader"),
+    "TableData": ("rdetoolkit.graph.readers", "TableData"),
+    "ColumnProvenance": ("rdetoolkit.graph.readers", "ColumnProvenance"),
+    "ReaderRegistry": ("rdetoolkit.graph.readers", "ReaderRegistry"),
+    "builtin_readers": ("rdetoolkit.graph.readers", "builtin_readers"),
+    "discover_readers": ("rdetoolkit.graph.readers", "discover_readers"),
+    "read_table": ("rdetoolkit.graph.readers", "read_table"),
+    "DetectionDecision": ("rdetoolkit.graph.readers", "DetectionDecision"),
+    "FormatCandidate": ("rdetoolkit.graph.readers", "FormatCandidate"),
+    "UnknownReaderError": ("rdetoolkit.graph.exceptions", "UnknownReaderError"),
+    "AmbiguousFormatError": ("rdetoolkit.graph.exceptions", "AmbiguousFormatError"),
+    "DuplicateReaderError": ("rdetoolkit.graph.exceptions", "DuplicateReaderError"),
+    "ReaderPluginError": ("rdetoolkit.graph.exceptions", "ReaderPluginError"),
 }
 
 __all__ = list(_LAZY_ATTRS.keys())

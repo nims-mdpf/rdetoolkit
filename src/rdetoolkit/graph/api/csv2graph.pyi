@@ -86,7 +86,7 @@ def csv2graph(
     output_dir: str | Path | None = None,
     main_image_dir: str | Path | None = None,
     html_output_dir: str | Path | None = None,
-    csv_format: Literal["standard", "transpose", "noheader"] = "standard",
+    csv_format: Literal["standard", "transpose", "noheader"] | str = "standard",
     logy: bool = False,
     logx: bool = False,
     html: bool = False,

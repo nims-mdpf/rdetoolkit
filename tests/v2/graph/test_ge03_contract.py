@@ -41,7 +41,7 @@ Negative table:
 | SeriesSpec / GraphSpec | column ref float / bool / list; non-SeriesSpec entry | TypeError | TC-GE03-NEG-003 |
 | build_plot_plan | unknown label, position -1 / n, label on two columns | PlotRequestError(unknown_column / ambiguous_column) | TC-GE03-NEG-004 |
 | render_graph | only an x column / no column / no frame | ValueError "at least one y column", nothing written | TC-GE03-NEG-005 |
-| render_graph | str / Path / bytes / dict / list with non-frame | TypeError, nothing written | TC-GE03-NEG-006 |
+| render_graph | bytes / bytearray / dict / list with non-frame / list of str | TypeError, nothing written; str / Path read as a file | TC-GE03-NEG-006 |
 | OutputSpec | no format, empty/non-str format, empty base name, dpi 0 / -1 / True | PlotRequestError(invalid_spec) | TC-GE03-NEG-007 |
 | render_graph | format html / jpg | UnsupportedFormatError, no directory created | TC-GE03-NEG-008 |
 | render_graph | existing destination with on_existing="error" | ArtifactCollisionError, nothing written | TC-GE03-NEG-009 |
@@ -480,9 +480,11 @@ def test_render_graph_accepts_only_a_spec__tc_ge03_ep_012() -> None:
     """TC-GE03-EP-012: advanced callers configure through the spec, never through competing keywords."""
     # Given: the render_graph signature
     parameters = inspect.signature(engine.render_graph).parameters
-    # Then: it is (source, spec, *, output) and a legacy keyword is a TypeError
-    assert list(parameters) == ["source", "spec", "output"]
-    assert parameters["output"].kind is inspect.Parameter.KEYWORD_ONLY
+    # Then: it is (source, spec, *, output, reader, readers) and a legacy keyword is a TypeError
+    # (reader/readers were appended by GE-04 and configure path sources only)
+    assert list(parameters) == ["source", "spec", "output", "reader", "readers"]
+    assert all(parameters[name].kind is inspect.Parameter.KEYWORD_ONLY for name in ("output", "reader", "readers"))
+    assert (parameters["reader"].default, parameters["readers"].default) == ("auto", None)
     with pytest.raises(TypeError):
         engine.render_graph(_multi_y(), GraphSpec(), mode="individual")  # type: ignore[call-arg]
 
@@ -713,12 +715,23 @@ def test_requests_without_series_fail_with_the_legacy_message__tc_ge03_neg_005(f
     assert not (tmp_path / "out").exists()
 
 
-@pytest.mark.parametrize("source", ["data.csv", Path("data.csv"), b"a,b", {"x": [1]}, [pd.DataFrame({"x": [1], "y": [2]}), "frame"], 3])
+@pytest.mark.parametrize("source", [b"a,b", bytearray(b"a,b"), {"x": [1]}, [pd.DataFrame({"x": [1], "y": [2]}), "frame"], ["data.csv"], 3])
 def test_non_frame_sources_are_type_errors__tc_ge03_neg_006(source: Any, tmp_path: Path) -> None:
-    """TC-GE03-NEG-006: until readers exist, the source must be DataFrames (a str is not iterated)."""
+    """TC-GE03-NEG-006: a non-frame, non-path source is a TypeError; a str is a path, never iterated."""
     # Given/When/Then
     with pytest.raises(TypeError, match="DataFrame"):
         engine.render_graph(source, output=OutputSpec(DirectorySink(tmp_path / "out")))
+    assert not (tmp_path / "out").exists()
+
+
+@pytest.mark.parametrize("as_str", [True, False])
+def test_path_sources_are_read_not_iterated__tc_ge03_neg_006b(as_str: bool, tmp_path: Path) -> None:
+    """TC-GE03-NEG-006: since GE-04 a str/Path source is a file path (missing -> FileNotFoundError)."""
+    # Given: a path that does not exist
+    missing = tmp_path / "data.csv"
+    # When/Then: it is opened as one file, not iterated character by character
+    with pytest.raises(FileNotFoundError, match="data.csv"):
+        engine.render_graph(str(missing) if as_str else missing, output=OutputSpec(DirectorySink(tmp_path / "out")))
     assert not (tmp_path / "out").exists()
 
 

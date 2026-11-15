@@ -347,7 +347,7 @@ def csv2graph(
     output_dir: str | Path | None = None,
     main_image_dir: str | Path | None = None,
     html_output_dir: str | Path | None = None,
-    csv_format: Literal["standard", "transpose", "noheader"] = "standard",
+    csv_format: str = "standard",
     logy: bool = False,
     logx: bool = False,
     html: bool = False,
@@ -387,7 +387,8 @@ def csv2graph(
         main_image_dir: Directory for combined plot outputs
                         (overrides output_dir for non-HTML overlay artifacts)
         html_output_dir: Directory for HTML outputs (default: CSV directory)
-        csv_format: CSV format type ("standard", "transpose", "noheader")
+        csv_format: Reader id: "standard", "transpose", "noheader", "meta_block",
+            "auto", or the id of a registered ``rdetoolkit.graph.readers`` entry point
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
         html: Generate interactive HTML output with Plotly
@@ -432,11 +433,14 @@ def csv2graph(
         ...     grid=True,
         ... )
     """
-    from rdetoolkit.graph.parsers.parser_factory import ParserFactory
+    from rdetoolkit.graph.readers import read_table
 
     csv_path = Path(csv_path)
-    parser = ParserFactory.create(csv_format)
-    df = parser.parse(csv_path)
+    # The three legacy ids stay case-insensitive as with ParserFactory.create; any
+    # other id (or "auto") goes through the reader registry and its entry points.
+    legacy_id = csv_format.lower()
+    reader_id = legacy_id if legacy_id in ("standard", "transpose", "noheader") else csv_format
+    df = read_table(csv_path, reader=reader_id).frame
 
     if html_output_dir is not None and not isinstance(html_output_dir, (str, Path)):
         msg = "html_output_dir must be a str, Path, or None"

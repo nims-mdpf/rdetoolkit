@@ -1,0 +1,6 @@
+! title = Sample run
+! instrument = vendor X-1
+time (s)	signal (mV)
+0	1.5
+1	2.5
+2	4.0
