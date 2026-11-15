@@ -25,7 +25,7 @@ EP table:
 | build_plot_plan | several frames | frame-major series | TC-GE03-EP-009 |
 | PlotData.segments | direction column with NA, enum, filter | filtered, normalized, first-appearance order | TC-GE03-EP-010 |
 | PlotPlan.with_labels | one label per series | labels, legend roles and individual titles recomputed | TC-GE03-EP-011 |
-| render_graph | spec-only signature | (source, spec, output); legacy keywords rejected | TC-GE03-EP-012 |
+| render_graph | spec-only signature | (source, spec, output, reader, readers, renderers); legacy keywords rejected | TC-GE03-EP-012 |
 | csv2graph / plot_from_dataframe | v1 defaults, 27 positional arguments, return_fig | v1 artifacts and return values | TC-GE03-EP-013 |
 | graph exceptions | the classes of design 3.1 | builtin bases kept | TC-GE03-EP-014 |
 | rdetoolkit.graph | public surface | GE-03 names exported, internals not | TC-GE03-EP-015 |
@@ -43,13 +43,13 @@ Negative table:
 | render_graph | only an x column / no column / no frame | ValueError "at least one y column", nothing written | TC-GE03-NEG-005 |
 | render_graph | bytes / bytearray / dict / list with non-frame / list of str | TypeError, nothing written; str / Path read as a file | TC-GE03-NEG-006 |
 | OutputSpec | no format, empty/non-str format, empty base name, dpi 0 / -1 / True | PlotRequestError(invalid_spec) | TC-GE03-NEG-007 |
-| render_graph | format html / jpg | UnsupportedFormatError, no directory created | TC-GE03-NEG-008 |
+| render_graph | format html (for individual figures) / jpg | UnsupportedFormatError, no directory created | TC-GE03-NEG-008 |
 | render_graph | existing destination with on_existing="error" | ArtifactCollisionError, nothing written | TC-GE03-NEG-009 |
 | DirectorySink | separator / ".." / empty name, file as directory, symlink escape | OutputPathError (ValueError, legacy text) | TC-GE03-NEG-010 |
 | render_graph | sink mapping two artifacts to one file | ArtifactCollisionError before anything is written | TC-GE03-NEG-011 |
 | Artifact | neither / both of path and figure | ValueError | TC-GE03-NEG-012 |
 | spec / plan / result types | attribute or mapping assignment, caller mutation | FrozenInstanceError / TypeError / unaffected | TC-GE03-NEG-013 |
-| render_graph | export failure on a later figure | nothing written, no figure left open | TC-GE03-NEG-014 |
+| render_graph | export failure on a later figure (injected renderer) | nothing written, every rendered figure closed, none left open | TC-GE03-NEG-014 |
 | PlotPlan.with_labels | label count differs | ValueError "1 labels for 2 series" | TC-GE03-NEG-015 |
 | AxisSpec / StyleSpec | limits / figure_size not a pair, rc_params not a mapping | PlotRequestError(invalid_spec) | TC-GE03-NEG-016 |
 | GraphSpec | x given with x_default="index" | PlotRequestError(contradictory_switches) | TC-GE03-NEG-017 |
@@ -106,6 +106,8 @@ from rdetoolkit.graph.exceptions import (
 from rdetoolkit.graph.models import Direction, MatplotlibArtifact
 from rdetoolkit.graph.outputs import DirectorySink
 from rdetoolkit.graph.plan import GraphDiagnostic, PlotData, PlotPlan, build_plot_plan
+from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
+from rdetoolkit.graph.renderers.registry import RendererRegistry
 from rdetoolkit.graph.result import Artifact, GraphResult
 from rdetoolkit.graph.spec import SPEC_VERSION, AxisSpec, GraphSpec, LegendSpec, OutputSpec, SeriesSpec, StyleSpec
 
@@ -480,11 +482,11 @@ def test_render_graph_accepts_only_a_spec__tc_ge03_ep_012() -> None:
     """TC-GE03-EP-012: advanced callers configure through the spec, never through competing keywords."""
     # Given: the render_graph signature
     parameters = inspect.signature(engine.render_graph).parameters
-    # Then: it is (source, spec, *, output, reader, readers) and a legacy keyword is a TypeError
-    # (reader/readers were appended by GE-04 and configure path sources only)
-    assert list(parameters) == ["source", "spec", "output", "reader", "readers"]
-    assert all(parameters[name].kind is inspect.Parameter.KEYWORD_ONLY for name in ("output", "reader", "readers"))
-    assert (parameters["reader"].default, parameters["readers"].default) == ("auto", None)
+    # Then: it is (source, spec, *, output, reader, readers, renderers) and a legacy keyword is a TypeError
+    # (reader/readers were appended by GE-04 and configure path sources only; renderers by GE-07)
+    assert list(parameters) == ["source", "spec", "output", "reader", "readers", "renderers"]
+    assert all(parameters[name].kind is inspect.Parameter.KEYWORD_ONLY for name in ("output", "reader", "readers", "renderers"))
+    assert (parameters["reader"].default, parameters["readers"].default, parameters["renderers"].default) == ("auto", None, None)
     with pytest.raises(TypeError):
         engine.render_graph(_multi_y(), GraphSpec(), mode="individual")  # type: ignore[call-arg]
 
@@ -892,25 +894,37 @@ def test_contract_values_are_frozen__tc_ge03_neg_013() -> None:
             mapping["x"] = "y"  # type: ignore[index]
 
 
-def test_failure_after_the_first_figure_writes_nothing__tc_ge03_neg_014(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_failure_after_the_first_figure_writes_nothing__tc_ge03_neg_014(tmp_path: Path) -> None:
     """TC-GE03-NEG-014: every figure is rendered and exported before the first write."""
-    # Given: an exporter that fails on the second figure
-    calls = {"n": 0}
-    original = engine._export
 
-    def flaky(fig: Any, fmt: str, dpi: int) -> bytes:
-        calls["n"] += 1
-        if calls["n"] == 2:
-            msg = "disk full"
-            raise OSError(msg)
-        return original(fig, fmt, dpi)
+    # Given: a Matplotlib renderer, injected through the public registry, whose export
+    # fails on the second figure and which records every figure it is asked to close
+    class FlakyMatplotlib(MatplotlibRenderer):
+        def __init__(self) -> None:
+            super().__init__()
+            self.exported: list[Figure] = []
+            self.closed: list[Figure] = []
 
-    monkeypatch.setattr(engine, "_export", flaky)
+        def export(self, handle: Figure, fmt: str, *, dpi: int) -> bytes:
+            self.exported.append(handle)
+            if len(self.exported) == 2:
+                msg = "disk full"
+                raise OSError(msg)
+            return super().export(handle, fmt, dpi=dpi)
+
+        def close(self, handle: Figure) -> None:
+            self.closed.append(handle)
+            super().close(handle)
+
+    flaky = FlakyMatplotlib()
     # When/Then: the error propagates, nothing is written and no figure stays open
     with pytest.raises(OSError, match="disk full"):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out")))
+        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out")), renderers=RendererRegistry([flaky]))
     assert not (tmp_path / "out").exists()
     assert plt.get_fignums() == []
+    # And: both rendered figures (the exported one and the failing one) were closed
+    assert len(flaky.exported) == 2
+    assert flaky.closed == flaky.exported
 
 
 def test_in_memory_failure_closes_figures_already_rendered__tc_ge03_neg_014(monkeypatch: pytest.MonkeyPatch) -> None:

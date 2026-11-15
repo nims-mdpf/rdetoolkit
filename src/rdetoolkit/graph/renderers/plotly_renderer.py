@@ -19,18 +19,20 @@ try:
     import plotly.graph_objs as go
 except ImportError:  # pragma: no cover - exercised in environments without plotly
     go = None
-    _PLOTLY_IMPORT_ERROR = (
-        "Plotly is required for HTML output but is not installed. "
-        "Install it with: pip install plotly"
-    )
-else:
-    _PLOTLY_IMPORT_ERROR = ""
 
 from rdetoolkit.graph import compat
+from rdetoolkit.graph.exceptions import RendererUnavailableError, UnsupportedFormatError
 from rdetoolkit.graph.legend_policy import resolve_legend_policy
 from rdetoolkit.graph.models import PlotConfig
 from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan
+from rdetoolkit.graph.renderers.base import RendererCapabilities
 from rdetoolkit.graph.spec import AxisSpec, LegendSpec
+
+_PLOTLY_INSTALL_HINT: Final = 'pip install "rdetoolkit[plotly]"'
+_PLOTLY_IMPORT_ERROR: Final = (
+    "Plotly is required for HTML output but is not installed. "
+    f"Install it with: {_PLOTLY_INSTALL_HINT}"
+)
 
 DEFAULT_PLOTLY_COLORS = [
     "#1f77b4",
@@ -46,6 +48,15 @@ DEFAULT_PLOTLY_COLORS = [
 ]
 _TRACE_MODES: Final = {"line": "lines", "scatter": "markers"}
 _PIXELS_PER_INCH: Final = 100
+# Individual figures stay out of the declared kinds: HTML is an overlay artifact
+# (format matrix), although ``render`` itself can draw any planned figure.
+_CAPABILITIES: Final = RendererCapabilities(
+    renderer_id="plotly",
+    formats=frozenset({"html"}),
+    figure_kinds=frozenset({"overlay"}),
+    requires=("plotly",),
+    install_hint=_PLOTLY_INSTALL_HINT,
+)
 
 
 class PlotlyRenderer:
@@ -58,6 +69,34 @@ class PlotlyRenderer:
         - Position-based series colours shared with the Matplotlib renderer
     """
 
+    @property
+    def capabilities(self) -> RendererCapabilities:
+        """HTML for overlay figures; needs the optional ``plotly`` module."""
+        return _CAPABILITIES
+
+    def export(self, handle: Any, fmt: str, *, dpi: int) -> bytes:  # noqa: ARG002 - HTML has no resolution
+        """Serialize a figure as the HTML document ``write_html`` would write.
+
+        Args:
+            handle: A figure returned by ``render``.
+            fmt: ``"html"``.
+            dpi: Ignored.
+
+        Returns:
+            The UTF-8 encoded HTML document.
+
+        Raises:
+            UnsupportedFormatError: For any other format.
+        """
+        if fmt.lower() != "html":
+            msg = f"PlotlyRenderer cannot export {fmt!r}; supported formats: ['html']"
+            raise UnsupportedFormatError(msg)
+        html: str = handle.to_html()
+        return html.encode("utf-8")
+
+    def close(self, handle: Any) -> None:
+        """Release a figure; Plotly figures hold no external resources."""
+
     def render_html(self, df: pd.DataFrame, config: PlotConfig) -> go.Figure:
         """Render an interactive HTML graph (legacy adapter).
 
@@ -69,7 +108,7 @@ class PlotlyRenderer:
             plotly.graph_objs.Figure object
 
         Raises:
-            ImportError: If Plotly is not installed.
+            RendererUnavailableError: An ``ImportError``, if Plotly is not installed.
             ValueError: For column specs that cannot be planned.
         """
         self._ensure_plotly_available()
@@ -93,7 +132,7 @@ class PlotlyRenderer:
             plotly.graph_objs.Figure object
 
         Raises:
-            ImportError: If Plotly is not installed.
+            RendererUnavailableError: An ``ImportError``, if Plotly is not installed.
         """
         self._ensure_plotly_available()
         by_id = {entry.series_id: entry for entry in plan.series}
@@ -120,8 +159,9 @@ class PlotlyRenderer:
         )
 
     def _ensure_plotly_available(self) -> None:
-        if go is None:  # pragma: no cover - hit only when plotly missing
-            raise ImportError(_PLOTLY_IMPORT_ERROR)
+        # Kept in the render path in addition to the engine's up-front check (C-14).
+        if go is None:
+            raise RendererUnavailableError(_PLOTLY_IMPORT_ERROR)
 
     @staticmethod
     def _series_traces(plan: PlotPlan, series: SeriesPlan, data: PlotData) -> list[Any]:

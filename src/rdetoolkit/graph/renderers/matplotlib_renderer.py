@@ -29,12 +29,14 @@ from matplotlib.ticker import (
 
 from rdetoolkit.graph import compat
 from rdetoolkit.graph.config import apply_matplotlib_config
+from rdetoolkit.graph.exceptions import UnsupportedFormatError
 from rdetoolkit.graph.legend_policy import (
     resolve_legend_policy as _resolve_legend_policy,
 )
 from rdetoolkit.graph.models import AxisConfig, LegendConfig, PlotConfig
 from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan
-from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, draw_series, new_figure, style_scope
+from rdetoolkit.graph.renderers.base import RendererCapabilities
+from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, draw_series, export_figure, new_figure, style_scope
 from rdetoolkit.graph.spec import AxisSpec, LegendSpec
 
 CENTER_POSITION = 0.5
@@ -44,6 +46,12 @@ DEFAULT_OUTSIDE_LEGEND_NCOL = 3
 OUTSIDE_LEGEND_MARGIN_INCHES = 0.2
 _LINE_WIDTH: Final = 1.5
 _NO_LEGEND: Final = "_nolegend_"
+_CAPABILITIES: Final = RendererCapabilities(
+    renderer_id="matplotlib",
+    formats=frozenset({"png", "svg", "pdf"}),
+    figure_kinds=frozenset({"overlay", "individual"}),
+    applies_rc_params=True,
+)
 
 
 class _LegendSource(Protocol):
@@ -69,6 +77,38 @@ class MatplotlibRenderer:
     def __init__(self) -> None:
         """Create a renderer; it remembers the last legacy plan it built."""
         self._memo: _PlanMemo | None = None
+
+    @property
+    def capabilities(self) -> RendererCapabilities:
+        """PNG, SVG and PDF for overlay and individual figures; applies rcParams."""
+        return _CAPABILITIES
+
+    def export(self, handle: Figure, fmt: str, *, dpi: int) -> bytes:
+        """Serialize a figure the way the legacy ``FileWriter`` saves it (tight bounding box).
+
+        Args:
+            handle: A figure returned by ``render``.
+            fmt: ``"png"``, ``"svg"`` or ``"pdf"``.
+            dpi: Raster resolution.
+
+        Returns:
+            The file content.
+
+        Raises:
+            UnsupportedFormatError: For any other format.
+        """
+        if fmt.lower() not in _CAPABILITIES.formats:
+            msg = f"MatplotlibRenderer cannot export {fmt!r}; supported formats: {sorted(_CAPABILITIES.formats)}"
+            raise UnsupportedFormatError(msg)
+        return export_figure(handle, fmt.lower(), dpi=dpi)
+
+    def close(self, handle: Figure) -> None:
+        """Release a figure; a no-op for the pyplot-free figures ``render`` returns.
+
+        Args:
+            handle: A figure; one registered with pyplot is closed there.
+        """
+        plt.close(handle)
 
     def render(self, plan: PlotPlan, figure: FigurePlan, data: PlotData) -> Figure:
         """Draw one planned figure on a pyplot-free figure.

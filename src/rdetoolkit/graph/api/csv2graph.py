@@ -31,6 +31,7 @@ from rdetoolkit.graph.models import (
 from rdetoolkit.graph.exceptions import PlotRequestError
 from rdetoolkit.graph.normalizers import ColumnNormalizer
 from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, style_scope
+from rdetoolkit.graph.strategies.all_graphs import builtin_html_renderer
 from rdetoolkit.graph.strategies.render_coordinator import (
     build_matplotlib_artifacts,
     collect_render_results,
@@ -391,7 +392,9 @@ def csv2graph(
             "auto", or the id of a registered ``rdetoolkit.graph.readers`` entry point
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
-        html: Generate interactive HTML output with Plotly
+        html: Generate interactive HTML output with Plotly (needs the plotly
+            extra; a missing Plotly raises RendererUnavailableError, an
+            ImportError, before anything is drawn or written)
         mode: Plotting mode ("overlay" or "individual")
         x_col: X-axis column specification
         y_cols: Y-axis column(s) specification
@@ -535,7 +538,9 @@ def plot_from_dataframe(
         html_output_dir: Directory for HTML artifacts (defaults to output_dir)
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
-        html: Generate interactive HTML output with Plotly
+        html: Generate interactive HTML output with Plotly (needs the plotly
+            extra; a missing Plotly raises RendererUnavailableError, an
+            ImportError, before anything is drawn or written)
         mode: Plotting mode ("overlay" or "individual")
         x_col: X-axis column specification
         y_cols: Y-axis column(s) specification
@@ -625,6 +630,9 @@ def plot_from_dataframe(
     )
     display_title, base_filename = determine_titles(title=title, name=name)
     formats = determine_formats(html=html, return_fig=return_fig)
+    if "html" in formats:
+        # Fail on a missing Plotly before any figure is drawn or any file is written.
+        builtin_html_renderer()
 
     config = _build_plot_config(
         plot_mode=plot_mode,

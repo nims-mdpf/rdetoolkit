@@ -87,6 +87,12 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "AmbiguousFormatError": ("rdetoolkit.graph.exceptions", "AmbiguousFormatError"),
     "DuplicateReaderError": ("rdetoolkit.graph.exceptions", "DuplicateReaderError"),
     "ReaderPluginError": ("rdetoolkit.graph.exceptions", "ReaderPluginError"),
+    "GraphRenderer": ("rdetoolkit.graph.renderers.base", "GraphRenderer"),
+    "RendererCapabilities": ("rdetoolkit.graph.renderers.base", "RendererCapabilities"),
+    "RendererRegistry": ("rdetoolkit.graph.renderers.registry", "RendererRegistry"),
+    "builtin_renderers": ("rdetoolkit.graph.renderers.registry", "builtin_renderers"),
+    "RendererUnavailableError": ("rdetoolkit.graph.exceptions", "RendererUnavailableError"),
+    "UnsupportedFormatError": ("rdetoolkit.graph.exceptions", "UnsupportedFormatError"),
 }
 
 __all__ = list(_LAZY_ATTRS.keys())

@@ -665,6 +665,8 @@ Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列
 |---|---|---|---|---|
 | IC-11 | 同じ見出しを持つ 2 つの y 列を位置または既定の選択で指定する。`direction_cols` が `y_cols` より少ない状態で `PlotlyRenderer.render_html` を直接呼ぶ。凡例ラベルが等しい系列 | 同じ見出しは `ValueError`("resolved to a slice")。Plotly は短い方向列リストで `ValueError`。HTML はラベルの等しい系列をすべて凡例に並べ、同じ色にした | 両方の列をそれぞれのデータで描画する。短い方向列リストは画像と同様に補完する(足りない系列は方向列なし)。等しいラベルは凡例に 1 回だけ載り、色は画像でも HTML でも系列の位置で決まる。共有された見出しを名前で指定すると `PlotRequestError`(`reason="ambiguous_column"`) | 対処は不要。凡例で区別したい場合は列名またはラベルを変える |
 
+描画エンジンは差し替えられます。`render_graph` の `renderers` に `RendererRegistry` を渡すと、成果物ごとに、その形式と図の種類を `RendererCapabilities` で宣言している最初の描画エンジンが使われます。`GraphRenderer` プロトコル(`capabilities`、`render`、`export`、`close`)を満たす任意のオブジェクトを登録でき、rdetoolkit の内部を書き換える必要はありません。省略時は呼び出しごとに新しい `builtin_renderers()`(画像は Matplotlib、重ね描きの HTML は Plotly)を使います。対応しない形式、個別グラフの HTML、Plotly が入っていない環境での HTML は、ファイルやディレクトリを作る前に `UnsupportedFormatError` または `RendererUnavailableError`(`ImportError` の一種で、`pip install "rdetoolkit[plotly]"` を案内する)になります。`csv2graph` と `plot_from_dataframe` の `html=True` も、描画を始める前に Plotly の有無を確認します。従来も Plotly がなければファイルを書き出す前に `ImportError` で失敗していたため、`ImportError` を捕捉するコードはそのまま動きます。
+
 表形式の自動判定(`csv_format="auto"`、`--csv-format auto`、`render_graph` の既定 `reader="auto"`)は、ファイル先頭の限られた範囲(最大 64 KiB・50 行)だけを読み取り専用で調べ、判断の根拠を `DetectionDecision` として返します。確信が持てないファイルは推測せずにエラーにします。`csv2graph` と `rdetoolkit plot` の既定は従来どおり `standard` です。`rdetoolkit plot --detect` で、描画せずに判定結果(選ばれる読み取り方法、根拠、列名、行数)を確認できます。
 
 | ID | 変更 | v1 | v2 | 対処 |

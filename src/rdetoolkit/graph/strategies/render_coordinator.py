@@ -16,8 +16,9 @@ from rdetoolkit.graph.models import (
     RenderCollections,
     RenderResult,
 )
-from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
-from rdetoolkit.graph.strategies.all_graphs import OverlayStrategy
+from rdetoolkit.graph.renderers.base import BaseRenderer
+from rdetoolkit.graph.renderers.registry import RendererRegistry, builtin_renderers, check_requirements
+from rdetoolkit.graph.strategies.all_graphs import LegacyHtmlRenderer, OverlayStrategy, legacy_adapter
 from rdetoolkit.graph.strategies.individual import IndividualStrategy
 
 if TYPE_CHECKING:
@@ -25,11 +26,15 @@ if TYPE_CHECKING:
 
     from rdetoolkit.graph.models import PlotConfig
 
+_INDIVIDUAL_FORMAT = "png"  # IndividualStrategy writes PNG files
+
 
 def collect_render_results(
     df: pd.DataFrame,
     config: PlotConfig,
     plot_mode: PlotMode,
+    *,
+    renderers: RendererRegistry | None = None,
 ) -> RenderCollections:
     """Render graphs according to the selected strategy.
 
@@ -41,6 +46,9 @@ def collect_render_results(
         df: Input DataFrame containing data to plot
         config: Plot configuration specifying rendering parameters
         plot_mode: Rendering mode (overlay or individual)
+        renderers: Registry the renderers are selected from by capability; ``None``
+            uses a new ``builtin_renderers()`` registry for this call. Selected
+            renderers must provide the legacy adapter methods.
 
     Returns:
         RenderCollections containing overlay and individual render results
@@ -48,6 +56,10 @@ def collect_render_results(
     Raises:
         PlotRequestError: ``reason="no_figures"`` when individual mode is requested
             while ``config.output.no_individual`` disables individual plots.
+        UnsupportedFormatError: If no renderer covers a requested format.
+        RendererUnavailableError: If HTML is requested and the HTML renderer's
+            optional dependency (Plotly) is missing; raised before anything is drawn.
+        TypeError: If a selected renderer lacks the legacy adapter method.
 
     Examples:
         >>> from rdetoolkit.graph.models import PlotMode, PlotConfig
@@ -58,30 +70,45 @@ def collect_render_results(
         >>> len(results.overlay) > 0
         True
     """
-    renderer = MatplotlibRenderer()
-    overlay_results: list[RenderResult] = []
-    individual_results: list[RenderResult] = []
+    if plot_mode != PlotMode.OVERLAY and config.output.no_individual:
+        # Individual-only rendering with individual plots disabled can produce
+        # nothing; an empty result must not look like a successful run.
+        msg = "mode='individual' with no_individual=True produces no figures"
+        raise PlotRequestError(msg, reason="no_figures")
+    registry = builtin_renderers() if renderers is None else renderers
+    # Every renderer is selected and checked before the first figure is drawn.
+    overlay = _overlay_strategy(registry, config) if plot_mode == PlotMode.OVERLAY else None
+    individual = None if config.output.no_individual else IndividualStrategy(_legacy(registry, _INDIVIDUAL_FORMAT, "individual"))
 
-    if plot_mode == PlotMode.OVERLAY:
-        overlay_results = OverlayStrategy(renderer).render(df, config)
-        if not config.output.no_individual:
-            individual_output = IndividualStrategy(renderer).render(df, config)
-            if individual_output is not None:
-                individual_results = individual_output
-    else:
-        if config.output.no_individual:
-            # Individual-only rendering with individual plots disabled can produce
-            # nothing; an empty result must not look like a successful run.
-            msg = "mode='individual' with no_individual=True produces no figures"
-            raise PlotRequestError(msg, reason="no_figures")
-        individual_output = IndividualStrategy(renderer).render(df, config)
-        if individual_output is not None:
-            individual_results = individual_output
+    overlay_results: list[RenderResult] = [] if overlay is None else overlay.render(df, config)
+    # IndividualStrategy returns None only for no_individual, which built no strategy.
+    individual_results: list[RenderResult] = [] if individual is None else individual.render(df, config) or []
 
     return RenderCollections(
         overlay=overlay_results,
         individual=individual_results,
     )
+
+
+def _requested_formats(config: PlotConfig) -> list[str]:
+    return [fmt.lower() for fmt in (config.output.formats or ["png"])]
+
+
+def _overlay_strategy(registry: RendererRegistry, config: PlotConfig) -> OverlayStrategy:
+    formats = _requested_formats(config)
+    image_format = next((fmt for fmt in formats if fmt != "html"), "png")
+    html_renderer: LegacyHtmlRenderer | None = None
+    if "html" in formats:
+        selected = registry.for_format("html", "overlay")
+        check_requirements(selected)
+        html_renderer = legacy_adapter(selected, "render_html")
+    return OverlayStrategy(_legacy(registry, image_format, "overlay"), html_renderer=html_renderer)
+
+
+def _legacy(registry: RendererRegistry, fmt: str, kind: str) -> BaseRenderer:
+    method = "render_overlay" if kind == "overlay" else "render_individual"
+    renderer: BaseRenderer = legacy_adapter(registry.for_format(fmt, kind), method)
+    return renderer
 
 
 def build_matplotlib_artifacts(
