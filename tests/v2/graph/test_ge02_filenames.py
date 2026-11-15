@@ -346,7 +346,12 @@ def test_colliding_series_get_separate_files_v2_0__tc_ge02_ep_006(
     # And: every individual file holds a different figure
     assert len(set(_digests(out).values())) == len(headers)
     # And: exactly one collision warning was emitted for the group
-    assert len([w for w in record if issubclass(w.category, GraphUserWarning)]) == 1
+    graph_warnings = [str(w.message) for w in record if issubclass(w.category, GraphUserWarning)]
+    assert len([text for text in graph_warnings if "filename_collision" in text]) == 1
+    # And (GE-11): headers with different units add exactly one unit warning, others none
+    unit_warnings = [text for text in graph_warnings if "different units" in text]
+    assert len(unit_warnings) == (1 if headers == ["s: a (V)", "s: b (A)"] else 0)
+    assert len(graph_warnings) == 1 + len(unit_warnings)
 
 
 def test_unsafe_header_no_longer_fails_after_overlay_was_written_v2_0__tc_ge02_ep_007(tmp_path: Path) -> None:

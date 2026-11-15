@@ -519,7 +519,7 @@ def test_render_graph_figures_are_pyplot_free__tc_ge09_ep_011(tmp_path: Path, am
     # Given
     before = plt.get_fignums()
     # When: in memory
-    result = engine.render_graph(_multi_y(), GraphSpec(title="cell"))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", title="cell"))
     # Then: valid caller-owned figures that pyplot does not track
     assert len(result.artifacts) == 3
     assert all(isinstance(a.figure, Figure) and isinstance(a.figure.canvas, FigureCanvasAgg) for a in result.artifacts)
@@ -528,7 +528,7 @@ def test_render_graph_figures_are_pyplot_free__tc_ge09_ep_011(tmp_path: Path, am
     assert result.artifacts[0].figure.axes[0].title.get_fontsize() == pytest.approx(20 * 1.2)
     assert _png(result.artifacts[0].figure).startswith(b"\x89PNG")
     # When: written
-    written = engine.render_graph(_multi_y(), GraphSpec(title="cell"), output=OutputSpec(DirectorySink(tmp_path / "out")))
+    written = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", title="cell"), output=OutputSpec(DirectorySink(tmp_path / "out")))
     # Then
     assert len([a for a in written.artifacts if a.path]) == 3
     assert plt.get_fignums() == before
@@ -555,7 +555,7 @@ def test_render_graph_failure_restores_style__tc_ge09_neg_008(
     output = OutputSpec(DirectorySink(tmp_path / "out")) if to_disk else None
     # When/Then
     with pytest.raises(RuntimeError, match="draw failed"):
-        engine.render_graph(_multi_y(), output=output)
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=output)
     assert plt.get_fignums() == []
     assert _rc() == ambient
     assert not (tmp_path / "out").exists()
@@ -573,8 +573,8 @@ def test_no_entry_point_switches_the_backend__tc_ge09_ep_013(tmp_path: Path, mon
     monkeypatch.setattr(mpl, "use", forbidden)
     monkeypatch.setattr(plt, "switch_backend", forbidden)
     # When: every entry point renders
-    engine.render_graph(_multi_y())
-    engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "engine")))
+    engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"))
+    engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "engine")))
     plot_from_dataframe(_multi_y(), output_dir=tmp_path / "facade")
     plot_from_dataframe(_multi_y(), output_dir=tmp_path / "facade", return_fig=True)
     # Then

@@ -164,11 +164,11 @@ def test_builder_emits_style_only_when_a_setter_was_called__tc_ge10_ep_002() -> 
 def test_graphspec_figure_size_changes_in_memory_and_written_figures__tc_ge10_ep_003(tmp_path: Path) -> None:
     """TC-GE10-EP-003: GraphSpec.style.figure_size drives render_graph, in memory and on disk."""
     # Given: a spec with a size
-    spec = GraphSpec(layout="overlay", style=StyleSpec(figure_size=(5, 4)))
+    spec = GraphSpec(unit_policy="allow", layout="overlay", style=StyleSpec(figure_size=(5, 4)))
     # When: rendering in memory and to files (default and sized)
     in_memory = engine.render_graph(_multi_y(), spec)
     engine.render_graph(_multi_y(), spec, output=OutputSpec(DirectorySink(tmp_path / "sized")))
-    engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "default")))
+    engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "default")))
     # Then: the figure is 5 x 4 and the written PNG is smaller than the 8.85 x 8 default
     assert len(in_memory.artifacts) == 1
     assert _size(in_memory.artifacts[0].figure) == (5.0, 4.0)
@@ -184,8 +184,8 @@ def test_graphspec_font_rc_changes_only_that_call__tc_ge10_ep_004() -> None:
     # Given: the caller's ambient style
     before = dict(mpl.rcParams)
     # When: rendering with font.size 9 and without
-    styled = engine.render_graph(_multi_y(), GraphSpec(layout="overlay", style=StyleSpec(rc_params={"font.size": 9, "xtick.labelsize": 9, "ytick.labelsize": 9})))
-    plain = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"))
+    styled = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay", style=StyleSpec(rc_params={"font.size": 9, "xtick.labelsize": 9, "ytick.labelsize": 9})))
+    plain = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"))
     # Then: the styled figure uses 9 pt everywhere, the plain one the house 20 pt, rcParams untouched
     assert _font_sizes(styled.artifacts[0].figure) == {9.0}
     assert 20.0 in _font_sizes(plain.artifacts[0].figure)
@@ -231,7 +231,7 @@ def test_direct_call_figure_saved_later_keeps_the_explicit_style_v2_0__tc_ge10_e
 def test_explicit_rc_overrides_one_default_and_keeps_the_others__tc_ge10_ep_006() -> None:
     """TC-GE10-EP-006: explicit style wins key by key over the house defaults."""
     # Given: an explicit font size only
-    result = engine.render_graph(_multi_y(), GraphSpec(layout="overlay", style=StyleSpec(rc_params={"font.size": 9})))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay", style=StyleSpec(rc_params={"font.size": 9})))
     fig = result.artifacts[0].figure
     ax = fig.axes[0]
     # Then: font.size is 9 (axis label), the house tick defaults (20 pt, inward) stay
@@ -248,8 +248,8 @@ def test_default_appearance_is_unchanged__tc_ge10_ep_007(tmp_path: Path) -> None
     frame = _multi_y()
     plot_from_dataframe(frame, tmp_path / "legacy", title="cell")
     # When: rendering through the spec API with no style and an explicit empty StyleSpec
-    engine.render_graph(frame, GraphSpec(title="cell"), output=OutputSpec(DirectorySink(tmp_path / "none"), base_name="cell"))
-    engine.render_graph(frame, GraphSpec(title="cell", style=StyleSpec()), output=OutputSpec(DirectorySink(tmp_path / "empty"), base_name="cell"))
+    engine.render_graph(frame, GraphSpec(title="cell", unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "none"), base_name="cell"))
+    engine.render_graph(frame, GraphSpec(title="cell", unit_policy="allow", style=StyleSpec()), output=OutputSpec(DirectorySink(tmp_path / "empty"), base_name="cell"))
     # Then: the overlay PNGs are byte-identical
     digests = {hashlib.sha256((tmp_path / name / "cell.png").read_bytes()).hexdigest() for name in ("legacy", "none", "empty")}
     assert len(digests) == 1
@@ -282,7 +282,7 @@ def test_plotly_size_only_for_an_explicit_figure_size__tc_ge10_ep_009() -> None:
 def test_scoped_font_family_survives_ticks_created_later__tc_ge10_ep_010() -> None:
     """TC-GE10-EP-010: tick labels created after detaching keep the scoped font family."""
     # Given: an in-memory figure drawn with a monospace font
-    result = engine.render_graph(_multi_y(), GraphSpec(layout="overlay", style=StyleSpec(rc_params={"font.family": ["monospace"]})))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay", style=StyleSpec(rc_params={"font.family": ["monospace"]})))
     fig = result.artifacts[0].figure
     ax = fig.axes[0]
     assert mpl.rcParams["font.family"] != ["monospace"]
@@ -310,8 +310,8 @@ def test_validate_style_normalizes_valid_input__tc_ge10_ep_011() -> None:
 def test_plan_records_the_resolved_style__tc_ge10_ep_012() -> None:
     """TC-GE10-EP-012: the plan carries the resolved style and its origins."""
     # Given/When
-    plan = build_plot_plan(_multi_y(), GraphSpec(style=StyleSpec(figure_size=(4, 3), rc_params={"font.size": 9})))
-    default = build_plot_plan(_multi_y())
+    plan = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow", style=StyleSpec(figure_size=(4, 3), rc_params={"font.size": 9})))
+    default = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow"))
     # Then
     assert plan.style.figure_size == (4.0, 3.0)
     assert dict(plan.style.rc_params) == {**DEFAULT_PLOT_PARAMS, "font.size": 9}
@@ -382,7 +382,7 @@ def test_render_graph_rejects_an_invalid_style_before_writing__tc_ge10_neg_005(t
     # When/Then
     for style, reason in ((StyleSpec(figure_size=(0, 4)), "invalid_figure_size"), (StyleSpec(rc_params={"backend": "agg"}), "invalid_rc_param")):
         with pytest.raises(PlotRequestError) as excinfo:
-            engine.render_graph(_multi_y(), GraphSpec(style=style), output=OutputSpec(DirectorySink(tmp_path / "out")))
+            engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", style=style), output=OutputSpec(DirectorySink(tmp_path / "out")))
         assert excinfo.value.reason == reason
     assert not (tmp_path / "out").exists()
     assert plt.get_fignums() == before_figs
@@ -413,7 +413,7 @@ def test_build_plot_plan_rejects_invalid_style__tc_ge10_neg_007() -> None:
     """TC-GE10-NEG-007: style validation is part of planning."""
     # Given/When/Then
     with pytest.raises(PlotRequestError) as excinfo:
-        build_plot_plan(_multi_y(), GraphSpec(style=StyleSpec(figure_size=(math.nan, 1))))
+        build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow", style=StyleSpec(figure_size=(math.nan, 1))))
     assert excinfo.value.reason == "invalid_figure_size"
 
 
@@ -461,7 +461,7 @@ def test_extreme_positive_sizes_are_accepted__tc_ge10_bv_001(size: tuple[float, 
 def test_empty_rc_mapping_is_the_default__tc_ge10_bv_002() -> None:
     """TC-GE10-BV-002: an empty rc mapping is valid and counts as not given."""
     # Given/When
-    plan = build_plot_plan(_multi_y(), GraphSpec(style=StyleSpec(rc_params={})))
+    plan = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow", style=StyleSpec(rc_params={})))
     # Then
     assert plan.origins["style.rc_params"] == "default"
     assert dict(plan.style.rc_params) == DEFAULT_PLOT_PARAMS

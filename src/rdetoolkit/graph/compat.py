@@ -154,11 +154,15 @@ def plan_from_config(
         layout="both",
         title=config.title,
         x_axis=_axis_spec(config.x_axis, axis_label_of(config.x_axis, "X")),
-        y_axis=_axis_spec(config.y_axis, axis_label_of(config.y_axis, "Y")),
+        y_axis=_axis_spec(config.y_axis, _y_axis_label(config.y_axis, axis_label_of)),
         legend=_legend_spec(config),
         direction_filter=_direction_filter(config.direction),
         direction_colors=_direction_colors(config.direction),
-        label_style="raw",
+        # Legend labels are replaced by ``label_of`` below; the style only shapes a
+        # derived y label, which then matches the facade's ``_format_axis_label``.
+        label_style="humanized",
+        # Mixed units on the legacy overlay are shared with a warning and a joined
+        # y label, never rejected: the legacy signatures cannot gain a policy switch.
         unit_policy="warn",
         # No style means the legacy look: the plan resolves it to the house defaults.
         style=StyleSpec() if config.style is None else config.style,
@@ -201,7 +205,14 @@ def _padded_directions(direction_cols: Sequence[ColumnRef | None] | None, count:
     return refs + [None] * (count - len(refs))
 
 
-def _axis_spec(axis: AxisConfig, label: str) -> AxisSpec:
+def _y_axis_label(axis: AxisConfig, axis_label_of: AxisLabelFunction) -> str | None:
+    """``None`` lets the planner derive the y label per figure from its series' units (GE-11)."""
+    if axis.label_origin == "derived":
+        return None
+    return axis_label_of(axis, "Y")
+
+
+def _axis_spec(axis: AxisConfig, label: str | None) -> AxisSpec:
     return AxisSpec(
         label=label,
         scale=axis.scale,

@@ -1,18 +1,38 @@
 {
-  "diagnostics": [],
-  "direction_colors": {},
-  "figures": [
+  "diagnostics": [
     {
-      "figure_id": "overlay",
-      "kind": "overlay",
+      "code": "unit_mismatch",
+      "message": "Series with different units were split into 2 overlay figures, one per unit: unit 'V': s000 (voltage (V)); unit 'A': s001 (current (A))",
       "series_ids": [
         "s000",
         "s001"
       ],
-      "stem": "cell",
+      "severity": "info"
+    }
+  ],
+  "direction_colors": {},
+  "figures": [
+    {
+      "figure_id": "overlay_g0",
+      "kind": "overlay",
+      "series_ids": [
+        "s000"
+      ],
+      "stem": "cell_v",
       "title": "cell",
       "x_label": "Time (s)",
       "y_label": "Voltage (V)"
+    },
+    {
+      "figure_id": "overlay_g1",
+      "kind": "overlay",
+      "series_ids": [
+        "s001"
+      ],
+      "stem": "cell_a",
+      "title": "cell",
+      "x_label": "Time (s)",
+      "y_label": "Current (A)"
     },
     {
       "figure_id": "s000",
@@ -91,7 +111,7 @@
       "series_id": "s001",
       "show_in_legend": true,
       "unit": "A",
-      "unit_group": 0,
+      "unit_group": 1,
       "x_index": 0,
       "x_name": "time (s)",
       "y_index": 2,
@@ -117,7 +137,12 @@
     [
       "V",
       [
-        "s000",
+        "s000"
+      ]
+    ],
+    [
+      "A",
+      [
         "s001"
       ]
     ]

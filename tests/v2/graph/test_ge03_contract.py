@@ -143,7 +143,7 @@ def _golden_requests() -> dict[str, tuple[Any, GraphSpec, str]]:
             GraphSpec(series=(SeriesSpec(y=1, x=0), SeriesSpec(y="b: voltage (V)", x="t2 (s)", label="B")), layout="both"),
             "mx",
         ),
-        "multi_y": (_multi_y(), GraphSpec(title="cell", y_axis=AxisSpec(scale="log", grid=True)), "cell"),
+        "multi_y": (_multi_y(), GraphSpec(unit_policy="split", title="cell", y_axis=AxisSpec(scale="log", grid=True)), "cell"),
         "direction": (
             direction,
             GraphSpec(
@@ -196,6 +196,22 @@ def test_plan_matches_golden_snapshot__tc_ge03_ep_001(name: str) -> None:
     assert _golden_text(plan) == (GOLDEN / f"plan_{name}.json").read_text(encoding="utf-8")
 
 
+def test_multi_y_golden_request_needs_its_unit_policy__tc_ge03_ep_001() -> None:
+    """TC-GE03-EP-001 (GE-11): without unit_policy="split" the V + A golden request is rejected."""
+    # Given: the multi-Y golden request with the default unit policy
+    frames, spec, base = _golden_requests()["multi_y"]
+    default = dataclasses.replace(spec, unit_policy="error")
+    # When/Then: planning raises unit_mismatch instead of sharing one mislabelled axis
+    with pytest.raises(PlotRequestError) as caught:
+        build_plot_plan(frames, default, base_name=base)
+    assert caught.value.reason == "unit_mismatch"
+    # And: the golden itself pins the split figures
+    split = build_plot_plan(frames, spec, base_name=base)
+    assert [(f.figure_id, f.stem, f.y_label) for f in split.figures[:2]] == [
+        ("overlay_g0", "cell_v", "Voltage (V)"), ("overlay_g1", "cell_a", "Current (A)"),
+    ]
+
+
 def test_golden_plans_record_the_resolved_decisions__tc_ge03_ep_001() -> None:
     """TC-GE03-EP-001: the golden content itself is what the contract promises."""
     # Given/When: the multi-X and direction plans
@@ -232,7 +248,7 @@ def test_to_dict_renders_values_without_json_form_as_text__tc_ge03_ep_002() -> N
         DARK = "dark"
 
     # Given: real rcParams (validated at plan time since GE-10) holding an enum, a tuple and an object
-    spec = GraphSpec(style=StyleSpec(rc_params={"svg.id": Shade.DARK, "path.effects": (1, 2), "savefig.directory": Path("p")}))
+    spec = GraphSpec(unit_policy="allow", style=StyleSpec(rc_params={"svg.id": Shade.DARK, "path.effects": (1, 2), "savefig.directory": Path("p")}))
     # When: snapshotting
     params = build_plot_plan(_multi_y(), spec).to_dict()["style"]["rc_params"]
     # Then: each value has a JSON form
@@ -242,8 +258,8 @@ def test_to_dict_renders_values_without_json_form_as_text__tc_ge03_ep_002() -> N
 def test_origins_distinguish_explicit_from_default_and_derived__tc_ge03_ep_003() -> None:
     """TC-GE03-EP-003: every resolved decision records where it came from."""
     # Given: a request that omits everything and one that states everything
-    implicit = build_plot_plan(_multi_y()).origins
-    explicit = build_plot_plan(_multi_y(), GraphSpec(
+    implicit = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow")).origins
+    explicit = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow", 
         x=0, title="T", series=(SeriesSpec(y=1, label="V", unit="mV"), SeriesSpec(y=2)),
         x_axis=AxisSpec(label="X", limits=(0, 1)), y_axis=AxisSpec(label="Y"),
         style=StyleSpec(figure_size=(4, 3), rc_params={"font.size": 9}),
@@ -277,7 +293,7 @@ def test_render_graph_in_memory_returns_caller_owned_figures__tc_ge03_ep_004() -
     # Given: two series (auto layout -> overlay + 2 individual) and the ambient rcParams
     before = dict(mpl.rcParams)
     # When: rendering without an output
-    result = engine.render_graph(_multi_y(), GraphSpec(title="cell"))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", title="cell"))
     # Then: every artifact has a figure handle, no path, the "figure" format and series identity
     assert isinstance(result, GraphResult)
     assert [(a.figure_id, a.kind, a.role, a.format, a.series_ids, a.labels) for a in result.artifacts] == [
@@ -293,7 +309,8 @@ def test_render_graph_in_memory_returns_caller_owned_figures__tc_ge03_ep_004() -
     overlay.canvas.draw()
     assert overlay.axes[0].get_legend() is not None
     assert [text.get_text() for text in overlay.axes[0].get_legend().get_texts()] == ["Voltage", "Current"]
-    assert overlay.axes[0].get_ylabel() == "Voltage (V)"
+    # GE-11: the deliberately shared V + A axis names both units
+    assert overlay.axes[0].get_ylabel() == "Voltage (V) / Current (A)"
     assert result.artifacts[2].figure.axes[0].get_ylabel() == "Current (A)"
     assert result.artifacts[2].figure.axes[0].get_title() == "cell - Current"
 
@@ -303,7 +320,7 @@ def test_render_graph_writes_every_figure_and_format__tc_ge03_ep_005(tmp_path: P
     # Given: a sink with a separate main-image directory and two formats
     sink = DirectorySink(tmp_path / "out", main_image_dir=tmp_path / "main")
     # When: rendering
-    result = engine.render_graph(_multi_y(), GraphSpec(title="cell"), output=OutputSpec(sink, formats=("PNG", "svg", "png"), base_name="cell"))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", title="cell"), output=OutputSpec(sink, formats=("PNG", "svg", "png"), base_name="cell"))
     # Then: 3 figures x 2 formats, overlay in main/, individuals in out/
     assert [(a.figure_id, a.format, a.role, a.path.parent.name, a.path.name) for a in result.artifacts if a.path] == [
         ("overlay", "png", "main_image", "main", "cell.png"),
@@ -325,7 +342,7 @@ def test_render_graph_overlay_png_equals_the_legacy_png__tc_ge03_ep_005(tmp_path
     frame = _multi_y()
     plot_from_dataframe(frame, tmp_path / "legacy", title="cell")
     # When: rendering through render_graph
-    engine.render_graph(frame, GraphSpec(title="cell"), output=OutputSpec(DirectorySink(tmp_path / "spec"), base_name="cell"))
+    engine.render_graph(frame, GraphSpec(title="cell", unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "spec"), base_name="cell"))
     # Then: overlay and first individual PNG are identical (later individuals get their own y label)
     for name in ("cell.png", "cell_voltage_(v).png"):
         assert hashlib.sha256((tmp_path / "spec" / name).read_bytes()).hexdigest() == hashlib.sha256((tmp_path / "legacy" / name).read_bytes()).hexdigest()
@@ -334,7 +351,7 @@ def test_render_graph_overlay_png_equals_the_legacy_png__tc_ge03_ep_005(tmp_path
 def test_manifest_is_versioned_and_machine_independent__tc_ge03_ep_006(tmp_path: Path) -> None:
     """TC-GE03-EP-006: the manifest records file names, never absolute paths."""
     # Given: a written result
-    result = engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path)))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path)))
     # When: building the manifest
     text = result.manifest_json()
     manifest = json.loads(text)
@@ -393,7 +410,7 @@ def test_label_style_rules__tc_ge03_ep_008(style: str, expected: list[str]) -> N
     # Given: headers with unit, series prefix and plain text
     frame = pd.DataFrame({"x": [0, 1], "cycle_count (n)": [1, 2], "grp: current (A)": [3, 4], "voltage": [5, 6]})
     # When: planning with the label style
-    plan = build_plot_plan(frame, GraphSpec(label_style=style))  # type: ignore[arg-type]
+    plan = build_plot_plan(frame, GraphSpec(label_style=style, unit_policy="allow"))  # type: ignore[arg-type]
     # Then: the labels follow the rule and header parts are kept un-humanized
     assert [series.label for series in plan.series] == expected
     assert [(s.header_series, s.header_label, s.unit) for s in plan.series] == [
@@ -467,7 +484,7 @@ def test_segments_without_direction_and_with_everything_filtered__tc_ge03_ep_010
 def test_with_labels_relabels_series_and_titles__tc_ge03_ep_011() -> None:
     """TC-GE03-EP-011: with_labels recomputes legend roles and individual titles, keeps stems."""
     # Given: a two-series plan with individual figures
-    plan = build_plot_plan(_multi_y(), GraphSpec(title="cell"))
+    plan = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow", title="cell"))
     # When: relabelling both series with one shared label
     relabelled = plan.with_labels(["same", "same"])
     # Then: labels, legend roles, titles and origins change; stems do not
@@ -614,7 +631,7 @@ def test_marks_axes_and_direction_colours_are_drawn_from_the_plan__tc_ge03_ep_01
 def test_individual_figure_without_direction_draws_one_line_and_no_legend__tc_ge03_ep_017() -> None:
     """TC-GE03-EP-017: individual figures keep the v1 look (default colour, no legend, no info text)."""
     # Given: two plain series and legend info text
-    spec = GraphSpec(legend=LegendSpec(info="note"))
+    spec = GraphSpec(unit_policy="allow", legend=LegendSpec(info="note"))
     # When: rendering in memory
     artifacts = engine.render_graph(_multi_y(), spec).artifacts
     individual = artifacts[1].figure.axes[0]
@@ -761,7 +778,7 @@ def test_unsupported_formats_fail_before_anything_exists__tc_ge03_neg_008(fmt: s
     """TC-GE03-NEG-008: a format no renderer covers is rejected at artifact planning."""
     # Given/When/Then
     with pytest.raises(UnsupportedFormatError, match=fmt):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("png", fmt)))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("png", fmt)))
     assert not (tmp_path / "out").exists()
     assert plt.get_fignums() == []
 
@@ -772,7 +789,7 @@ def test_on_existing_error_rejects_before_rendering__tc_ge03_neg_009(tmp_path: P
     tmp_path.joinpath("plot.png").write_bytes(b"old")
     # When/Then: rendering fails, the old file is untouched and no individual file appears
     with pytest.raises(ArtifactCollisionError, match="already exist"):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path), on_existing="error"))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path), on_existing="error"))
     assert sorted(p.name for p in tmp_path.iterdir()) == ["plot.png"]
     assert tmp_path.joinpath("plot.png").read_bytes() == b"old"
 
@@ -782,7 +799,7 @@ def test_default_overwrite_is_recorded__tc_ge03_neg_009(tmp_path: Path) -> None:
     # Given: an existing overlay file
     tmp_path.joinpath("plot.png").write_bytes(b"old")
     # When: rendering with the default policy
-    result = engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path)))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path)))
     # Then: only the overlay is marked as replaced, and it was rewritten
     assert [a.replaced_existing for a in result.artifacts] == [True, False, False]
     assert [entry["replaced_existing"] for entry in result.manifest()["artifacts"]] == [True, False, False]
@@ -810,7 +827,7 @@ def test_directory_sink_rejects_a_file_as_directory_before_rendering__tc_ge03_ne
     blocker.write_text("x")
     # When/Then: a ValueError with the legacy text, and no individual file written either
     with pytest.raises(OutputPathError, match="Output path is not a directory") as excinfo:
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out", main_image_dir=blocker)))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out", main_image_dir=blocker)))
     assert isinstance(excinfo.value, ValueError)
     assert not (tmp_path / "out").exists()
     assert plt.get_fignums() == []
@@ -823,7 +840,7 @@ def test_directory_sink_rejects_a_symlink_escape__tc_ge03_neg_010(tmp_path: Path
     (tmp_path / "out" / "plot.png").symlink_to(tmp_path / "outside.png")
     # When/Then
     with pytest.raises(OutputPathError, match="Security violation"):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out")))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out")))
     assert not (tmp_path / "outside.png").exists()
 
 
@@ -859,7 +876,7 @@ def test_destinations_must_be_unique_within_a_run__tc_ge03_neg_011(tmp_path: Pat
     sink = _OneFileSink(tmp_path / "all.png")
     # When/Then: planning fails before any write
     with pytest.raises(ArtifactCollisionError, match="same destination"):
-        engine.render_graph(_multi_y(), output=OutputSpec(sink))  # type: ignore[arg-type]
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(sink))  # type: ignore[arg-type]
     assert sink.writes == 0
 
 
@@ -919,7 +936,7 @@ def test_failure_after_the_first_figure_writes_nothing__tc_ge03_neg_014(tmp_path
     flaky = FlakyMatplotlib()
     # When/Then: the error propagates, nothing is written and no figure stays open
     with pytest.raises(OSError, match="disk full"):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out")), renderers=RendererRegistry([flaky]))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out")), renderers=RendererRegistry([flaky]))
     assert not (tmp_path / "out").exists()
     assert plt.get_fignums() == []
     # And: both rendered figures (the exported one and the failing one) were closed
@@ -943,7 +960,7 @@ def test_in_memory_failure_closes_figures_already_rendered__tc_ge03_neg_014(monk
     monkeypatch.setattr(engine, "_detach", flaky)
     # When/Then
     with pytest.raises(RuntimeError, match="boom"):
-        engine.render_graph(_multi_y())
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"))
     assert plt.get_fignums() == []
 
 
@@ -951,7 +968,7 @@ def test_in_memory_failure_closes_figures_already_rendered__tc_ge03_neg_014(monk
 def test_with_labels_rejects_a_wrong_count__tc_ge03_neg_015(labels: list[str]) -> None:
     """TC-GE03-NEG-015: one label per series, with the node error text."""
     # Given: a two-series plan
-    plan = build_plot_plan(_multi_y())
+    plan = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow"))
     # When/Then
     with pytest.raises(ValueError, match=f"{len(labels)} labels for 2 series"):
         plan.with_labels(labels)
@@ -1025,6 +1042,6 @@ def test_index_as_x__tc_ge03_bv_004(index_name: str | None, expected: str) -> No
 def test_axis_limits_pass_through_the_plan__tc_ge03_bv_005(limits: tuple[float | None, float | None]) -> None:
     """TC-GE03-BV-005: limits are recorded as given (their validation belongs to GE-13)."""
     # Given/When
-    plan = build_plot_plan(_multi_y(), GraphSpec(x_axis=AxisSpec(limits=limits)))
+    plan = build_plot_plan(_multi_y(), GraphSpec(unit_policy="allow", x_axis=AxisSpec(limits=limits)))
     # Then
     assert plan.x_axis.limits == limits

@@ -13,7 +13,7 @@
       "stem": "dir",
       "title": null,
       "x_label": "Time (s)",
-      "y_label": "Capacity (mAh)"
+      "y_label": "Capacity (Ah)"
     }
   ],
   "legend": {

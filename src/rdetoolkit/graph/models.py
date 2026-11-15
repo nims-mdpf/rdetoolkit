@@ -52,6 +52,11 @@ class AxisConfig:
             - "eng": Use engineering notation with SI-like unit suffix (e.g. "3.6 M")
         scilimits: Power-of-ten range outside of which "auto"/"sci" formatting
             switches to scientific notation (passed to ScalarFormatter.set_powerlimits)
+        label_origin: ``"explicit"`` (default): ``label`` is used as given on every
+            figure. ``"derived"``: ``label`` was derived from the first column only
+            (set by the csv2graph facade when no axis label was passed), so the
+            planner re-derives it per figure from the units of the series it shows
+            (GE-11). Only the y axis honours ``"derived"``.
     """
 
     label: str
@@ -62,6 +67,7 @@ class AxisConfig:
     lim: tuple[float | None, float | None] | None = None
     tick_format: Literal["auto", "plain", "sci", "eng"] = "auto"
     scilimits: tuple[int, int] = (-3, 4)
+    label_origin: Literal["explicit", "derived"] = "explicit"
 
 
 @dataclass

@@ -268,6 +268,9 @@ def _build_plot_config(
     builder.set_y_axis(
         AxisConfig(
             label=y_label or normalized.derived_y_label,
+            # A label derived from the first column is re-derived per figure by the
+            # planner (mixed units, individual figures); a passed y_label is kept as is.
+            label_origin="explicit" if y_label else "derived",
             scale="log" if logy else "linear",
             lim=validate_axis_limits(ylim, scale="log" if logy else "linear", axis="y"),
             grid=grid,

@@ -221,7 +221,7 @@ def test_fake_renderer_is_injected_without_patching__tc_ge07_ep_003(tmp_path: Pa
     sink = DirectorySink(tmp_path / "out", main_image_dir=tmp_path / "main")
     # When: rendering overlay + individual figures as "txt"
     result = engine.render_graph(
-        _multi_y(), GraphSpec(title="cell"), output=OutputSpec(sink, formats=("txt",), base_name="cell", dpi=72),
+        _multi_y(), GraphSpec(unit_policy="allow", title="cell"), output=OutputSpec(sink, formats=("txt",), base_name="cell", dpi=72),
         renderers=RendererRegistry([fake]),
     )
     # Then: the fake received the executed plan, every figure in plan order and the source data
@@ -244,7 +244,7 @@ def test_png_and_html_route_by_capability__tc_ge07_ep_004(tmp_path: Path) -> Non
     # Given: an overlay-only spec asking for png and html with separate directories
     sink = DirectorySink(tmp_path / "out", main_image_dir=tmp_path / "main", html_dir=tmp_path / "html")
     # When
-    result = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), output=OutputSpec(sink, formats=("png", "html"), base_name="cell"))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(sink, formats=("png", "html"), base_name="cell"))
     # Then: one artifact per format, each from the renderer declaring it, in its role directory
     assert [(a.renderer, a.role, a.format, a.path) for a in result.artifacts] == [
         ("matplotlib", "main_image", "png", (tmp_path / "main" / "cell.png").resolve()),
@@ -274,9 +274,9 @@ def test_first_registered_match_wins__tc_ge07_ep_005(fake_first: bool) -> None:
 def test_in_memory_uses_the_first_renderer_covering_the_kind__tc_ge07_ep_006() -> None:
     """TC-GE07-EP-006: output=None hands over handles from the selected renderer."""
     # Given/When: the default registry, and a registry with the fake first
-    default = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"))
+    default = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"))
     fake = TextRenderer()
-    injected = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), renderers=RendererRegistry([fake, MatplotlibRenderer()]))
+    injected = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), renderers=RendererRegistry([fake, MatplotlibRenderer()]))
     # Then: Matplotlib figures by default, the fake's handle when it is registered first
     assert [(a.renderer, a.format, isinstance(a.figure, Figure)) for a in default.artifacts] == [("matplotlib", "figure", True)]
     assert [(a.renderer, a.format, a.figure) for a in injected.artifacts] == [
@@ -338,18 +338,19 @@ def test_overlay_strategy_defaults_to_the_builtin_html_renderer__tc_ge07_ep_008b
 def test_style_ignored_is_reported_for_html_only__tc_ge07_ep_009(tmp_path: Path) -> None:
     """TC-GE07-EP-009: explicit rcParams cannot reach Plotly; the HTML artifact says so."""
     # Given: explicit rcParams and an implicit style
-    styled = GraphSpec(layout="overlay", style=StyleSpec(rc_params={"font.size": 9}))
+    styled = GraphSpec(unit_policy="allow", layout="overlay", style=StyleSpec(rc_params={"font.size": 9}))
     # When
     with_rc = engine.render_graph(_multi_y(), styled, output=OutputSpec(DirectorySink(tmp_path / "a"), formats=("png", "html")))
-    plain = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "b"), formats=("png", "html")))
+    plain = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "b"), formats=("png", "html")))
     # Then: only the html artifact of the styled request carries one style_ignored info diagnostic
     png, html = with_rc.artifacts
     assert png.diagnostics == ()
     assert [(d.code, d.severity) for d in html.diagnostics] == [("style_ignored", "info")]
     assert "plotly" in html.diagnostics[0].message and "rc_params" in html.diagnostics[0].message
-    assert [d.code for d in with_rc.diagnostics] == ["style_ignored"]
+    # GE-11: the deliberately shared V + A axis adds one plan-level unit diagnostic to both runs
+    assert [(d.code, d.severity) for d in with_rc.diagnostics] == [("unit_mismatch", "info"), ("style_ignored", "info")]
     assert [a.diagnostics for a in plain.artifacts] == [(), ()]
-    assert plain.diagnostics == ()
+    assert [(d.code, d.severity) for d in plain.diagnostics] == [("unit_mismatch", "info")]
 
 
 def test_register_replace_keeps_the_position__tc_ge07_ep_010() -> None:
@@ -397,8 +398,8 @@ def test_import_has_no_side_effects__tc_ge07_ep_011() -> None:
 def test_explicit_builtin_registry_gives_identical_png__tc_ge07_ep_012(tmp_path: Path) -> None:
     """TC-GE07-EP-012: injecting the builtin registry changes nothing about the image."""
     # Given/When: the same request with the default and an explicit builtin registry
-    engine.render_graph(_multi_y(), GraphSpec(title="cell"), output=OutputSpec(DirectorySink(tmp_path / "default"), base_name="cell"))
-    engine.render_graph(_multi_y(), GraphSpec(title="cell"), output=OutputSpec(DirectorySink(tmp_path / "explicit"), base_name="cell"), renderers=builtin_renderers())
+    engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", title="cell"), output=OutputSpec(DirectorySink(tmp_path / "default"), base_name="cell"))
+    engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", title="cell"), output=OutputSpec(DirectorySink(tmp_path / "explicit"), base_name="cell"), renderers=builtin_renderers())
     # Then: every file is byte-identical
     names = _tree(tmp_path / "default")
     assert names == ["cell.png", "cell_current_(a).png", "cell_voltage_(v).png"] == _tree(tmp_path / "explicit")
@@ -411,7 +412,7 @@ def test_plotly_export_returns_the_html_document__tc_ge07_ep_013() -> None:
     # Given: a rendered overlay
     frame = _multi_y()
     renderer = PlotlyRenderer()
-    result = engine.render_graph(frame, GraphSpec(layout="overlay"), renderers=RendererRegistry([renderer]))
+    result = engine.render_graph(frame, GraphSpec(unit_policy="allow", layout="overlay"), renderers=RendererRegistry([renderer]))
     handle = result.artifacts[0].figure
     # When
     content = renderer.export(handle, "html", dpi=300)
@@ -435,7 +436,7 @@ def test_capability_formats_are_lower_cased__tc_ge07_bv_001() -> None:
 def test_html_only_overlay_writes_one_artifact__tc_ge07_bv_002(tmp_path: Path) -> None:
     """TC-GE07-BV-002: html alone needs no Matplotlib figure."""
     # Given/When
-    result = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), output=OutputSpec(DirectorySink(tmp_path), formats=("html",)))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(DirectorySink(tmp_path), formats=("html",)))
     # Then
     assert [(a.renderer, a.format) for a in result.artifacts] == [("plotly", "html")]
     assert _tree(tmp_path) == ["plot.html"]
@@ -452,7 +453,7 @@ def test_unknown_format_fails_before_rendering__tc_ge07_neg_001(fmt: str, tmp_pa
     registry = RendererRegistry([fake, MatplotlibRenderer(), PlotlyRenderer()])
     # When/Then
     with pytest.raises(UnsupportedFormatError) as excinfo:
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("txt", fmt)), renderers=registry)
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("txt", fmt)), renderers=registry)
     message = str(excinfo.value)
     assert fmt in message and "['html', 'pdf', 'png', 'svg', 'txt']" in message
     assert isinstance(excinfo.value, (RendererError, ValueError))
@@ -464,7 +465,7 @@ def test_html_for_individual_figures_is_rejected__tc_ge07_neg_002(tmp_path: Path
     """TC-GE07-NEG-002: Plotly declares overlay figures only (format matrix §3.8)."""
     # Given/When/Then: layout "both" asks for html individual figures
     with pytest.raises(UnsupportedFormatError, match=r"'html'.*individual") as excinfo:
-        engine.render_graph(_multi_y(), GraphSpec(layout="both"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("png", "html")))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="both"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("png", "html")))
     assert "layout='overlay'" in str(excinfo.value)
     assert not (tmp_path / "out").exists()
     assert plt.get_fignums() == []
@@ -476,7 +477,7 @@ def test_missing_plotly_fails_before_any_file__tc_ge07_neg_003(tmp_path: Path, m
     _hide_plotly(monkeypatch)
     # When/Then: png comes first, so a late check would already have written it
     with pytest.raises(RendererUnavailableError) as excinfo:
-        engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("png", "html")))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("png", "html")))
     assert isinstance(excinfo.value, ImportError)
     assert PLOTLY_HINT in str(excinfo.value) and "'plotly'" in str(excinfo.value)
     assert not (tmp_path / "out").exists()
@@ -524,7 +525,7 @@ def test_fake_with_missing_requirement__tc_ge07_neg_006(tmp_path: Path) -> None:
     fake = TextRenderer(requires=("rdetoolkit_ge07_absent_module",), install_hint="pip install text-renderer")
     # When/Then
     with pytest.raises(RendererUnavailableError, match="pip install text-renderer") as excinfo:
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("txt",)), renderers=RendererRegistry([fake]))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("txt",)), renderers=RendererRegistry([fake]))
     assert "rdetoolkit_ge07_absent_module" in str(excinfo.value)
     assert not (tmp_path / "out").exists()
     assert fake.rendered == []
@@ -539,10 +540,10 @@ def test_requirement_lookup_edge_cases__tc_ge07_neg_006b(tmp_path: Path, monkeyp
     present = TextRenderer(requires=("rdetoolkit_ge07_runtime_module",))
     absent = TextRenderer(requires=("rdetoolkit_ge07_absent_pkg.sub",))
     # When/Then: the spec-less module satisfies the requirement, the dotted one does not
-    result = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), output=OutputSpec(DirectorySink(tmp_path), formats=("txt",)), renderers=RendererRegistry([present]))
+    result = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), output=OutputSpec(DirectorySink(tmp_path), formats=("txt",)), renderers=RendererRegistry([present]))
     assert [a.renderer for a in result.artifacts] == ["text"]
     with pytest.raises(RendererUnavailableError, match="rdetoolkit_ge07_absent_pkg.sub") as excinfo:
-        engine.render_graph(_multi_y(), renderers=RendererRegistry([absent]))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), renderers=RendererRegistry([absent]))
     assert "install it with" not in str(excinfo.value)
     assert absent.rendered == []
 
@@ -606,7 +607,7 @@ def test_renderers_argument_must_be_a_registry__tc_ge07_neg_011(renderers: Any, 
     """TC-GE07-NEG-011: render_graph takes a RendererRegistry, nothing looser."""
     # Given/When/Then
     with pytest.raises(TypeError, match="RendererRegistry"):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out")), renderers=renderers)
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out")), renderers=renderers)
     assert not (tmp_path / "out").exists()
 
 
@@ -616,7 +617,7 @@ def test_export_failure_writes_nothing_and_closes_handles__tc_ge07_neg_012(tmp_p
     fake = TextRenderer(fail_export_on=2)
     # When/Then
     with pytest.raises(OSError, match="disk full"):
-        engine.render_graph(_multi_y(), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("txt",)), renderers=RendererRegistry([fake]))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), output=OutputSpec(DirectorySink(tmp_path / "out"), formats=("txt",)), renderers=RendererRegistry([fake]))
     assert not (tmp_path / "out").exists()
     assert fake.closed == [figure.figure_id for _, figure, _ in fake.rendered] == ["overlay", "s000"]
 
@@ -636,7 +637,7 @@ def test_in_memory_without_a_renderer_for_the_kind__tc_ge07_neg_014() -> None:
     """TC-GE07-NEG-014: individual figures need a renderer declaring them, also in memory."""
     # Given/When/Then: Plotly declares overlay only
     with pytest.raises(UnsupportedFormatError, match="individual"):
-        engine.render_graph(_multi_y(), GraphSpec(layout="individual"), renderers=RendererRegistry([PlotlyRenderer()]))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="individual"), renderers=RendererRegistry([PlotlyRenderer()]))
 
 
 def test_in_memory_render_failure_closes_previous_handles__tc_ge07_neg_015() -> None:
@@ -645,7 +646,7 @@ def test_in_memory_render_failure_closes_previous_handles__tc_ge07_neg_015() -> 
     fake = TextRenderer(fail_render_on=2)
     # When/Then
     with pytest.raises(RuntimeError, match="render failed"):
-        engine.render_graph(_multi_y(), renderers=RendererRegistry([fake]))
+        engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow"), renderers=RendererRegistry([fake]))
     assert fake.closed == ["overlay"]
 
 
@@ -662,9 +663,9 @@ def test_plotly_render_path_keeps_its_own_check__tc_ge07_neg_016(monkeypatch: py
 def test_export_rejects_undeclared_formats__tc_ge07_neg_017() -> None:
     """TC-GE07-NEG-017: export honours the declared formats."""
     # Given: one handle per builtin renderer
-    mpl_handle = engine.render_graph(_multi_y(), GraphSpec(layout="overlay")).artifacts[0].figure
+    mpl_handle = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay")).artifacts[0].figure
     plotly = PlotlyRenderer()
-    plotly_handle = engine.render_graph(_multi_y(), GraphSpec(layout="overlay"), renderers=RendererRegistry([plotly])).artifacts[0].figure
+    plotly_handle = engine.render_graph(_multi_y(), GraphSpec(unit_policy="allow", layout="overlay"), renderers=RendererRegistry([plotly])).artifacts[0].figure
     # When/Then
     with pytest.raises(UnsupportedFormatError, match="html"):
         MatplotlibRenderer().export(mpl_handle, "html", dpi=100)
