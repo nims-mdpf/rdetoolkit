@@ -444,9 +444,13 @@ def test_interruption_is_still_an_interruption__tc_j1_cbp_bv_008(tmp_path: Path)
 
 
 def test_event_factory_vocabulary_is_unchanged__tc_j1_cbp_bv_009(tmp_path: Path) -> None:
-    """TC-J1-CBP-BV-009: the callback path introduces no new event name (§8.1).
+    """TC-J1-CBP-BV-009: the callback path emits only the shared node vocabulary.
 
-    The vocabulary includes the #689 in-flight pair, which the flow entry emits too.
+    That vocabulary is the closed §8.1 set (``node.started`` / ``node.completed``
+    / ``node.failed``) plus the two additive in-flight events #689 introduced,
+    ``node.invocation_started`` and ``node.invocation_finished``, which every
+    node call emits on the flow entry as well. The callback path adds no name
+    of its own beyond those.
     """
     # Given: the closed §8.1 node vocabulary plus the #689 in-flight pair
     inflight = {"node.invocation_started", "node.invocation_finished"}

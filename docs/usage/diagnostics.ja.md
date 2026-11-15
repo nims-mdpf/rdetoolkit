@@ -160,7 +160,7 @@ python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json --format
 }
 ```
 
-- `phase` は次のいずれかです。`config_load`、`mode_resolution`(flow の `prepare=` を含む)、`pre_validate`、`tile_prepare`(タイルの計画、タイルの invoice の準備、flow の引数の注入)、`node_execution`(flow または v1 のコールバックが例外を送出)、`node_argument_validation`(厳密な型チェックが node の実行前に引数を拒否)、`artifact_publish`(raw のコピー、サムネイル、invoice の各段階)、`post_validate`(タイルごとの invoice とメタデータの検証。SmartTable の表のタイルを含む)、`finalize`(実行レポートや `job.failed` の書き込み)。
+- `phase` は次のいずれかです。`config_load`、`mode_resolution`(flow の `prepare=` を含む)、`pre_validate`、`tile_prepare`(タイルの計画、タイルの invoice の準備、flow の引数の注入)、`node_execution`(flow または v1 のコールバックが例外を送出)、`node_argument_validation`(厳密な型チェックが node の実行前に引数を拒否)、`artifact_publish`(raw のコピー、サムネイル、invoice の各段階、実行後のタイルの記録 `logs/iterations` の書き込み)、`post_validate`(タイルごとの invoice とメタデータの検証。SmartTable の表のタイルを含む)、`finalize`(実行レポートや `job.failed` の書き込み)。
 - `code`、`name`、`message` は公開されたエラーです。実行レポートの `error`(またはタイルの `error`)や `job.failed` と同じ値になります。v1 の `StructuredError` は `ecode` をそのまま保ち、`category` は `"structured_error"` です。それ以外の `category` は `config`、`registry`、`execution`、`validation`、`internal`、`unknown` です。
 - `iteration_index`、`node_id`、`call_id`、`artifact_path`(データルートからの相対パス)は、わかっている場合だけ値が入り、それ以外は `null` です。推測で値を埋めることはありません。
 - `node_argument_validation` の要素には、`node_id`、`parameter`、その `expected_type`(アノテーションの文字列)、引数の `actual_type`(型名だけで、値は書きません)が入ります。拒否された node は実行されていないため、`call_id` は `null` です。call log は変わりません。拒否された node の呼び出しは記録されず、ほかの呼び出しの `seq` と `call_id` も変わりません。イベントログには追加のイベント `node.argument_rejected`(`node_id` と、payload に `iteration_index`、`parameter`、`expected_type`、`actual_type`)が 1 件記録されます。このイベントに対応する `node.started` はありません。
@@ -171,7 +171,7 @@ python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json --format
 
 ### プライバシー
 
-フレームは `file`、`line`、`function` だけを記録します。ローカル変数、ソースコードの行、引数の値(`repr`)、環境変数、入力データは書き込まず、書き込むオプションもありません。ファイルパスはプロジェクトからの相対パス、またはそのファイルを含む `sys.path` のエントリからの相対パス(`rdetoolkit/...`、`pydantic/...`)です。どちらにも当てはまらないパスは Python が報告したとおりに書きます。例外のメッセージは 1 件あたり 2000 文字まで残します。実行レポートや `job.failed` にも同じ文がすでに含まれているためです。メッセージには、利用者のコードやライブラリが入れた値が含まれることがあるため、組織の外に共有する前にファイルの内容を確認してください。
+フレームは `file`、`line`、`function` だけを記録します。ローカル変数、ソースコードの行、引数の値(`repr`)、環境変数、入力データは書き込まず、書き込むオプションもありません。ファイルパスはプロジェクトからの相対パス、またはそのファイルを含む `sys.path` のエントリからの相対パス(`rdetoolkit/...`、`pydantic/...`)です。どちらにも当てはまらないファイルは、行番号と関数名はそのままに `<external>/<ファイル名>` と書くため、フレームに絶対パスが記録されることはありません。例外のメッセージは送出されたとおりに、1 件あたり 2000 文字までに切り詰めて保存します。実行レポートや `job.failed` にも同じ文がすでに含まれているためです。メッセージは書き換えないため、利用者のコードやライブラリが入れたパスなどの値(たとえば `FileNotFoundError: /home/<user>/data/x.csv`)が含まれることがあります。組織の外に共有する前にファイルの内容を確認してください。
 
 ファイルの大きさには上限があります。診断は最大 200 件(それ以上記録された場合は `truncated: true`。実行全体の失敗は必ず残します)、例外ごとに内側から 64 フレーム(`frames_truncated`)、連鎖ごとに 8 個の例外(`causes_truncated`)です。
 

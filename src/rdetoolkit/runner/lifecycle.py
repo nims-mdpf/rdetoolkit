@@ -715,6 +715,10 @@ class Runner:
                 self._phase = "node_execution"
                 result = self._executor.execute(plan, tile)
                 self._record_tile_diagnostic(result)
+                # The executor has returned; what can still fail for this tile
+                # is persisting its record (``logs/iterations``), an artifact
+                # write -- not the node that already finished.
+                self._phase = "artifact_publish"
                 iteration_status = result.status
                 if result.status == "failed":
                     failed_count += 1
@@ -738,6 +742,10 @@ class Runner:
                         payload={"iteration_index": info.index, "status": iteration_status},
                     ),
                 )
+        # The loop is over (exhausted or stopped by fail_fast): no tile is being
+        # prepared any more, so a failure from here to post-validation belongs
+        # to the next real phase, never to the last ``tile_prepare`` pull.
+        self._phase = "post_validate"
         status = _run_status(
             completed_count=completed_count,
             failed_count=failed_count,

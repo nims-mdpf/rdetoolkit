@@ -76,7 +76,9 @@ class SourceFrame:
 
     Attributes:
         file: Path relative to the project root or to the ``sys.path`` entry
-            holding it; otherwise the path Python reported.
+            holding it; ``<external>/<basename>`` for a file under neither
+            (never an absolute path); pseudo-files such as ``<string>`` as
+            Python reported them.
         line: Line number, or ``None`` when Python did not record one.
         function: Function (qualified) name.
     """
@@ -465,7 +467,12 @@ def _is_library(file: str) -> bool:
 
 
 def _display_path(file: str, root: Path | None) -> str:
-    """Make a frame path relative to the project, else to its ``sys.path`` entry."""
+    """Make a frame path relative to the project, else to its ``sys.path`` entry.
+
+    A file under neither is recorded as ``<external>/<basename>``: its
+    absolute path would reveal user names and directory layout, and the
+    sidecar is meant to be shareable.
+    """
     if file.startswith("<"):
         return file
     resolved = _resolve(file)
@@ -476,7 +483,7 @@ def _display_path(file: str, root: Path | None) -> str:
         base = _resolve(entry or ".")
         if _is_relative(resolved, base) and (best is None or len(base.parts) > len(best.parts)):
             best = base
-    return resolved.relative_to(best).as_posix() if best is not None else file
+    return resolved.relative_to(best).as_posix() if best is not None else f"<external>/{resolved.name}"
 
 
 def _resolve(path: str) -> Path:

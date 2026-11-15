@@ -32,5 +32,4 @@ def assert_snapshot(
     ignore_files: Iterable[str] = (),
     max_bytes: int = ...,
     allow_raw: bool = False,
-    update: bool | None = None,
 ) -> None: ...

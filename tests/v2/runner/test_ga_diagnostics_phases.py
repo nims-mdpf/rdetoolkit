@@ -23,6 +23,8 @@ EP table (one row per lifecycle phase):
 | TC-GA686-EP-009 | artifact_publish | raw copy raises PermissionError | 3005, PermissionError, location outside the stage guard |
 | TC-GA686-EP-010 | post_validate | node writes invalid metadata | 4002, iteration 0, ``meta/metadata.json``, iterations kept |
 | TC-GA686-EP-011 | finalize | finalizer raises OSError | 5001 raised, sidecar names ``finalize`` |
+| TC-GA686-EP-012 | artifact_publish | the tile record write raises after the executor returned | phase ``artifact_publish`` (completed and failed tile) |
+| TC-GA686-EP-013 | after the tile loop | report assembly raises before post-validation | phase ``post_validate``, never ``tile_prepare`` |
 
 BV / negative table:
 | TC | Class | Input | Expected |
@@ -42,11 +44,14 @@ BV / negative table:
 | TC-GA686-EV-032 | bounds | deep recursion, long message, long chain, cycle | frames/message/chain capped and flagged; cycle terminates |
 | TC-GA686-EV-033 | cap | many failed tiles | run-level diagnostic always kept, ``truncated`` set |
 | TC-GA686-EV-034 | finalize + sidecar fail | both raise | the finalize error (5001) reaches the caller |
+| TC-GA686-EV-035 | privacy | frame in a file outside the project and sys.path | ``<external>/<name>`` with line/function, no absolute path |
 """
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -70,6 +75,7 @@ from rdetoolkit.report.failure import (
     failure_diagnostic,
 )
 from rdetoolkit.report.run_report import RUN_REPORT_SCHEMA_VERSION, RunReport
+from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext
@@ -200,6 +206,23 @@ def second_tile_fails_flow(iteration: IterationInfo) -> None:
 @flow
 def quiet_flow(paths: InputPaths) -> None:
     quiet_node(paths)
+
+
+#: Helpers loaded at test time from files outside the project and sys.path.
+_EXTERNAL: dict[str, Any] = {}
+
+
+@node
+def external_node(paths: InputPaths) -> None:
+    """Call the helper loaded from outside the project."""
+    _ = paths
+    _EXTERNAL["explode"]()
+
+
+@flow
+def external_flow(paths: InputPaths) -> None:
+    """Run the node whose failure starts in an external file."""
+    external_node(paths)
 
 
 @flow
@@ -626,6 +649,89 @@ def test_no_locals_arguments_or_environment__tc_ga686_ev_027(tmp_path: Path, mon
     assert set(diagnostic["location"]) == {"file", "line", "function"}
 
 
+@pytest.mark.parametrize(
+    ("flow_fn", "phases"),
+    [
+        pytest.param(quiet_flow, ["artifact_publish"], id="completed-tile"),
+        pytest.param(raising_flow, ["node_execution", "artifact_publish"], id="failed-tile"),
+    ],
+)
+def test_iteration_record_failure_is_artifact_publish__tc_ga686_ep_012(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    flow_fn: Any,
+    phases: list[str],
+) -> None:
+    """TC-GA686-EP-012: persisting a tile's record after the executor returned is ``artifact_publish``."""
+
+    # Given: the per-tile record cannot be written
+    def broken_record(self: RunAggregator, result: ExecutionResult) -> None:
+        _ = (self, result)
+        msg = "logs/iterations: no space left on device"
+        raise OSError(msg)
+
+    root = _materialize(tmp_path)
+    monkeypatch.setattr(RunAggregator, "record", broken_record)
+
+    # When: running
+    report = _run(root, flow_fn, monkeypatch)
+
+    # Then: the run fails and the escape is attributed to artifact_publish, not node_execution
+    assert report.status == "failed"
+    diagnostics = _sidecar(root, report)["diagnostics"]
+    assert [diagnostic["phase"] for diagnostic in diagnostics] == phases
+    assert "OSError" in [diagnostics[-1]["exception"]["type"], *_cause_types(diagnostics[-1])]
+
+
+def test_phase_after_the_tile_loop_is_post_validate__tc_ga686_ep_013(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TC-GA686-EP-013: once the tile loop ended, a failure is no longer ``tile_prepare``."""
+
+    # Given: building the report after the last tile fails
+    def broken_build(self: RunAggregator, **_kwargs: Any) -> RunReport:
+        _ = self
+        msg = "report assembly failed"
+        raise RuntimeError(msg)
+
+    root = _materialize(tmp_path)
+    monkeypatch.setattr(RunAggregator, "build_report", broken_build)
+
+    # When: running
+    report = _run(root, quiet_flow, monkeypatch)
+
+    # Then: the failure belongs to the next real phase
+    assert report.status == "failed"
+    diagnostic = _only(root, report)
+    assert diagnostic["phase"] == "post_validate"
+
+
+def test_external_frame_is_not_an_absolute_path__tc_ga686_ev_035(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TC-GA686-EV-035: a frame outside the project and sys.path is ``<external>/<name>``."""
+    # Given: a helper loaded from a file outside the project root and every sys.path entry
+    module_path = tmp_path / "external-ga686" / "ext_helpers.py"
+    module_path.parent.mkdir()
+    module_path.write_text("def explode():\n    raise ValueError('external helper failed')\n", encoding="utf-8")
+    spec = importlib.util.spec_from_file_location("ext_helpers_ga686", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setitem(_EXTERNAL, "explode", module.explode)
+    root = _materialize(tmp_path)
+    monkeypatch.chdir(root)
+    assert not any(module_path.resolve().is_relative_to(Path(entry or ".").resolve()) for entry in sys.path)
+
+    # When: a node calls it
+    report = _run(root, external_flow, monkeypatch)
+
+    # Then: the frame keeps its line and function, never the absolute path
+    text = _sidecar_path(root, report.run_id).read_text(encoding="utf-8")
+    assert str(module_path.parent) not in text
+    assert str(module_path.parent.resolve()) not in text
+    diagnostic = _only(root, report)
+    frames = diagnostic["exception"]["frames"]
+    assert {"file": "<external>/ext_helpers.py", "line": 2, "function": "explode"} in frames
+    assert all(not frame["file"].startswith("/") for frame in frames), frames
+
+
 def test_document_shape__tc_ga686_ev_028(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """TC-GA686-EV-028: the sidecar is versioned on its own; the report is still v2."""
     root = _materialize(tmp_path)
@@ -877,7 +983,7 @@ def test_display_paths_are_relative(tmp_path: Path) -> None:
     assert failure_module._display_path("<string>", tmp_path) == "<string>"  # noqa: SLF001
     assert failure_module._display_path(failure_module.__file__, None) == "rdetoolkit/report/failure.py"  # noqa: SLF001
     outside = "/nonexistent-ga686/abs/file.py"
-    assert failure_module._display_path(outside, None).endswith("abs/file.py")  # noqa: SLF001
+    assert failure_module._display_path(outside, None) == "<external>/file.py"  # noqa: SLF001
 
 
 def test_pseudo_files_are_library_frames_and_unresolvable_paths_are_kept(monkeypatch: pytest.MonkeyPatch) -> None:

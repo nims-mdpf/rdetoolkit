@@ -248,9 +248,12 @@ class RdeTestResult:
         ignore_files: Iterable[str] = (),
         max_bytes: int = DEFAULT_MAX_BYTES,
         allow_raw: bool = False,
-        update: bool | None = None,
     ) -> None:
-        """Compare with an approved golden copy; see :func:`rdetoolkit.testing.snapshot.assert_snapshot`."""
+        """Compare with an approved golden copy; see :func:`rdetoolkit.testing.snapshot.assert_snapshot`.
+
+        Changes are approved only by ``pytest --rde-update-snapshots`` (refused
+        under CI); no argument here can approve one.
+        """
         _snapshot.assert_snapshot(
             self,
             artifact,
@@ -260,7 +263,6 @@ class RdeTestResult:
             ignore_files=ignore_files,
             max_bytes=max_bytes,
             allow_raw=allow_raw,
-            update=update,
         )
 
     def assert_checks(self, *checks: Callable[[RdeTestResult], object]) -> None:

@@ -17,10 +17,13 @@ and CSV columns in ``ignore_columns`` have their values replaced by a
 placeholder on both sides (the key or column itself must still exist), and
 files matching ``ignore_files`` are left out of a directory comparison.
 
-Golden files change only through an explicit update: ``update=True``, or the
-pytest option ``--rde-update-snapshots`` (which sets the default). Updating is
-refused whenever the ``CI`` environment variable is truthy, so CI can never
-approve a change. The module never imports pytest.
+Golden files change only through the local pytest option
+``--rde-update-snapshots``; the assertion itself takes no argument that could
+approve a change. Updating is refused whenever the ``CI`` environment variable
+is truthy, so CI can never approve a change. Symlinks are refused on both
+sides: an artifact link could publish a file from outside the run, and a
+golden link could be compared against, or written through to, a file outside
+the golden root. The module never imports pytest.
 """
 
 from __future__ import annotations
@@ -80,12 +83,12 @@ def ci_is_active(environ: Mapping[str, str] | None = None) -> bool:
 
 
 def set_update_mode(enabled: bool) -> None:  # noqa: FBT001 - mirrors a boolean command-line flag
-    """Set the default of ``update`` (the pytest plugin calls this for ``--rde-update-snapshots``)."""
+    """Turn snapshot approval on or off (the pytest plugin calls this for ``--rde-update-snapshots``)."""
     _state["update"] = bool(enabled)
 
 
 def update_mode() -> bool:
-    """Return the current default of ``update``."""
+    """Return whether changed snapshots are currently approved instead of failing."""
     return bool(_state["update"])
 
 
@@ -123,9 +126,13 @@ def assert_snapshot(
     ignore_files: Iterable[str] = (),
     max_bytes: int = DEFAULT_MAX_BYTES,
     allow_raw: bool = False,
-    update: bool | None = None,
 ) -> None:
     """Assert that an artifact file or directory matches its golden copy.
+
+    A difference fails the test unless the run uses ``pytest
+    --rde-update-snapshots`` locally, which rewrites the golden copy instead.
+    There is deliberately no argument that approves: a call site must not be
+    able to bypass the explicit, CI-refused command-line approval.
 
     Args:
         result: The test run.
@@ -141,13 +148,11 @@ def assert_snapshot(
         allow_raw: Allow snapshots of ``inputdata/``, ``raw/`` and
             ``nonshared_raw/`` (golden files are usually committed, so raw
             data is refused unless explicitly allowed).
-        update: Write the artifact over the golden copy instead of failing;
-            ``None`` uses ``--rde-update-snapshots``.
 
     Raises:
         SnapshotError: If the snapshot cannot be taken (missing artifact, a
-            file above ``max_bytes``, a symlink, raw data, or an update while
-            ``CI`` is set).
+            file above ``max_bytes``, a symlink on the artifact or the golden
+            side, raw data, or an update while ``CI`` is set).
         AssertionError: Listing every changed, missing and unexpected file.
     """
     options = _Options(
@@ -163,7 +168,7 @@ def assert_snapshot(
     changes = _changes(actual, expected, options)
     if not changes:
         return
-    if update_mode() if update is None else update:
+    if update_mode():
         _approve(result, golden_path, actual, changes, options)
         return
     raise AssertionError(_mismatch_message(result, name, golden_path, changes, has_golden=golden_path.exists()))
@@ -237,15 +242,40 @@ def _actual_files(result: RdeTestResult, name: PurePosixPath, options: _Options,
 
 
 def _golden_files(result: RdeTestResult, golden: Path, options: _Options, *, is_dir: bool) -> dict[str, Path]:
+    # Checked before ``exists()``: a dangling link does not "exist", and an
+    # approval would otherwise create the file it points to.
+    _refuse_golden_links(result, golden, golden)
     if not golden.exists():
         return {}
     if golden.is_dir() != is_dir:
         kinds = ("directory", "file") if is_dir else ("file", "directory")
         raise SnapshotError(_with_context(result, f"artifact is a {kinds[0]} but golden {golden} is a {kinds[1]}"))
     files = _tree(golden, options.files) if is_dir else {"": golden}
+    # Every link is refused before any size is read, whatever the walk order.
+    for file in files.values():
+        _refuse_golden_links(result, golden, file)
     for file in files.values():
         _check_size(result, file, options.max_bytes)
     return files
+
+
+def _refuse_golden_links(result: RdeTestResult, golden: Path, target: Path) -> None:
+    """Refuse ``target`` if it, the golden root, or any directory between them is a symlink.
+
+    Each component is checked, not just ``target``: a linked sub-directory
+    lets a golden path escape the golden root although the file itself is not
+    a link.
+    """
+    chain = [golden]
+    for part in target.relative_to(golden).parts:
+        chain.append(chain[-1] / part)
+    for current in chain:
+        if current.is_symlink():
+            msg = (
+                f"snapshot refuses the symlinked golden path {current}: golden files are compared and "
+                "written in place, never through a link. Replace the link with a regular file or directory"
+            )
+            raise SnapshotError(_with_context(result, msg))
 
 
 def _tree(root: Path, patterns: Sequence[str]) -> dict[str, Path]:
@@ -375,8 +405,12 @@ def _approve(result: RdeTestResult, golden: Path, actual: dict[str, Path], chang
     if ci_is_active():
         msg = f"refusing to update snapshot {golden}: {ci_refusal_message()}"
         raise SnapshotError(_with_context(result, "\n".join([msg, *_change_lines(changes)])))
-    for change in changes:
-        target = golden / change.key if change.key else golden
+    targets = [golden / change.key if change.key else golden for change in changes]
+    # All targets are checked before the first write: a refused update leaves
+    # the golden copy exactly as it was, and nothing is written through a link.
+    for target in targets:
+        _refuse_golden_links(result, golden, target)
+    for change, target in zip(changes, targets, strict=True):
         if change.kind == "missing":
             target.unlink()
             _state["updates"].append(SnapshotUpdate(target, "removed"))

@@ -79,7 +79,6 @@ class RdeTestResult:
         ignore_files: Iterable[str] = (),
         max_bytes: int = ...,
         allow_raw: bool = False,
-        update: bool | None = None,
     ) -> None: ...
     def assert_checks(self, *checks: Callable[[RdeTestResult], object]) -> None: ...
 

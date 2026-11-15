@@ -11,7 +11,7 @@ EP table
 |----|-----------|-------|----------|
 | TC-SNAP-EP-001 | file | golden equal to the artifact | passes |
 | TC-SNAP-EP-002 | repeated runs | two identical runs, one golden | both pass |
-| TC-SNAP-EP-003 | approval | ``update=True`` (CI unset) | golden created, update recorded, next compare passes |
+| TC-SNAP-EP-003 | approval | plugin update mode (``--rde-update-snapshots``, CI unset) | golden created, update recorded, next compare passes |
 | TC-SNAP-EP-004 | directory | golden directory equal to the artifact directory | passes |
 | TC-SNAP-EP-005 | ignore_fields | run-specific JSON value at a listed pointer | ignored; golden stores the placeholder (redaction) |
 | TC-SNAP-EP-006 | ignore_columns | timestamp CSV column | ignored; other columns still compared |
@@ -30,7 +30,7 @@ BV / negative table
 | TC-SNAP-BV-004 | repeated runs | a run that changes between runs | second compare fails |
 | TC-SNAP-BV-005 | binary | one byte changed in a PNG | sha256 and sizes, no decoding |
 | TC-SNAP-BV-006 | text | changed line | unified diff |
-| TC-SNAP-BV-007 | CI | ``update=True`` with CI truthy | refused, golden unchanged; falsy CI values allow |
+| TC-SNAP-BV-007 | CI | update mode on with CI truthy | refused, golden unchanged; falsy CI values allow |
 | TC-SNAP-BV-008 | CI + option | ``--rde-update-snapshots`` with CI=true | usage error, nothing written |
 | TC-SNAP-BV-009 | no golden | golden path absent | names the approval option |
 | TC-SNAP-BV-010 | size | file above ``max_bytes`` | refused |
@@ -41,10 +41,14 @@ BV / negative table
 | TC-SNAP-BV-015 | ignored field | ignored pointer absent from the artifact | reported, not ignored |
 | TC-SNAP-BV-016 | approval | golden file no longer produced | removed and recorded |
 | TC-SNAP-BV-017 | pytest run | changed artifact without the option | FAILED listing the file and the option |
+| TC-SNAP-BV-018 | approval API | ``update=True`` on the result or standalone | TypeError, no parameter, nothing written |
+| TC-SNAP-BV-019 | golden symlink | golden file / root is a symlink (also dangling) | refused for compare and update, link target untouched |
+| TC-SNAP-BV-020 | golden symlink | symlinked file / directory inside a golden directory | refused for compare and update, nothing written outside |
 """
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import shutil
@@ -103,11 +107,24 @@ def _run(tmp_path: Path, label: str = "runs") -> RdeTestResult:
     return result
 
 
+def _approve(result: RdeTestResult, artifact: str, golden: Path, **options: object) -> None:
+    """Compare as ``pytest --rde-update-snapshots`` does: approval comes only from the plugin's update mode.
+
+    ``pytest_configure`` turns the mode on for ``--rde-update-snapshots`` (and
+    refuses it under CI); here the same module state is set for one call.
+    """
+    snapshot.set_update_mode(True)
+    try:
+        result.assert_snapshot(artifact, golden, **options)  # type: ignore[arg-type]
+    finally:
+        snapshot.set_update_mode(False)
+
+
 def _approved(tmp_path: Path, artifact: str, **options: object) -> tuple[RdeTestResult, Path]:
     """Run once and approve ``artifact`` as the golden copy."""
     result = _run(tmp_path, "approve")
     golden = tmp_path / "golden" / Path(artifact).name
-    result.assert_snapshot(artifact, golden, update=True, **options)  # type: ignore[arg-type]
+    _approve(result, artifact, golden, **options)
     return result, golden
 
 
@@ -135,7 +152,7 @@ def test_two_identical_runs_pass__tc_snap_ep_002(tmp_path: Path) -> None:
 
 
 def test_explicit_approval_creates_golden__tc_snap_ep_003(tmp_path: Path) -> None:
-    """TC-SNAP-EP-003: update=True writes the golden file and records it."""
+    """TC-SNAP-EP-003: the approval mode writes the golden file and records it."""
     # When
     result, golden = _approved(tmp_path, "structured/result.csv")
     # Then
@@ -152,14 +169,14 @@ def test_approval_of_a_change_is_recorded_as_changed__tc_snap_ep_003(tmp_path: P
     _OUTPUT["text"] = "line one\nline 2\n"
     changed = _run(tmp_path, "changed")
     # When
-    changed.assert_snapshot("structured/notes.txt", golden, update=True)
+    _approve(changed, "structured/notes.txt", golden)
     # Then
     assert golden.read_text(encoding="utf-8") == "line one\nline 2\n"
     assert snapshot.recorded_updates()[-1].action == "changed"
 
 
 def test_update_mode_default_comes_from_the_option(tmp_path: Path) -> None:
-    """The plugin option sets the default of update=None."""
+    """The plugin option's update mode is the only switch that approves."""
     # Given
     result = _run(tmp_path)
     golden = tmp_path / "golden.csv"
@@ -255,9 +272,9 @@ def test_raw_snapshot_needs_allow_raw__tc_snap_ep_008(tmp_path: Path) -> None:
     # When / Then
     for artifact in ("inputdata", "nonshared_raw/sample.txt", "inputdata/sample.txt"):
         with pytest.raises(SnapshotError, match="raw input data"):
-            result.assert_snapshot(artifact, golden / artifact, update=True)
+            _approve(result, artifact, golden / artifact)
     assert not golden.exists()
-    result.assert_snapshot("nonshared_raw", golden / "raw", allow_raw=True, update=True)
+    _approve(result, "nonshared_raw", golden / "raw", allow_raw=True)
     assert (golden / "raw" / "sample.txt").is_file()
 
 
@@ -397,7 +414,7 @@ def test_long_text_diff_is_capped(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("value", ["1", "true", "TRUE", "yes", "github-actions"])
 def test_ci_refuses_update__tc_snap_bv_007(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, value: str) -> None:
-    """TC-SNAP-BV-007: a truthy CI never approves, even with update=True."""
+    """TC-SNAP-BV-007: a truthy CI never approves, even with the update mode already on."""
     # Given: an approved golden copy and a changed run
     _, golden = _approved(tmp_path, "structured/result.csv")
     before = golden.read_bytes()
@@ -406,7 +423,7 @@ def test_ci_refuses_update__tc_snap_bv_007(tmp_path: Path, monkeypatch: pytest.M
     monkeypatch.setenv("CI", value)
     # When
     with pytest.raises(SnapshotError) as excinfo:
-        changed.assert_snapshot("structured/result.csv", golden, update=True)
+        _approve(changed, "structured/result.csv", golden)
     # Then
     assert "refusing to update snapshot" in str(excinfo.value)
     assert "changed: <file>" in str(excinfo.value)
@@ -465,10 +482,142 @@ def test_symlinks_are_refused__tc_snap_bv_011(tmp_path: Path) -> None:
     result.artifact_path("thumbnail").symlink_to(result.artifact_path("structured"))
     # When / Then
     with pytest.raises(SnapshotError, match="symlinked file 'structured/link.txt'"):
-        result.assert_snapshot("structured", tmp_path / "golden", update=True)
+        _approve(result, "structured", tmp_path / "golden")
     with pytest.raises(SnapshotError, match="symlinked artifact 'thumbnail'"):
-        result.assert_snapshot("thumbnail", tmp_path / "golden", update=True)
+        _approve(result, "thumbnail", tmp_path / "golden")
     assert not (tmp_path / "golden").exists()
+
+
+def test_update_argument_is_not_accepted__tc_snap_bv_018(tmp_path: Path) -> None:
+    """TC-SNAP-BV-018: only ``--rde-update-snapshots`` approves; no argument can bypass it."""
+    # Given: a run whose golden copy does not exist yet
+    result = _run(tmp_path)
+    golden = tmp_path / "golden.csv"
+    # Then: neither public assertion signature has an update parameter
+    assert "update" not in inspect.signature(RdeTestResult.assert_snapshot).parameters
+    assert "update" not in inspect.signature(snapshot.assert_snapshot).parameters
+    # When / Then: passing one is a TypeError and writes nothing
+    with pytest.raises(TypeError, match="update"):
+        result.assert_snapshot("structured/result.csv", golden, update=True)  # type: ignore[call-arg]
+    with pytest.raises(TypeError, match="update"):
+        snapshot.assert_snapshot(result, "structured/result.csv", golden, update=True)  # type: ignore[call-arg]
+    assert not golden.exists()
+    assert snapshot.recorded_updates() == ()
+
+
+def _outside(tmp_path: Path, content: bytes) -> Path:
+    """A file outside every golden root, standing for a file the test must never touch."""
+    target = tmp_path / "outside" / "target.csv"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(content)
+    return target
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+def test_symlinked_golden_file_is_refused__tc_snap_bv_019(tmp_path: Path) -> None:
+    """TC-SNAP-BV-019: a golden file that is a link is neither compared nor written through."""
+    # Given: a golden path linking to an outside file holding the artifact's bytes
+    result = _run(tmp_path)
+    produced = result.read_bytes("structured/result.csv")
+    target = _outside(tmp_path, produced)
+    golden = tmp_path / "golden.csv"
+    golden.symlink_to(target)
+    # When / Then: comparing is refused although the content matches
+    with pytest.raises(SnapshotError, match=f"snapshot refuses the symlinked golden path {golden}"):
+        result.assert_snapshot("structured/result.csv", golden)
+    # When / Then: approving a change is refused and the link target is untouched
+    target.write_bytes(b"stale\n")
+    with pytest.raises(SnapshotError, match="symlinked golden path"):
+        _approve(result, "structured/result.csv", golden)
+    assert target.read_bytes() == b"stale\n"
+    assert golden.is_symlink()
+    assert snapshot.recorded_updates() == ()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+def test_dangling_golden_link_is_not_created_through__tc_snap_bv_019(tmp_path: Path) -> None:
+    """TC-SNAP-BV-019: approving never creates the file a dangling golden link points to."""
+    # Given: a golden link whose target does not exist
+    result = _run(tmp_path)
+    target = tmp_path / "outside" / "created.csv"
+    target.parent.mkdir()
+    golden = tmp_path / "golden.csv"
+    golden.symlink_to(target)
+    # When / Then
+    with pytest.raises(SnapshotError, match=f"symlinked golden path {golden}"):
+        _approve(result, "structured/result.csv", golden)
+    with pytest.raises(SnapshotError, match="symlinked golden path"):
+        result.assert_snapshot("structured/result.csv", golden)
+    assert not target.exists()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+def test_symlinked_golden_root_directory_is_refused__tc_snap_bv_019(tmp_path: Path) -> None:
+    """TC-SNAP-BV-019: a golden directory that is itself a link is refused."""
+    # Given: an approved golden directory reached through a link
+    _, real = _approved(tmp_path, "structured")
+    link = tmp_path / "linked-golden"
+    link.symlink_to(real, target_is_directory=True)
+    rerun = _run(tmp_path, "rerun")
+    # When / Then
+    with pytest.raises(SnapshotError, match=f"symlinked golden path {link}"):
+        rerun.assert_snapshot("structured", link)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+def test_symlinked_file_inside_golden_directory_is_refused__tc_snap_bv_020(tmp_path: Path) -> None:
+    """TC-SNAP-BV-020: one linked file in a golden directory refuses the whole snapshot."""
+    # Given: an approved directory whose result.csv is replaced by a link to an outside copy
+    result, golden = _approved(tmp_path, "structured")
+    target = _outside(tmp_path, (golden / "result.csv").read_bytes())
+    (golden / "result.csv").unlink()
+    (golden / "result.csv").symlink_to(target)
+    # When / Then: compare is refused
+    with pytest.raises(SnapshotError, match=f"symlinked golden path {golden / 'result.csv'}"):
+        result.assert_snapshot("structured", golden)
+    # When / Then: an approval of a changed run is refused before anything is written
+    _OUTPUT["csv"] = "time,value,timestamp\n0,9,x\n"
+    _OUTPUT["text"] = "changed\n"
+    before = (golden / "notes.txt").read_bytes()
+    with pytest.raises(SnapshotError, match="symlinked golden path"):
+        _approve(_run(tmp_path, "changed"), "structured", golden)
+    assert target.read_bytes() == result.read_bytes("structured/result.csv")
+    assert (golden / "notes.txt").read_bytes() == before
+    assert snapshot.recorded_updates()[-1].action == "created"  # only the initial approval
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+def test_symlinked_directory_inside_golden_directory_is_refused__tc_snap_bv_020(tmp_path: Path) -> None:
+    """TC-SNAP-BV-020: a linked sub-directory would let golden paths escape the golden root."""
+    # Given: an approved directory with a linked sub-directory pointing outside
+    result, golden = _approved(tmp_path, "structured")
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "kept.csv").write_text("q\n1\n", encoding="utf-8")
+    (golden / "sub").symlink_to(outside_dir, target_is_directory=True)
+    # When / Then: compare is refused
+    with pytest.raises(SnapshotError, match=f"symlinked golden path {golden / 'sub'}"):
+        result.assert_snapshot("structured", golden)
+    # When / Then: approval (which would remove sub/kept.csv as no longer produced) is refused
+    with pytest.raises(SnapshotError, match="symlinked golden path"):
+        _approve(result, "structured", golden)
+    assert (outside_dir / "kept.csv").read_text(encoding="utf-8") == "q\n1\n"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+def test_new_file_under_a_linked_golden_directory_is_not_written__tc_snap_bv_020(tmp_path: Path) -> None:
+    """TC-SNAP-BV-020: an update never creates a file through a linked golden sub-directory."""
+    # Given: the artifact gains structured/sub/new.csv, and golden/sub links outside (empty)
+    result, golden = _approved(tmp_path, "structured")
+    outside_dir = tmp_path / "outside-empty"
+    outside_dir.mkdir()
+    (golden / "sub").symlink_to(outside_dir, target_is_directory=True)
+    result.artifact_path("structured/sub").mkdir()
+    result.artifact_path("structured/sub/new.csv").write_text("a\n1\n", encoding="utf-8")
+    # When / Then
+    with pytest.raises(SnapshotError, match=f"symlinked golden path {golden / 'sub'}"):
+        _approve(result, "structured", golden)
+    assert list(outside_dir.iterdir()) == []
 
 
 @pytest.mark.parametrize(
@@ -495,14 +644,14 @@ def test_artifact_traversal_is_refused__tc_snap_bv_013(tmp_path: Path, artifact:
     """TC-SNAP-BV-013: the artifact must stay below the data root."""
     # When / Then
     with pytest.raises(ValueError, match="data root"):
-        _run(tmp_path).assert_snapshot(artifact, tmp_path / "g", update=True)
+        _approve(_run(tmp_path), artifact, tmp_path / "g")
 
 
 def test_missing_artifact_is_refused(tmp_path: Path) -> None:
     """A missing artifact cannot be approved or compared."""
     # When / Then
     with pytest.raises(SnapshotError, match="snapshot artifact 'structured/none.csv' does not exist"):
-        _run(tmp_path).assert_snapshot("structured/none.csv", tmp_path / "g.csv", update=True)
+        _approve(_run(tmp_path), "structured/none.csv", tmp_path / "g.csv")
 
 
 def test_kind_mismatch__tc_snap_bv_014(tmp_path: Path) -> None:
@@ -536,7 +685,7 @@ def test_approval_removes_files_no_longer_produced__tc_snap_bv_016(tmp_path: Pat
     stale.parent.mkdir()
     stale.write_text("x\n", encoding="utf-8")
     # When
-    result.assert_snapshot("structured", golden, update=True)
+    _approve(result, "structured", golden)
     # Then
     assert not stale.exists()
     assert snapshot.recorded_updates()[-1] == snapshot.SnapshotUpdate(stale, "removed")
@@ -573,7 +722,7 @@ def test_approved_invalid_json_is_kept_verbatim(tmp_path: Path) -> None:
     result.artifact_path("structured/result.json").write_bytes(b"{broken")
     golden = tmp_path / "g.json"
     # When
-    result.assert_snapshot("structured/result.json", golden, ignore_fields=("/x",), update=True)
+    _approve(result, "structured/result.json", golden, ignore_fields=("/x",))
     # Then
     assert golden.read_bytes() == b"{broken"
 

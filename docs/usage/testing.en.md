@@ -237,14 +237,17 @@ pytest --rde-update-snapshots
 The golden files are rewritten (files no longer produced are removed) and
 the terminal summary lists every file under `rdetoolkit: snapshot updates`.
 The option is **refused when the `CI` environment variable is set** to a
-true value, and `update=True` is refused there as well, so CI can never
-approve a change.
+true value, so CI can never approve a change. It is the only way to approve:
+`assert_snapshot` has no argument that rewrites golden files, so a test
+cannot bypass the review step.
 
 **Privacy.** Golden files are usually committed and published with the
 repository. Snapshots of `inputdata/`, `raw/` and `nonshared_raw/` are
 refused unless you pass `allow_raw=True`; ignored fields are written as the
 placeholder, so run IDs and timestamps do not reach the golden copy;
-symlinked artifacts are refused; files above `max_bytes` (16 MiB by default)
+symlinks are refused on both sides (a symlinked artifact, or a golden file,
+golden directory or any directory inside it that is a symlink, is neither
+compared nor written through); files above `max_bytes` (16 MiB by default)
 are refused on either side. Snapshot only what may be shared.
 
 ## Reusable checks
