@@ -37,6 +37,13 @@ def test_process(rde_runner):
   on each other or on execution order. Symlinks are copied by content.
   The staging directory is left out of the copy when it lies inside the
   project, so `project=tmp_path` works with the fixture.
+- stages inputs, not earlier outputs: the output directories an earlier run
+  may have left in the data root (`structured/`, `meta/`, `raw/`,
+  `nonshared_raw/`, `main_image/`, `other_image/`, `thumbnail/`,
+  `attachment/`, `logs/`, `temp/`, `invoice_patch/`, `divided/` and
+  `job.failed`) are not copied, so a file this run did not write never
+  passes an existence check. `invoice/` is an input and is copied as it is:
+  keep only the input invoice there.
 - accepts both layouts: a project directory holding `data/`
   (`data/inputdata`, `data/invoice`, `data/tasksupport`) and an alias-flat
   data root (`inputdata/`, `invoice/`, `tasksupport/` directly inside). The
@@ -192,7 +199,10 @@ JSON values are compared strictly: `1`, `1.0` and `true` are different, and
 The read helpers `read_bytes`, `read_text`, `read_json` and `read_csv`
 (rows as `{column: cell}` with string cells) refuse files above 16 MiB by
 default (`max_bytes=None` lifts the limit); `iter_csv` streams large CSV
-files. The same functions exist as
+files. A CSV whose header repeats a column name is refused by `read_csv`,
+`iter_csv` and `assert_csv_rows` (a mapping keeps only one of the values);
+compare such files with `assert_snapshot`, which compares cells by position.
+The same functions exist as
 `rdetoolkit.testing.assertions.<name>(run, ...)`.
 
 ## Golden snapshots
@@ -252,7 +262,9 @@ placeholder, so run IDs and timestamps do not reach the golden copy;
 symlinks are refused on both sides (a symlinked artifact, a symlinked
 directory anywhere between the data root and an artifact file, or a golden file,
 golden directory or any directory inside it that is a symlink, is neither
-compared nor written through); files above `max_bytes` (16 MiB by default)
+compared nor written through; the directories above the golden path are your
+choice of location and are not checked, since they are often links, such as
+`/tmp` on macOS); files above `max_bytes` (16 MiB by default)
 are refused on either side. Snapshot only what may be shared.
 
 ## Reusable checks

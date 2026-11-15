@@ -115,9 +115,10 @@ def read_csv(
     Cells stay strings: converting them is the test's decision.
 
     Raises:
-        AssertionError: If the artifact is missing, too large, or not text.
+        AssertionError: If the artifact is missing, too large, or not text,
+            or if its header repeats a column name.
     """
-    return list(csv.DictReader(io.StringIO(read_text(result, name, encoding=encoding, max_bytes=max_bytes), newline="")))
+    return list(_dict_reader(result, name, io.StringIO(read_text(result, name, encoding=encoding, max_bytes=max_bytes), newline="")))
 
 
 def iter_csv(result: RdeTestResult, name: str | os.PathLike[str], *, encoding: str = "utf-8") -> Iterator[dict[str, str]]:
@@ -126,11 +127,30 @@ def iter_csv(result: RdeTestResult, name: str | os.PathLike[str], *, encoding: s
     Use it for artifacts above the read limit of :func:`read_csv`.
 
     Raises:
-        AssertionError: If the artifact is missing.
+        AssertionError: If the artifact is missing, or if its header repeats a
+            column name.
     """
     path = _existing_file(result, name)
     with path.open(encoding=encoding, newline="") as handle:
-        yield from csv.DictReader(handle)
+        yield from _dict_reader(result, name, handle)
+
+
+def _dict_reader(result: RdeTestResult, name: str | os.PathLike[str], handle: Iterable[str]) -> csv.DictReader[str]:
+    """Return a ``DictReader`` after refusing a header that repeats a column name.
+
+    A mapping per row keeps only the last of two equal names, so a change in
+    the other column would go unnoticed.
+    """
+    reader = csv.DictReader(handle)
+    header = reader.fieldnames or []
+    duplicated = sorted({column for column in header if header.count(column) > 1})
+    if duplicated:
+        msg = (
+            f"CSV artifact {_label(name)} has duplicate column name(s) {duplicated}: rows read as mappings would keep "
+            "only the last of them. Compare it cell by cell by position with assert_snapshot, or read it with csv.reader"
+        )
+        raise AssertionError(_with_context(result, msg))
+    return reader
 
 
 # --------------------------------------------------------------- run state

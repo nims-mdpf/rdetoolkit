@@ -36,6 +36,12 @@ def test_process(rde_runner):
   実行順序に依存しません。シンボリックリンクは内容としてコピーします。
   複製先のディレクトリがプロジェクトの中にある場合は複製から除くため、
   fixture で `project=tmp_path` を渡せます。
+- 複製するのは入力で、以前の出力は複製しません。以前の実行がデータルートに
+  残した出力ディレクトリ（`structured/`・`meta/`・`raw/`・`nonshared_raw/`・
+  `main_image/`・`other_image/`・`thumbnail/`・`attachment/`・`logs/`・`temp/`・
+  `invoice_patch/`・`divided/`・`job.failed`）はコピーしないため、今回の実行が
+  書いていないファイルが存在チェックを通ることはありません。`invoice/` は入力
+  なのでそのままコピーします。入力の送り状だけを置いてください。
 - 2 つのレイアウトに対応します。`data/`（`data/inputdata`・`data/invoice`・
   `data/tasksupport`）を持つプロジェクトディレクトリと、`inputdata/`・
   `invoice/`・`tasksupport/` を直下に持つ alias-flat なデータルートです。
@@ -190,6 +196,9 @@ JSON の値は厳密に比較します。`1`・`1.0`・`true` は別の値で、
 読み込み用の `read_bytes`・`read_text`・`read_json`・`read_csv`（行は
 `{列: セル}`、セルは文字列）は既定で 16 MiB を超えるファイルを拒否します
 （`max_bytes=None` で上限なし）。大きな CSV は `iter_csv` で逐次読み込めます。
+ヘッダに同じ列名が重複している CSV は、`read_csv`・`iter_csv`・
+`assert_csv_rows` が拒否します（行を辞書にすると片方の値しか残らないため）。
+そのような CSV は、列位置でセルを比較する `assert_snapshot` で比較してください。
 同じ関数は `rdetoolkit.testing.assertions.<name>(run, ...)` としても使えます。
 
 ## ゴールデンスナップショット
@@ -246,7 +255,9 @@ pytest --rde-update-snapshots
 シンボリックリンクは両側で拒否します（シンボリックリンクの成果物、データルートから
 成果物ファイルまでの途中にあるシンボリックリンクのディレクトリ、および
 シンボリックリンクであるゴールデンファイル・ゴールデンディレクトリ・その中の
-ディレクトリは、比較にも書き込み先にも使いません）。`max_bytes`（既定 16 MiB）を
+ディレクトリは、比較にも書き込み先にも使いません。ゴールデンパスより上の
+ディレクトリは保存場所として利用者が選ぶもので、検査しません。macOS の `/tmp`
+のようにリンクであることが多いためです）。`max_bytes`（既定 16 MiB）を
 超えるファイルも拒否します。共有してよいものだけをスナップショットしてください。
 
 ## 再利用可能なチェック

@@ -34,6 +34,7 @@ BV / negative table
 | TC-ASSERT-BV-010 | invoice | schema violation | AssertionError |
 | TC-ASSERT-BV-011 | context | any failure | message ends with data root and run report |
 | TC-ASSERT-BV-012 | bad JSON / text | malformed JSON, undecodable text, directory as file | AssertionError |
+| TC-ASSERT-BV-013 | CSV | header repeats a column name (``read_csv`` / ``iter_csv`` / ``assert_csv_rows``) | AssertionError naming the column |
 """
 
 from __future__ import annotations
@@ -453,3 +454,22 @@ def test_unreadable_artifacts__tc_assert_bv_012(scratch: RdeTestResult) -> None:
         run.read_json("structured")
     with pytest.raises(AssertionError, match="'structured/none.csv' is missing"):
         list(run.iter_csv("structured/none.csv"))
+
+
+# ------------------------------------------------------------ review fixes
+
+
+@pytest.mark.parametrize("reader", ["read_csv", "iter_csv", "assert_csv_rows"])
+def test_duplicate_csv_header_is_refused__tc_assert_bv_013(scratch: RdeTestResult, reader: str) -> None:
+    """TC-ASSERT-BV-013: a mapping per row would keep only the last of two equal column names."""
+    # Given: two columns named x; the first cell changed from 1 to 999
+    path = scratch.artifact_path("structured/dup.csv")
+    path.write_text("x,x\n999,2\n", encoding="utf-8")
+    # When / Then: refused instead of comparing {'x': '2'}
+    with pytest.raises(AssertionError, match=r"duplicate column name\(s\) \['x'\]"):
+        if reader == "read_csv":
+            scratch.read_csv("structured/dup.csv")
+        elif reader == "iter_csv":
+            list(scratch.iter_csv("structured/dup.csv"))
+        else:
+            scratch.assert_csv_rows("structured/dup.csv", [{"x": "2"}])

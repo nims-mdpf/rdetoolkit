@@ -375,19 +375,35 @@ class RdeTestRunner:
         staged = run_dir / source.name
         # Symlinks are copied by content: a flow that writes through a staged
         # input must never reach the file the source project points at.
-        # The staging directory may lie inside the project (the rde_runner
-        # fixture stages below tmp_path, and a test may pass project=tmp_path):
-        # it is left out, or every copy would copy itself.
-        shutil.copytree(source, staged, symlinks=False, ignore=_ignore_path(base) if base.is_relative_to(source) else None)
+        shutil.copytree(source, staged, symlinks=False, ignore=_staging_filter(source, base))
         return staged
 
 
-def _ignore_path(excluded: Path) -> Callable[[str, list[str]], set[str]]:
-    """Return a ``copytree`` ignore callback that skips the one entry resolving to ``excluded``."""
+def _staging_filter(source: Path, base: Path) -> Callable[[str, list[str]], set[str]]:
+    """Return the ``copytree`` ignore callback that keeps a staged copy fresh.
+
+    Two kinds of entry are left out:
+
+    - outputs an earlier run left in the source data root (the v1 output
+      directories except ``invoice/``, plus ``divided/`` and ``job.failed``):
+      the RDE platform starts every run from its inputs, and a stale file
+      would otherwise satisfy an existence check for a file this run never
+      wrote. ``invoice/`` is an input and is copied as it is.
+    - the staging directory, when it lies inside the project (the rde_runner
+      fixture stages below tmp_path, and a test may pass project=tmp_path),
+      or every copy would copy itself.
+    """
+    from rdetoolkit.runner.paths import _DIRNAMES, resolve_data_root  # noqa: PLC0415
+
+    outputs = (set(_DIRNAMES.values()) - {"invoice"}) | {"divided", "job.failed"}
+    data_root = resolve_data_root(source).resolve()
 
     def ignore(directory: str, names: list[str]) -> set[str]:
         parent = Path(directory)
-        return {name for name in names if (parent / name).resolve() == excluded}
+        skipped = {name for name in names if (parent / name).resolve() == base}
+        if parent.resolve() == data_root:
+            skipped.update(name for name in names if name in outputs)
+        return skipped
 
     return ignore
 

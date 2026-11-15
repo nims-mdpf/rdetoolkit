@@ -40,6 +40,7 @@ BV / negative table
 | TC-RR-BV-010 | env | flow sets an environment variable | not an rdetoolkit concern, but the runner adds none |
 | TC-RR-BV-011 | staging inside project | ``project=tmp_path`` with the fixture / staging several levels down | staging directory left out of the copy, siblings kept |
 | TC-RR-BV-012 | project vs staging | project is the staging directory / lies below it | ``ValueError``, nothing staged / copied normally |
+| TC-RR-BV-013 | earlier outputs | outputs of an earlier run in the source data root (nested / flat), flow writes nothing | not staged; ``assert_artifact`` and ``expect_files`` fail; inputs, ``invoice/`` and other files staged |
 """
 
 from __future__ import annotations
@@ -693,3 +694,65 @@ def test_project_inside_the_staging_directory_is_refused__tc_rr_bv_012(tmp_path:
         # A project below the staging directory (for example a retained run) is copied normally.
         result = runner.run(flow=_writes_result, project=project)
         assert result.status == "success", result.failure_summary(expected_status="success")
+
+
+@flow(id="tests.ga690.writes_nothing")
+def _writes_nothing(paths: InputPaths) -> None:
+    del paths
+
+
+_STALE_OUTPUTS = (
+    "structured/old.csv",
+    "meta/metadata.json",
+    "main_image/old.png",
+    "raw/old.txt",
+    "nonshared_raw/old.txt",
+    "logs/old.log",
+    "temp/old.tmp",
+    "invoice_patch/old.json",
+    "divided/0002/structured/old.csv",
+    "job.failed",
+)
+
+
+@pytest.mark.parametrize("layout", ["nested", "flat"])
+def test_previous_outputs_are_not_staged__tc_rr_bv_013(tmp_path: Path, layout: str) -> None:
+    """TC-RR-BV-013: outputs left in the source project by an earlier run never satisfy a check of this run."""
+    # Given: a project holding outputs of an earlier run next to its inputs and one unrelated file
+    project = _nested_project(tmp_path / "project") if layout == "nested" else _flat_project(tmp_path / "project")
+    data = project / "data" if layout == "nested" else project
+    for name in _STALE_OUTPUTS:
+        (data / name).parent.mkdir(parents=True, exist_ok=True)
+        (data / name).write_text("stale", encoding="utf-8")
+    (data / "notes.md").write_text("kept", encoding="utf-8")
+    before = _tree_digest(project)
+    # When: running a flow that writes nothing
+    result = RdeTestRunner(tmp_path / "runs").run(flow=_writes_nothing, project=project)
+    # Then: none of the earlier outputs is in the staged data root, the inputs and other files are
+    assert result.status == "success", result.failure_summary(expected_status="success")
+    assert result.job_failed_path is None
+    for name in _STALE_OUTPUTS:
+        assert not result.artifact_path(name).exists(), name
+    with pytest.raises(AssertionError, match="structured/old.csv"):
+        result.assert_artifact("structured/old.csv")
+    assert (result.data_root / "inputdata" / "sample.txt").is_file()
+    assert (result.data_root / "invoice" / "invoice.json").is_file()
+    assert (result.data_root / "tasksupport" / "invoice.schema.json").is_file()
+    assert (result.data_root / "notes.md").read_text(encoding="utf-8") == "kept"
+    assert _tree_digest(project) == before
+
+
+def test_previous_outputs_fail_expect_files__tc_rr_bv_013(tmp_path: Path) -> None:
+    """TC-RR-BV-013: ``rde_case(expect_files=...)`` fails for a file only an earlier run wrote."""
+    from rdetoolkit.testing.case import case_from_marker, check_case  # noqa: PLC0415
+
+    # Given
+    project = _nested_project(tmp_path / "project")
+    (project / "data" / "structured").mkdir()
+    (project / "data" / "structured" / "result.csv").write_text("stale", encoding="utf-8")
+    case = case_from_marker((), {"flow": _writes_nothing, "project": project, "expect_files": ["structured/result.csv"]}, rootpath=tmp_path)
+    # When
+    result = RdeTestRunner(tmp_path / "runs").run(flow=_writes_nothing, project=project)
+    failures = check_case(case, result)
+    # Then
+    assert any("structured/result.csv" in failure for failure in failures), failures
