@@ -727,6 +727,18 @@ shows the decision (selected reader, evidence, column names, row count) without 
 |---|---|---|---|---|
 | IC-8 | `ParserFactory.auto_detect` on a file whose format is unclear, such as a fully numeric first row or a first row mixing text and numbers | Guessed the headerless format (`NoHeaderParser`); a headered file whose first data row is numeric also had its header read as data | Raises `AmbiguousFormatError` whose message lists the candidates, their evidence and the remedy (`--csv-format`). A headered file is read with its header, and transposed, tab-separated, Shift-JIS and metadata-block files get a matching parser. An empty file raises `InvalidCSVFormatError` | Name the format (`ParserFactory.create(...)`, `csv_format=...`, `--csv-format ...`) |
 
+The destinations of `render_graph` are set with `OutputSpec(sink=...)`: `DirectorySink` writes into plain directories and `OutputContextSink` into the directories of an RDE `OutputContext`.
+Routing follows the legacy csv2graph: overlay images go to `main_image`, individual images to the individual directory (`other_image` for `OutputContextSink`) and HTML to the HTML directory (`struct` for `OutputContextSink`).
+Images (PNG, SVG, PDF) can be written for overlay and individual figures, HTML for overlay figures only. Any other combination raises `UnsupportedFormatError` before anything is written; HTML without Plotly raises `RendererUnavailableError` (an `ImportError` naming the install command).
+Destinations are checked by name and by real path (symlink targets included); one outside its directory raises `OutputPathError` (a `ValueError`). Existing files are overwritten by default and recorded in `Artifact.replaced_existing`; `OutputSpec(on_existing="error")` raises `ArtifactCollisionError` before rendering.
+`GraphResult.manifest_json()` lists every artifact in plan order by file name only (with the table-format detection as a structured object). The same request gives the same text whatever the output directory, and the same HTML bytes.
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-9 | A destination file is a symlink into a different directory whose path starts with the same text as the output directory (for example `out2` for `out`), in the `PathValidator` used by `csv2graph`, `plot_from_dataframe`, `rdetoolkit plot` and `FileWriter` | Accepted as inside, because containment was a string prefix comparison | Containment is decided on path components and raises `ValueError` ("Security violation"). The legacy saver checks every destination before it writes the first file | None (security fix) |
+| IC-13 | `IndividualStrategy` with image formats other than PNG in `OutputConfig.formats` (for example `["png", "svg"]`) | Individual figures were always PNG only | One file per series in every non-HTML format (same name, different extension); PNG when no image format is requested. `csv2graph` and `plot_from_dataframe` output is unchanged | Pass `formats=["png"]` for PNG only |
+| IC-14 | HTML output (`html=True`, `PlotlyRenderer`, `render_graph`) with `xlim`/`ylim` (or `AxisSpec.limits`) | The HTML axes ignored the limits and stayed automatic | The HTML axes use the same limits as the images (in log10 units on a log axis); a `None` side stays automatic | Omit the limits for automatic axes |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

@@ -308,12 +308,19 @@ def _save_render_results(
     main_image_dir_path: Path | None,
     html_output_dir_path: Path | None = None,
 ) -> None:
-    """Persist rendered results to disk."""
+    """Persist rendered results to disk (legacy routing, overlay results first).
+
+    Overlay images go to ``main_image_dir_path`` (else ``output_dir_path``), HTML to
+    ``html_output_dir_path`` (else ``output_dir_path``) and individual images to
+    ``output_dir_path``. Every destination is checked with the writer's
+    ``PathValidator`` before the first file is written, so a bad name never leaves a
+    partial set of files behind; directories may already have been created.
+    """
     if not collections.overlay and not collections.individual:
         return
 
-    writer = FileWriter()
     validator = PathValidator()
+    writer = FileWriter(validator)
     output_path = validator.ensure_directory(output_dir_path)
     html_output_path = (
         output_path
@@ -324,12 +331,15 @@ def _save_render_results(
     if main_image_dir_path is not None:
         main_image_path = validator.ensure_directory(main_image_dir_path)
 
-    for result in collections.overlay:
-        target_dir = output_path
-        if result.format.lower() == "html":
-            target_dir = html_output_path
-        elif main_image_path is not None:
-            target_dir = main_image_path
+    targets = [
+        (result, _overlay_target(result, output_path, main_image_path, html_output_path))
+        for result in collections.overlay
+    ]
+    targets.extend((result, output_path) for result in collections.individual)
+    for result, target_dir in targets:
+        validator.resolve_within(target_dir, result.filename)
+
+    for result, target_dir in targets:
         writer.save_figure(
             result.figure,
             target_dir,
@@ -337,13 +347,17 @@ def _save_render_results(
             result.format,
         )
 
-    for result in collections.individual:
-        writer.save_figure(
-            result.figure,
-            output_path,
-            result.filename,
-            result.format,
-        )
+
+def _overlay_target(
+    result: RenderResult,
+    output_path: Path,
+    main_image_path: Path | None,
+    html_output_path: Path,
+) -> Path:
+    """Directory of one overlay result: HTML -> html dir, image -> main image dir."""
+    if result.format.lower() == "html":
+        return html_output_path
+    return output_path if main_image_path is None else main_image_path
 
 
 def csv2graph(

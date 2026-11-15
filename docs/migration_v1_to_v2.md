@@ -675,6 +675,18 @@ Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列
 |---|---|---|---|---|
 | IC-8 | `ParserFactory.auto_detect` に、1 行目がすべて数値のファイル、1 行目に文字と数値が混在するファイルなど形式を決めきれないファイルを渡す | ヘッダーなしの形式(`NoHeaderParser`)と推測。ヘッダー付きで最初のデータ行が数値のファイルも、ヘッダーをデータとして読んでいた | `AmbiguousFormatError` を出し、候補・根拠・対処(`--csv-format`)をメッセージに示す。ヘッダー付きのファイルはヘッダーとして読み、転置・タブ区切り・Shift-JIS・メタデータブロックのファイルにはそれに合う parser を返す。空のファイルは `InvalidCSVFormatError` | 形式を明示する(`ParserFactory.create(...)`、`csv_format=...`、`--csv-format ...`) |
 
+成果物の出力先は `render_graph` の `OutputSpec(sink=...)` で指定します。`DirectorySink` は通常のディレクトリへ、`OutputContextSink` は RDE の `OutputContext` のディレクトリへ書き込みます。
+振り分けは従来の csv2graph と同じで、重ね描きの画像は `main_image`、個別グラフの画像は個別グラフ用のディレクトリ(`OutputContextSink` では `other_image`)、HTML は HTML 用のディレクトリ(`OutputContextSink` では `struct`)です。
+画像は PNG・SVG・PDF を重ね描きと個別グラフに、HTML は重ね描きにだけ出力できます。それ以外の組み合わせは何かを書き込む前に `UnsupportedFormatError` に、Plotly がない場合の HTML は `RendererUnavailableError`(インストール方法を示す `ImportError`)になります。
+出力先は名前と実際のパス(シンボリックリンクの先を含む)の両方で検査され、ディレクトリの外を指すものは `OutputPathError`(`ValueError`)です。既存のファイルは既定で上書きし、`Artifact.replaced_existing` に記録します。`OutputSpec(on_existing="error")` では描画の前に `ArtifactCollisionError` になります。
+`GraphResult.manifest_json()` はすべての成果物を計画の順に、ファイル名だけで列挙します(表形式の判定結果も構造化して含みます)。同じ依頼なら出力先のディレクトリが違っても同じ内容になり、HTML のバイト列も同じです。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-9 | 出力先のファイルがシンボリックリンクで、出力ディレクトリと文字列の先頭が同じ別のディレクトリ(例: `out` に対する `out2`)を指す。`csv2graph`・`plot_from_dataframe`・`rdetoolkit plot`・`FileWriter` が使う `PathValidator` | 文字列の前方一致で判定していたため、ディレクトリの内側として書き込んだ | パスの構成要素で判定し、`ValueError`("Security violation")とする。従来の保存処理は、最初のファイルを書く前にすべての出力先を検査する | なし(セキュリティ修正) |
+| IC-13 | `OutputConfig.formats` に PNG 以外の画像形式(例: `["png", "svg"]`)を指定して `IndividualStrategy` で描画する | 個別グラフは常に PNG だけ | 系列ごとに、HTML 以外の各形式で 1 ファイルずつ(同じファイル名で拡張子だけが異なる)出力する。画像形式が 1 つもなければ従来どおり PNG。`csv2graph` と `plot_from_dataframe` の出力は変わらない | PNG だけにしたい場合は `formats=["png"]` を指定する |
+| IC-14 | `xlim`/`ylim`(または `AxisSpec.limits`)を指定して HTML を出力する(`html=True`、`PlotlyRenderer`、`render_graph`) | HTML では軸範囲を無視し、常に自動範囲 | 画像と同じ範囲を HTML の軸にも適用する。対数軸は 10 を底とする対数で指定し、`None` の側は自動のまま | 自動範囲にしたい場合は範囲を指定しない |
+
 ### 診断と従来のトレースバック
 
 v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず

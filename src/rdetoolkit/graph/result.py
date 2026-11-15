@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -103,13 +104,15 @@ class GraphResult:
         """Return the versioned, machine-independent manifest of this result.
 
         Returns:
-            ``{"schema_version", "artifacts", "diagnostics", "detection"}``.
+            ``{"schema_version", "artifacts", "diagnostics", "detection"}``; the
+            detection is ``None`` or an object with every ``DetectionDecision`` field
+            (candidates as objects, tuples as lists).
         """
         return {
             "schema_version": MANIFEST_SCHEMA_VERSION,
             "artifacts": [artifact.manifest_entry() for artifact in self.artifacts],
             "diagnostics": [_diagnostic_entry(item) for item in self.diagnostics],
-            "detection": None if self.detection is None else str(self.detection),
+            "detection": _plain(self.detection),
         }
 
     def manifest_json(self) -> str:
@@ -121,6 +124,20 @@ class GraphResult:
             JSON with sorted keys, two-space indentation and a trailing newline.
         """
         return json.dumps(self.manifest(), sort_keys=True, ensure_ascii=False, indent=2) + "\n"
+
+
+def _plain(value: Any) -> Any:
+    """Turn a (nested) dataclass value into JSON-safe dicts and lists, field by field.
+
+    The detection decision is recorded as a structured object, so a consumer can read
+    the selected reader and every candidate's confidence and evidence without parsing
+    a repr.
+    """
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        return {item.name: _plain(getattr(value, item.name)) for item in dataclasses.fields(value)}
+    if isinstance(value, (tuple, list)):
+        return [_plain(item) for item in value]
+    return value
 
 
 def _diagnostic_entry(diagnostic: GraphDiagnostic) -> dict[str, Any]:

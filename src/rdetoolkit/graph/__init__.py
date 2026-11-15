@@ -96,6 +96,11 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "builtin_renderers": ("rdetoolkit.graph.renderers.registry", "builtin_renderers"),
     "RendererUnavailableError": ("rdetoolkit.graph.exceptions", "RendererUnavailableError"),
     "UnsupportedFormatError": ("rdetoolkit.graph.exceptions", "UnsupportedFormatError"),
+    "ArtifactSink": ("rdetoolkit.graph.outputs", "ArtifactSink"),
+    "DirectorySink": ("rdetoolkit.graph.outputs", "DirectorySink"),
+    "OutputContextSink": ("rdetoolkit.graph.outputs", "OutputContextSink"),
+    "OutputPathError": ("rdetoolkit.graph.exceptions", "OutputPathError"),
+    "ArtifactCollisionError": ("rdetoolkit.graph.exceptions", "ArtifactCollisionError"),
 }
 
 __all__ = list(_LAZY_ATTRS.keys())

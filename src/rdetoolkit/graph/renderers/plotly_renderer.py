@@ -11,6 +11,8 @@ The module global ``go`` is read at call time (tests replace it, C-13) and is
 
 from __future__ import annotations
 
+import hashlib
+import math
 from typing import Any, Final
 
 import pandas as pd
@@ -91,7 +93,7 @@ class PlotlyRenderer:
         if fmt.lower() != "html":
             msg = f"PlotlyRenderer cannot export {fmt!r}; supported formats: ['html']"
             raise UnsupportedFormatError(msg)
-        html: str = handle.to_html()
+        html: str = handle.to_html(div_id=_stable_div_id(handle))
         return html.encode("utf-8")
 
     def close(self, handle: Any) -> None:
@@ -262,6 +264,8 @@ class PlotlyRenderer:
                 "exponentformat": "power",
                 "showexponent": "all",
             })
+        if axis.limits is not None:
+            axis_layout["range"] = _plotly_range(axis.limits, axis.scale)
         return axis_layout
 
     def _build_update_menus(self, plan: PlotPlan) -> list[dict[str, Any]]:
@@ -334,6 +338,27 @@ class PlotlyRenderer:
             bordercolor="rgba(0,0,0,0.2)",
             borderwidth=1,
         )
+
+
+def _plotly_range(limits: tuple[float | None, float | None], scale: str) -> list[float | None]:
+    """The plan's limits as a Plotly axis range; ``None`` keeps that side automatic.
+
+    Plotly expects the range of a log axis in log10 units. Log limits are validated
+    positive when the plan is built, so the logarithm is defined.
+    """
+    if scale != "log":
+        return list(limits)
+    return [None if bound is None else math.log10(bound) for bound in limits]
+
+
+def _stable_div_id(handle: Any) -> str:
+    """A div id derived from the figure content, so equal figures give equal HTML bytes.
+
+    ``to_html`` otherwise draws a random UUID per call, which would make every export
+    differ although nothing in the figure changed.
+    """
+    digest = hashlib.sha256(handle.to_json().encode("utf-8")).hexdigest()
+    return f"rdetoolkit-graph-{digest[:16]}"
 
 
 def _explicit_size(plan: PlotPlan) -> dict[str, int]:
