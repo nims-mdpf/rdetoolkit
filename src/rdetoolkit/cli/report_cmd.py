@@ -3,7 +3,8 @@
 ``show`` summarizes a run; ``trace`` renders the recorded Call Sequence (the
 node calls in the order they ran -- a call log, not a dataflow graph);
 ``diagnose`` reports its failures with catalog guidance and checks which
-supporting logs belong to the same run.
+supporting logs belong to the same run; ``explain`` tells why it failed,
+joining the report with its failure-diagnostics file (#687).
 """
 
 from __future__ import annotations
@@ -29,11 +30,12 @@ _REPORT_INPUT = (
 _EXIT_CODES = (EXIT_OK, EXIT_CLICK_USAGE, (3, "the report file is missing or is not a run report"))
 
 REPORT_HELP = CommandHelp(
-    summary="Read run reports written by `rdetoolkit run`: summarize, trace, or diagnose them.",
+    summary="Read run reports written by `rdetoolkit run`: summarize, trace, diagnose, or explain them.",
     examples=(
         "rdetoolkit report show data/logs/run_report_<id>.json",
         "rdetoolkit report trace data/logs/run_report_<id>.json --format mermaid",
         "rdetoolkit report diagnose data/logs/run_report_<id>.json --json",
+        "rdetoolkit report explain data/logs/run_report_<id>.json",
     ),
     exit_codes=(EXIT_OK, (1, "`diagnose --fail-on-error`: the run recorded failures"), *_EXIT_CODES[1:]),
     see_also=("rdetoolkit run", "rdetoolkit repro export"),
@@ -91,6 +93,35 @@ DIAGNOSE_HELP = CommandHelp(
         (3, "the report file is missing, unreadable, or not a supported run report"),
     ),
     see_also=("rdetoolkit report show", "rdetoolkit report trace", "rdetoolkit doctor"),
+)
+
+EXPLAIN_HELP = CommandHelp(
+    summary="Explain why a run failed: phase, tile, node, exception, source location, and remediation.",
+    details=(
+        "The run report decides the outcome; `diagnostics_<run_id>.json` next to it adds the phase, the exception "
+        "chain and the source frame when its run id matches. Without it (older runs, a moved report) the explanation "
+        "uses the report alone and says the diagnostics are unavailable. A successful run is not given a cause. "
+        "Text output shows the recorded exception messages; `--format json` follows the diagnostics envelope rules "
+        "and copies no runtime text."
+    ),
+    inputs=(
+        _REPORT_INPUT + " Keep it next to its `diagnostics_<run_id>.json`, `iterations/` and `events_<run_id>.jsonl`.",
+        "`--format`: `text` (default) or `json`. `--iteration N`: explain only tile N. "
+        "`--full-traceback`: add every recorded frame (file, line, function) of each exception.",
+    ),
+    outputs=("Prints the explanation, or one JSON object with `--format json`. Writes no files.",),
+    examples=(
+        "rdetoolkit report explain data/logs/run_report_<id>.json",
+        "rdetoolkit report explain run_report_<id>.json --format json",
+        "rdetoolkit report explain run_report_<id>.json --iteration 2 \\",
+        "    --full-traceback",
+    ),
+    exit_codes=(
+        (0, "the report was explained (also when the run itself failed)"),
+        EXIT_CLICK_USAGE,
+        (3, "the report is missing or not a supported run report, `--format` is unknown, or `--iteration` is not in the report"),
+    ),
+    see_also=("rdetoolkit report diagnose", "rdetoolkit report show", "rdetoolkit report trace"),
 )
 
 app = typer.Typer(help=REPORT_HELP.render(), short_help=REPORT_HELP.summary, no_args_is_help=True)
@@ -192,3 +223,55 @@ def diagnose(
                 typer.echo(f"warning: {finding['subject']}: {finding['message']}")
     if fail_on_error and result["failures"]:
         raise typer.Exit(code=1)
+
+
+_EXPLAIN_FORMATS = ("text", "json")
+
+
+def _explain_input_error(*, as_json: bool, name: str, message: str, remediation: str) -> Never:
+    """Report an input the command cannot explain, as JSON on stdout or text on stderr, and exit 3."""
+    import json
+
+    from rdetoolkit.report.diagnostics import diagnostic, envelope
+    from rdetoolkit.report.explanation import EXPLAIN_COMMAND
+
+    finding = diagnostic(code=None, severity="error", name=name, subject="run_report", message=message, remediation=remediation)
+    if as_json:
+        typer.echo(json.dumps(envelope([finding], command=EXPLAIN_COMMAND), ensure_ascii=False, sort_keys=True, indent=2))
+    else:
+        typer.echo(f"{message}\nRemediation: {remediation}", err=True)
+    raise typer.Exit(code=3)
+
+
+@app.command("explain", help=EXPLAIN_HELP.render(), short_help=EXPLAIN_HELP.summary)
+def explain(
+    run_report: Annotated[Path, typer.Argument(metavar="RUN_REPORT", help="Path to run_report_<run_id>.json.")],
+    format_: Annotated[str, typer.Option("--format", help="Output format: text or json.")] = "text",
+    iteration: Annotated[int | None, typer.Option("--iteration", help="Explain only this tile index.", min=0)] = None,
+    full_traceback: Annotated[bool, typer.Option("--full-traceback", help="Show every recorded frame of each exception.")] = False,
+) -> None:
+    """Explain the failures recorded for ``run_report`` and where they happened."""
+    import json
+
+    from rdetoolkit.report.explanation import IterationNotInReportError, explain_report, render_text
+
+    as_json = format_ == "json"
+    if format_ not in _EXPLAIN_FORMATS:
+        _usage_error(f"Unknown --format {format_!r}.\nRemediation: pass --format text or --format json.")
+    try:
+        result = explain_report(run_report, iteration=iteration, full_traceback=full_traceback)
+    except IterationNotInReportError:
+        _explain_input_error(
+            as_json=as_json, name="IterationNotInReport", message=f"Iteration {iteration} is not recorded in the run report.",
+            remediation="Pass an iteration index that 'rdetoolkit report show' lists, or omit --iteration.",
+        )
+    except (OSError, UnicodeError, KeyError, TypeError, ValueError, RecursionError):
+        # The exception text is not printed: it can quote the file's contents.
+        _explain_input_error(
+            as_json=as_json, name="ReportInputInvalid", message="Unable to read a supported run report.",
+            remediation="Pass the run_report_<run_id>.json file that 'rdetoolkit run' wrote under data/logs/, unmodified.",
+        )
+    if as_json:
+        typer.echo(json.dumps(result.document, ensure_ascii=False, sort_keys=True, indent=2))
+    else:
+        typer.echo(render_text(result, run_report, full_traceback=full_traceback))

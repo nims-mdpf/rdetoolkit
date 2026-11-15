@@ -1,12 +1,13 @@
 # 診断コマンド (JSON)
 
-次の 3 つのコマンドは、同じ形式のバージョン付き JSON を出力します。スクリプトやコーディングエージェントは、人間向けの文章を解析しなくても、プロジェクトの状態や失敗した実行の内容を確認できます。JSON オプションを付けない場合は、従来どおりテキストを出力します。
+次の 4 つのコマンドは、同じ形式のバージョン付き JSON を出力します。スクリプトやコーディングエージェントは、人間向けの文章を解析しなくても、プロジェクトの状態や失敗した実行の内容を確認できます。JSON オプションを付けない場合は、従来どおりテキストを出力します。
 
 | コマンド | 確認する内容 | 終了コード |
 | -------- | ------------ | ---------- |
 | `rdetoolkit nodes lint --json` | 登録済みの node、flow、処理スケルトン | `0` 問題なし。`3` 何らかの指摘あり(警告を含む)、またはモジュールの import に失敗。`2` コマンドラインの誤り |
 | `rdetoolkit doctor --format json` | 入力ファイル、設定、モード、invoice とメタデータの定義。`--ref` を付けると flow も確認 | `0` 合格(警告は可)。`1` 失敗したチェックあり。`3` `PROJECT_DIR` がディレクトリでない、または `--format` が不明。`2` コマンドラインの誤り |
 | `rdetoolkit report diagnose <run_report.json> --json` | 実行レポートに記録された失敗 | `0` 診断できた(実行自体が失敗していても 0)。`1` `--fail-on-error` 指定時に失敗の記録あり。`3` レポートがない、または対応していない形式。`2` コマンドラインの誤り |
+| `rdetoolkit report explain <run_report.json> --format json` | 実行が失敗した理由: フェーズ、タイル、node、例外、ソースの位置 | `0` 説明できた(実行自体が失敗していても 0)。`3` レポートがない、対応していない形式、`--format` が不明、または `--iteration` のタイルがレポートにない。`2` コマンドラインの誤り |
 
 ## 共通の形式
 
@@ -14,11 +15,11 @@
 
 - `schema_version`: `"1"`。読み取る側はこの値を確認してください。対応しているバージョンの中で知らないキーが増えていても無視してかまいません。
 - `format`: `"rdetoolkit.diagnostics"`。`producer`: `{"name": "rdetoolkit", "version": "<インストールされているバージョン>"}`。どのツールのどのリリースが書いた出力かを示します。
-- `command`: `"nodes lint"`、`"doctor"`、`"report diagnose"` のいずれか。
+- `command`: `"nodes lint"`、`"doctor"`、`"report diagnose"`、`"report explain"` のいずれか。
 - `status`: エラーの指摘が 1 件でもあれば `"failed"`、警告があれば `"warning"`、それ以外は `"passed"`。これは診断結果です。終了コードは上の表のとおりコマンドごとに決まります。
 - `diagnostics`: 指摘の配列。`subject`、`name` の順に並びます。各要素には `code`(エラー/警告カタログの整数、または `null`)、`severity`(`error`、`warning`、`info`)、`name`、`message`、`remediation`、`subject` があり、必要に応じて `location` が付きます。
 - `truncated`: 出力の上限で配列を切り詰めたときに `true`([上限](#上限)を参照)。
-- `source`(`report diagnose` でレポートを読めた場合のみ): 診断した文書。`{"format": "rdetoolkit.run-report", "schema_version": "2"}`。
+- `source`(`report diagnose` と `report explain` でレポートを読めた場合のみ): 診断した文書。`{"format": "rdetoolkit.run-report", "schema_version": "2"}`。
 
 `code` が `null` の指摘には、文書化された `name`(例: `ModuleImportFailed`)が付きます。これらのチェックのために新しいエラーコードは割り当てていません。
 
@@ -35,10 +36,10 @@ node・flow・call の ID、モジュール名、run ID、プロジェクトま�
 標準出力の JSON に入りうる内容は、次の規則で制限しています。
 
 - **ファイルから読んだ ID**: `report diagnose` は、レポートにある `node_id` と `call_id` を、rdetoolkit が書きうる文字列の場合だけ出力します。条件は、英数字などの単語文字で始まり、続く文字が単語文字・`.`・`<`・`>`・`#`・`-` だけで、全体で 200 文字以内であることです(例: `pkg.mod.func`、`mod.f.<locals>.g#3`)。それ以外の値は `null` として出力し、その失敗の `redacted` 配列にフィールド名を入れます。値そのものは出力しません。`run_id` がファイル名の一部として使えない文字列のレポートは受け付けません(終了コード 3)。
-- **パス**: パスは POSIX 形式の相対パスです。`doctor` は `PROJECT_DIR` からの相対パス、`report diagnose` はレポートの隣にある決まった名前(`iterations/iteration_<index>.json`、`events_<run_id>.jsonl`)だけを出力します。絶対パスや入力ファイルの名前を出力するコマンドはありません。`nodes lint` はファイルパスではなく `module:qualname` を出力します。
+- **パス**: パスは POSIX 形式の相対パスです。`doctor` は `PROJECT_DIR` からの相対パス、`report diagnose` はレポートの隣にある決まった名前(`iterations/iteration_<index>.json`、`events_<run_id>.jsonl`)だけを出力します(`report explain` はこれに加えて `diagnostics_<run_id>.json` と、`..` を含まない相対パスのフレームのファイルと成果物のパスを出力します。それ以外のパスは `null` にして `redacted` に名前を挙げます)。絶対パスや入力ファイルの名前を出力するコマンドはありません。`nodes lint` はファイルパスではなく `module:qualname` を出力します。
 - **入力の大きさ**: `report diagnose` はレポートを最大 16 MiB まで読みます(それより大きいものは終了コード 3)。64 MiB を超える iteration の詳細やイベントログは読まずに `truncated` フラグを付けます。
 - **出力の大きさ**: `diagnostics`、`failures`、`evidence.iterations` はそれぞれ先頭の 200 件までです。切り詰めたときは `truncated` が `true` になります。`status` と終了コードはすべての指摘をもとに決まります。
-- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、実行レポートやログそのもの、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
+- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、`report explain` のテキスト出力、実行レポートやログそのもの([失敗の診断ファイル](#失敗の診断ファイル)を含む)、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
 
 この形式は自由記述の文を出力しないことでデータを守っており、文中の秘密情報を見分けようとはしていません。認証情報が ID として使われている場合(トークンを node ID にした場合など)は、ほかの ID と同じように出力します。正規表現や変数名によるマスキング(たとえば[従来のトレースバック](structured_process/traceback.ja.md)の `SecretsSanitizer`)は、パターンに当てはまるものしか見つけられず、匿名化にはなりません。この出力を外部のエージェントやサービス、issue に貼り付ける前に、内容を読み、組織の外に出してよいかを判断してください。その判断は利用者の責任であり、rdetoolkit のコマンドが代わりに判断したり送信したりすることはありません。
 
@@ -89,6 +90,101 @@ python3 -m rdetoolkit report diagnose data/logs/run_report_<run_id>.json --json
 どのフラグも `SupportingEvidence<Flag>`(例: `SupportingEvidenceMismatched`)という名前の警告としても出力します。レポートを移動するときは、`iterations/` ディレクトリとイベントログも一緒に移動してください。出力全体の形式は[診断結果のスキーマ](diagnostics-report.schema.json)を参照してください。
 
 このリリースから、`iterations/iteration_<index>.json` には既存のフィールドに加えて `schema_version: "1"` と `run_id` が入ります。実行レポート(`schema_version: "2"`)、イベント、call record の形式は変わりません。
+
+## report explain
+
+```shell
+python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json
+python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json --format json --iteration 2 --full-traceback
+```
+
+`report explain` は、1 回の実行が失敗した理由を示します。実行レポートと、その隣にある[失敗の診断ファイル](#失敗の診断ファイル) `diagnostics_<run_id>.json`、`iterations/` の詳細、イベントログを読みます。どのファイルもレポートの run id を使ってレポートと同じディレクトリから探すため、レポートを別の場所にコピーしても、これらのファイルを一緒にコピーすれば動作します。カレントディレクトリや `data/` は探しません。ファイルは何も書きません。
+
+- 結果を決めるのは実行レポートです。レポートに記録された失敗をそれぞれ 1 回ずつ説明し、診断ファイルの要素があればフェーズ、例外の連鎖、ソースの位置を加えます。`failed`、`partial`(一部のタイルが失敗し、ほかは完了)、`success` を区別して示します。成功した実行に原因は付けません。テキストでは説明することがないと表示し、`explanations` は空です。
+- 診断ファイルは、`format`、`schema_version`、`run_id` が一致する場合だけ使います。一致しない場合(このリリースより前に書かれた実行、移動したレポート、別の実行のファイル)は、レポートに記録された内容だけで説明し、診断を利用できないことを示します。このとき `evidence.diagnostics.state` は `missing`、`corrupt`、`unsupported`、`mismatched`、`truncated` のいずれかで、対応する `SupportingEvidence<Flag>` の警告が付きます。成功した実行は診断ファイルを書かないため、ファイルがなくても指摘しません。
+- `--iteration N` を付けるとタイル `N` だけを説明します。`--full-traceback` を付けると、各例外の記録されたフレームをすべて表示します。内容は `file`、`line`、`function` で、診断ファイルに保存されているのはこれだけです(ソースコードの行やローカル変数はありません)。
+
+テキスト出力には、失敗ごとに次の内容を表示します。フェーズ、タイルとその入力名、node、`call_id`(実行された呼び出しが記録されていない場合はその旨。node が実行される前、または node の外で起きた失敗です)、公開されたコードと名前、例外クラス、ソースの `file:line`、拒否された node 引数のパラメータと型、成果物、理由(例外の連鎖のいちばん深い例外とそのメッセージ)、カタログの対処方法。最後に、使用したファイルのパスを表示します。テキスト出力には記録された例外のメッセージが含まれます。これは実行レポートや `job.failed` にすでに含まれているのと同じ文です。制御文字はエスケープします。
+
+`--format json` は `command: "report explain"` のエンベロープを 1 つ出力し、上の規則に従います。例外のメッセージなど実行時の文はコピーしません。エンベロープのキーに加えて、`run_id`、`run_status`、`mode`、`flow_id`、`summary`(`iterations`、`failed_iterations`、`node_calls`、`failed_node_calls`)、`diagnostics_available`、`evidence`(`report diagnose` と同じ `iterations`、`events` に `diagnostics` を加えたもの)、`explanations` があります。各要素には `source`(`"diagnostics"` または `"report"`)、`phase`(診断ファイルがなければ `null`)、`iteration_index`、`node_id`、`call_id`、`parameter`、`expected_type`、`actual_type`、`artifact_path`、`redacted`、`code`、`name`、`message`、`remediation`(`report diagnose` と同じカタログの文)、`location`(`file`、`line`、`function`)、`exception` と `causes`(それぞれ `relation`、`type`、`location`。`--full-traceback` を付けると `frames` と `frames_truncated` も)があります。
+
+終了コード: レポートを説明できた場合は、実行が失敗していても `0`。レポートがない、対応していない形式、`--format` が `text` / `json` 以外、または `--iteration` のタイルがレポートにない場合は `3`(`--format json` のときはエラーをエンベロープとして標準出力に書きます)。コマンドラインが誤っている場合は `2`。
+
+## 失敗の診断ファイル
+
+失敗を記録した実行では、Runner が実行レポートの隣に `data/logs/diagnostics_<run_id>.json` を書きます。各失敗がどこで起きたかを示すファイルです。実行レポートは `schema_version: "2"` の形のままで、このファイルは独自のバージョンを持つ別の文書です。失敗のない実行ではファイルを書きません。node が不正な `metadata.json` を書いた場合の例を示します(フレームの一覧は省略しています。行番号はリリースによって変わります)。
+
+```json
+{
+  "schema_version": "1",
+  "format": "rdetoolkit.failure-diagnostics",
+  "producer": {"name": "rdetoolkit", "version": "<インストールされているバージョン>"},
+  "run_id": "<run_id>",
+  "run_status": "failed",
+  "diagnostics": [
+    {
+      "phase": "post_validate",
+      "code": 4002,
+      "name": "MetadataDefinitionInvalid",
+      "category": "validation",
+      "message": "<公開されたエラーメッセージ>",
+      "iteration_index": 0,
+      "node_id": null,
+      "call_id": null,
+      "parameter": null,
+      "expected_type": null,
+      "actual_type": null,
+      "artifact_path": "meta/metadata.json",
+      "location": {"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"},
+      "exception": {"relation": "primary", "type": "rdetoolkit.errors.RdeValidationError", "message": "...",
+                    "frames": [{"file": "rdetoolkit/runner/lifecycle.py", "line": 800, "function": "Runner.post_validate"}],
+                    "frames_truncated": false},
+      "causes": [
+        {"relation": "cause", "type": "rdetoolkit.exceptions.MetadataValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 185, "function": "metadata_validate"}],
+         "frames_truncated": false},
+        {"relation": "cause", "type": "pydantic_core._pydantic_core.ValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"}],
+         "frames_truncated": false}
+      ],
+      "causes_truncated": false
+    }
+  ],
+  "truncated": false
+}
+```
+
+- `phase` は次のいずれかです。`config_load`、`mode_resolution`(flow の `prepare=` を含む)、`pre_validate`、`tile_prepare`(タイルの計画、タイルの invoice の準備、flow の引数の注入)、`node_execution`(flow または v1 のコールバックが例外を送出)、`node_argument_validation`(厳密な型チェックが node の実行前に引数を拒否)、`artifact_publish`(raw のコピー、サムネイル、invoice の各段階)、`post_validate`(タイルごとの invoice とメタデータの検証。SmartTable の表のタイルを含む)、`finalize`(実行レポートや `job.failed` の書き込み)。
+- `code`、`name`、`message` は公開されたエラーです。実行レポートの `error`(またはタイルの `error`)や `job.failed` と同じ値になります。v1 の `StructuredError` は `ecode` をそのまま保ち、`category` は `"structured_error"` です。それ以外の `category` は `config`、`registry`、`execution`、`validation`、`internal`、`unknown` です。
+- `iteration_index`、`node_id`、`call_id`、`artifact_path`(データルートからの相対パス)は、わかっている場合だけ値が入り、それ以外は `null` です。推測で値を埋めることはありません。
+- `node_argument_validation` の要素には、`node_id`、`parameter`、その `expected_type`(アノテーションの文字列)、引数の `actual_type`(型名だけで、値は書きません)が入ります。拒否された node は実行されていないため、`call_id` は `null` です。call log は変わりません。拒否された node の呼び出しは記録されず、ほかの呼び出しの `seq` と `call_id` も変わりません。イベントログには追加のイベント `node.argument_rejected`(`node_id` と、payload に `iteration_index`、`parameter`、`expected_type`、`actual_type`)が 1 件記録されます。このイベントに対応する `node.started` はありません。
+- `location` は、失敗が始まったフレームです。rdetoolkit がカタログのエラーに変換した箇所ではありません。例外の連鎖のいちばん深い例外から、内側のフレームの順に探し、プロジェクト内のフレーム、rdetoolkit とインストール済みライブラリの外のフレーム、rdetoolkit のフレームの順に選びます。フレームが記録されていない場合は `null` です。
+- `exception` は失敗の元になった例外(node の失敗では node が送出した例外)、`causes` はその `__cause__` / `__context__` の連鎖で、近いものから並びます。
+
+タイルの実行後の失敗(`post_validate`)でも、実行レポートにはタイルと node の呼び出しが残るため、`report show` や `report trace` で確認できます。実行の状態は検証エラーとともに `failed` になり、各タイルは実行したときの状態のままです。
+
+### プライバシー
+
+フレームは `file`、`line`、`function` だけを記録します。ローカル変数、ソースコードの行、引数の値(`repr`)、環境変数、入力データは書き込まず、書き込むオプションもありません。ファイルパスはプロジェクトからの相対パス、またはそのファイルを含む `sys.path` のエントリからの相対パス(`rdetoolkit/...`、`pydantic/...`)です。どちらにも当てはまらないパスは Python が報告したとおりに書きます。例外のメッセージは 1 件あたり 2000 文字まで残します。実行レポートや `job.failed` にも同じ文がすでに含まれているためです。メッセージには、利用者のコードやライブラリが入れた値が含まれることがあるため、組織の外に共有する前にファイルの内容を確認してください。
+
+ファイルの大きさには上限があります。診断は最大 200 件(それ以上記録された場合は `truncated: true`。実行全体の失敗は必ず残します)、例外ごとに内側から 64 フレーム(`frames_truncated`)、連鎖ごとに 8 個の例外(`causes_truncated`)です。
+
+このファイルは、すでに決まった結果の記録です。書き込めなかった場合でも、実行の状態、終了コード、実行レポート、`job.failed` は変わらず、診断を利用できないことを示す 1 行を標準エラー出力に書きます。
+
+## 実行中の node のイベント
+
+`node.started`、`node.completed`、`node.failed` は、タイルが終了した後(戻った後、または例外を送出した後)に call log から書き出します。長時間かかる node の途中で実行が止まった場合(強制終了、メモリ不足、インタプリタのクラッシュ)でも、どの node を実行していたかがわかるように、node の呼び出しごとに実行中に次の 2 つのイベントも書きます。
+
+- `node.invocation_started`: node の本体を実行する直前に書きます。`node_id` と、payload に `invocation_id`、`iteration_index`、`parent_invocation_id`(ネストした呼び出しでは外側の node の呼び出し。それ以外は `null`)が入ります。
+- `node.invocation_finished`: 本体が戻ったとき、または例外を送出したときに書きます。`node_id` と、`invocation_id`、`iteration_index`、`outcome`(`completed` または `failed`)、`call_id`、`duration_ms`、失敗した呼び出しでは `error_type` が入ります。
+
+`invocation_id`(`inv-<n>`)は、タイルやネストした呼び出しをまたいで 1 回の実行の中で一意で、呼び出した順に番号が付きます。call log の `seq` とは別の番号です。`seq` と `call_id` はこれまでどおり呼び出しを記録するとき(ネストした呼び出しが先)に割り当て、前もって番号を確保することはありません。このため `node.invocation_started` は、「`node.*` のイベントは必ず `call_id` を持つ」という規則の、文書化された例外です。この時点では呼び出しにまだ `call_id` がありません。`node.invocation_finished` は `call_id` を持ち、2 つのイベントを call log と実行レポートに結び付けます。厳密な型チェックで拒否された node 引数は実行されないため、これらのイベントはなく、`node.argument_rejected` だけが記録されます。
+
+`events_<run_id>.jsonl` の各行は書き込むたびにフラッシュするため、強制終了したプロセスのイベントもその時点までディスクに残ります。対応する `node.invocation_finished` のない `node.invocation_started` は「最後に実行中だったことが確認された node」を意味します。その node が失敗の原因である証拠ではありません。また、オペレーティングシステムがファイルを書き出す前にマシンの電源が失われた場合は、記録が失われることがあります。
+
+これらのイベントも、ほかの `node.*` のイベントと同じくイベントログの上限に数えます。W1002 の後は書き込まず、`run.*` と `iteration.*` の流れは残します。書き込みに失敗しても node の結果は変わりません。
+
+イベントの形式は `schema_version: "1"` のままです。2 つのイベントは追加のみです。読み取る側は知らないイベント名を無視してください。既存のイベントと、それらの相互の順序は変わりません。
 
 ## 関連項目
 

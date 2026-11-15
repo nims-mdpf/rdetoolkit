@@ -66,6 +66,7 @@ EXPECTED_TREE = {
     "report show",
     "report trace",
     "report diagnose",
+    "report explain",
     "nodes",
     "nodes list",
     "nodes show",

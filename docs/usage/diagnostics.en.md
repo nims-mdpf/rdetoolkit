@@ -1,12 +1,13 @@
 # Diagnostic Commands (JSON)
 
-Three commands print the same versioned JSON envelope, so a script or a coding agent can check a project and read a failed run without parsing human-readable text. Without the JSON option each command prints text.
+Four commands print the same versioned JSON envelope, so a script or a coding agent can check a project and read a failed run without parsing human-readable text. Without the JSON option each command prints text.
 
 | Command | Checks | Exit codes |
 | ------- | ------ | ---------- |
 | `rdetoolkit nodes lint --json` | Registered nodes, flows, and processing skeletons | `0` clean; `3` any finding (warnings too) or a module that fails to import; `2` invalid command line |
 | `rdetoolkit doctor --format json` | Project inputs, config, mode, invoice and metadata definitions; with `--ref`, a flow | `0` passed (warnings allowed); `1` a check failed; `3` `PROJECT_DIR` is not a directory or `--format` is unknown; `2` invalid command line |
 | `rdetoolkit report diagnose <run_report.json> --json` | The failures recorded in a run report | `0` diagnosed (also when the run failed); `1` with `--fail-on-error`, the run recorded a failure; `3` the report is missing or not a supported run report; `2` invalid command line |
+| `rdetoolkit report explain <run_report.json> --format json` | Why a run failed: phase, tile, node, exception, source location | `0` explained (also when the run failed); `3` the report is missing or not a supported run report, `--format` is unknown, or `--iteration` is not in the report; `2` invalid command line |
 
 ## The envelope
 
@@ -14,11 +15,11 @@ The [JSON Schema](diagnostics.schema.json) defines it. Every document has:
 
 - `schema_version`: `"1"`. Check it; ignore keys you do not know within a supported version.
 - `format`: `"rdetoolkit.diagnostics"`, and `producer`: `{"name": "rdetoolkit", "version": "<installed version>"}`. They say which tool and release wrote the document.
-- `command`: `"nodes lint"`, `"doctor"`, or `"report diagnose"`.
+- `command`: `"nodes lint"`, `"doctor"`, `"report diagnose"`, or `"report explain"`.
 - `status`: `"failed"` if any finding is an error, `"warning"` if any is a warning, otherwise `"passed"`. This is the diagnostic result; the exit code is decided per command as in the table above.
 - `diagnostics`: findings sorted by `subject`, then `name`. Each has `code` (an integer from the error or warning catalog, or `null`), `severity` (`error`, `warning`, `info`), `name`, `message`, `remediation`, `subject`, and optionally `location`.
 - `truncated`: `true` when a list was cut at the output cap (see [Limits](#limits)).
-- `source` (`report diagnose` only, when the report could be read): the document diagnosed, `{"format": "rdetoolkit.run-report", "schema_version": "2"}`.
+- `source` (`report diagnose` and `report explain`, when the report could be read): the document diagnosed, `{"format": "rdetoolkit.run-report", "schema_version": "2"}`.
 
 A finding with `code: null` has a documented `name` instead (for example `ModuleImportFailed`); no new error codes are allocated for these checks.
 
@@ -35,10 +36,10 @@ Identifiers are printed: node, flow, and call ids, module names, run ids, and pa
 These rules bound what the JSON on stdout can contain:
 
 - **Identifiers read from a file.** `report diagnose` prints a `node_id` or `call_id` from the report only if it is a string rdetoolkit could have written: a word character followed by word characters, `.`, `<`, `>`, `#` or `-`, at most 200 characters in all (`pkg.mod.func`, `mod.f.<locals>.g#3`). Any other value is printed as `null` and the field is listed in that failure's `redacted` array; the value itself is never echoed. A report whose `run_id` is not a plain file-name part is rejected (exit 3).
-- **Paths.** Paths are relative POSIX paths: to `PROJECT_DIR` for `doctor`, and the fixed names `iterations/iteration_<index>.json` and `events_<run_id>.jsonl` next to the report for `report diagnose`. No command prints an absolute path or the name of an input file. `nodes lint` prints `module:qualname`, not file paths.
+- **Paths.** Paths are relative POSIX paths: to `PROJECT_DIR` for `doctor`, and the fixed names `iterations/iteration_<index>.json` and `events_<run_id>.jsonl` next to the report for `report diagnose` (`report explain` adds `diagnostics_<run_id>.json`, and frame files and artifact paths that are relative paths without `..`; any other path is printed as `null` and listed in `redacted`). No command prints an absolute path or the name of an input file. `nodes lint` prints `module:qualname`, not file paths.
 - **Input size.** `report diagnose` reads at most 16 MiB of the report (a larger one is rejected with exit 3) and skips an iteration detail or event log over 64 MiB with the flag `truncated`.
 - **Output size.** `diagnostics`, `failures` and `evidence.iterations` keep at most their first 200 entries. `truncated` is then `true`; `status` and the exit code still count every finding.
-- **What it covers.** Only the JSON document on stdout follows these rules. stderr (output of imported project modules, third-party warnings), `report show`, `report trace`, the run report and logs themselves, `job.failed`, and `repro export` archives carry raw text and paths.
+- **What it covers.** Only the JSON document on stdout follows these rules. stderr (output of imported project modules, third-party warnings), `report show`, `report trace`, the text output of `report explain`, the run report and logs themselves (including the [failure diagnostics file](#failure-diagnostics-file)), `job.failed`, and `repro export` archives carry raw text and paths.
 
 Leaving free text out is how the envelope protects data: it does not try to recognise secrets in text. An identifier that is a credential (a node id chosen as a token, say) is printed like any other. Regular-expression or name-based masking, such as the [legacy traceback](structured_process/traceback.en.md) `SecretsSanitizer`, finds only what its patterns describe and is not anonymisation. Before you paste any of this output into an external agent, service or issue, read it and decide that it can leave your organisation; that decision is yours, and no rdetoolkit command makes it or sends anything for you.
 
@@ -89,6 +90,101 @@ Failures come from the run report only. Each entry in `failures` has `iteration_
 Every flag also appears as a warning finding named `SupportingEvidence<Flag>` (for example `SupportingEvidenceMismatched`). Keep the report next to its `iterations/` directory and event log when you move it. The [diagnosis schema](diagnostics-report.schema.json) describes the full document.
 
 Since this release each `iterations/iteration_<index>.json` carries `schema_version: "1"` and `run_id` besides its existing fields. The run report (`schema_version: "2"`), event, and call-record formats are unchanged.
+
+## report explain
+
+```shell
+python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json
+python3 -m rdetoolkit report explain data/logs/run_report_<run_id>.json --format json --iteration 2 --full-traceback
+```
+
+`report explain` says why one run failed. It reads the run report and, next to it, the [failure diagnostics file](#failure-diagnostics-file) `diagnostics_<run_id>.json`, the `iterations/` details and the event log. All of them are found by the report's run id in the report's own directory, so a report you copied elsewhere still works if you copy those files along; the current directory and `data/` are never searched. Nothing is written.
+
+- The run report decides the outcome. Every failure it records is explained once; an entry of the diagnostics file adds the phase, the exception chain and the source location to it. `failed`, `partial` (some tiles failed, the others completed) and `success` are told apart. A successful run gets no cause: the text says there is nothing to explain and `explanations` is empty.
+- The diagnostics file is used only when its `format`, `schema_version` and `run_id` match. Otherwise (a run written before this release, a moved report, another run's file) the explanation falls back to what the report records, says that the diagnostics are unavailable, and `evidence.diagnostics.state` is `missing`, `corrupt`, `unsupported`, `mismatched` or `truncated`, with the matching `SupportingEvidence<Flag>` warning. A successful run writes no diagnostics file, so its absence is not flagged.
+- `--iteration N` explains only tile `N`. `--full-traceback` adds every recorded frame of each exception: `file`, `line` and `function`, which is all the diagnostics file stores (no source lines, no local variables).
+
+The text output shows, per failure: the phase, the tile and its input name, the node, the `call_id` (or that no executed call is recorded -- the failure happened before any node ran, or outside a node), the published code and name, the exception class, the source `file:line`, the parameter and types of a rejected node argument, the artifact, the reason (the deepest exception of the chain, with its message), and the catalog remediation; then the paths of the files it used. The text output shows the recorded exception messages, which are the same text the run report and `job.failed` already carry; control characters are escaped.
+
+`--format json` prints one envelope with `command: "report explain"`, and follows the rules above: it copies no exception message or other runtime text. Besides the envelope it has `run_id`, `run_status`, `mode`, `flow_id`, `summary` (`iterations`, `failed_iterations`, `node_calls`, `failed_node_calls`), `diagnostics_available`, `evidence` (`iterations`, `events` as for `report diagnose`, plus `diagnostics`), and `explanations`. Each explanation has `source` (`"diagnostics"` or `"report"`), `phase` (`null` without the diagnostics file), `iteration_index`, `node_id`, `call_id`, `parameter`, `expected_type`, `actual_type`, `artifact_path`, `redacted`, `code`, `name`, `message` and `remediation` (catalog text, as in `report diagnose`), `location` (`file`, `line`, `function`), `exception` and `causes` (each `relation`, `type`, `location`, and with `--full-traceback` also `frames` and `frames_truncated`).
+
+Exit codes: `0` when the report was explained, also for a failed run; `3` when the report is missing or not a supported run report, `--format` is not `text` or `json`, or `--iteration` names a tile the report does not have (with `--format json` the error is an envelope on stdout); `2` for an invalid command line.
+
+## Failure diagnostics file
+
+When a run records a failure, the Runner writes `data/logs/diagnostics_<run_id>.json` next to the run report. It says where each failure happened. The run report keeps its `schema_version: "2"` shape; this file is a separate document with its own version. A run without a failure writes no file. An abridged example for a node that wrote an invalid `metadata.json` (frame lists are shortened; line numbers differ between releases):
+
+```json
+{
+  "schema_version": "1",
+  "format": "rdetoolkit.failure-diagnostics",
+  "producer": {"name": "rdetoolkit", "version": "<installed version>"},
+  "run_id": "<run_id>",
+  "run_status": "failed",
+  "diagnostics": [
+    {
+      "phase": "post_validate",
+      "code": 4002,
+      "name": "MetadataDefinitionInvalid",
+      "category": "validation",
+      "message": "<the published error message>",
+      "iteration_index": 0,
+      "node_id": null,
+      "call_id": null,
+      "parameter": null,
+      "expected_type": null,
+      "actual_type": null,
+      "artifact_path": "meta/metadata.json",
+      "location": {"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"},
+      "exception": {"relation": "primary", "type": "rdetoolkit.errors.RdeValidationError", "message": "...",
+                    "frames": [{"file": "rdetoolkit/runner/lifecycle.py", "line": 800, "function": "Runner.post_validate"}],
+                    "frames_truncated": false},
+      "causes": [
+        {"relation": "cause", "type": "rdetoolkit.exceptions.MetadataValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 185, "function": "metadata_validate"}],
+         "frames_truncated": false},
+        {"relation": "cause", "type": "pydantic_core._pydantic_core.ValidationError", "message": "...",
+         "frames": [{"file": "rdetoolkit/domain/validation.py", "line": 78, "function": "MetadataValidator.validate"}],
+         "frames_truncated": false}
+      ],
+      "causes_truncated": false
+    }
+  ],
+  "truncated": false
+}
+```
+
+- `phase` is one of `config_load`; `mode_resolution` (includes a flow's `prepare=` hook); `pre_validate`; `tile_prepare` (planning the tiles, preparing a tile's invoice, injecting the flow's parameters); `node_execution` (the flow or the v1 callback raised); `node_argument_validation` (strict type checking rejected a node argument before the node ran); `artifact_publish` (raw copy, thumbnails, invoice stages); `post_validate` (the per-tile invoice and metadata checks, including a SmartTable table tile); `finalize` (writing the run report or `job.failed`).
+- `code`, `name` and `message` are the published error: the same values as the run report's `error` (or the tile's `error`) and `job.failed`. A v1 `StructuredError` keeps its `ecode` and has `category: "structured_error"`; the other categories are `config`, `registry`, `execution`, `validation`, `internal` and `unknown`.
+- `iteration_index`, `node_id`, `call_id` and `artifact_path` (relative to the data root) are set when known and `null` otherwise; no value is filled in by guessing.
+- A `node_argument_validation` entry names the `node_id`, the `parameter`, its `expected_type` (the annotation as text) and the `actual_type` of the argument (a type name, never the value). Its `call_id` is `null` because the rejected node never ran. The call log is unchanged: no call is recorded for the rejected node, and the `seq` and `call_id` of every other call stay the same. The event log gets one additive `node.argument_rejected` event (`node_id`, and `iteration_index`, `parameter`, `expected_type`, `actual_type` in its payload), which has no `node.started` partner.
+- `location` is the frame the failure started in, not the rdetoolkit code that turned it into a catalog error. The deepest exception of the chain is searched first, from its innermost frame; a frame in the project wins, then a frame outside rdetoolkit and installed libraries, then an rdetoolkit frame. `location` is `null` when no frame was recorded.
+- `exception` is the exception the failure started as (for a node failure, the exception the node raised), and `causes` is its `__cause__` / `__context__` chain, nearest first.
+
+A failure after the tiles ran (`post_validate`) keeps the tiles and their node calls in the run report, so `report show` and `report trace` still show them. The run is `failed` with the validation error, and each tile keeps the status it ran with.
+
+### Privacy
+
+A frame is recorded as `file`, `line` and `function` only. Local variables, source lines, argument values (`repr`), environment variables and input data are never written, and no option writes them. File paths are relative to the project, or to the `sys.path` entry that contains them (`rdetoolkit/...`, `pydantic/...`); a path in neither is written as Python reported it. Exception messages are kept, up to 2000 characters each, because the run report and `job.failed` already carry the same text. A message can contain values that your code or a library put into it, so read the file before you share it outside your organisation.
+
+The file has fixed limits: at most 200 diagnostics (`truncated: true` when more were recorded; the run-level failure is always kept), the 64 innermost frames per exception (`frames_truncated`), and 8 exceptions per chain (`causes_truncated`).
+
+The file is a record of an outcome that is already decided. If it cannot be written, the run's status, exit code, run report and `job.failed` stay as they are, and one line on stderr says that the diagnostics are unavailable.
+
+## In-flight node events
+
+`node.started`, `node.completed` and `node.failed` are written from the call log after a tile returns or raises. So that a run that dies inside a long-running node (killed, out of memory, a crashed interpreter) still shows which node it was running, every node call also writes two events while it runs:
+
+- `node.invocation_started`, right before the node body runs: `node_id`, and in its payload `invocation_id`, `iteration_index`, and `parent_invocation_id` (the enclosing node call of a nested call, otherwise `null`).
+- `node.invocation_finished`, when the body returns or raises: `node_id`, and `invocation_id`, `iteration_index`, `outcome` (`completed` or `failed`), `call_id`, `duration_ms`, and `error_type` for a failed call.
+
+`invocation_id` (`inv-<n>`) is unique within a run, across tiles and nested calls, and is numbered in call order. It is not the call log's `seq`: `seq` and `call_id` are still assigned when a call is recorded (nested calls first), and no number is reserved in advance. That is why `node.invocation_started` is the documented exception to "every `node.*` event carries `call_id`": the call has no `call_id` yet. `node.invocation_finished` carries it and links the pair to the call log and the run report. A node argument rejected by strict type checking never runs, so it has no invocation events, only `node.argument_rejected`.
+
+Each line of `events_<run_id>.jsonl` is flushed when it is written, so the events of a process that is killed are on disk up to that point. A `node.invocation_started` without a matching `node.invocation_finished` means "the last node observed in flight". It is not proof that this node caused the failure, and the record can still be lost if the machine itself loses power before the operating system writes the file.
+
+The events count toward the event log's size cap like the other `node.*` events: after W1002 they are dropped, while the `run.*` and `iteration.*` outline is kept. A failure to write them never changes the node's result.
+
+The event format keeps `schema_version: "1"`: the two events are additive. A reader should ignore event names it does not know; the existing events and their order relative to each other are unchanged.
 
 ## See also
 

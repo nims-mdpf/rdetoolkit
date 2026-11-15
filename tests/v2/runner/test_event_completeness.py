@@ -105,8 +105,9 @@ class TestEventStreamCompleteness:
 
         body = names[1:-1]
         assert body == [
-            "iteration.started", "node.started", "node.completed", "iteration.completed",
-            "iteration.started", "node.started", "node.completed", "iteration.completed",
+            # #689: the in-flight pair is emitted live, before the call-log replay.
+            "iteration.started", "node.invocation_started", "node.invocation_finished", "node.started", "node.completed", "iteration.completed",
+            "iteration.started", "node.invocation_started", "node.invocation_finished", "node.started", "node.completed", "iteration.completed",
         ], f"unexpected per-tile event ordering: {body}"
 
         assert all(event.run_id for event in sink.events), "every event must carry a non-empty run_id"
