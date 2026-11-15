@@ -779,3 +779,21 @@ def test_summarize_caps_the_listing() -> None:
     text = summarize([f"p{index}" for index in range(7)])
     # Then
     assert text.splitlines() == ["  p0", "  p1", "  p2", "  p3", "  p4", "  ... and 2 more"]
+
+
+@pytest.mark.parametrize("status", [[], {}, 1])
+def test_non_string_provenance_status_is_unavailable(tmp_path: Path, flow_module: str, status: object) -> None:
+    # Given: an archive whose provenance status values are not strings
+    archive = _archive(tmp_path)
+    manifest = _manifest(archive)
+    for name in ("git", "rdetoolkit"):
+        manifest["provenance"][name] = {"status": status}
+    broken = _with_manifest(archive, tmp_path / "broken.zip", manifest)
+    stage = tmp_path / "stage"
+    # When
+    result, output = _generate(tmp_path, flow_module, broken, "--stage-inputs", str(stage))
+    # Then: the test is generated and lists both attributes as unavailable
+    assert result.exit_code == 0, result.output
+    source = output.read_text(encoding="utf-8")
+    unavailable = next(line for line in source.splitlines() if line.startswith("# Unavailable in the archive: "))
+    assert "git" in unavailable and "rdetoolkit" in unavailable

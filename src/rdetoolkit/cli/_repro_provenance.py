@@ -147,12 +147,14 @@ def _known_fields(name: str, entry: dict[str, Any]) -> dict[str, Any] | None:
 
 def _read_attribute(name: str, entry: object) -> tuple[dict[str, Any] | None, str]:
     """Classify one recorded attribute as known fields, or an unavailable reason."""
-    if not isinstance(entry, dict):
+    status = entry.get("status") if isinstance(entry, dict) else None
+    # Any non-string status (a list or mapping is unhashable) is unreadable.
+    if not isinstance(entry, dict) or not isinstance(status, str):
         return None, "unreadable in the manifest"
-    if entry.get("status") == "known":
+    if status == "known":
         fields = _known_fields(name, entry)
         return (fields, "") if fields is not None else (None, "unreadable in the manifest")
-    if entry.get("status") in {"unavailable", "not_included"}:
+    if status in {"unavailable", "not_included"}:
         reason = safe_text(entry.get("reason"))
         return None, reason if reason is not None else "unavailable (no readable reason recorded)"
     return None, "unreadable in the manifest"

@@ -927,7 +927,7 @@ def inspect_archive(
 def _is_metadata_only(manifest: dict[str, Any]) -> bool:
     return (
         manifest.get("archive_kind") == "manifest-only"
-        and manifest.get("schema_version") in {"2", _SCHEMA_VERSION}
+        and manifest.get("schema_version") in ("2", _SCHEMA_VERSION)  # a tuple: the value may be unhashable
         and manifest.get("format") == _MANIFEST_FORMAT
         and manifest.get("replayable") is False
     )
@@ -1089,11 +1089,12 @@ def to_pytest(  # noqa: PLR0913 -- one parameter per CLI option
         _usage_error(f"{exc}\nRemediation: pass the flow as --ref pkg.mod:callable, as for 'rdetoolkit run'.")
     manifest, files, run = _read_case_archive(archive_path)
     _import_flow(ref)
+    # Read from the manifest before any input is staged or checked.
+    notes, differences = _repro_pytest.provenance_notes(manifest, None if files is None else len(files))
     case_project = _case_project(archive_path, manifest, files, project=project, stage_inputs=stage_inputs)
     expression, absolute = _repro_pytest.project_expression(case_project, output)
     if absolute:
         typer.echo(f"Warning: {case_project} has no path relative to {output.parent}; the test names it absolutely.", err=True)
-    notes, differences = _repro_pytest.provenance_notes(manifest, None if files is None else len(files))
     for difference in differences:
         typer.echo(f"Warning: {difference}; a rerun may behave differently.", err=True)
     source = _repro_pytest.render_test(module=module, attributes=attributes, project=expression, run=run, expect_status=expect_status, notes=notes)

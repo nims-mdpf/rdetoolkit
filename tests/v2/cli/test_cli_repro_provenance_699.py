@@ -27,6 +27,8 @@ EP/BV table:
 | NEG-007 | invalid | inspect of unsafe / non-zip / bad format | exit 3, nothing extracted | test_inspect_refusals |
 | NEG-008 | invalid | linked input escaping the project | export exit 3 | test_symlink_escape_is_refused_on_export |
 | NEG-009 | invalid | untrusted provenance text | not echoed, reported unreadable | test_inspect_does_not_echo_unsafe_provenance |
+| NEG-010 | invalid | non-string ``status`` (``[]``, ``{}``, number, null) | reported unreadable, no crash | test_inspect_non_string_status_is_unreadable |
+| NEG-011 | invalid | non-string manifest-only ``schema_version`` | unsupported manifest, exit 3 | test_inspect_non_string_schema_version_is_refused |
 | BV-001 | boundary | manifest exactly at / one over the cap | accepted / export refused, no file | test_manifest_size_limit |
 | BV-002 | boundary | source files and .git next to data | never archived | test_source_is_never_bundled |
 """
@@ -771,3 +773,38 @@ def test_large_file_entry_uses_zip64_when_needed(tmp_path: Path, monkeypatch: py
     # When/Then: export and import still work
     assert _export(report, archive).exit_code == 0
     assert _import(archive, tmp_path / "target").exit_code == 0
+
+
+@pytest.mark.parametrize("status", [[], {}, ["known"], 1, None])
+def test_inspect_non_string_status_is_unreadable(tmp_path: Path, status: object) -> None:
+    # Given: provenance attributes whose status is not a string (unhashable values included)
+    _, archive = _export_full(tmp_path)
+    manifest = _manifest(archive)
+    manifest["provenance"]["git"] = {"status": status, "reason": "x"}
+    manifest["provenance"]["rdetoolkit"] = {"status": status, "version": __version__}
+    broken = _replace(tmp_path, archive, {"repro_manifest.json": json.dumps(manifest).encode()})
+    # When: inspecting it as text and as JSON
+    text = _inspect(broken)
+    as_json = _inspect(broken, "--format", "json")
+    # Then: no crash; both attributes are reported as unreadable, never as known
+    assert text.exit_code == 0, text.output
+    assert as_json.exit_code == 0, as_json.output
+    payload = json.loads(as_json.stdout)
+    assert payload["provenance"]["unavailable"]["git"] == "unreadable in the manifest"
+    assert payload["provenance"]["unavailable"]["rdetoolkit"] == "unreadable in the manifest"
+
+
+@pytest.mark.parametrize("version", [[], {}, ["3"]])
+def test_inspect_non_string_schema_version_is_refused(tmp_path: Path, version: object) -> None:
+    # Given: a manifest-only archive whose schema_version is not a string
+    _, report = _project(tmp_path)
+    archive = tmp_path / "metadata.zip"
+    assert _export(report, archive, "--manifest-only").exit_code == 0
+    manifest = _manifest(archive)
+    manifest["schema_version"] = version
+    broken = _replace(tmp_path, archive, {"repro_manifest.json": json.dumps(manifest).encode()})
+    # When
+    result = _inspect(broken)
+    # Then: an unsupported-manifest usage error (exit 3), not a crash
+    assert result.exit_code == 3, result.output
+    assert "Unsupported repro_manifest.json" in result.output
