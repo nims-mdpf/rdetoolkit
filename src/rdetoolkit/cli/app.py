@@ -22,7 +22,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import Annotated, Any, ParamSpec, cast
 
-import click
 import typer
 from typer.core import TyperCommand, TyperGroup
 
@@ -101,7 +100,9 @@ _COMMAND_ORDER = (
 class _WorkflowOrderedGroup(TyperGroup):
     """Root group that lists commands in :data:`_COMMAND_ORDER`, then the rest."""
 
-    def list_commands(self, ctx: click.Context) -> list[str]:
+    # ``ctx`` comes from ``click`` (typer < 0.26) or from typer's vendored
+    # ``typer._click`` (typer >= 0.26); ``Any`` matches both base signatures (#740).
+    def list_commands(self, ctx: Any) -> list[str]:
         names = super().list_commands(ctx)
         rank = {name: index for index, name in enumerate(_COMMAND_ORDER)}
         return sorted(names, key=lambda name: rank.get(name, len(rank)))
@@ -128,7 +129,7 @@ class _DeprecatedCommand(TyperCommand):
 
     replacement: str = ""
 
-    def invoke(self, ctx: click.Context) -> Any:
+    def invoke(self, ctx: Any) -> Any:
         typer.echo(deprecation_message(f"rdetoolkit {self.name}", self.replacement), err=True)
         return super().invoke(ctx)
 

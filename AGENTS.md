@@ -412,6 +412,8 @@ Hypothesis profiles (registered in `tests/v2/conftest.py`):
 - [ ] PBT added where applicable (§7.6)
 - [ ] v1 tests GREEN: full `tox -e py312-module` output tail attached
 - [ ] No new dependency on `rdetoolkit._core` from v2 modules
+- [ ] Changelog entry added as `changelog.d/<issue>.<type>.md`, never written into
+      `CHANGELOG_v2.md` (CI rejects new bullets there; see `changelog.d/README.md`)
 
 ---
 
