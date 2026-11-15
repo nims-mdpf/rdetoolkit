@@ -58,6 +58,29 @@ class Event:
         actual_type: str,
     ) -> Event: ...
     @classmethod
+    def node_invocation_started(
+        cls,
+        *,
+        run_id: str,
+        node_id: str,
+        invocation_id: str,
+        iteration_index: int,
+        parent_invocation_id: str | None = None,
+    ) -> Event: ...
+    @classmethod
+    def node_invocation_finished(
+        cls,
+        *,
+        run_id: str,
+        node_id: str,
+        invocation_id: str,
+        iteration_index: int,
+        outcome: str,
+        call_id: str,
+        duration_ms: float,
+        error_type: str = "",
+    ) -> Event: ...
+    @classmethod
     def warning(cls, *, run_id: str, code: int, message: str) -> Event: ...
     def to_dict(self) -> dict[str, Any]: ...
     @property

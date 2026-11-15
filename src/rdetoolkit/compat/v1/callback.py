@@ -38,6 +38,7 @@ from rdetoolkit.models.rde2types import (
 )
 from rdetoolkit.runner.execute import (
     ExecutionResult,
+    InvocationEventEmitter,
     TileExecutionError,
     _emit_node_events,
     _failed_error,
@@ -305,6 +306,7 @@ class LegacyCallbackInvoker:
             type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
             iteration_index=iteration.index,
             sequence=material.call_sequence,
+            invocation_listener=InvocationEventEmitter(event_sink, run_id=run_id),
         )
         datatile_id = _datatile_id(context, iteration.index)
         try:

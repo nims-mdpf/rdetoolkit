@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, cast
 
 from rdetoolkit._interrupt import is_run_interrupted
-from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, TypeSummary
+from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, NodeInvocation, TypeSummary
 from rdetoolkit.core.context import RunContext, get_reserved_mapping
 from rdetoolkit.core.injection import resolve_flow_kwargs
 from rdetoolkit.errors import ERROR_CATALOG, RdeError, RdeExecutionError
@@ -36,6 +36,62 @@ class ExecutionResult:
     #: the diagnostics sidecar; it is in neither the run report nor the
     #: per-iteration detail file.
     diagnostic: FailureDiagnostic | None = None
+
+
+class InvocationEventEmitter:
+    """Turn the recorder's in-flight notifications into events (#689).
+
+    The events are written as the node runs -- unlike the ``node.started`` /
+    ``node.completed`` / ``node.failed`` replay after the tile -- so a
+    ``FileEventSink`` (which flushes every line) holds the start of a node
+    whose process died before it returned. Failures to write are the
+    recorder's to contain; this adapter only maps fields.
+
+    Args:
+        event_sink: Sink receiving the events.
+        run_id: Current run identifier.
+    """
+
+    def __init__(self, event_sink: EventSink, *, run_id: str) -> None:
+        self._event_sink = event_sink
+        self._run_id = run_id
+
+    def invocation_started(self, invocation: NodeInvocation) -> None:
+        """Emit ``node.invocation_started``.
+
+        Args:
+            invocation: The invocation whose body is about to run.
+        """
+        self._event_sink.emit(
+            Event.node_invocation_started(
+                run_id=self._run_id,
+                node_id=invocation.node_id,
+                invocation_id=invocation.invocation_id,
+                iteration_index=invocation.iteration_index,
+                parent_invocation_id=invocation.parent_invocation_id,
+            ),
+        )
+
+    def invocation_finished(self, invocation: NodeInvocation, record: NodeCallRecord) -> None:
+        """Emit ``node.invocation_finished`` correlated to the recorded call.
+
+        Args:
+            invocation: The invocation that ended.
+            record: Its call-log record.
+        """
+        error = record.error or {}
+        self._event_sink.emit(
+            Event.node_invocation_finished(
+                run_id=self._run_id,
+                node_id=invocation.node_id,
+                invocation_id=invocation.invocation_id,
+                iteration_index=invocation.iteration_index,
+                outcome=record.status,
+                call_id=record.call_id,
+                duration_ms=record.duration_ms,
+                error_type=str(error.get("type", "")),
+            ),
+        )
 
 
 class TileExecutionError(RdeExecutionError):
@@ -94,6 +150,7 @@ def run_tile(
         type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
         iteration_index=iteration_index,
         sequence=sequence,
+        invocation_listener=InvocationEventEmitter(event_sink, run_id=run_id),
     )
     try:
         with recorder:

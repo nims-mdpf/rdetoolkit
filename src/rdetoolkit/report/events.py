@@ -20,6 +20,8 @@ DEFAULT_EVENTS_MAX_BYTES = 64 * 1024 * 1024
 
 _EVENTS_TRUNCATED_CODE = 1002
 _NODE_EVENT_PREFIX = "node."
+#: ``node.invocation_finished`` outcomes: the two ``NodeCallRecord`` statuses.
+_INVOCATION_OUTCOMES = frozenset({"completed", "failed"})
 
 
 def _require_nonempty(value: str, name: str) -> str:
@@ -304,6 +306,105 @@ class Event:
                 "actual_type": actual_type,
             },
         )
+
+    @classmethod
+    def node_invocation_started(
+        cls,
+        *,
+        run_id: str,
+        node_id: str,
+        invocation_id: str,
+        iteration_index: int,
+        parent_invocation_id: str | None = None,
+    ) -> Event:
+        """Create a node.invocation_started event (#689, additive).
+
+        Emitted live, right before a node body runs, so an event log cut off
+        by a crash still names the node that was in flight. ``call_id`` does
+        not exist yet (it is allocated when the call is recorded, in
+        post-order), so the event is correlated by ``invocation_id``. An
+        unmatched start means "last observed in flight", not proof of where a
+        failure happened.
+
+        Args:
+            run_id: Run identifier (required, non-empty).
+            node_id: Invoked node's identifier (required, non-empty).
+            invocation_id: Run-unique correlation id (required, non-empty).
+            iteration_index: Zero-based tile index.
+            parent_invocation_id: Enclosing node invocation of a nested call.
+
+        Returns:
+            Event named ``node.invocation_started``.
+        """
+        _require_nonempty(run_id, "run_id")
+        _require_nonempty(node_id, "node_id")
+        _require_nonempty(invocation_id, "invocation_id")
+        return cls(
+            run_id=run_id,
+            name="node.invocation_started",
+            node_id=node_id,
+            payload={
+                "invocation_id": invocation_id,
+                "iteration_index": iteration_index,
+                "parent_invocation_id": parent_invocation_id,
+            },
+        )
+
+    @classmethod
+    def node_invocation_finished(
+        cls,
+        *,
+        run_id: str,
+        node_id: str,
+        invocation_id: str,
+        iteration_index: int,
+        outcome: str,
+        call_id: str,
+        duration_ms: float,
+        error_type: str = "",
+    ) -> Event:
+        """Create a node.invocation_finished event (#689, additive).
+
+        Closes the ``node.invocation_started`` with the same
+        ``invocation_id`` and names the recorded call, so the in-flight pair
+        joins the replayed ``node.started`` / ``node.completed`` /
+        ``node.failed`` events and the run report.
+
+        Args:
+            run_id: Run identifier (required, non-empty).
+            node_id: Invoked node's identifier (required, non-empty).
+            invocation_id: The started event's correlation id (required).
+            iteration_index: Zero-based tile index.
+            outcome: ``completed`` or ``failed``.
+            call_id: The recorded call's id (required, non-empty).
+            duration_ms: Body duration in milliseconds.
+            error_type: Exception class name of a failed call; omitted from
+                the payload when empty.
+
+        Returns:
+            Event named ``node.invocation_finished``.
+
+        Raises:
+            ValueError: If a required field is empty or ``outcome`` is not
+                ``completed`` / ``failed``.
+        """
+        _require_nonempty(run_id, "run_id")
+        _require_nonempty(node_id, "node_id")
+        _require_nonempty(invocation_id, "invocation_id")
+        _require_nonempty(call_id, "call_id")
+        if outcome not in _INVOCATION_OUTCOMES:
+            msg = f"Event field 'outcome' must be one of {sorted(_INVOCATION_OUTCOMES)}, got {outcome!r}"
+            raise ValueError(msg)
+        payload: dict[str, Any] = {
+            "invocation_id": invocation_id,
+            "iteration_index": iteration_index,
+            "outcome": outcome,
+            "call_id": call_id,
+            "duration_ms": duration_ms,
+        }
+        if error_type:
+            payload["error_type"] = error_type
+        return cls(run_id=run_id, name="node.invocation_finished", node_id=node_id, payload=payload)
 
     @classmethod
     def warning(cls, *, run_id: str, code: int, message: str) -> Event:

@@ -203,7 +203,8 @@ def test_one_node_call_is_recorded_and_bridged__tc_j1_cbp_ep_001(tmp_path: Path)
     assert result.call_records[0].status == "completed"
 
     # And: it was bridged to node events, and nothing else was emitted
-    assert _names(sink) == ["node.started", "node.completed"]
+    # #689: the live in-flight pair precedes the call-log replay.
+    assert _names(sink) == ["node.invocation_started", "node.invocation_finished", "node.started", "node.completed"]
     assert {event.node_id for event in sink.events} == {"tests.j1.cb_probe"}
 
     # And: the callback's own return value is never an output (v1 ignores it)
@@ -224,7 +225,12 @@ def test_two_node_calls_keep_their_order__tc_j1_cbp_ep_002(tmp_path: Path) -> No
     ]
 
     # And: each recorded call produced its own event pair
-    assert _names(sink) == ["node.started", "node.completed", "node.started", "node.completed"]
+    # #689: both in-flight pairs are emitted live, then the replay follows.
+    assert _names(sink) == [
+        "node.invocation_started", "node.invocation_finished",
+        "node.invocation_started", "node.invocation_finished",
+        "node.started", "node.completed", "node.started", "node.completed",
+    ]
 
 
 def test_callback_without_nodes_records_nothing__tc_j1_cbp_ep_003(tmp_path: Path) -> None:
@@ -291,7 +297,7 @@ def test_failing_node_keeps_its_record_on_the_error__tc_j1_cbp_bv_001(tmp_path: 
     assert failed.stacktrace is not None
 
     # And: the failure was bridged as node.failed, never node.completed
-    assert _names(sink) == ["node.started", "node.failed"]
+    assert _names(sink) == ["node.invocation_started", "node.invocation_finished", "node.started", "node.failed"]
 
     # And: the user exception stays reachable for the executor's translation
     assert isinstance(exc_info.value.__cause__, ValueError)
@@ -341,7 +347,7 @@ def test_records_before_the_failure_survive__tc_j1_cbp_bv_003(tmp_path: Path) ->
     # And: the failure was attributed to the callback, not to that node
     assert exc_info.value.result.error is not None
     assert exc_info.value.result.error["call_id"] == "unknown"
-    assert _names(sink) == ["node.started", "node.completed"]
+    assert _names(sink) == ["node.invocation_started", "node.invocation_finished", "node.started", "node.completed"]
 
 
 def test_absent_callback_reports_the_sentinel_flow__tc_j1_cbp_bv_004(tmp_path: Path) -> None:
@@ -384,7 +390,9 @@ def test_node_events_are_emitted_exactly_once__tc_j1_cbp_bv_005(
 
     # Then: each recorded call produced exactly one started event
     assert _names(sink).count("node.started") == expected
-    assert len(sink.events) == expected * 2
+    assert _names(sink).count("node.invocation_started") == expected
+    assert _names(sink).count("node.invocation_finished") == expected
+    assert len(sink.events) == expected * 4
 
 
 def test_flow_stack_is_restored_after_the_tile__tc_j1_cbp_bv_006(tmp_path: Path) -> None:
@@ -436,9 +444,13 @@ def test_interruption_is_still_an_interruption__tc_j1_cbp_bv_008(tmp_path: Path)
 
 
 def test_event_factory_vocabulary_is_unchanged__tc_j1_cbp_bv_009(tmp_path: Path) -> None:
-    """TC-J1-CBP-BV-009: the callback path introduces no new event name (§8.1)."""
-    # Given: the closed §8.1 node vocabulary
-    allowed = {"node.started", "node.completed", "node.failed"}
+    """TC-J1-CBP-BV-009: the callback path introduces no new event name (§8.1).
+
+    The vocabulary includes the #689 in-flight pair, which the flow entry emits too.
+    """
+    # Given: the closed §8.1 node vocabulary plus the #689 in-flight pair
+    inflight = {"node.invocation_started", "node.invocation_finished"}
+    allowed = {"node.started", "node.completed", "node.failed", *inflight}
 
     # When: exercising both callback outcomes
     sink = MemoryEventSink()
@@ -448,6 +460,7 @@ def test_event_factory_vocabulary_is_unchanged__tc_j1_cbp_bv_009(tmp_path: Path)
 
     # Then: every emitted name comes from the existing factories
     assert set(_names(sink)) <= allowed
+    assert inflight <= set(_names(sink))
     assert all(isinstance(event, Event) for event in sink.events)
 
 

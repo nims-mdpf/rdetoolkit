@@ -31,6 +31,9 @@ NODE_EVENT_NAMES = ("node.started", "node.completed", "node.failed")
 #: recorded ``@node`` call and succeeds.
 SINGLE_NODE_TILE_EVENTS = (
     "iteration.started",
+    # #689: the in-flight pair is emitted live, before the call-log replay.
+    "node.invocation_started",
+    "node.invocation_finished",
     "node.started",
     "node.completed",
     "iteration.completed",

@@ -12,7 +12,7 @@ from contextvars import ContextVar, Token
 from dataclasses import dataclass
 import sys
 from datetime import datetime, timezone
-from typing import Any, Literal, cast
+from typing import Any, Literal, Protocol, cast
 
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.flow import current_flow_id
@@ -60,11 +60,67 @@ class CallSequence:
 
     def __init__(self) -> None:
         self._last = 0
+        self._last_invocation = 0
 
     def next(self) -> int:
         """Return the next sequence number, starting at 1."""
         self._last += 1
         return self._last
+
+    def next_invocation(self) -> int:
+        """Return the next invocation number, starting at 1 (#689).
+
+        Invocations are numbered at call *entry* (pre-order) on a counter of
+        their own: drawing them from ``seq`` would reserve sequence numbers
+        before nested calls append, which the post-order ``seq`` contract
+        forbids.
+        """
+        self._last_invocation += 1
+        return self._last_invocation
+
+
+@dataclass(frozen=True, slots=True)
+class NodeInvocation:
+    """One node invocation observed at call entry (#689).
+
+    Attributes:
+        invocation_id: Run-unique correlation id (``inv-<n>``), independent
+            of ``seq`` / ``call_id``.
+        node_id: Invoked node's identifier.
+        iteration_index: Tile index of the invocation.
+        parent_invocation_id: Invocation of the enclosing node call when this
+            call is nested, else ``None``.
+    """
+
+    invocation_id: str
+    node_id: str
+    iteration_index: int
+    parent_invocation_id: str | None
+
+
+class InvocationListener(Protocol):
+    """Observer notified when a node body starts and when it ends (#689).
+
+    The recorder treats a listener as diagnostics: a listener that raises is
+    muted for the rest of the recorder and never changes the call's outcome.
+    """
+
+    def invocation_started(self, invocation: NodeInvocation) -> None:
+        """Receive an invocation whose body is about to run.
+
+        Args:
+            invocation: The in-flight invocation.
+        """
+        ...
+
+    def invocation_finished(self, invocation: NodeInvocation, record: NodeCallRecord) -> None:
+        """Receive the call record of an invocation whose body returned or raised.
+
+        Args:
+            invocation: The invocation that ended.
+            record: Its call-log record (``completed`` or ``failed``).
+        """
+        ...
 
 
 _active_recorder: ContextVar[CallLogRecorder | None] = ContextVar("rdetoolkit_calllog_recorder", default=None)
@@ -260,6 +316,7 @@ class CallLogRecorder:
         type_check: Literal["off", "warn", "strict"] = "off",
         iteration_index: int = 0,
         sequence: CallSequence | None = None,
+        invocation_listener: InvocationListener | None = None,
     ) -> None:
         """Create a recorder.
 
@@ -271,6 +328,8 @@ class CallLogRecorder:
             sequence: Run-scoped counter shared by every tile of one run.
                 ``None`` gives this recorder a private counter, which is what
                 a standalone recorder outside a Runner run wants.
+            invocation_listener: Optional observer of in-flight invocations
+                (#689). ``None`` -- a standalone recorder -- notifies nobody.
         """
         self.repr_head = repr_head
         self.repr_head_len = repr_head_len
@@ -279,6 +338,10 @@ class CallLogRecorder:
         self._records: list[NodeCallRecord] = []
         self._sequence = sequence if sequence is not None else CallSequence()
         self._token: Token[CallLogRecorder | None] | None = None
+        self._listener = invocation_listener
+        # Invocation ids of the node calls currently on the stack, innermost
+        # last; the top is the parent of the next nested invocation.
+        self._open_invocations: list[str] = []
 
     @property
     def records(self) -> tuple[NodeCallRecord, ...]:
@@ -326,7 +389,8 @@ class CallLogRecorder:
             return
         message = f"Node argument type mismatch for {node_id}.return"
         if self.type_check == "warn":
-            warnings.warn(message, UserWarning, stacklevel=3)
+            # 4: _check_return_type <- _run_body <- call_node <- node wrapper.
+            warnings.warn(message, UserWarning, stacklevel=4)
             return
         raise _mismatch_error(node_id, "return")
 
@@ -356,23 +420,55 @@ class CallLogRecorder:
         exception or a strict return-type mismatch -- is recorded as a
         ``failed`` call before it propagates (review rc1 F06), so the run
         error and the node events can name the call that produced it.
+
+        Right before the body runs the invocation listener is told that the
+        call is in flight, and once the record exists it is told how the call
+        ended (#689). A ``BaseException`` that is not an ``Exception`` (a
+        ``KeyboardInterrupt``, a process exit) leaves the start unmatched.
         """
         self._check_types(spec.id, fn, args, kwargs)
         started_at = datetime.now(timezone.utc).isoformat()
         start = time.perf_counter()
         inputs = self._summarize_inputs(fn, args, kwargs)
+        invocation = NodeInvocation(
+            invocation_id=f"inv-{self._sequence.next_invocation()}",
+            node_id=spec.id,
+            iteration_index=self.iteration_index,
+            parent_invocation_id=self._open_invocations[-1] if self._open_invocations else None,
+        )
+        self._open_invocations.append(invocation.invocation_id)
+        try:
+            self._notify(lambda listener: listener.invocation_started(invocation))
+            return self._run_body(spec, fn, args, kwargs, started_at=started_at, start=start, inputs=inputs, invocation=invocation)
+        finally:
+            self._open_invocations.pop()
+
+    def _run_body(
+        self,
+        spec: Any,
+        fn: Callable[..., Any],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+        *,
+        started_at: str,
+        start: float,
+        inputs: dict[str, TypeSummary],
+        invocation: NodeInvocation,
+    ) -> Any:
         try:
             result = fn(*args, **kwargs)
         except Exception as exc:
-            self._append_failed(spec, started_at=started_at, duration_ms=_elapsed_ms(start), inputs=inputs, exc=exc)
+            record = self._append_failed(spec, started_at=started_at, duration_ms=_elapsed_ms(start), inputs=inputs, exc=exc)
+            self._notify(lambda listener: listener.invocation_finished(invocation, record))
             raise
         duration_ms = _elapsed_ms(start)
         try:
             self._check_return_type(spec.id, fn, result)
         except Exception as exc:
-            self._append_failed(spec, started_at=started_at, duration_ms=duration_ms, inputs=inputs, exc=exc)
+            record = self._append_failed(spec, started_at=started_at, duration_ms=duration_ms, inputs=inputs, exc=exc)
+            self._notify(lambda listener: listener.invocation_finished(invocation, record))
             raise
-        self._append(
+        record = self._append(
             spec,
             started_at=started_at,
             duration_ms=duration_ms,
@@ -381,7 +477,26 @@ class CallLogRecorder:
             outputs=_summarize_outputs(result, repr_head=self.repr_head, repr_head_len=self.repr_head_len),
             error=None,
         )
+        self._notify(lambda listener: listener.invocation_finished(invocation, record))
         return result
+
+    def _notify(self, notification: Callable[[InvocationListener], None]) -> None:
+        """Deliver one listener notification without touching the call's outcome.
+
+        The listener is observability (#689): an ordinary failure mutes it for
+        the rest of this recorder, so the node still returns or raises exactly
+        as it would without a listener. The run interruption (3004) is the run
+        being stopped and propagates (review rc1 F01).
+        """
+        listener = self._listener
+        if listener is None:
+            return
+        try:
+            notification(listener)
+        except Exception as exc:  # noqa: BLE001
+            if is_run_interrupted(exc):
+                raise
+            self._listener = None
 
     def _append_failed(
         self,
@@ -391,8 +506,8 @@ class CallLogRecorder:
         duration_ms: float,
         inputs: dict[str, TypeSummary],
         exc: Exception,
-    ) -> None:
-        self._append(
+    ) -> NodeCallRecord:
+        return self._append(
             spec,
             started_at=started_at,
             duration_ms=duration_ms,
@@ -412,26 +527,26 @@ class CallLogRecorder:
         inputs: dict[str, TypeSummary],
         outputs: tuple[TypeSummary, ...],
         error: dict[str, Any] | None,
-    ) -> None:
+    ) -> NodeCallRecord:
         # seq is allocated at append time: nested @node calls append their
         # records first, so pre-computing seq would duplicate numbers (R2:
         # the call log must be a deterministic, uniquely-ordered sequence).
         seq = self._sequence.next()
-        self._records.append(
-            NodeCallRecord(
-                call_id=f"{spec.id}#{seq}",
-                node_id=spec.id,
-                parent_flow=current_flow_id(),
-                seq=seq,
-                iteration_index=self.iteration_index,
-                started_at=started_at,
-                duration_ms=duration_ms,
-                status=status,
-                inputs=inputs,
-                outputs=outputs,
-                error=error,
-            ),
+        record = NodeCallRecord(
+            call_id=f"{spec.id}#{seq}",
+            node_id=spec.id,
+            parent_flow=current_flow_id(),
+            seq=seq,
+            iteration_index=self.iteration_index,
+            started_at=started_at,
+            duration_ms=duration_ms,
+            status=status,
+            inputs=inputs,
+            outputs=outputs,
+            error=error,
         )
+        self._records.append(record)
+        return record
 
 
 def _elapsed_ms(start: float) -> float:

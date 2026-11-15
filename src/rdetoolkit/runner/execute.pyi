@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from rdetoolkit.core.calllog import CallSequence, NodeCallRecord, TypeSummary
+from rdetoolkit.core.calllog import CallSequence, NodeCallRecord, NodeInvocation, TypeSummary
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.errors import RdeExecutionError
 from rdetoolkit.report.events import EventSink
@@ -21,6 +21,11 @@ class ExecutionResult:
     target: str | None = ...
     stacktrace: str | None = ...
     diagnostic: FailureDiagnostic | None = ...
+
+class InvocationEventEmitter:
+    def __init__(self, event_sink: EventSink, *, run_id: str) -> None: ...
+    def invocation_started(self, invocation: NodeInvocation) -> None: ...
+    def invocation_finished(self, invocation: NodeInvocation, record: NodeCallRecord) -> None: ...
 
 class TileExecutionError(RdeExecutionError):
     result: ExecutionResult
