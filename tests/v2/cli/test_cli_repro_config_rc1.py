@@ -38,6 +38,7 @@ BV table:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import zipfile
@@ -153,7 +154,19 @@ def test_round_trip_keeps_effective_config__tc_rc1_f09_ep_001_005(tmp_path: Path
     # Then: the config-dependent output and the config digest are both reproduced
     assert (target / "data" / "structured" / "label.txt").read_text(encoding="utf-8") == original_label
     assert replay["config_digest"] == original["config_digest"]
-    assert manifest == {"schema_version": "1", "config_included": True, "config_digest": original["config_digest"]}
+    # And: the v3 manifest (#699) identifies a full archive with the config, and its file list
+    # carries the SHA-256 of the archived config that the replay read
+    identity = ("schema_version", "format", "archive_kind", "replayable", "config_included", "config_digest")
+    assert {key: manifest[key] for key in identity} == {
+        "schema_version": "3", "format": "rdetoolkit.repro-manifest", "archive_kind": "full", "replayable": True,
+        "config_included": True, "config_digest": original["config_digest"],
+    }
+    listed = {item["path"]: item for item in manifest["files"]}
+    config_bytes = (target / "rdeconfig.yaml").read_bytes()
+    assert listed["rdeconfig.yaml"] == {
+        "path": "rdeconfig.yaml", "byte_count": len(config_bytes), "sha256": "sha256:" + hashlib.sha256(config_bytes).hexdigest(),
+    }
+    assert manifest["provenance"]["captured_at"] == "export"
 
 
 def test_reordered_config_file_still_exports__tc_d1_ep_007(tmp_path: Path) -> None:

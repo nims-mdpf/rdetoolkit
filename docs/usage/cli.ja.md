@@ -25,7 +25,7 @@ RDEToolKitは、RDE構造化処理の開発ワークフロー全体を支援す�
 | Validate | `validate invoice`、`validate invoice-schema`、`validate metadata`、`validate metadata-def`、`validate all`、`doctor` | RDEのスキーマとデータファイルを検証し、プロジェクトを実行できるか確認 |
 | Run | `run` | 構造化処理を実行(v2 flow、または `--legacy` で v1 のデータセット関数) |
 | Inspect | `report show`、`report trace`、`report diagnose`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
-| Package | `package`、`repro export`、`repro import` | 提出用アーカイブの作成、実行の書き出しと再取り込み |
+| Package | `package`、`repro export`、`repro import`、`repro inspect` | 提出用アーカイブの作成、実行の書き出し・確認・再取り込み |
 | Migrate | `migrate check`、`migrate apply` | v2 移行が必要な v1 コードと CLI 呼び出しの検出・変換 |
 | Info | `version` | インストール済みバージョンの表示 |
 | Deprecated (removed in v2.1) | v1 のコマンド名 | 警告を表示する別名として残っています。[v2.0 でのコマンド名の変更](#renamed-commands)を参照してください |
@@ -599,18 +599,32 @@ def insecure():
 
 ### repro: 実行の書き出しと再実行
 
-`repro export` は実行レポート、実行時の入力ディレクトリ(`data/inputdata`、`data/invoice`、`data/tasksupport`)、実際に使われた `rdeconfig.yaml` を 1 つの zip にまとめます。`repro import` はその zip を新規または空のディレクトリに展開し、`rdetoolkit run` を実行できる状態にします。
+`repro export` は実行レポート、実行時の入力ディレクトリ(`data/inputdata`、`data/invoice`、`data/tasksupport`)、実際に使われた `rdeconfig.yaml` を 1 つの zip にまとめます。`repro import` はその zip を新規または空のディレクトリに展開し、`rdetoolkit run` を実行できる状態にします。`repro inspect` は、アーカイブが再現のために何を記録していて何を記録していないかを、展開せずに表示します。
 
 アーカイブには 2 種類あります。
 
-- **完全なアーカイブ**(既定): ローカルで再現するためのものです。すべての入力ファイル、invoice、実行レポートそのもの、実際に使われた設定を含むため、未公開の研究データ、個人情報、認証情報が入っている場合があります。`repro export` は書き出す前に、ディレクトリごとのファイル数とバイト数を警告とともに標準エラー出力に表示します。アップロードはしません。共有する前に中身を確認してください。外部のエージェントや issue に、確認なしで添付しないでください。
-- **メタデータのみ**(`--manifest-only`): zip には `repro_manifest.json` が 1 つだけ入ります(`schema_version` は `"2"`、`archive_kind: "manifest-only"`、`replayable: false`)。内容は、ディレクトリごとのファイル数とバイト数、番号(`file_id`)で区別した各ファイルのサイズと SHA-256(ファイル名は含めません)、レポートの `config_digest`、[`report diagnose` の出力](diagnostics.ja.md)です。入力ファイルの中身、invoice や設定の値、レポートの文面は含まず、`repro import` では読み込めません。同じファイルを持っている人にはダイジェストからファイルを特定されるため、匿名化にはなりません。
+- **完全なアーカイブ**(既定): ローカルで再現するためのものです。すべての入力ファイル、invoice、実行レポートそのもの、実際に使われた設定を含むため、未公開の研究データ、個人情報、認証情報が入っている場合があります。`repro export` は書き出す前に、ディレクトリごとのファイル数とバイト数を警告とともに標準エラー出力に表示します。アップロードはしません。共有する前に中身を確認してください。外部のエージェントや issue に、確認なしで添付しないでください。`repro_manifest.json`(`schema_version` は `"3"`、`format: "rdetoolkit.repro-manifest"`、`archive_kind: "full"`、`replayable: true`)は、レポートと `rdeconfig.yaml` を含むすべてのメンバーを `files`(`path`、`byte_count`、`sha256`、パス順)に列挙します。各ダイジェストは zip に書き込んだバイト列そのものから計算します。
+- **メタデータのみ**(`--manifest-only`): zip には `repro_manifest.json` が 1 つだけ入ります(`schema_version` は `"3"`、`archive_kind: "manifest-only"`、`replayable: false`)。内容は、ディレクトリごとのファイル数とバイト数、番号(`file_id`)で区別した各ファイルのサイズと SHA-256(ファイル名は含めません)、レポートの `config_digest`、後述の provenance、[`report diagnose` の出力](diagnostics.ja.md)です。入力ファイルの中身、invoice や設定の値、レポートの文面は含まず、`repro import` では読み込めません。同じファイルを持っている人にはダイジェストからファイルを特定されるため、匿名化にはなりません。
+
+どちらのアーカイブにも、`repro export` を実行した時点の `provenance` を記録します。実行レポートはインタープリターの情報を記録しないため、これは実行したときではなく書き出したときの環境であり、両者が異なる場合があります。各項目には `status` があり、`known`、`unavailable`(理由 `reason` 付き)、`not_included` のいずれかです。
+
+| 項目 | 記録する内容 |
+| --- | --- |
+| `rdetoolkit` | `version` |
+| `python` | `implementation`、`version` |
+| `platform` | `system`、`release`、`machine` |
+| `git` | プロジェクトのディレクトリが git のチェックアウト内にある場合の `commit` と `dirty`(追跡対象のファイルがコミットと異なるか)。git はローカルで、プロンプト・任意のロック・`core.fsmonitor` を無効にして実行します。git がない、失敗した、時間内に終わらない場合は `unavailable` になり、書き出しは続行します。 |
+| `lockfile` | プロジェクトのルートにある `uv.lock`、`poetry.lock`、`pdm.lock`、`Pipfile.lock`、`pylock.toml` のうち、最初に見つかった通常ファイルの `name` と `sha256`。ロックファイル自体はアーカイブしません。リンクは無視します。 |
+| `source_code` | 常に `not_included`。repro は flow のソースコードをアーカイブしません。別途、記録されたコミットがあればそのコミットで取得してください。 |
+
+ホスト名、ユーザー名、絶対パス、git のリモートやブランチ名は記録しません。
 
 === "Unix/macOS"
 
     ```shell
     python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
     python3 -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
+    python3 -m rdetoolkit repro inspect <archive.zip> [--format json]
     python3 -m rdetoolkit repro import <archive.zip> <展開先ディレクトリ>
     ```
 
@@ -619,15 +633,49 @@ def insecure():
     ```powershell
     py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
     py -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
+    py -m rdetoolkit repro inspect <archive.zip> [--format json]
     py -m rdetoolkit repro import <archive.zip> <展開先ディレクトリ>
     ```
 
 - 実行時に `rdetoolkit run --config` を使った場合は `--config` が必須です。設定はレポートの `config_digest` を再現できる場合にだけアーカイブされます。このダイジェストは YAML ファイルではなく、実際に使われた設定をキー順に並べた JSON の SHA-256 です。そのため、アーカイブ内の `rdeconfig.yaml` は書き方が違っても一致します。
 - `repro export` は既存の `-o` のファイルを置き換えません。シンボリックリンクや特殊ファイルの入力、読めないディレクトリは、たどったり飛ばしたりせずに拒否します(データはプロジェクト内にコピーしてください)。名前が `run_report_` で始まらないレポートは `data/logs/run_report_export.json` として格納します。
-- `repro import` は上書きしません。空でない展開先と、シンボリックリンクの展開先は拒否されます。受け付けるのは書き出し時の構成(`data/{inputdata,invoice,tasksupport}/…`、1 つの `data/logs/run_report_*.json`、`rdeconfig.yaml`、`schema_version` が `"1"` の `repro_manifest.json`)だけです。次のものは、何も展開する前に拒否します: 絶対パスや `..` を含むパス、空のパス要素、バックスラッシュ、制御文字(名前を途中で切る NUL を含む)、リンク・デバイスなどの特殊なエントリー、暗号化されたエントリー、無圧縮(stored)と deflate 以外の圧縮方式、大文字小文字や Unicode の正規化の違いだけの 2 つの名前、ディレクトリとして使われているファイル、100,000 を超えるエントリー、展開後 16 GiB を超える合計、1,024 文字または 64 階層を超えるパス、1 MiB を超える manifest、1,100 倍を超えて展開されるアーカイブ(deflate ではありえない比率なので、重なったエントリーや偽装されたエントリーだけが該当します)。Windows ではさらに `:`、`.` や空白で終わる名前、`CON` や `AUX` などのデバイス名も拒否します。書き出し時にも同じ制限を確認するため、インポートで拒否されるアーカイブを書き出すことはありません。
+- `repro import` は上書きしません。空でない展開先と、シンボリックリンクの展開先は拒否されます。受け付けるのは書き出し時の構成(`data/{inputdata,invoice,tasksupport}/…`、1 つの `data/logs/run_report_*.json`、`rdeconfig.yaml`、`schema_version` が `"3"` または `"1"` の完全なアーカイブの `repro_manifest.json`)だけです。次のものは、何も展開する前に拒否します: 絶対パスや `..` を含むパス、空のパス要素、バックスラッシュ、制御文字(名前を途中で切る NUL を含む)、リンク・デバイスなどの特殊なエントリー、暗号化されたエントリー、無圧縮(stored)と deflate 以外の圧縮方式、大文字小文字や Unicode の正規化の違いだけの 2 つの名前、ディレクトリとして使われているファイル、100,000 を超えるエントリー、展開後 16 GiB を超える合計、1,024 文字または 64 階層を超えるパス、64 MiB を超える manifest、1,100 倍を超えて展開されるアーカイブ(deflate ではありえない比率なので、重なったエントリーや偽装されたエントリーだけが該当します)。Windows ではさらに `:`、`.` や空白で終わる名前、`CON` や `AUX` などのデバイス名も拒否します。書き出し時にも同じ制限を確認するため、インポートで拒否されるアーカイブを書き出すことはありません。
+- manifest が `"3"` の場合、インポートはまず、ファイルのメンバーと manifest の `files` が同じファイルを同じサイズで挙げていることを確認し、続いて展開しながら各メンバーの SHA-256 を照合します。欠けている、列挙されていない、サイズが違う、内容が変わったメンバーは、展開先が作られる前にその名前を示して拒否します。
 - アーカイブは展開先の隣にある隠しディレクトリにいったん展開し、格納された設定を読み直して、manifest とレポートと同じ `config_digest` になるかを確認します。一致した場合に限り、その一時ディレクトリを展開先の名前に変更します。失敗した場合は一時ディレクトリを削除し、展開先は元のままです。ダイジェストが一致しても、各部分の組み合わせが正しいことがわかるだけで、誰が作ったかや、データと設定が信頼できるかはわかりません。flow を実行する前に内容を確認してください。
+- このバージョンより前に書き出したアーカイブ(`schema_version` が `"1"`)も引き続きインポートできます。ファイルごとのチェックサム(メンバーは zip の CRC でのみ確認します)も provenance もないため、インポート時に標準エラー出力へ `Provenance unavailable: …` と表示します。両方が必要な場合は、現在の rdetoolkit で書き出し直してください。
+- `repro inspect` はインポートと同じメンバーの検査をしたうえで、`"3"` の完全なアーカイブの全メンバーを読み込み(ディスクには書きません)、manifest と照合します。表示は 3 つに分かれます: 照合済みの入力、記録されている provenance、不明または記録できなかった項目(`source_code` は常にここに入ります)。`--format json` では [診断の共通形式](diagnostics.ja.md) で、`command: "repro inspect"`、`archive`、`inputs`(`status` は `verified`、`mismatch`、`"1"` の場合の `unverifiable`、メタデータのみの場合の `not_included`)、`provenance`(`captured_at`、`known`、`unavailable`)を出力します。指摘の `code` は `null` で、`ReproChecksumMismatch`(error、メンバーごと)、`ReproProvenanceUnavailable`(warning、項目ごと)、`ReproInputsUnverifiable`(warning)、`ReproInputsNotIncluded` と `ReproSourceNotIncluded`(info)です。manifest から読んだ値は、期待する形式の短い表示可能な文字列である場合だけ表示し、それ以外は読めないものとして報告します。
+- これらによって再実行の結果が決定的になるわけではありません。設定とファイルのダイジェストが一致すれば、入力と設定が同じであることはわかります。インタープリター、依存パッケージ、OS、flow のソースが違えば結果は変わりえます。provenance は、そのうちアーカイブが何を記録できたかを示すだけです。
 
-終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力がないか安全でない、出力先が既にある、設定が digest を再現しない、展開先が空でない、またはインポートで受け付けないメンバー・manifest・ダイジェストがある場合。
+終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力がないか安全でない、出力先が既にある、設定が digest を再現しない、展開先が空でない、manifest と異なるメンバーがある(import と inspect)、またはインポートで受け付けないメンバー・manifest・ダイジェストがある場合。`repro inspect` は provenance が記録されていないだけなら `0` で終了します。
+
+#### repro to-pytest: 記録した実行を回帰テストにする
+
+`repro to-pytest` は、アーカイブした実行を [`rde_case`](testing.ja.md#repro-アーカイブから) として宣言する、編集可能な pytest モジュールを書き出します。修正した失敗を、以後もテストで確認し続けるためのものです。
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --project <インポート先>
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --stage-inputs <新しいディレクトリ>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --project <インポート先>
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --stage-inputs <新しいディレクトリ>
+    ```
+
+- `--ref pkg.mod:callable` は必須です。アーカイブの `flow_id` から flow を推測することはありません。各部分は Python の識別子である必要があります。モジュールは `rdetoolkit run` と同じく作業ディレクトリから import するため、モジュールのトップレベルのコードは実行されます。flow 自体は呼び出さず、バイトコードのキャッシュも書きません。
+- 受け付けるのは完全なアーカイブだけです。`repro inspect` と同じ検査を行い、安全でないメンバー名は拒否し、`repro_manifest.json` と異なるメンバーがあれば中止します。`--manifest-only` のアーカイブは、入力もレポートも含まないため拒否します。
+- ケースの入力をどこから取るかを、どちらか一方だけ指定します。
+    - `--project DIR`: 既存のプロジェクト(通常は `repro import` で作ったもの)。`data/{inputdata,invoice,tasksupport}` のファイルがアーカイブと同じ(名前と SHA-256 が一致)で、実際に使われる設定がアーカイブの `config_digest` を再現する必要があります。異なる場合は違いを列挙し、何も書き出しません。`schema_version` が `"3"` のアーカイブが必要です。
+    - `--stage-inputs DIR`: `repro import` と同じ検査をしてアーカイブを新規または空の `DIR` に展開し、それを使います。研究データの生ファイル、invoice、設定が `DIR`(テストフォルダの中かもしれません)にコピーされるため、そこに置いてよいデータの場合にだけ使い、そうでなければバージョン管理の対象から外してください。`"1"` のアーカイブにも使えます(ファイルごとのチェックサムはなく、生成したファイルにその旨を書きます)。
+- 生成したテストは、修正後の振る舞いである `"success"` を期待します。アーカイブの status はコメントに書きますが、結果を確認したうえで `--expect-status success|partial|failed` を指定しない限り、期待値にはなりません。`failed` か `partial` を指定すると、アーカイブのエラーコードを `expect_error_code` に追加します。したがって、修正前は生成したテストが失敗します。
+- プロジェクトのパスは、生成したファイルからの相対パスで書きます。アーカイブから取り込むのは、run id(テスト名に使用)、status とエラーコード、`#` コメントとしての provenance だけです(rdetoolkit や Python のバージョンなど環境の違いは警告としても表示します)。レポートのメッセージ、`flow_id`、設定値、入力ファイル名はコピーしません。
+- 既存の `-o` のファイルは `--force` を指定した場合にだけ(1 回の rename で)置き換えます。リンクやディレクトリは常に拒否し、ファイル名は `.py` で終わる必要があります。
+
+終了コード: `0` 成功、`2` コマンドラインが不正(`--project` と `--stage-inputs` のどちらも、または両方を指定した場合や、未知の `--expect-status` を含む)、`3` 読めない・安全でない・メタデータのみ・変更されたアーカイブ、不正または import できない `--ref`、アーカイブと異なるプロジェクト、空でない `--stage-inputs` のディレクトリ、既に存在するか書き込めない出力。
 
 ### migrate: v1 コードの検出と変換
 
