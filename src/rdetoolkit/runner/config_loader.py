@@ -6,10 +6,13 @@ import copy
 import hashlib
 import json
 from collections.abc import Mapping
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.domain.mode_selection import normalize_mode_name
+from rdetoolkit.errors import RdeConfigError
 from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
 
@@ -87,11 +90,11 @@ def load_config(
 
 
 def compute_config_digest(config: RdeConfig) -> str:
-    """Return the digest that identifies an effective config by value.
+    """Return the digest identifying effective values and registration intent.
 
     The digest is sha256 over the config's JSON dump written canonically:
-    mapping keys sorted at every depth, compact separators, UTF-8. Two
-    configs holding the same values therefore share a digest however their
+    mapping keys sorted at every depth, compact separators, UTF-8. Auto and explicit invoice are distinct; accepted mode aliases are equivalent.
+    Configs holding the same values and mode intent share a digest however their
     free-form mappings (such as ``custom``) were ordered, while list order and
     JSON value types (``1`` vs ``1.0``) still count. ``RunReport.config_digest``
     and ``repro export`` both use this function, so "same config" has one
@@ -103,8 +106,16 @@ def compute_config_digest(config: RdeConfig) -> str:
     Returns:
         ``"sha256:"`` followed by 64 lowercase hex digits.
     """
+    values = config.model_dump(mode="json")
+    # Auto and explicit invoice select differently in v2; identity retains that intent.
+    if "extended_mode" not in config.system.model_fields_set:
+        values["system"].pop("extended_mode", None)
+    else:
+        # Historic callback settings may contain arbitrary mode names.
+        with suppress(RdeConfigError):
+            values["system"]["extended_mode"] = normalize_mode_name(config.system.extended_mode).value
     canonical = json.dumps(
-        config.model_dump(mode="json"),
+        values,
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,

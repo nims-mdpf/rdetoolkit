@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from rdetoolkit.runner.mode_resolver import ModeKind
+from rdetoolkit.modes.stages import mode_stage_order
 from rdetoolkit.runner.planner import create_common_tiles
 
 if TYPE_CHECKING:
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 #: v1 pipeline order for this mode (``processing/factories.py``):
 #: VariableApplier -> ThumbnailGenerator -> StructuredInvoiceSaver ->
 #: DescriptionUpdater.
-_ARTIFACT_STAGE_ORDER = ("magic", "thumbnail", "structured", "description")
+_ARTIFACT_STAGE_ORDER = mode_stage_order(ModeKind.excelinvoice)
 
 
 class ExcelInvoiceModeHandler:

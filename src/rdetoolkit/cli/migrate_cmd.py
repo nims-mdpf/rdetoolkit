@@ -68,8 +68,8 @@ APPLY_HELP = CommandHelp(
     inputs=("`PATH`: one Python file, or a directory whose `*.py` files are converted (default: the current directory).",),
     outputs=(
         "Previews the converted sources by default (`--dry-run`); writes nothing.",
-        "With `--no-dry-run`, writes the converted copy to `-o DIR` (default: `<PATH>_migrated` next to the input). "
-        "The input is never edited, and an existing output directory is refused.",
+        ("With `--no-dry-run`, writes the converted copy to `-o DIR` (default: `<PATH>_migrated` next to the input). "
+        "The input is never edited, and an existing output directory is refused."),
         "A directory with the v1 `templates/tasksupport/` layout also gets `templates/` renamed to `template/` in the output.",
     ),
     examples=(

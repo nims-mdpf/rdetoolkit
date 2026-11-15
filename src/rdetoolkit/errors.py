@@ -889,3 +889,44 @@ ERROR_CATALOG[2007] = ErrorDef(
         "restart the interpreter instead."
     ),
 )
+
+
+ERROR_CATALOG[1005] = ErrorDef(
+    name="ModeInputConflict",
+    message_template="Configured registration mode conflicts with input evidence: {reason}",
+    remediation="Remove the conflicting special input or explicitly request its matching mode. Omit extended_mode for automatic selection.",
+)
+ERROR_CATALOG[1007] = ErrorDef(
+    name="AmbiguousModeInput",
+    message_template="Registration input is ambiguous: {reason}",
+    remediation="Provide one special table/workbook and an unambiguous archive with unique safe member names.",
+)
+ERROR_CATALOG[1008] = ErrorDef(
+    name="ModeInputMissing",
+    message_template="Registration mode input is missing or unreadable: {reason}",
+    remediation="Provide the matching SmartTable, Excel invoice, or RDEFormat ZIP input, then validate again.",
+)
+
+
+ERROR_CATALOG[1006] = ErrorDef(
+    name="InvalidArtifactStagePlan",
+    message_template="Invalid artifact-stage plan: {reason}",
+    remediation=(
+        "Use each supported stage at most once: thumbnail, structured, magic, description. "
+        "Place description after every other selected stage."
+    ),
+)
+
+
+ERROR_CATALOG[4005] = ErrorDef(
+    name="SmartTableMappingInvalid",
+    message_template="SmartTable mapping failed at row {row}, column {column}: {reason}",
+    remediation="Correct the indicated mapping header or cell type using invoice.schema.json and metadata-def.json, then validate the complete table again.",
+)
+
+
+ERROR_CATALOG[4006] = ErrorDef(
+    name="InputPlanningFailed",
+    message_template="Input grouping cannot be planned: {reason}",
+    remediation="Check workbook rows and archive member names; use unique relative paths and safe ZIP entries.",
+)

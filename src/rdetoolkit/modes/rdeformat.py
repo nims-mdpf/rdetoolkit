@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.service_errors import execution_error
 from rdetoolkit.runner.mode_resolver import ModeKind
+from rdetoolkit.modes.stages import mode_stage_order
 from rdetoolkit.runner.planner import create_common_tiles
 
 if TYPE_CHECKING:
@@ -40,7 +41,7 @@ _DESTINATION_COMPONENTS = (
 #: StandardInvoiceInitializer -> RDEFormatFileCopier -> DatasetRunner ->
 #: ThumbnailGenerator -> DescriptionUpdater: it has neither
 #: ``StructuredInvoiceSaver`` nor ``VariableApplier``.
-_ARTIFACT_STAGE_ORDER = ("thumbnail", "description")
+_ARTIFACT_STAGE_ORDER = mode_stage_order(ModeKind.rdeformat)
 
 
 class RdeFormatRawCopyStrategy:

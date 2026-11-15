@@ -77,7 +77,9 @@ def test_non_ascii_value_hashes_canonical_utf8_json__tc_d1_ep_006() -> None:
     """TC-D1-EP-006: the digest is sha256 over compact, key-sorted UTF-8 JSON."""
     # Given: a config with a non-ASCII value
     config = RdeConfig(custom={"名前": "試料", "a": 1})
-    canonical = json.dumps(config.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    values = config.model_dump(mode="json")
+    values["system"].pop("extended_mode")
+    canonical = json.dumps(values, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     # When: the digest is computed
     digest = compute_config_digest(config)
     # Then: it is the hash of that canonical form

@@ -655,3 +655,42 @@ git タグ `v2.0.0a1` からのソースインストールのみ可能です(切
 
 `2.0.0rc1` → GA `2.0.1` の順に公開します。版番号 `2.0.0` は欠番で、
 正式版としては公開しません。
+
+## 登録モード選択とreproの変更
+
+v2 flowでは`system.extended_mode`を登録単位の明示指定として扱います。
+canonical名は`invoice`、`multidatatile`、`smarttable`、`excelinvoice`、
+`rdeformat`です。従来の`Invoice`、`MultiDataTile`、`SmartTableInvoice`、
+`ExcelInvoice`、`RDEFormat`も完全一致のaliasとして使用できます。
+その他の綴りや大小文字は、有効な名前を示す設定エラーになります。
+
+設定の省略とnullは自動選択です。明示的な`invoice`はInvoiceモードの要求なので、
+SmartTableやExcelInvoice入力との競合を拒否します。競合ファイルを取り除くか、
+その形式を明示指定してください。複数の特殊形式やworkbook、曖昧な特殊archiveも
+登録前に拒否します。通常ファイルが複数あってもInvoiceでは1タイルです。
+1ファイルずつ登録する場合は`multidatatile`を指定してください。
+
+v1 callback経路は従来のファイル検出優先順位とW1001を維持します。
+同じ競合入力でもv2 flowではカタログ登録済み設定エラーになります。
+設定ファイルがv1形式でも、flowの選択契約はv2です。
+
+設定正規化と新しいrepro archiveは、invoiceが明示指定されたかどうかを保持します。
+config digestも自動選択と明示invoiceを区別します。以前のexportが既に省略した
+明示性は復元できません。過去archiveの`rdeconfig.yaml`を確認し、意図したモードを
+設定して再実行し、新しいレポートとarchiveを生成してください。
+
+`rdetoolkit run --validate-only --explain --format json`は現在の入力を読み取り専用で
+説明します。ユーザーのprepareやflowを実行せず、成果物やレポートを出力しません。
+タイルのグループ・順序・出力先・モード別stageを確認できます。
+既存の`--validate-only`単独はprepareとレポート出力を維持します。
+prepareが入力を変更する場合、後の実行ではその変更後のsnapshotが対象になります。
+
+v2 RDEFormatは数値ディレクトリでグループを並べ、各グループ内はarchive内の順序を
+previewと実行で共有します。v1 callback内のfilesystem順序は維持します。
+MultiDataTileの`filesystem`指定は順序の非決定性を説明出力に示します。
+
+RDEFormatのレポート`datatile_id`と`target`は従来どおり最初の入力から決まります。
+v2はarchive順の先頭を使うため、callbackのfilesystem順の先頭とは値が異なる場合が
+あります。タイルindexと成果物の出力先は既存契約を維持します。
+v2の特殊入力の不正レイアウトは、展開やinvoice不足の検証より先に計画エラーになる
+場合があります。callbackは従来のエラー優先順位と部分成果物を維持します。

@@ -114,7 +114,7 @@ def test_nested_overrides_preserve_sources__tc_600_ep_005(tmp_path: Path) -> Non
     config = runner_api.load_run_config(tmp_path, overrides=overrides)
     config.custom["group"]["replace"].append(3)
     # Then: deep merge preserves siblings and owns its mutable results
-    assert config.system.extended_mode == "MultiDataTile"
+    assert config.system.extended_mode == "multidatatile"
     assert config.system.model_fields_set == {"save_raw", "extended_mode"}
     assert config.custom["group"] == {"keep": 1, "replace": [2, 3]}
     assert dict(overrides) == original
@@ -240,10 +240,10 @@ def test_null_mode_does_not_warn_on_detection__tc_600_neg_003(
 
 @pytest.mark.parametrize("filename", ["smarttable_data.xlsx", "data_excel_invoice.xlsx"])
 @pytest.mark.parametrize("configured", ["invoice", "MultiDataTile"])
-def test_explicit_helper_mode_still_warns__tc_600_neg_004(
+def test_explicit_helper_mode_conflicts__tc_600_neg_004(
     tmp_path: Path, capsys: pytest.CaptureFixture[str], filename: str, configured: str,
 ) -> None:
-    """TC-600-NEG-004: a helper override remains explicit for W1001."""
+    """TC-600-NEG-004: a helper override remains explicit for strict v2."""
     # Given: input detection conflicting with a non-null helper override
     inputdata = tmp_path / "inputdata"
     inputdata.mkdir()
@@ -252,12 +252,13 @@ def test_explicit_helper_mode_still_warns__tc_600_neg_004(
     sink = MemoryEventSink()
     sink.open("issue600")
     # When: resolving the mode using the loaded config
-    mode = resolve_mode(config, inputdata, tmp_path / "temp", sink, "issue600")
-    # Then: the conflict warning is preserved in the event stream and stderr
-    assert mode in {ModeKind.smarttable, ModeKind.excelinvoice}
+    with pytest.raises(RdeConfigError) as caught:
+        resolve_mode(config, inputdata, tmp_path / "temp", sink, "issue600")
+    # Then: strict v2 rejects the conflict before registration and emits no override warning.
+    assert caught.value.code == 1005
     assert "extended_mode" in config.system.model_fields_set
-    assert [event.payload["code"] for event in sink.events if event.name == "warning"] == [1001]
-    assert "ModeOverriddenByFileDetection" in capsys.readouterr().err
+    assert sink.events == []
+    assert "ModeOverriddenByFileDetection" not in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("settings", [{"extended_mode": value} for value in [1, False, [], {}]] + [{"extended_mode": None, "unknown": True}])

@@ -96,7 +96,7 @@ def _v2_overrides(*, save_table_file: bool) -> dict[str, Any]:
     """Return the v2 configuration the frozen v1 case ran with."""
     return {
         "system": {
-            "extended_mode": "invoice",
+            "extended_mode": None,
             "save_raw": True,
             "save_nonshared_raw": True,
             "save_thumbnail_image": False,

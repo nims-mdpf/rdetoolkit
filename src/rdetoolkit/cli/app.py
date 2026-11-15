@@ -238,15 +238,15 @@ def _load_target_function(target: str) -> Callable[..., object]:
 INIT_HELP = CommandHelp(
     summary="Create the project scaffold for an RDE structured program in the current directory.",
     inputs=(
-        "`--template PATH`: a `pyproject.toml` or `rdeconfig.yaml` with a `[tool.rdetoolkit.init]` / `init:` "
-        "section, or a directory that holds one. It names template files to copy.",
-        "`--entry-point`, `--modules`, `--tasksupport`, `--inputdata`, `--other`: the same template paths given "
-        "directly; they override the template config.",
+        ("`--template PATH`: a `pyproject.toml` or `rdeconfig.yaml` with a `[tool.rdetoolkit.init]` / `init:` "
+        "section, or a directory that holds one. It names template files to copy."),
+        ("`--entry-point`, `--modules`, `--tasksupport`, `--inputdata`, `--other`: the same template paths given "
+        "directly; they override the template config."),
     ),
     outputs=(
-        "Creates `container/` (`main.py`, `modules/`, `requirements.txt`, `Dockerfile`, and `data/` with "
+        ("Creates `container/` (`main.py`, `modules/`, `requirements.txt`, `Dockerfile`, and `data/` with "
         "`inputdata/`, `invoice/invoice.json`, `tasksupport/{invoice.schema.json,metadata-def.json}`), "
-        "`input/` (`inputdata/`, `invoice/invoice.json`), and `template/tasksupport/`.",
+        "`input/` (`inputdata/`, `invoice/invoice.json`), and `template/tasksupport/`."),
         "Existing files are kept (printed as `Skip: ... already exists.`); nothing is overwritten.",
     ),
     examples=(
@@ -332,10 +332,10 @@ PLOT_HELP = CommandHelp(
         "`--x-col` / `--y-cols`: columns by 0-based index or header name (repeatable); by default the first column is x.",
     ),
     outputs=(
-        "Writes one overlay PNG plus one PNG per series into `-o/--output-dir` (default: the CSV's directory). "
-        "`--mode individual` writes per-series PNGs only; a single-series overlay skips per-series PNGs unless `--individual`.",
-        "`--main-image-dir` sends the overlay to another directory; `--html` also writes interactive HTML into "
-        "`--html-output-dir` (default: the CSV's directory). Existing files with the same names are overwritten.",
+        ("Writes one overlay PNG plus one PNG per series into `-o/--output-dir` (default: the CSV's directory). "
+        "`--mode individual` writes per-series PNGs only; a single-series overlay skips per-series PNGs unless `--individual`."),
+        ("`--main-image-dir` sends the overlay to another directory; `--html` also writes interactive HTML into "
+        "`--html-output-dir` (default: the CSV's directory). Existing files with the same names are overwritten."),
     ),
     examples=(
         "rdetoolkit plot data/structured/sample.csv",
@@ -537,23 +537,25 @@ RUN_HELP = CommandHelp(
     ),
     inputs=(
         "`REF` (v2): `pkg.mod:callable` naming a flow function or a ProcessingTemplate subclass; the current directory is importable.",
-        "`REF` with `--legacy` (v1): `module_or_file::attr` naming `def f(srcpaths, resource_paths)`, as passed to "
+        ("`REF` with `--legacy` (v1): `module_or_file::attr` naming `def f(srcpaths, resource_paths)`, as passed to "
         "`workflows.run(custom_dataset_function=...)`. The `::` form without `--legacy` still works in v2.0.x; "
-        "`--legacy` becomes required in v2.1.",
+        "`--legacy` becomes required in v2.1."),
         "`--config FILE` (v2 only): YAML overrides merged over the discovered rdeconfig.yaml.",
-        "`--validate-only` (v2 only): check the config, mode, and invoice without calling the flow. "
-        "A flow `prepare=` hook still runs and may modify `inputdata/`.",
+        ("`--validate-only` (v2 only): check the config, mode, and invoice without calling the flow. "
+        "A flow `prepare=` hook still runs and may modify `inputdata/`."),
+        "`--validate-only --explain [--format json]`: read-only mode, tile and stage explanation. User modules are not imported, and prepare/flow functions are not called.",
     ),
     outputs=(
         "Writes the RDE output tree under `data/` (`structured/`, `meta/`, `raw/`, images, `logs/`, and `job.failed` on failure).",
-        "v2: prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`. "
+        ("v2: prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`. "
         "`--validate-only` prints `Validation succeeded` and writes no outputs (a `prepare=` hook may still modify `inputdata/`). "
-        "v1: prints the legacy status JSON.",
+        "v1: prints the legacy status JSON."),
     ),
     examples=(
         "rdetoolkit run modules.processing:pipeline",
         "rdetoolkit run modules.processing:pipeline --config overrides.yaml",
         "rdetoolkit run modules.processing:pipeline --validate-only",
+        "rdetoolkit run modules.processing:pipeline --validate-only --explain --format json",
         "rdetoolkit run --legacy main.py::dataset",
     ),
     exit_codes=(
@@ -575,10 +577,13 @@ def run(
     legacy: Annotated[bool, typer.Option("--legacy", help="Run a v1 dataset function given as module_or_file::attr.")] = False,
     validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate config, mode, and invoice without calling the flow. A flow prepare= hook still runs and may modify inputdata.")] = False,
     config: Annotated[Path | None, typer.Option("--config", help="YAML configuration overrides (v2 flows only).")] = None,
+    explain: Annotated[bool, typer.Option("--explain", help="Explain the current input snapshot without user imports, preparation, flow calls, or output writes. Requires --validate-only.")] = False,
+    output_format: Annotated[str, typer.Option("--format", help="Explanation output format: text or json. Requires --explain.")] = "text",
 ) -> None:
     """Run a v2 flow or a v1 dataset function."""
-    from rdetoolkit.cli.run_cmd import run_flow, usage_error
+    from rdetoolkit.cli.run_cmd import run_flow, usage_error, validate_explain_options, validate_explain_reference
 
+    validate_explain_options(validate_only, explain, output_format)
     if target is None:
         usage_error(
             "Missing REF.\n"
@@ -592,8 +597,8 @@ def run(
                 "Remediation: name the file or module and the function, e.g. 'rdetoolkit run --legacy main.py::dataset', "
                 "or drop --legacy to run a v2 flow 'pkg.mod:callable'.",
             )
-        if validate_only or config is not None:
-            option = "--validate-only" if validate_only else "--config"
+        if validate_only or config is not None or explain:
+            option = "--explain" if explain else ("--validate-only" if validate_only else "--config")
             usage_error(
                 f"{option} applies only to v2 flows, not to the legacy form 'module_or_file::attr'.\n"
                 "Remediation: drop the option, or run a v2 flow with 'rdetoolkit run pkg.mod:callable'.",
@@ -606,7 +611,11 @@ def run(
             f"{_LEGACY_TARGET_FORMAT}\n"
             "Remediation: use 'rdetoolkit run modules.processing:pipeline' or 'rdetoolkit run --legacy main.py::dataset'.",
         )
-    run_flow(target, validate_only_requested=validate_only, config_path=config)
+    if explain:
+        validate_explain_reference(target)
+        run_flow(target, validate_only_requested=validate_only, config_path=config, explain_requested=True, output_format=output_format)
+    else:
+        run_flow(target, validate_only_requested=validate_only, config_path=config)
 
 
 def _run_legacy(target: str) -> None:
@@ -701,10 +710,10 @@ PACKAGE_HELP = CommandHelp(
         "`-e/--exclude NAME`: directory names to leave out (repeatable; default: `.*`, `venv`, `.venv`, `site-packages`).",
     ),
     outputs=(
-        "Writes the zip given by `-o/--output` (default: `<YYYYMMDD>_<id>_rde_artifact.zip` next to the source directory); "
-        "the name must end with `.zip` and an existing file is replaced.",
-        "Writes a Markdown report next to the zip (same name, `.md`) listing the Dockerfile and requirements.txt "
-        "checks, external-connection references, and code-security findings.",
+        ("Writes the zip given by `-o/--output` (default: `<YYYYMMDD>_<id>_rde_artifact.zip` next to the source directory); "
+        "the name must end with `.zip` and an existing file is replaced."),
+        ("Writes a Markdown report next to the zip (same name, `.md`) listing the Dockerfile and requirements.txt "
+        "checks, external-connection references, and code-security findings."),
     ),
     examples=(
         "rdetoolkit package -s container",

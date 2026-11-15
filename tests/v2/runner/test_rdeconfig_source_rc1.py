@@ -145,17 +145,19 @@ def test_workflows_run_with_default_rdeconfig_emits_no_w1001__tc_c02r1_ep_005(
     assert _W1001 not in codes
 
 
-def test_explicit_mode_in_rdeconfig_object_still_warns__tc_c02r1_neg_001(tmp_path: Path) -> None:
-    """TC-C02R1-NEG-001: a mode the object really sets is explicit, so a conflicting detection warns."""
+def test_explicit_mode_in_rdeconfig_object_conflicts__tc_c02r1_neg_001(tmp_path: Path) -> None:
+    """TC-C02R1-NEG-001: a mode the object really sets is explicit, so a conflicting detection fails under v2."""
     # Given: SmartTable input and an object that explicitly asks for MultiDataTile
     runner, sink = _runner(tmp_path, _SMARTTABLE_FILE)
     source = RdeConfig.model_validate({"system": {"extended_mode": "MultiDataTile"}})
     # When
     config = runner.load_config(source)
-    mode = runner.resolve_mode(config)
-    # Then: detection wins and W1001 is published
-    assert mode is ModeKind.smarttable
-    assert _warning_codes(sink) == [_W1001]
+    from rdetoolkit.errors import RdeConfigError
+    with pytest.raises(RdeConfigError) as caught:
+        runner.resolve_mode(config)
+    # Then: strict v2 intent produces a catalogued conflict without W1001.
+    assert caught.value.code == 1005
+    assert _warning_codes(sink) == []
 
 
 def test_runner_does_not_mutate_the_passed_object__tc_c02r1_bv_001(tmp_path: Path) -> None:

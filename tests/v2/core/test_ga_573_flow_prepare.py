@@ -72,7 +72,7 @@ def test_flow_entry_runs_prepare_before_mode_discovery__ga573_ep_1(tmp_path: Pat
     assert len(seen) == 1
     assert seen[0][0] == data_root / "inputdata"
     assert isinstance(seen[0][1], RdeConfig)
-    assert seen[0][1].system.extended_mode == "MultiDataTile"
+    assert seen[0][1].system.extended_mode == "multidatatile"
     assert len(report.iterations) == 3
     assert tiles == [0, 1, 2]
     assert sorted(path.name for path in (data_root / "inputdata").iterdir()) == ["part_0.txt", "part_1.txt", "part_2.txt"]

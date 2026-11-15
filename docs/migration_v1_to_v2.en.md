@@ -698,3 +698,48 @@ source at the git tag `v2.0.0a1` (for diagnosis only; that tag reports
 
 Releases go `2.0.0rc1` → GA `2.0.1`. The version number `2.0.0` is skipped and
 will not be published as a final release.
+
+## Registration mode selection and reproduction
+
+V2 flow execution now treats `system.extended_mode` as registration intent.
+Use the canonical names `invoice`, `multidatatile`, `smarttable`,
+`excelinvoice`, and `rdeformat`. The exact legacy aliases `Invoice`,
+`MultiDataTile`, `SmartTableInvoice`, `ExcelInvoice`, and `RDEFormat` remain
+accepted. Other spellings fail with a list of valid names.
+
+Omit the setting, or set it to null, to detect a single special table format.
+An explicit `invoice` requests Invoice mode and conflicts with a SmartTable
+or ExcelInvoice input. Remove the conflicting file or request its mode.
+Mixed tables, duplicate workbooks, and ambiguous special archives fail before
+registration. Multiple ordinary raw files still form one Invoice tile;
+request `multidatatile` to register one tile per file.
+
+The v1 callback entry preserves file-detection priority and W1001 on a
+conflicting setting. A v2 flow raises a catalogued configuration error for
+the same conflict. Loading a legacy-format config does not turn a flow into
+a callback compatibility run.
+
+Config normalization and new reproduction archives retain whether invoice
+was explicitly requested. Config digests now distinguish automatic selection
+from explicit invoice. Archives created by earlier versions may already have
+lost this information; importing them cannot recover intent that was omitted
+at export. Review their archived `rdeconfig.yaml` and set the intended mode
+before replaying, then generate a new report and archive.
+
+Use `rdetoolkit run --validate-only --explain --format json` to inspect the
+current inputs without running user preparation or the flow, or publishing
+artifacts. The explanation includes groups, order, output paths, and mode-owned
+artifact stages. Ordinary `--validate-only` retains its existing preparation
+and report behavior. A preparation function can change the later run's inputs.
+
+V2 RDEFormat preview and execution group tiles by numeric directory and retain
+archive-member order within each group. The callback route retains its legacy
+filesystem ordering. MultiDataTile `filesystem` ordering explicitly reports
+that its order is not reproducible; name ordering remains deterministic.
+
+RDEFormat report `datatile_id` and `target` keep their first-input derivation.
+V2 now takes that first input from archive order, so their values can differ
+from the callback's filesystem-first values. Tile indices and artifact output
+paths retain their existing contracts. Invalid v2 special layouts can now fail
+with a planning error before extraction or missing-invoice validation; the
+callback keeps its historical error priority and partial artifacts.

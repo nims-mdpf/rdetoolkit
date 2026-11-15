@@ -212,7 +212,7 @@ def test_ignore_errors_projects_onto_the_iteration_policy(
     assert round_tripped.multidata_tile.ignore_errors is ignore_errors
 
 
-def test_excel_workbook_overrides_the_configured_mode__tc_i6_b_ev_034(
+def test_excel_workbook_conflicts_with_configured_mode__tc_i6_b_ev_034(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -235,14 +235,9 @@ def test_excel_workbook_overrides_the_configured_mode__tc_i6_b_ev_034(
     root = tmp_path / _MODE
     report, observed = _observe_v2("excel_workbook_present", root, monkeypatch)
 
-    # Then: v2 fails before any tile with v1's byte-identical job.failed
+    # Then: strict v2 refuses the conflict before the legacy checker runs.
     assert report.status == "failed"
     assert report.iterations == []
-    assert report.error is not None
-    assert report.error["code"] == _STRUCTURED_ERROR_CODE
-    assert _job_failed(root) == oracle["job_failed_text"]
-
-    # And: the artifacts agree exactly -- Session J0 closed the temp/ asymmetry
-    assert observed["raw_sha256"] == parity_view(oracle)["raw_sha256"]
-    assert observed["invoices"] == parity_view(oracle)["invoices"]
-    assert _tree_divergence(observed, oracle) == set()
+    assert report.error is not None and report.error["code"] == 1005
+    assert "multidatatile" in report.error["message"]
+    assert _job_failed(root).startswith("ErrorCode=1005\n")

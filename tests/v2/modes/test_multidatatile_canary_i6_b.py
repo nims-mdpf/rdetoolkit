@@ -111,7 +111,7 @@ def test_recorded_effective_config_is_reproducible__tc_i6_b_ev_012() -> None:
     assert rederived == record
     # And: production discovery of the shipped file reproduces those switches
     discovered = discovered_config(_MODE)
-    assert discovered.system.extended_mode == "MultiDataTile"
+    assert discovered.system.extended_mode == "multidatatile"
     assert discovered.system.magic_variable is True
     # ignore_errors=False is the v1 fail-fast policy (contracts.md §I6-B).
     assert discovered.execution.on_iteration_error == "fail_fast"

@@ -8,6 +8,8 @@ Design authority:
   - decisions_pre_A1.md Ruling 5 (v1 spellings in config, lowercase enums in v2)
   - local/develop/v2/session_b1.md (CONTEXT: selected_input_checker delegation)
 
+Legacy contract corpus. Strict v2 behavior is covered by test_mode_decision_705.py.
+
 Resolution priority (inherited from domain/mode.py, MUST NOT change):
   smarttable files > excelinvoice files > config value
 
@@ -88,7 +90,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-001")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-001")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-001", contract="v1")
 
         assert mode == ModeKind.invoice, (
             f"invoice config + no special files must resolve to ModeKind.invoice, got {mode!r}"
@@ -107,7 +109,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-002")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-002")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-002", contract="v1")
 
         assert mode == ModeKind.multidatatile, (
             f"MultiDataTile config + no special files must resolve to ModeKind.multidatatile, "
@@ -127,7 +129,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-003")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-003")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-003", contract="v1")
 
         assert mode == ModeKind.rdeformat, (
             f"rdeformat config + no special files must resolve to ModeKind.rdeformat, "
@@ -150,7 +152,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-004")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-004")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-004", contract="v1")
 
         assert mode == ModeKind.smarttable, (
             f"smarttable_*.xlsx present must resolve to ModeKind.smarttable, got {mode!r}"
@@ -172,7 +174,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-005")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-005")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-005", contract="v1")
 
         assert mode == ModeKind.excelinvoice, (
             f"*_excel_invoice.xlsx present must resolve to ModeKind.excelinvoice, got {mode!r}"
@@ -191,7 +193,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-006")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-006")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-006", contract="v1")
 
         assert mode == ModeKind.smarttable, (
             f"smarttable detection must override MultiDataTile config, got {mode!r}"
@@ -218,7 +220,7 @@ class TestResolveMode:
         sink = MemoryEventSink()
         sink.open("run-007")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-007")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-007", contract="v1")
 
         assert mode == ModeKind.excelinvoice, (
             f"excelinvoice detection must override MultiDataTile config, got {mode!r}"
@@ -251,7 +253,7 @@ class TestW1001Emission:
         sink = MemoryEventSink()
         sink.open("run-008")
 
-        resolve_mode(config, inputdata, unpacked, sink, "run-008")
+        resolve_mode(config, inputdata, unpacked, sink, "run-008", contract="v1")
 
         warning_events = [
             e for e in sink.events
@@ -275,7 +277,7 @@ class TestW1001Emission:
         sink = MemoryEventSink()
         sink.open("run-009")
 
-        resolve_mode(config, inputdata, unpacked, sink, "run-009")
+        resolve_mode(config, inputdata, unpacked, sink, "run-009", contract="v1")
 
         captured = capsys.readouterr()
         assert "ModeOverriddenByFileDetection" in captured.err, (
@@ -294,7 +296,7 @@ class TestW1001Emission:
         sink = MemoryEventSink()
         sink.open("run-010")
 
-        resolve_mode(config, inputdata, unpacked, sink, "run-010")
+        resolve_mode(config, inputdata, unpacked, sink, "run-010", contract="v1")
 
         warning_events = [
             e for e in sink.events
@@ -351,7 +353,7 @@ class TestW1001ExplicitScopeOnly:
         sink = MemoryEventSink()
         sink.open("run-901")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-901")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-901", contract="v1")
 
         assert mode is ModeKind.smarttable
         warnings = [e for e in sink.events if e.name == "warning"]
@@ -368,7 +370,7 @@ class TestW1001ExplicitScopeOnly:
         sink = MemoryEventSink()
         sink.open("run-902")
 
-        mode = resolve_mode(config, inputdata, unpacked, sink, "run-902")
+        mode = resolve_mode(config, inputdata, unpacked, sink, "run-902", contract="v1")
 
         assert mode is ModeKind.smarttable
         warnings = [e for e in sink.events if e.name == "warning"]
