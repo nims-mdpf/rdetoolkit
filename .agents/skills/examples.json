@@ -84,6 +84,24 @@
       "path": "rdetoolkit-testing/SKILL.md",
       "language": "console",
       "fixture": "empty-project"
+    },
+    {
+      "id": "migration-compare",
+      "path": "rdetoolkit-v1-migration/SKILL.md",
+      "language": "console",
+      "fixture": "preserved-v1-and-v2-data"
+    },
+    {
+      "id": "migration-exercise",
+      "path": "rdetoolkit-v1-migration/SKILL.md",
+      "language": "console",
+      "fixture": "synthetic-callback-success-and-failure"
+    },
+    {
+      "id": "migration-mode-parity",
+      "path": "rdetoolkit-v1-migration/SKILL.md",
+      "language": "console",
+      "fixture": "frozen-v1-contract-corpus"
     }
   ]
 }
