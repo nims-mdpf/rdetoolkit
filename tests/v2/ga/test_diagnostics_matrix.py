@@ -19,7 +19,7 @@ EP table (each row x 2 entries x 5 modes unless stated):
 | GA-*-STRICT-TYPE-MISMATCH | strict argument rejection | ``str`` passed to an ``int`` node under ``type_check: strict`` | failed 3002; phase node_argument_validation with node / parameter / type names; no executed call recorded |
 | GA-*-PUBLICATION-FAILURE | raw publication fails | ``RawArtifactService.copy`` raises ``PermissionError`` | failed 3005; phase artifact_publish; user code never ran |
 | GA-*-POST-VALIDATION-FAILURE | post-validation fails | user code writes invalid metadata | failed 4002; every frozen tile kept as completed; phase post_validate on ``meta/metadata.json`` |
-| GA-*-PRE-VALIDATION-FAILURE | pre-validation fails | schema-invalid source invoice | failed 4001; no iteration, no user call; phase pre_validate on ``invoice/invoice.json`` |
+| GA-*-INVALID-SOURCE-INVOICE | invalid source invoice | ``basic: null`` | I6-0 ``valerr`` row at its #647 timing: flow 4001 pre_validate / callback 4001 post_validate, tiles kept / table modes tile_prepare |
 | GA-*-INFLIGHT-EVENTS | in-flight events | one node call per tile | one started/finished invocation pair per tile, unique ids, before the call's ``node.completed`` |
 
 BV / negative table:
@@ -46,6 +46,12 @@ import yaml
 
 from rdetoolkit.errors import ERROR_CATALOG
 from tests.v2.contract.fixtures import _generate
+from tests.v2.contract.flow_error_table import (
+    IterationRule,
+    MessageRule,
+    expected_cb_v2_iteration_count,
+    flow_error_cell,
+)
 from tests.v2.contract.frozen import frozen_observed
 from tests.v2.contract.observe import observe_v2_run, parity_view
 from tests.v2.ga import _harness as ga
@@ -288,34 +294,59 @@ def test_post_validation_failure_keeps_every_tile(
     assert _explanation(run)["phase"] == "post_validate"
 
 
-# ------------------------------------------------------------ pre-validation failure
+# ------------------------------------------------------------ invalid source invoice
 
 
-@pytest.mark.parametrize(("entry", "mode"), cells("pre_validation_failure"))
-def test_pre_validation_failure_runs_no_tile(
+@pytest.mark.parametrize(("entry", "mode"), cells("invalid_source_invoice"))
+def test_invalid_source_invoice_follows_validation_timing(
     entry: str, mode: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """GA-*-PRE-VALIDATION-FAILURE: 4001 before any tile, diagnosed on the source invoice."""
+    """GA-*-INVALID-SOURCE-INVOICE: the I6-0 ``valerr`` row, diagnosed where it fails (#647)."""
+    # Given: the contracted translation of a schema-invalid source invoice
+    cell = flow_error_cell(mode, "valerr")
+    tiles = ga.tile_count(mode)
+
     # When: the source invoice violates its schema
     run = ga.run_case(
         entry, mode, tmp_path / mode, monkeypatch, function=ga.USER_CODE["ok"][entry], invalidate_invoice=True,
     )
 
-    # Then: failed with the contracted validation code, nothing executed
+    # Then: failed with the contracted code in the report and job.failed
     assert run.report.status == "failed"
-    assert (run.report.error or {}).get("code") == 4001
+    assert (run.report.error or {}).get("code") == cell.v2_code
     job_failed = run.job_failed()
     assert job_failed is not None
-    assert job_failed.splitlines()[0] == "ErrorCode=4001"
-    assert run.report.iterations == []
-    assert run.callback_count() == 0
-
-    # And: the sidecar names the phase and the source invoice
+    assert job_failed.splitlines()[0] == f"ErrorCode={cell.v2_code}"
     diagnostic = ga.only(run.diagnostics())
-    assert (diagnostic["phase"], diagnostic["code"]) == ("pre_validate", 4001)
-    assert diagnostic["artifact_path"] == "invoice/invoice.json"
-    assert diagnostic["iteration_index"] is None
-    assert _explanation(run)["phase"] == "pre_validate"
+    assert diagnostic["code"] == cell.v2_code
+
+    if cell.v2_message is MessageRule.V2_PREPARATION:
+        # And: a table mode cannot build its first tile, so no user code runs; under
+        # the v1 configuration (fail_fast) both entries stop there, which is the
+        # table's CB-V2 column
+        assert cell.cb_v2_iterations is IterationRule.FIRST_TILE
+        expected = expected_cb_v2_iteration_count(cell, tiles)
+        assert [iteration["status"] for iteration in run.report.iterations] == ["failed"] * expected
+        assert run.callback_count() == 0
+        assert (diagnostic["phase"], diagnostic["artifact_path"], diagnostic["iteration_index"]) == ("tile_prepare", None, 0)
+    elif entry == "flow":
+        # And: a flow's source invoice is final, so it is rejected before any tile
+        assert cell.v2_iterations is IterationRule.NONE
+        assert run.report.iterations == []
+        assert run.callback_count() == 0
+        assert (diagnostic["phase"], diagnostic["artifact_path"], diagnostic["iteration_index"]) == (
+            "pre_validate", "invoice/invoice.json", None,
+        )
+    else:
+        # And: a callback may still complete the invoice, so it runs every tile and
+        # the final invoice is rejected after them, with the tiles kept (#685)
+        assert cell.cb_v2_iterations is IterationRule.EXECUTED
+        assert [iteration["status"] for iteration in run.report.iterations] == ["completed"] * tiles
+        assert run.callback_count() == cell.cb_v2_callback_count == tiles
+        assert (diagnostic["phase"], diagnostic["artifact_path"], diagnostic["iteration_index"]) == (
+            "post_validate", "invoice/invoice.json", 0,
+        )
+    assert _explanation(run)["phase"] == diagnostic["phase"]
 
 
 # ------------------------------------------------------------ in-flight events

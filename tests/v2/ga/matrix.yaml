@@ -31,19 +31,32 @@ outcomes:
           - tests/v2/contract/test_unified_matrix.py::test_public_entry_success_matches_the_frozen_v1_observation[TC-UM-{MODE}-CB-ENTRY-OK]
           - tests/v2/ga/test_mode_artifacts.py::test_success_matches_frozen_v1_and_fabricates_no_cause[GA-{ENTRY}-{MODE}-SUCCESS]
 
-  pre_validation_failure:
-    aspects: [catalog 4001 in report and job.failed, report iteration count 0, no user call, diagnostic phase pre_validate on invoice/invoice.json, report explain]
+  invalid_source_invoice:
+    aspects:
+      - "the validation timing (#647) of the I6-0 valerr row in tests/v2/contract/flow_error_table.py"
+      - contracted code in report and job.failed
+      - report iteration count and status
+      - user call count
+      - "diagnostic phase: pre_validate (flow on a non-table mode), post_validate on invoice/invoice.json (callback on a non-table mode), tile_prepare (table mode)"
+      - report explain
     cells:
-      flow/*:
+      flow/invoice: &flow_final_source_invoice
         tests:
           - tests/v2/contract/test_unified_matrix.py::test_flow_error_cells_match_the_i6_0_translation_table[TC-UM-{MODE}-FLOW-VALERR]
           - tests/v2/runner/test_ga_post_validate_preserves_iterations.py::test_pre_validation_failure_keeps_empty_iterations__tc_ga685_ev_013[{mode}]
-          - tests/v2/ga/test_diagnostics_matrix.py::test_pre_validation_failure_runs_no_tile[GA-{ENTRY}-{MODE}-PRE-VALIDATION-FAILURE]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_invalid_source_invoice_follows_validation_timing[GA-{ENTRY}-{MODE}-INVALID-SOURCE-INVOICE]
+      flow/multidatatile: *flow_final_source_invoice
+      flow/rdeformat: *flow_final_source_invoice
+      flow/excelinvoice: &flow_table_source_invoice
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_flow_error_cells_match_the_i6_0_translation_table[TC-UM-{MODE}-FLOW-VALERR]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_invalid_source_invoice_follows_validation_timing[GA-{ENTRY}-{MODE}-INVALID-SOURCE-INVOICE]
+      flow/smarttable: *flow_table_source_invoice
       callback/*:
         tests:
-          - tests/v2/contract/test_unified_matrix.py::test_callback_target_validation_error_is_frontloaded[TC-UM-{MODE}-CB-V2-VALERR]
-          - tests/v2/contract/test_unified_matrix.py::test_public_entry_validation_error_is_frontloaded[TC-UM-{MODE}-CB-ENTRY-VALERR]
-          - tests/v2/ga/test_diagnostics_matrix.py::test_pre_validation_failure_runs_no_tile[GA-{ENTRY}-{MODE}-PRE-VALIDATION-FAILURE]
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_validation_error_follows_mode_timing[TC-UM-{MODE}-CB-V2-VALERR]
+          - tests/v2/contract/test_unified_matrix.py::test_public_entry_validation_error_follows_mode_timing[TC-UM-{MODE}-CB-ENTRY-VALERR]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_invalid_source_invoice_follows_validation_timing[GA-{ENTRY}-{MODE}-INVALID-SOURCE-INVOICE]
 
   structured_error:
     aspects: [known StructuredError ecode/emsg verbatim in report and job.failed (frozen v1 text), report iteration count (fail_fast stops at tile 0), frozen v1 tree and raw copies, diagnostic phase node_execution, source line of the raise, report explain]

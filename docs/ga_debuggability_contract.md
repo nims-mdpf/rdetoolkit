@@ -46,7 +46,7 @@ either covered by named tests or excluded with a specific rationale.
 | Outcome | What is asserted | Not applicable |
 |---------|------------------|----------------|
 | `success` | frozen v1 tree / raw / invoices / artifact digests, tile and callback count, no `job.failed`, no diagnostics sidecar, `report explain` fabricates no cause | — |
-| `pre_validation_failure` | 4001 in report and `job.failed`, zero iterations, no user call, sidecar phase `pre_validate` on `invoice/invoice.json` | — |
+| `invalid_source_invoice` | the #647 timing of the contracted `valerr` row (`tests/v2/contract/flow_error_table.py`): a flow on invoice / MultiDataTile / RDEFormat fails 4001 at `pre_validate` on `invoice/invoice.json` with zero iterations and no user call; a v1 callback on those modes runs every tile and fails 4001 at `post_validate` on `invoice/invoice.json`, the tiles kept as completed (#685); ExcelInvoice / SmartTable fail at `tile_prepare` (3001 / 1) before user code | — |
 | `structured_error` | known `StructuredError` `ecode`/`emsg` verbatim in report, `job.failed` (frozen v1 text) and sidecar; fail_fast stops at tile 0; frozen v1 tree and raw copies; phase `node_execution` at the raise line; `report explain` | — |
 | `plain_exception` | user node / callback failure published as 3001 (callback: documented divergence from v1 999, contracts.md §J1-5); user message kept; phase `node_execution` with node and call id at the raise line | — |
 | `strict_type_mismatch` | 3002; no executed call recorded for the rejected node; phase `node_argument_validation` with node, parameter and type names only | — |

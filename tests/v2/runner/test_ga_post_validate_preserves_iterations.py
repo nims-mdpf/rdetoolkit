@@ -24,7 +24,7 @@ BV / negative table:
 | TC-GA685-EV-010 | identity fields | invalid metadata run | run_id / mode / flow_id / config_digest match the run, duration covers the run |
 | TC-GA685-EV-011 | no rewrite | invalid metadata run | every kept tile and node call stays ``completed`` |
 | TC-GA685-EV-012 | bounded summary | invalid metadata run | node_calls carry only the summary keys (no inputs/outputs) |
-| TC-GA685-EV-013 | pre-validation failure | schema-invalid source invoice | failed, 4001, iterations == [] (shape unchanged) |
+| TC-GA685-EV-013 | pre-validation failure | schema-invalid source invoice, modes whose source invoice is final | failed, 4001, iterations == [] (shape unchanged) |
 | TC-GA685-EV-014 | tile failure | node raises under fail_fast | failed, 3001 with call_id, the failed tile listed (shape unchanged) |
 | TC-GA685-EV-015 | partial | one of three tiles fails under continue | partial, no run error (shape unchanged) |
 | TC-GA685-EV-016 | success, metadata absent | node writes nothing (metadata optional per v1) | success, no job.failed |
@@ -53,6 +53,9 @@ from rdetoolkit.types import InputPaths, IterationInfo, OutputContext
 from tests.v2.contract.fixtures import _generate
 
 ALL_MODES = ("invoice", "excelinvoice", "multidatatile", "rdeformat", "smarttable")
+# ExcelInvoice / SmartTable rows may still complete the source invoice, so its
+# content is validated only on the final invoice, after the tiles (#647).
+FINAL_SOURCE_INVOICE_MODES = ("invoice", "multidatatile", "rdeformat")
 INVALID_METADATA = '{"constant": "not-a-mapping", "variable": 3}'
 _NODE_CALL_SUMMARY_KEYS = {"call_id", "node_id", "seq", "status", "duration_ms"}
 
@@ -348,7 +351,7 @@ def test_kept_summary_is_bounded__tc_ga685_ev_012(
     assert all(set(call) == _NODE_CALL_SUMMARY_KEYS for call in calls)
 
 
-@pytest.mark.parametrize("mode", ALL_MODES)
+@pytest.mark.parametrize("mode", FINAL_SOURCE_INVOICE_MODES)
 def test_pre_validation_failure_keeps_empty_iterations__tc_ga685_ev_013(
     mode: str,
     tmp_path: Path,

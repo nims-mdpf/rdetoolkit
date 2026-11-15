@@ -150,67 +150,6 @@ def has_rdesys_log(observation: Mapping[str, Any]) -> bool:
     return RDESYS_LOG_ENTRY in observation["output_tree"]["files"]
 
 
-def tree_entries(observation: Mapping[str, Any]) -> set[str]:
-    """Return every normalized directory and file entry of one output tree."""
-    tree = observation["output_tree"]
-    return set(tree["directories"]) | set(tree["files"])
-
-
-#: Second path component of a per-tile output directory. v1 creates all twelve
-#: of them (plus ``divided/`` for tile >= 1) while building tile 0, so their
-#: absence is the observable "the run stopped before any tile existed".
-#: ``invoice``, ``logs`` and ``temp`` are deliberately absent: the first two are
-#: input/report directories that exist either way, and ``temp`` is pre-created
-#: before parsing by both versions (contracts.md §J0-3).
-_TILE_OUTPUT_COMPONENTS = frozenset(
-    {
-        "attachment",
-        "divided",
-        "main_image",
-        "meta",
-        "nonshared_raw",
-        "other_image",
-        "invoice_patch",
-        "raw",
-        "structured",
-        "thumbnail",
-    },
-)
-
-#: Classification of the ``temp`` entry that is the invoice backup, not an
-#: unpacked input.
-_INVOICE_BACKUP_ENTRY = "data/temp/invoice_org.json"
-
-
-def frontload_gap_kind(path: str) -> str | None:
-    """Classify one tree entry v1 produced and the front-loaded Runner did not.
-
-    The unified Runner rejects an invalid source invoice in ``pre_validate``,
-    before tile 0 is created and before any input is unpacked, whereas v1
-    validated mid-pipeline and therefore left those artifacts behind. Every
-    element of the difference must fall into one of three classes; anything else
-    is a real parity defect rather than "v2 failed earlier"
-    (Session J2 B-ruling #2).
-
-    Args:
-        path: One normalized ``data/``-relative entry, directories keeping their
-            trailing slash.
-
-    Returns:
-        ``"tile-artifact"``, ``"invoice-backup"``, ``"temp-unpack"``, or ``None``
-        when the entry is none of those.
-    """
-    normalized = path.rstrip("/")
-    parts = normalized.split("/")
-    if len(parts) < 2 or parts[0] != "data":
-        return None
-    if parts[1] in _TILE_OUTPUT_COMPONENTS:
-        return "tile-artifact"
-    if parts[1] == "temp":
-        return "invoice-backup" if normalized == _INVOICE_BACKUP_ENTRY else "temp-unpack"
-    return None
-
-
 def _below_logs(path: str) -> bool:
     return path.startswith(LOGS_PREFIX) and path != LOGS_PREFIX
 
