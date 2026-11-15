@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import pandas as pd
+from matplotlib.figure import Figure
 
 from rdetoolkit.graph.config import PlotConfigBuilder as PlotConfigBuilder
 from rdetoolkit.graph.io.file_writer import FileWriter as FileWriter
@@ -11,11 +12,13 @@ from rdetoolkit.graph.models import (
     AxisConfig as AxisConfig,
     DirectionConfig as DirectionConfig,
     LegendConfig as LegendConfig,
+    MatplotlibArtifact as MatplotlibArtifact,
     NormalizedColumns as NormalizedColumns,
     OutputConfig as OutputConfig,
     PlotConfig as PlotConfig,
     PlotMode as PlotMode,
     RenderCollections as RenderCollections,
+    RenderResult as RenderResult,
 )
 from rdetoolkit.graph.strategies.render_coordinator import (
     build_matplotlib_artifacts as build_matplotlib_artifacts,
@@ -137,3 +140,7 @@ def plot_from_dataframe(
     x_tick_format: _TickFormat = "auto",
     y_tick_format: _TickFormat = "auto",
 ) -> list[Any] | None: ...
+def _collect_owned(df: pd.DataFrame, config: PlotConfig, plot_mode: PlotMode) -> RenderCollections: ...
+def _hand_over(collections: RenderCollections) -> list[MatplotlibArtifact]: ...
+def _matplotlib_figures(results: Sequence[RenderResult]) -> list[Figure]: ...
+def _close_figures(results: Sequence[RenderResult]) -> None: ...

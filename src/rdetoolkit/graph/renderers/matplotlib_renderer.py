@@ -53,7 +53,20 @@ class MatplotlibRenderer:
             6. Return Figure (no file I/O)
         """
         apply_matplotlib_config()
-        fig, ax = plt.subplots(figsize=(8.85, 8), tight_layout=True)
+        fig, ax = self._new_figure()
+        try:
+            self._draw_overlay_figure(ax, df, config)
+        except BaseException:
+            # The caller never receives this handle, so it must not stay open.
+            plt.close(fig)
+            raise
+        return fig
+
+    def _new_figure(self) -> tuple[Figure, Any]:
+        """Create the figure of one ``render_*`` call (a pyplot figure on the legacy path)."""
+        return plt.subplots(figsize=(8.85, 8), tight_layout=True)
+
+    def _draw_overlay_figure(self, ax: Any, df: pd.DataFrame, config: PlotConfig) -> None:
         x_cols, y_cols, direction_cols = self._resolve_overlay_columns(df, config)
         color_map, direction_filters = self._build_direction_context(config)
         legend_handles, legend_labels = self._plot_overlay_series(
@@ -69,10 +82,6 @@ class MatplotlibRenderer:
 
         self._configure_axes(ax, config, config.title)
         self._apply_legend(ax, legend_handles, legend_labels, config)
-
-        return fig
-
-
 
     def render_individual(
         self,
@@ -103,8 +112,22 @@ class MatplotlibRenderer:
         apply_matplotlib_config()
         series_idx = 0 if series_position is None else series_position
 
-        fig, ax = plt.subplots(figsize=(8.85, 8), tight_layout=True)
+        fig, ax = self._new_figure()
+        try:
+            self._draw_individual_figure(ax, df, config, y_col_index, series_idx)
+        except BaseException:
+            plt.close(fig)
+            raise
+        return fig
 
+    def _draw_individual_figure(
+        self,
+        ax: Any,
+        df: pd.DataFrame,
+        config: PlotConfig,
+        y_col_index: int,
+        series_idx: int,
+    ) -> None:
         x_col_idx = self._resolve_x_column_index(df, config, series_idx)
         if config.y_cols is None:
             msg = "y_cols must be specified in PlotConfig"
@@ -133,8 +156,6 @@ class MatplotlibRenderer:
 
         if len(legend_handles) > 1:
             self._apply_legend(ax, legend_handles, legend_labels, config)
-
-        return fig
 
     def _resolve_overlay_columns(
         self,

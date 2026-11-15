@@ -5,7 +5,9 @@ destination, within-run uniqueness, ``on_existing``), render each figure, export
 write. Nothing touches the filesystem before the artifact plan is complete, and
 nothing is written before every figure has rendered.
 
-Rendering runs inside ``matplotlib.rc_context`` so no rcParams leak to the caller.
+Rendering runs inside ``mpl_runtime.style_scope`` so no rcParams leak to the caller,
+and every figure is a pyplot-free ``Figure`` (GE-09): written figures are simply
+dropped after export, in-memory ones belong to the caller and are detached first.
 Until the renderers consume plans directly (GE-06), figures are drawn by the legacy
 ``MatplotlibRenderer`` with a plan-driven subclass and a ``PlotConfig`` adapter.
 """
@@ -14,20 +16,20 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from io import BytesIO
 from pathlib import Path
 from typing import Any, Final, cast
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.text import Text
+from matplotlib.figure import Figure
 
+from rdetoolkit.graph.config import DEFAULT_FIG_SIZE
 from rdetoolkit.graph.exceptions import ArtifactCollisionError, UnsupportedFormatError
 from rdetoolkit.graph.models import AxisConfig, DirectionConfig, LegendConfig, OutputConfig, PlotConfig, PlotMode
 from rdetoolkit.graph.naming import GraphDiagnostic, collision_key
 from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan, _as_frames, build_plot_plan
 from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
+from rdetoolkit.graph.renderers.mpl_runtime import DEFAULT_EXPORT_DPI, detach_figure, export_figure, new_figure, style_scope
 from rdetoolkit.graph.result import Artifact, ArtifactRole, GraphResult
 from rdetoolkit.graph.spec import AxisSpec, GraphSpec, OutputSpec
 
@@ -131,17 +133,18 @@ def _check_unique_destinations(jobs: Sequence[_ArtifactJob]) -> None:
 
 
 def _render_to_sink(plan: PlotPlan, data: PlotData, jobs: Sequence[_ArtifactJob], output: OutputSpec) -> tuple[Artifact, ...]:
-    """Render and export every figure first, then write; engine-owned figures are closed."""
+    """Render and export every figure first, then write.
+
+    Engine-owned figures are not pyplot-registered, so they are released by
+    dropping them after export, also when a later figure fails.
+    """
     contents: dict[tuple[str, str], bytes] = {}
     for figure in plan.figures:
         formats = [job.fmt for job in jobs if job.figure.figure_id == figure.figure_id]
-        with mpl.rc_context():
+        with style_scope():
             fig = _render_figure(plan, figure, data)
-            try:
-                for fmt in formats:
-                    contents[figure.figure_id, fmt] = _export(fig, fmt, output.dpi)
-            finally:
-                plt.close(fig)
+            for fmt in formats:
+                contents[figure.figure_id, fmt] = _export(fig, fmt, output.dpi)
     artifacts = []
     for job in jobs:
         path = output.sink.write(job.role, job.filename, contents[job.figure.figure_id, job.fmt])
@@ -150,19 +153,17 @@ def _render_to_sink(plan: PlotPlan, data: PlotData, jobs: Sequence[_ArtifactJob]
 
 
 def _render_in_memory(plan: PlotPlan, data: PlotData) -> tuple[Artifact, ...]:
-    """Render caller-owned figures, detached from the rc scope they were drawn in."""
-    figures: list[Any] = []
-    try:
-        for figure in plan.figures:
-            with mpl.rc_context():
-                fig = _render_figure(plan, figure, data)
-                figures.append(fig)
-                _detach(fig)
-    except BaseException:
-        # The caller never receives these handles, so they must not stay open.
-        for fig in figures:
-            plt.close(fig)
-        raise
+    """Render caller-owned figures, detached from the style scope they were drawn in.
+
+    The figures are not pyplot-registered: on failure the handles rendered so far
+    are simply dropped, and the caller never has to ``plt.close`` them.
+    """
+    figures: list[Figure] = []
+    for figure in plan.figures:
+        with style_scope():
+            fig = _render_figure(plan, figure, data)
+            _detach(fig)
+            figures.append(fig)
     return tuple(
         _artifact(plan, figure, _role(figure), "figure", figure_handle=fig)
         for figure, fig in zip(plan.figures, figures, strict=True)
@@ -203,22 +204,17 @@ def _series_of(plan: PlotPlan, series_id: str) -> SeriesPlan:
     return next(entry for entry in plan.series if entry.series_id == series_id)
 
 
-def _export(fig: Any, fmt: str, dpi: int) -> bytes:
+def _export(fig: Figure, fmt: str, dpi: int) -> bytes:
     """Export a figure the way the legacy ``FileWriter`` saves it (tight bounding box)."""
-    buffer = BytesIO()
-    fig.savefig(buffer, format=fmt, dpi=dpi, bbox_inches="tight")
-    return buffer.getvalue()
+    return export_figure(fig, fmt, dpi=dpi)
 
 
-def _detach(fig: Any) -> None:
-    """Freeze late-bound layout and font sizes so drawing outside the rc scope is stable."""
-    fig.canvas.draw()
-    for text in fig.findobj(Text):
-        text.set_fontsize(text.get_fontsize())
-    fig.set_layout_engine("none")
+def _detach(fig: Figure) -> None:
+    """Freeze late-bound layout and font sizes so drawing outside the style scope is stable."""
+    detach_figure(fig, dpi=DEFAULT_EXPORT_DPI)
 
 
-def _render_figure(plan: PlotPlan, figure: FigurePlan, data: PlotData) -> Any:
+def _render_figure(plan: PlotPlan, figure: FigurePlan, data: PlotData) -> Figure:
     config = _plan_to_legacy_config(plan, figure)
     first = _series_of(plan, figure.series_ids[0])
     return _PlanRenderer(plan, figure, data).render_overlay(data.frames[first.frame], config)
@@ -275,6 +271,10 @@ class _PlanRenderer(MatplotlibRenderer):
         self._plan = plan
         self._figure = figure
         self._data = data
+
+    def _new_figure(self) -> tuple[Figure, Any]:
+        # Engine figures are never pyplot-registered (GE-09); size from the legacy renderer.
+        return new_figure(DEFAULT_FIG_SIZE)
 
     def _resolve_overlay_columns(self, df: pd.DataFrame, config: PlotConfig) -> tuple[list[int], list[int], list[int | None]]:
         return [], [], []

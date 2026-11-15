@@ -699,6 +699,7 @@ on the same axis is a usage error (exit code 2).
 | Id | Change | v1 | v2 | What to do |
 |---|---|---|---|---|
 | IC-4 | One-sided `xlim`/`ylim` such as `(0, None)` or `(None, 10)`; limits with a non-finite bound, equal bounds, or a bound `<= 0` on a log axis (`logx`/`logy`) | One-sided limits were dropped (both sides automatic); invalid limits were passed to Matplotlib, which ignored them with a warning | The given side is applied and the other side stays automatic; invalid limits raise `PlotRequestError` (`reason="invalid_axis_limits"`) naming the axis and the bound, before anything is written; exit code 2 on the CLI | Omit the limit to get the old fully automatic result; pass positive bounds on a log axis |
+| IC-5 | Matplotlib style and figure handles after `csv2graph`, `plot_from_dataframe` or `rdetoolkit plot` | The graph style (`font.size` 20, inward ticks and more) stayed in the process-wide `rcParams` and changed later plots; every figure stayed open, also after a failed save | The style applies only while the figures are drawn and saved, and `rcParams` are unchanged afterwards. Saved figures are closed, also when writing fails. Figures returned with `return_fig=True` stay open, belong to the caller (close them with `plt.close`) and have their layout frozen; saved at 300 dpi they match the previous image. The backend is never switched | Call `apply_matplotlib_config()` before plotting if later plots relied on the old global style |
 
 ### Diagnostics and legacy tracebacks
 

@@ -4,6 +4,9 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+
 from rdetoolkit.graph.config import (
     PlotConfigBuilder,
     determine_formats,
@@ -15,15 +18,18 @@ from rdetoolkit.graph.models import (
     AxisConfig,
     DirectionConfig,
     LegendConfig,
+    MatplotlibArtifact,
     NormalizedColumns,
     OutputConfig,
     PlotConfig,
     PlotMode,
     RenderCollections,
+    RenderResult,
     build_direction_config,
     normalize_direction_filter,
 )
 from rdetoolkit.graph.normalizers import resolve_column_index, validate_column_specs
+from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, style_scope
 from rdetoolkit.graph.strategies.render_coordinator import (
     build_matplotlib_artifacts,
     collect_render_results,
@@ -582,15 +588,58 @@ def plot_from_dataframe(
         main_image_dir_path=main_image_dir_path,
     )
 
-    collections = collect_render_results(df, config, plot_mode)
-
-    if return_fig:
-        return build_matplotlib_artifacts(collections)
-
-    _save_render_results(
-        collections,
-        output_dir_path,
-        main_image_dir_path,
-        html_output_dir_path,
-    )
+    # The legacy renderer applies the house style to rcParams; the scope keeps that
+    # change away from the caller, and figures are saved inside it so they look as before.
+    with style_scope():
+        collections = _collect_owned(df, config, plot_mode)
+        if return_fig:
+            return _hand_over(collections)
+        try:
+            _save_render_results(
+                collections,
+                output_dir_path,
+                main_image_dir_path,
+                html_output_dir_path,
+            )
+        finally:
+            # Save-only figures are owned by the facade: close them even when writing fails.
+            _close_figures(collections.all_results())
     return None
+
+
+def _collect_owned(df: pd.DataFrame, config: PlotConfig, plot_mode: PlotMode) -> RenderCollections:
+    """Render through the patchable module seam; close what a failed render already opened."""
+    before = set(plt.get_fignums())
+    try:
+        return collect_render_results(df, config, plot_mode)
+    except BaseException:
+        # Figures finished before the failure never reach the caller.
+        for number in sorted(set(plt.get_fignums()) - before):
+            plt.close(number)
+        raise
+
+
+def _hand_over(collections: RenderCollections) -> list[MatplotlibArtifact]:
+    """Detach every Matplotlib figure inside the style scope, then give them to the caller."""
+    results = collections.all_results()
+    try:
+        for figure in _matplotlib_figures(results):
+            detach_figure(figure)
+    except BaseException:
+        _close_figures(results)
+        raise
+    return build_matplotlib_artifacts(collections)
+
+
+def _matplotlib_figures(results: Sequence[RenderResult]) -> list[Figure]:
+    """Distinct Matplotlib figures of the results; foreign figures (Plotly, stubs) are skipped."""
+    figures: dict[int, Figure] = {}
+    for result in results:
+        if isinstance(result.figure, Figure):
+            figures.setdefault(id(result.figure), result.figure)
+    return list(figures.values())
+
+
+def _close_figures(results: Sequence[RenderResult]) -> None:
+    for figure in _matplotlib_figures(results):
+        plt.close(figure)
