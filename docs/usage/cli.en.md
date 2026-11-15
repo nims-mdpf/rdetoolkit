@@ -364,25 +364,35 @@ python3 -m rdetoolkit validate all ./rde-project
 ```
 
 ```bash title="CI/CD integration example"
-python3 -m rdetoolkit validate all ./rde-project
+python3 -m rdetoolkit validate all ./rde-project --strict --require-files
 if [ $? -ne 0 ]; then
     echo "Validation failed"
     exit 1
 fi
 ```
 
+Finding no standard file exits `0` by default. `--require-files` makes it a validation failure (exit `1`, error type `no_target_files`) that lists the searched directories, so CI cannot pass after validating nothing; `--strict` makes warnings fail. Use both in CI.
+
 !!! tip "Detailed Documentation"
     For comprehensive validation documentation including CI/CD integration examples, see [Validation Features](validation.en.md).
 
 ### doctor: Check That a Project Can Run
 
-Checks the inputs, config, mode, invoice and metadata definitions of a project with the Runner's own validate-only preflight, run on a temporary copy of the inputs. `--ref pkg.mod:callable` also imports a flow and checks that the Runner can inject its parameters. Doctor never calls the flow or its `prepare=` hook and writes nothing into the project.
+Checks the inputs, config, mode, invoice and metadata definitions of a project with the Runner's own validate-only preflight, run on a temporary copy of the inputs. `--ref pkg.mod:callable` also imports a flow and checks that the Runner can inject its parameters. `--module NAME` (repeatable) imports a project module and adds the `rdetoolkit nodes lint` findings (check `nodes.lint`, for example E2001 for a duplicate node id). Doctor never calls the flow or its `prepare=` hook and writes nothing into the project. Modules are imported only when `--ref` or `--module` names them.
+
+These are static checks only: the flow is not executed, so a passing doctor does not prove that processing succeeds. The text output says so on its second line, and the JSON has `"flow_executed": false`.
 
 ```bash title="Preflight a project, with a flow, as JSON"
 python3 -m rdetoolkit doctor --format json --ref modules.processing:pipeline
 ```
 
-Exit codes: `0` passed (warnings allowed), `1` a check failed, `2` invalid command line, `3` `PROJECT_DIR` is not a directory or `--format` is not `text`/`json`. The JSON format and every check are described in [Diagnostic Commands (JSON)](diagnostics.en.md).
+```bash title="CI form: fail on warnings, lint the project's nodes"
+python3 -m rdetoolkit doctor --strict --module modules.processing
+```
+
+Missing required inputs (`inputdata/`, `invoice/invoice.json`, `tasksupport/invoice.schema.json`) always fail. An `inputdata/` without any file is the warning `NoInputFiles` (check `inputs.files`): an invoice-only registration is valid, but nothing would be processed. `--strict` makes every warning fail, which matches `validate all --strict --require-files`. The JSON also reports `"strict"`.
+
+Exit codes: `0` passed (warnings allowed without `--strict`), `1` a check failed or a warning was reported under `--strict`, `2` invalid command line, `3` `PROJECT_DIR` is not a directory or `--format` is not `text`/`json`. The JSON format and every check are described in [Diagnostic Commands (JSON)](diagnostics.en.md).
 
 ### run: Run Structured Processing
 

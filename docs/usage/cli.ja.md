@@ -363,25 +363,35 @@ python3 -m rdetoolkit validate all ./rde-project
 ```
 
 ```bash title="CI/CD統合の例"
-python3 -m rdetoolkit validate all ./rde-project
+python3 -m rdetoolkit validate all ./rde-project --strict --require-files
 if [ $? -ne 0 ]; then
     echo "バリデーション失敗"
     exit 1
 fi
 ```
 
+既定では、標準ファイルが 1 つも見つからなくても終了コード `0` です。`--require-files` を付けると、これを検証失敗(終了コード `1`、エラー種別 `no_target_files`)として探索したディレクトリを表示するため、何も検証せずに CI が成功することはありません。`--strict` は警告を失敗扱いにします。CI では両方を指定してください。
+
 !!! tip "詳細なドキュメント"
     CI/CD統合例を含む包括的なバリデーションドキュメントについては、[バリデーション機能](validation.ja.md)を参照してください。
 
 ### doctor: プロジェクトを実行できるかの確認
 
-入力ファイル、設定、モード、invoice とメタデータの定義を、Runner 自身の validate-only の事前検証で確認します。事前検証は入力の一時コピーに対して実行します。`--ref pkg.mod:callable` を指定すると flow を import し、Runner が引数を注入できるかも確認します。doctor は flow も `prepare=` フックも呼び出さず、プロジェクトには何も書き込みません。
+入力ファイル、設定、モード、invoice とメタデータの定義を、Runner 自身の validate-only の事前検証で確認します。事前検証は入力の一時コピーに対して実行します。`--ref pkg.mod:callable` を指定すると flow を import し、Runner が引数を注入できるかも確認します。`--module NAME`(複数指定可)を指定するとプロジェクトのモジュールを import し、`rdetoolkit nodes lint` の指摘(チェック `nodes.lint`。例: ノード ID 重複の E2001)を追加します。doctor は flow も `prepare=` フックも呼び出さず、プロジェクトには何も書き込みません。モジュールを import するのは `--ref` または `--module` で指定した場合だけです。
+
+これは静的なチェックだけです。flow は実行しないため、doctor が合格しても処理が成功するとは限りません。テキスト出力では 2 行目にその旨を表示し、JSON には `"flow_executed": false` が含まれます。
 
 ```bash title="flow を含めてプロジェクトを事前確認し、JSON で出力"
 python3 -m rdetoolkit doctor --format json --ref modules.processing:pipeline
 ```
 
-終了コード: `0` 合格(警告は可)、`1` 失敗したチェックあり、`2` コマンドラインが不正、`3` `PROJECT_DIR` がディレクトリでない、または `--format` が `text`/`json` 以外。JSON の形式と各チェックの内容は[診断コマンド (JSON)](diagnostics.ja.md)を参照してください。
+```bash title="CI での形式: 警告も失敗扱いにし、プロジェクトのノードを lint する"
+python3 -m rdetoolkit doctor --strict --module modules.processing
+```
+
+必須の入力(`inputdata/`、`invoice/invoice.json`、`tasksupport/invoice.schema.json`)が無い場合は常に失敗します。`inputdata/` にファイルが 1 つも無い場合は警告 `NoInputFiles`(チェック `inputs.files`)です。invoice だけの登録は有効ですが、処理される入力はありません。`--strict` を付けるとすべての警告が失敗になり、`validate all --strict --require-files` と同じ扱いになります。JSON には `"strict"` も出力されます。
+
+終了コード: `0` 合格(`--strict` なしでは警告は可)、`1` 失敗したチェックあり、または `--strict` 指定時に警告あり、`2` コマンドラインが不正、`3` `PROJECT_DIR` がディレクトリでない、または `--format` が `text`/`json` 以外。JSON の形式と各チェックの内容は[診断コマンド (JSON)](diagnostics.ja.md)を参照してください。
 
 ### run: 構造化処理の実行 { #run }
 
