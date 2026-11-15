@@ -23,6 +23,7 @@ class RdeCase:
     expect_error_code: int | None = None
     expect_phase: str | None = None
     config: RdeConfig | Mapping[str, Any] | None = None
+    checks: tuple[Callable[[RdeTestResult], object], ...] = ()
 
 def rde_case(
     *,
@@ -33,6 +34,7 @@ def rde_case(
     expect_error_code: int | None = None,
     expect_phase: str | None = None,
     config: RdeConfig | Mapping[str, Any] | None = None,
+    checks: Sequence[Callable[[RdeTestResult], object]] = (),
 ) -> MarkDecorator: ...
 def case_from_marker(args: Sequence[object], kwargs: Mapping[str, object], *, rootpath: Path) -> RdeCase: ...
 def check_case(case: RdeCase, result: RdeTestResult) -> list[str]: ...

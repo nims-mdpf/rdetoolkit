@@ -23,6 +23,7 @@ _LAZY_EXPORTS = {
     "RdeTestResult": "rdetoolkit.testing.runner",
     "RdeTestRunner": "rdetoolkit.testing.runner",
     "rde_case": "rdetoolkit.testing.case",
+    "rde_check": "rdetoolkit.testing.checks",
 }
 
 

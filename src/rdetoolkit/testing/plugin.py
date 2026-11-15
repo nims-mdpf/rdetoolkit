@@ -2,8 +2,10 @@
 
 from __future__ import annotations  # pragma: no cover
 
+import sys  # pragma: no cover
+from collections.abc import Generator  # pragma: no cover
 from pathlib import Path  # pragma: no cover
-from typing import TYPE_CHECKING  # pragma: no cover
+from typing import TYPE_CHECKING, Any  # pragma: no cover
 
 import pytest  # pragma: no cover
 
@@ -20,14 +22,51 @@ if TYPE_CHECKING:  # pragma: no cover
 _PENDING_CASE: pytest.StashKey[tuple[RdeCase, RdeTestResult]] = pytest.StashKey()  # pragma: no cover
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:  # pragma: no cover
+    """Add ``--rde-update-snapshots``, the only way a test run may rewrite golden files."""
+    parser.getgroup("rdetoolkit").addoption(
+        "--rde-update-snapshots",
+        action="store_true",
+        default=False,
+        dest="rde_update_snapshots",
+        help="approve changed rdetoolkit golden snapshots (assert_snapshot) by rewriting them; "
+        "refused when the CI environment variable is set",
+    )
+
+
 def pytest_configure(config: pytest.Config) -> None:  # pragma: no cover
     """Register the ``rde_case`` marker so ``--strict-markers`` accepts it."""
     config.addinivalue_line(
         "markers",
         "rde_case(flow, project, expect_status='success', expect_files=(), expect_error_code=None, "
-        "expect_phase=None, config=None): declarative RDE integration case executed by the rde_run "
+        "expect_phase=None, config=None, checks=()): declarative RDE integration case executed by the rde_run "
         "fixture (see rdetoolkit.testing.rde_case)",
     )
+    if config.getoption("rde_update_snapshots", default=False):
+        from rdetoolkit.testing import snapshot  # noqa: PLC0415
+
+        # Refused before any test runs, so CI can never approve a change.
+        if snapshot.ci_is_active():
+            raise pytest.UsageError(snapshot.ci_refusal_message())
+        snapshot.set_update_mode(True)
+
+
+def pytest_unconfigure(config: pytest.Config) -> None:  # pragma: no cover
+    """Forget the snapshot update mode so it cannot leak into another session."""
+    del config
+    module = sys.modules.get("rdetoolkit.testing.snapshot")
+    if module is not None:
+        module.reset()
+
+
+def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter) -> None:  # pragma: no cover
+    """List every golden file an approved snapshot update wrote or removed."""
+    module = sys.modules.get("rdetoolkit.testing.snapshot")
+    lines = module.update_summary_lines() if module is not None else []
+    if lines:
+        terminalreporter.section("rdetoolkit: snapshot updates")
+        for line in lines:
+            terminalreporter.line(line)
 
 
 @pytest.hookimpl(tryfirst=True)  # pragma: no cover
@@ -51,6 +90,20 @@ def pytest_runtest_call(item: pytest.Item) -> None:  # pragma: no cover
     failures = check_case(*pending)
     if failures:
         pytest.fail("\n".join(failures), pytrace=False)
+
+
+@pytest.hookimpl(hookwrapper=True)  # pragma: no cover
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> Generator[None, Any, None]:  # pragma: no cover
+    """Attach the retained RDE runs to the report of a failing test, after pytest's own context."""
+    del call
+    outcome = yield
+    report = outcome.get_result()
+    runner = getattr(item, "funcargs", {}).get("rde_runner")
+    if not report.failed or runner is None or not runner.results:
+        return
+    from rdetoolkit.testing.runner import retained_runs_report  # noqa: PLC0415
+
+    report.sections.append(("rdetoolkit: retained runs", retained_runs_report(runner.results)))
 
 
 @pytest.fixture  # pragma: no cover
