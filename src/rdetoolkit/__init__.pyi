@@ -1,5 +1,5 @@
-from . import errors as errors, exceptions as exceptions, img2thumb as img2thumb, invoicefile as invoicefile, rde2util as rde2util, rdelogger as rdelogger, workflows as workflows
-from .models import config as config, invoice_schema as invoice_schema, metadata as metadata, rde2types as rde2types
+from . import config as config, errors as errors, exceptions as exceptions, img2thumb as img2thumb, invoicefile as invoicefile, rde2util as rde2util, rdelogger as rdelogger, workflows as workflows
+from .models import invoice_schema as invoice_schema, metadata as metadata, rde2types as rde2types
 from rdetoolkit.core import resize_image_aspect_ratio as resize_image_aspect_ratio
 
 __version__: str
