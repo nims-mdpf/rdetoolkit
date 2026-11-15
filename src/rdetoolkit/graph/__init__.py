@@ -58,6 +58,21 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "normalize_axis_limits": ("rdetoolkit.graph.config", "normalize_axis_limits"),
     "collect_render_results": ("rdetoolkit.graph.strategies", "collect_render_results"),
     "build_matplotlib_artifacts": ("rdetoolkit.graph.strategies", "build_matplotlib_artifacts"),
+    "render_graph": ("rdetoolkit.graph.engine", "render_graph"),
+    "build_plot_plan": ("rdetoolkit.graph.plan", "build_plot_plan"),
+    "GraphSpec": ("rdetoolkit.graph.spec", "GraphSpec"),
+    "SeriesSpec": ("rdetoolkit.graph.spec", "SeriesSpec"),
+    "AxisSpec": ("rdetoolkit.graph.spec", "AxisSpec"),
+    "LegendSpec": ("rdetoolkit.graph.spec", "LegendSpec"),
+    "StyleSpec": ("rdetoolkit.graph.spec", "StyleSpec"),
+    "OutputSpec": ("rdetoolkit.graph.spec", "OutputSpec"),
+    "PlotPlan": ("rdetoolkit.graph.plan", "PlotPlan"),
+    "SeriesPlan": ("rdetoolkit.graph.plan", "SeriesPlan"),
+    "FigurePlan": ("rdetoolkit.graph.plan", "FigurePlan"),
+    "GraphDiagnostic": ("rdetoolkit.graph.plan", "GraphDiagnostic"),
+    "PlotData": ("rdetoolkit.graph.plan", "PlotData"),
+    "GraphResult": ("rdetoolkit.graph.result", "GraphResult"),
+    "Artifact": ("rdetoolkit.graph.result", "Artifact"),
 }
 
 __all__ = list(_LAZY_ATTRS.keys())

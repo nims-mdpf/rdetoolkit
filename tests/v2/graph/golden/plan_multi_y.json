@@ -1,0 +1,141 @@
+{
+  "diagnostics": [],
+  "direction_colors": {},
+  "figures": [
+    {
+      "figure_id": "overlay",
+      "kind": "overlay",
+      "series_ids": [
+        "s000",
+        "s001"
+      ],
+      "stem": "cell",
+      "title": "cell",
+      "x_label": "Time (s)",
+      "y_label": "Voltage (V)"
+    },
+    {
+      "figure_id": "s000",
+      "kind": "individual",
+      "series_ids": [
+        "s000"
+      ],
+      "stem": "cell_voltage_(v)",
+      "title": "cell - Voltage",
+      "x_label": "Time (s)",
+      "y_label": "Voltage (V)"
+    },
+    {
+      "figure_id": "s001",
+      "kind": "individual",
+      "series_ids": [
+        "s001"
+      ],
+      "stem": "cell_current_(a)",
+      "title": "cell - Current",
+      "x_label": "Time (s)",
+      "y_label": "Current (A)"
+    }
+  ],
+  "legend": {
+    "bottom_threshold": 21,
+    "info": null,
+    "loc": null,
+    "max_items": 20,
+    "ncol": null,
+    "outside_threshold": 8,
+    "policy": "legacy"
+  },
+  "mark": "line",
+  "origins": {
+    "series": "default",
+    "series[s000].label": "derived",
+    "series[s000].unit": "derived",
+    "series[s001].label": "derived",
+    "series[s001].unit": "derived",
+    "style.figure_size": "default",
+    "style.rc_params": "default",
+    "title": "explicit",
+    "x": "default",
+    "x_axis.label": "derived",
+    "x_axis.limits": "default",
+    "y_axis.label": "derived",
+    "y_axis.limits": "default"
+  },
+  "series": [
+    {
+      "color_index": 0,
+      "direction_index": null,
+      "directions": [],
+      "frame": 0,
+      "header_label": "voltage",
+      "header_series": null,
+      "label": "Voltage",
+      "series_id": "s000",
+      "show_in_legend": true,
+      "unit": "V",
+      "unit_group": 0,
+      "x_index": 0,
+      "x_name": "time (s)",
+      "y_index": 1,
+      "y_name": "voltage (V)"
+    },
+    {
+      "color_index": 1,
+      "direction_index": null,
+      "directions": [],
+      "frame": 0,
+      "header_label": "current",
+      "header_series": null,
+      "label": "Current",
+      "series_id": "s001",
+      "show_in_legend": true,
+      "unit": "A",
+      "unit_group": 0,
+      "x_index": 0,
+      "x_name": "time (s)",
+      "y_index": 2,
+      "y_name": "current (A)"
+    }
+  ],
+  "spec_version": 1,
+  "style": {
+    "figure_size": [
+      8.85,
+      8
+    ],
+    "rc_params": {
+      "axes.xmargin": 0,
+      "font.size": 20,
+      "xtick.direction": "in",
+      "xtick.labelsize": 20,
+      "ytick.direction": "in",
+      "ytick.labelsize": 20
+    }
+  },
+  "unit_groups": [
+    [
+      "V",
+      [
+        "s000",
+        "s001"
+      ]
+    ]
+  ],
+  "x_axis": {
+    "grid": false,
+    "invert": false,
+    "label": null,
+    "limits": null,
+    "scale": "linear",
+    "tick_format": "auto"
+  },
+  "y_axis": {
+    "grid": true,
+    "invert": false,
+    "label": null,
+    "limits": null,
+    "scale": "log",
+    "tick_format": "auto"
+  }
+}

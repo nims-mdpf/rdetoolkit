@@ -1,0 +1,141 @@
+{
+  "diagnostics": [],
+  "direction_colors": {},
+  "figures": [
+    {
+      "figure_id": "overlay",
+      "kind": "overlay",
+      "series_ids": [
+        "s000",
+        "s001"
+      ],
+      "stem": "mx",
+      "title": null,
+      "x_label": "T1 (s)",
+      "y_label": "Voltage (V)"
+    },
+    {
+      "figure_id": "s000",
+      "kind": "individual",
+      "series_ids": [
+        "s000"
+      ],
+      "stem": "mx_a",
+      "title": "Plot - A",
+      "x_label": "T1 (s)",
+      "y_label": "Voltage (V)"
+    },
+    {
+      "figure_id": "s001",
+      "kind": "individual",
+      "series_ids": [
+        "s001"
+      ],
+      "stem": "mx_b",
+      "title": "Plot - B",
+      "x_label": "T2 (s)",
+      "y_label": "Voltage (V)"
+    }
+  ],
+  "legend": {
+    "bottom_threshold": 21,
+    "info": null,
+    "loc": null,
+    "max_items": 20,
+    "ncol": null,
+    "outside_threshold": 8,
+    "policy": "legacy"
+  },
+  "mark": "line",
+  "origins": {
+    "series": "explicit",
+    "series[s000].label": "derived",
+    "series[s000].unit": "derived",
+    "series[s001].label": "explicit",
+    "series[s001].unit": "derived",
+    "style.figure_size": "default",
+    "style.rc_params": "default",
+    "title": "default",
+    "x": "explicit",
+    "x_axis.label": "derived",
+    "x_axis.limits": "default",
+    "y_axis.label": "derived",
+    "y_axis.limits": "default"
+  },
+  "series": [
+    {
+      "color_index": 0,
+      "direction_index": null,
+      "directions": [],
+      "frame": 0,
+      "header_label": "voltage",
+      "header_series": "a",
+      "label": "A",
+      "series_id": "s000",
+      "show_in_legend": true,
+      "unit": "V",
+      "unit_group": 0,
+      "x_index": 0,
+      "x_name": "t1 (s)",
+      "y_index": 1,
+      "y_name": "a: voltage (V)"
+    },
+    {
+      "color_index": 1,
+      "direction_index": null,
+      "directions": [],
+      "frame": 0,
+      "header_label": "voltage",
+      "header_series": "b",
+      "label": "B",
+      "series_id": "s001",
+      "show_in_legend": true,
+      "unit": "V",
+      "unit_group": 0,
+      "x_index": 2,
+      "x_name": "t2 (s)",
+      "y_index": 3,
+      "y_name": "b: voltage (V)"
+    }
+  ],
+  "spec_version": 1,
+  "style": {
+    "figure_size": [
+      8.85,
+      8
+    ],
+    "rc_params": {
+      "axes.xmargin": 0,
+      "font.size": 20,
+      "xtick.direction": "in",
+      "xtick.labelsize": 20,
+      "ytick.direction": "in",
+      "ytick.labelsize": 20
+    }
+  },
+  "unit_groups": [
+    [
+      "V",
+      [
+        "s000",
+        "s001"
+      ]
+    ]
+  ],
+  "x_axis": {
+    "grid": false,
+    "invert": false,
+    "label": null,
+    "limits": null,
+    "scale": "linear",
+    "tick_format": "auto"
+  },
+  "y_axis": {
+    "grid": false,
+    "invert": false,
+    "label": null,
+    "limits": null,
+    "scale": "linear",
+    "tick_format": "auto"
+  }
+}

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 
 class GraphPlottingError(Exception):
     """Base exception for graph plotting errors."""
@@ -88,3 +90,58 @@ class PlotRequestError(PlotConfigError, ValueError):
 
 class GraphUserWarning(UserWarning):
     """Warning category for graph requests that succeed with a caveat."""
+
+
+class UnknownReaderError(InvalidCSVFormatError, ValueError):
+    """Raised when a table reader id is not registered.
+
+    The message starts with ``"Unsupported CSV format: "`` like the legacy
+    ``ParserFactory`` error, which callers may match.
+    """
+
+
+class AmbiguousFormatError(InvalidCSVFormatError, ValueError):
+    """Raised when automatic table-format detection cannot choose a reader.
+
+    Args:
+        message: Explanation naming the candidates, their evidence and the remedy.
+        decision: The detection decision that was ambiguous.
+    """
+
+    def __init__(self, message: str, *, decision: Any) -> None:
+        """Initialize AmbiguousFormatError.
+
+        Args:
+            message: Explanation naming the candidates, their evidence and the remedy.
+            decision: The detection decision that was ambiguous.
+        """
+        self.decision = decision
+        super().__init__(message)
+
+
+class DuplicateReaderError(GraphPlottingError, ValueError):
+    """Raised when two table readers claim the same id."""
+
+
+class ReaderPluginError(GraphPlottingError):
+    """Raised when a requested reader plugin cannot be loaded."""
+
+
+class RendererUnavailableError(RendererError, ImportError):
+    """Raised when a renderer's optional dependency is not installed."""
+
+
+class UnsupportedFormatError(RendererError, ValueError):
+    """Raised when no renderer supports an output format for a figure kind."""
+
+
+class OutputPathError(GraphPlottingError, ValueError):
+    """Raised when an artifact destination is unsafe or unusable.
+
+    Messages keep the legacy ``PathValidator`` wording (for example
+    ``"contains path separators"`` or ``"Output path is not a directory"``).
+    """
+
+
+class ArtifactCollisionError(GraphPlottingError, ValueError):
+    """Raised when artifact destinations clash, before anything is rendered."""
