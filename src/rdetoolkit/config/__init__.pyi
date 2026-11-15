@@ -1,6 +1,6 @@
 from _typeshed import Incomplete
 from pathlib import Path
-from rdetoolkit.models.config import Config as Config, MultiDataTileSettings as MultiDataTileSettings, SmartTableSettings as SmartTableSettings, SystemSettings as SystemSettings, TracebackSettings as TracebackSettings
+from rdetoolkit.models.config import Config as Config, MultiDataTileOrder as MultiDataTileOrder, MultiDataTileSettings as MultiDataTileSettings, SmartTableSettings as SmartTableSettings, SystemSettings as SystemSettings, TracebackSettings as TracebackSettings
 from rdetoolkit.models.rde2types import RdeFsPath as RdeFsPath
 from typing import Final
 

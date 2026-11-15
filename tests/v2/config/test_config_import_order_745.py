@@ -8,7 +8,7 @@ EP table:
 | ``rdetoolkit.config`` | read after the subpackage is imported | the same package object | TC-EP-745-002 |
 | ``from rdetoolkit import config`` | fresh interpreter | the ``rdetoolkit.config`` package | TC-EP-745-003 |
 | ``rdetoolkit/__init__.pyi`` | ``config`` declaration | bound to the ``rdetoolkit.config`` package | TC-EP-745-004 |
-| ``rdetoolkit.config.<model>`` | former ``models.config`` meaning | same class objects | TC-EP-745-005 |
+| ``rdetoolkit.config.<name>`` | every name defined in ``models/config.pyi`` | same object, re-exported by the stub | TC-EP-745-005 |
 """
 
 from __future__ import annotations
@@ -88,12 +88,50 @@ def test_stub_declares_config_as_the_package() -> None:
     assert sources == ["."]
 
 
-def test_package_keeps_the_former_models_config_classes() -> None:
-    """TC-EP-745-005: code written against the old meaning keeps working."""
-    # Given: the model names reachable through rdetoolkit.models.config
+def _stub_defined_names(stub: Path) -> set[str]:
+    """Return the classes and aliases a stub defines itself (not imports)."""
+    tree = ast.parse(stub.read_text(encoding="utf-8"))
+    names: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef):
+            names.add(node.name)
+        elif isinstance(node, ast.Assign):
+            names.update(target.id for target in node.targets if isinstance(target, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+    return {name for name in names if not name.startswith("_")}
+
+
+def _stub_reexported_names(stub: Path) -> set[str]:
+    """Return the names a stub re-exports with the explicit ``X as X`` form."""
+    tree = ast.parse(stub.read_text(encoding="utf-8"))
+    return {
+        alias.name
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom)
+        for alias in node.names
+        if alias.asname == alias.name
+    }
+
+
+_PACKAGE_DIR = Path(rdetoolkit.__file__).parent
+_FORMER_SURFACE = sorted(_stub_defined_names(_PACKAGE_DIR / "models" / "config.pyi"))
+
+
+def test_former_surface_is_derived_from_the_models_stub() -> None:
+    """TC-EP-745-005 guard: the derived surface is not empty and includes the alias."""
+    # Given / When: the names defined in rdetoolkit/models/config.pyi
+    # Then: the derivation found the models and the MultiDataTileOrder alias
+    assert {"Config", "MultiDataTileOrder"} <= set(_FORMER_SURFACE)
+
+
+@pytest.mark.parametrize("name", _FORMER_SURFACE)
+def test_package_keeps_every_former_models_config_name(name: str) -> None:
+    """TC-EP-745-005: ``rdetoolkit.config.<name>`` keeps working for every former name."""
+    # Given: a public name defined in rdetoolkit.models.config
     import rdetoolkit.models.config as models_config
 
-    names = ("Config", "SystemSettings", "MultiDataTileSettings", "SmartTableSettings", "TracebackSettings")
-    # When / Then: rdetoolkit.config exposes the identical class objects
-    for name in names:
-        assert getattr(rdetoolkit.config, name) is getattr(models_config, name), name
+    # When / Then: the package exposes the identical object at runtime ...
+    assert getattr(rdetoolkit.config, name) is getattr(models_config, name)
+    # ... and its stub re-exports it, so type checkers see the same surface
+    assert name in _stub_reexported_names(_PACKAGE_DIR / "config" / "__init__.pyi")
