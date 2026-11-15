@@ -682,6 +682,13 @@ usage error with exit code 2.
 A table without columns still raises `ColumnNotFoundError`, and a table without a
 y series still raises `ValueError`, as before.
 
+Individual figure file names are reserved for every series before the first figure is
+drawn, so no artifact of a run overwrites another one:
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-3 | Two series whose individual file names differ only by case, spacing or Unicode normalization (for example `Voltage` and `voltage`, or `A B` and `A_B`), or a header containing `/`, `\` or `..` | The later figure overwrote the earlier one; an unsafe header failed after the overlay image was written | Every colliding series gets its series id appended (`plot_voltage_s000.png`, `plot_voltage_s001.png`) and a `GraphUserWarning` is emitted; unsafe characters become `_`. Names that do not collide are unchanged | Rename the columns if you need specific file names |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

@@ -5,7 +5,7 @@ import pandas as pd
 from rdetoolkit.graph.models import PlotConfig, RenderResult
 from rdetoolkit.graph.renderers.base import BaseRenderer
 from rdetoolkit.graph.renderers.plotly_renderer import PlotlyRenderer
-from rdetoolkit.graph.textutils import sanitize_filename
+from rdetoolkit.graph.naming import DEFAULT_BASE_STEM, sanitize_stem
 
 
 class OverlayStrategy:
@@ -58,7 +58,8 @@ class OverlayStrategy:
 
         base_title = config.title if config.title else (config.output.base_name or "plot")
         filename_root = config.output.base_name or base_title
-        base_filename = sanitize_filename(filename_root) or "plot"
+        # Same sanitizer as the individual stems, so ".." cannot reach the writer.
+        base_filename = sanitize_stem(filename_root) or DEFAULT_BASE_STEM
 
         results: list[RenderResult] = []
 
