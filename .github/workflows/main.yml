@@ -14,6 +14,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changelog:
+    # Changelog entries are files under changelog.d/ (#740), so pull requests
+    # do not conflict over CHANGELOG_v2.md. Runs for docs branches too.
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - name: Render the changelog fragments
+        # Fails on a fragment whose type is unknown; towncrier would drop it
+        # without a message at release.
+        run: pipx run --spec towncrier==26.9.0 towncrier build --draft --version Unreleased
+      - name: Reject new entries written into CHANGELOG_v2.md
+        if: ${{ startsWith(github.base_ref, 'develop') }}
+        run: |
+          # HEAD is the merge commit of the pull request; HEAD^1 is its base.
+          # An added top-level bullet is a new entry; other edits are allowed.
+          if git diff --unified=0 HEAD^1 HEAD -- CHANGELOG_v2.md | grep -q '^+- '; then
+            echo "::error file=CHANGELOG_v2.md::Add the entry as a file in changelog.d/ instead (see changelog.d/README.md)."
+            exit 1
+          fi
+
   test:
     runs-on: ubuntu-latest
     if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
@@ -43,49 +66,42 @@ jobs:
         run: tox -e py$(echo "${{ matrix.python-version }}" | tr -d .)-${{ matrix.tox-env }}
 
   test_rs:
+    # Preserve the three distinct historical contexts while removing the five
+    # duplicate Python seats per OS. Protection details are not API-readable
+    # by the CI integration, so these names must not be removed speculatively.
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: ${{ ! ((github.event_name == 'pull_request' && (startsWith(github.head_ref, 'docs-') || startsWith(github.head_ref, 'docs/') || startsWith(github.head_ref, 'doc-') || startsWith(github.head_ref, 'doc/'))) ||
-      (github.event_name != 'pull_request' && (startsWith(github.ref_name, 'docs-') || startsWith(github.ref_name, 'docs/') || startsWith(github.ref_name, 'doc-') || startsWith(github.ref_name, 'doc/')))) }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        rust: [stable]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-
+    env:
+      PYO3_PYTHON: python
+      PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
     steps:
       - uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
+      - uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Python development headers (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get install python3-dev
-
-      - name: Install Python development headers (macOS)
-        if: runner.os == 'macOS'
-        run: brew install python
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ matrix.rust }}
-          override: true
-
-      - name: Set environment variables
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Cargo check
+        run: cargo check --locked
+      - name: Cargo clippy
+        run: cargo clippy --locked -- -D warnings -A clippy::useless_conversion
+      - name: Cargo test with embedded Python
+        shell: bash
         run: |
-          echo "PYTHON_INCLUDE_DIR=$(python3 -c 'from distutils.sysconfig import get_python_inc(); print(get_python_inc())')" >> $GITHUB_ENV
-          echo "PYTHON_LIB_DIR=$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')" >> $GITHUB_ENV
-
-      - name: Run tests
-        run: |
-          # Skip Rust tests for PyO3 extension modules
-          echo "Skipping Rust tests for PyO3 extension module on ${{ matrix.os }}"
-          # PyO3 extension modules cannot be tested with standard cargo test
-          # Tests should be run through Python instead
+          # This library also enables extension-module in its dependency;
+          # explicitly link the interpreter for the embedded test executable.
+          if [[ "$RUNNER_OS" != "Windows" ]]; then
+            python_lib="$(python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')"
+            export RUSTFLAGS="-L native=$python_lib -lpython3.12"
+            export LD_LIBRARY_PATH="$python_lib:${LD_LIBRARY_PATH:-}"
+            export DYLD_LIBRARY_PATH="$python_lib:${DYLD_LIBRARY_PATH:-}"
+          fi
+          cargo test --locked --no-default-features --features test
 
   build-check:
     needs: test
@@ -149,7 +165,7 @@ jobs:
           assert "site-packages" in origin.parts, origin
           assert pathlib.Path("src").resolve() not in origin.parents, origin
           PY
-      - name: Run the unreachability / Tier-1 / package-data / wheel-layout tests against the wheel
+      - name: Run the unreachability / Tier-1 / retired-agent-guide / wheel-layout tests against the wheel
         run: |
           # The wheel-content tests call `maturin` by name, so the venv's bin
           # directory must be on PATH.
@@ -157,7 +173,7 @@ jobs:
           python -m pytest -p no:cacheprovider \
             tests/v2/test_unreachability_k2.py \
             tests/v2/compat/test_tier1_surface.py \
-            tests/test_package_data.py \
+            tests/v2/test_retired_agent_guide.py \
             tests/v2/test_wheel_layout.py
 
   coverage:

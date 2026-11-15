@@ -1,5 +1,10 @@
 # rdetoolkit v2 changelog
 
+<!-- New entries go in changelog.d/ (see changelog.d/README.md), not in this
+     file. `towncrier build` inserts them below this marker at release. -->
+
+<!-- towncrier release notes start -->
+
 ## Unreleased
 
 ### Changed
@@ -39,18 +44,6 @@
   v2 commands now end with a `Remediation:` line, and the remediation of
   error 2102 (`TemplateSlotSignatureMismatch`) names
   `rdetoolkit skeletons show <name>`.
-- `repro export` warns that a full archive may contain confidential data
-  and prints the files and bytes per directory to stderr before writing it.
-  It no longer replaces an existing `-o` file, and refuses inputs that are
-  symbolic links or special files, and unreadable directories, instead of
-  following or skipping them (#671). The full manifest stays
-  `schema_version: "1"`.
-- The legacy traceback page is now a compatibility matrix (#673):
-  `handle_exception`, `CompactTraceFormatter`, `SecretsSanitizer`,
-  `TracebackSettings` and `TRACE_*` are kept unchanged without new warnings,
-  and `report diagnose --json` replaces `<STACKTRACE>` as the recommended
-  format for coding agents. The debugging Skill says which output can be
-  shared after review and never to share a full `repro export` zip without it.
 - `rdetoolkit run --legacy module_or_file::attr` reports a target that
   cannot be loaded (missing file, attribute, or a non-function) with exit
   code 3, like every other `run` usage error, instead of Click's exit code 2,
@@ -58,57 +51,6 @@
 
 ### Added
 
-- Five canonical v2 Agent Skills under the repository-root `.agents/skills/`
-  cover flow authoring, metadata, debugging, testing and v1 migration. They
-  replace the package-embedded guide removed in #644. Each GitHub release
-  attaches a version-matched offline Skills pack
-  (`rdetoolkit-skills-<version>.zip` + `.sha256`), separate from the wheel and
-  sdist, with a copy-based installer for Codex and Claude Code that refuses
-  conflicts and keeps locally edited Skills on uninstall. CI executes the exact
-  shipped Python and CLI examples (including a failure/repair run and a v1
-  migration fixture) and rejects wheels or sdists that carry agent
-  instructions (#664, #665, #666; part of #662).
-- Machine-readable diagnostics for scripts and coding agents (#677). Three
-  commands print one versioned JSON envelope (`schema_version: "1"`,
-  `command`, `status`, `diagnostics` of `code`/`severity`/`name`/`message`/
-  `remediation`/`subject`), published as JSON Schema with
-  `docs/usage/diagnostics`. No field copies exception text, tracebacks,
-  argument previews, input values or config values.
-  - `nodes lint --json` (#667). Text output and exit codes are unchanged
-    (findings, warnings included, and import failures exit 3); an import
-    failure is a `ModuleImportFailed` finding.
-  - `rdetoolkit doctor [PROJECT_DIR] [--ref pkg.mod:callable] [--format text|json]`
-    (#668), in the Validate panel: required inputs, effective config, invoice
-    and metadata definitions, and `Runner.run(validate_only=True)` on a
-    temporary copy of the inputs, so the mode and W1001 match a real run.
-    It never calls the flow or its `prepare=` hook and writes nothing into the
-    project. Exit codes: 0 passed, 1 a check failed, 3 invalid input.
-  - `report diagnose RUN_REPORT [--json] [--fail-on-error]` (#669): each
-    recorded failure with its iteration, node id, call id, catalog code and
-    remediation, plus flags for the supporting iteration details and event log.
-    Exit 0 when the report was diagnosed (also for a failed run), 1 with
-    `--fail-on-error` for a recorded failure, 3 for an unusable report.
-  - `logs/iterations/iteration_<index>.json` now carries
-    `schema_version: "1"` and `run_id`, so `report diagnose` never attributes
-    a later run's detail (the files are reused by index) to an older report;
-    a detail without them is reported as unverified. The run report
-    (`schema_version: "2"`), event and call-record formats are unchanged.
-- The diagnostics envelope states its provenance and bounds its contents
-  (#670, part of #678). Every document carries `format:
-  "rdetoolkit.diagnostics"`, `producer` (`name`, `version`) and `truncated`;
-  `report diagnose` adds `source` (`format`, `schema_version` of the report).
-  `diagnostics`, `failures` and `evidence.iterations` keep at most 200
-  entries. A `node_id` or `call_id` read from a report that rdetoolkit could
-  not have written is printed as `null` and named in the failure's new
-  `redacted` list. `doctor` never prints an absolute path. The diagnostics
-  page documents these limits and that leaving out free text is not
-  anonymisation, so output must be reviewed before it is shared.
-- `repro export --manifest-only` writes a metadata-only zip (#671): one
-  `repro_manifest.json` with `schema_version: "2"`, `archive_kind:
-  "manifest-only"` and `replayable: false`, holding file counts, sizes and
-  SHA-256 digests without file names, the `config_digest`, and the
-  `report diagnose` envelope. It contains no input bytes, invoice or config
-  values, and `repro import` refuses it.
 - `save_csv` accepts `preamble=` and `blank_line_after_preamble=` to write a
   block of lines before the table, such as the `#title` / `#legend` metadata
   header that `rdetoolkit.graph` parses. Rows may have different numbers of
@@ -187,19 +129,6 @@
   exception fails the run with 3001 (naming the preparation) before any tile.
   Only the flow the Runner executes is prepared, and direct calls of the flow
   do not run it (#573).
-- The `rdetoolkit-v1-migration` Skill now carries a tested check → preview →
-  explicit `-o` apply → compare → accept/revert workflow (#672). Its
-  `scripts/compare_artifacts.py` compares two preserved data roots: invoice and
-  metadata JSON by value (scalar types, units and variable-row order kept),
-  every other file by bytes, empty directories included, and only the Runner's
-  `logs/` contents excluded; missing, symlinked or malformed evidence is
-  refused. `scripts/exercise_migration.py` converts a shipped callback, runs it
-  through the v1 entry and both the converted and an artifact-node flow on a
-  valid and a failing input, and requires equal artifacts and outcomes.
-  `scripts/check_mode_parity.py` replays 24 frozen v1 contract cases over the
-  five modes and fails on any skip or xfail. The Skill lists the dynamic
-  constructs that need manual review and keeps `custom_dataset_function` as a
-  supported compatibility target. CI executes the exact commands.
 - `rdetoolkit.exceptions.ProcessingError(message, *, remediation=None)`
   reports a processing failure without an error code. It is an
   `RdeExecutionError` with the new catalog entry 3007 `ProcessingFailed`. Every
@@ -222,10 +151,6 @@
 
 ### Changed
 
-- `AGENTS.md` and `CLAUDE.md` now point contributors to the checked-in
-  `docs/v2_architecture.md` summary instead of untracked local design notes,
-  and the Agent Skills guide (`docs/usage/agent_skills.*.md`) documents the
-  separately distributed Skills pack (#663, #665).
 - `rdetoolkit init` generates `template/tasksupport/` instead of
   `templates/tasksupport/`, matching the singular `container/` and `input/`
   directories. In a directory that already has `templates/tasksupport/`, init
@@ -237,61 +162,8 @@
   rename and writes `template/` into its output directory; it exits 3 when
   both directories exist (#615).
 
-### Removed
-
-- The package-embedded AI-agent guide is retired before GA: the
-  `rdetoolkit.get_agent_guide()` function, the `rdetoolkit agent-guide`
-  command, the private `rdetoolkit._agent` module with its bundled Markdown
-  guides, and the package-local `src/rdetoolkit/.agents/` guidance (whose
-  `preferred-apis.md` recommended `rdetoolkit.fileops` imports that do not
-  exist). The wheel and sdist no longer carry agent Markdown; `py.typed` and
-  the `.pyi` stubs still ship. This is an intentional pre-GA API removal with
-  no replacement in the package (#644).
-- The pre-GA draft error taxonomy of the retired Trace/Compile design is
-  removed from `rdetoolkit.errors` (and its stub): the string `ErrorCode` enum
-  (`E001`-`E025`), `RdeGraphError`, `RdeCompileError`, `RdeIOError`,
-  `UnconnectedInputError`, and the `E_CYCLE` / `E_UNCONNECTED_INPUT` /
-  `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY` constants. None of them was in a
-  v1 release or raised by any v2 code path. Raise the canonical `RdeError`
-  subclasses with an int code from `ERROR_CATALOG` instead. The removed
-  identifiers are never reused for a new meaning. `RdeError.__init__` /
-  `to_dict` and `RdeExecutionError.__init__` are now defined in their classes
-  with unchanged behaviour, and the stub types `code` / `name` / `message` /
-  `detail` precisely (#646).
-- The Qodo PR-Agent workflow and `.pr_agent.toml` are removed (#674; the
-  workflow deletion also appears in #654). The job used the moving
-  `qodo-ai/pr-agent@main` ref, ran on PR and unfiltered issue-comment events
-  with `OPENAI_KEY` and issue/PR write permissions, and had no recorded
-  provider authorization. `docs/development/tooling-policy.md` records the
-  audit and the conditions for any future opt-in integration; no CI job needs
-  external AI credentials. Revoking the old key and reviewing historical logs
-  are administrator actions outside this change.
-- The generated code index `docs/search/rdetoolkit_code_index.jsonl`, its
-  generator `tools/build_index.py` and the `build-index.yml` workflow that
-  pushed it back to the branch are removed (#675). No documentation, command,
-  test, agent instruction or release job read the index; MkDocs' native search
-  is unchanged. Tests keep the retired files and references from returning.
-
 ### Fixed
 
-- `repro import` checks every member before extracting anything (#671): it
-  accepts only the export layout and refuses absolute, `..` and
-  NUL-shortened names, backslashes and control characters, links and special
-  entries, encrypted or non-stored/deflate entries, names that differ only in
-  case or Unicode normalisation, more than 100,000 entries or 16 GiB, and
-  archives that expand beyond what deflate can (zip bombs); on Windows also
-  drive, stream and device names. It extracts into a staging directory next
-  to the target and renames it into place only after the archived config
-  reloads to the manifest's and the report's `config_digest`, so a failed
-  import leaves the target as it was. A matching digest shows consistency,
-  not authenticity.
-- A failed v2 run writes `<data_root>/job.failed` directly instead of going
-  through v1 `write_job_errorlog_file`, so v2 finalization no longer calls the
-  deprecated `StorageDir.get_datadir` or suppresses its `DeprecationWarning`.
-  The file bytes (`ErrorCode=<int>\nErrorMessage=<text>\n`, UTF-8), error-code
-  selection and `StructuredError` passthrough are unchanged, and
-  `write_job_errorlog_file` keeps its signature, cwd-relative `data/` location
-  and contents for v1 callers (#645).
 - A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
   with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
   exception and translated it (`StructuredError`, `ValueError`,

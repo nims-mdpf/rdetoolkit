@@ -2,8 +2,7 @@
 
 Fast checks run against the installed package in every environment; the true
 wheel-content check builds a wheel and therefore only runs where the build
-backend (build + maturin) is available — e.g. CI (same convention as
-tests/test_package_data.py).
+backend (build + maturin) is available — e.g. CI.
 """
 
 from __future__ import annotations
