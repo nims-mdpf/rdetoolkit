@@ -57,6 +57,86 @@ Both the Matplotlib and Plotly renderers honour these settings. In Matplotlib, t
 - Provide `legend_info` with newline placeholders (`\n`) to render supplemental text near the legend (Matplotlib) or as a Plotly annotation.
 - `title` sets the overlay title; individual plots append ` - {series}`. If omitted in `csv2graph()`, the CSV stem becomes the title. `plot_from_dataframe()` also accepts `name` to override the base filename independently of the display title.
 
+## Package Export Inventory
+
+This table is the authoritative list of what `rdetoolkit.graph` exposes at the
+package root. Each name belongs to exactly one tier:
+
+- **supported** — GA public API. Listed in `rdetoolkit.graph.__all__`, typed in
+  the package stub, covered by compatibility guarantees.
+- **compatibility** — kept in `__all__` and the stub because earlier releases
+  promised them there. They keep working, but new code should import them from
+  the defining module shown in the table; they may be deprecated in a later
+  release.
+- **private** — implementation helpers. They are not in `__all__`, `dir()` or
+  the stub, so a strict type checker rejects `from rdetoolkit.graph import ...`
+  for them. The runtime attribute still resolves for backward compatibility,
+  but with no stability guarantee. Do not depend on them.
+
+Automated tests fail if this table, the runtime `__all__`, and the package stub
+disagree.
+
+<!-- graph-export-inventory:start -->
+| Name | Tier | Defining module |
+|------|------|-----------------|
+| `csv2graph` | supported | `rdetoolkit.graph.api` |
+| `plot_from_dataframe` | supported | `rdetoolkit.graph.api` |
+| `GraphPlottingError` | supported | `rdetoolkit.graph.exceptions` |
+| `ColumnNotFoundError` | supported | `rdetoolkit.graph.exceptions` |
+| `InvalidMetadataError` | supported | `rdetoolkit.graph.exceptions` |
+| `InvalidCSVFormatError` | supported | `rdetoolkit.graph.exceptions` |
+| `DirectionError` | supported | `rdetoolkit.graph.exceptions` |
+| `DualAxisError` | supported | `rdetoolkit.graph.exceptions` |
+| `PlotConfigError` | supported | `rdetoolkit.graph.exceptions` |
+| `RendererError` | supported | `rdetoolkit.graph.exceptions` |
+| `PlotMode` | supported | `rdetoolkit.graph.models` |
+| `CSVFormat` | supported | `rdetoolkit.graph.models` |
+| `Direction` | supported | `rdetoolkit.graph.models` |
+| `AxisConfig` | supported | `rdetoolkit.graph.models` |
+| `LegendConfig` | supported | `rdetoolkit.graph.models` |
+| `DirectionConfig` | supported | `rdetoolkit.graph.models` |
+| `OutputConfig` | supported | `rdetoolkit.graph.models` |
+| `PlotConfig` | supported | `rdetoolkit.graph.models` |
+| `CSVMetadata` | supported | `rdetoolkit.graph.models` |
+| `ParsedData` | supported | `rdetoolkit.graph.models` |
+| `titleize` | compatibility | `rdetoolkit.graph.textutils` |
+| `sanitize_filename` | compatibility | `rdetoolkit.graph.textutils` |
+| `to_snake_case` | compatibility | `rdetoolkit.graph.textutils` |
+| `parse_header` | compatibility | `rdetoolkit.graph.textutils` |
+| `ColumnNormalizer` | compatibility | `rdetoolkit.graph.normalizers` |
+| `validate_column_specs` | compatibility | `rdetoolkit.graph.normalizers` |
+| `PlotConfigBuilder` | compatibility | `rdetoolkit.graph.config` |
+| `apply_matplotlib_config` | compatibility | `rdetoolkit.graph.config` |
+| `DEFAULT_FIG_SIZE` | compatibility | `rdetoolkit.graph.config` |
+| `DEFAULT_PLOT_PARAMS` | compatibility | `rdetoolkit.graph.config` |
+| `normalize_direction_filter` | private | `rdetoolkit.graph.models` |
+| `build_direction_config` | private | `rdetoolkit.graph.models` |
+| `RenderResult` | private | `rdetoolkit.graph.models` |
+| `MatplotlibArtifact` | private | `rdetoolkit.graph.models` |
+| `NormalizedColumns` | private | `rdetoolkit.graph.models` |
+| `RenderCollections` | private | `rdetoolkit.graph.models` |
+| `resolve_column_index` | private | `rdetoolkit.graph.normalizers` |
+| `determine_titles` | private | `rdetoolkit.graph.config` |
+| `determine_formats` | private | `rdetoolkit.graph.config` |
+| `normalize_axis_limits` | private | `rdetoolkit.graph.config` |
+| `collect_render_results` | private | `rdetoolkit.graph.strategies` |
+| `build_matplotlib_artifacts` | private | `rdetoolkit.graph.strategies` |
+<!-- graph-export-inventory:end -->
+
+Type-safe import of the supported API:
+
+```python title="typed_graph_imports.py"
+from pathlib import Path
+
+from rdetoolkit.graph import AxisConfig, GraphPlottingError, PlotConfig, PlotMode, csv2graph
+
+config = PlotConfig(mode=PlotMode.OVERLAY, x_axis=AxisConfig(label="time"))
+try:
+    csv2graph(Path("data.csv"), mode="overlay")
+except GraphPlottingError as exc:
+    print(f"plot failed: {exc}")
+```
+
 ## API Reference
 
 ::: rdetoolkit.graph.csv2graph
