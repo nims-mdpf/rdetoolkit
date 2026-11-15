@@ -87,7 +87,14 @@ METADATA_HELP = CommandHelp(
 
 ALL_HELP = CommandHelp(
     summary="Find and validate every standard RDE file in a project directory.",
-    inputs=("`PROJECT_DIR`: the project root created by `rdetoolkit init` (default: the current directory).",),
+    inputs=(
+        "`PROJECT_DIR`: the project root created by `rdetoolkit init` (default: the current directory).",
+        (
+            "`--require-files`: fail (exit 1, error type `no_target_files`) when no standard file was found to "
+            "validate, listing the searched directories. Without it, finding nothing exits 0. "
+            "`--strict --require-files` is the recommended CI form."
+        ),
+    ),
     outputs=(
         "Checks `container/data/tasksupport/{invoice.schema.json,metadata-def.json}`, "
         "`template/tasksupport/{invoice.schema.json,metadata-def.json}`, `input/invoice/invoice.json`, and "
@@ -98,7 +105,7 @@ ALL_HELP = CommandHelp(
     examples=(
         "rdetoolkit validate all",
         "rdetoolkit validate all path/to/project --format json",
-        "rdetoolkit validate all --strict",
+        "rdetoolkit validate all --strict --require-files",
     ),
     exit_codes=_EXIT_CODES,
     see_also=("rdetoolkit init", "rdetoolkit run"),
@@ -273,6 +280,95 @@ QuietOption = Annotated[
         help="Only show errors (text format only)",
     ),
 ]
+
+RequireFilesOption = Annotated[
+    bool,
+    typer.Option(
+        "--require-files",
+        help="Fail when no standard RDE file was found to validate (recommended in CI with --strict)",
+    ),
+]
+
+#: Symbolic error type of the ``--require-files`` failure. It is a validation
+#: result type, not an ERROR_CATALOG code (the catalog has no entry for it).
+NO_TARGET_FILES = "no_target_files"
+#: Warning types that describe the layout, not a validated file (#615).
+_LAYOUT_NOTICE_TYPES = frozenset({"deprecated_layout"})
+
+
+def _validated_any(results: list[ValidationResult]) -> bool:
+    """Return whether any result comes from validating an actual file.
+
+    A deprecation notice for the v1 ``templates/`` layout is reported even when
+    that directory is empty, so it must not count as "something was validated".
+    """
+    return any(not _is_layout_notice(result) for result in results)
+
+
+def _is_layout_notice(result: ValidationResult) -> bool:
+    """Return whether ``result`` only reports the project layout (no file was read)."""
+    return (
+        not result.errors
+        and bool(result.warnings)
+        and all(warning.warning_type in _LAYOUT_NOTICE_TYPES for warning in result.warnings)
+    )
+
+
+def _searched_dirs(base_dir: Path) -> list[str]:
+    """Return the directories ``validate all`` reads, relative to the project root."""
+    from rdetoolkit.cmd._project_layout import (
+        LEGACY_TEMPLATE_DIR,
+        TASKSUPPORT_DIR,
+        TEMPLATE_DIR,
+        has_legacy_template_layout,
+        template_tasksupport_dir,
+    )
+
+    # Mirrors ValidateAllCommand: templates/ is read only when template/ is absent.
+    legacy = has_legacy_template_layout(base_dir) and not template_tasksupport_dir(base_dir).is_dir()
+    template = LEGACY_TEMPLATE_DIR if legacy else TEMPLATE_DIR
+    return [
+        "container/data/tasksupport/",
+        f"{template}/{TASKSUPPORT_DIR}/",
+        "input/invoice/",
+        "input/metadata/",
+    ]
+
+
+def _no_target_files_result(base_dir: Path) -> ValidationResult:
+    """Build the ``--require-files`` failure as an ordinary validation result.
+
+    Reusing ``ValidationResult`` keeps the text report and the JSON array shape
+    unchanged: the failure is one more invalid entry, not a new document format.
+    """
+    from rdetoolkit.cmd.validate import ValidationError, ValidationResult
+
+    searched = ", ".join(_searched_dirs(base_dir))
+    message = (
+        "No standard RDE file was found to validate (--require-files). "
+        f"Searched under the project directory: {searched}. "
+        "Remediation: pass the project root created by 'rdetoolkit init' (the directory that contains "
+        "container/, template/ and input/); for a Runner data/ directory use 'rdetoolkit doctor'."
+    )
+    return ValidationResult(
+        target=str(base_dir),
+        is_valid=False,
+        errors=[ValidationError(field="", error_type=NO_TARGET_FILES, message=message)],
+        warnings=[],
+    )
+
+
+def _echo_no_standard_files(quiet: bool) -> None:
+    """Print the legacy "nothing found" report (exit 0 without --require-files)."""
+    typer.echo("No standard RDE files found in project directory.")
+    if not quiet:
+        typer.echo("\nExpected file locations:")
+        typer.echo("  - container/data/tasksupport/invoice.schema.json")
+        typer.echo("  - container/data/tasksupport/metadata-def.json")
+        typer.echo("  - template/tasksupport/invoice.schema.json")
+        typer.echo("  - template/tasksupport/metadata-def.json")
+        typer.echo("  - input/invoice/invoice.json")
+        typer.echo("  - input/metadata/metadata.json (optional)")
 
 
 @app.command("invoice-schema", help=INVOICE_SCHEMA_HELP.render(), short_help=INVOICE_SCHEMA_HELP.summary)
@@ -455,6 +551,7 @@ def validate_all(
     format_type: FormatOption = OutputFormat.TEXT,
     strict: StrictOption = False,
     quiet: QuietOption = False,
+    require_files: RequireFilesOption = False,
 ) -> None:
     """Discover and validate all standard RDE files in a project.
 
@@ -473,16 +570,22 @@ def validate_all(
     exit code unless --strict is given. Run 'rdetoolkit migrate apply' to
     rename templates/ to template/.
 
+    Finding no file exits 0 so interactive discovery stays quiet. With
+    --require-files, finding nothing to validate is a validation failure
+    (exit 1, error type 'no_target_files') that lists the searched
+    directories, so CI cannot pass after validating nothing.
+
     Exit Codes:
         0: Success - all validations passed
-        1: Validation failure - one or more validations failed
+        1: Validation failure - one or more validations failed, or nothing was
+           validated under --require-files
         2: Usage error - project directory not found or invalid arguments
 
     Examples:
         rdetoolkit validate all
         rdetoolkit validate all /path/to/project
         rdetoolkit validate all --format json
-        rdetoolkit validate all --strict
+        rdetoolkit validate all --strict --require-files
     """
     from rdetoolkit.cmd.validate import ValidateAllCommand, create_formatter
 
@@ -492,18 +595,10 @@ def validate_all(
         command = ValidateAllCommand(base_dir)
         results = command.execute()
 
-        if not results:
-            # No standard files found
-            msg = "No standard RDE files found in project directory."
-            typer.echo(msg)
-            if not quiet:
-                typer.echo("\nExpected file locations:")
-                typer.echo("  - container/data/tasksupport/invoice.schema.json")
-                typer.echo("  - container/data/tasksupport/metadata-def.json")
-                typer.echo("  - template/tasksupport/invoice.schema.json")
-                typer.echo("  - template/tasksupport/metadata-def.json")
-                typer.echo("  - input/invoice/invoice.json")
-                typer.echo("  - input/metadata/metadata.json (optional)")
+        if require_files and not _validated_any(results):
+            results = [*results, _no_target_files_result(base_dir)]
+        elif not results:
+            _echo_no_standard_files(quiet)
             raise typer.Exit(code=0)
 
         # Format output based on format type

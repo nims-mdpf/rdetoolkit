@@ -319,6 +319,26 @@ except Exception as e:
     print(f"ワークフロー実行エラー（バリデーション含む）: {e}")
 ```
 
+### 読み込み時に検証される設定値
+
+v2 の設定は、入力を読む前の読み込み時に検証されます。
+未知のキーや不正な値は `ConfigLoadFailed`（エラーコード 1002）で失敗し、
+メッセージには問題のキー名が示されます。
+
+`execution.type_check` に指定できるのは `off`（既定値）、`warn`、`strict` のいずれかだけです。
+綴り誤り（`strcit`）、大文字小文字の違い（`Strict`）、前後の空白、`null`、数値、リストは
+すべて拒否されます：
+
+```text
+[ConfigLoadFailed] Failed to load RDE configuration: 1 validation error for RdeConfig
+execution.type_check
+  Input should be 'off', 'warn' or 'strict' ...
+```
+
+この検証は `rdeconfig.yaml`、`pyproject.toml` の `[tool.rdetoolkit]`、`--config` による上書き、
+明示的に渡した `RdeConfig` のいずれにも適用されます。
+`rdetoolkit run REF --validate-only` と `rdetoolkit doctor` は、フローを実行せずにこのエラーを報告します。
+
 ## CLIバリデーションコマンド
 
 RDEToolKitは、CI/CD統合のための標準化された終了コードを持つコマンドラインバリデーションツールを提供します。
@@ -421,6 +441,33 @@ $ echo $?
 0
 ```
 
+#### 検証対象ファイルの存在を必須にする（`--require-files`）
+
+既定では、`validate all` は標準 RDE ファイルが 1 つも見つからなくても終了コード 0 で終わります。
+対話的な探索にはこれで十分ですが、CI ではパスの誤りや不完全なチェックアウトでも、
+何も検証しないまま成功してしまいます。`--require-files` を付けると、検証対象が 1 つもない場合は
+検証失敗（終了コード 1）となり、固定のエラー種別 `no_target_files` と、探索したディレクトリの一覧を表示します：
+
+```bash
+$ rdetoolkit validate all ./wrong-dir --strict --require-files
+✗ INVALID: /abs/path/wrong-dir
+
+Errors:
+  1. Field:
+     Type: no_target_files
+     Message: No standard RDE file was found to validate (--require-files). Searched under the project directory: container/data/tasksupport/, template/tasksupport/, input/invoice/, input/metadata/. Remediation: ...
+
+$ echo $?
+1
+```
+
+`--format json` では、通常の JSON 配列に要素が 1 つ追加されます（`"valid": false`、エラーの `"type": "no_target_files"`）。
+`--strict` 単独の意味（警告を失敗扱いにする）は変わらず、ファイルの存在は要求しません。
+v1 の `templates/` レイアウトに対する非推奨の通知は、検証したファイルとして数えません。
+Runner の `data/` ディレクトリ（`data/tasksupport`、`data/invoice`）を確認する場合は `rdetoolkit doctor` を使用してください。
+
+CI では `--strict --require-files` を指定してください。
+
 ### CI/CD統合の例
 
 #### GitHub Actionsの例
@@ -446,14 +493,15 @@ jobs:
 
       - name: RDEプロジェクトの検証
         run: |
-          rdetoolkit validate all ./rde-project
-          if [ $? -eq 1 ]; then
-            echo "::error::RDEバリデーション失敗 - データとスキーマを確認してください"
-            exit 1
-          elif [ $? -eq 2 ]; then
+          set +e
+          rdetoolkit validate all ./rde-project --strict --require-files
+          status=$?
+          if [ $status -eq 1 ]; then
+            echo "::error::RDEバリデーション失敗（または検証対象なし） - データとスキーマを確認してください"
+          elif [ $status -eq 2 ]; then
             echo "::error::RDEバリデーション設定エラー"
-            exit 2
           fi
+          exit $status
 ```
 
 #### GitLab CIの例
@@ -464,7 +512,7 @@ validate:
   image: python:3.12
   script:
     - pip install rdetoolkit
-    - rdetoolkit validate all ./rde-project
+    - rdetoolkit validate all ./rde-project --strict --require-files
   allow_failure: false
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
