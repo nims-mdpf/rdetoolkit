@@ -40,7 +40,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any
 
-from rdetoolkit.testing.assertions import DEFAULT_MAX_BYTES, context_lines, csv_differences, json_differences
+from rdetoolkit.testing.assertions import DEFAULT_MAX_BYTES, context_lines, json_differences
 
 if TYPE_CHECKING:
     from rdetoolkit.testing.runner import RdeTestResult
@@ -166,12 +166,15 @@ def assert_snapshot(
     actual = _actual_files(result, name, options, allow_raw=allow_raw)
     expected = _golden_files(result, golden_path, options, is_dir=result.artifact_path(name).is_dir())
     changes = _changes(actual, expected, options)
-    if not changes:
+    # Decided separately from the file lists: an empty artifact directory and
+    # an absent golden copy both list no files, but only one is a baseline.
+    has_golden = golden_path.exists()
+    if has_golden and not changes:
         return
     if update_mode():
-        _approve(result, golden_path, actual, changes, options)
+        _approve(result, golden_path, actual, changes, options, create_root=not has_golden)
         return
-    raise AssertionError(_mismatch_message(result, name, golden_path, changes, has_golden=golden_path.exists()))
+    raise AssertionError(_mismatch_message(result, name, golden_path, changes, has_golden=has_golden))
 
 
 # ----------------------------------------------------------------- inputs
@@ -219,8 +222,18 @@ def _pointer(text: str) -> tuple[str, ...]:
 
 def _actual_files(result: RdeTestResult, name: PurePosixPath, options: _Options, *, allow_raw: bool) -> dict[str, Path]:
     path = result.artifact_path(name)
-    if path.is_symlink():
-        raise SnapshotError(_with_context(result, f"snapshot refuses the symlinked artifact {name.as_posix()!r}"))
+    # Every component below the data root is checked, not just the artifact:
+    # a linked parent directory (``thumbnail -> inputdata``) would otherwise
+    # let raw data reach a golden file under a name that looks harmless.
+    link = _first_link(result.data_root, path)
+    if link is not None:
+        linked = link.relative_to(result.data_root).as_posix()
+        msg = (
+            f"snapshot refuses the symlinked artifact {linked!r}"
+            if link == path
+            else f"snapshot refuses the symlinked directory {linked!r} on the way to {name.as_posix()!r}"
+        )
+        raise SnapshotError(_with_context(result, msg))
     if path.is_file():
         files = {"": path}
     elif path.is_dir():
@@ -229,8 +242,11 @@ def _actual_files(result: RdeTestResult, name: PurePosixPath, options: _Options,
         raise SnapshotError(_with_context(result, f"snapshot artifact {name.as_posix()!r} does not exist"))
     for key, file in files.items():
         relative = PurePosixPath(name, key) if key else name
-        if file.is_symlink():
-            raise SnapshotError(_with_context(result, f"snapshot refuses the symlinked file {relative.as_posix()!r}"))
+        link = _first_link(result.data_root, file)
+        if link is not None:
+            linked = link.relative_to(result.data_root).as_posix()
+            kind = "file" if link == file else "directory"
+            raise SnapshotError(_with_context(result, f"snapshot refuses the symlinked {kind} {linked!r}"))
         if not allow_raw and relative.parts[0] in _RAW_DIRECTORIES:
             msg = (
                 f"snapshot of {relative.as_posix()!r} would copy raw input data into a golden file; "
@@ -266,16 +282,23 @@ def _refuse_golden_links(result: RdeTestResult, golden: Path, target: Path) -> N
     lets a golden path escape the golden root although the file itself is not
     a link.
     """
-    chain = [golden]
-    for part in target.relative_to(golden).parts:
-        chain.append(chain[-1] / part)
-    for current in chain:
+    link = golden if golden.is_symlink() else _first_link(golden, target)
+    if link is not None:
+        msg = (
+            f"snapshot refuses the symlinked golden path {link}: golden files are compared and "
+            "written in place, never through a link. Replace the link with a regular file or directory"
+        )
+        raise SnapshotError(_with_context(result, msg))
+
+
+def _first_link(root: Path, target: Path) -> Path | None:
+    """Return the first symlink among the components of ``target`` below ``root`` (``root`` itself is trusted)."""
+    current = root
+    for part in target.relative_to(root).parts:
+        current = current / part
         if current.is_symlink():
-            msg = (
-                f"snapshot refuses the symlinked golden path {current}: golden files are compared and "
-                "written in place, never through a link. Replace the link with a regular file or directory"
-            )
-            raise SnapshotError(_with_context(result, msg))
+            return current
+    return None
 
 
 def _tree(root: Path, patterns: Sequence[str]) -> dict[str, Path]:
@@ -345,7 +368,7 @@ def _csv_file_differences(new: bytes, old: bytes, options: _Options) -> list[str
     header_actual, header_golden = actual[0] if actual else [], golden[0] if golden else []
     if header_actual != header_golden:
         return [f"header: golden {header_golden}, actual {header_actual}"]
-    return csv_differences(_as_dicts(golden), _as_dicts(actual))
+    return _csv_cell_differences(header_golden, golden[1:], actual[1:])
 
 
 def _csv_rows(data: bytes, ignored: Sequence[str]) -> list[list[str]]:
@@ -356,9 +379,27 @@ def _csv_rows(data: bytes, ignored: Sequence[str]) -> list[list[str]]:
     return [rows[0]] + [[IGNORED_PLACEHOLDER if index in positions else cell for index, cell in enumerate(row)] for row in rows[1:]]
 
 
-def _as_dicts(rows: list[list[str]]) -> list[dict[str, str]]:
-    header = rows[0]
-    return [dict(zip(header, row, strict=False)) for row in rows[1:]]
+def _csv_cell_differences(header: list[str], golden: list[list[str]], actual: list[list[str]]) -> list[str]:
+    """Compare data rows cell by cell by position (rows numbered from 1).
+
+    Positions, not a column-name mapping: a duplicated header name or a cell
+    beyond the header would otherwise drop values from the comparison.
+    Columns are named ``<position> '<header>'`` when a header name repeats,
+    else by name, as the CSV data assertion does.
+    """
+    duplicated = len(set(header)) != len(header)
+    differences: list[str] = []
+    if len(actual) != len(golden):
+        differences.append(f"expected {len(golden)} data row(s), got {len(actual)}")
+    for number, (want, got) in enumerate(zip(golden, actual, strict=False), start=1):
+        if len(want) != len(got):
+            differences.append(f"row {number}: expected {len(want)} cell(s), got {len(got)}")
+        for index, (old, new) in enumerate(zip(want, got, strict=False)):
+            if old != new:
+                name = header[index] if index < len(header) else None
+                column = f"{index + 1} {name!r}" if duplicated or name is None else repr(name)
+                differences.append(f"row {number}, column {column}: expected {old!r}, got {new!r}")
+    return differences
 
 
 def _text_differences(new: bytes, old: bytes) -> list[str]:
@@ -401,7 +442,9 @@ def _mask(value: Any, pointer: tuple[str, ...]) -> Any:
 # ----------------------------------------------------------------- update
 
 
-def _approve(result: RdeTestResult, golden: Path, actual: dict[str, Path], changes: list[_Change], options: _Options) -> None:
+def _approve(  # noqa: PLR0913 -- the comparison's inputs plus whether the golden root is new
+    result: RdeTestResult, golden: Path, actual: dict[str, Path], changes: list[_Change], options: _Options, *, create_root: bool,
+) -> None:
     if ci_is_active():
         msg = f"refusing to update snapshot {golden}: {ci_refusal_message()}"
         raise SnapshotError(_with_context(result, "\n".join([msg, *_change_lines(changes)])))
@@ -410,6 +453,11 @@ def _approve(result: RdeTestResult, golden: Path, actual: dict[str, Path], chang
     # the golden copy exactly as it was, and nothing is written through a link.
     for target in targets:
         _refuse_golden_links(result, golden, target)
+    if create_root and not changes:
+        # An empty artifact directory: the golden directory itself is the
+        # baseline (otherwise it is created with the first file below).
+        golden.mkdir(parents=True)
+        _state["updates"].append(SnapshotUpdate(golden, "created"))
     for change, target in zip(changes, targets, strict=True):
         if change.kind == "missing":
             target.unlink()

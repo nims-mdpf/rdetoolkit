@@ -35,6 +35,8 @@ def test_process(rde_runner):
   (`<tmp_path>/rde_runner/run-NNN/<project name>`). The source fixture is
   never written, and every call stages its own copy, so tests do not depend
   on each other or on execution order. Symlinks are copied by content.
+  The staging directory is left out of the copy when it lies inside the
+  project, so `project=tmp_path` works with the fixture.
 - accepts both layouts: a project directory holding `data/`
   (`data/inputdata`, `data/invoice`, `data/tasksupport`) and an alias-flat
   data root (`inputdata/`, `invoice/`, `tasksupport/` directly inside). The
@@ -214,7 +216,9 @@ def test_structured_output(rde_runner):
     )
 ```
 
-- `.json` files are compared by JSON pointer, `.csv` files cell by cell,
+- `.json` files are compared by JSON pointer, `.csv` files cell by cell
+  by position (a repeated header name or a row wider or narrower than the
+  header is still compared),
   other text files (`.txt`, `.md`, `.yaml`, ...) as a line diff, and
   everything else (images, binary formats) by size and sha256 -- binary data
   is never decoded.
@@ -245,7 +249,8 @@ cannot bypass the review step.
 repository. Snapshots of `inputdata/`, `raw/` and `nonshared_raw/` are
 refused unless you pass `allow_raw=True`; ignored fields are written as the
 placeholder, so run IDs and timestamps do not reach the golden copy;
-symlinks are refused on both sides (a symlinked artifact, or a golden file,
+symlinks are refused on both sides (a symlinked artifact, a symlinked
+directory anywhere between the data root and an artifact file, or a golden file,
 golden directory or any directory inside it that is a symlink, is neither
 compared nor written through); files above `max_bytes` (16 MiB by default)
 are refused on either side. Snapshot only what may be shared.

@@ -44,6 +44,9 @@ BV / negative table
 | TC-SNAP-BV-018 | approval API | ``update=True`` on the result or standalone | TypeError, no parameter, nothing written |
 | TC-SNAP-BV-019 | golden symlink | golden file / root is a symlink (also dangling) | refused for compare and update, link target untouched |
 | TC-SNAP-BV-020 | golden symlink | symlinked file / directory inside a golden directory | refused for compare and update, nothing written outside |
+| TC-SNAP-BV-021 | artifact symlink | linked parent directory (to ``inputdata``) on the way to the artifact or below it | refused, even in update mode; nothing written |
+| TC-SNAP-BV-022 | CSV | duplicate header / row wider or narrower than the header | cell named by position / row width reported |
+| TC-SNAP-BV-023 | no golden | empty artifact directory, golden absent | fails naming the approval; approval creates the empty baseline |
 """
 
 from __future__ import annotations
@@ -825,3 +828,65 @@ def test_option_is_documented_in_help(tmp_path: Path) -> None:
     # Then
     assert completed.returncode == 0
     assert "--rde-update-snapshots" in completed.stdout
+
+
+# ------------------------------------------------------------ review fixes
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
+@pytest.mark.parametrize("artifact", ["thumbnail/sample.txt", "thumbnail", "structured/raw/sample.txt", "structured"])
+def test_linked_parent_directory_is_refused__tc_snap_bv_021(tmp_path: Path, artifact: str) -> None:
+    """TC-SNAP-BV-021: a linked directory on the way to the artifact cannot smuggle raw data into a golden file."""
+    # Given: thumbnail/ and structured/raw both link to inputdata/
+    result = _run(tmp_path)
+    inputdata = result.artifact_path("inputdata")
+    result.artifact_path("thumbnail").rmdir()
+    result.artifact_path("thumbnail").symlink_to(inputdata, target_is_directory=True)
+    result.artifact_path("structured/raw").symlink_to(inputdata, target_is_directory=True)
+    golden = tmp_path / "golden"
+    # When / Then: refused even in update mode, and nothing is written
+    with pytest.raises(SnapshotError, match="symlinked"):
+        _approve(result, artifact, golden / "out")
+    assert not golden.exists()
+
+
+@pytest.mark.parametrize(
+    ("golden_csv", "actual_csv", "line"),
+    [
+        pytest.param("x,x\n1,2\n", "x,x\n999,2\n", "row 1, column 1 'x': expected '1', got '999'", id="duplicate-header"),
+        pytest.param("x,y\n1,2\n", "x,y\n1,2,3\n", "row 1: expected 2 cell(s), got 3", id="extra-cell"),
+        pytest.param("x,y\n1,2\n", "x,y\n1\n", "row 1: expected 2 cell(s), got 1", id="missing-cell"),
+    ],
+)
+def test_csv_cells_are_compared_by_position__tc_snap_bv_022(tmp_path: Path, golden_csv: str, actual_csv: str, line: str) -> None:
+    """TC-SNAP-BV-022: duplicate headers and rows wider or narrower than the header are compared cell by cell."""
+    # Given
+    _OUTPUT["csv"] = golden_csv
+    _, golden = _approved(tmp_path, "structured/result.csv")
+    _OUTPUT["csv"] = actual_csv
+    # When
+    with pytest.raises(AssertionError) as excinfo:
+        _run(tmp_path, "changed").assert_snapshot("structured/result.csv", golden)
+    # Then
+    assert line in str(excinfo.value)
+
+
+def test_missing_golden_for_an_empty_directory__tc_snap_bv_023(tmp_path: Path) -> None:
+    """TC-SNAP-BV-023: an empty artifact directory without a golden copy fails, and approval creates the baseline."""
+    # Given: thumbnail/ is produced empty and has no golden copy
+    result = _run(tmp_path)
+    assert result.artifact_path("thumbnail").is_dir()
+    assert not any(result.artifact_path("thumbnail").iterdir())
+    golden = tmp_path / "golden" / "thumbnail"
+    # When / Then: the comparison fails naming the approval
+    with pytest.raises(AssertionError) as excinfo:
+        result.assert_snapshot("thumbnail", golden)
+    assert f"golden snapshot {golden} for artifact 'thumbnail' does not exist" in str(excinfo.value)
+    assert not golden.exists()
+    # When: approving
+    _approve(result, "thumbnail", golden)
+    # Then: the empty baseline exists, is recorded, and the next comparison passes
+    assert golden.is_dir()
+    assert not any(golden.iterdir())
+    assert [(update.path, update.action) for update in snapshot.recorded_updates()] == [(golden, "created")]
+    result.assert_snapshot("thumbnail", golden)

@@ -38,6 +38,8 @@ BV / negative table
 | TC-RR-BV-008 | artifact path | absolute / traversal / empty / non-str | ``ValueError`` / ``TypeError`` |
 | TC-RR-BV-009 | partial | one of two tiles fails | ``assert_success`` fails naming ``partial`` |
 | TC-RR-BV-010 | env | flow sets an environment variable | not an rdetoolkit concern, but the runner adds none |
+| TC-RR-BV-011 | staging inside project | ``project=tmp_path`` with the fixture / staging several levels down | staging directory left out of the copy, siblings kept |
+| TC-RR-BV-012 | project vs staging | project is the staging directory / lies below it | ``ValueError``, nothing staged / copied normally |
 """
 
 from __future__ import annotations
@@ -642,3 +644,52 @@ def test_rde_runner_fixture_stages_below_tmp_path(rde_runner: RdeTestRunner, tmp
     # Given / When / Then
     assert rde_runner.base_dir.is_relative_to(tmp_path)
     shutil.rmtree(rde_runner.base_dir, ignore_errors=True)
+
+
+def test_project_may_contain_the_staging_directory__tc_rr_bv_011(rde_runner: RdeTestRunner, tmp_path: Path) -> None:
+    """TC-RR-BV-011: ``project=tmp_path`` with the standard fixture (staging below the project)."""
+    # Given: the project is tmp_path itself, which also holds the fixture's staging directory
+    project = _nested_project(tmp_path)
+    before = {key: value for key, value in _tree_digest(project).items() if not key.startswith("rde_runner")}
+    # When: running twice
+    first = rde_runner.run(flow=_writes_result, project=project)
+    second = rde_runner.run(flow=_writes_result, project=project)
+    # Then: both runs succeed and neither staged copy contains the staging directory
+    for result in (first, second):
+        assert result.status == "success", result.failure_summary(expected_status="success")
+        assert not (result.project_root / rde_runner.base_dir.name).exists()
+        assert (result.data_root / "inputdata" / "sample.txt").is_file()
+    assert {key: value for key, value in _tree_digest(project).items() if not key.startswith("rde_runner")} == before
+
+
+def test_deeply_nested_staging_directory_is_left_out__tc_rr_bv_011(tmp_path: Path) -> None:
+    """TC-RR-BV-011: a staging directory several levels below the project is not copied either."""
+    # Given
+    project = _nested_project(tmp_path / "project")
+    runner = RdeTestRunner(project / "build" / "runs")
+    (project / "build" / "keep.txt").parent.mkdir(parents=True, exist_ok=True)
+    (project / "build" / "keep.txt").write_text("kept", encoding="utf-8")
+    # When
+    result = runner.run(flow=_writes_result, project=project)
+    # Then: only the staging directory is left out; its siblings are staged
+    assert result.status == "success", result.failure_summary(expected_status="success")
+    assert (result.project_root / "build" / "keep.txt").read_text(encoding="utf-8") == "kept"
+    assert not (result.project_root / "build" / "runs").exists()
+
+
+@pytest.mark.parametrize("relation", ["same", "inside"])
+def test_project_inside_the_staging_directory_is_refused__tc_rr_bv_012(tmp_path: Path, relation: str) -> None:
+    """TC-RR-BV-012: the staging directory (or a directory below it) is not a project."""
+    # Given
+    base = tmp_path / "runs"
+    project = _nested_project(base if relation == "same" else base / "nested")
+    runner = RdeTestRunner(base)
+    # When / Then
+    if relation == "same":
+        with pytest.raises(ValueError, match="staging directory"):
+            runner.run(flow=_writes_result, project=project)
+        assert not any(path.name.startswith("run-") for path in base.iterdir())
+    else:
+        # A project below the staging directory (for example a retained run) is copied normally.
+        result = runner.run(flow=_writes_result, project=project)
+        assert result.status == "success", result.failure_summary(expected_status="success")

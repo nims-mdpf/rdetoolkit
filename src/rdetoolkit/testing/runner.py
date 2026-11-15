@@ -353,6 +353,13 @@ class RdeTestRunner:
         return tuple(self._results)
 
     def _stage(self, source: Path) -> Path:
+        base = self.base_dir.resolve()
+        if base == source:
+            msg = (
+                f"RDE test project {source} is this runner's staging directory; "
+                "pass the project directory, not the directory that receives the staged copies"
+            )
+            raise ValueError(msg)
         self.base_dir.mkdir(parents=True, exist_ok=True)
         index = 0
         while True:
@@ -368,8 +375,21 @@ class RdeTestRunner:
         staged = run_dir / source.name
         # Symlinks are copied by content: a flow that writes through a staged
         # input must never reach the file the source project points at.
-        shutil.copytree(source, staged, symlinks=False)
+        # The staging directory may lie inside the project (the rde_runner
+        # fixture stages below tmp_path, and a test may pass project=tmp_path):
+        # it is left out, or every copy would copy itself.
+        shutil.copytree(source, staged, symlinks=False, ignore=_ignore_path(base) if base.is_relative_to(source) else None)
         return staged
+
+
+def _ignore_path(excluded: Path) -> Callable[[str, list[str]], set[str]]:
+    """Return a ``copytree`` ignore callback that skips the one entry resolving to ``excluded``."""
+
+    def ignore(directory: str, names: list[str]) -> set[str]:
+        parent = Path(directory)
+        return {name for name in names if (parent / name).resolve() == excluded}
+
+    return ignore
 
 
 def retained_runs_report(results: Sequence[RdeTestResult]) -> str:
