@@ -48,7 +48,7 @@ _LAZY_MODULES: dict[str, str] = {
     "workflows": "rdetoolkit.workflows",
     "storage": "rdetoolkit.storage",
     "traceback": "rdetoolkit.traceback",
-    "config": "rdetoolkit.models.config",
+    "config": "rdetoolkit.config",
     "invoice": "rdetoolkit.models.invoice",
     "invoice_schema": "rdetoolkit.models.invoice_schema",
     "metadata": "rdetoolkit.models.metadata",

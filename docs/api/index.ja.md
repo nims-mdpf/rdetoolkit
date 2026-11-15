@@ -46,7 +46,7 @@ from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
 | `storage` | モジュール | `rdetoolkit.storage` |
 | `traceback` | モジュール | `rdetoolkit.traceback` |
 | `models` | モジュール | `rdetoolkit.models` |
-| `config` | モジュール | `rdetoolkit.models.config` |
+| `config` | モジュール | `rdetoolkit.config` |
 | `invoice` | モジュール | `rdetoolkit.models.invoice` |
 | `invoice_schema` | モジュール | `rdetoolkit.models.invoice_schema` |
 | `metadata` | モジュール | `rdetoolkit.models.metadata` |
@@ -56,9 +56,10 @@ from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
 `__version__` もエクスポートされます。従来の `get_agent_guide()` は削除されました (#644)。
 サポート対象の v2 API に含まれたことはありません。
 
-トップレベルの `config` 属性は設定*モデル*のモジュール (`rdetoolkit.models.config`) です。
-設定ファイルの*読み込み*関数は `rdetoolkit.config` パッケージにあるため、
-`from rdetoolkit.config import parse_config_file` のように明示的にインポートしてください。
+トップレベルの `config` 属性は、インポート順にかかわらず `rdetoolkit.config` パッケージです (#745)。
+`parse_config_file` などの設定ファイル読み込み関数を提供し、`rdetoolkit.models.config` の設定モデル
+(`Config`、`SystemSettings`、`MultiDataTileSettings`、`SmartTableSettings`、
+`TracebackSettings`、`MultiDataTileOrder`) も再エクスポートしています。
 
 ## 主要モジュール
 

@@ -196,9 +196,9 @@ def test_stub_binds_exactly_the_public_names__tc_api637_005() -> None:
 def test_stub_reexports_point_at_runtime_objects__tc_api637_006() -> None:
     """TC-API637-006: each stub re-export names the object the runtime returns.
 
-    Checked in a fresh interpreter: ``rdetoolkit.config`` is a lazy alias of
-    ``rdetoolkit.models.config`` that a later ``import rdetoolkit.config`` (the v1
-    config-parsing package) rebinds, so only first resolution is a stable contract.
+    Checked in a fresh interpreter, resolving each name through the lazy package
+    attribute before anything imports the submodule. Import-order independence of
+    ``rdetoolkit.config`` itself is covered by tests/v2/config/test_config_import_order_745.py.
     """
     # Given: the stub claims each ``name`` is ``module.attr``
     rows = _stub_reexports()

@@ -2,6 +2,7 @@
 # entry of ``_LAZY_ATTRS`` / ``_LAZY_MODULES`` in ``__init__.py``; the literal
 # ``__all__`` below must equal the runtime one (tests/v2/api/test_top_level_api_637.py).
 from rdetoolkit import (
+    config as config,
     errors as errors,
     exceptions as exceptions,
     img2thumb as img2thumb,
@@ -22,7 +23,6 @@ from rdetoolkit.core import (
 from rdetoolkit.core.flow import flow as flow
 from rdetoolkit.core.node import node as node
 from rdetoolkit.models import (
-    config as config,
     invoice as invoice,
     invoice_schema as invoice_schema,
     metadata as metadata,

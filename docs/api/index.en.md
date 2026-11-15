@@ -46,7 +46,7 @@ from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
 | `storage` | module | `rdetoolkit.storage` |
 | `traceback` | module | `rdetoolkit.traceback` |
 | `models` | module | `rdetoolkit.models` |
-| `config` | module | `rdetoolkit.models.config` |
+| `config` | module | `rdetoolkit.config` |
 | `invoice` | module | `rdetoolkit.models.invoice` |
 | `invoice_schema` | module | `rdetoolkit.models.invoice_schema` |
 | `metadata` | module | `rdetoolkit.models.metadata` |
@@ -56,10 +56,11 @@ from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
 `__version__` is also exported. The legacy `get_agent_guide()` helper has been
 removed (#644); it was never part of the supported v2 API.
 
-The top-level `config` attribute is the configuration *models* module
-(`rdetoolkit.models.config`). The configuration *loader* functions live in the
-`rdetoolkit.config` package; import them explicitly, as in
-`from rdetoolkit.config import parse_config_file`.
+The top-level `config` attribute is the `rdetoolkit.config` package, whatever the
+import order (#745). It provides the configuration loader functions, such as
+`parse_config_file`, and re-exports the configuration models (`Config`,
+`SystemSettings`, `MultiDataTileSettings`, `SmartTableSettings`,
+`TracebackSettings`, `MultiDataTileOrder`) from `rdetoolkit.models.config`.
 
 ## Core Modules
 
