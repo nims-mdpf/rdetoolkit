@@ -1,0 +1,248 @@
+# GA debuggability release matrix (#698) -- the machine-readable half of
+# docs/ga_debuggability_contract.md.
+#
+# Every entry x mode x outcome cell is declared exactly once, either as
+#   tests:    collected pytest ids that assert the cell's contract, or
+#   excluded: a specific rationale why the combination cannot exist.
+# Keys are "<entry>/<mode>"; "*" stands for every entry or every mode, and a
+# concrete key may not overlap a wildcard one (each cell is declared once).
+# Test ids may use {entry} {ENTRY} {mode} {MODE} placeholders
+# (ENTRY: FLOW | CB, MODE: INV | XLS | MDT | RDF | SMT).
+#
+# tests/v2/ga/test_diagnostics_matrix.py enforces: completeness, covered xor
+# excluded, non-generic rationales, every referenced id is collected, and every
+# GA cell in tests/v2/ga is referenced here.
+schema_version: 1
+entries: [flow, callback]
+modes: [invoice, excelinvoice, multidatatile, rdeformat, smarttable]
+
+outcomes:
+  success:
+    aspects: [frozen v1 output tree / raw / invoices / artifact digests, callback or tile count, no job.failed, no diagnostics sidecar, report explain fabricates no cause]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_flow_entry_success_matches_frozen_v1_primary_contract[TC-UM-{MODE}-FLOW-OK]
+          - tests/v2/contract/test_unified_matrix.py::test_canary_flow_entry_matches_frozen_real_input_observation[TC-UM-{MODE}-CANARY-FLOW-OK]
+          - tests/v2/ga/test_mode_artifacts.py::test_success_matches_frozen_v1_and_fabricates_no_cause[GA-{ENTRY}-{MODE}-SUCCESS]
+      callback/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_success_matches_frozen_v1_artifacts[TC-UM-{MODE}-CB-V2-OK]
+          - tests/v2/contract/test_unified_matrix.py::test_public_entry_success_matches_the_frozen_v1_observation[TC-UM-{MODE}-CB-ENTRY-OK]
+          - tests/v2/ga/test_mode_artifacts.py::test_success_matches_frozen_v1_and_fabricates_no_cause[GA-{ENTRY}-{MODE}-SUCCESS]
+
+  pre_validation_failure:
+    aspects: [catalog 4001 in report and job.failed, report iteration count 0, no user call, diagnostic phase pre_validate on invoice/invoice.json, report explain]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_flow_error_cells_match_the_i6_0_translation_table[TC-UM-{MODE}-FLOW-VALERR]
+          - tests/v2/runner/test_ga_post_validate_preserves_iterations.py::test_pre_validation_failure_keeps_empty_iterations__tc_ga685_ev_013[{mode}]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_pre_validation_failure_runs_no_tile[GA-{ENTRY}-{MODE}-PRE-VALIDATION-FAILURE]
+      callback/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_validation_error_is_frontloaded[TC-UM-{MODE}-CB-V2-VALERR]
+          - tests/v2/contract/test_unified_matrix.py::test_public_entry_validation_error_is_frontloaded[TC-UM-{MODE}-CB-ENTRY-VALERR]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_pre_validation_failure_runs_no_tile[GA-{ENTRY}-{MODE}-PRE-VALIDATION-FAILURE]
+
+  structured_error:
+    aspects: [known StructuredError ecode/emsg verbatim in report and job.failed (frozen v1 text), report iteration count (fail_fast stops at tile 0), frozen v1 tree and raw copies, diagnostic phase node_execution, source line of the raise, report explain]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_flow_error_cells_match_the_i6_0_translation_table[TC-UM-{MODE}-FLOW-USERERR]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_structured_error_passes_through_every_artifact[GA-{ENTRY}-{MODE}-STRUCTURED-ERROR]
+      callback/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_user_error_matches_frozen_v1_job_failed[TC-UM-{MODE}-CB-V2-USERERR]
+          - tests/v2/contract/test_unified_matrix.py::test_public_entry_user_error_matches_the_frozen_v1_observation[TC-UM-{MODE}-CB-ENTRY-USERERR]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_structured_error_passes_through_every_artifact[GA-{ENTRY}-{MODE}-STRUCTURED-ERROR]
+
+  plain_exception:
+    aspects: [user node / callback failure published as catalog 3001 (callback - documented divergence from v1 999, contracts.md J1-5), user message kept in job.failed, report iteration count, diagnostic phase node_execution with node and call id, source line of the raise, report explain]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_plain_user_exception_is_diagnosed[GA-{ENTRY}-{MODE}-PLAIN-EXCEPTION]
+      callback/invoice:
+        tests:
+          - tests/v2/compat/test_callback_provenance_j1.py::test_plain_exception_divergence_from_v1_is_a_checked_contract__tc_j1_cbp_ev_011
+          - tests/v2/ga/test_diagnostics_matrix.py::test_plain_user_exception_is_diagnosed[GA-{ENTRY}-{MODE}-PLAIN-EXCEPTION]
+      callback/excelinvoice: &plain_callback
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_plain_user_exception_is_diagnosed[GA-{ENTRY}-{MODE}-PLAIN-EXCEPTION]
+      callback/multidatatile: *plain_callback
+      callback/rdeformat: *plain_callback
+      callback/smarttable: *plain_callback
+
+  strict_type_mismatch:
+    aspects: [catalog 3002 in report and job.failed, no executed call fabricated for the rejected node, diagnostic phase node_argument_validation with node / parameter / type names, report explain]
+    cells:
+      flow/invoice:
+        tests:
+          - tests/v2/core/test_ga_node_argument_diagnostics.py::test_runner_reports_the_rejection_without_a_call__tc_ga688_ep_005
+          - tests/v2/ga/test_diagnostics_matrix.py::test_strict_argument_rejection_names_node_and_parameter[GA-{ENTRY}-{MODE}-STRICT-TYPE-MISMATCH]
+      flow/excelinvoice: &strict_cell
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_strict_argument_rejection_names_node_and_parameter[GA-{ENTRY}-{MODE}-STRICT-TYPE-MISMATCH]
+      flow/multidatatile: *strict_cell
+      flow/rdeformat: *strict_cell
+      flow/smarttable: *strict_cell
+      callback/*: *strict_cell
+
+  publication_failure:
+    aspects: [catalog 3005 in report and job.failed, user code never reached, diagnostic phase artifact_publish at the raiser, report explain]
+    cells:
+      flow/invoice:
+        tests:
+          - tests/v2/runner/test_ga_diagnostics_phases.py::test_artifact_publish_failure__tc_ga686_ep_009
+          - tests/v2/ga/test_diagnostics_matrix.py::test_publication_failure_is_artifact_publish[GA-{ENTRY}-{MODE}-PUBLICATION-FAILURE]
+      flow/excelinvoice: &publication_cell
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_publication_failure_is_artifact_publish[GA-{ENTRY}-{MODE}-PUBLICATION-FAILURE]
+      flow/multidatatile: *publication_cell
+      flow/rdeformat: *publication_cell
+      flow/smarttable: *publication_cell
+      callback/*: *publication_cell
+
+  post_validation_failure:
+    aspects: [catalog 4002 in report and job.failed, RunReport.iterations keeps every frozen v1 tile as completed (#685), diagnostic phase post_validate on meta/metadata.json, report explain]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/runner/test_ga_post_validate_preserves_iterations.py::test_invalid_metadata_keeps_executed_tiles_and_calls__tc_ga685_ep_001[{mode}]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_post_validation_failure_keeps_every_tile[GA-{ENTRY}-{MODE}-POST-VALIDATION-FAILURE]
+      callback/invoice:
+        tests:
+          - tests/v2/runner/test_ga_post_validate_preserves_iterations.py::test_v1_callback_entry_keeps_the_tile__tc_ga685_ev_018
+          - tests/v2/ga/test_diagnostics_matrix.py::test_post_validation_failure_keeps_every_tile[GA-{ENTRY}-{MODE}-POST-VALIDATION-FAILURE]
+      callback/excelinvoice: &post_callback
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_post_validation_failure_keeps_every_tile[GA-{ENTRY}-{MODE}-POST-VALIDATION-FAILURE]
+      callback/multidatatile: *post_callback
+      callback/rdeformat: *post_callback
+      callback/smarttable: *post_callback
+
+  fail_fast:
+    aspects: [the run stops at the first failing tile, later tiles never created, frozen v1 tree / raw / job.failed]
+    cells:
+      "*/invoice":
+        excluded: >-
+          The invoice-mode contract input is a single tile (frozen v1 ok.callback_count == 1),
+          so stopping at the first failing tile and continuing are the same run; the
+          single-tile failure itself is the structured_error cell.
+      flow/excelinvoice: &fail_fast_flow
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_multitile_fail_fast_matches_the_v1_oracle[TC-UM-{MODE}-FLOW-FAIL-FAST]
+          - tests/v2/ga/test_diagnostics_matrix.py::test_structured_error_passes_through_every_artifact[GA-{ENTRY}-{MODE}-STRUCTURED-ERROR]
+      flow/multidatatile: *fail_fast_flow
+      flow/smarttable: *fail_fast_flow
+      flow/rdeformat:
+        note: two-tile input; the GA cell asserts one iteration where v1 ran two on success
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_structured_error_passes_through_every_artifact[GA-{ENTRY}-{MODE}-STRUCTURED-ERROR]
+      callback/multidatatile:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_user_error_matches_frozen_v1_job_failed[TC-UM-{MODE}-CB-V2-USERERR]
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_error_policy_comes_from_the_v1_config__tc_um_mdt_cb_v2_policy
+          - tests/v2/test_workflows_entry_j_review.py::TestAllTilesFailedUnderIgnoreErrors::test_fail_fast_legacy_target_still_fails_like_legacy__tc_jrev_p2_003
+      callback/excelinvoice: &fail_fast_callback
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_callback_target_user_error_matches_frozen_v1_job_failed[TC-UM-{MODE}-CB-V2-USERERR]
+          - tests/v2/test_workflows_entry_j_review.py::TestIgnoreErrorsIsMultiDataTileOnly::test_first_tile_failing_stops_the_run_like_legacy__tc_jrev_f2[{mode}]
+      callback/rdeformat: *fail_fast_callback
+      callback/smarttable: *fail_fast_callback
+
+  continue_partial:
+    aspects: [later tiles still run after a failing one, status partial, warning 3001 with the failed count, no job.failed, partial diagnostics sidecar]
+    cells:
+      "*/invoice":
+        excluded: >-
+          A single-tile run cannot be partial: with one tile, one failure is every tile
+          (covered as all_tiles_failed), and RunReport reports failed, not partial.
+      flow/multidatatile:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_multitile_continue_partial_matches_the_v1_oracle[TC-UM-MDT-FLOW-CONTINUE-PARTIAL]
+          - tests/v2/runner/test_ga_post_validate_preserves_iterations.py::test_partial_shape_is_unchanged__tc_ga685_ev_015
+      flow/excelinvoice: &continue_flow
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_multitile_continue_partial_is_a_v2_only_contract[TC-UM-{MODE}-FLOW-CONTINUE-PARTIAL]
+      flow/smarttable: *continue_flow
+      flow/rdeformat:
+        tests:
+          - tests/v2/ga/test_mode_artifacts.py::test_rdeformat_continue_policy_is_partial[GA-{ENTRY}-{MODE}-CONTINUE-PARTIAL]
+      callback/multidatatile:
+        tests:
+          - tests/v2/test_workflows_entry_j_review.py::TestAllTilesFailedUnderIgnoreErrors::test_runner_reports_partial_for_the_legacy_target__tc_jrev_p2_002
+          - tests/v2/test_workflows_entry_j_review.py::TestAllTilesFailedUnderIgnoreErrors::test_public_entry_matches_legacy_on_a_mixed_partial_run__tc_jrev_p2_008
+          - tests/v2/test_workflows_entry_j_review.py::TestLegacyTargetErrorPolicy::test_callback_in_multidatatile_follows_the_config__tc_jrev_f1_007[continue-continue]
+      callback/excelinvoice: &continue_callback
+        note: >-
+          v1 honours ignore_errors only in MultiDataTile, so the callback entry stays
+          fail_fast here; these tests pin that a partial run is NOT produced.
+        tests:
+          - tests/v2/test_workflows_entry_j_review.py::TestLegacyTargetErrorPolicy::test_callback_continue_outside_multidatatile_is_fail_fast__tc_jrev_f1_005
+          - tests/v2/test_workflows_entry_j_review.py::TestIgnoreErrorsIsMultiDataTileOnly::test_first_tile_failing_stops_the_run_like_legacy__tc_jrev_f2[{mode}]
+      callback/rdeformat: *continue_callback
+      callback/smarttable: *continue_callback
+
+  all_tiles_failed:
+    aspects: [every attempted tile failed, status failed (not partial), job.failed with the user's ecode/emsg]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/contract/test_unified_matrix.py::test_flow_error_cells_match_the_i6_0_translation_table[TC-UM-{MODE}-FLOW-USERERR]
+          - tests/v2/test_workflows_entry_j_review.py::TestAllTilesFailedUnderIgnoreErrors::test_flow_target_with_continue_all_failed_stays_failed__tc_jrev_p2_004
+      callback/multidatatile:
+        tests:
+          - tests/v2/test_workflows_entry_j_review.py::TestAllTilesFailedUnderIgnoreErrors::test_public_entry_matches_legacy_when_every_tile_fails__tc_jrev_p2_001
+      callback/invoice: &all_failed_callback
+        tests:
+          - tests/v2/test_workflows_entry_j_review.py::TestIgnoreErrorsIsMultiDataTileOnly::test_every_tile_failing_exits_1_like_legacy__tc_jrev_f1[{mode}]
+      callback/excelinvoice: *all_failed_callback
+      callback/rdeformat: *all_failed_callback
+      callback/smarttable: *all_failed_callback
+
+  inflight_events:
+    aspects: [node.invocation_started / node.invocation_finished pair per node call and tile, unique correlation ids, announcement before node.completed]
+    cells:
+      "*/*":
+        tests:
+          - tests/v2/ga/test_diagnostics_matrix.py::test_inflight_events_bracket_every_node_call[GA-{ENTRY}-{MODE}-INFLIGHT-EVENTS]
+
+  test_helpers:
+    aspects: [rde_runner stages and runs the mode, rde_case success / failure (error code + phase) / wrong-phase cases through the pytest plugin]
+    cells:
+      flow/*:
+        tests:
+          - tests/v2/testing/test_ga_rde_runner_fixture.py::test_every_mode_runs_through_the_fixture__tc_rr_ep_008[{mode}]
+          - tests/v2/ga/test_mode_artifacts.py::test_rde_case_marker_runs_on_every_mode[GA-{ENTRY}-{MODE}-TEST-HELPERS]
+      callback/*:
+        excluded: >-
+          rdetoolkit.testing (rde_runner / rde_case) runs a flow callable or a ProcessingTemplate
+          subclass; a v1 dataset callback (srcpaths, resource_paths) is not a supported
+          test-helper target. The callback entry is tested through workflows.run, pinned by the
+          TC-UM-*-CB-ENTRY-* cells.
+
+  success_after_prior_failure:
+    aspects: [fresh root after a failure in the same process, full frozen v1 parity, run-global seq restarts, no job.failed, no sidecar]
+    cells:
+      "*/*":
+        tests:
+          - tests/v2/ga/test_state_isolation.py::test_success_after_prior_failure_in_a_fresh_root[GA-{ENTRY}-{MODE}-SUCCESS-AFTER-PRIOR-FAILURE]
+
+  rerun_no_stale_state:
+    aspects: [same-root rerun after a failure, report / iteration files / sidecar describe the rerun only, report explain does not borrow the old sidecar, frozen v1 invoices, job.failed and run-scoped logs kept as v1 kept them]
+    cells:
+      flow/multidatatile:
+        tests:
+          - tests/v2/runner/test_atomic_writes_k3.py::TestRerunHygiene::test_stale_high_indices_removed__tc_k3_hyg_001
+          - tests/v2/runner/test_atomic_writes_k3.py::TestRerunHygiene::test_job_failed_survives_successful_rerun__tc_k3_hyg_002
+          - tests/v2/ga/test_state_isolation.py::test_rerun_in_the_same_root_has_no_stale_run_state[GA-{ENTRY}-{MODE}-RERUN-NO-STALE-STATE]
+      flow/invoice: &rerun_cell
+        tests:
+          - tests/v2/ga/test_state_isolation.py::test_rerun_in_the_same_root_has_no_stale_run_state[GA-{ENTRY}-{MODE}-RERUN-NO-STALE-STATE]
+      flow/excelinvoice: *rerun_cell
+      flow/rdeformat: *rerun_cell
+      flow/smarttable: *rerun_cell
+      callback/*: *rerun_cell
