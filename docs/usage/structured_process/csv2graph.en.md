@@ -75,6 +75,16 @@ Overlays all series on a single graph. This is the default mode.
 
 Generates each series as a separate graph. The overlay plot is skipped.
 
+### Dual-axis plots (not supported)
+
+Plots with a secondary y axis are not supported. `mode` accepts only `"overlay"` and `"individual"`: `mode="dual_axis"` raises `PlotRequestError` (`reason="invalid_mode"`) and `rdetoolkit plot --mode dual_axis` exits with code 2. The legacy names `PlotMode.DUAL_AXIS`, `PlotConfigBuilder.set_y2_axis` and `PlotConfig.y2_axis` remain importable, but rendering a config that uses them raises `PlotRequestError` (`reason="dual_axis_unsupported"`) before anything is drawn or written.
+
+To show series with different units, use one of:
+
+- `render_graph` with `GraphSpec(unit_policy="split")`: one overlay per unit
+- `mode="individual"`: one figure per series, each labelled with its own unit
+- a Matplotlib figure built with `Axes.twinx()` yourself, saved with the `save_figure` node
+
 ## Direction Feature
 
 The Direction feature allows you to visualize state changes like Charge/Discharge/Rest with different colors.
@@ -688,7 +698,8 @@ html_output_dir/          # Defaults to the CSV directory when using csv2graph()
 - **`ColumnNotFoundError`**: Specified column does not exist
 - **`ValueError`**: Inconsistent X and Y column configuration
 - **`ImportError`**: `html=True` but Plotly is not installed
-- **`PlotConfigError`**: dual_axis mode is used (currently disabled)
+- **`PlotRequestError`** (`reason="invalid_mode"`): `mode` is not `"overlay"` or `"individual"`, including `"dual_axis"`
+- **`PlotRequestError`** (`reason="dual_axis_unsupported"`): a `PlotConfig` with `PlotMode.DUAL_AXIS` or a `y2_axis` is rendered (dual-axis plots are not supported)
 
 ### Recommendations
 

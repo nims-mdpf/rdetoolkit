@@ -1,8 +1,11 @@
 """Graph module for RDEToolKit.
 
 This module provides functionality for plotting graphs from CSV data with
-various configuration options including direction-based coloring, dual-axis plots,
-and customizable styling.
+various configuration options including direction-based coloring, unit-aware
+overlays and customizable styling. Dual-axis (secondary y axis) plots are not
+supported: ``PlotMode.DUAL_AXIS`` and ``PlotConfig.y2_axis`` remain importable for
+compatibility, but rendering them raises ``PlotRequestError``
+(``reason="dual_axis_unsupported"``).
 
 Public API:
     csv2graph: Main plotting function (to be implemented in api.py)

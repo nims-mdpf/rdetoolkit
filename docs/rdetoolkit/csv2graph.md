@@ -17,6 +17,7 @@ Pass the desired format with `csv_format="standard" | "transpose" | "noheader"`.
 
 - **Overlay mode (`mode="overlay"`)** plots every series on one Matplotlib figure. When multiple Y-series exist, individual plots are generated; single-series overlays skip them unless you explicitly pass `no_individual=False` (CLI: `--individual`).
 - **Individual mode (`mode="individual"`)** skips the combined plot and writes one PNG per series. The `html` flag is ignored in this mode because HTML output is only generated when an overlay figure exists.
+- **Dual-axis plots are not supported.** `mode` accepts only `"overlay"` and `"individual"`; `mode="dual_axis"` raises `PlotRequestError` (`reason="invalid_mode"`), and `rdetoolkit plot --mode dual_axis` exits with code 2. `PlotMode.DUAL_AXIS`, `PlotConfigBuilder.set_y2_axis`, `PlotConfig.y2_axis` and `DualAxisStrategy` stay importable for compatibility, but rendering a config with `PlotMode.DUAL_AXIS` or a `y2_axis` raises `PlotRequestError` (`reason="dual_axis_unsupported"`) before any figure or file exists; it never falls back to other figures. To compare series with different units, use `render_graph` with `GraphSpec(unit_policy="split")` (one overlay per unit), `mode="individual"`, or build a Matplotlib figure with `Axes.twinx()` and save it with the `save_figure` node.
 
 Series naming follows the sanitised `title`/`name` parameter; individual plots append the series identifier derived from the column header.
 
@@ -192,6 +193,6 @@ Common failure modes include:
 - `ColumnNotFoundError` when a requested column is missing.
 - `ValueError` for inconsistent x/y/direction mappings or when the DataFrame lacks y columns.
 - `ImportError` from Plotly when `html=True` but Plotly is not installed.
-- `PlotConfigError` if dual-axis mode is ever surfaced; the strategy currently raises because the feature is disabled.
+- `PlotRequestError` (a `PlotConfigError` and a `ValueError`) with `reason="invalid_mode"` for `mode="dual_axis"`, and with `reason="dual_axis_unsupported"` when a legacy `PlotConfig` with `PlotMode.DUAL_AXIS` or a `y2_axis` is rendered. Dual-axis plotting is not supported.
 
 Ensure output directories exist or are creatable and that Plotly is installed when HTML output is desired.

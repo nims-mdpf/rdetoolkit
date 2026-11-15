@@ -485,7 +485,10 @@ def plot(
     logy: Annotated[bool, typer.Option("--logy", help="Use log scale for Y axis")] = False,
     logx: Annotated[bool, typer.Option("--logx", help="Use log scale for X axis")] = False,
     html: Annotated[bool, typer.Option("--html", help="Generate interactive HTML output")] = False,
-    mode: Annotated[str, typer.Option("--mode", help="Plotting mode")] = "overlay",
+    mode: Annotated[
+        str,
+        typer.Option("--mode", help="Plotting mode: overlay or individual (dual-axis is not supported)"),
+    ] = "overlay",
     x_col: Annotated[list[str] | None, typer.Option("--x-col", help="X-axis column(s) - index or name")] = None,
     y_cols: Annotated[list[str] | None, typer.Option("--y-cols", help="Y-axis column(s) - index or name")] = None,
     direction_cols: Annotated[list[str] | None, typer.Option("--direction-cols", help="Direction column(s)")] = None,

@@ -10,6 +10,10 @@ once, by ``build_plot_plan``.
 Only the labels stay backend specific (ruling C-12): v1 pinned humanized legend labels
 on the Matplotlib path and un-humanized ones on the Plotly path, so each legacy
 adapter passes its own label function. The spec API has a single label rule.
+
+Dual-axis plotting is not supported (GE-12): ``reject_dual_axis`` turns a legacy
+configuration that asks for a secondary y axis into a typed error before any figure
+is planned, so no legacy entry point can silently draw it on a single axis.
 """
 
 from __future__ import annotations
@@ -21,19 +25,23 @@ from typing import Any
 
 import pandas as pd
 
-from rdetoolkit.graph.models import AxisConfig, DirectionConfig, PlotConfig
+from rdetoolkit.graph.exceptions import PlotRequestError
+from rdetoolkit.graph.models import AxisConfig, DirectionConfig, PlotConfig, PlotMode
 from rdetoolkit.graph.plan import PlotPlan, build_plot_plan
 from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec
 from rdetoolkit.graph.textutils import parse_header, titleize
 
 __all__ = [
+    "DUAL_AXIS_UNSUPPORTED",
     "AxisLabelFunction",
     "LabelFunction",
     "legacy_mpl_axis_label",
     "legacy_mpl_label",
     "legacy_plotly_axis_label",
     "legacy_plotly_label",
+    "dual_axis_unsupported_error",
     "plan_from_config",
+    "reject_dual_axis",
 ]
 
 LabelFunction = Callable[[str, bool], str]
@@ -43,6 +51,46 @@ AxisLabelFunction = Callable[[AxisConfig, str], str]
 """``(axis_config, default_label) -> final axis label``."""
 
 _DEFAULT_BASE_NAME = "plot"
+
+DUAL_AXIS_UNSUPPORTED = "dual_axis_unsupported"
+"""``PlotRequestError.reason`` of every dual-axis rejection."""
+
+_DUAL_AXIS_MESSAGE = (
+    "Dual-axis plotting (PlotMode.DUAL_AXIS / PlotConfig.y2_axis) is not supported in rdetoolkit 2.0; "
+    "nothing was drawn or written. Plot series with different units separately instead: "
+    "render_graph with GraphSpec(unit_policy='split') draws one overlay per unit, "
+    "csv2graph / plot_from_dataframe with mode='individual' draw one figure per series, "
+    "or build a Matplotlib figure with Axes.twinx() yourself and save it with the save_figure node."
+)
+
+
+def dual_axis_unsupported_error() -> PlotRequestError:
+    """Build the error raised for every dual-axis request.
+
+    Returns:
+        A ``PlotRequestError`` with ``reason="dual_axis_unsupported"`` whose message
+        names the supported alternatives.
+    """
+    return PlotRequestError(_DUAL_AXIS_MESSAGE, reason=DUAL_AXIS_UNSUPPORTED)
+
+
+def reject_dual_axis(config: PlotConfig, plot_mode: PlotMode | None = None) -> None:
+    """Reject a legacy configuration that asks for a secondary y axis.
+
+    Args:
+        config: The legacy configuration; ``config.mode`` equal to
+            ``PlotMode.DUAL_AXIS`` (also as the plain string) or any ``y2_axis``
+            requests a secondary axis.
+        plot_mode: The mode the caller renders with, when it is passed separately
+            from ``config`` (``collect_render_results``).
+
+    Raises:
+        PlotRequestError: ``reason="dual_axis_unsupported"`` for a dual-axis request.
+    """
+    # Equality, not identity: PlotMode is a str enum and dataclasses do not coerce
+    # a plain "dual_axis" string assigned to ``mode``.
+    if PlotMode.DUAL_AXIS in (config.mode, plot_mode) or config.y2_axis is not None:
+        raise dual_axis_unsupported_error()
 
 
 def legacy_mpl_label(header: str, humanize: bool) -> str:
@@ -142,8 +190,11 @@ def plan_from_config(
         PlotRequestError: For a column reference that matches no or several columns,
             or an invalid ``config.style`` (``reason="invalid_figure_size"`` /
             ``"invalid_rc_param"``).
+        PlotRequestError: ``reason="dual_axis_unsupported"`` for a configuration with
+            ``PlotMode.DUAL_AXIS`` or a ``y2_axis`` (checked first).
         TypeError: For a column reference that is neither ``int`` nor ``str``.
     """
+    reject_dual_axis(config)
     x_refs, y_refs, direction_refs = _paired_columns(config)
     series = tuple(
         SeriesSpec(y=y_ref, x=x_ref, direction=direction_ref)

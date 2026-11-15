@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from rdetoolkit.graph import compat
 from rdetoolkit.graph.exceptions import PlotRequestError
 from rdetoolkit.graph.models import (
     MatplotlibArtifact,
@@ -45,7 +46,8 @@ def collect_render_results(
     Args:
         df: Input DataFrame containing data to plot
         config: Plot configuration specifying rendering parameters
-        plot_mode: Rendering mode (overlay or individual)
+        plot_mode: Rendering mode (overlay or individual; ``PlotMode.DUAL_AXIS`` is
+            not supported and raises)
         renderers: Registry the renderers are selected from by capability; ``None``
             uses a new ``builtin_renderers()`` registry for this call. Selected
             renderers must provide the legacy adapter methods.
@@ -54,7 +56,10 @@ def collect_render_results(
         RenderCollections containing overlay and individual render results
 
     Raises:
-        PlotRequestError: ``reason="no_figures"`` when individual mode is requested
+        PlotRequestError: ``reason="dual_axis_unsupported"`` when ``plot_mode`` or
+            ``config.mode`` is ``PlotMode.DUAL_AXIS`` or ``config.y2_axis`` is set
+            (checked first; there is no fallback to other figures), or
+            ``reason="no_figures"`` when individual mode is requested
             while ``config.output.no_individual`` disables individual plots.
         UnsupportedFormatError: If no renderer covers a requested format.
         RendererUnavailableError: If HTML is requested and the HTML renderer's
@@ -70,6 +75,9 @@ def collect_render_results(
         >>> len(results.overlay) > 0
         True
     """
+    # Before every other check: a dual-axis request must name its real cause, and
+    # it must never degrade into individual figures as it did before v2.0.
+    compat.reject_dual_axis(config, plot_mode)
     if plot_mode != PlotMode.OVERLAY and config.output.no_individual:
         # Individual-only rendering with individual plots disabled can produce
         # nothing; an empty result must not look like a successful run.

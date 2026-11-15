@@ -95,7 +95,9 @@ class PlotConfigBuilder:
         """Set plot mode.
 
         Args:
-            mode: Plot mode (COMBINED, INDIVIDUAL, DUAL_AXIS)
+            mode: Plot mode (OVERLAY or INDIVIDUAL). ``DUAL_AXIS`` is accepted
+                here for compatibility, but rendering the built config raises
+                ``PlotRequestError(reason="dual_axis_unsupported")``.
 
         Returns:
             Self for method chaining
@@ -224,10 +226,15 @@ class PlotConfigBuilder:
         return self
 
     def set_y2_axis(self, axis_config: AxisConfig | None) -> PlotConfigBuilder:
-        """Set secondary Y-axis configuration (for dual_axis mode).
+        """Set secondary Y-axis configuration (dual-axis plots are NOT supported).
+
+        Kept for compatibility: the value is stored on ``PlotConfig.y2_axis``, but
+        rendering a config whose ``y2_axis`` is not ``None`` raises
+        ``PlotRequestError(reason="dual_axis_unsupported")``. Plot the series per unit
+        instead (``GraphSpec(unit_policy="split")`` or ``mode="individual"``).
 
         Args:
-            axis_config: Y2-axis configuration (None to disable)
+            axis_config: Y2-axis configuration (None to clear it)
 
         Returns:
             Self for method chaining

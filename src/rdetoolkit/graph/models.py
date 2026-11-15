@@ -10,7 +10,11 @@ from rdetoolkit.graph.spec import StyleSpec
 
 
 class PlotMode(str, Enum):
-    """Plot rendering modes."""
+    """Plot rendering modes.
+
+    ``DUAL_AXIS`` is kept for compatibility only: dual-axis plotting is not supported
+    and rendering with it raises ``PlotRequestError(reason="dual_axis_unsupported")``.
+    """
 
     OVERLAY = "overlay"
     INDIVIDUAL = "individual"
@@ -268,11 +272,14 @@ class PlotConfig:
     This is the main configuration object built using Builder pattern.
 
     Attributes:
-        mode: Plot mode (combined, individual, dual_axis)
+        mode: Plot mode (overlay or individual; ``dual_axis`` is not supported and
+            raises at render time)
         title: Plot title (optional)
         x_axis: X-axis configuration
         y_axis: Y-axis configuration
-        y2_axis: Secondary Y-axis configuration (dual_axis only)
+        y2_axis: Secondary Y-axis configuration. Not supported: kept for
+            compatibility, rendering a config with a ``y2_axis`` raises
+            ``PlotRequestError(reason="dual_axis_unsupported")``
         legend: Legend configuration
         direction: Direction-based configuration
         output: Output configuration

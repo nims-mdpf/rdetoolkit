@@ -75,6 +75,16 @@ Y2,20,25,30
 
 各系列を個別のグラフとして生成します。統合プロットはスキップされます。
 
+### 2軸プロット（非対応）
+
+第2 y 軸を持つプロット（2軸プロット）には対応していません。`mode` に指定できるのは `"overlay"` と `"individual"` だけです。`mode="dual_axis"` は `PlotRequestError`（`reason="invalid_mode"`）となり、`rdetoolkit plot --mode dual_axis` は終了コード 2 で終了します。互換性のため `PlotMode.DUAL_AXIS`・`PlotConfigBuilder.set_y2_axis`・`PlotConfig.y2_axis` は引き続きインポートできますが、これらを使った設定を描画すると、何かを描画・出力する前に `PlotRequestError`（`reason="dual_axis_unsupported"`）となります。
+
+単位の異なる系列を表示するには、次のいずれかを使ってください。
+
+- `render_graph` に `GraphSpec(unit_policy="split")` を渡す: 単位ごとに統合プロットを作成
+- `mode="individual"`: 系列ごとに 1 枚、それぞれの単位をラベルに表示
+- `Axes.twinx()` で Matplotlib の図を自分で作成し、`save_figure` ノードで保存する
+
 ## Direction機能
 
 Direction機能を使用すると、Charge/Discharge/Restなどの状態変化を異なる色で可視化できます。
@@ -673,7 +683,8 @@ html_output_dir/          # csv2graph() ではデフォルトでCSVと同じ場�
 - **`ColumnNotFoundError`**: 指定された列が存在しない
 - **`ValueError`**: X列とY列の設定が不整合
 - **`ImportError`**: `html=True`だがPlotlyがインストールされていない
-- **`PlotConfigError`**: dual_axisモードが使用されている（現在無効化）
+- **`PlotRequestError`**（`reason="invalid_mode"`）: `mode` が `"overlay"` / `"individual"` 以外（`"dual_axis"` を含む）
+- **`PlotRequestError`**（`reason="dual_axis_unsupported"`）: `PlotMode.DUAL_AXIS` または `y2_axis` を含む `PlotConfig` を描画した（2軸プロットは非対応）
 
 ### 推奨事項
 
