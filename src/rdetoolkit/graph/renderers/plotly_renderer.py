@@ -1,8 +1,17 @@
+"""Plotly renderer: draws a ``PlotPlan`` as an interactive HTML figure.
+
+``render(plan, figure, data)`` is the plan-consuming entry point; the legacy
+``render_html(df, config)`` builds the plan with ``compat.plan_from_config`` (Plotly
+legacy labels, C-12) and draws it. Series selection, direction splits, legend roles
+and colours come from the plan, exactly as for Matplotlib (GE-06).
+
+The module global ``go`` is read at call time (tests replace it, C-13) and is
+``None`` when Plotly is not installed.
+"""
+
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Final
 
 import pandas as pd
 
@@ -17,9 +26,11 @@ except ImportError:  # pragma: no cover - exercised in environments without plot
 else:
     _PLOTLY_IMPORT_ERROR = ""
 
+from rdetoolkit.graph import compat
 from rdetoolkit.graph.legend_policy import resolve_legend_policy
-from rdetoolkit.graph.models import Direction, PlotConfig
-from rdetoolkit.graph.textutils import parse_header, titleize
+from rdetoolkit.graph.models import PlotConfig
+from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan
+from rdetoolkit.graph.spec import AxisSpec, LegendSpec
 
 DEFAULT_PLOTLY_COLORS = [
     "#1f77b4",
@@ -33,21 +44,7 @@ DEFAULT_PLOTLY_COLORS = [
     "#bcbd22",
     "#17becf",
 ]
-
-
-@dataclass
-class _PlotlyColorContext:
-    """Track series color assignments for Plotly traces."""
-
-    palette: Sequence[str]
-    assignments: dict[str, str] = field(default_factory=dict)
-    index: int = 0
-
-    def color_for(self, series_name: str) -> str:
-        if series_name not in self.assignments:
-            self.assignments[series_name] = self.palette[self.index % len(self.palette)]
-            self.index += 1
-        return self.assignments[series_name]
+_TRACE_MODES: Final = {"line": "lines", "scatter": "markers"}
 
 
 class PlotlyRenderer:
@@ -56,20 +53,12 @@ class PlotlyRenderer:
     Features:
         - Linear/Log scale toggle buttons for X and Y axes
         - Direction-based trace grouping
-        - Initial scale settings from PlotConfig
-        - Series-based color consistency
+        - Initial scale settings from the plan
+        - Position-based series colours shared with the Matplotlib renderer
     """
 
     def render_html(self, df: pd.DataFrame, config: PlotConfig) -> go.Figure:
-        """Render interactive HTML graph with Plotly.
-
-        Migrated from legacy plot_html() (csv2graph.py L434-L589).
-
-        Features:
-            - X/Y axis Linear/Log toggle buttons
-            - Direction-based trace grouping (legendgroup)
-            - Initial scale from config.x_axis.scale, config.y_axis.scale
-            - Series-based coloring
+        """Render an interactive HTML graph (legacy adapter).
 
         Args:
             df: DataFrame containing plot data
@@ -77,30 +66,42 @@ class PlotlyRenderer:
 
         Returns:
             plotly.graph_objs.Figure object
+
+        Raises:
+            ImportError: If Plotly is not installed.
+            ValueError: For column specs that cannot be planned.
         """
         self._ensure_plotly_available()
-        x_cols, y_cols, direction_cols = self._validate_plot_columns(config)
-        color_context = _PlotlyColorContext(DEFAULT_PLOTLY_COLORS)
-        direction_filters, custom_direction_colors, use_custom_direction_colors = (
-            self._prepare_direction_filters(config)
+        plan = compat.plan_from_config(
+            df,
+            config,
+            label_of=compat.legacy_plotly_label,
+            axis_label_of=compat.legacy_plotly_axis_label,
         )
+        return self.render(plan, plan.figures[0], PlotData(frames=(df,)))
 
-        traces = self._build_traces(
-            df=df,
-            config=config,
-            x_cols=x_cols,
-            y_cols=y_cols,
-            direction_cols=direction_cols,
-            color_context=color_context,
-            direction_filters=direction_filters,
-            custom_direction_colors=custom_direction_colors,
-            use_custom_direction_colors=use_custom_direction_colors,
-        )
+    def render(self, plan: PlotPlan, figure: FigurePlan, data: PlotData) -> go.Figure:
+        """Draw one planned figure as a Plotly figure.
 
+        Args:
+            plan: The plan.
+            figure: One of ``plan.figures``.
+            data: The frames the plan was built from.
+
+        Returns:
+            plotly.graph_objs.Figure object
+
+        Raises:
+            ImportError: If Plotly is not installed.
+        """
+        self._ensure_plotly_available()
+        by_id = {entry.series_id: entry for entry in plan.series}
+        series = [by_id[series_id] for series_id in figure.series_ids]
+        traces = [trace for entry in series for trace in self._series_traces(plan, entry, data)]
         legend_item_count = self._count_legend_visible_traces(traces)
-        layout = self._build_layout(df, config, y_cols, legend_item_count)
+        layout = self._build_layout(plan, figure, series, legend_item_count)
         fig = go.Figure(data=traces, layout=layout)
-        self._apply_legend_annotation(fig, config.legend.info)
+        self._apply_legend_annotation(fig, plan.legend.info)
         return fig
 
     @staticmethod
@@ -121,227 +122,44 @@ class PlotlyRenderer:
         if go is None:  # pragma: no cover - hit only when plotly missing
             raise ImportError(_PLOTLY_IMPORT_ERROR)
 
-    def _validate_plot_columns(
-        self,
-        config: PlotConfig,
-    ) -> tuple[list[int | str], list[int | str], list[int | str | None]]:
-        if config.x_col is None or config.y_cols is None:
-            msg = "x_col and y_cols must be specified in PlotConfig"
-            raise ValueError(msg)
-
-        x_cols = list(config.x_col) if isinstance(config.x_col, list) else [config.x_col]
-        y_cols = list(config.y_cols)
-
-        if len(x_cols) == 1 and len(y_cols) > 1:
-            x_cols = x_cols * len(y_cols)
-        elif len(x_cols) != len(y_cols):
-            msg = f"x_cols ({len(x_cols)}) and y_cols ({len(y_cols)}) must match"
-            raise ValueError(msg)
-
-        direction_cols: list[int | str | None] = (
-            list(config.direction_cols)
-            if config.direction_cols
-            else [None] * len(y_cols)
-        )
-        if len(direction_cols) != len(y_cols):
-            msg = f"direction_cols ({len(direction_cols)}) must match y_cols ({len(y_cols)})"
-            raise ValueError(msg)
-
-        return x_cols, y_cols, direction_cols
-
-    def _prepare_direction_filters(
-        self,
-        config: PlotConfig,
-    ) -> tuple[set[str], dict[str, str], bool]:
-        filter_values = config.direction.filters or []
-        direction_filters = {
-            str(value.value) if isinstance(value, Direction) else str(value)
-            for value in filter_values
-            if value is not None
-        }
-
-        use_custom_colors = getattr(config.direction, "use_custom_colors", False)
-        custom_colors: dict[str, str] = {}
-        if use_custom_colors:
-            for key, color in config.direction.colors.items():
-                label = key.value if isinstance(key, Direction) else str(key)
-                custom_colors[label] = color
-
-        return direction_filters, custom_colors, use_custom_colors
-
-    def _build_traces(
-        self,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        x_cols: list[int | str],
-        y_cols: list[int | str],
-        direction_cols: list[int | str | None],
-        color_context: _PlotlyColorContext,
-        direction_filters: set[str],
-        custom_direction_colors: dict[str, str],
-        use_custom_direction_colors: bool,
-    ) -> list[Any]:
+    @staticmethod
+    def _series_traces(plan: PlotPlan, series: SeriesPlan, data: PlotData) -> list[Any]:
+        """One trace per segment; only the first segment of a legend owner is listed."""
+        base_color = DEFAULT_PLOTLY_COLORS[series.color_index % len(DEFAULT_PLOTLY_COLORS)]
+        mode = _TRACE_MODES[plan.mark]
+        style_key = "line" if plan.mark == "line" else "marker"
         traces: list[Any] = []
-        for x_col_idx, y_col_idx, dir_col_idx in zip(
-            x_cols,
-            y_cols,
-            direction_cols,
-            strict=True,
-        ):
-            series_name = self._resolve_series_name(df, y_col_idx, config)
-            base_color = color_context.color_for(series_name)
-            traces.extend(
-                self._build_series_traces(
-                    df,
-                    series_name,
-                    x_col_idx,
-                    y_col_idx,
-                    dir_col_idx,
-                    base_color,
-                    direction_filters,
-                    custom_direction_colors,
-                    use_custom_direction_colors,
-                ),
-            )
-        return traces
-
-    def _resolve_series_name(
-        self,
-        df: pd.DataFrame,
-        y_col_idx: int | str,
-        config: PlotConfig,
-    ) -> str:
-        raw_series_name = str(df.columns[y_col_idx])
-        series_name, label_name, _ = parse_header(
-            raw_series_name,
-            humanize=config.humanize,
-        )
-        resolved_name = series_name or label_name or raw_series_name
-
-        if config.humanize and resolved_name == raw_series_name:
-            resolved_name = titleize(resolved_name)
-
-        return resolved_name
-
-    def _build_series_traces(
-        self,
-        df: pd.DataFrame,
-        series_name: str,
-        x_col_idx: int | str,
-        y_col_idx: int | str,
-        dir_col_idx: int | str | None,
-        base_color: str,
-        direction_filters: set[str],
-        custom_direction_colors: dict[str, str],
-        use_custom_direction_colors: bool,
-    ) -> list[Any]:
-        x_data = df.iloc[:, x_col_idx]
-        y_data = df.iloc[:, y_col_idx]
-
-        if dir_col_idx is None:
-            return [
-                go.Scatter(
-                    x=x_data,
-                    y=y_data,
-                    mode="lines",
-                    name=series_name,
-                    line={"color": base_color},
-                    legendgroup=series_name,
-                ),
-            ]
-
-        direction_data = df.iloc[:, dir_col_idx]
-        return self._build_direction_traces(
-            series_name,
-            x_data,
-            y_data,
-            direction_data,
-            base_color,
-            direction_filters,
-            custom_direction_colors,
-            use_custom_direction_colors,
-        )
-
-    def _build_direction_traces(
-        self,
-        series_name: str,
-        x_data: pd.Series,
-        y_data: pd.Series,
-        direction_data: pd.Series,
-        base_color: str,
-        direction_filters: set[str],
-        custom_direction_colors: dict[str, str],
-        use_custom_direction_colors: bool,
-    ) -> list[Any]:
-        unique_directions = [
-            value for value in direction_data.unique() if pd.notna(value)
-        ]
-        traces: list[Any] = []
-        first_direction = True
-
-        for direction in unique_directions:
-            direction_value = self._normalize_direction_value(direction)
-            if direction_filters and direction_value not in direction_filters:
-                continue
-
-            mask = direction_data == direction
-            line_color = self._select_direction_color(
-                direction_value,
-                base_color,
-                custom_direction_colors,
-                use_custom_direction_colors,
-            )
+        for position, (direction, x_values, y_values) in enumerate(data.segments(series)):
+            color = base_color if direction is None else plan.direction_colors.get(direction, base_color)
             traces.append(
                 go.Scatter(
-                    x=x_data[mask],
-                    y=y_data[mask],
-                    mode="lines",
-                    name=series_name,
-                    line={"color": line_color},
-                    legendgroup=series_name,
-                    showlegend=first_direction,
+                    x=x_values,
+                    y=y_values,
+                    mode=mode,
+                    name=series.label,
+                    legendgroup=series.label,
+                    showlegend=series.show_in_legend and position == 0,
+                    **{style_key: {"color": color}},
                 ),
             )
-            first_direction = False
-
         return traces
-
-    @staticmethod
-    def _normalize_direction_value(direction: Any) -> str:
-        return str(direction.value) if isinstance(direction, Direction) else str(direction)
-
-    @staticmethod
-    def _select_direction_color(
-        direction_value: str,
-        base_color: str,
-        custom_direction_colors: dict[str, str],
-        use_custom_direction_colors: bool,
-    ) -> str:
-        if not use_custom_direction_colors:
-            return base_color
-        return custom_direction_colors.get(direction_value, base_color)
 
     def _build_layout(
         self,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        y_cols: list[int | str],
+        plan: PlotPlan,
+        figure: FigurePlan,
+        series: list[SeriesPlan],
         legend_item_count: int,
     ) -> Any:
-        y_reference = y_cols[0]
-        default_title = (
-            df.columns[y_reference]
-            if isinstance(y_reference, int)
-            else str(y_reference)
-        )
-        title = config.title if config.title else default_title
-        showlegend, legend_layout = self._resolve_legend_layout(config, legend_item_count)
+        # v1 falls back to the raw header of the first series when there is no title.
+        title = figure.title if figure.title else series[0].y_name
+        showlegend, legend_layout = self._resolve_legend_layout(plan.legend, legend_item_count)
         layout_kwargs: dict[str, Any] = {
             "title": title,
-            "xaxis": self._build_axis_layout(config.x_axis, default_label="X"),
-            "yaxis": self._build_axis_layout(config.y_axis, default_label="Y"),
+            "xaxis": self._build_axis_layout(plan.x_axis, figure.x_label or "X"),
+            "yaxis": self._build_axis_layout(plan.y_axis, figure.y_label or "Y"),
             "showlegend": showlegend,
-            "updatemenus": self._build_update_menus(config),
+            "updatemenus": self._build_update_menus(plan),
         }
         if legend_layout is not None:
             layout_kwargs["legend"] = legend_layout
@@ -349,10 +167,10 @@ class PlotlyRenderer:
 
     def _resolve_legend_layout(
         self,
-        config: PlotConfig,
+        legend: LegendSpec,
         legend_item_count: int,
     ) -> tuple[bool, dict[str, Any] | None]:
-        """Map config.legend.policy onto Plotly's showlegend/legend layout.
+        """Map legend.policy onto Plotly's showlegend/legend layout.
 
         "legacy" preserves the pre-policy Plotly behavior (legend shown at
         Plotly's default position, suppressed once max_items is exceeded).
@@ -361,19 +179,19 @@ class PlotlyRenderer:
         while the concrete placements map to the corresponding Plotly
         legend positions.
         """
-        max_items = config.legend.max_items
+        max_items = legend.max_items
         over_limit = max_items is not None and legend_item_count > max_items
 
-        policy = config.legend.policy
+        policy = legend.policy
         if policy == "legacy":
             return not over_limit, None
 
         resolved = resolve_legend_policy(
             policy,
             legend_item_count,
-            config.legend.outside_threshold,
+            legend.outside_threshold,
             max_items,
-            bottom_threshold=config.legend.bottom_threshold,
+            bottom_threshold=legend.bottom_threshold,
         )
         if resolved == "hide" or over_limit:
             return False, None
@@ -391,12 +209,12 @@ class PlotlyRenderer:
         # resolved == "outside_right"
         return True, {"x": 1.02, "xanchor": "left", "y": 1.0, "yanchor": "top"}
 
-    def _build_axis_layout(self, axis_config: Any, *, default_label: str) -> dict[str, Any]:
-        axis_layout = {
-            "title": axis_config.label or default_label,
-            "type": axis_config.scale,
+    def _build_axis_layout(self, axis: AxisSpec, label: str) -> dict[str, Any]:
+        axis_layout: dict[str, Any] = {
+            "title": label,
+            "type": axis.scale,
         }
-        if axis_config.scale == "log":
+        if axis.scale == "log":
             axis_layout.update({
                 "dtick": 1,
                 "exponentformat": "power",
@@ -404,18 +222,18 @@ class PlotlyRenderer:
             })
         return axis_layout
 
-    def _build_update_menus(self, config: PlotConfig) -> list[dict[str, Any]]:
+    def _build_update_menus(self, plan: PlotPlan) -> list[dict[str, Any]]:
         return [
             self._scale_toggle_menu(
                 axis="xaxis",
                 label_prefix="X",
-                current_scale=config.x_axis.scale,
+                current_scale=plan.x_axis.scale,
                 position=(1.15, 1.08),
             ),
             self._scale_toggle_menu(
                 axis="yaxis",
                 label_prefix="Y",
-                current_scale=config.y_axis.scale,
+                current_scale=plan.y_axis.scale,
                 position=(1.15, 1.03),
             ),
         ]

@@ -8,6 +8,9 @@ change is confined to ``matplotlib.rc_context``. Nothing here switches the backe
 Matplotlib resolves relative font sizes and the tight-layout pad when a figure is
 drawn, so a figure built inside a style scope and saved outside it would look
 different. ``detach_figure`` draws once inside the scope and freezes those values.
+
+``draw_series`` is the one Matplotlib primitive that turns a planned series into
+artists; it reads rows only through ``PlotData.segments``.
 """
 
 from __future__ import annotations
@@ -25,7 +28,9 @@ from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 from matplotlib.text import Text
 
-__all__ = ["DEFAULT_EXPORT_DPI", "detach_figure", "export_figure", "new_figure", "style_scope"]
+from rdetoolkit.graph.plan import PlotData, PlotPlan, SeriesPlan
+
+__all__ = ["DEFAULT_EXPORT_DPI", "detach_figure", "draw_series", "export_figure", "new_figure", "style_scope"]
 
 DEFAULT_EXPORT_DPI: Final = 300
 """Resolution of the legacy ``FileWriter`` and of ``OutputSpec.dpi`` by default."""
@@ -153,3 +158,37 @@ def export_figure(
     buffer = BytesIO()
     fig.savefig(buffer, format=fmt, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches)
     return buffer.getvalue()
+
+
+def draw_series(ax: Axes, plan: PlotPlan, series: SeriesPlan, data: PlotData, **line_kwargs: Any) -> list[Any]:
+    """Draw one planned series, one artist per segment.
+
+    Rows come from ``data.segments(series)`` only, so the series is drawn exactly as
+    planned (positions, direction split and filter). A segment whose direction has a
+    caller-supplied colour in ``plan.direction_colors`` uses it; every other segment
+    uses ``line_kwargs`` as given.
+
+    Args:
+        ax: Target axes.
+        plan: The plan the series belongs to (mark and direction colours).
+        series: The series to draw.
+        data: The frames the plan was built from.
+        **line_kwargs: Keyword arguments for ``Axes.plot`` (``mark="line"``) or
+            ``Axes.scatter`` (``mark="scatter"``), for example ``color``.
+
+    Returns:
+        The drawn artists in segment order (``[]`` when the direction filter left
+        nothing to draw).
+    """
+    artists: list[Any] = []
+    for direction, x_values, y_values in data.segments(series):
+        kwargs = dict(line_kwargs)
+        color = None if direction is None else plan.direction_colors.get(direction)
+        if color is not None:
+            kwargs["color"] = color
+        if plan.mark == "scatter":
+            artists.append(ax.scatter(x_values, y_values, **kwargs))
+        else:
+            line, = ax.plot(x_values, y_values, **kwargs)
+            artists.append(line)
+    return artists

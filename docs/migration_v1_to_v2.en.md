@@ -701,6 +701,16 @@ on the same axis is a usage error (exit code 2).
 | IC-4 | One-sided `xlim`/`ylim` such as `(0, None)` or `(None, 10)`; limits with a non-finite bound, equal bounds, or a bound `<= 0` on a log axis (`logx`/`logy`) | One-sided limits were dropped (both sides automatic); invalid limits were passed to Matplotlib, which ignored them with a warning | The given side is applied and the other side stays automatic; invalid limits raise `PlotRequestError` (`reason="invalid_axis_limits"`) naming the axis and the bound, before anything is written; exit code 2 on the CLI | Omit the limit to get the old fully automatic result; pass positive bounds on a log axis |
 | IC-5 | Matplotlib style and figure handles after `csv2graph`, `plot_from_dataframe` or `rdetoolkit plot` | The graph style (`font.size` 20, inward ticks and more) stayed in the process-wide `rcParams` and changed later plots; every figure stayed open, also after a failed save | The style applies only while the figures are drawn and saved, and `rcParams` are unchanged afterwards. Saved figures are closed, also when writing fails. Figures returned with `return_fig=True` stay open, belong to the caller (close them with `plt.close`) and have their layout frozen; saved at 300 dpi they match the previous image. The backend is never switched | Call `apply_matplotlib_config()` before plotting if later plots relied on the old global style |
 
+Matplotlib (PNG/SVG/PDF) and Plotly (HTML) figures are drawn from one resolved series
+plan: column positions, x/y pairing, direction splits and filters, legend entries and
+series colours are decided once, before anything is drawn, so an invalid column
+selection fails before a figure exists. Legend labels keep their v1 form on each
+backend (humanized in images, as written in HTML).
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-11 | Two y columns sharing one header, selected by position or by default; a direct `PlotlyRenderer.render_html` call with fewer `direction_cols` than `y_cols`; series with equal legend labels | The shared header raised `ValueError` ("resolved to a slice"); Plotly raised `ValueError` for the short direction list; HTML listed every series with an equal label and gave them one colour | Both columns are plotted with their own data; the short direction list is padded (the missing series have no direction column), as in images; an equal label is listed once and colours follow the series position in images and HTML alike. Addressing a shared header by name raises `PlotRequestError` (`reason="ambiguous_column"`) | None needed; give the columns distinct names or labels to tell them apart in the legend |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

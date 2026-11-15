@@ -28,7 +28,8 @@ from rdetoolkit.graph.models import (
     build_direction_config,
     normalize_direction_filter,
 )
-from rdetoolkit.graph.normalizers import resolve_column_index, validate_column_specs
+from rdetoolkit.graph.exceptions import PlotRequestError
+from rdetoolkit.graph.normalizers import ColumnNormalizer
 from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, style_scope
 from rdetoolkit.graph.strategies.render_coordinator import (
     build_matplotlib_artifacts,
@@ -76,25 +77,33 @@ def _normalize_columns(
     y_cols: int | str | list[int | str] | None,
     direction_cols: int | str | list[int | str] | None,
 ) -> NormalizedColumns:
-    """Validate and normalize column specifications for plotting."""
-    normalized_y_cols = _normalize_y_specs(y_cols)
-    column_specs = validate_column_specs(
-        df,
-        x_col=x_col,
-        y_cols=normalized_y_cols,
-        direction_cols=direction_cols,
-    )
+    """Validate and normalize column specifications for plotting.
 
-    if not column_specs["pairs"]:
+    Columns are resolved to positions and never round-trip through their labels, so
+    duplicate headers plot when addressed by position or by the default selection,
+    while a label carried by several columns is rejected as ambiguous (GE-06).
+
+    Raises:
+        ColumnNotFoundError: For an unknown label or an out-of-range position.
+        TypeError: For a column spec that is neither ``int`` nor ``str``.
+        PlotRequestError: ``reason="ambiguous_column"`` for a label on several columns.
+        ValueError: If x and y cannot be paired ("must be equal"), there are more
+            direction columns than y columns ("cannot exceed"), or no y column remains.
+    """
+    normalizer = ColumnNormalizer(df)
+    x_positions = _column_positions(df, normalizer, 0 if x_col is None else x_col)
+    normalized_y_specs = _normalize_y_specs(y_cols)
+    if normalized_y_specs is None:
+        excluded = set(x_positions)
+        pair_y_indices = [position for position in range(df.shape[1]) if position not in excluded]
+    else:
+        pair_y_indices = _column_positions(df, normalizer, normalized_y_specs)
+    pair_x_indices = _pair_x_positions(x_positions, pair_y_indices)
+    direction_indices = _direction_positions(df, normalizer, direction_cols, len(pair_y_indices))
+
+    if not pair_y_indices:
         msg = "DataFrame must have at least one y column for plotting"
         raise ValueError(msg)
-
-    pair_x_indices = [
-        resolve_column_index(df, x_name) for x_name, _ in column_specs["pairs"]
-    ]
-    pair_y_indices = [
-        resolve_column_index(df, y_name) for _, y_name in column_specs["pairs"]
-    ]
 
     config_x_col: int | list[int]
     config_x_col = (
@@ -106,24 +115,79 @@ def _normalize_columns(
     parsed_headers = _parse_headers(df)
     first_x_idx = pair_x_indices[0]
     first_y_idx = pair_y_indices[0]
-    derived_x_label = _format_axis_label(
-        df.columns[first_x_idx],
-        parsed_headers[first_x_idx] if first_x_idx < len(parsed_headers) else None,
-    )
-    derived_y_label = _format_axis_label(
-        df.columns[first_y_idx],
-        parsed_headers[first_y_idx] if first_y_idx < len(parsed_headers) else None,
-    )
+    derived_x_label = _format_axis_label(df.columns[first_x_idx], parsed_headers[first_x_idx])
+    derived_y_label = _format_axis_label(df.columns[first_y_idx], parsed_headers[first_y_idx])
 
     return NormalizedColumns(
         x_col=config_x_col,
         y_cols=pair_y_indices,
-        direction_cols=list(column_specs["direction_cols"]),
+        direction_cols=list(direction_indices),
         derived_x_label=derived_x_label,
         derived_y_label=derived_y_label,
     )
 
 
+def _column_positions(
+    df: pd.DataFrame,
+    normalizer: ColumnNormalizer,
+    spec: int | str | Sequence[int | str],
+) -> list[int]:
+    """Resolve one spec or a sequence of specs to column positions."""
+    if isinstance(spec, (int, str)):
+        return [_column_position(df, normalizer, spec)]
+    if isinstance(spec, Sequence) and not isinstance(spec, bytes):
+        return [_column_position(df, normalizer, item) for item in spec]
+    msg = f"Invalid column specification type: {type(spec)}"
+    raise TypeError(msg)
+
+
+def _column_position(df: pd.DataFrame, normalizer: ColumnNormalizer, spec: int | str) -> int:
+    """One position; the legacy error types for unknown columns, a typed error for ambiguous labels."""
+    position = normalizer.to_index(spec)
+    if isinstance(spec, str):
+        matches = [index for index, label in enumerate(df.columns) if label == spec]
+        if len(matches) > 1:
+            msg = f"column {spec!r} matches columns {matches}; address one of them by position"
+            raise PlotRequestError(msg, reason="ambiguous_column")
+    return position
+
+
+def _pair_x_positions(x_positions: list[int], y_positions: list[int]) -> list[int]:
+    """One x position per y: a single x is shared, otherwise the counts must match."""
+    if len(x_positions) == 1:
+        return x_positions * len(y_positions)
+    if len(x_positions) == len(y_positions):
+        return x_positions
+    msg = (
+        f"x_col length ({len(x_positions)}) and y_cols length ({len(y_positions)}) "
+        f"must be equal or x_col must be a single column"
+    )
+    raise ValueError(msg)
+
+
+def _direction_positions(
+    df: pd.DataFrame,
+    normalizer: ColumnNormalizer,
+    direction_cols: int | str | Sequence[int | str | None] | None,
+    y_count: int,
+) -> list[int | None]:
+    """One direction position (or ``None``) per y; a shorter list is padded with ``None``."""
+    if direction_cols is None:
+        return [None] * y_count
+    specs = [direction_cols] if isinstance(direction_cols, (int, str)) else list(direction_cols)
+    positions: list[int | None] = []
+    for spec in specs:
+        if spec is None:
+            positions.append(None)
+        elif isinstance(spec, (int, str)):
+            positions.append(_column_position(df, normalizer, spec))
+        else:
+            msg = f"Direction column specification must be int, str, or None, got {type(spec)}"
+            raise TypeError(msg)
+    if len(positions) > y_count:
+        msg = f"direction_cols length ({len(positions)}) cannot exceed number of y columns ({y_count})"
+        raise ValueError(msg)
+    return positions + [None] * (y_count - len(positions))
 
 
 def _resolve_plot_mode(mode: Literal["overlay", "individual"]) -> PlotMode:

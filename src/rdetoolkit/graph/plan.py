@@ -59,7 +59,9 @@ class SeriesPlan:
         directions: Normalized direction values that will be drawn, in first
             appearance order, after the direction filter; ``()`` without a column.
         label: Final legend label.
-        show_in_legend: ``False`` for the second and later series with an equal label.
+        show_in_legend: ``True`` only for the first series of a label that draws
+            something; ``False`` for later series with an equal label and for a
+            series whose rows the direction filter removed entirely.
         color_index: Position-based palette index, identical for every backend.
         header_series: Series prefix parsed from the y header, un-humanized.
         header_label: Label part of the y header, un-humanized.
@@ -180,8 +182,10 @@ class PlotPlan:
         seen: set[str] = set()
         series: list[SeriesPlan] = []
         for current, label in zip(self.series, labels, strict=True):
-            series.append(dataclasses.replace(current, label=label, show_in_legend=label not in seen))
-            seen.add(label)
+            owns_label = _draws(current) and label not in seen
+            series.append(dataclasses.replace(current, label=label, show_in_legend=owns_label))
+            if owns_label:
+                seen.add(label)
         relabelled = {entry.series_id: entry for entry in series}
         figures = tuple(_relabel_figure(figure, self.series, relabelled) for figure in self.figures)
         origins = dict(self.origins)
@@ -309,7 +313,8 @@ def _plan_series(frames: tuple[pd.DataFrame, ...], spec: GraphSpec) -> tuple[Ser
     for frame_index, frame in enumerate(frames):
         for selection in _selections(frame, spec):
             entry = _series_plan(len(series), frame_index, frame, selection, spec, seen_labels)
-            seen_labels.add(entry.label)
+            if entry.show_in_legend:
+                seen_labels.add(entry.label)
             series.append(entry)
     return tuple(series)
 
@@ -380,6 +385,9 @@ def _series_plan(
     y_name = str(frame.columns[y_index])
     header_series, header_label, header_unit = parse_header(y_name, humanize=False)
     label = selection.label if selection.label is not None else _series_label(y_name, spec.label_style)
+    directions = _directions(frame, direction_index, spec.direction_filter)
+    # A series the direction filter empties draws nothing, so it cannot own its label's legend entry.
+    draws = direction_index is None or bool(directions)
     return SeriesPlan(
         series_id=_series_id(position),
         frame=frame_index,
@@ -388,15 +396,20 @@ def _series_plan(
         x_name=_index_name(frame) if x_index is None else str(frame.columns[x_index]),
         y_name=y_name,
         direction_index=direction_index,
-        directions=_directions(frame, direction_index, spec.direction_filter),
+        directions=directions,
         label=label,
-        show_in_legend=label not in seen_labels,
+        show_in_legend=draws and label not in seen_labels,
         color_index=position,
         header_series=header_series,
         header_label=header_label,
         unit=_clean_unit(selection.unit if selection.unit is not None else header_unit),
         unit_group=0,
     )
+
+
+def _draws(series: SeriesPlan) -> bool:
+    """Whether a series draws at least one segment (no direction column, or a direction left after the filter)."""
+    return series.direction_index is None or bool(series.directions)
 
 
 def _series_id(position: int) -> str:

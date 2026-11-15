@@ -1,7 +1,16 @@
+"""Matplotlib renderer: draws a ``PlotPlan`` with the csv2graph house style.
+
+``render(plan, figure, data)`` is the plan-consuming entry point. The legacy methods
+``render_overlay(df, config)`` and ``render_individual(df, config, ...)`` are adapters:
+they build the plan with ``compat.plan_from_config`` (Matplotlib legacy labels, C-12)
+and draw it, so no column, label or direction spec is interpreted here (GE-06).
+"""
 
 from __future__ import annotations
 
-from typing import Any, Literal
+import dataclasses
+from dataclasses import dataclass
+from typing import Any, Final, Literal, Protocol
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -18,70 +27,86 @@ from matplotlib.ticker import (
     ScalarFormatter,
 )
 
-from rdetoolkit.graph.models import AxisConfig, Direction, PlotConfig
-from rdetoolkit.graph.config import apply_matplotlib_config
+from rdetoolkit.graph import compat
+from rdetoolkit.graph.config import DEFAULT_FIG_SIZE, apply_matplotlib_config
 from rdetoolkit.graph.legend_policy import (
     resolve_legend_policy as _resolve_legend_policy,
 )
-from rdetoolkit.graph.textutils import parse_header, titleize
+from rdetoolkit.graph.models import AxisConfig, LegendConfig, PlotConfig
+from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan
+from rdetoolkit.graph.renderers.mpl_runtime import draw_series, new_figure
+from rdetoolkit.graph.spec import AxisSpec, LegendSpec
 
 CENTER_POSITION = 0.5
 LEGEND_RIGHT_THRESHOLD = 0.7
 TEXT_Y_THRESHOLD = 0.9
 DEFAULT_OUTSIDE_LEGEND_NCOL = 3
 OUTSIDE_LEGEND_MARGIN_INCHES = 0.2
+_LINE_WIDTH: Final = 1.5
+_NO_LEGEND: Final = "_nolegend_"
+
+
+class _LegendSource(Protocol):
+    """Anything carrying legend settings: a legacy ``PlotConfig`` or a ``PlotPlan``."""
+
+    @property
+    def legend(self) -> LegendConfig | LegendSpec: ...
+
+
+@dataclass(frozen=True)
+class _PlanMemo:
+    """The last legacy plan, valid while the same frame and an unchanged config are passed."""
+
+    df: pd.DataFrame
+    config: PlotConfig
+    fingerprint: str
+    plan: PlotPlan
 
 
 class MatplotlibRenderer:
     """Matplotlib-based renderer for static plots."""
 
-    def render_overlay(self, df: pd.DataFrame, config: PlotConfig) -> Figure:
-        """Render all data series on a single graph.
+    def __init__(self) -> None:
+        """Create a renderer; it remembers the last legacy plan it built."""
+        self._memo: _PlanMemo | None = None
 
-        This implements the logic from legacy plot_all_graphs().
+    def render(self, plan: PlotPlan, figure: FigurePlan, data: PlotData) -> Figure:
+        """Draw one planned figure on a pyplot-free figure.
+
+        The house style is applied to the ambient rcParams (callers scope it, as the
+        engine does with ``mpl_runtime.style_scope``).
+
+        Args:
+            plan: The plan.
+            figure: One of ``plan.figures``.
+            data: The frames the plan was built from.
+
+        Returns:
+            The drawn figure (``Figure`` + Agg canvas, not registered with pyplot).
+        """
+        apply_matplotlib_config()
+        fig, ax = new_figure(DEFAULT_FIG_SIZE)
+        axes = (_axis_config(plan.x_axis, figure.x_label), _axis_config(plan.y_axis, figure.y_label))
+        # The spec API grids each axis on its own; the legacy renderer grids both when either asks.
+        self._draw_figure(ax, plan, figure, data, axes, per_axis_grid=True)
+        return fig
+
+    def render_overlay(self, df: pd.DataFrame, config: PlotConfig) -> Figure:
+        """Render all data series on a single graph (legacy adapter).
 
         Args:
             df: DataFrame containing plot data
             config: Plot configuration
 
-        Workflow:
-            1. Apply matplotlib configuration
-            2. Create figure and axes
-            3. Plot all y_cols with direction-based coloring
-            4. Setup legend with max_items control
-            5. Apply axis labels, limits, grid, invert
-            6. Return Figure (no file I/O)
+        Returns:
+            A pyplot figure owned by the caller.
+
+        Raises:
+            ValueError: For column specs that cannot be planned (raised before a
+                figure exists).
         """
-        apply_matplotlib_config()
-        fig, ax = self._new_figure()
-        try:
-            self._draw_overlay_figure(ax, df, config)
-        except BaseException:
-            # The caller never receives this handle, so it must not stay open.
-            plt.close(fig)
-            raise
-        return fig
-
-    def _new_figure(self) -> tuple[Figure, Any]:
-        """Create the figure of one ``render_*`` call (a pyplot figure on the legacy path)."""
-        return plt.subplots(figsize=(8.85, 8), tight_layout=True)
-
-    def _draw_overlay_figure(self, ax: Any, df: pd.DataFrame, config: PlotConfig) -> None:
-        x_cols, y_cols, direction_cols = self._resolve_overlay_columns(df, config)
-        color_map, direction_filters = self._build_direction_context(config)
-        legend_handles, legend_labels = self._plot_overlay_series(
-            ax,
-            df,
-            config,
-            x_cols,
-            y_cols,
-            direction_cols,
-            color_map,
-            direction_filters,
-        )
-
-        self._configure_axes(ax, config, config.title)
-        self._apply_legend(ax, legend_handles, legend_labels, config)
+        plan = self._plan_for(df, config)
+        return self._render_legacy(plan, plan.figures[0], df, config)
 
     def render_individual(
         self,
@@ -90,217 +115,150 @@ class MatplotlibRenderer:
         y_col_index: int,
         series_position: int | None = None,
     ) -> Figure:
-        """Render individual graph for a single series.
-
-        This implements the logic from legacy plot_individual_graphs().
+        """Render the individual graph of one series (legacy adapter).
 
         Args:
             df: DataFrame containing plot data
             config: Plot configuration
-            y_col_index: Index of the y column to plot
-            series_position: Position of the series within y_cols (0-based).
-                When omitted, defaults to the first series.
+            y_col_index: Column position of the series' y values.
+            series_position: Position of the series within ``config.y_cols``;
+                ``None`` selects the first series plotting ``y_col_index``.
 
-        Workflow:
-            1. Apply matplotlib configuration
-            2. Create figure for single series
-            3. Plot with direction-based line splitting
-            4. Setup title: "{config.title} - {series_name}"
-            5. Apply axis configuration
-            6. Return Figure
+        Returns:
+            A pyplot figure owned by the caller.
+
+        Raises:
+            ValueError: For column specs that cannot be planned, or a position /
+                column pair that names no planned series (before a figure exists).
         """
-        apply_matplotlib_config()
-        series_idx = 0 if series_position is None else series_position
+        plan = self._plan_for(df, config)
+        return self._render_legacy(plan, _individual_figure(plan, y_col_index, series_position), df, config)
 
+    def _plan_for(self, df: pd.DataFrame, config: PlotConfig) -> PlotPlan:
+        """Plan a legacy pair once per renderer, so N individual figures share one plan."""
+        fingerprint = repr(config)
+        memo = self._memo
+        if memo is not None and memo.df is df and memo.config is config and memo.fingerprint == fingerprint:
+            return memo.plan
+        plan = compat.plan_from_config(df, config, label_of=compat.legacy_mpl_label)
+        self._memo = _PlanMemo(df=df, config=config, fingerprint=fingerprint, plan=plan)
+        return plan
+
+    def _render_legacy(self, plan: PlotPlan, figure: FigurePlan, df: pd.DataFrame, config: PlotConfig) -> Figure:
+        apply_matplotlib_config()
         fig, ax = self._new_figure()
         try:
-            self._draw_individual_figure(ax, df, config, y_col_index, series_idx)
+            # Tick formatting keeps the legacy axis settings (scilimits, unit); labels come from the plan.
+            axes = (
+                dataclasses.replace(config.x_axis, label=figure.x_label),
+                dataclasses.replace(config.y_axis, label=figure.y_label),
+            )
+            self._draw_figure(ax, plan, figure, PlotData(frames=(df,)), axes, per_axis_grid=False)
         except BaseException:
+            # The caller never receives this handle, so it must not stay open.
             plt.close(fig)
             raise
         return fig
 
-    def _draw_individual_figure(
+    def _new_figure(self) -> tuple[Figure, Any]:
+        """Create the figure of one legacy ``render_*`` call (a pyplot figure)."""
+        return plt.subplots(figsize=DEFAULT_FIG_SIZE, tight_layout=True)
+
+    def _draw_figure(
         self,
         ax: Any,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        y_col_index: int,
-        series_idx: int,
+        plan: PlotPlan,
+        figure: FigurePlan,
+        data: PlotData,
+        axes: tuple[AxisConfig, AxisConfig],
+        *,
+        per_axis_grid: bool,
     ) -> None:
-        x_col_idx = self._resolve_x_column_index(df, config, series_idx)
-        if config.y_cols is None:
-            msg = "y_cols must be specified in PlotConfig"
-            raise ValueError(msg)
+        """Draw the series of one planned figure, then axes and legend."""
+        by_id = {entry.series_id: entry for entry in plan.series}
+        series = [by_id[series_id] for series_id in figure.series_ids]
+        if figure.kind == "overlay":
+            handles, labels = self._draw_overlay(ax, plan, series, data)
+            show_legend = True
+        else:
+            handles, labels = self._draw_individual(ax, plan, series[0], data)
+            # v1 draws an individual legend only when a series splits into several directions.
+            show_legend = len(handles) > 1
+        self._configure_axes(ax, axes[0], axes[1], figure.title, per_axis_grid=per_axis_grid)
+        if show_legend:
+            self._apply_legend(ax, handles, labels, plan)
 
-        x_data = df.iloc[:, x_col_idx]
-        y_data = df.iloc[:, y_col_index]
-        series_label = self._build_series_label(df, y_col_index, config)
-
-        direction_col_idx = self._resolve_direction_column_index(df, config, series_idx)
-        color_map, direction_filters = self._build_direction_context(config)
-        legend_handles, legend_labels = self._plot_series(
-            ax,
-            df,
-            config,
-            x_data,
-            y_data,
-            direction_col_idx,
-            color_map,
-            direction_filters,
-        )
-
-        title_base = config.title if config.title else "Plot"
-        plot_title = f"{title_base} - {series_label}"
-        self._configure_axes(ax, config, plot_title)
-
-        if len(legend_handles) > 1:
-            self._apply_legend(ax, legend_handles, legend_labels, config)
-
-    def _resolve_overlay_columns(
-        self,
-        df: pd.DataFrame,
-        config: PlotConfig,
-    ) -> tuple[list[int], list[int], list[int | None]]:
-        if config.x_col is None or config.y_cols is None:
-            msg = "x_col and y_cols must be specified in PlotConfig"
-            raise ValueError(msg)
-
-        x_specs = config.x_col if isinstance(config.x_col, list) else [config.x_col]
-        x_cols = [_resolve_column_index(df, spec) for spec in x_specs]
-        y_cols = [_resolve_column_index(df, spec) for spec in config.y_cols]
-
-        if len(x_cols) == 1 and len(y_cols) > 1:
-            x_cols = x_cols * len(y_cols)
-        elif len(x_cols) != len(y_cols):
-            msg = f"x_cols ({len(x_cols)}) and y_cols ({len(y_cols)}) must match"
-            raise ValueError(msg)
-
-        direction_cols = _resolve_column_indices(df, config.direction_cols, len(y_cols))
-
-        return x_cols, y_cols, direction_cols
-
-    def _build_direction_context(
-        self,
-        config: PlotConfig,
-    ) -> tuple[dict[object, str], set[str]]:
-        color_map: dict[object, str] = {}
-        if getattr(config.direction, "use_custom_colors", False):
-            for key, color in config.direction.colors.items():
-                color_map[key] = color
-                if isinstance(key, Direction):
-                    color_map[key.value] = color
-
-        filter_values = config.direction.filters or []
-        filters = {
-            (value.value if isinstance(value, Direction) else str(value))
-            for value in filter_values
-            if value is not None
-        }
-
-        return color_map, filters
-
-    def _plot_overlay_series(
+    def _draw_overlay(
         self,
         ax: Any,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        x_cols: list[int],
-        y_cols: list[int],
-        direction_cols: list[int | None],
-        color_map: dict[object, str],
-        direction_filters: set[str],
+        plan: PlotPlan,
+        series: list[SeriesPlan],
+        data: PlotData,
     ) -> tuple[list[Any], list[str]]:
-        series_colors = plt.cm.tab10.colors  # type: ignore[attr-defined]
-        legend_handles: list[Any] = []
-        legend_labels: list[str] = []
+        """Overlay colours follow the series position; only a series' first segment is labelled."""
+        palette = plt.cm.tab10.colors  # type: ignore[attr-defined]
+        handles: list[Any] = []
+        labels: list[str] = []
+        for entry in series:
+            color = palette[entry.color_index % len(palette)]
+            artists = draw_series(ax, plan, entry, data, color=color, **_mark_kwargs(plan))
+            for position, artist in enumerate(artists):
+                artist.set_label(entry.label if position == 0 else _NO_LEGEND)
+            if artists and entry.show_in_legend:
+                handles.append(artists[0])
+                labels.append(entry.label)
+        return handles, labels
 
-        for index, (x_idx, y_idx, direction_idx) in enumerate(
-            zip(x_cols, y_cols, direction_cols, strict=True)):
-            x_data = df.iloc[:, x_idx]
-            y_data = df.iloc[:, y_idx]
-            raw_series_name = df.columns[y_idx]
-            parsed_series, parsed_label, _ = parse_header(str(raw_series_name))
-            series_label = parsed_series or parsed_label or str(raw_series_name)
-            if config.humanize:
-                series_label = titleize(series_label)
+    def _draw_individual(
+        self,
+        ax: Any,
+        plan: PlotPlan,
+        entry: SeriesPlan,
+        data: PlotData,
+    ) -> tuple[list[Any], list[str]]:
+        """The v1 individual look: default colours, one legend entry per direction."""
+        artists = draw_series(ax, plan, entry, data, **_mark_kwargs(plan))
+        if entry.direction_index is None:
+            return [], []
+        for artist, direction in zip(artists, entry.directions, strict=True):
+            artist.set_label(direction)
+        return artists, list(entry.directions)
 
-            base_color = series_colors[index % len(series_colors)]
-            if direction_idx is not None:
-                direction_data = df.iloc[:, direction_idx]
-                unique_directions = [
-                    direction
-                    for direction in direction_data.unique()
-                    if pd.notna(direction)
-                ]
-                first_segment = True
-                for direction in unique_directions:
-                    direction_value_raw = (
-                        direction.value
-                        if isinstance(direction, Direction) else direction
-                    )
-                    direction_value = str(direction_value_raw)
-                    if direction_filters and direction_value not in direction_filters:
-                        continue
+    def _configure_axes(
+        self,
+        ax: Any,
+        x_axis: AxisConfig,
+        y_axis: AxisConfig,
+        title: str | None,
+        *,
+        per_axis_grid: bool = False,
+    ) -> None:
+        ax.set_xlabel(self._compose_axis_label(x_axis, "X"))
+        ax.set_ylabel(self._compose_axis_label(y_axis, "Y"))
 
-                    mask = direction_data == direction
-                    dir_color = color_map.get(direction)
-                    if dir_color is None:
-                        dir_color = color_map.get(direction_value, base_color)
-
-                    label = series_label if first_segment else "_nolegend_"
-                    line, = ax.plot(
-                        x_data[mask],
-                        y_data[mask],
-                        color=dir_color,
-                        label=label,
-                        linewidth=1.5,
-                    )
-                    if first_segment:
-                        legend_handles.append(line)
-                        legend_labels.append(series_label)
-                        first_segment = False
-            else:
-                line, = ax.plot(
-                    x_data,
-                    y_data,
-                    color=base_color,
-                    label=series_label,
-                    linewidth=1.5,
-                )
-                legend_handles.append(line)
-                legend_labels.append(series_label)
-
-        return legend_handles, legend_labels
-
-    def _configure_axes(self, ax: Any, config: PlotConfig, title: str | None) -> None:
-        ax.set_xlabel(self._compose_axis_label(config.x_axis, "X"))
-        ax.set_ylabel(self._compose_axis_label(config.y_axis, "Y"))
-
-        if config.x_axis.scale == "log":
+        if x_axis.scale == "log":
             ax.set_xscale("log")
             self._apply_log_axis_formatting(ax.xaxis)
         else:
-            self._apply_tick_formatting(ax.xaxis, config.x_axis)
-        if config.y_axis.scale == "log":
+            self._apply_tick_formatting(ax.xaxis, x_axis)
+        if y_axis.scale == "log":
             ax.set_yscale("log")
             self._apply_log_axis_formatting(ax.yaxis)
         else:
-            self._apply_tick_formatting(ax.yaxis, config.y_axis)
+            self._apply_tick_formatting(ax.yaxis, y_axis)
 
         # A None side keeps Matplotlib's automatic limit, so (0, None) fixes the
         # lower bound only. Limits follow the scale so a scale change cannot re-derive them.
-        if config.x_axis.lim is not None:
-            ax.set_xlim(*config.x_axis.lim)
-        if config.y_axis.lim is not None:
-            ax.set_ylim(*config.y_axis.lim)
+        if x_axis.lim is not None:
+            ax.set_xlim(*x_axis.lim)
+        if y_axis.lim is not None:
+            ax.set_ylim(*y_axis.lim)
 
-        if config.x_axis.grid or config.y_axis.grid:
-            ax.grid(True, alpha=0.3)
+        self._apply_grid(ax, x_axis.grid, y_axis.grid, per_axis=per_axis_grid)
 
-        if config.x_axis.invert:
+        if x_axis.invert:
             ax.invert_xaxis()
-        if config.y_axis.invert:
+        if y_axis.invert:
             ax.invert_yaxis()
 
         if title:
@@ -310,12 +268,20 @@ class MatplotlibRenderer:
                 title_artist.set_position((CENTER_POSITION, title_pos[1]))
             title_artist.set_horizontalalignment("center")
 
+    @staticmethod
+    def _apply_grid(ax: Any, x_grid: bool, y_grid: bool, *, per_axis: bool) -> None:
+        if not (x_grid or y_grid):
+            return
+        ax.grid(True, alpha=0.3)
+        if per_axis and x_grid != y_grid:
+            (ax.yaxis if x_grid else ax.xaxis).grid(False)
+
     def _apply_legend(
         self,
         ax: Any,
         handles: list[Any],
         labels: list[str],
-        config: PlotConfig,
+        config: _LegendSource,
     ) -> None:
         filtered_handles, filtered_labels = self._filter_legend_entries(handles, labels)
 
@@ -329,17 +295,17 @@ class MatplotlibRenderer:
         handles: list[Any],
         labels: list[str],
     ) -> tuple[list[Any], list[str]]:
-        """De-duplicate legend entries and drop empty/hidden labels."""
+        """Drop empty and hidden labels.
+
+        Duplicate labels never reach this point: the plan gives each label a single
+        legend owner (``SeriesPlan.show_in_legend``), the same rule Plotly follows.
+        """
         filtered_handles: list[Any] = []
         filtered_labels: list[str] = []
-        seen_labels: set[str] = set()
 
         for handle, label in zip(handles, labels, strict=True):
-            if not label or label == "_nolegend_":
+            if not label or label == _NO_LEGEND:
                 continue
-            if label in seen_labels:
-                continue
-            seen_labels.add(label)
             filtered_handles.append(handle)
             filtered_labels.append(label)
 
@@ -350,7 +316,7 @@ class MatplotlibRenderer:
         ax: Any,
         filtered_handles: list[Any],
         filtered_labels: list[str],
-        config: PlotConfig,
+        config: _LegendSource,
     ) -> Any:
         """Render the legend according to config.legend.policy and return the Legend object."""
         if config.legend.policy == "legacy":
@@ -497,7 +463,7 @@ class MatplotlibRenderer:
         ax: Any,
         filtered_handles: list[Any],
         filtered_labels: list[str],
-        config: PlotConfig,
+        config: _LegendSource,
     ) -> Any:
         """Preserve the pre-#497 legend behavior driven by loc/max_items only."""
         if not filtered_labels:
@@ -532,147 +498,6 @@ class MatplotlibRenderer:
         fontsize = self._determine_info_fontsize(legend_obj)
         text_x, text_y, halign, valign = self._calculate_info_position(ax, legend_obj)
         self._draw_info_text(ax, info_text, fontsize, text_x, text_y, halign, valign)
-
-    def _resolve_x_column_index(
-        self,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        series_position: int,
-    ) -> int:
-        if config.x_col is None:
-            msg = "x_col must be specified in PlotConfig"
-            raise ValueError(msg)
-
-        if isinstance(config.x_col, list):
-            resolved_x_cols = [_resolve_column_index(df, col) for col in config.x_col]
-            if not resolved_x_cols:
-                msg = "At least one x_col is required when providing a list"
-                raise ValueError(msg)
-            if series_position < len(resolved_x_cols):
-                return resolved_x_cols[series_position]
-            return resolved_x_cols[0]
-
-        return _resolve_column_index(df, config.x_col)
-
-    def _resolve_direction_column_index(
-        self,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        series_position: int,
-    ) -> int | None:
-        if not config.direction_cols or config.y_cols is None:
-            return None
-
-        resolved_direction_cols = _resolve_column_indices(
-            df,
-            config.direction_cols,
-            len(config.y_cols),
-        )
-        if series_position < len(resolved_direction_cols):
-            return resolved_direction_cols[series_position]
-        return None
-
-    def _build_series_label(
-        self,
-        df: pd.DataFrame,
-        y_col_index: int,
-        config: PlotConfig,
-    ) -> str:
-        raw_series_name = df.columns[y_col_index]
-        series_name, series_label_text, _ = parse_header(str(raw_series_name))
-        series_label = series_name or series_label_text or str(raw_series_name)
-        if config.humanize:
-            series_label = titleize(series_label)
-        return series_label
-
-    def _plot_series(
-        self,
-        ax: Any,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        x_data: pd.Series,
-        y_data: pd.Series,
-        direction_col_idx: int | None,
-        color_map: dict[object, str],
-        direction_filters: set[str],
-    ) -> tuple[list[Any], list[str]]:
-        if direction_col_idx is None:
-            ax.plot(x_data, y_data, linewidth=1.5)
-            return [], []
-
-        return self._plot_direction_segments(
-            ax,
-            df,
-            config,
-            direction_col_idx,
-            x_data,
-            y_data,
-            color_map,
-            direction_filters,
-        )
-
-    def _plot_direction_segments(
-        self,
-        ax: Any,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        direction_col_idx: int,
-        x_data: pd.Series,
-        y_data: pd.Series,
-        color_map: dict[object, str],
-        direction_filters: set[str],
-    ) -> tuple[list[Any], list[str]]:
-        direction_data = df.iloc[:, direction_col_idx]
-        unique_directions = [
-            value for value in direction_data.unique() if pd.notna(value)
-        ]
-
-        legend_handles: list[Any] = []
-        legend_labels: list[str] = []
-        for direction in unique_directions:
-            direction_value = self._normalize_direction_value(direction)
-            if direction_filters and direction_value not in direction_filters:
-                continue
-
-            mask = direction_data == direction
-            color_kwargs = self._resolve_direction_color(
-                config,
-                direction,
-                direction_value,
-                color_map,
-            )
-            line, = ax.plot(
-                x_data[mask],
-                y_data[mask],
-                linewidth=1.5,
-                label=direction_value,
-                **color_kwargs,
-            )
-            legend_handles.append(line)
-            legend_labels.append(direction_value)
-
-        return legend_handles, legend_labels
-
-    @staticmethod
-    def _normalize_direction_value(direction: Any) -> str:
-        return str(direction.value) if isinstance(direction, Direction) else str(direction)
-
-    def _resolve_direction_color(
-        self,
-        config: PlotConfig,
-        direction: Any,
-        direction_value: str,
-        color_map: dict[object, str],
-    ) -> dict[str, Any]:
-        if not getattr(config.direction, "use_custom_colors", False):
-            return {}
-
-        color = color_map.get(direction)
-        if color is None:
-            color = color_map.get(direction_value)
-        if color is None:
-            return {}
-        return {"color": color}
 
     def _determine_info_fontsize(self, legend_obj: Any) -> float:
         default_font = plt.rcParams.get("legend.fontsize", plt.rcParams.get("font.size", 12))
@@ -876,48 +701,37 @@ class MatplotlibRenderer:
         return f"{label} ({unit})"
 
 
-def _resolve_column_index(df: pd.DataFrame, column: int | str) -> int:
-    """Resolve a column specification (index or name) into a column index."""
-    if isinstance(column, int):
-        return column
-
-    loc = df.columns.get_loc(column)
-    if isinstance(loc, slice):
-        emsg = (
-            "Column specification "
-            f"'{column}' resolved to a slice, expected single column"
-        )
-        raise ValueError(emsg)
-    if isinstance(loc, list):
-        emsg = f"Column specification '{column}' resolved to multiple columns: {loc}"
-        raise ValueError(emsg)
-    return int(loc)
+def _mark_kwargs(plan: PlotPlan) -> dict[str, Any]:
+    """Line width applies to lines only; on a scatter it would change the marker edges."""
+    return {"linewidth": _LINE_WIDTH} if plan.mark == "line" else {}
 
 
-def _resolve_column_indices(
-    df: pd.DataFrame,
-    columns: list[int | str | None] | None,
-    default_length: int,
-) -> list[int | None]:
-    """Resolve optional column specifications into indices, preserving None entries."""
-    if columns is None:
-        return [None] * default_length
+def _axis_config(axis: AxisSpec, label: str) -> AxisConfig:
+    """The axis settings of a spec-API figure in the shape the tick helpers read."""
+    return AxisConfig(
+        label=label,
+        scale=axis.scale,
+        grid=axis.grid,
+        invert=axis.invert,
+        lim=axis.limits,
+        tick_format=axis.tick_format,
+    )
 
-    resolved: list[int | None] = []
-    for column in columns:
-        if column is None:
-            resolved.append(None)
-        else:
-            resolved.append(_resolve_column_index(df, column))
 
-    if len(resolved) > default_length:
-        emsg = (
-            f"direction_cols length ({len(resolved)}) cannot exceed number of y columns"
-            f" ({default_length})"
-        )
-        raise ValueError(emsg)
-
-    while len(resolved) < default_length:
-        resolved.append(None)
-
-    return resolved
+def _individual_figure(plan: PlotPlan, y_col_index: int, series_position: int | None) -> FigurePlan:
+    """The planned individual figure of a legacy ``render_individual`` call."""
+    if series_position is None:
+        position = next((entry_position for entry_position, entry in enumerate(plan.series) if entry.y_index == y_col_index), None)
+        if position is None:
+            msg = f"y column {y_col_index} is not a planned series"
+            raise ValueError(msg)
+    else:
+        position = series_position
+    if not 0 <= position < len(plan.series):
+        msg = f"series position {position} is out of range for {len(plan.series)} planned series"
+        raise ValueError(msg)
+    entry = plan.series[position]
+    if entry.y_index != y_col_index:
+        msg = f"y column {y_col_index} does not match planned series {position} (column {entry.y_index})"
+        raise ValueError(msg)
+    return next(figure for figure in plan.figures if figure.kind == "individual" and figure.figure_id == entry.series_id)

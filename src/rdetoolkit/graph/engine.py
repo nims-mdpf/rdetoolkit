@@ -8,8 +8,7 @@ nothing is written before every figure has rendered.
 Rendering runs inside ``mpl_runtime.style_scope`` so no rcParams leak to the caller,
 and every figure is a pyplot-free ``Figure`` (GE-09): written figures are simply
 dropped after export, in-memory ones belong to the caller and are detached first.
-Until the renderers consume plans directly (GE-06), figures are drawn by the legacy
-``MatplotlibRenderer`` with a plan-driven subclass and a ``PlotConfig`` adapter.
+Figures are drawn by ``MatplotlibRenderer.render(plan, figure, data)`` (GE-06).
 """
 
 from __future__ import annotations
@@ -17,25 +16,21 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Final, cast
+from typing import Any, Final
 
-import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
 
-from rdetoolkit.graph.config import DEFAULT_FIG_SIZE
 from rdetoolkit.graph.exceptions import ArtifactCollisionError, UnsupportedFormatError
-from rdetoolkit.graph.models import AxisConfig, DirectionConfig, LegendConfig, OutputConfig, PlotConfig, PlotMode
 from rdetoolkit.graph.naming import GraphDiagnostic, collision_key
 from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan, _as_frames, build_plot_plan
 from rdetoolkit.graph.renderers.matplotlib_renderer import MatplotlibRenderer
-from rdetoolkit.graph.renderers.mpl_runtime import DEFAULT_EXPORT_DPI, detach_figure, export_figure, new_figure, style_scope
+from rdetoolkit.graph.renderers.mpl_runtime import DEFAULT_EXPORT_DPI, detach_figure, export_figure, style_scope
 from rdetoolkit.graph.result import Artifact, ArtifactRole, GraphResult
-from rdetoolkit.graph.spec import AxisSpec, GraphSpec, OutputSpec
+from rdetoolkit.graph.spec import GraphSpec, OutputSpec
 
 RENDERER_ID: Final = "matplotlib"
 IMAGE_FORMATS: Final = ("png", "svg", "pdf")
-_LINE_WIDTH: Final = 1.5
 
 
 def render_graph(
@@ -215,133 +210,5 @@ def _detach(fig: Figure) -> None:
 
 
 def _render_figure(plan: PlotPlan, figure: FigurePlan, data: PlotData) -> Figure:
-    config = _plan_to_legacy_config(plan, figure)
-    first = _series_of(plan, figure.series_ids[0])
-    return _PlanRenderer(plan, figure, data).render_overlay(data.frames[first.frame], config)
-
-
-def _legacy_axis(axis: AxisSpec, label: str) -> AxisConfig:
-    # Limits pass through unvalidated until GE-13; a None side stays automatic.
-    return AxisConfig(
-        label=label,
-        scale=axis.scale,
-        grid=axis.grid,
-        invert=axis.invert,
-        lim=cast("tuple[float, float] | None", axis.limits),
-        tick_format=axis.tick_format,
-    )
-
-
-def _plan_to_legacy_config(plan: PlotPlan, figure: FigurePlan) -> PlotConfig:
-    """Adapt one planned figure to the ``PlotConfig`` the legacy renderer reads.
-
-    Columns are not carried: the plan-driven renderer draws from ``PlotData``.
-    """
-    legend = plan.legend
-    return PlotConfig(
-        mode=PlotMode.OVERLAY if figure.kind == "overlay" else PlotMode.INDIVIDUAL,
-        title=figure.title,
-        x_axis=_legacy_axis(plan.x_axis, figure.x_label),
-        y_axis=_legacy_axis(plan.y_axis, figure.y_label),
-        legend=LegendConfig(
-            max_items=legend.max_items,
-            info=legend.info,
-            loc=legend.loc,
-            policy=legend.policy,
-            outside_threshold=legend.outside_threshold,
-            bottom_threshold=legend.bottom_threshold,
-            ncol=legend.ncol,
-        ),
-        direction=DirectionConfig(
-            colors=dict(plan.direction_colors),
-            use_custom_colors=bool(plan.direction_colors),
-        ),
-        output=OutputConfig(base_name=figure.stem),
-    )
-
-
-class _PlanRenderer(MatplotlibRenderer):
-    """Draw one planned figure with the legacy house style (axes, ticks, legend).
-
-    Series selection, labels, legend visibility and colours come from the plan;
-    everything else is the legacy renderer. Deleted when GE-06 lands.
-    """
-
-    def __init__(self, plan: PlotPlan, figure: FigurePlan, data: PlotData) -> None:
-        self._plan = plan
-        self._figure = figure
-        self._data = data
-
-    def _new_figure(self) -> tuple[Figure, Any]:
-        # Engine figures are never pyplot-registered (GE-09); size from the legacy renderer.
-        return new_figure(DEFAULT_FIG_SIZE)
-
-    def _resolve_overlay_columns(self, df: pd.DataFrame, config: PlotConfig) -> tuple[list[int], list[int], list[int | None]]:
-        return [], [], []
-
-    def _plot_overlay_series(
-        self,
-        ax: Any,
-        df: pd.DataFrame,
-        config: PlotConfig,
-        x_cols: list[int],
-        y_cols: list[int],
-        direction_cols: list[int | None],
-        color_map: dict[object, str],
-        direction_filters: set[str],
-    ) -> tuple[list[Any], list[str]]:
-        series = [_series_of(self._plan, series_id) for series_id in self._figure.series_ids]
-        if self._figure.kind == "individual":
-            return self._draw_individual(ax, series[0], color_map)
-        handles: list[Any] = []
-        labels: list[str] = []
-        for entry in series:
-            first = self._draw_overlay_series(ax, entry, color_map)
-            if first is not None and entry.show_in_legend:
-                handles.append(first)
-                labels.append(entry.label)
-        return handles, labels
-
-    def _draw_overlay_series(self, ax: Any, entry: SeriesPlan, color_map: dict[object, str]) -> Any:
-        """Draw one overlay series; only its first segment carries the legend label."""
-        palette = plt.cm.tab10.colors  # type: ignore[attr-defined]
-        base_color = palette[entry.color_index % len(palette)]
-        first = None
-        for direction, x_values, y_values in self._data.segments(entry):
-            color = base_color if direction is None else color_map.get(direction, base_color)
-            artist = self._mark(ax, x_values, y_values, color=color, label=entry.label if first is None else "_nolegend_")
-            first = artist if first is None else first
-        return first
-
-    def _draw_individual(self, ax: Any, entry: SeriesPlan, color_map: dict[object, str]) -> tuple[list[Any], list[str]]:
-        """The v1 individual look: default colour without directions, one entry per direction."""
-        segments = self._data.segments(entry)
-        if entry.direction_index is None:
-            _, x_values, y_values = segments[0]
-            self._mark(ax, x_values, y_values)
-            return [], []
-        handles: list[Any] = []
-        labels: list[str] = []
-        for direction, x_values, y_values in segments:
-            colors = {"color": color_map[direction]} if direction in color_map else {}
-            handles.append(self._mark(ax, x_values, y_values, label=direction, **colors))
-            labels.append(str(direction))
-        # v1 draws an individual legend only when there is more than one entry.
-        return (handles, labels) if len(handles) > 1 else ([], [])
-
-    def _mark(self, ax: Any, x_values: Any, y_values: Any, **kwargs: Any) -> Any:
-        if self._plan.mark == "scatter":
-            return ax.scatter(x_values, y_values, **kwargs)
-        line, = ax.plot(x_values, y_values, linewidth=_LINE_WIDTH, **kwargs)
-        return line
-
-    def _apply_legend(self, ax: Any, handles: list[Any], labels: list[str], config: PlotConfig) -> None:
-        if self._figure.kind == "individual" and not handles:
-            return
-        super()._apply_legend(ax, handles, labels, config)
-
-    def _configure_axes(self, ax: Any, config: PlotConfig, title: str | None) -> None:
-        super()._configure_axes(ax, config, self._figure.title)
-        # The legacy renderer grids both axes when either asks; honour each axis.
-        if self._plan.x_axis.grid != self._plan.y_axis.grid:
-            (ax.yaxis if self._plan.x_axis.grid else ax.xaxis).grid(False)
+    """Draw one planned figure; the renderer reads columns, labels and colours from the plan only."""
+    return MatplotlibRenderer().render(plan, figure, data)

@@ -5,7 +5,9 @@ from typing import Any, Final
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-__all__ = ["DEFAULT_EXPORT_DPI", "detach_figure", "export_figure", "new_figure", "style_scope"]
+from rdetoolkit.graph.plan import PlotData, PlotPlan, SeriesPlan
+
+__all__ = ["DEFAULT_EXPORT_DPI", "detach_figure", "draw_series", "export_figure", "new_figure", "style_scope"]
 
 DEFAULT_EXPORT_DPI: Final[int]
 
@@ -20,3 +22,4 @@ def export_figure(
     bbox_inches: str | None = ...,
     pad_inches: float | None = ...,
 ) -> bytes: ...
+def draw_series(ax: Axes, plan: PlotPlan, series: SeriesPlan, data: PlotData, **line_kwargs: Any) -> list[Any]: ...
