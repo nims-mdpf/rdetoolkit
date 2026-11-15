@@ -31,7 +31,7 @@ EP table:
         tests/v2/contract/entry_observation.py). The expectation is the same
         frozen v1 observation, compared key by key for OK (``legacy_return``
         included — this is the H1 verification point) and for USERERR; VALERR
-        follows the front-loaded-validation divergence rule (contracts.md §J2 D4).
+        follows the entry/mode-aware validation timing rule (#647).
     TC-UM-*-CB-OBS: the callback entry point's **observability** equals the flow
         entry point's (Session J1 / I8, ADR-023 decision 5). One callback calling
         one ``@node`` is compared with a ``@flow`` calling the same ``@node``:
@@ -96,9 +96,7 @@ from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo
 from tests.v2.contract.entry_observation import (
     entry_parity_view,
     observe_public_entry,
-    frontload_gap_kind,
     has_rdesys_log,
-    tree_entries,
 )
 from tests.v2.contract.fixtures import _generate
 from tests.v2.contract.frozen import frozen_observed
@@ -117,7 +115,6 @@ from tests.v2.contract.provenance_parity import (
 )
 from tests.v2.contract.flow_error_table import (
     FAILED_EXIT_CODE,
-    INVOICE_SCHEMA_INVALID_CODE,
     VALIDATION_REASON,
     MessageRule,
     expected_cb_v2_iteration_count,
@@ -404,18 +401,12 @@ def test_callback_target_user_error_matches_frozen_v1_job_failed(
     "mode",
     [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CB-V2-VALERR") for mode in _MODES],
 )
-def test_callback_target_validation_error_is_frontloaded(
+def test_callback_target_validation_error_follows_mode_timing(
     mode: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """CB-V2 VALERR cells: the invoice defect is caught before any callback runs.
-
-    This is the one deliberate divergence from v1 (contracts.md §I6-0): v1
-    reported a mode-specific downstream symptom -- and for three of five modes
-    only *after* the callback had run -- while the unified Runner validates the
-    source invoice in ``pre_validate`` and reports catalog code 4001.
-    """
+    """Callbacks may run before final validation; malformed tables fail to build."""
     # Given: the translation row and a fixture whose invoice violates its schema
     cell = flow_error_cell(mode, "valerr")
     root = tmp_path / mode
@@ -432,12 +423,15 @@ def test_callback_target_validation_error_is_frontloaded(
     assert report.status == "failed"
     job_failed = _job_failed_text(root)
     assert job_failed.splitlines()[0] == f"ErrorCode={cell.v2_code}"
-    assert VALIDATION_REASON in job_failed
+    if cell.v2_message is MessageRule.V2_VALIDATION:
+        assert VALIDATION_REASON in job_failed
+    else:
+        assert "NoneType" in job_failed
 
-    # And: no tile and therefore no user callback ever ran
+    # And: callback and tile counts reflect construction or final validation.
     assert _callback_count(root) == cell.cb_v2_callback_count
-    assert report.iterations == []
-    assert len(report.iterations) == expected_cb_v2_iteration_count(cell, 0)
+    tile_count = int(_frozen(mode, "ok")["observed"]["callback_count"])
+    assert len(report.iterations) == expected_cb_v2_iteration_count(cell, tile_count)
 
 
 def test_callback_target_smarttable_row_material_matches_the_v1_oracle__tc_um_smt_cb_v2_rowdata(
@@ -677,53 +671,32 @@ def test_public_entry_user_error_matches_the_frozen_v1_observation(
     "mode",
     [pytest.param(mode, id=f"TC-UM-{_MODE_IDS[mode]}-CB-ENTRY-VALERR") for mode in _MODES],
 )
-def test_public_entry_validation_error_is_frontloaded(
+def test_public_entry_validation_error_follows_mode_timing(
     mode: str,
     tmp_path: Path,
 ) -> None:
-    """CB-ENTRY VALERR cells: the invoice defect is reported before tile 0 exists.
-
-    This is the one deliberate divergence of the public entry point
-    (contracts.md §J2 D4): v1 validated mid-pipeline, so it had already created
-    the twelve per-tile directories, unpacked its inputs into ``data/temp`` and
-    -- for three of five modes -- run the callback. The unified Runner validates
-    in ``pre_validate`` and reports catalog code 4001 with nothing built.
-
-    The comparison therefore pins "v2 fails EARLIER", not merely "v2 produces
-    less": the observed tree must be a strict subset of the frozen one, and every
-    missing entry must classify as a tile artifact, an unpacked input or the
-    invoice backup.
-    """
-    # Given: the frozen v1 observation of the same invalid invoice
+    """The public callback entry defers content validation in every mode (#647)."""
+    # Given: the frozen observation and the revised mode-specific translation.
     expected = _frozen(mode, "valerr")["observed"]
+    cell = flow_error_cell(mode, "valerr")
+    assert expected["callback_count"] == cell.v1_callback_count
+    assert expected["job_failed_error_code"] == f"ErrorCode={cell.v1_code}"
 
-    # When: the public v1 entry point runs on it
+    # When: the public v1 entry runs with the same malformed base invoice.
     actual = _cb_entry_observation(mode, "valerr", tmp_path / mode)
 
-    # Then: the run exits 1 having validated before any user code ran
+    # Then: the error occurs during tile construction or final validation.
     assert actual["exit_code"] == FAILED_EXIT_CODE
-    assert actual["callback_count"] == 0
+    assert actual["callback_count"] == cell.cb_v2_callback_count
     assert actual["legacy_return"] is None
-    assert actual["job_failed_error_code"] == f"ErrorCode={INVOICE_SCHEMA_INVALID_CODE}"
-    assert VALIDATION_REASON in actual["job_failed_text"]
+    assert actual["job_failed_error_code"] == f"ErrorCode={cell.v2_code}"
+    if cell.v2_message is MessageRule.V2_VALIDATION:
+        assert VALIDATION_REASON in actual["job_failed_text"]
+    else:
+        assert "NoneType" in actual["job_failed_text"]
     assert has_rdesys_log(actual)
-
-    # And: nothing but the failure marker was produced
-    assert actual["raw_sha256"] == {}
-    assert sorted(actual["artifact_sha256"]) == ["data/job.failed"]
-    assert actual["invoice_backup_exists"] is False
-    assert actual["invoice_backup"] is None
-    assert actual["invoices"] == expected["invoices"]
-
-    # And: the tree is a strict subset of v1's, missing exactly the artifacts v1
-    # built before it validated
-    observed_entries = tree_entries(entry_parity_view(actual))
-    frozen_entries = tree_entries(entry_parity_view(expected))
-    assert observed_entries < frozen_entries
-    gap = frozen_entries - observed_entries
-    unclassified = sorted(path for path in gap if frontload_gap_kind(path) is None)
-    assert unclassified == []
-    assert "tile-artifact" in {frontload_gap_kind(path) for path in gap}
+    assert "data/raw/" in actual["output_tree"]["directories"]
+    assert actual["invoice_backup_exists"] is (mode in {"excelinvoice", "multidatatile", "rdeformat"})
 
 
 def _frozen_canary(mode: str) -> dict:
@@ -830,15 +803,18 @@ def test_flow_error_cells_match_the_i6_0_translation_table(
     # And: the message follows this cell's rule
     if cell.v2_message is MessageRule.V1_VERBATIM:
         assert job_failed == expected["job_failed_text"]
-    else:
+    elif cell.v2_message is MessageRule.V2_VALIDATION:
         assert VALIDATION_REASON in job_failed
         assert cell.v2_code != cell.v1_code
+    else:
+        assert "NoneType" in job_failed
 
     # And: the flow ran exactly once per tile, or not at all
     tile_count = int(_frozen(mode, "ok")["observed"]["callback_count"])
     assert len(report.iterations) == expected_iteration_count(cell, tile_count)
     assert [iteration["status"] for iteration in report.iterations] == ["failed"] * len(report.iterations)
-    assert len(_FLOW_INVOICES) == len(report.iterations)
+    expected_calls = 0 if cell.v2_message is MessageRule.V2_PREPARATION else len(report.iterations)
+    assert len(_FLOW_INVOICES) == expected_calls
 
     # And: only the attempted tiles left a divided/ tree behind
     divided = root / "data" / "divided"
