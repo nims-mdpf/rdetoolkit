@@ -8,8 +8,9 @@ recorded in the returned ``DetectionDecision``:
 2. an id is looked up in the caller registry, then the builtin ids, then the
    ``rdetoolkit.graph.readers`` entry points (discovered only when needed);
 3. ``"auto"`` selects the one reader of the caller registry or the entry points that
-   claims the file suffix; two claimants are ambiguous; no claimant selects the
-   default reader.
+   claims the file suffix; two claimants are ambiguous; with no claimant the content is
+   sniffed over the builtin readers (``detection.detect_table_format``) and an
+   unconfident result is ambiguous rather than guessed (GE-05).
 """
 
 from __future__ import annotations
@@ -30,13 +31,12 @@ from rdetoolkit.graph.exceptions import (
     UnknownReaderError,
 )
 from rdetoolkit.graph.readers.base import DetectionDecision, FormatCandidate, TableData, TableReader
-from rdetoolkit.graph.readers.builtin import BUILTIN_READER_TYPES
+from rdetoolkit.graph.readers.builtin import BUILTIN_READER_TYPES, configured_builtin_reader
+from rdetoolkit.graph.readers.detection import detect_table_format, require_selection
 
 READER_ENTRY_POINT_GROUP: Final = "rdetoolkit.graph.readers"
-#: The selector for suffix-based selection; never a reader id.
+#: The selector for automatic selection; never a reader id.
 AUTO: Final = "auto"
-#: Reader used under ``"auto"`` when no reader claims the suffix (the legacy default).
-DEFAULT_READER_ID: Final = "standard"
 
 
 def _target_of(reader: object) -> str:
@@ -277,7 +277,7 @@ def resolve_reader(
 
     Args:
         reader: A reader id, ``"auto"``, or a ``TableReader`` instance.
-        path: The file to read (only its suffix is used here).
+        path: The file (its suffix, and under ``"auto"`` without a claimant its content).
         readers: Caller registry, consulted before builtins and entry points.
 
     Returns:
@@ -286,7 +286,9 @@ def resolve_reader(
     Raises:
         TypeError: If ``reader`` is neither a string nor a ``TableReader`` instance.
         UnknownReaderError: If the id is not registered anywhere.
-        AmbiguousFormatError: If several readers claim the suffix under ``"auto"``.
+        AmbiguousFormatError: Under ``"auto"``, if several readers claim the suffix, or no
+            reader claims it and content detection is not confident (``.decision`` says why).
+        InvalidCSVFormatError: Under ``"auto"``, if the file is empty or too large to sniff.
         DuplicateReaderError: If the installed entry points conflict (when consulted).
         ReaderPluginError: If the requested entry-point reader cannot be loaded.
     """
@@ -342,10 +344,10 @@ def _resolve_auto(path: Path, readers: ReaderRegistry | None) -> tuple[TableRead
     if claimed:
         ((reader_id, (reader, _)),) = claimed.items()
         return reader, DetectionDecision(selected=reader_id, forced=False, candidates=candidates)
-    # Content sniffing over the builtin readers replaces this fallback with GE-05.
-    reason = f"no reader claims the suffix {suffix!r}; using the default reader {DEFAULT_READER_ID!r}"
-    fallback = FormatCandidate(DEFAULT_READER_ID, 1.0, (reason,))
-    return builtin_readers().get(DEFAULT_READER_ID), DetectionDecision(selected=DEFAULT_READER_ID, forced=False, candidates=(fallback,))
+    # No claimant: sniff the content; the builtin reader reads with the detected options.
+    decision = detect_table_format(path)
+    reader_id = require_selection(path, decision)
+    return configured_builtin_reader(reader_id, encoding=decision.encoding, delimiter=decision.delimiter), decision
 
 
 def _read_resolved(reader: TableReader, path: Path) -> TableData:
@@ -404,6 +406,8 @@ def read_table(
         TypeError: If ``path`` is not a ``str``/``Path``, ``reader`` is invalid, or the
             reader returns something other than ``TableData``.
         UnknownReaderError: If the id is not registered anywhere.
-        AmbiguousFormatError: If several readers claim the suffix under ``"auto"``.
+        AmbiguousFormatError: Under ``"auto"``, if several readers claim the suffix, or no
+            reader claims it and content detection is not confident (``.decision`` says why).
+        InvalidCSVFormatError: Under ``"auto"``, if the file is empty or too large to sniff.
     """
     return _load_table(path, reader=reader, readers=readers)[0]

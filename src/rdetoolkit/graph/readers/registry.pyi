@@ -7,7 +7,6 @@ from rdetoolkit.graph.readers.base import DetectionDecision, TableData, TableRea
 
 READER_ENTRY_POINT_GROUP: Final[str]
 AUTO: Final[str]
-DEFAULT_READER_ID: Final[str]
 
 @dataclass(frozen=True, slots=True)
 class _PendingEntry:

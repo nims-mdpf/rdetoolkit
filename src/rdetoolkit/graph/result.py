@@ -5,10 +5,13 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal
 
 from rdetoolkit.graph.naming import GraphDiagnostic
 from rdetoolkit.graph.plan import PlotPlan
+
+if TYPE_CHECKING:
+    from rdetoolkit.graph.readers.base import DetectionDecision
 
 MANIFEST_SCHEMA_VERSION: Final = 1
 ArtifactRole = Literal["main_image", "individual", "html"]
@@ -93,7 +96,7 @@ class GraphResult:
 
     plan: PlotPlan
     artifacts: tuple[Artifact, ...]
-    detection: object | None
+    detection: DetectionDecision | None
     diagnostics: tuple[GraphDiagnostic, ...]
 
     def manifest(self) -> dict[str, Any]:

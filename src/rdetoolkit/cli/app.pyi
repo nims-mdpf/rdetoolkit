@@ -86,6 +86,7 @@ def plot(
     xmax: Optional[float] = None,
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
+    detect: bool = False,
 ) -> None: ...
 def run(
     target: Optional[str] = None,
@@ -153,4 +154,5 @@ def csv2graph(
     legend_ncol: Optional[int] = None,
     x_tick_format: str = "auto",
     y_tick_format: str = "auto",
+    detect: bool = False,
 ) -> None: ...

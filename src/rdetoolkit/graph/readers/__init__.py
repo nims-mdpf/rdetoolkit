@@ -1,10 +1,11 @@
-"""Table readers for the graph engine (GE-04).
+"""Table readers and format detection for the graph engine (GE-04, GE-05).
 
 Importing this package registers nothing: registries are created on demand with
 ``ReaderRegistry(...)``, ``builtin_readers()`` or ``discover_readers()``.
 """
 
 from rdetoolkit.graph.readers.base import ColumnProvenance, DetectionDecision, FormatCandidate, TableData, TableReader
+from rdetoolkit.graph.readers.detection import detect_table_format
 from rdetoolkit.graph.readers.registry import (
     READER_ENTRY_POINT_GROUP,
     ReaderRegistry,
@@ -23,6 +24,7 @@ __all__ = [
     "TableData",
     "TableReader",
     "builtin_readers",
+    "detect_table_format",
     "discover_readers",
     "read_table",
     "resolve_reader",

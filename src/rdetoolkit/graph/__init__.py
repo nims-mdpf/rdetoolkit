@@ -80,6 +80,7 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "builtin_readers": ("rdetoolkit.graph.readers", "builtin_readers"),
     "discover_readers": ("rdetoolkit.graph.readers", "discover_readers"),
     "read_table": ("rdetoolkit.graph.readers", "read_table"),
+    "detect_table_format": ("rdetoolkit.graph.readers", "detect_table_format"),
     "DetectionDecision": ("rdetoolkit.graph.readers", "DetectionDecision"),
     "FormatCandidate": ("rdetoolkit.graph.readers", "FormatCandidate"),
     "UnknownReaderError": ("rdetoolkit.graph.exceptions", "UnknownReaderError"),

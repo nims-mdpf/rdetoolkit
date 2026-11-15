@@ -328,7 +328,12 @@ new_app = _register_new_commands()
 PLOT_HELP = CommandHelp(
     summary="Draw graphs (PNG, optionally interactive HTML) from a CSV file.",
     inputs=(
-        "`CSV_PATH`: a CSV file. `--csv-format standard` (header row, default), `transpose` (series in rows), or `noheader`.",
+        (
+            "`CSV_PATH`: a CSV file. `--csv-format standard` (header row, default), `transpose` (series in rows), `noheader`, "
+            "`meta_block` (leading `#` metadata lines), an installed reader id, or `auto` (detect from the content; "
+            "an unclear file is an error naming the candidates, never a guess). `--detect` prints what `auto` would do "
+            "(reader, evidence, columns, row count) and exits 0 without plotting."
+        ),
         "`--x-col` / `--y-cols`: columns by 0-based index or header name (repeatable); by default the first column is x.",
     ),
     outputs=(
@@ -524,6 +529,7 @@ def plot(
     xmax: Annotated[float | None, typer.Option("--xmax", help="X-axis upper limit only; the lower side stays automatic")] = None,
     ymin: Annotated[float | None, typer.Option("--ymin", help="Y-axis lower limit only; the upper side stays automatic")] = None,
     ymax: Annotated[float | None, typer.Option("--ymax", help="Y-axis upper limit only; the lower side stays automatic")] = None,
+    detect: Annotated[bool, typer.Option("--detect", help="Print how --csv-format auto would read CSV_PATH and exit without plotting")] = False,
 ) -> None:
     """Generate graphs from CSV files."""
     # Lazy imports
@@ -584,7 +590,7 @@ def plot(
         output_dir=output_dir,
         main_image_dir=main_image_dir,
         html_output_dir=html_output_dir,
-        csv_format=cast(Literal["standard", "transpose", "noheader"], csv_format),
+        csv_format=csv_format,
         logy=logy,
         logx=logx,
         html=html,
@@ -613,6 +619,7 @@ def plot(
         legend_ncol=legend_ncol,
         x_tick_format=cast(Literal["auto", "plain", "sci", "eng"], x_tick_format),
         y_tick_format=cast(Literal["auto", "plain", "sci", "eng"], y_tick_format),
+        detect=detect,
     )
     cmd.invoke()
 

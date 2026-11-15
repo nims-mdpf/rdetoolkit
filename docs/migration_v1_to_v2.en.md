@@ -711,6 +711,17 @@ backend (humanized in images, as written in HTML).
 |---|---|---|---|---|
 | IC-11 | Two y columns sharing one header, selected by position or by default; a direct `PlotlyRenderer.render_html` call with fewer `direction_cols` than `y_cols`; series with equal legend labels | The shared header raised `ValueError` ("resolved to a slice"); Plotly raised `ValueError` for the short direction list; HTML listed every series with an equal label and gave them one colour | Both columns are plotted with their own data; the short direction list is padded (the missing series have no direction column), as in images; an equal label is listed once and colours follow the series position in images and HTML alike. Addressing a shared header by name raises `PlotRequestError` (`reason="ambiguous_column"`) | None needed; give the columns distinct names or labels to tell them apart in the legend |
 
+Automatic format detection (`csv_format="auto"`, `--csv-format auto`, and the default
+`reader="auto"` of `render_graph`) reads only a bounded sample of the file (at most
+64 KiB and 50 rows), never writes to it, and returns its reasoning as a
+`DetectionDecision`. A file it is not confident about is an error, not a guess. The
+default of `csv2graph` and `rdetoolkit plot` stays `standard`. `rdetoolkit plot --detect`
+shows the decision (selected reader, evidence, column names, row count) without plotting.
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-8 | `ParserFactory.auto_detect` on a file whose format is unclear, such as a fully numeric first row or a first row mixing text and numbers | Guessed the headerless format (`NoHeaderParser`); a headered file whose first data row is numeric also had its header read as data | Raises `AmbiguousFormatError` whose message lists the candidates, their evidence and the remedy (`--csv-format`). A headered file is read with its header, and transposed, tab-separated, Shift-JIS and metadata-block files get a matching parser. An empty file raises `InvalidCSVFormatError` | Name the format (`ParserFactory.create(...)`, `csv_format=...`, `--csv-format ...`) |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

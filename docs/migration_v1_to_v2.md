@@ -664,6 +664,12 @@ Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列
 |---|---|---|---|---|
 | IC-11 | 同じ見出しを持つ 2 つの y 列を位置または既定の選択で指定する。`direction_cols` が `y_cols` より少ない状態で `PlotlyRenderer.render_html` を直接呼ぶ。凡例ラベルが等しい系列 | 同じ見出しは `ValueError`("resolved to a slice")。Plotly は短い方向列リストで `ValueError`。HTML はラベルの等しい系列をすべて凡例に並べ、同じ色にした | 両方の列をそれぞれのデータで描画する。短い方向列リストは画像と同様に補完する(足りない系列は方向列なし)。等しいラベルは凡例に 1 回だけ載り、色は画像でも HTML でも系列の位置で決まる。共有された見出しを名前で指定すると `PlotRequestError`(`reason="ambiguous_column"`) | 対処は不要。凡例で区別したい場合は列名またはラベルを変える |
 
+表形式の自動判定(`csv_format="auto"`、`--csv-format auto`、`render_graph` の既定 `reader="auto"`)は、ファイル先頭の限られた範囲(最大 64 KiB・50 行)だけを読み取り専用で調べ、判断の根拠を `DetectionDecision` として返します。確信が持てないファイルは推測せずにエラーにします。`csv2graph` と `rdetoolkit plot` の既定は従来どおり `standard` です。`rdetoolkit plot --detect` で、描画せずに判定結果(選ばれる読み取り方法、根拠、列名、行数)を確認できます。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-8 | `ParserFactory.auto_detect` に、1 行目がすべて数値のファイル、1 行目に文字と数値が混在するファイルなど形式を決めきれないファイルを渡す | ヘッダーなしの形式(`NoHeaderParser`)と推測。ヘッダー付きで最初のデータ行が数値のファイルも、ヘッダーをデータとして読んでいた | `AmbiguousFormatError` を出し、候補・根拠・対処(`--csv-format`)をメッセージに示す。ヘッダー付きのファイルはヘッダーとして読み、転置・タブ区切り・Shift-JIS・メタデータブロックのファイルにはそれに合う parser を返す。空のファイルは `InvalidCSVFormatError` | 形式を明示する(`ParserFactory.create(...)`、`csv_format=...`、`--csv-format ...`) |
+
 ### 診断と従来のトレースバック
 
 v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず

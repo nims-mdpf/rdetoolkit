@@ -16,7 +16,7 @@ from rdetoolkit.graph.parsers.base import CSVParser
 from rdetoolkit.graph.parsers.noheader_parser import NoHeaderParser
 from rdetoolkit.graph.parsers.standard_parser import StandardParser
 from rdetoolkit.graph.parsers.transpose_parser import TransposeParser
-from rdetoolkit.graph.readers.base import ColumnProvenance, ColumnSource, TableData
+from rdetoolkit.graph.readers.base import ColumnProvenance, ColumnSource, TableData, TableReader
 
 #: pandas names an empty header cell ``"Unnamed: <n>"``.
 _PANDAS_UNNAMED_PREFIX: Final = "Unnamed: "
@@ -34,6 +34,16 @@ class StandardReader:
     reader_id: Final = "standard"
     extensions: Final[tuple[str, ...]] = ()
 
+    def __init__(self, *, encoding: str | None = None, delimiter: str | None = None) -> None:
+        """Create the reader.
+
+        Args:
+            encoding: Text encoding (``None`` = the legacy default, UTF-8).
+            delimiter: Field delimiter (``None`` = the legacy default, comma).
+        """
+        self.encoding = encoding
+        self.delimiter = delimiter
+
     def read(self, path: Path) -> TableData:
         """Read ``path`` with ``StandardParser``.
 
@@ -43,7 +53,7 @@ class StandardReader:
         Returns:
             The frame; empty header cells are marked ``"generated"``.
         """
-        frame = StandardParser().parse(path)
+        frame = StandardParser(encoding=self.encoding, delimiter=self.delimiter).parse(path)
         sources: list[ColumnSource] = ["generated" if str(name).startswith(_PANDAS_UNNAMED_PREFIX) else "header" for name in frame.columns]
         return TableData(frame=frame, reader_id=self.reader_id, columns=_provenance(frame, sources))
 
@@ -54,6 +64,16 @@ class TransposeReader:
     reader_id: Final = "transpose"
     extensions: Final[tuple[str, ...]] = ()
 
+    def __init__(self, *, encoding: str | None = None, delimiter: str | None = None) -> None:
+        """Create the reader.
+
+        Args:
+            encoding: Text encoding (``None`` = the legacy default, UTF-8).
+            delimiter: Field delimiter (``None`` = the legacy default, comma).
+        """
+        self.encoding = encoding
+        self.delimiter = delimiter
+
     def read(self, path: Path) -> TableData:
         """Read ``path`` with ``TransposeParser``.
 
@@ -63,7 +83,7 @@ class TransposeReader:
         Returns:
             The transposed frame; ``source_index`` is the row in the file.
         """
-        frame = TransposeParser().parse(path)
+        frame = TransposeParser(encoding=self.encoding, delimiter=self.delimiter).parse(path)
         sources: list[ColumnSource] = ["header"] * frame.shape[1]
         if sources and str(frame.columns[0]) == _TRANSPOSE_UNNAMED:
             sources[0] = "generated"
@@ -76,6 +96,16 @@ class NoHeaderReader:
     reader_id: Final = "noheader"
     extensions: Final[tuple[str, ...]] = ()
 
+    def __init__(self, *, encoding: str | None = None, delimiter: str | None = None) -> None:
+        """Create the reader.
+
+        Args:
+            encoding: Text encoding (``None`` = the legacy default, UTF-8).
+            delimiter: Field delimiter (``None`` = the legacy default, comma).
+        """
+        self.encoding = encoding
+        self.delimiter = delimiter
+
     def read(self, path: Path) -> TableData:
         """Read ``path`` with ``NoHeaderParser``.
 
@@ -85,7 +115,7 @@ class NoHeaderReader:
         Returns:
             The frame with generated ``Column_<n>`` names.
         """
-        frame = NoHeaderParser().parse(path)
+        frame = NoHeaderParser(encoding=self.encoding, delimiter=self.delimiter).parse(path)
         return TableData(frame=frame, reader_id=self.reader_id, columns=_provenance(frame, ["generated"] * frame.shape[1]))
 
 
@@ -111,3 +141,32 @@ class MetaBlockReader:
 
 #: Builtin reader types in id order; instances are created per registry.
 BUILTIN_READER_TYPES: Final = (MetaBlockReader, NoHeaderReader, StandardReader, TransposeReader)
+
+#: Builtin readers that honour a detected encoding and delimiter.
+_CONFIGURABLE: Final[dict[str, type[StandardReader | TransposeReader | NoHeaderReader]]] = {
+    StandardReader.reader_id: StandardReader,
+    TransposeReader.reader_id: TransposeReader,
+    NoHeaderReader.reader_id: NoHeaderReader,
+}
+
+
+def configured_builtin_reader(reader_id: str, *, encoding: str | None = None, delimiter: str | None = None) -> TableReader:
+    """Return a new builtin reader for ``reader_id`` reading with the given options.
+
+    ``meta_block`` has no options: the legacy ``CSVParser`` reads UTF-8, comma-separated
+    files only, so detection selects it only for such files.
+
+    Args:
+        reader_id: A builtin reader id.
+        encoding: Text encoding for ``standard`` / ``transpose`` / ``noheader``.
+        delimiter: Field delimiter for ``standard`` / ``transpose`` / ``noheader``.
+
+    Returns:
+        The reader.
+
+    Raises:
+        KeyError: If ``reader_id`` is not a builtin id.
+    """
+    if reader_id == MetaBlockReader.reader_id:
+        return MetaBlockReader()
+    return _CONFIGURABLE[reader_id](encoding=encoding, delimiter=delimiter)

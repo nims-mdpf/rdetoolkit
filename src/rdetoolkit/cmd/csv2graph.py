@@ -8,6 +8,8 @@ from typing import Literal, Optional, Union
 import typer
 
 from rdetoolkit.graph.api.csv2graph import csv2graph as api_csv2graph
+from rdetoolkit.graph.exceptions import AmbiguousFormatError, GraphPlottingError
+from rdetoolkit.graph.readers import resolve_reader
 from rdetoolkit.rdelogger import get_logger
 
 logger = get_logger(__name__)
@@ -22,7 +24,7 @@ class Csv2GraphCommand:
         output_dir: Optional[pathlib.Path] = None,
         main_image_dir: Optional[pathlib.Path] = None,
         html_output_dir: Optional[pathlib.Path] = None,
-        csv_format: Literal["standard", "transpose", "noheader"] = "standard",
+        csv_format: str = "standard",
         logy: bool = False,
         logx: bool = False,
         html: bool = False,
@@ -50,6 +52,7 @@ class Csv2GraphCommand:
         legend_ncol: Optional[int] = None,
         x_tick_format: Literal["auto", "plain", "sci", "eng"] = "auto",
         y_tick_format: Literal["auto", "plain", "sci", "eng"] = "auto",
+        detect: bool = False,
     ) -> None:
         """Initialize Csv2GraphCommand.
 
@@ -58,7 +61,8 @@ class Csv2GraphCommand:
             output_dir: Output directory for plots
             main_image_dir: Directory to write combined plots (if provided)
             html_output_dir: Directory to write HTML outputs (if provided)
-            csv_format: CSV format type
+            csv_format: Reader id ("standard", "transpose", "noheader", "meta_block",
+                an installed reader id) or "auto"
             logy: Use log scale for y-axis
             logx: Use log scale for x-axis
             html: Generate HTML output
@@ -86,6 +90,7 @@ class Csv2GraphCommand:
             legend_ncol: Number of legend columns for "outside_bottom" placement
             x_tick_format: X-axis tick label format ("auto", "plain", "sci", or "eng")
             y_tick_format: Y-axis tick label format ("auto", "plain", "sci", or "eng")
+            detect: Only print how ``csv_format="auto"`` would read the file
         """
         self.csv_path = csv_path
         self.output_dir = output_dir
@@ -117,6 +122,7 @@ class Csv2GraphCommand:
         self.legend_ncol = legend_ncol
         self.x_tick_format = x_tick_format
         self.y_tick_format = y_tick_format
+        self.detect = detect
 
     def invoke(self) -> None:
         """Execute the csv2graph command.
@@ -124,6 +130,9 @@ class Csv2GraphCommand:
         Raises:
             typer.Abort: If an error occurs during graph generation
         """
+        if self.detect:
+            self._print_detection()
+            return
         typer.echo("📊 Generating graphs from CSV...")
         typer.echo(f"- CSV file: {self.csv_path}")
         typer.echo(f"- Output: {self.output_dir or 'same as CSV directory'}")
@@ -186,3 +195,21 @@ class Csv2GraphCommand:
             logger.exception(e)
             typer.echo(typer.style(f"🔥 Unexpected error: {e}", fg=typer.colors.RED))
             raise typer.Abort from e
+
+    def _print_detection(self) -> None:
+        """Print how ``auto`` would read the CSV (an ambiguous result is a successful preview).
+
+        Raises:
+            typer.Abort: If the file is missing, empty, too large, or cannot be sniffed
+        """
+        try:
+            _, decision = resolve_reader("auto", self.csv_path)
+        except AmbiguousFormatError as e:
+            # The message carries the candidates, their evidence and the remedy.
+            typer.echo(str(e))
+            return
+        except (FileNotFoundError, ValueError, GraphPlottingError) as e:
+            logger.error(f"Detection error: {e}")
+            typer.echo(typer.style(f"🔥 Detection Error: {e}", fg=typer.colors.RED))
+            raise typer.Abort from e
+        typer.echo(decision.explain())

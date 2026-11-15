@@ -382,7 +382,8 @@ import rdetoolkit.graph as graph
 from rdetoolkit.graph.readers import ReaderRegistry, TableReader
 assert graph.ReaderRegistry is ReaderRegistry
 names = [name for name in sorted(sys.modules) if name.startswith("rdetoolkit.graph.readers")]
-assert len(names) == 4, names
+assert names == ["rdetoolkit.graph.readers", "rdetoolkit.graph.readers.base", "rdetoolkit.graph.readers.builtin",
+                 "rdetoolkit.graph.readers.detection", "rdetoolkit.graph.readers.registry"], names
 for name in names:
     held = [key for key, value in vars(sys.modules[name]).items()
             if not isinstance(value, type) and isinstance(value, (ReaderRegistry, TableReader))]

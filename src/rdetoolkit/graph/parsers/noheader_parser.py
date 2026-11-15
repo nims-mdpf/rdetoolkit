@@ -17,6 +17,26 @@ class NoHeaderParser:
         Index(['Column_0', 'Column_1', 'Column_2'], dtype='object')
     """
 
+    def __init__(self, *, encoding: str | None = None, delimiter: str | None = None) -> None:
+        """Create the parser.
+
+        Args:
+            encoding: Text encoding passed to ``pandas.read_csv``; ``None`` keeps the
+                pandas default (UTF-8), exactly as before these options existed.
+            delimiter: Field delimiter passed as ``sep``; ``None`` keeps the default comma.
+        """
+        self.encoding = encoding
+        self.delimiter = delimiter
+
+    def _read_options(self) -> dict[str, str]:
+        """Return only the options that were set, so the no-argument call is unchanged."""
+        options: dict[str, str] = {}
+        if self.encoding is not None:
+            options["encoding"] = self.encoding
+        if self.delimiter is not None:
+            options["sep"] = self.delimiter
+        return options
+
     def parse(self, csv_path: Path) -> pd.DataFrame:
         """Parse headerless CSV file.
 
@@ -35,7 +55,7 @@ class NoHeaderParser:
             raise FileNotFoundError(msg)
 
         try:
-            df = pd.read_csv(csv_path, header=None)
+            df = pd.read_csv(csv_path, header=None, **self._read_options())
 
             df.columns = [f"Column_{i}" for i in range(len(df.columns))]
 

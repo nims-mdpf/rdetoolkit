@@ -4,6 +4,7 @@ from typing import Any, Final, Literal
 
 from rdetoolkit.graph.naming import GraphDiagnostic
 from rdetoolkit.graph.plan import PlotPlan
+from rdetoolkit.graph.readers.base import DetectionDecision
 
 MANIFEST_SCHEMA_VERSION: Final[int]
 ArtifactRole = Literal["main_image", "individual", "html"]
@@ -27,7 +28,7 @@ class Artifact:
 class GraphResult:
     plan: PlotPlan
     artifacts: tuple[Artifact, ...]
-    detection: object | None
+    detection: DetectionDecision | None
     diagnostics: tuple[GraphDiagnostic, ...]
     def manifest(self) -> dict[str, Any]: ...
     def manifest_json(self) -> str: ...

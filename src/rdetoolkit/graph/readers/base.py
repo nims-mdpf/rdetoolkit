@@ -138,12 +138,31 @@ class DetectionDecision:
         """Describe the decision as text, one line per fact.
 
         Returns:
-            The selection (or ``"none (ambiguous)"``) followed by every candidate
-            with its confidence and evidence.
+            The selection (or ``"none (ambiguous)"``); for a sniffed decision the
+            encoding, delimiter, sample size, previewed columns and row count; then
+            every candidate with its confidence and evidence.
         """
         how = "forced" if self.forced else "auto"
         lines = [f"selected: {self.selected} ({how})" if self.selected is not None else "selected: none (ambiguous)"]
+        lines.extend(self._sample_lines())
         for candidate in self.candidates:
             lines.append(f"candidate {candidate.reader_id} ({candidate.confidence:.2f})")
             lines.extend(f"  - {reason}" for reason in candidate.evidence)
         return "\n".join(lines)
+
+    def _sample_lines(self) -> list[str]:
+        """Facts about the content sample; nothing for a decision made without reading the file."""
+        if not self.sampled_bytes:
+            return []
+        delimiter = "undetermined" if self.delimiter is None else repr(self.delimiter)
+        extent = "truncated" if self.truncated else "complete"
+        lines = [
+            f"encoding: {self.encoding or 'undetermined'}",
+            f"delimiter: {delimiter}",
+            f"sampled: {self.sampled_bytes} bytes, {self.sampled_rows} rows ({extent})",
+        ]
+        if self.preview_columns:
+            lines.append("columns: " + ", ".join(self.preview_columns))
+        if self.data_rows is not None:
+            lines.append(f"data rows: {self.data_rows}")
+        return lines
