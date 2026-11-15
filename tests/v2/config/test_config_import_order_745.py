@@ -78,14 +78,15 @@ def test_stub_declares_config_as_the_package() -> None:
     tree = ast.parse(stub.read_text(encoding="utf-8"))
     # When: collecting every import that binds the name ``config``
     sources = [
-        f"{'.' * node.level}{node.module or ''}"
+        "rdetoolkit" if node.level == 1 and node.module is None else f"{'.' * node.level}{node.module or ''}"
         for node in tree.body
         if isinstance(node, ast.ImportFrom)
         for alias in node.names
         if (alias.asname or alias.name) == "config"
     ]
-    # Then: exactly one binding, imported from the package root (``from . import config``)
-    assert sources == ["."]
+    # Then: exactly one binding, imported from the package root
+    # (``from . import config`` or ``from rdetoolkit import config``)
+    assert sources == ["rdetoolkit"]
 
 
 def _stub_defined_names(stub: Path) -> set[str]:
