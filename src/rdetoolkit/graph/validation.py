@@ -6,16 +6,25 @@ or filesystem access, so an invalid request never leaves partial output behind.
 
 from __future__ import annotations
 
+import difflib
 import math
+from collections.abc import Mapping
 from numbers import Real
-from typing import Any, Final, Literal
+from typing import Any, Final, Literal, cast
+
+import matplotlib as mpl
 
 from rdetoolkit.graph.exceptions import PlotRequestError
-from rdetoolkit.graph.spec import AxisLimits
+from rdetoolkit.graph.spec import AxisLimits, StyleSpec
 
 SUPPORTED_MODES: Final[tuple[str, ...]] = ("overlay", "individual")
 INVALID_AXIS_LIMITS: Final[str] = "invalid_axis_limits"
 _KEEP_AUTO_HINT: Final[str] = "use None for a side that should stay automatic"
+INVALID_FIGURE_SIZE: Final[str] = "invalid_figure_size"
+INVALID_RC_PARAM: Final[str] = "invalid_rc_param"
+# Real rcParams that would switch the backend or the interactive UI: a plot style must
+# never change how (or whether) Matplotlib draws for the rest of the process.
+DENIED_RC_PARAMS: Final[frozenset[str]] = frozenset({"backend", "backend_fallback", "interactive", "toolbar"})
 
 
 def validate_plot_request(*, mode: str, no_individual: bool | None) -> None:
@@ -114,3 +123,56 @@ def _check_log_bounds(bounds: tuple[float | None, float | None], axis: str) -> N
                 "or use a linear axis"
             )
             raise PlotRequestError(msg, reason=INVALID_AXIS_LIMITS)
+
+
+def validate_style(style: StyleSpec) -> StyleSpec:
+    """Validate figure size and rcParams of a style before anything is drawn.
+
+    The builder setters accept any value (ruling C-10); this is where a style is
+    checked, when a plan is built.
+
+    Args:
+        style: The requested style.
+
+    Returns:
+        The style with each figure size component converted to ``float``; the
+        rcParams are returned as given.
+
+    Raises:
+        PlotRequestError: ``reason="invalid_figure_size"`` when a size component is
+            not a finite real number ``> 0``; ``reason="invalid_rc_param"`` when a key
+            is not a Matplotlib rcParam (the message suggests close matches), is on
+            the deny-list (``backend``, ``backend_fallback``, ``interactive``,
+            ``toolbar``), or its value is rejected by the rcParam's validator.
+    """
+    for key, value in style.rc_params.items():
+        _check_rc_param(key, value)
+    if style.figure_size is None:
+        return style
+    width, height = (_size_component(value, name) for value, name in zip(style.figure_size, ("width", "height"), strict=True))
+    return StyleSpec(figure_size=(width, height), rc_params=style.rc_params)
+
+
+def _size_component(value: object, name: str) -> float:
+    # bool is a Real subclass, but True as a width is always a mistake.
+    if isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(float(value)) or float(value) <= 0:
+        msg = f"Invalid figure {name} {value!r}: figure_size must be a (width, height) pair of finite numbers > 0 (inches)"
+        raise PlotRequestError(msg, reason=INVALID_FIGURE_SIZE)
+    return float(value)
+
+
+def _check_rc_param(key: object, value: object) -> None:
+    rc_validators = cast("Mapping[str, Any]", mpl.RcParams.validate)
+    if not isinstance(key, str) or key not in rc_validators:
+        suggestions = difflib.get_close_matches(str(key), sorted(rc_validators), n=3)
+        hint = f"; did you mean {suggestions}?" if suggestions else ""
+        msg = f"Unknown Matplotlib rcParam {key!r}{hint}"
+        raise PlotRequestError(msg, reason=INVALID_RC_PARAM)
+    if key in DENIED_RC_PARAMS:
+        msg = f"rcParam {key!r} cannot be set through a plot style (it changes the backend or the UI, not the figure)"
+        raise PlotRequestError(msg, reason=INVALID_RC_PARAM)
+    try:
+        rc_validators[key](value)
+    except (TypeError, ValueError) as exc:
+        msg = f"Invalid value {value!r} for rcParam {key!r}: {exc}"
+        raise PlotRequestError(msg, reason=INVALID_RC_PARAM) from exc

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from rdetoolkit.graph.legend_policy import VALID_LEGEND_POLICIES
+from rdetoolkit.graph.spec import StyleSpec
 
 
 class PlotMode(str, Enum):
@@ -274,6 +275,9 @@ class PlotConfig:
         x_col: X column specification (added in Phase 5)
         y_cols: Y column specifications (added in Phase 5)
         direction_cols: Direction column specifications (added in Phase 5)
+        style: Explicit figure size / Matplotlib rcParams over the house defaults;
+            ``None`` keeps the legacy appearance. Set by ``PlotConfigBuilder`` only
+            when ``set_figure_size`` or ``set_matplotlib_params`` was called.
     """
 
     mode: PlotMode = PlotMode.OVERLAY
@@ -289,6 +293,7 @@ class PlotConfig:
     x_col: int | str | list[int | str] | None = None
     y_cols: list[int | str] | None = None
     direction_cols: list[int | str | None] | None = None
+    style: StyleSpec | None = None
 
 
 @dataclass

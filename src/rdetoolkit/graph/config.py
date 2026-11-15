@@ -14,6 +14,7 @@ from rdetoolkit.graph.models import (
     PlotConfig,
     PlotMode,
 )
+from rdetoolkit.graph.spec import StyleSpec
 
 
 DEFAULT_PLOT_PARAMS: dict[str, Any] = {
@@ -33,8 +34,12 @@ class PlotConfigBuilder:
     This class implements the Builder pattern to construct complex PlotConfig
     objects in a fluent, method-chaining style.
 
-    The builder maintains Matplotlib-specific settings (fig_size, matplotlib_params)
-    separately from PlotConfig, which focuses on plot semantics.
+    The builder keeps the full Matplotlib settings (``fig_size``,
+    ``matplotlib_params``: house defaults plus overrides) for inspection. Only the
+    explicitly set parts reach ``PlotConfig.style`` (a ``StyleSpec``), so the
+    renderers apply them over the house defaults; without a style setter the
+    legacy appearance is unchanged. The setters never validate: an invalid size or
+    rcParam is rejected when the figure is planned (``PlotRequestError``).
 
     Example:
         >>> builder = PlotConfigBuilder()
@@ -44,10 +49,8 @@ class PlotConfigBuilder:
         ...     .set_figure_size(10, 6)
         ...     .set_matplotlib_params(font_size=18)
         ...     .build())
-        >>> # Apply matplotlib settings separately
-        >>> apply_matplotlib_config(builder.matplotlib_params)
-        >>> # Use config for plotting
-        >>> fig, ax = plt.subplots(figsize=builder.fig_size)
+        >>> config.style
+        StyleSpec(figure_size=(10, 6), rc_params=mappingproxy({'font.size': 18}))
     """
 
     def __init__(self) -> None:
@@ -63,6 +66,9 @@ class PlotConfigBuilder:
         self._csv_format = CSVFormat.META_BLOCK
         self._fig_size = DEFAULT_FIG_SIZE
         self._matplotlib_params = DEFAULT_PLOT_PARAMS.copy()
+        # Only what a setter stated becomes PlotConfig.style; the defaults stay implicit.
+        self._figure_size_set = False
+        self._rc_overrides: dict[str, Any] = {}
         self._x_col: int | str | list[int | str] | None = None
         self._y_cols: list[int | str] | None = None
         self._direction_cols: list[int | str | None] | None = None
@@ -129,6 +135,7 @@ class PlotConfigBuilder:
             >>> builder.set_figure_size(10, 8)
         """
         self._fig_size = (width, height)
+        self._figure_size_set = True
         return self
 
     def set_matplotlib_params(self, **params: Any) -> PlotConfigBuilder:
@@ -175,6 +182,7 @@ class PlotConfigBuilder:
         for key, value in params.items():
             mpl_key = _resolve_mpl_key(key)
             self._matplotlib_params[mpl_key] = value
+            self._rc_overrides[mpl_key] = value
         return self
 
     def set_x_axis(self, axis_config: AxisConfig) -> PlotConfigBuilder:
@@ -359,16 +367,16 @@ class PlotConfigBuilder:
             Immutable PlotConfig instance
 
         Note:
-            Matplotlib settings (fig_size, matplotlib_params) are not included
-            in PlotConfig. Access them via builder.fig_size and
-            builder.matplotlib_params properties.
+            ``PlotConfig.style`` carries only what ``set_figure_size`` /
+            ``set_matplotlib_params`` stated (``None`` when neither was called);
+            there are no ``fig_size`` / ``matplotlib_params`` attributes on
+            PlotConfig. The full settings stay readable via ``builder.fig_size``
+            and ``builder.matplotlib_params``.
 
         Example:
-            >>> config = builder.build()
-            >>> # Apply matplotlib settings
-            >>> apply_matplotlib_config(builder.matplotlib_params)
-            >>> # Create figure with configured size
-            >>> fig, ax = plt.subplots(figsize=builder.fig_size)
+            >>> config = builder.set_figure_size(10, 8).build()
+            >>> config.style.figure_size
+            (10, 8)
         """
         return PlotConfig(
             mode=self._mode,
@@ -384,6 +392,16 @@ class PlotConfigBuilder:
             x_col=self._x_col,
             y_cols=self._y_cols,
             direction_cols=self._direction_cols,
+            style=self._style(),
+        )
+
+    def _style(self) -> StyleSpec | None:
+        """The explicitly requested style, or ``None`` for the legacy appearance."""
+        if not (self._figure_size_set or self._rc_overrides):
+            return None
+        return StyleSpec(
+            figure_size=self._fig_size if self._figure_size_set else None,
+            rc_params=dict(self._rc_overrides),
         )
 
 

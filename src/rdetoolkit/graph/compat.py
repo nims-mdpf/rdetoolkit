@@ -23,7 +23,7 @@ import pandas as pd
 
 from rdetoolkit.graph.models import AxisConfig, DirectionConfig, PlotConfig
 from rdetoolkit.graph.plan import PlotPlan, build_plot_plan
-from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec
+from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec
 from rdetoolkit.graph.textutils import parse_header, titleize
 
 __all__ = [
@@ -139,7 +139,9 @@ def plan_from_config(
             x and y counts cannot be paired ("must be equal"), there are more
             direction columns than y columns ("cannot exceed"), or nothing is
             selected ("at least one y column").
-        PlotRequestError: For a column reference that matches no or several columns.
+        PlotRequestError: For a column reference that matches no or several columns,
+            or an invalid ``config.style`` (``reason="invalid_figure_size"`` /
+            ``"invalid_rc_param"``).
         TypeError: For a column reference that is neither ``int`` nor ``str``.
     """
     x_refs, y_refs, direction_refs = _paired_columns(config)
@@ -158,6 +160,8 @@ def plan_from_config(
         direction_colors=_direction_colors(config.direction),
         label_style="raw",
         unit_policy="warn",
+        # No style means the legacy look: the plan resolves it to the house defaults.
+        style=StyleSpec() if config.style is None else config.style,
     )
     plan = build_plot_plan(df, spec, base_name=_base_name(config))
     labels = [label_of(entry.y_name, bool(config.humanize)) for entry in plan.series]

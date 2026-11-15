@@ -27,7 +27,7 @@ from rdetoolkit.graph.exceptions import PlotRequestError
 from rdetoolkit.graph.naming import DEFAULT_BASE_STEM, GraphDiagnostic, reserve_stems, sanitize_stem, series_stem
 from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec
 from rdetoolkit.graph.textutils import parse_header
-from rdetoolkit.graph.validation import validate_axis_limits
+from rdetoolkit.graph.validation import validate_axis_limits, validate_style
 
 __all__ = [
     "FigurePlan",
@@ -251,7 +251,9 @@ def build_plot_plan(
         TypeError: If ``frames`` is not a DataFrame or a sequence of DataFrames.
         PlotRequestError: ``reason="unknown_column"`` / ``"ambiguous_column"`` for
             a column reference that matches no / several columns;
-            ``reason="invalid_axis_limits"`` for invalid ``AxisSpec.limits``.
+            ``reason="invalid_axis_limits"`` for invalid ``AxisSpec.limits``;
+            ``reason="invalid_figure_size"`` / ``"invalid_rc_param"`` for an invalid
+            ``GraphSpec.style``.
         ValueError: If the request selects no series ("at least one y column").
     """
     frames_tuple = _as_frames(frames)
@@ -259,6 +261,7 @@ def build_plot_plan(
     # Reject invalid limits before any column is resolved; the plan keeps them as given.
     validate_axis_limits(spec.x_axis.limits, scale=spec.x_axis.scale, axis="x")
     validate_axis_limits(spec.y_axis.limits, scale=spec.y_axis.scale, axis="y")
+    style = _resolve_style(validate_style(spec.style))
     series = _plan_series(frames_tuple, spec)
     if not series:
         raise ValueError(_NO_SERIES_MESSAGE)
@@ -273,7 +276,7 @@ def build_plot_plan(
         y_axis=spec.y_axis,
         legend=spec.legend,
         direction_colors=spec.direction_colors,
-        style=_resolve_style(spec.style),
+        style=style,
         # Unit grouping arrives with GE-11; until then every series shares one group.
         unit_groups=((first_unit, tuple(entry.series_id for entry in series)),),
         diagnostics=diagnostics,

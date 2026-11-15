@@ -28,13 +28,13 @@ from matplotlib.ticker import (
 )
 
 from rdetoolkit.graph import compat
-from rdetoolkit.graph.config import DEFAULT_FIG_SIZE, apply_matplotlib_config
+from rdetoolkit.graph.config import apply_matplotlib_config
 from rdetoolkit.graph.legend_policy import (
     resolve_legend_policy as _resolve_legend_policy,
 )
 from rdetoolkit.graph.models import AxisConfig, LegendConfig, PlotConfig
 from rdetoolkit.graph.plan import FigurePlan, PlotData, PlotPlan, SeriesPlan
-from rdetoolkit.graph.renderers.mpl_runtime import draw_series, new_figure
+from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, draw_series, new_figure, style_scope
 from rdetoolkit.graph.spec import AxisSpec, LegendSpec
 
 CENTER_POSITION = 0.5
@@ -73,8 +73,10 @@ class MatplotlibRenderer:
     def render(self, plan: PlotPlan, figure: FigurePlan, data: PlotData) -> Figure:
         """Draw one planned figure on a pyplot-free figure.
 
-        The house style is applied to the ambient rcParams (callers scope it, as the
-        engine does with ``mpl_runtime.style_scope``).
+        The plan's resolved style (house defaults merged with the explicit style)
+        is applied to the ambient rcParams once, and the figure gets the plan's
+        size. Callers scope the rcParams, as the engine does with
+        ``mpl_runtime.style_scope``.
 
         Args:
             plan: The plan.
@@ -84,8 +86,8 @@ class MatplotlibRenderer:
         Returns:
             The drawn figure (``Figure`` + Agg canvas, not registered with pyplot).
         """
-        apply_matplotlib_config()
-        fig, ax = new_figure(DEFAULT_FIG_SIZE)
+        apply_matplotlib_config(dict(plan.style.rc_params))
+        fig, ax = new_figure(plan.style.figure_size)
         axes = (_axis_config(plan.x_axis, figure.x_label), _axis_config(plan.y_axis, figure.y_label))
         # The spec API grids each axis on its own; the legacy renderer grids both when either asks.
         self._draw_figure(ax, plan, figure, data, axes, per_axis_grid=True)
@@ -145,8 +147,23 @@ class MatplotlibRenderer:
         return plan
 
     def _render_legacy(self, plan: PlotPlan, figure: FigurePlan, df: pd.DataFrame, config: PlotConfig) -> Figure:
+        """Draw a legacy figure: house style globally (C-07), explicit style for this call only."""
         apply_matplotlib_config()
-        fig, ax = self._new_figure()
+        if plan.origins.get("style.rc_params") != "explicit":
+            return self._draw_legacy(plan, figure, df, config)
+        with style_scope(plan.style.rc_params):
+            fig = self._draw_legacy(plan, figure, df, config)
+            try:
+                # Font sizes and the layout resolve at draw time; freeze them while the
+                # explicit style is active so a later save keeps it.
+                detach_figure(fig)
+            except BaseException:
+                plt.close(fig)
+                raise
+        return fig
+
+    def _draw_legacy(self, plan: PlotPlan, figure: FigurePlan, df: pd.DataFrame, config: PlotConfig) -> Figure:
+        fig, ax = self._new_figure(plan)
         try:
             # Tick formatting keeps the legacy axis settings (scilimits, unit); labels come from the plan.
             axes = (
@@ -160,9 +177,9 @@ class MatplotlibRenderer:
             raise
         return fig
 
-    def _new_figure(self) -> tuple[Figure, Any]:
-        """Create the figure of one legacy ``render_*`` call (a pyplot figure)."""
-        return plt.subplots(figsize=DEFAULT_FIG_SIZE, tight_layout=True)
+    def _new_figure(self, plan: PlotPlan) -> tuple[Figure, Any]:
+        """Create the figure of one legacy ``render_*`` call (a pyplot figure of the planned size)."""
+        return plt.subplots(figsize=plan.style.figure_size, tight_layout=True)
 
     def _draw_figure(
         self,

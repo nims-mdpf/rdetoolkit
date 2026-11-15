@@ -4,6 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
 
+from rdetoolkit.graph.spec import StyleSpec
+
 class PlotMode(str, Enum):
     OVERLAY = 'overlay'
     INDIVIDUAL = 'individual'
@@ -86,6 +88,7 @@ class PlotConfig:
     x_col: int | str | list[int | str] | None = ...
     y_cols: list[int | str] | None = ...
     direction_cols: list[int | str | None] | None = ...
+    style: StyleSpec | None = ...
 
 @dataclass
 class CSVMetadata:

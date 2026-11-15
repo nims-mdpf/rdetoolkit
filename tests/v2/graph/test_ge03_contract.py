@@ -226,15 +226,15 @@ def test_to_dict_is_json_safe_sorted_and_deterministic__tc_ge03_ep_002() -> None
 def test_to_dict_renders_values_without_json_form_as_text__tc_ge03_ep_002() -> None:
     """TC-GE03-EP-002: enum and arbitrary rc values become JSON-safe."""
 
-    class Shade(Enum):
+    class Shade(str, Enum):
         DARK = "dark"
 
-    # Given: rc params holding an enum, a tuple and an object
-    spec = GraphSpec(style=StyleSpec(rc_params={"a.enum": Shade.DARK, "a.tuple": (1, 2), "a.path": Path("p")}))
+    # Given: real rcParams (validated at plan time since GE-10) holding an enum, a tuple and an object
+    spec = GraphSpec(style=StyleSpec(rc_params={"svg.id": Shade.DARK, "path.effects": (1, 2), "savefig.directory": Path("p")}))
     # When: snapshotting
     params = build_plot_plan(_multi_y(), spec).to_dict()["style"]["rc_params"]
     # Then: each value has a JSON form
-    assert (params["a.enum"], params["a.tuple"], params["a.path"]) == ("dark", [1, 2], "p")
+    assert (params["svg.id"], params["path.effects"], params["savefig.directory"]) == ("dark", [1, 2], "p")
 
 
 def test_origins_distinguish_explicit_from_default_and_derived__tc_ge03_ep_003() -> None:

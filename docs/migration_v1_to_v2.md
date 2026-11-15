@@ -654,6 +654,7 @@ CLI では `--xmin`、`--xmax`、`--ymin`、`--ymax` でそれぞれ片側だけ
 |---|---|---|---|---|
 | IC-4 | `(0, None)` や `(None, 10)` のような片側だけの `xlim`/`ylim`。有限でない値、上下限が等しい範囲、対数軸(`logx`/`logy`)での `0` 以下の値 | 片側だけの指定は無視(両側とも自動)。不正な範囲は Matplotlib に渡され、警告とともに無視 | 指定した側だけを適用し、もう片側は自動のまま。不正な範囲は何も書き出す前に `PlotRequestError`(`reason="invalid_axis_limits"`)となり、軸と値をメッセージで示す。CLI は終了コード 2 | 従来の完全自動にしたい場合は範囲を省略する。対数軸では正の値を渡す |
 | IC-5 | `csv2graph`・`plot_from_dataframe`・`rdetoolkit plot` 実行後の Matplotlib のスタイルと図 | グラフ用のスタイル(`font.size` 20、内向きの目盛りなど)がプロセス全体の `rcParams` に残り、後の描画にも影響した。保存に失敗した場合も含め、図はすべて開いたまま残った | スタイルは図の描画と保存の間だけ適用され、呼び出し後の `rcParams` は変わらない。保存した図は書き込みに失敗した場合も閉じる。`return_fig=True` で返す図は開いたまま呼び出し側の所有となり(`plt.close` で閉じる)、レイアウトが固定されるため 300 dpi で保存すると従来と同じ画像になる。バックエンドは切り替えない | 後の描画が従来のグローバルなスタイルに依存していた場合は、描画の前に `apply_matplotlib_config()` を呼ぶ |
+| IC-10 | `build()` の前に `PlotConfigBuilder.set_figure_size(...)` または `set_matplotlib_params(...)` を呼び、その設定を `MatplotlibRenderer` や描画ストラテジーで描画する。`render_graph` に `GraphSpec.style` を渡す | どちらの設定も無視され、図は常に 8.85 x 8 インチ・グラフ用の既定スタイルだった | 生成された `PlotConfig.style`(`StyleSpec`)が図のサイズを決め、rcParams を既定スタイルの上に、その呼び出しの図にだけ適用する。HTML はサイズを明示した場合だけそのサイズになる。不正なサイズや rcParam は図を作る前に `PlotRequestError`(`reason="invalid_figure_size"` または `"invalid_rc_param"`)となる。設定メソッド自体は従来どおりどの値も受け付ける | 従来の図のままにしたい場合は設定メソッドを呼ばない |
 
 Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列の計画から描画されます。
 列の位置、x と y の対応、方向による分割と絞り込み、凡例の項目、系列の色は描画の前に一度だけ決まるため、

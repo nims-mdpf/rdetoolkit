@@ -45,6 +45,7 @@ DEFAULT_PLOTLY_COLORS = [
     "#17becf",
 ]
 _TRACE_MODES: Final = {"line": "lines", "scatter": "markers"}
+_PIXELS_PER_INCH: Final = 100
 
 
 class PlotlyRenderer:
@@ -163,6 +164,7 @@ class PlotlyRenderer:
         }
         if legend_layout is not None:
             layout_kwargs["legend"] = legend_layout
+        layout_kwargs.update(_explicit_size(plan))
         return go.Layout(**layout_kwargs)
 
     def _resolve_legend_layout(
@@ -292,3 +294,16 @@ class PlotlyRenderer:
             bordercolor="rgba(0,0,0,0.2)",
             borderwidth=1,
         )
+
+
+def _explicit_size(plan: PlotPlan) -> dict[str, int]:
+    """Layout width/height in pixels (inches x 100), only for an explicitly requested size.
+
+    The Matplotlib default size is no HTML default, so an implicit size leaves the
+    Plotly layout responsive (and its keyword set unchanged, ruling C-13).
+    rcParams are Matplotlib-only and do not affect HTML.
+    """
+    if plan.origins.get("style.figure_size") != "explicit" or plan.style.figure_size is None:
+        return {}
+    width, height = plan.style.figure_size
+    return {"width": round(width * _PIXELS_PER_INCH), "height": round(height * _PIXELS_PER_INCH)}
