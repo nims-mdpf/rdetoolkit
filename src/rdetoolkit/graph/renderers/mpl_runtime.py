@@ -71,13 +71,15 @@ def new_figure(figure_size: tuple[float, float] | None, *, tight_layout: bool = 
 
     Args:
         figure_size: Size in inches; ``None`` uses ``rcParams["figure.figsize"]``.
-        tight_layout: Use the tight layout engine, as the legacy renderer does.
+        tight_layout: Use the tight layout engine, as the legacy renderer does;
+            ``False`` leaves the layout to rcParams, like ``plt.subplots``.
 
     Returns:
         The figure (with an Agg canvas) and its axes. The caller owns both; dropping
         the last reference releases them, ``plt.close`` is not required.
     """
-    fig = Figure(figsize=figure_size, tight_layout=tight_layout)
+    # Figure() selects the tight engine for ANY non-None tight_layout, False included.
+    fig = Figure(figsize=figure_size, tight_layout=True if tight_layout else None)
     FigureCanvasAgg(fig)
     return fig, fig.add_subplot()
 

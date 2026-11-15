@@ -739,6 +739,12 @@ Destinations are checked by name and by real path (symlink targets included); on
 | IC-13 | `IndividualStrategy` with image formats other than PNG in `OutputConfig.formats` (for example `["png", "svg"]`) | Individual figures were always PNG only | One file per series in every non-HTML format (same name, different extension); PNG when no image format is requested. `csv2graph` and `plot_from_dataframe` output is unchanged | Pass `formats=["png"]` for PNG only |
 | IC-14 | HTML output (`html=True`, `PlotlyRenderer`, `render_graph`) with `xlim`/`ylim` (or `AxisSpec.limits`) | The HTML axes ignored the limits and stayed automatic | The HTML axes use the same limits as the images (in log10 units on a log axis); a `None` side stays automatic | Omit the limits for automatic axes |
 
+The builtin `plot_lines` and `plot_scatter` nodes resolve columns, pairs, several frames and series labels, and validate axis limits, with the same planner and validator as `render_graph`. The same request therefore gives the same series, labels and data through both APIs. Node ids, arguments, call-log records, output locations and images are unchanged, and no csv2graph style is applied. `save_figure` still saves the caller's figure without closing it.
+
+| Id | Change | v2 pre-release | v2 | What to do |
+|---|---|---|---|---|
+| IC-12 | A column name that no column, or several columns, carry passed to `plot_lines` or `plot_scatter`; invalid `xlim`/`ylim` passed to `plot_lines` (a non-finite bound, equal bounds, or a bound `<= 0` on a `"log"` axis) | A missing column raised `KeyError`; a duplicated name drew every matching column under one label in `plot_lines` and raised a Matplotlib `ValueError` in `plot_scatter`; invalid limits were passed to Matplotlib, which ignored or widened them with a warning | `PlotRequestError` (a `ValueError`) before any figure exists, with `reason` `"unknown_column"`, `"ambiguous_column"` or `"invalid_axis_limits"` | Catch `ValueError` or `PlotRequestError` instead of `KeyError`; give columns unique names and pass positive bounds on a log axis |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

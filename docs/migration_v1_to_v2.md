@@ -687,6 +687,12 @@ Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列
 | IC-13 | `OutputConfig.formats` に PNG 以外の画像形式(例: `["png", "svg"]`)を指定して `IndividualStrategy` で描画する | 個別グラフは常に PNG だけ | 系列ごとに、HTML 以外の各形式で 1 ファイルずつ(同じファイル名で拡張子だけが異なる)出力する。画像形式が 1 つもなければ従来どおり PNG。`csv2graph` と `plot_from_dataframe` の出力は変わらない | PNG だけにしたい場合は `formats=["png"]` を指定する |
 | IC-14 | `xlim`/`ylim`(または `AxisSpec.limits`)を指定して HTML を出力する(`html=True`、`PlotlyRenderer`、`render_graph`) | HTML では軸範囲を無視し、常に自動範囲 | 画像と同じ範囲を HTML の軸にも適用する。対数軸は 10 を底とする対数で指定し、`None` の側は自動のまま | 自動範囲にしたい場合は範囲を指定しない |
 
+組み込みノード `plot_lines` と `plot_scatter` は、列・ペア・複数フレーム・系列ラベルの解決と軸範囲の検証に、`render_graph` と同じ計画処理と検証を使います。同じ依頼は両方の API で同じ系列・ラベル・データになります。ノード ID、引数、呼び出し記録、出力先、画像は変わらず、csv2graph 用のスタイルも適用しません。`save_figure` は従来どおり呼び出し側の図を閉じずに保存します。
+
+| ID | 変更 | v2 プレリリース | v2 | 対処 |
+|---|---|---|---|---|
+| IC-12 | `plot_lines`・`plot_scatter` に存在しない列名、または複数の列が持つ列名を渡す。`plot_lines` に不正な `xlim`/`ylim`(有限でない値、上下限が等しい範囲、`"log"` 軸での `0` 以下の値)を渡す | 存在しない列は `KeyError`。重複した列名は、`plot_lines` では該当する列すべてを 1 つのラベルで描画し、`plot_scatter` では Matplotlib の `ValueError`。不正な範囲は Matplotlib に渡され、警告とともに無視または自動で拡張 | 図を作る前に `PlotRequestError`(`ValueError` の一種)。`reason` は `"unknown_column"`、`"ambiguous_column"`、`"invalid_axis_limits"` | `KeyError` を捕捉していた場合は `ValueError` または `PlotRequestError` を捕捉する。列名を一意にし、対数軸では正の値を渡す |
+
 ### 診断と従来のトレースバック
 
 v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず
