@@ -1,5 +1,10 @@
 # rdetoolkit v2 changelog
 
+<!-- New entries go in changelog.d/ (see changelog.d/README.md), not in this
+     file. `towncrier build` inserts them below this marker at release. -->
+
+<!-- towncrier release notes start -->
+
 ## Unreleased
 
 ### Changed
@@ -66,6 +71,20 @@
   files keep distinct ids on one page.
   plotly is imported only when the node runs and a missing `rdetoolkit[plotly]`
   extra raises an `ImportError` naming it (#625).
+- `rdetoolkit.nodes.artifact_logger(out, filename, *, name=None, kind="struct",
+  fmt=..., level=logging.DEBUG, mode="a", encoding="utf-8")` declares a log
+  file that a logger streams into during a tile, the v2 counterpart of v1
+  `rdelogger.get_logger(name, file_path=...)`. Use the returned
+  `ArtifactLogger` as a context manager: it attaches a `logging.FileHandler`
+  for `out.<kind>/<filename>` to the logger for the block and removes it when
+  the block ends, also on error, so a logger shared by every tile writes each
+  tile's records into that tile's file only. Records logged in the block's
+  context go to that block's file only, so concurrent in-process runs on one
+  logger do not mix their lines; records from other processes, including
+  workers forked inside the block, are never written. Lines use the v1 format
+  by default, an existing file is appended to, and no file is created when
+  nothing is logged. The call is a builtin node call, so it appears in the
+  call log and in the RunReport `node_calls` (#631).
 - `multidata_tile.order` (`name` | `filesystem`, default `name`) selects how
   MultiDataTile numbers its tiles, in both the v1 `rdeconfig.yaml` and the v2
   configuration. `filesystem` keeps the order `Path.glob("*")` lists
@@ -74,6 +93,21 @@
   keeps the name order and the v1 configuration dump unchanged. Adding the
   section to `RdeConfig` changes `RunReport.config_digest` for every
   configuration (#597).
+- The builtin node `run_program` runs an external converter from a flow and
+  returns a `CompletedProgram` (command line, exit code, output streams, run
+  time). A non-zero exit, a program that cannot start, or a timeout raises
+  `StructuredError` with the caller's `error_code` (default 1) instead of
+  surfacing as ErrorCode 3001; the default message names the command line, the
+  exit code and the end of stderr. `wine="auto"` runs a Windows program with
+  `wine` outside Windows and converts `Path` arguments, and `to_wine_path`
+  converts paths embedded in option strings (#630).
+- Builtin node `render_png(source_path, out, filename, *, kind="main_image",
+  page=1, dpi=350)` renders an image, a PDF page or an SVG drawing to PNG under
+  `main_image` (or `other_image` / `thumbnail`). PDF pages are rendered with
+  pypdfium2 and SVG drawings with cairosvg, both from the new optional extra
+  `rdetoolkit[render]`; SVG also needs the Cairo system library. A missing
+  backend raises an `ImportError` that names the extra and the library. Other
+  files are converted with Pillow like `to_png` (#627).
 - `plot_lines` accepts `xlim` / `ylim` (`(lower, upper)`, a `None` bound keeps
   matplotlib's automatic limit, so `ylim=(0, None)` starts the axis at 0) and
   `xscale`, so a fixed axis range no longer needs an own figure and
@@ -95,6 +129,25 @@
   exception fails the run with 3001 (naming the preparation) before any tile.
   Only the flow the Runner executes is prepared, and direct calls of the flow
   do not run it (#573).
+- `rdetoolkit.exceptions.ProcessingError(message, *, remediation=None)`
+  reports a processing failure without an error code. It is an
+  `RdeExecutionError` with the new catalog entry 3007 `ProcessingFailed`. Every
+  entry point (`@flow` body or `prepare`, and the v1 callback) publishes it as
+  3007 in `RunReport.error`, the iteration log and `job.failed`. The message is
+  followed by `Remediation: <remediation>`, and `remediation` defaults to the
+  catalog guidance. `@flow(error_code=..., error_message=...)` does not remap
+  it. A non-str or blank `message` / `remediation` raises `TypeError` /
+  `ValueError`. Ordinary exceptions stay 3001 and `StructuredError` keeps its
+  `ecode`/`emsg` (#634).
+
+### Deprecated
+
+- `rdetoolkit.errors.catch_exception_with_message` emits a
+  `DeprecationWarning` when it is applied; raise `ProcessingError` instead. It
+  keeps its v1 behavior and is not removed in v2, except that a
+  `ProcessingError` now propagates unchanged instead of being converted to a
+  `StructuredError`. rdetoolkit's own use of the decorator in `img2thumb` does
+  not warn (#634).
 
 ### Changed
 
@@ -109,37 +162,25 @@
   rename and writes `template/` into its output directory; it exits 3 when
   both directories exist (#615).
 
-### Removed
-
-- The package-embedded AI-agent guide is retired before GA: the
-  `rdetoolkit.get_agent_guide()` function, the `rdetoolkit agent-guide`
-  command, the private `rdetoolkit._agent` module with its bundled Markdown
-  guides, and the package-local `src/rdetoolkit/.agents/` guidance (whose
-  `preferred-apis.md` recommended `rdetoolkit.fileops` imports that do not
-  exist). The wheel and sdist no longer carry agent Markdown; `py.typed` and
-  the `.pyi` stubs still ship. This is an intentional pre-GA API removal with
-  no replacement in the package (#644).
-- The pre-GA draft error taxonomy of the retired Trace/Compile design is
-  removed from `rdetoolkit.errors` (and its stub): the string `ErrorCode` enum
-  (`E001`-`E025`), `RdeGraphError`, `RdeCompileError`, `RdeIOError`,
-  `UnconnectedInputError`, and the `E_CYCLE` / `E_UNCONNECTED_INPUT` /
-  `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY` constants. None of them was in a
-  v1 release or raised by any v2 code path. Raise the canonical `RdeError`
-  subclasses with an int code from `ERROR_CATALOG` instead. The removed
-  identifiers are never reused for a new meaning. `RdeError.__init__` /
-  `to_dict` and `RdeExecutionError.__init__` are now defined in their classes
-  with unchanged behaviour, and the stub types `code` / `name` / `message` /
-  `detail` precisely (#646).
-
 ### Fixed
 
-- A failed v2 run writes `<data_root>/job.failed` directly instead of going
-  through v1 `write_job_errorlog_file`, so v2 finalization no longer calls the
-  deprecated `StorageDir.get_datadir` or suppresses its `DeprecationWarning`.
-  The file bytes (`ErrorCode=<int>\nErrorMessage=<text>\n`, UTF-8), error-code
-  selection and `StructuredError` passthrough are unchanged, and
-  `write_job_errorlog_file` keeps its signature, cwd-relative `data/` location
-  and contents for v1 callers (#645).
+- A run interrupted by SIGTERM (3004) inside a v1 utility now ends `failed`
+  with 3004 in the `RunReport` and in `job.failed`. These utilities caught every
+  exception and translated it (`StructuredError`, `ValueError`,
+  `DataRetrievalError`, a `Failure` value) or logged and skipped it, so the
+  interruption was reported with another code: `SmartTableFile.read_table` /
+  `generate_row_csvs_with_file_mapping`, `fileops.readf_json`,
+  `SystemFilesCleaner.clean_directory`, `img2thumb.resize_image`,
+  `ExcelInvoiceFile.save`, `invoice_generator.generate_invoice_from_schema`,
+  `Meta`, `SpecificTermRegistry.search`, `try_result` and
+  `workflows.check_files_result`. Only the interruption passes through;
+  every other exception keeps its v1 translation and `__cause__` (#635).
+- `rde2util.castval` converts a `string` value only for the date formats
+  `date` / `date-time` / `time`. Any other `format` (`uri`, `uuid`,
+  `markdown`, ...) keeps the value unchanged instead of failing in the date
+  parser, as `set_custom_fields` already did. This fixes ExcelInvoice custom
+  columns, SmartTable `custom/` and `meta/` columns, and metadata-def values
+  with such a format. Date formats are converted as before (#622).
 - The type stubs of `RdeConfig` and its `V2*Settings` sections, and of
   `MultiDataTileSettings`, now declare `model_config` as a `ClassVar` and mark
   defaulted fields, so `RdeConfig()` and `V2MultiDataTileSettings()` type check

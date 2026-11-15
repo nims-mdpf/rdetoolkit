@@ -270,3 +270,18 @@ class ConfigError(Exception):
 
         full_message = "\n".join(parts)
         super().__init__(full_message)
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve ``ProcessingError`` from ``rdetoolkit.errors`` on first access.
+
+    ``ProcessingError`` is part of the v2 ``RdeError`` hierarchy, and
+    ``rdetoolkit.errors`` imports this module at load time, so a module-level
+    import here would be circular.
+    """
+    if name == "ProcessingError":
+        from rdetoolkit.errors import ProcessingError  # noqa: PLC0415
+
+        return ProcessingError
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

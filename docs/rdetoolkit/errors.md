@@ -18,6 +18,10 @@ This module handles error handling and exception management in RDEToolKit. It pr
 
 ---
 
+::: src.rdetoolkit.errors.ProcessingError
+
+---
+
 ::: src.rdetoolkit.errors.catch_exception_with_message
 
 ---

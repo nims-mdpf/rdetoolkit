@@ -14,6 +14,8 @@ from typing import Any, Generic, ParamSpec, TypeAlias, TypeVar, Union
 
 from typing_extensions import dataclass_transform
 
+from rdetoolkit._interrupt import is_run_interrupted
+
 if sys.version_info >= (3, 11):
     from typing import Never
 else:
@@ -254,6 +256,10 @@ def try_result(func: Callable[P, T]) -> Callable[P, Result[T, Exception]]:
         try:
             return Success(func(*args, **kwargs))
         except Exception as e:
+            # The run interruption (3004) stops the run; it is never a
+            # Failure value that caller code could inspect and continue past.
+            if is_run_interrupted(e):
+                raise
             return Failure(e)
 
     return wrapper

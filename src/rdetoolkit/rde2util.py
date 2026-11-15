@@ -12,6 +12,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from typing import Any, Final, TypeAlias, TypedDict, cast
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.models.rde2types import MetadataDefJson, MetaItem, MetaType, RdeFsPath, RepeatedMetaType, ValueUnitPair
@@ -527,7 +528,9 @@ class Meta:
             return list(map(str, value))
         try:
             return str(value)
-        except Exception:
+        except Exception as exc:
+            if is_run_interrupted(exc):
+                raise
             return ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -808,20 +811,27 @@ def _cast_number(valstr: Any, outfmt: str | None) -> int | float:
     raise StructuredError(emsg)
 
 
+_DATE_FORMATS = frozenset({"date", "date-time", "time"})
+
+
 def _cast_string(valstr: Any, outfmt: str | None) -> Any:
-    """Cast value to string type with optional format conversion.
+    """Cast value to string type with optional date format conversion.
+
+    Only the date formats ("date", "date-time", "time") convert the value.
+    Any other format (e.g. "uri", "uuid", "markdown"), or none, leaves the
+    value unchanged.
 
     Args:
         valstr: Value to cast.
-        outfmt: Optional date format ("date-time", "date", "time").
+        outfmt: Optional JSON Schema ``format`` of the field.
 
     Returns:
-        Formatted string if outfmt is specified, otherwise valstr as-is.
+        Formatted string for a date format, otherwise valstr as-is.
 
     Note:
-        When outfmt=None, the original type of valstr is preserved.
+        Without a date format, the original type of valstr is preserved.
     """
-    if not outfmt:
+    if outfmt not in _DATE_FORMATS:
         return valstr
     return ValueCaster.convert_to_date_format(valstr, outfmt)
 

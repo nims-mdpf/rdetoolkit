@@ -73,7 +73,21 @@ Plotly is a visualization library that generates interactive graphs and dashboar
     pip install 'rdetoolkit[plotly]'
     ```
 
-### 4. Development Version Installation
+### 4. Installation with PDF / SVG Rendering Support
+
+Install extra dependencies if you use the builtin node `render_png` to turn a PDF page or an SVG drawing into a PNG image. PDF pages are rendered with pypdfium2, which bundles PDFium and needs no system package. SVG drawings are rendered with cairosvg, which also needs the Cairo system library (for example `sudo apt install libcairo2` on Debian/Ubuntu or `brew install cairo` on macOS).
+
+=== "Unix/macOS"
+    ```bash title="terminal"
+    pip install 'rdetoolkit[render]'
+    ```
+
+=== "Windows"
+    ```cmd title="command_prompt"
+    pip install 'rdetoolkit[render]'
+    ```
+
+### 5. Development Version Installation
 
 Install the latest development version directly from GitHub.
 
@@ -90,7 +104,7 @@ Install the latest development version directly from GitHub.
 !!! warning "Development Version Notice"
     Development versions may be unstable. Use the stable release in production.
 
-### 5. Installation in a Virtual Environment
+### 6. Installation in a Virtual Environment
 
 Create an isolated environment per project.
 

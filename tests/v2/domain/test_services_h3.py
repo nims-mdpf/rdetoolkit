@@ -114,7 +114,7 @@ def test_image_artifact_consumes_thumbnail_flag__tc_h3_ep_004(
     # Given: enabled thumbnail generation and a recording converter
     calls: list[tuple[Path, Path]] = []
     monkeypatch.setattr(
-        "rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail",
+        "rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl",
         lambda thumbnail, main: calls.append((thumbnail, main)),
     )
 
@@ -138,7 +138,7 @@ def test_image_artifact_suppresses_converter_failure__tc_h3_ep_005(
     def fail(*args: object) -> None:
         raise OSError("bad image")
 
-    monkeypatch.setattr("rdetoolkit.domain.artifacts.img2thumb.copy_images_to_thumbnail", fail)
+    monkeypatch.setattr("rdetoolkit.domain.artifacts._copy_images_to_thumbnail_impl", fail)
 
     # When/Then: enabled generation preserves v1 exception suppression
     ImageArtifactService().generate(

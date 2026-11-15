@@ -5,9 +5,9 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from rdetoolkit import img2thumb
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.service_errors import execution_error
+from rdetoolkit.img2thumb import _copy_images_to_thumbnail_impl
 from rdetoolkit.types import RdeConfig
 
 
@@ -102,7 +102,7 @@ class ImageArtifactService:
         if not config.system.save_thumbnail_image:
             return
         try:
-            img2thumb.copy_images_to_thumbnail(thumbnail_dir, main_image_dir)
+            _copy_images_to_thumbnail_impl(thumbnail_dir, main_image_dir)
         except Exception as exc:  # noqa: BLE001
             if is_run_interrupted(exc):
                 raise

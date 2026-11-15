@@ -11,6 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.invoicefile._helpers import (
@@ -168,6 +169,8 @@ class ExcelInvoiceFile:
                 _header_enabled = False
             _invoice_df.to_excel(save_path, index=_index_enabled, header=_header_enabled, sheet_name=sheet_name)
         except Exception as e:
+            if is_run_interrupted(e):
+                raise
             emsg = "Failed to save the invoice file."
             raise StructuredError(emsg) from e
 
