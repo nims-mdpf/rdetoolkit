@@ -567,6 +567,24 @@ Code that imports any of these directly should go back to calling
 The `smarttable_rowfile=` argument of `RdeOutputResourcePath` also remains, as in
 v1.7, a deprecated alias of `smarttable_rawfile`.
 
+### What was removed (after 2.0.0rc1, before GA)
+
+- The package-embedded AI-agent guide added in v1.6.0:
+  `rdetoolkit.get_agent_guide()`, the `agent-guide` CLI command, the
+  private `rdetoolkit._agent` module with its bundled Markdown, and the
+  package-local `.agents/` guidance. The installed package no longer ships
+  agent-facing documents, and there is no replacement API. Remove calls to it
+  from code and scripts (#644). Agent guidance for v2 is published as a
+  separate, version-matched [Agent Skills pack](usage/agent_skills.en.md).
+- The draft error taxonomy of the v2 prereleases: the string
+  `rdetoolkit.errors.ErrorCode` enum (`E001`-`E025`), `RdeGraphError`,
+  `RdeCompileError`, `RdeIOError`, `UnconnectedInputError`, and the `E_CYCLE` /
+  `E_UNCONNECTED_INPUT` / `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY`
+  constants. They appeared only in the 2.0.0a1 / 2.0.0rc1 prereleases, never
+  in v1. Use the `RdeError` subclasses (`RdeConfigError`, `RdeRegistryError`,
+  `RdeExecutionError`, `RdeValidationError`, `RdeInternalError`) with an int
+  code from `ERROR_CATALOG` (#646).
+
 ### Behaviour changes
 
 **Introduced in the v1.7 line (unchanged in v2)**
@@ -646,6 +664,26 @@ same fix, this row no longer differs from that release.
 For the run-level invoice row, rely on the seeded tile invoice for registration
 values and compute any tile-specific value inside that tile's flow, then write it
 with `save_invoice`.
+
+### Diagnostics and legacy tracebacks
+
+For v2 troubleshooting, with or without a coding agent, use
+`rdetoolkit report diagnose <run_report.json> --json`. Its versioned envelope
+leaves out exception text, locals, environment values and input paths (see
+[Diagnostic commands](usage/diagnostics.en.md)). The legacy traceback API
+(`handle_exception`, `CompactTraceFormatter`, `SecretsSanitizer`,
+`Config.traceback`, `TRACE_VERBOSE` / `TRACE_FORMAT`) is unchanged and raises no
+new deprecation warning; its `<STACKTRACE>` output is kept for local use on the
+v1 callback entry and is no longer the recommended format to hand to an agent.
+Name-based masking is not anonymisation. See the
+[compatibility matrix](usage/structured_process/traceback.en.md).
+
+`repro export` archives now come in two kinds: the full archive, which holds
+your raw inputs and needs a review before it leaves your machine, and
+`--manifest-only`, which holds digests and diagnostics and cannot be replayed.
+`repro export` no longer replaces an existing `-o` file, and `repro import`
+refuses unsafe or inconsistent archives (see
+[repro](usage/cli.en.md)). Nothing is uploaded automatically.
 
 ### Rollback
 

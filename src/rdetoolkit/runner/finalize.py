@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import os
 import uuid
-import warnings
 from pathlib import Path
 from collections.abc import Callable
 from typing import Any
 
-from rdetoolkit.errors import ERROR_CATALOG, ProcessingError, write_job_errorlog_file
+from rdetoolkit.errors import ERROR_CATALOG, ProcessingError, _write_job_failed_marker
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.types import RdeConfig
@@ -108,8 +107,11 @@ class RunFinalizer:
 def finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None:
     """Persist the run report and write ``job.failed`` for failed runs.
 
-    The ``job.failed`` file is delegated to v1 ``write_job_errorlog_file`` so
-    the RDE platform format stays owned by the existing public API.
+    The marker goes to ``data_root / "job.failed"`` through the format
+    primitive shared with v1 ``write_job_errorlog_file``, so the bytes are
+    identical. The v1 wrapper itself is not called: it resolves its filename
+    through the deprecated ``StorageDir.get_datadir``, while the destination
+    here is the Runner's already-resolved data root (issue #645).
 
     Args:
         report: Run report produced by the Runner.
@@ -122,12 +124,7 @@ def finalize(report: RunReport, config: RdeConfig, *, data_root: Path) -> None:
         code, message = _failure_error(report)
         failure_path = (data_root / "job.failed").resolve()
         failure_path.parent.mkdir(parents=True, exist_ok=True)
-        with warnings.catch_warnings():
-            # The v1 writer joins an absolute filename onto the deprecated
-            # ``StorageDir.get_datadir``, which only contributes a warning the
-            # user cannot act on; the path itself is fully resolved here.
-            warnings.filterwarnings("ignore", message="get_datadir is deprecated", category=DeprecationWarning)
-            write_job_errorlog_file(code, message, filename=str(failure_path))
+        _write_job_failed_marker(failure_path, code, message)
 
 
 def write_run_report(report: RunReport, *, data_root: Path) -> None:

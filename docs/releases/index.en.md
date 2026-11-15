@@ -674,10 +674,15 @@ value = result.unwrap_or_else(lambda e: -1)  # -1
 
 #### AI Coding Assistant Agent Guide (Issue #380)
 
+> Historical v1 feature. The embedded guide, `rdetoolkit.get_agent_guide()` and
+> the `agent-guide` command were removed before v2 GA; see the
+> [migration guide](../migration_v1_to_v2.en.md). Use the separately distributed,
+> version-matched [Skills pack](../usage/agent_skills.en.md) instead.
+
 Added embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.).
 
 **Features**
-- `rdetoolkit.agent_guide()`: Function to retrieve guide text
+- `rdetoolkit.get_agent_guide()`: Function to retrieve guide text
 - `rdetoolkit agent-guide`: CLI command to display the guide
 
 **Usage Examples**
@@ -685,7 +690,7 @@ Added embedded guide for AI coding assistants (Claude Code, GitHub Copilot, Curs
 import rdetoolkit
 
 # Get the agent guide
-guide = rdetoolkit.agent_guide()
+guide = rdetoolkit.get_agent_guide()
 print(guide)
 ```
 
@@ -698,6 +703,9 @@ rdetoolkit agent-guide
 
 #### Agent Skills for AI Coding Assistants
 
+> Historical v1 layout. v2 uses five root-level `.agents/skills/` Skills distributed
+> separately from wheel/sdist; see the [current installation guide](../usage/agent_skills.en.md).
+
 Added Agent Skills (`.agents/SKILL.md`) to provide contextual guidance for AI coding assistants (Claude Code, etc.) when developing RDE structured programs.
 
 **Difference from existing Agent Guide (`_agent/`)**
@@ -705,7 +713,7 @@ Added Agent Skills (`.agents/SKILL.md`) to provide contextual guidance for AI co
 | Aspect | Agent Guide (`_agent/`) | Agent Skills (`.agents/`) |
 |--------|-------------------------|---------------------------|
 | Distribution | Bundled in package (available after pip install) | In source repository (auto-detected during development) |
-| Access | `rdetoolkit.agent_guide()` API / CLI | Auto-discovered and applied by Claude Code |
+| Access | `rdetoolkit.get_agent_guide()` API / CLI | Auto-discovered and applied by Claude Code |
 | Purpose | General-purpose agent guide | Contextual guidance during development sessions |
 
 **Structure**

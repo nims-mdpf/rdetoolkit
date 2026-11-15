@@ -63,6 +63,7 @@ ROOT_HELP = CommandHelp(
     examples=(
         "rdetoolkit init",
         "rdetoolkit validate all",
+        "rdetoolkit doctor --format json",
         "rdetoolkit run modules.processing:pipeline",
         "rdetoolkit report show data/logs/run_report_<id>.json",
         "rdetoolkit package -s container -o rde_submission.zip",
@@ -73,7 +74,6 @@ ROOT_HELP = CommandHelp(
         (2, "`run`: partial (some tiles failed); other commands: invalid command line or, for `validate`, a usage error"),
         (3, "invalid input to a v2 command (bad reference, unreadable file, lint violations)"),
     ),
-    see_also=("rdetoolkit agent-guide",),
 )
 
 #: Root command order: the root ``--help`` prints panels in the order their
@@ -83,6 +83,7 @@ _COMMAND_ORDER = (
     "new",
     "plot",
     "validate",
+    "doctor",
     "run",
     "report",
     "nodes",
@@ -92,7 +93,6 @@ _COMMAND_ORDER = (
     "package",
     "repro",
     "migrate",
-    "agent-guide",
     "version",
 )
 
@@ -516,6 +516,15 @@ def _register_validate_commands() -> typer.Typer:
 validate_app = _register_validate_commands()
 
 
+def _register_doctor_command() -> None:
+    from rdetoolkit.cli.doctor_cmd import DOCTOR_HELP, doctor
+
+    app.command("doctor", help=DOCTOR_HELP.render(), short_help=DOCTOR_HELP.summary, rich_help_panel=PANEL_VALIDATE)(doctor)
+
+
+_register_doctor_command()
+
+
 # --------------------------------------------------------------------------
 # Run
 # --------------------------------------------------------------------------
@@ -748,40 +757,6 @@ migrate_app = _register_migrate_commands()
 # --------------------------------------------------------------------------
 # Info
 # --------------------------------------------------------------------------
-
-AGENT_GUIDE_HELP = CommandHelp(
-    summary="Display agent guide for AI coding assistants: the rdetoolkit workflow and API as Markdown.",
-    details="The summary guide covers the common workflow; `--detailed` adds advanced patterns and the API reference.",
-    outputs=("Prints Markdown to stdout. Writes no files; redirect to save it.",),
-    examples=("rdetoolkit agent-guide", "rdetoolkit agent-guide --detailed > AGENT_GUIDE.md"),
-    exit_codes=(EXIT_OK, (1, "the packaged guide file is missing or unreadable"), EXIT_CLICK_USAGE),
-    see_also=("rdetoolkit --help",),
-)
-
-
-@app.command("agent-guide", help=AGENT_GUIDE_HELP.render(), short_help=AGENT_GUIDE_HELP.summary, rich_help_panel=PANEL_INFO)
-def agent_guide(
-    detailed: Annotated[
-        bool,
-        typer.Option(
-            "--detailed",
-            help="Show detailed guide with advanced patterns and full API reference.",
-        ),
-    ] = False,
-) -> None:
-    """Display agent guide for AI coding assistants."""
-    from rdetoolkit._agent import get_guide
-
-    try:
-        guide_content = get_guide(detailed=detailed)
-        typer.echo(guide_content)
-    except FileNotFoundError as e:
-        typer.secho(f"Error: Guide file not found: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from e
-    except OSError as e:
-        typer.secho(f"Error: Failed to read guide file: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from e
-
 
 VERSION_HELP = CommandHelp(
     summary="Print the installed rdetoolkit version.",

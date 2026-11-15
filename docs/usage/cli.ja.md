@@ -22,12 +22,12 @@ RDEToolKitは、RDE構造化処理の開発ワークフロー全体を支援す�
 | ------ | -------- | ---- |
 | Scaffold | `init` | プロジェクトの雛形を作成 |
 | Generate | `new config`、`new invoice`、`new excelinvoice`、`new processing`、`plot` | プロジェクトファイルやグラフを生成 |
-| Validate | `validate invoice`、`validate invoice-schema`、`validate metadata`、`validate metadata-def`、`validate all` | RDEのスキーマとデータファイルを検証 |
+| Validate | `validate invoice`、`validate invoice-schema`、`validate metadata`、`validate metadata-def`、`validate all`、`doctor` | RDEのスキーマとデータファイルを検証し、プロジェクトを実行できるか確認 |
 | Run | `run` | 構造化処理を実行(v2 flow、または `--legacy` で v1 のデータセット関数) |
-| Inspect | `report show`、`report trace`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
+| Inspect | `report show`、`report trace`、`report diagnose`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
 | Package | `package`、`repro export`、`repro import` | 提出用アーカイブの作成、実行の書き出しと再取り込み |
 | Migrate | `migrate check`、`migrate apply` | v2 移行が必要な v1 コードと CLI 呼び出しの検出・変換 |
-| Info | `agent-guide`、`version` | AIエージェントガイドとインストール済みバージョンの表示 |
+| Info | `version` | インストール済みバージョンの表示 |
 | Deprecated (removed in v2.1) | v1 のコマンド名 | 警告を表示する別名として残っています。[v2.0 でのコマンド名の変更](#renamed-commands)を参照してください |
 
 ## 利用可能なコマンド
@@ -373,6 +373,16 @@ fi
 !!! tip "詳細なドキュメント"
     CI/CD統合例を含む包括的なバリデーションドキュメントについては、[バリデーション機能](validation.ja.md)を参照してください。
 
+### doctor: プロジェクトを実行できるかの確認
+
+入力ファイル、設定、モード、invoice とメタデータの定義を、Runner 自身の validate-only の事前検証で確認します。事前検証は入力の一時コピーに対して実行します。`--ref pkg.mod:callable` を指定すると flow を import し、Runner が引数を注入できるかも確認します。doctor は flow も `prepare=` フックも呼び出さず、プロジェクトには何も書き込みません。
+
+```bash title="flow を含めてプロジェクトを事前確認し、JSON で出力"
+python3 -m rdetoolkit doctor --format json --ref modules.processing:pipeline
+```
+
+終了コード: `0` 合格(警告は可)、`1` 失敗したチェックあり、`2` コマンドラインが不正、`3` `PROJECT_DIR` がディレクトリでない、または `--format` が `text`/`json` 以外。JSON の形式と各チェックの内容は[診断コマンド (JSON)](diagnostics.ja.md)を参照してください。
+
 ### run: 構造化処理の実行 { #run }
 
 プロジェクトのルートで構造化処理を実行します。Runner は `data/inputdata`、`data/invoice`、`data/tasksupport` を読み、`rdeconfig.yaml` を探して、すべてのタイルを処理します。
@@ -422,7 +432,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 2 | 部分成功: 一部のタイルが失敗(未知のオプションなどパーサーのエラーでも使用) |
 | 3 | REF が不正、flow を解決できない、`--config` を読めない、または `--legacy` に適用できないオプションを指定 |
 
-### report show / report trace: 実行レポートの確認
+### report show / report trace / report diagnose: 実行レポートの確認
 
 `rdetoolkit run` が `data/logs/` に書き出す実行レポート(`run_report_<run_id>.json`)を読みます。
 
@@ -431,6 +441,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
     ```shell
     python3 -m rdetoolkit report show <run_report.json>
     python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    python3 -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
     ```
 
 === "Windows"
@@ -438,16 +449,18 @@ python3 -m rdetoolkit run --legacy main.py::dataset
     ```powershell
     py -m rdetoolkit report show <run_report.json>
     py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
+    py -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
     ```
 
 - `report show` は run id、ステータス、反復回数、失敗した node 呼び出しごとの `failed` 行、設定されていればエラーメッセージを表示します。
 - `report trace` はレポートに記録された Call Sequence(実行順の node 呼び出し一覧。call id、親 flow、ステータス、引数のプレビュー)を描画します。これは呼び出しログであり、データの依存関係は描きません。`--format` で `json`(デフォルト)、`mermaid`(シーケンス図)、`html`(単体の HTML ページ)を選びます。結果は標準出力に出るので、ファイルに保存する場合はリダイレクトしてください。
+- `report diagnose` は記録された失敗ごとに、反復番号、node id、call id、カタログのコード、対処方法を表示します。あわせて、レポートの隣にある `iterations/` の詳細ファイルとイベントログが同じ実行のものかを確認します。例外のメッセージや引数のプレビューは表示しません。`--json` を付けると[診断結果の JSON](diagnostics.ja.md)を出力します。レポートを診断できれば、実行が失敗していても終了コードは `0` です。`--fail-on-error` を付けると、失敗の記録がある場合に `1` で終了します。
 
 ```bash title="Call Sequence を HTML ページとして保存"
 python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
 ```
 
-終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートファイルが存在しないか不正(`report trace` では未知の `--format` も含む)。
+終了コード: `0` 成功、`1` `report diagnose --fail-on-error` で失敗の記録あり、`2` コマンドラインが不正、`3` レポートファイルが存在しないか不正(`report trace` では未知の `--format` も含む)。
 
 ### plot: CSVからグラフを描画
 
@@ -489,6 +502,8 @@ python3 -m rdetoolkit plot sample.csv -o data/other_image --title 'XRD pattern'
 ```bash title="プロジェクトのモジュールに含まれる node を一覧"
 python3 -m rdetoolkit nodes list --module modules.processing
 ```
+
+`nodes lint --json` は、検出結果をテキストではなく[診断結果の JSON](diagnostics.ja.md)で出力します。終了コードは同じです。
 
 終了コード: `0` 成功、`2` コマンドラインが不正、`3` 未知の id、import に失敗したモジュール、または(`nodes lint` で)違反の検出。
 
@@ -576,10 +591,16 @@ def insecure():
 
 `repro export` は実行レポート、実行時の入力ディレクトリ(`data/inputdata`、`data/invoice`、`data/tasksupport`)、実際に使われた `rdeconfig.yaml` を 1 つの zip にまとめます。`repro import` はその zip を新規または空のディレクトリに展開し、`rdetoolkit run` を実行できる状態にします。
 
+アーカイブには 2 種類あります。
+
+- **完全なアーカイブ**(既定): ローカルで再現するためのものです。すべての入力ファイル、invoice、実行レポートそのもの、実際に使われた設定を含むため、未公開の研究データ、個人情報、認証情報が入っている場合があります。`repro export` は書き出す前に、ディレクトリごとのファイル数とバイト数を警告とともに標準エラー出力に表示します。アップロードはしません。共有する前に中身を確認してください。外部のエージェントや issue に、確認なしで添付しないでください。
+- **メタデータのみ**(`--manifest-only`): zip には `repro_manifest.json` が 1 つだけ入ります(`schema_version` は `"2"`、`archive_kind: "manifest-only"`、`replayable: false`)。内容は、ディレクトリごとのファイル数とバイト数、番号(`file_id`)で区別した各ファイルのサイズと SHA-256(ファイル名は含めません)、レポートの `config_digest`、[`report diagnose` の出力](diagnostics.ja.md)です。入力ファイルの中身、invoice や設定の値、レポートの文面は含まず、`repro import` では読み込めません。同じファイルを持っている人にはダイジェストからファイルを特定されるため、匿名化にはなりません。
+
 === "Unix/macOS"
 
     ```shell
     python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    python3 -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
     python3 -m rdetoolkit repro import <archive.zip> <展開先ディレクトリ>
     ```
 
@@ -587,13 +608,16 @@ def insecure():
 
     ```powershell
     py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    py -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
     py -m rdetoolkit repro import <archive.zip> <展開先ディレクトリ>
     ```
 
-- 実行時に `rdetoolkit run --config` を使った場合は `--config` が必須です。設定はレポートの `config_digest` を再現できる場合にだけアーカイブされます。
-- `repro import` は上書きしません。空でない展開先は拒否されます。
+- 実行時に `rdetoolkit run --config` を使った場合は `--config` が必須です。設定はレポートの `config_digest` を再現できる場合にだけアーカイブされます。このダイジェストは YAML ファイルではなく、実際に使われた設定をキー順に並べた JSON の SHA-256 です。そのため、アーカイブ内の `rdeconfig.yaml` は書き方が違っても一致します。
+- `repro export` は既存の `-o` のファイルを置き換えません。シンボリックリンクや特殊ファイルの入力、読めないディレクトリは、たどったり飛ばしたりせずに拒否します(データはプロジェクト内にコピーしてください)。名前が `run_report_` で始まらないレポートは `data/logs/run_report_export.json` として格納します。
+- `repro import` は上書きしません。空でない展開先と、シンボリックリンクの展開先は拒否されます。受け付けるのは書き出し時の構成(`data/{inputdata,invoice,tasksupport}/…`、1 つの `data/logs/run_report_*.json`、`rdeconfig.yaml`、`schema_version` が `"1"` の `repro_manifest.json`)だけです。次のものは、何も展開する前に拒否します: 絶対パスや `..` を含むパス、空のパス要素、バックスラッシュ、制御文字(名前を途中で切る NUL を含む)、リンク・デバイスなどの特殊なエントリー、暗号化されたエントリー、無圧縮(stored)と deflate 以外の圧縮方式、大文字小文字や Unicode の正規化の違いだけの 2 つの名前、ディレクトリとして使われているファイル、100,000 を超えるエントリー、展開後 16 GiB を超える合計、1,024 文字または 64 階層を超えるパス、1 MiB を超える manifest、1,100 倍を超えて展開されるアーカイブ(deflate ではありえない比率なので、重なったエントリーや偽装されたエントリーだけが該当します)。Windows ではさらに `:`、`.` や空白で終わる名前、`CON` や `AUX` などのデバイス名も拒否します。書き出し時にも同じ制限を確認するため、インポートで拒否されるアーカイブを書き出すことはありません。
+- アーカイブは展開先の隣にある隠しディレクトリにいったん展開し、格納された設定を読み直して、manifest とレポートと同じ `config_digest` になるかを確認します。一致した場合に限り、その一時ディレクトリを展開先の名前に変更します。失敗した場合は一時ディレクトリを削除し、展開先は元のままです。ダイジェストが一致しても、各部分の組み合わせが正しいことがわかるだけで、誰が作ったかや、データと設定が信頼できるかはわかりません。flow を実行する前に内容を確認してください。
 
-終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力ディレクトリがない、設定が digest を再現しない、展開先が空でない、または安全でないメンバーパスを含む場合。
+終了コード: `0` 成功、`2` コマンドラインが不正、`3` レポートや zip を読めない、入力がないか安全でない、出力先が既にある、設定が digest を再現しない、展開先が空でない、またはインポートで受け付けないメンバー・manifest・ダイジェストがある場合。
 
 ### migrate: v1 コードの検出と変換
 
@@ -621,34 +645,6 @@ python3 -m rdetoolkit migrate apply container --no-dry-run -o container_v2
 終了コード: `0` 成功、`2` コマンドラインが不正(`migrate apply` では入力パスが存在しない場合も含む)、`3` パスが存在しない(`migrate check`)、または Python ファイルが見つからない、出力ディレクトリが既に存在するか入力の内側にある(`migrate apply`)。
 
 移行手順は [v1 から v2 への移行](../migration_v1_to_v2.md) を参照してください。
-
-### agent-guide: AIエージェントガイドの表示
-
-AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor等）向けの組み込みガイドを表示します。
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit agent-guide [--detailed]
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit agent-guide [--detailed]
-    ```
-
-このコマンドはrdetoolkitの使用方法、アーキテクチャ、ベストプラクティスに関するガイドテキストを Markdown で出力します。`--detailed` を付けると応用パターンと API リファレンス全体が加わります。AIアシスタントのコンテキストに追加して、rdetoolkitを使用したコード生成の精度を向上させることができます。
-
-#### Pythonからの使用
-
-```python
-import rdetoolkit
-
-# エージェントガイドを取得
-guide = rdetoolkit.agent_guide()
-print(guide)
-```
 
 ### version: バージョン確認
 

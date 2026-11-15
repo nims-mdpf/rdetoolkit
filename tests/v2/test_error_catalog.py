@@ -7,7 +7,7 @@ Authority: local/develop/v2/Design.md §9, decisions_pre_A1.md.
 Coverage:
   A1.2 ERROR_CATALOG structure, code uniqueness, band alignment
   A1.4 RdeError v2 hierarchy (int code + name attr, __cause__ chain, call_id)
-  A1.6 E001-E025 / E_CYCLE deprecated but still importable
+  A1.6 E001-E025 / E_CYCLE draft identifiers removed pre-GA (issue #646)
   A1.7 errors.pyi restored declarations (StorageDir, CompactTraceFormatter,
         get_traceback_settings_from_env)
   A1.8 scripts/gen_error_docs.py exists and exits 0 under --check
@@ -360,45 +360,28 @@ class TestRdeErrorHierarchyV2:
 
 
 # ---------------------------------------------------------------------------
-# A1.6 — Deprecated identifiers: E001-E025 and E_CYCLE still importable
+# A1.6 — Draft identifiers E001-E025 / E_CYCLE: removed pre-GA (issue #646)
 # ---------------------------------------------------------------------------
+# A1.6 originally kept the string ``ErrorCode`` enum and ``E_CYCLE`` importable
+# as deprecated markers. They were pre-GA v2 draft symbols (absent from every v1
+# release) and were removed by issue #646; see tests/v2/test_errors_canonical.py
+# for the full inventory test.
 
 
-class TestV1DeprecatedIdentifiers:
-    """E001-E025 and E_CYCLE remain importable (v1 compat) but are marked deprecated."""
+class TestDraftIdentifiersRemoved:
+    """The draft string error identifiers are no longer published."""
 
-    def test_error_code_e001_is_still_importable(self) -> None:
-        """ErrorCode.E001 must still be importable after deprecation marking (append-only)."""
-        from rdetoolkit.errors import ErrorCode
+    def test_error_code_enum_is_removed(self) -> None:
+        """The string ``ErrorCode`` enum (E001-E025) is not an attribute of rdetoolkit.errors."""
+        import rdetoolkit.errors as errors_module
 
-        assert hasattr(ErrorCode, "E001")
+        assert not hasattr(errors_module, "ErrorCode")
 
-    def test_error_code_e025_is_still_importable(self) -> None:
-        """ErrorCode.E025 must still be importable — last of the deprecated range."""
-        from rdetoolkit.errors import ErrorCode
+    def test_e_cycle_is_removed(self) -> None:
+        """``E_CYCLE`` is not an attribute of rdetoolkit.errors."""
+        import rdetoolkit.errors as errors_module
 
-        assert hasattr(ErrorCode, "E025")
-
-    def test_all_e001_to_e025_codes_still_present(self) -> None:
-        """All 25 deprecated ErrorCode members E001-E025 must still be accessible."""
-        from rdetoolkit.errors import ErrorCode
-
-        for i in range(1, 26):
-            name = f"E{i:03d}"
-            assert hasattr(ErrorCode, name), f"ErrorCode.{name} missing after deprecation"
-
-    def test_e_cycle_is_importable_as_deprecated_symbol(self) -> None:
-        """E_CYCLE must be importable from rdetoolkit.errors (廃番だが削除しない)."""
-        from rdetoolkit.errors import E_CYCLE  # noqa: F401
-
-    def test_error_code_class_docstring_mentions_deprecation(self) -> None:
-        """ErrorCode class docstring must mention '廃番' (Design §9, A1.6)."""
-        from rdetoolkit.errors import ErrorCode
-
-        doc = ErrorCode.__doc__ or ""
-        assert "廃番" in doc or "deprecated" in doc.lower(), (
-            "ErrorCode class docstring does not mention deprecation (廃番 / deprecated)"
-        )
+        assert not hasattr(errors_module, "E_CYCLE")
 
 
 # ---------------------------------------------------------------------------

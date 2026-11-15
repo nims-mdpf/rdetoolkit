@@ -50,7 +50,6 @@ __all__ = [
     "try_result",
     "errors",
     "exceptions",
-    "get_agent_guide",
     "img2thumb",
     "invoicefile",
     "rde2util",
@@ -68,17 +67,3 @@ __all__ = [
     "flow",
     "as_node",
 ]
-
-def get_agent_guide(detailed: bool = False) -> str:
-    """Return the agent guide as a string.
-
-    Kept for v1 compatibility only; slated for removal by RDE-005 (#644).
-
-    Args:
-        detailed: If True, return the detailed guide (~5KB).
-                  If False (default), return the summary (~2KB).
-
-    Returns:
-        Markdown-formatted guide string.
-    """
-    ...

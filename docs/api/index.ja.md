@@ -53,9 +53,8 @@ from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
 | `rde2types` | モジュール | `rdetoolkit.models.rde2types` |
 <!-- top-level-api:end -->
 
-`__version__` もエクスポートされます。従来の `get_agent_guide()` は v1 互換のために
-引き続きインポートできますが、サポート対象の v2 API には含まれず、削除予定です。
-GA 前のトップレベルエクスポートで削除されたものはありません。
+`__version__` もエクスポートされます。従来の `get_agent_guide()` は削除されました (#644)。
+サポート対象の v2 API に含まれたことはありません。
 
 トップレベルの `config` 属性は設定*モデル*のモジュール (`rdetoolkit.models.config`) です。
 設定ファイルの*読み込み*関数は `rdetoolkit.config` パッケージにあるため、

@@ -53,9 +53,8 @@ from rdetoolkit import Failure, Result, Success, as_node, flow, node, workflows
 | `rde2types` | module | `rdetoolkit.models.rde2types` |
 <!-- top-level-api:end -->
 
-`__version__` is also exported. The legacy `get_agent_guide()` helper remains
-importable for v1 compatibility but is not part of the supported v2 API and is
-scheduled for removal. No pre-GA top-level export has been removed.
+`__version__` is also exported. The legacy `get_agent_guide()` helper has been
+removed (#644); it was never part of the supported v2 API.
 
 The top-level `config` attribute is the configuration *models* module
 (`rdetoolkit.models.config`). The configuration *loader* functions live in the

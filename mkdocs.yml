@@ -70,6 +70,7 @@ plugins:
                     - ファイル/フォルダモード: usage/config/file_folder_mode.md
                     - マジック変数: usage/config/magic_variable.md
                     - コマンドライン操作: usage/cli.md
+                    - 診断コマンド (JSON): usage/diagnostics.md
                 - テンプレートファイルと検証:
                     - テンプレートファイル: usage/metadata_definition_file.md
                     - データ検証: usage/validation.md
@@ -128,6 +129,9 @@ plugins:
                 - 概要: development/index.md
                 - ドキュメントへの貢献: development/docs.md
                 - ソースコードへの貢献: development/contributing.md
+                - v2 アーキテクチャ: v2_architecture.md
+                - Agent Skills の検証記録: development/agent-skills-verification.md
+                - リポジトリ自動化の方針: development/tooling-policy.md
                 - ドキュメントワークフロー: contribute/documents_contributing.md
                 - コントリビューションガイド: contribute/home.md
                 - ソースコードワークフロー: contribute/sourcecode_contributing.md
@@ -169,6 +173,7 @@ plugins:
                     - File/Folder Modes: usage/config/file_folder_mode.md
                     - Magic Variables: usage/config/magic_variable.md
                     - Command Line Interface: usage/cli.md
+                    - Diagnostic Commands (JSON): usage/diagnostics.md
                 - Templates & Validation:
                     - Template Files: usage/metadata_definition_file.md
                     - Data Validation: usage/validation.md
@@ -227,6 +232,9 @@ plugins:
                 - Overview: development/index.md
                 - Documentation: development/docs.md
                 - Source Code: development/contributing.md
+                - v2 Architecture: v2_architecture.md
+                - Agent Skills Verification: development/agent-skills-verification.md
+                - Repository Tooling Policy: development/tooling-policy.md
                 - Documentation Workflow: contribute/documents_contributing.md
                 - Contribution Home: contribute/home.md
                 - Source Contribution Workflow: contribute/sourcecode_contributing.md

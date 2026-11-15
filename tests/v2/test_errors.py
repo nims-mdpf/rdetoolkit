@@ -10,7 +10,7 @@ EP Table:
 | RdeError             | raise + catch         | exception behavior     | catchable as Exception    | TC-EP-016   |
 | RdeError             | str representation    | string conversion      | includes code+message     | TC-EP-017   |
 | Subclass errors      | specific error types  | hierarchy check        | isinstance(RdeError)      | TC-EP-018   |
-| ErrorCode enum       | E001-E025 defined     | completeness           | all codes exist           | TC-EP-019   |
+| ErrorCode enum       | removed pre-GA (#646) | draft retired          | not an attribute          | TC-EP-019   |
 | RdeError             | with detail           | optional detail field  | detail preserved          | TC-EP-020   |
 
 BV Table:
@@ -135,48 +135,34 @@ class TestErrorSubclasses:
     def test_subclasses_are_rde_error__tc_ep_018(self) -> None:
         """TC-EP-018: Specific error types are RdeError subclasses."""
         from rdetoolkit.errors import (
-            RdeError,
-            RdeGraphError,
-            RdeCompileError,
-            RdeExecutionError,
             RdeConfigError,
-            RdeIOError,
+            RdeError,
+            RdeExecutionError,
+            RdeInternalError,
+            RdeRegistryError,
+            RdeValidationError,
         )
 
-        # When: creating each subclass
-        graph_err = RdeGraphError(code="E001", message="cycle")
-        compile_err = RdeCompileError(code="E006", message="type mismatch")
-        exec_err = RdeExecutionError(code="E011", message="node failed")
-        config_err = RdeConfigError(code="E016", message="invalid config")
-        io_err = RdeIOError(code="E021", message="file not found")
+        # When: creating each canonical subclass (Design §9.2) with a code of its band
+        errs = [
+            RdeConfigError(code=1002, message="invalid config"),
+            RdeRegistryError(code=2001, message="duplicate node"),
+            RdeExecutionError(code=3001, message="node failed"),
+            RdeValidationError(code=4001, message="invalid schema"),
+            RdeInternalError(code=5001, message="invariant"),
+        ]
 
-        # Then: all are RdeError instances
-        assert isinstance(graph_err, RdeError)
-        assert isinstance(compile_err, RdeError)
-        assert isinstance(exec_err, RdeError)
-        assert isinstance(config_err, RdeError)
-        assert isinstance(io_err, RdeError)
-
-        # And: all are Exception instances
-        assert isinstance(graph_err, Exception)
+        # Then: all are RdeError and Exception instances
+        for err in errs:
+            assert isinstance(err, RdeError)
+            assert isinstance(err, Exception)
 
 
 class TestErrorCodes:
     """Tests for error code definitions."""
 
-    def test_error_codes_e001_to_e025_exist__tc_ep_019(self) -> None:
-        """TC-EP-019: Error codes E001-E025 are all defined."""
-        from rdetoolkit.errors import ErrorCode
+    def test_draft_string_error_codes_are_removed__tc_ep_019(self) -> None:
+        """TC-EP-019: the pre-GA string ``ErrorCode`` enum (E001-E025) was removed (issue #646)."""
+        import rdetoolkit.errors as errors_module
 
-        # Then: all 25 codes exist
-        for i in range(1, 26):
-            code_name = f"E{i:03d}"
-            assert hasattr(ErrorCode, code_name), f"ErrorCode.{code_name} not found"
-
-    def test_error_codes_have_string_values(self) -> None:
-        """Error code values are strings matching E### pattern."""
-        from rdetoolkit.errors import ErrorCode
-
-        # Then: each code's value is the string form
-        assert ErrorCode.E001.value == "E001"
-        assert ErrorCode.E025.value == "E025"
+        assert not hasattr(errors_module, "ErrorCode")

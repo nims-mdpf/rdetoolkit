@@ -1,170 +1,118 @@
-# Agent Skills for AI Coding Assistants
+# Agent Skills for v2 processing authors
 
-## What are Agent Skills?
+The canonical source is the five `.agents/skills/rdetoolkit-*` directories at the
+repository root. These are downstream workflow Skills, separate from the
+repository's contributor `AGENTS.md` and `CLAUDE.md`. Neither the runtime wheel
+nor its source distribution contains the Skills or retired embedded guidance.
 
-The rdetoolkit source repository includes a development guide (`.agents/SKILL.md`) that AI coding assistants like Claude Code automatically detect and use.
+| Skill | Use it for |
+| --- | --- |
+| `rdetoolkit-flow-authoring` | Create eager v2 flows and explicit-argument nodes |
+| `rdetoolkit-metadata` | Build and save metadata with the actual schema |
+| `rdetoolkit-debugging` | Inspect failures, repair inputs/code, rerun |
+| `rdetoolkit-testing` | Test with isolated fixtures and real outputs |
+| `rdetoolkit-v1-migration` | Migrate existing v1 callbacks and compare artifacts |
 
-When this file exists in a repository, the AI assistant generates code with awareness of rdetoolkit's API conventions and project structure. For example, it knows to use `rdetoolkit.fileops.read_from_json_file()` instead of the standard `json.load()` for reading JSON files, and applies this knowledge without being told.
+## Download once, install offline
 
-## Difference from the Agent Guide API
+Use **exactly the installed package version**, including `a`, `b` or `rc` suffix.
+A pack from another version is rejected. Determine the runtime version with
+`python -c "from importlib.metadata import version; print(version('rdetoolkit'))"`.
+The release pipeline attaches `rdetoolkit-skills-<version>.zip` and its
+`.zip.sha256` checksum to the GitHub release of that version. Packs exist for
+releases built after this pipeline was added; `v2.0.0rc1` has none. Development
+checkouts can build the same asset with
+`python scripts/skills_pack.py build --output skill-dist`. Downloading does not
+require cloning the repository:
 
-rdetoolkit ships two separate AI assistant guides. They serve different purposes.
-
-### Agent Guide (`_agent/` directory)
-
-A guide bundled inside the installed package. Accessible via API or CLI after `pip install`.
-
-```python
-import rdetoolkit
-
-guide = rdetoolkit.agent_guide()
+```sh
+VERSION=$(python -c "from importlib.metadata import version; print(version('rdetoolkit'))")
+gh release download "v$VERSION" --repo nims-mdpf/rdetoolkit --pattern "rdetoolkit-skills-$VERSION.zip*"
+python -m zipfile -e "rdetoolkit-skills-$VERSION.zip" skills-pack
+python skills-pack/install_skills.py install --pack "rdetoolkit-skills-$VERSION.zip" --project ./your-project --agent codex
+python skills-pack/install_skills.py install --pack "rdetoolkit-skills-$VERSION.zip" --project ./your-project --agent claude
 ```
 
-```bash
-rdetoolkit agent-guide
+Run the installer with Python **3.10 or newer**, in the environment containing
+rdetoolkit. It reads the installed version without importing runtime code.
+Alternatively pass `--version <version>` after independently checking that exact
+runtime version. The downloaded ZIP includes the standalone installer and a
+schema-versioned manifest with SHA-256 hashes of all payload files. The installer
+checks those hashes and rejects unsafe paths before writing. A checksum detects
+corruption, not publisher identity; obtain both files from the trusted release.
+You can verify the ZIP's SHA-256 against the `.sha256` text using
+`sha256sum` (Unix) or `Get-FileHash` (PowerShell).
+
+After downloading, extraction, installation and execution need **no network**.
+No ordinary rdetoolkit workflow fetches remote instructions. Keep the ZIP for
+future offline reinstalls. All file copying is implemented in Python; the same
+installer works on Windows without symlinks:
+
+```powershell
+$VERSION = py -c "from importlib.metadata import version; print(version('rdetoolkit'))"
+py -m zipfile -e "rdetoolkit-skills-$VERSION.zip" skills-pack
+py skills-pack/install_skills.py install --pack "rdetoolkit-skills-$VERSION.zip" --project .\your-project --agent claude
 ```
 
-This is a general-purpose guide available in any environment where rdetoolkit is installed. Use it when you've installed rdetoolkit as a dependency but haven't cloned the source repository.
+## Agent discovery and verification
 
-### Agent Skills (`.agents/` directory)
+| Agent | Project installation | Verification status |
+| --- | --- | --- |
+| Codex | `.agents/skills/<name>/SKILL.md` | Copy/install and real `skills/list` discovery smoke described in the [verification record](../development/agent-skills-verification.md) |
+| Claude Code | `.claude/skills/<name>/SKILL.md` | Copy/install and actual client SDK initialization discovered all five project Skills; see the [verification record](../development/agent-skills-verification.md) |
 
-A guide placed in the source repository. Claude Code loads it automatically when opening the project and uses it as contextual guidance throughout the development session.
+Start/restart the agent in `your-project` after installing. Codex should list all
+five names in its Skills picker; Claude Code should expose them as slash
+commands (for example `/rdetoolkit-flow-authoring`).
+Check that each name appears before relying on automatic activation. Their YAML
+`name` and `description` define distinct triggers; installing a Skill does not
+require sending research inputs or diagnostics to a cloud model.
+See the upstream [Codex Skills documentation](https://developers.openai.com/codex/skills/)
+and [Claude Code Skills documentation](https://code.claude.com/docs/en/skills).
+No claim is made that Claude reads `.agents/SKILL.md` automatically.
 
-Agent Skills go deeper than the Agent Guide. They include a processing mode selection flowchart, correct CLI operation order, configuration file specs, common mistakes with fixes, and a complete pattern for building structured processing from scratch.
+Other agents (Copilot, Cursor, Gemini, OpenCode, Devin) are **best effort,
+not verified**. Follow their current discovery documentation and copy the
+individual Skill directories as needed. Do not assume they discover these paths
+or follow symlinks. Symlink installations are intentionally unsupported by the
+installer; copying is the portable fallback and the default.
 
-## Setup
+## Upgrade, conflicts and uninstall
 
-### Using with the rdetoolkit source repository
+The installer never overwrites a Skill or an existing installation receipt.
+If any of the five target names exists, it fails before copying any Skill.
+Back up or rename conflicting user content first. To upgrade, keep the old
+ZIP, preserve local edits, uninstall the old pack, then install the new pack
+matching the upgraded runtime:
 
-If you've cloned the rdetoolkit repository, Agent Skills work out of the box. No additional configuration needed.
-
-```bash
-git clone https://github.com/nims-mdpf/rdetoolkit.git
-cd rdetoolkit
-# Launch Claude Code — .agents/SKILL.md is automatically detected
+```sh
+python skills-pack/install_skills.py uninstall --project ./your-project --agent codex
 ```
 
-### Adding to your own project
+Use `--agent claude` for Claude Code. Uninstall verifies the installation receipt
+and every owned file before removing the five directories. Modified, added,
+removed or symlinked files stop uninstall without deleting any Skill: first
+back up your changes and restore the old pack's files, then retry. Unrelated
+Skills remain untouched. Remove the extracted `skills-pack` directory and ZIP
+only when you no longer need offline reinstallation.
 
-If you're developing a structured processing project in a separate repository, follow these steps.
+## Discovering the installed API
 
-#### 1. Copy the canonical source
+The Skills tell the agent to ask the installed CLI before inventing an API.
+Each listing accepts `--json`, and `--module package.module` registers your
+project's own declarations first:
 
-Place the skill files in `.agents/skills/rdetoolkit-skill/`.
-
-```bash
-# Copy skill files from rdetoolkit repository
-mkdir -p ./your-project/.agents/skills/rdetoolkit-skill
-cp -r /path/to/rdetoolkit/src/rdetoolkit/.agents/* ./your-project/.agents/skills/rdetoolkit-skill/
+```sh
+python -m rdetoolkit nodes list --json
+python -m rdetoolkit nodes show rdetoolkit.nodes.meta.build_meta --json
+python -m rdetoolkit flows list --json
+python -m rdetoolkit skeletons list --json
 ```
 
-#### 2. Create symlinks for your AI agent(s)
+## Retired Agent Guide
 
-Each AI coding assistant reads skill files from its own dedicated directory. Create symlinks (or copies) for the agents you use.
-
-```bash
-# For Claude Code
-mkdir -p .claude/skills
-ln -s ../../.agents/skills/rdetoolkit-skill .claude/skills/rdetoolkit-skill
-
-# For GitHub Copilot
-mkdir -p .github/skills
-ln -s ../../.agents/skills/rdetoolkit-skill .github/skills/rdetoolkit-skill
-
-# For Gemini CLI
-mkdir -p .gemini/skills
-ln -s ../../.agents/skills/rdetoolkit-skill .gemini/skills/rdetoolkit-skill
-
-# For OpenCode
-mkdir -p .opencode/skills
-ln -s ../../.agents/skills/rdetoolkit-skill .opencode/skills/rdetoolkit-skill
-
-# For Devin
-mkdir -p .devin/skills
-ln -s ../../.agents/skills/rdetoolkit-skill .devin/skills/rdetoolkit-skill
-```
-
-You only need to set up the directories for the agents you actually use.
-
-## Agent Skills structure
-
-When added to your own project, the directory layout looks like this:
-
-```
-your-project/
-├── .agents/
-│   └── skills/
-│       └── rdetoolkit-skill/           # ← Canonical source (actual files)
-│           ├── SKILL.md                #    Entry point
-│           └── references/
-│               ├── building-structured-processing.md
-│               ├── preferred-apis.md
-│               ├── cli-workflow.md
-│               ├── config.md
-│               └── modes.md
-├── .claude/
-│   └── skills/
-│       └── rdetoolkit-skill/           # For Claude Code (symlink)
-├── .github/
-│   └── skills/
-│       └── rdetoolkit-skill/           # For GitHub Copilot (symlink)
-├── .gemini/
-│   └── skills/
-│       └── rdetoolkit-skill/           # For Gemini CLI (symlink)
-├── .opencode/
-│   └── skills/
-│       └── rdetoolkit-skill/           # For OpenCode (symlink)
-└── .devin/
-    └── skills/
-        └── rdetoolkit-skill/           # For Devin (symlink)
-```
-
-`.agents/skills/rdetoolkit-skill/` is the single source of truth. Agent-specific directories contain symlinks pointing back to it. Updating the canonical source automatically propagates changes to all agents.
-
-### SKILL.md
-
-The main entry point. YAML frontmatter defines activation triggers — the skill activates when rdetoolkit import statements, RDE-related keywords, or specific CLI commands are detected.
-
-Covers the following:
-
-- Quick start from project initialization to dataset function implementation
-- Encoding-safe file I/O with `rdetoolkit.fileops`
-- Metadata writing via the `Meta` class
-- Error handling pattern using the Result type
-- Processing mode selection table and flowchart
-- Correct execution order for CLI template editing and validation
-- Step-by-step guide for building structured processing autonomously
-- Common mistakes and fixes
-
-### references/building-structured-processing.md
-
-The complete implementation pattern for building a structured processing program from scratch. Includes the standard dataset function layout, metadata-def.json format, Meta class usage, Result-type error handling, directory specifications, and a submission checklist.
-
-### references/preferred-apis.md
-
-Detailed coverage of `rdetoolkit.fileops` and `rdetoolkit.csv2graph` APIs. Explains why standard Python file operations must not be used — with code examples and anti-patterns showing how to handle legacy Japanese encodings like Shift_JIS, EUC-JP, and CP932.
-
-### references/modes.md
-
-A detailed reference for all five processing modes (Invoice, ExcelInvoice, SmartTableInvoice, MultiDataTile, RDEFormat). Each mode includes configuration examples, use cases, directory layouts, and a comparison table.
-
-### references/cli-workflow.md
-
-Complete CLI command reference. Covers the correct order for template file editing, validation execution sequence, CI/CD integration examples, and a validation error troubleshooting table.
-
-### references/config.md
-
-Configuration file specification for both `rdeconfig.yaml` and `pyproject.toml` formats. Includes per-mode configuration examples, field reference table, magic variables, and common configuration mistakes.
-
-## Rules the AI assistant enforces automatically
-
-When Agent Skills are active, the AI assistant applies the following rules without being asked:
-
-- Uses `rdetoolkit.fileops` for all JSON file reads and writes (never `json.load()`)
-- Uses the `Meta` class for writing metadata.json (never manual JSON construction)
-- Uses the Result type for error handling in helper functions
-- Uses `RdeDatasetPaths` attributes instead of hardcoded paths
-- Edits template files in the correct order: schema, then metadata-def, then invoice
-- Runs validation in the correct order: schema, then invoice, then metadata-def
-
-These rules are defined in the "Critical Rules" section of SKILL.md. To add project-specific rules, edit SKILL.md directly or add them to `CLAUDE.md` at the project root.
+The package-embedded guide (`rdetoolkit.get_agent_guide()`, the `agent-guide`
+command and the package-local `.agents/` directory) was removed before v2 GA.
+There is no replacement API in the package; this Skills pack and the commands
+above replace it. See the
+[v1 to v2 migration guide](../migration_v1_to_v2.en.md) ("What was removed (after 2.0.0rc1, before GA)").

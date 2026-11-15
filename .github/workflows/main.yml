@@ -165,7 +165,7 @@ jobs:
           assert "site-packages" in origin.parts, origin
           assert pathlib.Path("src").resolve() not in origin.parents, origin
           PY
-      - name: Run the unreachability / Tier-1 / package-data / wheel-layout tests against the wheel
+      - name: Run the unreachability / Tier-1 / retired-agent-guide / wheel-layout tests against the wheel
         run: |
           # The wheel-content tests call `maturin` by name, so the venv's bin
           # directory must be on PATH.
@@ -173,7 +173,7 @@ jobs:
           python -m pytest -p no:cacheprovider \
             tests/v2/test_unreachability_k2.py \
             tests/v2/compat/test_tier1_surface.py \
-            tests/test_package_data.py \
+            tests/v2/test_retired_agent_guide.py \
             tests/v2/test_wheel_layout.py
 
   coverage:

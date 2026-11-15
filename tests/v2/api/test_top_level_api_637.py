@@ -16,7 +16,7 @@ EP/BV table:
 | TC-API637-004 | stub ``__all__`` literal vs runtime ``__all__`` | positive | identical list |
 | TC-API637-005 | stub-bound names vs runtime ``__all__`` | positive | identical set |
 | TC-API637-006 | stub re-export source vs runtime object (fresh interpreter) | positive | same object |
-| TC-API637-007 | stub ``def`` vs runtime callable | positive | same parameter list |
+| TC-API637-007 | stub inline ``def`` | negative | none: every stub name is a re-export, checked by TC-API637-006 |
 | TC-API637-008 | ``from rdetoolkit import *`` | positive | binds every ``__all__`` name incl. decorators |
 | TC-API637-009 | ``dir(rdetoolkit)`` | positive | superset of ``__all__`` |
 | TC-API637-010 | strict mypy client snippet | positive | exit 0 |
@@ -28,14 +28,13 @@ EP/BV table:
 | TC-API637-016 | mypy: unknown top-level attribute | negative | ``[attr-defined]`` |
 | TC-API637-017 | mypy: wrong type from a top-level export | negative | ``[assignment]`` (types are not ``Any``) |
 | TC-API637-018 | mypy: unknown ``from`` import | negative | ``[attr-defined]`` |
-| TC-API637-019 | docs top-level table vs ``__all__`` | positive | supported names == ``__all__`` minus legacy |
-| TC-API637-020 | docs table never promises ``get_agent_guide`` | negative | absent (slated for removal, #644) |
+| TC-API637-019 | docs top-level table vs ``__all__`` | positive | supported names == ``__all__`` |
+| TC-API637-020 | retired ``get_agent_guide`` (#644) | negative | not exported, not in the stub, not in the docs table |
 """
 
 from __future__ import annotations
 
 import ast
-import inspect
 import json
 import re
 import subprocess
@@ -52,9 +51,8 @@ _STUB_PATH = _PACKAGE_DIR / "__init__.pyi"
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DOCS = (_REPO_ROOT / "docs" / "api" / "index.en.md", _REPO_ROOT / "docs" / "api" / "index.ja.md")
 
-# Kept exported only for the v1 oracle (tests/test_package_exports.py); RDE-005 (#644)
-# removes it, so the docs must not list it as part of the supported surface.
-_LEGACY_EXPORTS = frozenset({"get_agent_guide"})
+# Removed by RDE-005 (#644); it must not come back through any of the four inventories.
+_RETIRED_EXPORTS = frozenset({"get_agent_guide"})
 
 # Heavy or optional third-party dependencies that must stay out of a bare import.
 _HEAVY_MODULES = (
@@ -227,20 +225,12 @@ print(json.dumps(bad))
     assert result == []
 
 
-def test_stub_functions_match_runtime_signature__tc_api637_007() -> None:
-    """TC-API637-007: functions defined inline in the stub keep the runtime parameters."""
-    # Given: inline stub definitions
-    defs = [s for s in _stub_bindings().values() if isinstance(s, ast.FunctionDef)]
-    assert defs
-    for stub_def in defs:
-        # When: reading the runtime signature
-        runtime = inspect.signature(getattr(rdetoolkit, stub_def.name))
-        stub_params = [a.arg for a in stub_def.args.args]
-        # Then: parameter names and defaults agree
-        assert stub_params == list(runtime.parameters), stub_def.name
-        assert len(stub_def.args.defaults) == sum(
-            p.default is not inspect.Parameter.empty for p in runtime.parameters.values()
-        )
+def test_stub_has_no_inline_functions__tc_api637_007() -> None:
+    """TC-API637-007: the stub re-exports every name; no signature can drift from the runtime."""
+    # Given/When: the stub bindings
+    defs = [name for name, s in _stub_bindings().items() if isinstance(s, ast.FunctionDef)]
+    # Then: none is an inline definition (re-exports are verified by TC-API637-006)
+    assert defs == []
 
 
 def test_star_import_exports_decorators__tc_api637_008() -> None:
@@ -378,7 +368,6 @@ names: list[str] = rdetoolkit.__all__
 ok: Success[int] = Success(1)
 bad: Failure[ValueError] = Failure(ValueError("x"))
 parsed: Result[int, Exception] = parse("1")
-guide: str = rdetoolkit.get_agent_guide(detailed=False)
 adapter = as_node(object(), method="run")
 modules: list[ModuleType] = [
     rdetoolkit.errors, rdetoolkit.exceptions, rdetoolkit.img2thumb, rdetoolkit.invoicefile,
@@ -432,13 +421,18 @@ def test_docs_table_lists_supported_api__tc_api637_019(doc: Path) -> None:
     names = _docs_table_names(doc)
     # When/Then: it lists every supported name exactly once
     assert len(names) == len(set(names))
-    assert set(names) == set(rdetoolkit.__all__) - _LEGACY_EXPORTS - {"__version__"}
+    assert set(names) == set(rdetoolkit.__all__) - {"__version__"}
 
 
 @pytest.mark.parametrize("doc", _DOCS, ids=lambda p: p.name)
-def test_docs_table_does_not_promise_legacy__tc_api637_020(doc: Path) -> None:
-    """TC-API637-020: ``get_agent_guide`` is not documented as supported (#644)."""
-    # Given/When: the documented table
+def test_retired_export_stays_removed__tc_api637_020(doc: Path) -> None:
+    """TC-API637-020: the retired ``get_agent_guide`` (#644) is in no inventory."""
+    # Given: the runtime package, its stub and the documented table
+    stub = _STUB_PATH.read_text(encoding="utf-8")
     names = _docs_table_names(doc)
-    # Then: legacy exports are excluded
-    assert sorted(_LEGACY_EXPORTS & set(names)) == []
+    # When/Then: the retired name is exported nowhere
+    for retired in sorted(_RETIRED_EXPORTS):
+        assert retired not in rdetoolkit.__all__
+        assert not hasattr(rdetoolkit, retired)
+        assert retired not in stub
+        assert retired not in names

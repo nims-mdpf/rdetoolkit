@@ -530,6 +530,24 @@ Dockerfile を新しい名前に更新してください。
 ください。`RdeOutputResourcePath` の `smarttable_rowfile=` 引数も、v1.7 と同じく
 `smarttable_rawfile` への非推奨エイリアスです。
 
+### 削除されたもの(2.0.0rc1 以降、GA 前)
+
+- v1.6.0 で追加されたパッケージ同梱の AI エージェントガイド:
+  `rdetoolkit.get_agent_guide()`、CLI の `agent-guide` コマンド、
+  内部モジュール `rdetoolkit._agent` と同梱 Markdown、およびパッケージ内の
+  `.agents/` ガイド。インストールされたパッケージにはエージェント向け文書を
+  同梱しません。代替 API はありません。呼び出しているコードやスクリプトからは
+  削除してください(#644)。v2 向けのエージェント用ガイダンスは、別配布の
+  バージョン一致 [Agent Skills pack](usage/agent_skills.ja.md) として提供します。
+- v2 プレリリースの草案エラー体系: 文字列の `rdetoolkit.errors.ErrorCode` 列挙
+  (`E001`〜`E025`)、`RdeGraphError`、`RdeCompileError`、`RdeIOError`、
+  `UnconnectedInputError`、および定数 `E_CYCLE` / `E_UNCONNECTED_INPUT` /
+  `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY`。いずれも 2.0.0a1 / 2.0.0rc1 の
+  プレリリースにのみ存在し、v1 には含まれていません。`ERROR_CATALOG` の int
+  コードを持つ `RdeError` の派生クラス(`RdeConfigError`、`RdeRegistryError`、
+  `RdeExecutionError`、`RdeValidationError`、`RdeInternalError`)を使ってください
+  (#646)。
+
 ### 挙動の変更
 
 **v1.7 系で入った変更(v2 でもそのまま)**
@@ -607,6 +625,23 @@ invoice シート自体がないブックについては既存のエラー契約
 
 run 単位の invoice の行について: 登録時の値は各タイルに用意された invoice を使い、
 タイル固有の値はそのタイルの flow の中で求めて `save_invoice` で書き出してください。
+
+### 診断と従来のトレースバック
+
+v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず
+`rdetoolkit report diagnose <run_report.json> --json` を使います。バージョン付きの出力は、
+例外メッセージ、ローカル変数、環境変数の値、入力ファイルのパスを含みません
+([診断コマンド](usage/diagnostics.ja.md)を参照)。従来のトレースバック API
+(`handle_exception`、`CompactTraceFormatter`、`SecretsSanitizer`、`Config.traceback`、
+`TRACE_VERBOSE` / `TRACE_FORMAT`)は変更せず、新しい非推奨警告も出しません。
+`<STACKTRACE>` 形式は v1 コールバック入口でのローカル利用のために残しますが、
+エージェントに渡す形式としては推奨しません。変数名によるマスキングは匿名化ではありません。
+[互換性表](usage/structured_process/traceback.ja.md)を参照してください。
+
+`repro export` のアーカイブは 2 種類になりました。生の入力を含み、手元から出す前に確認が必要な
+完全なアーカイブと、ダイジェストと診断だけを含み再実行には使えない `--manifest-only` です。
+`repro export` は既存の `-o` のファイルを置き換えなくなり、`repro import` は安全でないアーカイブや
+整合しないアーカイブを拒否します([repro](usage/cli.ja.md)を参照)。自動アップロードは行いません。
 
 ### ロールバック
 
