@@ -10,8 +10,15 @@ The `rdetoolkit.graph.csv2graph` module turns CSV or Pandas data into static Mat
 - `standard`: CSV with a header row (default).
 - `transpose`: Row-oriented CSV that is transposed during parsing.
 - `noheader`: Headerless CSV; columns are auto-renamed to `Column_0`, `Column_1`, ....
+- `meta_block`: CSV starting with `#` metadata lines, followed by a header row.
+- `auto`: detect the format, the encoding and the delimiter from a bounded, read-only sample (at most 64 KiB and 50 rows). A file it is not confident about raises `AmbiguousFormatError` (an `InvalidCSVFormatError` and a `ValueError`) whose message lists the candidates, their evidence and the remedy; it never guesses. Its `decision` attribute is the `DetectionDecision`.
+- the id of a reader installed through the `rdetoolkit.graph.readers` entry points.
 
-Pass the desired format with `csv_format="standard" | "transpose" | "noheader"`. Automatic detection is not triggered by default.
+Pass the desired format with `csv_format=`; the default stays `"standard"`, so automatic detection is not triggered by default. `rdetoolkit plot <csv> --detect` prints the decision of `auto` without plotting. The spec-first `render_graph` (whose default is `reader="auto"`), custom `TableReader`s and `GraphRenderer`s are described in [Graph Engine](../usage/structured_process/graph_engine.md).
+
+## Axis Limits
+
+`xlim`/`ylim` accept one-sided limits: `(0, None)` fixes only the lower bound and `(None, 10)` only the upper bound; the other side stays automatic, in images and in HTML. Reversed bounds invert the axis. A non-finite bound, equal bounds, or a bound `<= 0` on a log axis raise `PlotRequestError` (`reason="invalid_axis_limits"`) before anything is written. The CLI sets one side with `--xmin`, `--xmax`, `--ymin` and `--ymax`.
 
 ## Plotting Behaviour
 
@@ -19,7 +26,9 @@ Pass the desired format with `csv_format="standard" | "transpose" | "noheader"`.
 - **Individual mode (`mode="individual"`)** skips the combined plot and writes one PNG per series. The `html` flag is ignored in this mode because HTML output is only generated when an overlay figure exists.
 - **Dual-axis plots are not supported.** `mode` accepts only `"overlay"` and `"individual"`; `mode="dual_axis"` raises `PlotRequestError` (`reason="invalid_mode"`), and `rdetoolkit plot --mode dual_axis` exits with code 2. `PlotMode.DUAL_AXIS`, `PlotConfigBuilder.set_y2_axis`, `PlotConfig.y2_axis` and `DualAxisStrategy` stay importable for compatibility, but rendering a config with `PlotMode.DUAL_AXIS` or a `y2_axis` raises `PlotRequestError` (`reason="dual_axis_unsupported"`) before any figure or file exists; it never falls back to other figures. To compare series with different units, use `render_graph` with `GraphSpec(unit_policy="split")` (one overlay per unit), `mode="individual"`, or build a Matplotlib figure with `Axes.twinx()` and save it with the `save_figure` node.
 
-Series naming follows the sanitised `title`/`name` parameter; individual plots append the series identifier derived from the column header.
+Series naming follows the sanitised `title`/`name` parameter; individual plots append the series identifier derived from the column header. Individual names are reserved for every series before the first figure is drawn: names that collide case-insensitively (or after spacing/Unicode normalization) get the series id appended (`_s000`, `_s001`) with a `GraphUserWarning`, and `/`, `\` and `..` in a header become `_`, so no figure of a run overwrites another.
+
+A mixed-unit overlay (for example `voltage (V)` with `current (A)`) without `y_label` is still drawn, with a `GraphUserWarning` and a y label listing every unit; each individual figure is labelled after its own column.
 
 ## Output Artifacts
 
@@ -194,5 +203,9 @@ Common failure modes include:
 - `ValueError` for inconsistent x/y/direction mappings or when the DataFrame lacks y columns.
 - `ImportError` from Plotly when `html=True` but Plotly is not installed.
 - `PlotRequestError` (a `PlotConfigError` and a `ValueError`) with `reason="invalid_mode"` for `mode="dual_axis"`, and with `reason="dual_axis_unsupported"` when a legacy `PlotConfig` with `PlotMode.DUAL_AXIS` or a `y2_axis` is rendered. Dual-axis plotting is not supported.
+- `PlotRequestError` with `reason="contradictory_switches"` for `mode="individual"` with `no_individual=True`, and with `reason="invalid_axis_limits"` for invalid `xlim`/`ylim`.
+- `AmbiguousFormatError` when `csv_format="auto"` cannot decide; `UnknownReaderError` (an `InvalidCSVFormatError`) for an unknown format id; `InvalidCSVFormatError` for an empty file under `auto`.
+
+These errors are raised before any file or directory is created.
 
 Ensure output directories exist or are creatable and that Plotly is installed when HTML output is desired.

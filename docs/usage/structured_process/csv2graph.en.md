@@ -4,7 +4,7 @@
 
 `csv2graph` is a Python module that automatically generates static graph images (PNG) and interactive HTML graphs (Plotly) from CSV files or Pandas DataFrames. It supports visualization of experimental data such as battery cycle data, X-ray Diffraction (XRD), and X-ray Photoelectron Spectroscopy (XPS).
 
-See the [csv2graph sample gallery](./csv2graph_samples.en.md) for end-to-end examples.
+See the [csv2graph sample gallery](./csv2graph_samples.en.md) for end-to-end examples. For the spec-first API behind `csv2graph` (`render_graph`, `GraphSpec`, custom table readers and renderers, `OutputContextSink` and the artifact manifest), see [Graph Engine](./graph_engine.en.md).
 
 ## Key Features
 
@@ -62,6 +62,15 @@ CSV file without a header row. Columns are automatically named as `Column_0`, `C
 3,20,30
 ```
 
+### meta_block, auto and installed readers
+
+- `csv_format="meta_block"` reads a file that starts with `#` metadata lines followed by a header row.
+- `csv_format="auto"` (`--csv-format auto` on the CLI) detects the format, the encoding and the delimiter from a read-only sample of the file (at most 64 KiB and 50 rows). A file it is not confident about raises `AmbiguousFormatError`, whose message lists the candidates, their evidence and the remedy (name the format); it never guesses. An empty file raises `InvalidCSVFormatError`.
+- `csv_format` also accepts the id of a reader installed through the `rdetoolkit.graph.readers` entry points (see [Graph Engine](./graph_engine.en.md)).
+- `rdetoolkit plot data.csv --detect` prints what `auto` would do (selected reader, evidence, column names, row count) and exits without plotting.
+
+The default stays `standard`.
+
 ## Plot Modes
 
 ### overlay (Overlay Plot)
@@ -74,6 +83,10 @@ Overlays all series on a single graph. This is the default mode.
 ### individual (Individual Plot)
 
 Generates each series as a separate graph. The overlay plot is skipped.
+
+### Series with different units
+
+When an overlay mixes units (for example `voltage (V)` and `current (A)`) and no `y_label` is given, the overlay is still drawn, a `GraphUserWarning` is emitted and the y label lists every unit (`Voltage (V) / Current (A)`). Each individual figure is labelled after its own column. Units are compared as text and never converted. `render_graph` rejects such an overlay by default and offers `GraphSpec(unit_policy="split")` (one overlay per unit); see [Graph Engine](./graph_engine.en.md).
 
 ### Dual-axis plots (not supported)
 
@@ -157,6 +170,8 @@ csv2graph(
     ylim=(0, 50),     # Y-axis range: 0-50
 )
 ```
+
+A limit may be one-sided: `xlim=(0, None)` fixes only the lower bound and leaves the upper bound automatic (`ylim=(None, 10)` likewise for the upper bound). On the CLI, `--xmin`, `--xmax`, `--ymin` and `--ymax` set one side each; combining one of them with `--xlim`/`--ylim` on the same axis is a usage error (exit code 2). Reversed bounds (`min > max`) invert the axis. A non-finite bound, equal bounds, or a bound `<= 0` on a log axis raise `PlotRequestError` (`reason="invalid_axis_limits"`) before anything is written. The same limits apply to the HTML output.
 
 ### Logarithmic Scale
 
@@ -700,6 +715,13 @@ html_output_dir/          # Defaults to the CSV directory when using csv2graph()
 - **`ImportError`**: `html=True` but Plotly is not installed
 - **`PlotRequestError`** (`reason="invalid_mode"`): `mode` is not `"overlay"` or `"individual"`, including `"dual_axis"`
 - **`PlotRequestError`** (`reason="dual_axis_unsupported"`): a `PlotConfig` with `PlotMode.DUAL_AXIS` or a `y2_axis` is rendered (dual-axis plots are not supported)
+- **`PlotRequestError`** (`reason="contradictory_switches"`): `mode="individual"` together with `no_individual=True`
+- **`PlotRequestError`** (`reason="invalid_axis_limits"`): a non-finite bound, equal bounds, or a bound `<= 0` on a log axis
+- **`AmbiguousFormatError`** (an `InvalidCSVFormatError` and a `ValueError`): `csv_format="auto"` could not decide the format; the message lists the candidates and their evidence
+
+`PlotRequestError` is a `PlotConfigError` and a `ValueError`. Every one of these errors is raised before any file or directory is created.
+
+Individual figure file names are reserved for every series before the first figure is drawn: two series whose names differ only by case, spacing or Unicode normalization both get their series id appended (`plot_voltage_s000.png`, `plot_voltage_s001.png`) and a `GraphUserWarning` is emitted, so no figure of a run overwrites another one.
 
 ### Recommendations
 

@@ -628,6 +628,10 @@ run 単位の invoice の行について: 登録時の値は各タイルに用�
 
 ### csv2graph / Graph Engine
 
+グラフの入口で意図して変えた振る舞いには、IC-1 から IC-14 までの固定の ID が付いています。
+以下の表は話題ごとにまとめ、各表の行は ID の順に並べています。
+仕様起点の API(`render_graph`、`GraphSpec`、独自の表の読み取りと描画エンジン)は [Graph Engine](usage/structured_process/graph_engine.ja.md) を参照してください。
+
 `csv2graph`、`plot_from_dataframe`、`rdetoolkit plot` は、図を描画する前に依頼内容を検証します。
 次の依頼は `PlotRequestError` になります。これは `PlotConfigError` であり、同時に `ValueError` でもあるため、
 `ValueError` を捕捉する既存のコードはそのまま動きます。理由は属性 `reason` で判別できます。
@@ -649,6 +653,7 @@ run 単位の invoice の行について: 登録時の値は各タイルに用�
 軸範囲は `csv2graph`、`plot_from_dataframe`、`rdetoolkit plot`、`GraphSpec`(`AxisSpec.limits`)で共通の規則により検証されます。
 `None` の側は自動範囲のままなので、`xlim=(0, None)` は下限だけを固定します。逆順の範囲(`min > max`)は従来どおり受け付け、軸を反転します。
 CLI では `--xmin`、`--xmax`、`--ymin`、`--ymax` でそれぞれ片側だけを指定できます。同じ軸で `--xlim`/`--ylim` と併用すると使用法エラー(終了コード 2)です。
+同じ表には、Matplotlib のスタイルと図の所有(IC-5)、単位の混在する重ね描き(IC-6)、2 軸プロット(IC-7)、図の大きさとスタイルの設定(IC-10)の変更も含めています。
 
 | ID | 変更 | v1 | v2 | 対処 |
 |---|---|---|---|---|

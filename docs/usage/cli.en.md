@@ -483,6 +483,16 @@ Draws graphs (PNG, optionally interactive HTML) from a CSV file. The options are
 python3 -m rdetoolkit plot sample.csv -o data/other_image --title 'XRD pattern'
 ```
 
+Options added in v2:
+
+| Option | Description |
+| ------ | ----------- |
+| `--csv-format auto` | Detect the format, encoding and delimiter from a read-only sample (at most 64 KiB and 50 rows). An unclear file is an error naming the candidates and their evidence, never a guess. `--csv-format` also accepts `meta_block` and the id of a reader installed through the `rdetoolkit.graph.readers` entry points; the default stays `standard` |
+| `--detect` | Print what `--csv-format auto` would do (selected reader, evidence, column names, row count) and exit with `0` without plotting |
+| `--xmin`, `--xmax`, `--ymin`, `--ymax` | Set one side of an axis range; the other side stays automatic. Combining one of them with `--xlim`/`--ylim` on the same axis is a usage error (exit code `2`), as are invalid bounds (non-finite, equal, or `<= 0` on a log axis) |
+
+Requests that cannot be honoured (an invalid `--mode`, `--mode individual` with `--no-individual`, invalid axis limits) fail before any file is written. For the Python API behind this command, see [Graph Engine](structured_process/graph_engine.en.md).
+
 Exit codes: `0` success, `1` the CSV could not be read or plotted, `2` invalid command line.
 
 ### nodes / flows / skeletons / formats: List Registered Components

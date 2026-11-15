@@ -667,6 +667,11 @@ with `save_invoice`.
 
 ### csv2graph / Graph Engine
 
+Every intentional behaviour change of the graph entry points has a stable id, IC-1 to
+IC-14. The tables below are grouped by topic, and the rows of each table are ordered by
+id. The spec-first API (`render_graph`, `GraphSpec`, custom readers and renderers) is
+described in [Graph Engine](usage/structured_process/graph_engine.en.md).
+
 `csv2graph`, `plot_from_dataframe` and `rdetoolkit plot` validate the request before
 any figure is drawn. The requests below raise `PlotRequestError`, which is a
 `PlotConfigError` and also a `ValueError`, so existing code that catches `ValueError`
@@ -694,7 +699,9 @@ Axis limits are validated by one rule shared by `csv2graph`, `plot_from_datafram
 automatic limit, so `xlim=(0, None)` fixes only the lower bound. Reversed bounds
 (`min > max`) are still accepted and invert the axis. On the CLI, `--xmin`, `--xmax`,
 `--ymin` and `--ymax` set one side each; combining one of them with `--xlim`/`--ylim`
-on the same axis is a usage error (exit code 2).
+on the same axis is a usage error (exit code 2). The same table lists the changes to
+Matplotlib style and figure ownership (IC-5), mixed-unit overlays (IC-6), dual-axis
+plotting (IC-7) and the figure size and style options (IC-10).
 
 | Id | Change | v1 | v2 | What to do |
 |---|---|---|---|---|

@@ -50,10 +50,12 @@ class DirectionError(GraphPlottingError):
 
 
 class DualAxisError(GraphPlottingError):
-    """Raised when dual axis configuration is invalid.
+    """Legacy error type for dual-axis configuration, kept for import compatibility.
 
-    This addresses the critical IndexError bug in dual_axis mode
-    identified in review_cc.md (致命的).
+    Dual-axis plotting is not supported (GE-12): rendering a ``PlotMode.DUAL_AXIS``
+    config or a ``y2_axis`` raises ``PlotRequestError`` with
+    ``reason="dual_axis_unsupported"`` instead. rdetoolkit itself no longer raises
+    this type.
     """
 
 
