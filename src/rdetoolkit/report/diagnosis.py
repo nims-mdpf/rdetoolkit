@@ -15,7 +15,7 @@ import re
 from pathlib import Path
 from typing import Any, cast
 
-from rdetoolkit.report.diagnostics import diagnostic, envelope, safe_error
+from rdetoolkit.report.diagnostics import MAX_ENTRIES, diagnostic, envelope, safe_error, safe_identifier
 from rdetoolkit.report.run_report import ITERATION_DETAIL_SCHEMA_VERSION, RUN_REPORT_SCHEMA_VERSION, RunReport
 
 _MAX_REPORT_BYTES = 16 * 1024 * 1024
@@ -53,8 +53,10 @@ def _validate_iteration(iteration: object) -> None:
 
 
 def _read_report(path: Path) -> RunReport:
-    _require(path.stat().st_size <= _MAX_REPORT_BYTES)
-    data = json.loads(path.read_text(encoding="utf-8"))
+    with path.open("rb") as handle:
+        contents = handle.read(_MAX_REPORT_BYTES + 1)
+    _require(len(contents) <= _MAX_REPORT_BYTES)
+    data = json.loads(contents.decode("utf-8"))
     _require(isinstance(data, dict))
     _require(data.get("schema_version") == RUN_REPORT_SCHEMA_VERSION)
     _require(isinstance(data.get("run_id"), str) and _RUN_ID.fullmatch(data["run_id"]) is not None)
@@ -107,7 +109,7 @@ def _detail_flags(detail: dict[str, Any], iteration: dict[str, Any]) -> list[str
 
 def _iteration_evidence(report: RunReport, root: Path) -> list[dict[str, Any]]:
     results = []
-    for iteration in sorted(report.iterations, key=lambda item: item["index"]):
+    for iteration in sorted(report.iterations, key=lambda item: item["index"])[:MAX_ENTRIES]:
         index = iteration["index"]
         relative = f"iterations/iteration_{index}.json"
         state, detail = _read_detail(root / relative, run_id=report.run_id, index=index)
@@ -171,10 +173,13 @@ def _events_evidence(report: RunReport, root: Path) -> dict[str, Any]:
 
 
 def _failure(error: object, *, index: int | None, call: dict[str, Any] | None) -> dict[str, Any]:
+    # Ids come from a file anyone could have edited: one that rdetoolkit could
+    # not have written is replaced by null and named in ``redacted``.
+    ids = {field: safe_identifier(call[field]) if call else None for field in ("node_id", "call_id")}
     return {
         "iteration_index": index,
-        "node_id": call["node_id"] if call else None,
-        "call_id": call["call_id"] if call else None,
+        **ids,
+        "redacted": sorted(field for field, value in ids.items() if call and value is None),
         **safe_error(error),
         "source": "report",
     }
@@ -231,8 +236,10 @@ def diagnose_report(path: Path) -> dict[str, Any]:
         path: ``run_report_<run_id>.json``. Its sibling evidence is checked by run id.
 
     Returns:
-        The diagnostics envelope with ``command``, ``run_id``, ``run_status``,
-        ``failures`` and ``evidence``. Evidence paths are relative to the report.
+        The diagnostics envelope with ``command``, ``source``, ``run_id``,
+        ``run_status``, ``failures`` and ``evidence``. Evidence paths are
+        relative to the report. ``failures`` and ``evidence.iterations`` keep
+        their first :data:`MAX_ENTRIES` entries and set ``truncated`` beyond that.
 
     Raises:
         OSError: The report cannot be read.
@@ -251,5 +258,12 @@ def diagnose_report(path: Path) -> dict[str, Any]:
     ]
     findings.extend(_evidence_diagnostics(evidence))
     return envelope(
-        findings, command="report diagnose", run_id=report.run_id, run_status=report.status, failures=failures, evidence=evidence,
+        findings,
+        truncated=len(failures) > MAX_ENTRIES or len(report.iterations) > MAX_ENTRIES,
+        command="report diagnose",
+        source={"format": "rdetoolkit.run-report", "schema_version": report.schema_version},
+        run_id=report.run_id,
+        run_status=report.status,
+        failures=failures[:MAX_ENTRIES],
+        evidence=evidence,
     )

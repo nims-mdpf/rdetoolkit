@@ -24,8 +24,17 @@ def finding(**kwargs):
 def test_empty():
     # Given/When: no findings are reported.
     result = envelope([])
-    # Then: the versioned report passes.
-    assert result == {"schema_version": "1", "status": "passed", "diagnostics": []}
+    # Then: the versioned report passes and names its format and producer.
+    from rdetoolkit import __version__
+
+    assert result == {
+        "schema_version": "1",
+        "format": "rdetoolkit.diagnostics",
+        "producer": {"name": "rdetoolkit", "version": __version__},
+        "status": "passed",
+        "diagnostics": [],
+        "truncated": False,
+    }
     assert envelope([], command="doctor")["command"] == "doctor"
 
 

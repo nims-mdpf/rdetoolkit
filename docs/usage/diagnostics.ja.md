@@ -13,9 +13,12 @@
 [JSON Schema](diagnostics.schema.json) で定義しています。どの出力にも次のキーがあります。
 
 - `schema_version`: `"1"`。読み取る側はこの値を確認してください。対応しているバージョンの中で知らないキーが増えていても無視してかまいません。
+- `format`: `"rdetoolkit.diagnostics"`。`producer`: `{"name": "rdetoolkit", "version": "<インストールされているバージョン>"}`。どのツールのどのリリースが書いた出力かを示します。
 - `command`: `"nodes lint"`、`"doctor"`、`"report diagnose"` のいずれか。
 - `status`: エラーの指摘が 1 件でもあれば `"failed"`、警告があれば `"warning"`、それ以外は `"passed"`。これは診断結果です。終了コードは上の表のとおりコマンドごとに決まります。
 - `diagnostics`: 指摘の配列。`subject`、`name` の順に並びます。各要素には `code`(エラー/警告カタログの整数、または `null`)、`severity`(`error`、`warning`、`info`)、`name`、`message`、`remediation`、`subject` があり、必要に応じて `location` が付きます。
+- `truncated`: 出力の上限で配列を切り詰めたときに `true`([上限](#上限)を参照)。
+- `source`(`report diagnose` でレポートを読めた場合のみ): 診断した文書。`{"format": "rdetoolkit.run-report", "schema_version": "2"}`。
 
 `code` が `null` の指摘には、文書化された `name`(例: `ModuleImportFailed`)が付きます。これらのチェックのために新しいエラーコードは割り当てていません。
 
@@ -23,9 +26,21 @@
 
 ## 出力しない情報
 
-メッセージは固定文かカタログのテンプレートです。例外のメッセージ、トレースバック、引数のプレビュー(`repr`)、invoice や入力ファイルの値、設定値は、研究データや認証情報を含むおそれがあるため、どのフィールドにもコピーしません。カタログのテンプレートにある `{reason}` や `{node_id}` などのプレースホルダーは、実行時の値で埋めずにそのまま出力します。
+メッセージは固定文かカタログのテンプレートです。例外のメッセージ、トレースバック、ローカル変数、環境変数、引数のプレビュー(`repr`)、invoice や入力ファイルの値、設定値は、研究データや認証情報を含むおそれがあるため、どのフィールドにもコピーしません。カタログのテンプレートにある `{reason}` や `{node_id}` などのプレースホルダーは、実行時の値で埋めずにそのまま出力します。これらを出力するオプションはありません。必要なときはローカルのファイルを直接読んでください。
 
 node・flow・call の ID、モジュール名、run ID、プロジェクトまたはレポートからの相対パスは出力します。これらからプロジェクトの内容が推測できる場合もあるため、組織の外へ共有する前に内容を確認してください。どのコマンドもネットワークには何も送信しません。
+
+## 上限
+
+標準出力の JSON に入りうる内容は、次の規則で制限しています。
+
+- **ファイルから読んだ ID**: `report diagnose` は、レポートにある `node_id` と `call_id` を、rdetoolkit が書きうる文字列の場合だけ出力します。条件は、英数字などの単語文字で始まり、続く文字が単語文字・`.`・`<`・`>`・`#`・`-` だけで、全体で 200 文字以内であることです(例: `pkg.mod.func`、`mod.f.<locals>.g#3`)。それ以外の値は `null` として出力し、その失敗の `redacted` 配列にフィールド名を入れます。値そのものは出力しません。`run_id` がファイル名の一部として使えない文字列のレポートは受け付けません(終了コード 3)。
+- **パス**: パスは POSIX 形式の相対パスです。`doctor` は `PROJECT_DIR` からの相対パス、`report diagnose` はレポートの隣にある決まった名前(`iterations/iteration_<index>.json`、`events_<run_id>.jsonl`)だけを出力します。絶対パスや入力ファイルの名前を出力するコマンドはありません。`nodes lint` はファイルパスではなく `module:qualname` を出力します。
+- **入力の大きさ**: `report diagnose` はレポートを最大 16 MiB まで読みます(それより大きいものは終了コード 3)。64 MiB を超える iteration の詳細やイベントログは読まずに `truncated` フラグを付けます。
+- **出力の大きさ**: `diagnostics`、`failures`、`evidence.iterations` はそれぞれ先頭の 200 件までです。切り詰めたときは `truncated` が `true` になります。`status` と終了コードはすべての指摘をもとに決まります。
+- **対象範囲**: この規則が適用されるのは標準出力の JSON だけです。標準エラー出力(import したプロジェクトのモジュールの出力やサードパーティーの警告)、`report show`、`report trace`、実行レポートやログそのもの、`job.failed`、`repro export` のアーカイブには、生の文やパスが含まれます。
+
+この形式は自由記述の文を出力しないことでデータを守っており、文中の秘密情報を見分けようとはしていません。認証情報が ID として使われている場合(トークンを node ID にした場合など)は、ほかの ID と同じように出力します。正規表現や変数名によるマスキング(たとえば[従来のトレースバック](structured_process/traceback.ja.md)の `SecretsSanitizer`)は、パターンに当てはまるものしか見つけられず、匿名化にはなりません。この出力を外部のエージェントやサービス、issue に貼り付ける前に、内容を読み、組織の外に出してよいかを判断してください。その判断は利用者の責任であり、rdetoolkit のコマンドが代わりに判断したり送信したりすることはありません。
 
 ## nodes lint
 
@@ -64,7 +79,7 @@ doctor は flow も `prepare=` フックも呼び出さず、プロジェクト�
 python3 -m rdetoolkit report diagnose data/logs/run_report_<run_id>.json --json
 ```
 
-失敗は実行レポートからだけ読み取ります。`failures` の各要素には `iteration_index`、`node_id`、`call_id`(記録がない場合はそれぞれ `null`。例: node が 1 つも実行される前の失敗)、`code`、`name`、`message`、`remediation`、`source: "report"` があります。v2 カタログのコードにはカタログの名前と対処方法が付きます。それ以外のコード(v1 の `StructuredError` のコードを含む)は、番号はそのままで名前を `ExecutionError` とします。ここに出るのは call log に記録された実際の呼び出しであり、推定した依存関係や原因の断定ではありません。
+失敗は実行レポートからだけ読み取ります。`failures` の各要素には `iteration_index`、`node_id`、`call_id`(記録がない場合はそれぞれ `null`。例: node が 1 つも実行される前の失敗)、`redacted`([上限](#上限)の規則で `null` にした ID のフィールド名。通常は空)、`code`、`name`、`message`、`remediation`、`source: "report"` があります。v2 カタログのコードにはカタログの名前と対処方法が付きます。それ以外のコード(v1 の `StructuredError` のコードを含む)は、番号はそのままで名前を `ExecutionError` とします。ここに出るのは call log に記録された実際の呼び出しであり、推定した依存関係や原因の断定ではありません。
 
 `evidence` はレポートの隣にあるファイルの状態を示すだけで、失敗を追加することはありません。
 

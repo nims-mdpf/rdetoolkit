@@ -184,7 +184,8 @@ def diagnose(
         typer.echo(f"status: {result['run_status']}")
         for failure in result["failures"]:
             where = "run" if failure["iteration_index"] is None else f"iteration {failure['iteration_index']}"
-            typer.echo(f"{where}: {failure['call_id'] or 'no node call'}: {failure['name']} ({failure['code']})")
+            call = failure["call_id"] or ("<redacted call id>" if "call_id" in failure["redacted"] else "no node call")
+            typer.echo(f"{where}: {call}: {failure['name']} ({failure['code']})")
             typer.echo(f"  Remediation: {failure['remediation']}")
         for finding in result["diagnostics"]:
             if finding["severity"] == "warning":

@@ -1,250 +1,81 @@
-# LLM/AI向けトレースバック機能
+# 診断と従来トレースバックの互換性
 
-RDEToolkitには、LLMやAIエージェントが効率的に解析できる構造化されたスタックトレース形式を生成する機能が搭載されています。この機能により、エラーの自動分析、修正提案、バグレポート生成などの自動化が可能になります。
+v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず
+`rdetoolkit report diagnose data/logs/run_report_<run_id>.json --json` から始めます。
+推奨する診断の入口はこれ 1 つです。バージョン付きの出力は、失敗した iteration、
+node と call の ID、カタログのコードと対処方法を示し、例外メッセージ、ソース行、
+ローカル変数、環境変数の値、入力ファイルのパスは転載しません。形式と制限は
+[診断コマンド](../diagnostics.ja.md) を参照してください。
 
-## 概要
+RunReport 本体、イベント、コールログ、`report show`、stderr、`job.failed` は、
+機密情報を含み得るローカル調査用の出力です。`report diagnose` の出力は新しいシリアライズの境界であり、
+既存の互換出力を書き換えません。診断を LLM、テレメトリー、issue tracker に送る rdetoolkit のコマンドはありません。
+外部共有前には利用者自身が内容を確認してください。
 
-この機能は「デュプレックス出力」システムを提供し、以下の2つの形式を同時に出力できます：
+## 互換性の棚卸しと方針
 
-- **コンパクト形式**：LLMやAIエージェント向けの構造化された機械可読形式
-- **Python形式**：開発者向けの従来の人間可読形式
+次の v1 インターフェースは v2 でも維持します。公開シンボルの削除や名前空間の移動、
+実行時の非推奨警告は追加しません。`<STACKTRACE>` をエージェント向けの主形式とする
+推奨だけを廃止します。対処方法の定義元は引き続き単一の `ERROR_CATALOG` です。
 
-## 基本的な使用方法
+| インターフェース・入口 | 方針 | 維持する動作 |
+|---|---|---|
+| `rdetoolkit.errors.handle_exception` | 維持・v1 互換として凍結 | `StructuredError` を返す。明示的な `Config.traceback`、環境設定、従来 Python 形式の順で選択 |
+| `errors.handle_generic_error`、`handle_and_exit_on_structured_error`、`format_simplified_traceback` | 維持・v1 互換として凍結 | stderr、例外ラップ、終了動作を維持。生のメッセージ、パス、ソースを含み得る |
+| `rdetoolkit.traceback.formatter.CompactTraceFormatter` と `errors.CompactTraceFormatter` プロキシ | 維持・v1 互換として凍結 | `<STACKTRACE>` の `CFG v=1`、`E`、任意の `T`、`F`、`RC` 行。v2 の対処カタログを重複実装しない |
+| `rdetoolkit.traceback.masking.SecretsSanitizer` | 維持・v1 互換として凍結 | 変数名ベースのマスキング、追加パターン、値の表現・切り詰め |
+| `rdetoolkit.models.config.TracebackSettings`、`Config.traceback` | 維持・v1 互換として凍結 | `compact`、`python`、`duplex` と従来のフィールド・既定値 |
+| `config.get_traceback_settings_from_env`、`errors.get_traceback_settings_from_env` | 維持・v1 互換として凍結 | `TRACE_VERBOSE` / `TRACE_FORMAT` の既存制御 |
+| `errors.pyi`、`traceback/{formatter,masking}.pyi`、`models/config.pyi`、`config/__init__.pyi` | 維持 | 既存のインポート名とシグネチャ |
+| v1 コールバック `workflows.run(custom_dataset_function=...)` | 維持 | トレースバック設定と優先順位。新たな警告なし |
+| v2 の主交換形式としての `<STACKTRACE>`、LLM / バグ報告の自動送信例 | 推奨を廃止 | `report diagnose --json` を使用し、意図的な外部共有前に確認 |
+| 公開トレースバック API | 削除なし | 削除には別途互換性の判断と移行手順が必要 |
 
-### デフォルト動作
+フォーマッタ、マスキング、設定のインポート先は既存モジュールのままです。
+このトレースバックを出力するのは v1 コールバック入口(`workflows.run(custom_dataset_function=...)`)だけで、
+v2 flow 入口は出力しません。プロジェクト直下の v2
+`rdeconfig.yaml` は `traceback:` を拒否し、既存の v1 設定ファイルでは引き続き使えます。
+[移行時の互換性表](../../migration_v1_to_v2.md) も参照してください。
 
-**重要**：この機能は**デフォルトで無効**です。以下の方法で有効化できます：
+## ローカル調査用の設定
 
-### 1. 環境変数による制御
+コンパクト形式は既定で無効です。`TracebackSettings()` の既定値は
+`enabled=False`、`format="duplex"`、`include_context=False`、
+`include_locals=False`、`include_env=False`、ローカル変数の値ごとの
+UTF-8 サイズ上限 `max_locals_size=512` バイトです。明示的な設定は環境変数より優先します。
 
-```bash
-# 基本的な有効化
-export TRACE_VERBOSE=context,locals,env
+| 制御 | 意味 |
+|---|---|
+| `TRACE_VERBOSE` 未設定・空文字 | 環境設定なし。従来トレースバックのフォールバックは残る |
+| `TRACE_VERBOSE=off`、`false`、`disable`、`disabled`（大文字小文字不問） | コンパクト形式を無効化。Python トレースバックの停止・匿名化ではない |
+| `TRACE_VERBOSE=context,locals,env` | それぞれソース、ローカル変数、実行環境情報を明示的に含める |
+| `TRACE_FORMAT=compact`、`python`、`duplex` | 形式を選択。有効時の既定値は `duplex` |
 
-# 出力形式の選択
-export TRACE_FORMAT=compact    # LLM向けのみ
-export TRACE_FORMAT=python     # 従来形式のみ
-export TRACE_FORMAT=duplex     # 両方（デフォルト）
+`include_env` は Python と OS の情報を追加するもので、環境変数全体のダンプではありません。
+ソースとローカル変数は別々の明示設定ですが、両方を無効にしても例外メッセージや
+ファイル名の機密情報は除去されません。verbose 時の完全な Python トレースバックは
+`__cause__`、`__context__`、`raise ... from None` による表示制御を維持します。
+簡略化された呼び出し経路とコンパクト形式の `RC` は従来の要約であり、完全な原因解析ではありません。
+`RC` はフレームのヒューリスティックと現在の例外文を使い、簡略化された呼び出し経路は
+Python の完全表示で抑制された context のフレームも含み得ます。必要ならローカルで
+Python の例外連鎖を確認してください。
 
-# 機能を無効にする
-export TRACE_VERBOSE=off       # 明示的にOFF
-export TRACE_VERBOSE=""        # 空文字でもOFF
-```
+## 情報開示の限界
 
-**オプション説明**：
-- `context`：エラー発生行のソースコードを表示
-- `locals`：ローカル変数の値を表示（機密情報は自動マスキング）
-- `env`：実行環境情報（Pythonバージョン、OS）を表示
+`SecretsSanitizer` は値を表現する前に変数**名**を照合します。再帰的な匿名化ではなく、
+一般的な名前の値にネストされた認証情報は残り得ます。例外メッセージ、ソース行、ファイル名、
+任意の `repr` 出力はこのパターンで安全になりません。正規表現とサイズ制限は一部の露出を
+減らす補助にすぎず、研究データ、認証情報、個人情報が除去された証明にはなりません。
+従来の値ごとの上限は出力全体のサイズ上限でもありません。
 
-### 2. プログラム内での制御
-
-```python
-from rdetoolkit.models.config import Config, TracebackSettings
-from rdetoolkit.errors import handle_exception
-
-# 設定を作成
-config = Config(
-    traceback=TracebackSettings(
-        enabled=True,
-        format="duplex",
-        include_context=True,
-        include_locals=False,  # セキュリティのためOFF
-        include_env=False
-    )
-)
-
-# エラーハンドリングで使用
-try:
-    # 処理
-    process_data()
-except Exception as e:
-    structured_error = handle_exception(e, config=config)
-    print(structured_error.traceback_info)
-```
-
-## 出力例
-
-### コンパクト形式（AI向け）
-
-```
-<STACKTRACE>
-CFG v=1 ctx=1 locals=0 env=0
-E ts=2025-09-08T15:30:45Z type="ValueError" msg="Invalid input data"
-F0 mod="myapp.processor" fn="validate_data" file="processor.py:45" in_app=1 context="if not data.get('required_field'):"
-F1 mod="myapp.main" fn="main" file="main.py:12" in_app=1
-RC frame="F0" hint="Invalid input data"
-</STACKTRACE>
-```
-
-### デュプレックス出力
-
-コンパクト形式に加えて、従来のPython形式も同時に出力：
-
-```
-<STACKTRACE>
-CFG v=1 ctx=1 locals=0 env=0
-E ts=2025-09-08T15:30:45Z type="ValueError" msg="Invalid input data"
-F0 mod="myapp.processor" fn="validate_data" file="processor.py:45" in_app=1 context="if not data.get('required_field'):"
-F1 mod="myapp.main" fn="main" file="main.py:12" in_app=1
-RC frame="F0" hint="Invalid input data"
-</STACKTRACE>
-
-Traceback (simplified message):
-Call Path:
-   File: /path/to/myapp/main.py, Line: 12 in main()
-    └─ File: /path/to/myapp/processor.py, Line: 45 in validate_data()
-        └─> L45: if not data.get('required_field'): 🔥
-
-Exception Type: ValueError
-Error: Invalid input data
-```
-
-## AIエージェント向け活用例
-
-### 自動エラー修正システム
-
-```python
-from rdetoolkit.models.config import Config, TracebackSettings
-
-# AIエージェント向け設定
-ai_config = Config(
-    traceback=TracebackSettings(
-        enabled=True,
-        format="compact",           # 機械可読形式
-        include_context=True,       # エラー行のコード
-        include_locals=False,       # プライバシー保護
-        include_env=False,          # 環境情報は不要
-        max_locals_size=256
-    )
-)
-
-def handle_error_with_ai(exception):
-    structured_error = handle_exception(exception, config=ai_config)
-    
-    # AIエージェントに送信するメッセージ
-    ai_prompt = f"""
-    エラーが発生しました。以下の構造化トレース情報を解析し、
-    修正方法を提案してください：
-
-    {structured_error.traceback_info}
-    """
-    
-    # LLM APIに送信、修正提案を取得
-    response = call_llm_api(ai_prompt)
-    return response
-
-try:
-    risky_operation()
-except Exception as e:
-    suggestion = handle_error_with_ai(e)
-    print(f"AI修正提案: {suggestion}")
-```
-
-### 自動バグレポート生成
-
-```python
-def generate_bug_report(exception):
-    structured_error = handle_exception(exception, config=ai_config)
-    
-    # GitHubイシュー自動作成
-    issue_body = f"""
-## エラー概要
-{structured_error.emsg}
-
-## 構造化トレース情報
-```
-{structured_error.traceback_info}
-```
-
-## AI分析結果
-{analyze_with_ai(structured_error.traceback_info)}
-"""
-    
-    create_github_issue("自動検出エラー", issue_body)
-```
-
-## 利用シーン
-
-### 1. 開発・デバッグ
-```bash
-# 詳細なローカル変数を含む出力
-export TRACE_VERBOSE=context,locals
-export TRACE_FORMAT=duplex
-python your_script.py
-```
-
-### 2. CI/CD パイプライン
-```bash
-# 構造化されたエラー情報でログ分析を効率化
-export TRACE_VERBOSE=context
-export TRACE_FORMAT=compact
-python your_rde_script.py
-```
-
-### 3. 本番環境監視
-```bash
-# 機密情報を含まない最小構成
-export TRACE_VERBOSE=""
-export TRACE_FORMAT=compact
-```
-
-## セキュリティ機能
-
-### 自動マスキング
-
-以下のキーワードを含む変数は自動的に`***`でマスキングされます：
-
-- `password`, `passwd`, `pwd`
-- `token`, `auth`, `authorization`
-- `secret`, `key`, `api_key`
-- `cookie`, `session`
-- `credential`, `cred`
-
-### カスタムマスキング
-
-```python
-config = Config(
-    traceback=TracebackSettings(
-        enabled=True,
-        sensitive_patterns=[
-            "database_url",
-            "private_key",
-            "connection_string"
-        ]
-    )
-)
-```
-
-## トラブルシューティング
-
-### 設定が反映されない場合
-
-1. 環境変数の確認
-```bash
-echo $TRACE_VERBOSE
-echo $TRACE_FORMAT
-```
-
-2. 設定の優先順位を確認
-   - プログラム内設定（最優先）
-   - 設定ファイル
-   - 環境変数
-   - デフォルト値（無効）
-
-### 出力が期待と異なる場合
-
-1. `CFG`行で実際の設定を確認
-2. `in_app=1`でアプリケーションコード範囲を確認
-3. セキュリティマスキングによる情報隠蔽を確認
-
-### パフォーマンス問題
-
-1. `include_locals=false`で変数出力を無効化
-2. `max_locals_size`を小さく設定
-3. 本番環境では`format=compact`を使用
+詳細トレースバックと完全な再現 ZIP は、内容を意図的に確認するまでローカルに保管してください。
+`report diagnose --json` を優先し、構造的なファイル情報が必要なら `repro export --manifest-only` を使います。
+ダイジェストやサイズから既知ファイルを識別できる場合があるため、メタデータのみの ZIP も匿名とは
+限らず、実行の再現にも使えません。どちらの ZIP も外部サービスへ自動添付しないでください。
 
 ## 関連ドキュメント
 
-- [設定詳細](../config/config.ja.md)
-- [エラーハンドリング](./errorhandling.ja.md)
-- [API仕様](../../rdetoolkit/traceback/index.md)
+- [診断コマンド](../diagnostics.ja.md)
+- [repro: 実行の書き出しと再実行](../cli.ja.md)
+- [設定](../config/config.ja.md)
+- [エラーハンドリング](errorhandling.ja.md)

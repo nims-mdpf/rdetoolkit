@@ -1,250 +1,85 @@
-# LLM/AI-Friendly Traceback System
+# Diagnostics and legacy traceback compatibility
 
-RDEToolkit includes a structured stacktrace formatting system designed for efficient analysis by LLMs and AI agents. This feature enables automated error analysis, fix suggestions, bug report generation, and other automation scenarios.
+For v2 troubleshooting, with or without a coding agent, start with
+`rdetoolkit report diagnose data/logs/run_report_<run_id>.json --json`. This is
+the one preferred diagnostic entry. Its versioned envelope reports the failed
+iteration, node and call ids, catalog codes and remediation without copying
+exception text, source lines, locals, environment values or input paths. See
+[Diagnostic commands](../diagnostics.en.md) for the format and its limits.
 
-## Overview
+RunReport files, events, call logs, `report show`, stderr and `job.failed` remain
+local debugging artifacts and may contain confidential text. The safe view is a
+new serialization boundary; it does not rewrite those compatibility outputs.
+No rdetoolkit command sends diagnostics to an LLM, telemetry endpoint or issue tracker.
+Review any output before sharing it externally.
 
-This feature provides a "duplex output" system that can simultaneously generate:
+## Compatibility inventory and decisions
 
-- **Compact Format**: Structured, machine-readable format optimized for LLMs and AI agents
-- **Python Format**: Traditional human-readable format for developers
+The following v1 interfaces remain available in v2. No public symbols are
+removed, moved into a new namespace or given runtime deprecation warnings.
+Only the recommendation to use `<STACKTRACE>` as the primary agent format is
+retired. Catalog remediation remains defined once, in `ERROR_CATALOG`.
 
-## Basic Usage
+| Interface / entry point | Decision | Retained behavior |
+|---|---|---|
+| `rdetoolkit.errors.handle_exception` | Keep, frozen v1 compatibility | Returns `StructuredError`; respects explicit `Config.traceback`, then environment, then the traditional Python-style fallback |
+| `errors.handle_generic_error`, `handle_and_exit_on_structured_error`, `format_simplified_traceback` | Keep, frozen v1 compatibility | Existing stderr, wrapping and exit behavior; output may contain raw messages, paths and source |
+| `rdetoolkit.traceback.formatter.CompactTraceFormatter` and `errors.CompactTraceFormatter` proxy | Keep, frozen v1 compatibility | `<STACKTRACE>` with `CFG v=1`, `E`, optional `T`, `F` and `RC` lines; no v2 remediation implementation |
+| `rdetoolkit.traceback.masking.SecretsSanitizer` | Keep, frozen v1 compatibility | Name-based masking, custom patterns and representation/truncation behavior |
+| `rdetoolkit.models.config.TracebackSettings`, `Config.traceback` | Keep, frozen v1 compatibility | `compact`, `python`, `duplex` formats and existing fields/defaults |
+| `config.get_traceback_settings_from_env`, `errors.get_traceback_settings_from_env` | Keep, frozen v1 compatibility | Existing `TRACE_VERBOSE` / `TRACE_FORMAT` controls |
+| `errors.pyi`, `traceback/{formatter,masking}.pyi`, `models/config.pyi`, `config/__init__.pyi` | Keep | Existing import names and signatures remain available |
+| v1 callback `workflows.run(custom_dataset_function=...)` | Keep | Existing traceback configuration/priority; no new warnings |
+| `<STACKTRACE>` as the recommended v2 agent interchange format, automatic LLM/bug-report examples | Retire guidance | Use `report diagnose --json`; review before intentional external disclosure |
+| Public traceback APIs | Remove: none | Removal would need a separate compatibility decision and migration plan |
 
-### Default Behavior
+Imports of the formatter, sanitizer and configuration remain in the existing
+modules. Only the v1 callback entry (`workflows.run(custom_dataset_function=...)`)
+prints this traceback; the v2 flow entry does not. A project-root v2 `rdeconfig.yaml` rejects `traceback:`; existing
+v1 configuration files retain it. See the [migration matrix](../../migration_v1_to_v2.en.md).
 
-**Important**: This feature is **disabled by default**. You can enable it using the following methods:
+## Local debugging controls
 
-### 1. Environment Variable Control
+Compact formatting is disabled by default. `TracebackSettings()` defaults to
+`enabled=False`, `format="duplex"`, and `include_context=False`,
+`include_locals=False`, `include_env=False`, with `max_locals_size=512` UTF-8 bytes
+per represented local. Explicit configuration takes precedence over environment.
 
-```bash
-# Basic activation
-export TRACE_VERBOSE=context,locals,env
+| Control | Meaning |
+|---|---|
+| `TRACE_VERBOSE` unset or empty | No environment settings; traditional traceback fallback remains |
+| `TRACE_VERBOSE=off`, `false`, `disable`, `disabled` (case-insensitive) | Disable compact formatting; does **not** silence or anonymize Python traceback |
+| `TRACE_VERBOSE=context,locals,env` | Opt into source, local values and runtime platform information respectively |
+| `TRACE_FORMAT=compact`, `python`, `duplex` | Select output; default is `duplex` when enabled |
 
-# Output format selection
-export TRACE_FORMAT=compact    # LLM-optimized only
-export TRACE_FORMAT=python     # Traditional format only
-export TRACE_FORMAT=duplex     # Both formats (default)
+`include_env` adds Python and OS information, rather than an environment-variable
+dump. Source and locals are separate opt-ins. Keeping both off does not remove
+sensitive exception messages or filenames. Full Python verbose traceback retains
+Python exception chaining (`__cause__`, `__context__`, `raise ... from None`).
+The simplified call path and compact `RC` line are legacy summaries, not complete
+root-cause analysis: `RC` uses a frame heuristic and the current exception text;
+the simplified call path can still include context frames when Python suppresses
+the displayed full chain. Inspect the local Python exception chain when needed.
 
-# Disable the feature
-export TRACE_VERBOSE=off       # Explicitly disable
-export TRACE_VERBOSE=""        # Empty string also disables
-```
+## Disclosure limits
 
-**Option descriptions**:
-- `context`: Display source code line where error occurred
-- `locals`: Display local variable values (sensitive info auto-masked)
-- `env`: Display runtime environment info (Python version, OS)
+`SecretsSanitizer` matches variable **names** before representing their values.
+It is not recursive anonymization: a nested credential under a neutral name can
+remain visible. Raw exception messages, source lines, filenames and arbitrary
+`repr` output are not made safe by these patterns. Custom regular expressions
+and size caps reduce some exposure; they cannot prove that research data,
+credentials or identifying details have been removed. Legacy per-value limits
+also do not impose a total-output cap.
 
-### 2. Programmatic Control
+Keep detailed traceback and full reproduction ZIPs local unless you deliberately
+review their contents. Prefer `report diagnose --json` and, when structural
+file metadata is needed, `repro export --manifest-only`. Digests and size metadata
+can still identify known files; a metadata-only bundle is not anonymous and is
+not replayable. Never automatically attach either bundle to external services.
 
-```python
-from rdetoolkit.models.config import Config, TracebackSettings
-from rdetoolkit.errors import handle_exception
+## Related documentation
 
-# Create configuration
-config = Config(
-    traceback=TracebackSettings(
-        enabled=True,
-        format="duplex",
-        include_context=True,
-        include_locals=False,  # OFF for security
-        include_env=False
-    )
-)
-
-# Use in error handling
-try:
-    # Process
-    process_data()
-except Exception as e:
-    structured_error = handle_exception(e, config=config)
-    print(structured_error.traceback_info)
-```
-
-## Output Examples
-
-### Compact Format (AI-optimized)
-
-```
-<STACKTRACE>
-CFG v=1 ctx=1 locals=0 env=0
-E ts=2025-09-08T15:30:45Z type="ValueError" msg="Invalid input data"
-F0 mod="myapp.processor" fn="validate_data" file="processor.py:45" in_app=1 context="if not data.get('required_field'):"
-F1 mod="myapp.main" fn="main" file="main.py:12" in_app=1
-RC frame="F0" hint="Invalid input data"
-</STACKTRACE>
-```
-
-### Duplex Output
-
-Compact format plus traditional Python format simultaneously:
-
-```
-<STACKTRACE>
-CFG v=1 ctx=1 locals=0 env=0
-E ts=2025-09-08T15:30:45Z type="ValueError" msg="Invalid input data"
-F0 mod="myapp.processor" fn="validate_data" file="processor.py:45" in_app=1 context="if not data.get('required_field'):"
-F1 mod="myapp.main" fn="main" file="main.py:12" in_app=1
-RC frame="F0" hint="Invalid input data"
-</STACKTRACE>
-
-Traceback (simplified message):
-Call Path:
-   File: /path/to/myapp/main.py, Line: 12 in main()
-    └─ File: /path/to/myapp/processor.py, Line: 45 in validate_data()
-        └─> L45: if not data.get('required_field'): 🔥
-
-Exception Type: ValueError
-Error: Invalid input data
-```
-
-## AI Agent Use Cases
-
-### Automated Error Correction System
-
-```python
-from rdetoolkit.models.config import Config, TracebackSettings
-
-# AI agent configuration
-ai_config = Config(
-    traceback=TracebackSettings(
-        enabled=True,
-        format="compact",           # Machine-readable format
-        include_context=True,       # Error line code
-        include_locals=False,       # Privacy protection
-        include_env=False,          # Environment info not needed
-        max_locals_size=256
-    )
-)
-
-def handle_error_with_ai(exception):
-    structured_error = handle_exception(exception, config=ai_config)
-    
-    # Message for AI agent
-    ai_prompt = f"""
-    An error has occurred. Please analyze the following structured trace
-    information and suggest a fix:
-
-    {structured_error.traceback_info}
-    """
-    
-    # Send to LLM API, get fix suggestion
-    response = call_llm_api(ai_prompt)
-    return response
-
-try:
-    risky_operation()
-except Exception as e:
-    suggestion = handle_error_with_ai(e)
-    print(f"AI Fix Suggestion: {suggestion}")
-```
-
-### Automated Bug Report Generation
-
-```python
-def generate_bug_report(exception):
-    structured_error = handle_exception(exception, config=ai_config)
-    
-    # Auto-create GitHub issue
-    issue_body = f"""
-## Error Overview
-{structured_error.emsg}
-
-## Structured Trace Information
-```
-{structured_error.traceback_info}
-```
-
-## AI Analysis Results
-{analyze_with_ai(structured_error.traceback_info)}
-"""
-    
-    create_github_issue("Auto-detected Error", issue_body)
-```
-
-## Use Cases
-
-### 1. Development & Debugging
-```bash
-# Detailed output including local variables
-export TRACE_VERBOSE=context,locals
-export TRACE_FORMAT=duplex
-python your_script.py
-```
-
-### 2. CI/CD Pipeline
-```bash
-# Structured error information for efficient log analysis
-export TRACE_VERBOSE=context
-export TRACE_FORMAT=compact
-python your_rde_script.py
-```
-
-### 3. Production Monitoring
-```bash
-# Minimal configuration without sensitive information
-export TRACE_VERBOSE=""
-export TRACE_FORMAT=compact
-```
-
-## Security Features
-
-### Automatic Masking
-
-Variables containing the following keywords are automatically masked with `***`:
-
-- `password`, `passwd`, `pwd`
-- `token`, `auth`, `authorization`
-- `secret`, `key`, `api_key`
-- `cookie`, `session`
-- `credential`, `cred`
-
-### Custom Masking
-
-```python
-config = Config(
-    traceback=TracebackSettings(
-        enabled=True,
-        sensitive_patterns=[
-            "database_url",
-            "private_key",
-            "connection_string"
-        ]
-    )
-)
-```
-
-## Troubleshooting
-
-### Configuration Not Applied
-
-1. Check environment variables
-```bash
-echo $TRACE_VERBOSE
-echo $TRACE_FORMAT
-```
-
-2. Verify configuration priority
-   - Programmatic settings (highest priority)
-   - Configuration files
-   - Environment variables
-   - Default values (disabled)
-
-### Unexpected Output
-
-1. Check actual settings in `CFG` line
-2. Verify application code scope with `in_app=1`
-3. Check for information hidden by security masking
-
-### Performance Issues
-
-1. Disable variable output with `include_locals=false`
-2. Reduce `max_locals_size` setting
-3. Use `format=compact` in production
-
-## Related Documentation
-
-- [Configuration Details](../config/config.en.md)
-- [Error Handling](./errorhandling.en.md)
-- [API Reference](../../rdetoolkit/traceback/index.md)
+- [Diagnostic commands](../diagnostics.en.md)
+- [repro: Export and Re-run a Finished Run](../cli.en.md)
+- [Configuration](../config/config.en.md)
+- [Error handling](errorhandling.en.md)

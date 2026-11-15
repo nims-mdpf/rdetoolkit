@@ -592,10 +592,16 @@ Exit codes: `0` success, `1` the output name is not `.zip`, or archiving or the 
 
 `repro export` archives a run report, the run's input directories (`data/inputdata`, `data/invoice`, `data/tasksupport`), and its effective `rdeconfig.yaml` into one zip. `repro import` unpacks such a zip into a new or empty directory, ready for `rdetoolkit run`.
 
+There are two kinds of archive:
+
+- **Full archive** (the default) for local reproduction. It holds every input file, the invoice, the raw run report and the effective config, which may include unpublished research data, personal data or credentials. Before writing it, `repro export` prints to stderr how many files and bytes each directory contributes, with a warning. Nothing is uploaded; review the archive before you share it, and do not attach it to an external agent or issue by default.
+- **Metadata only** (`--manifest-only`). The zip holds one `repro_manifest.json` (`schema_version` `"2"`, `archive_kind: "manifest-only"`, `replayable: false`): file counts and bytes per directory, each file's size and SHA-256 digest under a numeric `file_id` (no file names), the report's `config_digest`, and the [`report diagnose` envelope](diagnostics.en.md). It contains no input bytes, invoice or config values, or report text, and `repro import` refuses it. A digest still identifies a file to anyone who has the same file, so this is not anonymisation.
+
 === "Unix/macOS"
 
     ```shell
     python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    python3 -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
     python3 -m rdetoolkit repro import <archive.zip> <target dir>
     ```
 
@@ -603,13 +609,16 @@ Exit codes: `0` success, `1` the output name is not `.zip`, or archiving or the 
 
     ```powershell
     py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
+    py -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
     py -m rdetoolkit repro import <archive.zip> <target dir>
     ```
 
-- `--config` is required when the run used `rdetoolkit run --config`: the config is archived only if it reproduces the report's `config_digest`.
-- `repro import` never overwrites: a non-empty target directory is refused.
+- `--config` is required when the run used `rdetoolkit run --config`: the config is archived only if it reproduces the report's `config_digest`. The digest is SHA-256 over the effective config's key-sorted JSON, not over the YAML file, so the archived `rdeconfig.yaml` may be written differently and still match.
+- `repro export` never replaces an existing `-o` file. It refuses inputs that are symbolic links or special files (copy the data into the project instead) and an unreadable directory, rather than following or skipping them. A report whose name does not start with `run_report_` is stored as `data/logs/run_report_export.json`.
+- `repro import` never overwrites: a non-empty target directory, or a target that is a symbolic link, is refused. It accepts only the export layout (`data/{inputdata,invoice,tasksupport}/…`, one `data/logs/run_report_*.json`, `rdeconfig.yaml`, `repro_manifest.json` with `schema_version` `"1"`), and refuses before extracting anything: absolute or `..` paths, empty path parts, backslashes, control characters (including a NUL that would shorten a name), links, devices and other special entries, encrypted entries, compression other than stored or deflate, two names that differ only in case or Unicode normalisation, a file used as a directory, more than 100,000 entries, more than 16 GiB uncompressed, a path over 1,024 characters or 64 levels, a manifest over 1 MiB, and an archive that expands more than 1,100:1 (beyond what deflate can do, so only overlapping or forged entries). On Windows it also refuses `:`, names ending in `.` or a space, and device names such as `CON` or `AUX`. The same limits apply when exporting, so a refused export never yields an archive that import would reject.
+- The archive is extracted into a hidden staging directory next to the target, then the archived config is reloaded and must give the same `config_digest` as the manifest and the report. Only then is the staging directory renamed to the target; on any failure it is deleted and the target is left as it was. A matching digest shows that the parts belong together, not who made the archive or that its data or config can be trusted: review them before running your flow on them.
 
-Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing input directory, a config that does not reproduce the digest, a non-empty target, or an unsafe member path.
+Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing or unsafe input, an existing output, a config that does not reproduce the digest, a non-empty target, or an archive member, manifest or digest that import does not accept.
 
 ### migrate: Find and Convert v1 Code
 

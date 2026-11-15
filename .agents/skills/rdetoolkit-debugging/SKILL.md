@@ -31,5 +31,13 @@ not establish a root cause or print error messages, so read those locally.
 Keep invoice values, raw text, filenames, stack traces, environment values,
 reports and reproduction archives local. Review and redact before explicitly
 authorized external sharing; do not upload research data to an LLM by default.
+Only the JSON on stdout of `report diagnose --json` (and of `doctor` and
+`nodes lint`) leaves out messages and values; its ids, digests and stderr
+still need the user's review before they leave the machine. Do not use the
+legacy `<STACKTRACE>`/`TRACE_*` output as an agent format; its name-based
+masking is not anonymization. A full `repro export` zip holds the raw inputs,
+invoice and config: never attach or recommend sharing it without the user's
+deliberate data review. `repro export --manifest-only` holds digests and
+diagnostics only and cannot be replayed. Nothing here uploads automatically.
 The [public error reference](https://github.com/nims-mdpf/rdetoolkit/blob/develop/v2/docs/rdetoolkit/error_catalog.md)
 and installed CLI help remain authoritative.
