@@ -23,9 +23,9 @@ Commands follow the form `rdetoolkit <noun> <verb>` (for example `rdetoolkit new
 | Scaffold | `init` | Create the project scaffold |
 | Generate | `new config`, `new invoice`, `new excelinvoice`, `new processing`, `plot` | Generate project files and graphs |
 | Validate | `validate invoice`, `validate invoice-schema`, `validate metadata`, `validate metadata-def`, `validate all`, `doctor` | Validate RDE schema and data files; check that a project can run |
-| Run | `run` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`) |
-| Inspect | `report show`, `report trace`, `report diagnose`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
-| Package | `package`, `repro export`, `repro import` | Create the submission archive, export and re-import a run |
+| Run | `run`, `test` | Run structured processing (v2 flow, or a v1 dataset function with `--legacy`); run the project's pytest tests |
+| Inspect | `report show`, `report trace`, `report diagnose`, `report explain`, `nodes list/show/lint`, `flows list/show`, `skeletons list/show`, `formats list` | Read run reports and list registered components |
+| Package | `package`, `repro export`, `repro import`, `repro inspect`, `repro to-pytest` | Create the submission archive, export, inspect and re-import a run, and turn an archived run into a regression test |
 | Migrate | `migrate check`, `migrate apply` | Find and convert v1 code and CLI calls for v2 |
 | Info | `version` | Show the installed version |
 | Deprecated (removed in v2.1) | v1 command names | Kept as aliases that print a warning; see [Renamed commands in v2.0](#renamed-commands-in-v20) |
@@ -364,25 +364,35 @@ python3 -m rdetoolkit validate all ./rde-project
 ```
 
 ```bash title="CI/CD integration example"
-python3 -m rdetoolkit validate all ./rde-project
+python3 -m rdetoolkit validate all ./rde-project --strict --require-files
 if [ $? -ne 0 ]; then
     echo "Validation failed"
     exit 1
 fi
 ```
 
+Finding no standard file exits `0` by default. `--require-files` makes it a validation failure (exit `1`, error type `no_target_files`) that lists the searched directories, so CI cannot pass after validating nothing; `--strict` makes warnings fail. Use both in CI.
+
 !!! tip "Detailed Documentation"
     For comprehensive validation documentation including CI/CD integration examples, see [Validation Features](validation.en.md).
 
 ### doctor: Check That a Project Can Run
 
-Checks the inputs, config, mode, invoice and metadata definitions of a project with the Runner's own validate-only preflight, run on a temporary copy of the inputs. `--ref pkg.mod:callable` also imports a flow and checks that the Runner can inject its parameters. Doctor never calls the flow or its `prepare=` hook and writes nothing into the project.
+Checks the inputs, config, mode, invoice and metadata definitions of a project with the Runner's own validate-only preflight, run on a temporary copy of the inputs. `--ref pkg.mod:callable` also imports a flow and checks that the Runner can inject its parameters. `--module NAME` (repeatable) imports a project module and adds the `rdetoolkit nodes lint` findings (check `nodes.lint`, for example E2001 for a duplicate node id). Doctor never calls the flow or its `prepare=` hook and writes nothing into the project. Modules are imported only when `--ref` or `--module` names them.
+
+These are static checks only: the flow is not executed, so a passing doctor does not prove that processing succeeds. The text output says so on its second line, and the JSON has `"flow_executed": false`.
 
 ```bash title="Preflight a project, with a flow, as JSON"
 python3 -m rdetoolkit doctor --format json --ref modules.processing:pipeline
 ```
 
-Exit codes: `0` passed (warnings allowed), `1` a check failed, `2` invalid command line, `3` `PROJECT_DIR` is not a directory or `--format` is not `text`/`json`. The JSON format and every check are described in [Diagnostic Commands (JSON)](diagnostics.en.md).
+```bash title="CI form: fail on warnings, lint the project's nodes"
+python3 -m rdetoolkit doctor --strict --module modules.processing
+```
+
+Missing required inputs (`inputdata/`, `invoice/invoice.json`, `tasksupport/invoice.schema.json`) always fail. An `inputdata/` without any file is the warning `NoInputFiles` (check `inputs.files`): an invoice-only registration is valid, but nothing would be processed. `--strict` makes every warning fail, which matches `validate all --strict --require-files`. The JSON also reports `"strict"`.
+
+Exit codes: `0` passed (warnings allowed without `--strict`), `1` a check failed or a warning was reported under `--strict`, `2` invalid command line, `3` `PROJECT_DIR` is not a directory or `--format` is not `text`/`json`. The JSON format and every check are described in [Diagnostic Commands (JSON)](diagnostics.en.md).
 
 ### run: Run Structured Processing
 
@@ -433,7 +443,19 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 2 | Partial: some tiles failed (also used by the parser for an unknown option) |
 | 3 | Invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy` |
 
-### report show / report trace / report diagnose: Inspect Run Reports
+### test: Run the Project's pytest Tests
+
+`rdetoolkit test [PATH] [PYTEST_ARGS]...` runs `python -m pytest` with the same interpreter in the current directory, forwards every argument unchanged, and exits with pytest's exit code. A failing test that used the `rde_runner` or `rde_run` fixture also gets an `rdetoolkit: retained runs` section listing each retained data root, run report, diagnostics sidecar and `job.failed`. Plain `pytest` is fully equivalent and remains the recommended command in CI. pytest is not installed with rdetoolkit: `pip install "rdetoolkit[testing]"`. See [Testing structured processing](testing.en.md#rdetoolkit-test).
+
+```bash title="Run the project's tests, stopping at the first failure"
+python3 -m rdetoolkit test tests/ -k xrd -x
+```
+
+Put `--` first to pass an option rdetoolkit would otherwise read itself: `rdetoolkit test -- --help`.
+
+Exit codes are pytest's: `0` all collected tests passed, `1` some tests failed, `2` pytest is not installed (an installation hint is printed) or the run was interrupted, `3` pytest internal error, `4` pytest rejected the command line, `5` no tests were collected.
+
+### report show / report trace / report diagnose / report explain: Inspect Run Reports
 
 Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes to `data/logs/`.
 
@@ -443,6 +465,7 @@ Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes t
     python3 -m rdetoolkit report show <run_report.json>
     python3 -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
     python3 -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
+    python3 -m rdetoolkit report explain <run_report.json> [--format text|json] [--iteration N] [--full-traceback]
     ```
 
 === "Windows"
@@ -451,17 +474,23 @@ Reads the run report (`run_report_<run_id>.json`) that `rdetoolkit run` writes t
     py -m rdetoolkit report show <run_report.json>
     py -m rdetoolkit report trace <run_report.json> [--format json|mermaid|html]
     py -m rdetoolkit report diagnose <run_report.json> [--json] [--fail-on-error]
+    py -m rdetoolkit report explain <run_report.json> [--format text|json] [--iteration N] [--full-traceback]
     ```
 
 - `report show` prints the run id, status, iteration count, one `failed` line per failed node call, and the error message when set.
 - `report trace` renders the Call Sequence recorded in the report: every node call in the order it ran (call ids, parent flow, status, argument previews). It is a call log and does not draw data dependencies. `--format` selects `json` (default), `mermaid` (a sequence diagram), or `html` (a standalone page). The rendering goes to stdout; redirect it to save a file.
 - `report diagnose` lists each recorded failure with its iteration, node id, call id, catalog code, and remediation, and checks which `iterations/` details and event log next to the report belong to the same run. It never prints exception text or argument previews. `--json` prints the [diagnostics envelope](diagnostics.en.md); it exits `0` when the report was diagnosed, even for a failed run, and `1` with `--fail-on-error` when the run recorded a failure.
+- `report explain` says why one run failed: phase, tile, node, exception, source location and remediation. It reads the [failure diagnostics file](diagnostics.en.md#failure-diagnostics-file) `diagnostics_<run_id>.json` next to the report; without it (an older run, a report copied alone) the explanation uses the report only and says the diagnostics are unavailable. A successful run is given no cause. `--iteration N` explains only tile `N`; `--full-traceback` adds every recorded frame (file, line, function). The text output shows the recorded exception messages; `--format json` prints the [diagnostics envelope](diagnostics.en.md#report-explain) and copies no runtime text. Nothing is written.
 
 ```bash title="Save the Call Sequence as an HTML page"
 python3 -m rdetoolkit report trace data/logs/run_report_<id>.json --format html > trace.html
 ```
 
-Exit codes: `0` success, `1` `report diagnose --fail-on-error` found a recorded failure, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace`, an unknown `--format`).
+```bash title="Explain a failed run as JSON"
+python3 -m rdetoolkit report explain data/logs/run_report_<id>.json --format json
+```
+
+Exit codes: `0` success (for `report explain`, also when the run itself failed), `1` `report diagnose --fail-on-error` found a recorded failure, `2` invalid command line, `3` the report file is missing or invalid (or, for `report trace` and `report explain`, an unknown `--format`; for `report explain`, an `--iteration` that is not in the report).
 
 ### plot: Draw Graphs from CSV
 
@@ -590,18 +619,32 @@ Exit codes: `0` success, `1` the output name is not `.zip`, or archiving or the 
 
 ### repro: Export and Re-run a Finished Run
 
-`repro export` archives a run report, the run's input directories (`data/inputdata`, `data/invoice`, `data/tasksupport`), and its effective `rdeconfig.yaml` into one zip. `repro import` unpacks such a zip into a new or empty directory, ready for `rdetoolkit run`.
+`repro export` archives a run report, the run's input directories (`data/inputdata`, `data/invoice`, `data/tasksupport`), and its effective `rdeconfig.yaml` into one zip. `repro import` unpacks such a zip into a new or empty directory, ready for `rdetoolkit run`. `repro inspect` shows what an archive records for reproduction, and what it does not, without extracting it.
 
 There are two kinds of archive:
 
-- **Full archive** (the default) for local reproduction. It holds every input file, the invoice, the raw run report and the effective config, which may include unpublished research data, personal data or credentials. Before writing it, `repro export` prints to stderr how many files and bytes each directory contributes, with a warning. Nothing is uploaded; review the archive before you share it, and do not attach it to an external agent or issue by default.
-- **Metadata only** (`--manifest-only`). The zip holds one `repro_manifest.json` (`schema_version` `"2"`, `archive_kind: "manifest-only"`, `replayable: false`): file counts and bytes per directory, each file's size and SHA-256 digest under a numeric `file_id` (no file names), the report's `config_digest`, and the [`report diagnose` envelope](diagnostics.en.md). It contains no input bytes, invoice or config values, or report text, and `repro import` refuses it. A digest still identifies a file to anyone who has the same file, so this is not anonymisation.
+- **Full archive** (the default) for local reproduction. It holds every input file, the invoice, the raw run report and the effective config, which may include unpublished research data, personal data or credentials. Before writing it, `repro export` prints to stderr how many files and bytes each directory contributes, with a warning. Nothing is uploaded; review the archive before you share it, and do not attach it to an external agent or issue by default. Its `repro_manifest.json` (`schema_version` `"3"`, `format: "rdetoolkit.repro-manifest"`, `archive_kind: "full"`, `replayable: true`) lists every member (`files`: `path`, `byte_count`, `sha256`, sorted by path), including the report and `rdeconfig.yaml`. Each digest is taken from the bytes as they are written into the zip.
+- **Metadata only** (`--manifest-only`). The zip holds one `repro_manifest.json` (`schema_version` `"3"`, `archive_kind: "manifest-only"`, `replayable: false`): file counts and bytes per directory, each file's size and SHA-256 digest under a numeric `file_id` (no file names), the report's `config_digest`, the provenance below, and the [`report diagnose` envelope](diagnostics.en.md). It contains no input bytes, invoice or config values, or report text, and `repro import` refuses it. A digest still identifies a file to anyone who has the same file, so this is not anonymisation.
+
+Both kinds record `provenance`, captured when `repro export` runs. A run report does not record its interpreter, so these values describe the environment that exported the run, which may differ from the one that ran it. Each attribute has a `status`: `known`, `unavailable` (with a `reason`), or `not_included`.
+
+| Attribute | Recorded |
+| --- | --- |
+| `rdetoolkit` | `version` |
+| `python` | `implementation`, `version` |
+| `platform` | `system`, `release`, `machine` |
+| `git` | `commit` and `dirty` (tracked files differ from the commit) when the project directory is in a git checkout. Git runs locally with prompts, optional locks and `core.fsmonitor` disabled; if git is missing, fails, or takes too long, the attribute is `unavailable` and the export continues. |
+| `lockfile` | `name` and `sha256` of the first regular file among `uv.lock`, `poetry.lock`, `pdm.lock`, `Pipfile.lock`, `pylock.toml` at the project root. The lockfile itself is not archived; a link is ignored. |
+| `source_code` | Always `not_included`: repro never archives your flow's source code. Check it out separately, at the recorded commit when one is known. |
+
+No host name, user name, absolute path, git remote or branch name is recorded.
 
 === "Unix/macOS"
 
     ```shell
     python3 -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
     python3 -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
+    python3 -m rdetoolkit repro inspect <archive.zip> [--format json]
     python3 -m rdetoolkit repro import <archive.zip> <target dir>
     ```
 
@@ -610,15 +653,49 @@ There are two kinds of archive:
     ```powershell
     py -m rdetoolkit repro export <run_report.json> -o <archive.zip> [--config <overrides.yaml>]
     py -m rdetoolkit repro export <run_report.json> -o <metadata.zip> --manifest-only
+    py -m rdetoolkit repro inspect <archive.zip> [--format json]
     py -m rdetoolkit repro import <archive.zip> <target dir>
     ```
 
 - `--config` is required when the run used `rdetoolkit run --config`: the config is archived only if it reproduces the report's `config_digest`. The digest is SHA-256 over the effective config's key-sorted JSON, not over the YAML file, so the archived `rdeconfig.yaml` may be written differently and still match.
 - `repro export` never replaces an existing `-o` file. It refuses inputs that are symbolic links or special files (copy the data into the project instead) and an unreadable directory, rather than following or skipping them. A report whose name does not start with `run_report_` is stored as `data/logs/run_report_export.json`.
-- `repro import` never overwrites: a non-empty target directory, or a target that is a symbolic link, is refused. It accepts only the export layout (`data/{inputdata,invoice,tasksupport}/…`, one `data/logs/run_report_*.json`, `rdeconfig.yaml`, `repro_manifest.json` with `schema_version` `"1"`), and refuses before extracting anything: absolute or `..` paths, empty path parts, backslashes, control characters (including a NUL that would shorten a name), links, devices and other special entries, encrypted entries, compression other than stored or deflate, two names that differ only in case or Unicode normalisation, a file used as a directory, more than 100,000 entries, more than 16 GiB uncompressed, a path over 1,024 characters or 64 levels, a manifest over 1 MiB, and an archive that expands more than 1,100:1 (beyond what deflate can do, so only overlapping or forged entries). On Windows it also refuses `:`, names ending in `.` or a space, and device names such as `CON` or `AUX`. The same limits apply when exporting, so a refused export never yields an archive that import would reject.
-- The archive is extracted into a hidden staging directory next to the target, then the archived config is reloaded and must give the same `config_digest` as the manifest and the report. Only then is the staging directory renamed to the target; on any failure it is deleted and the target is left as it was. A matching digest shows that the parts belong together, not who made the archive or that its data or config can be trusted: review them before running your flow on them.
+- `repro import` never overwrites: a non-empty target directory, or a target that is a symbolic link, is refused. It accepts only the export layout (`data/{inputdata,invoice,tasksupport}/…`, one `data/logs/run_report_*.json`, `rdeconfig.yaml`, and a full `repro_manifest.json` with `schema_version` `"3"` or `"1"`), and refuses before extracting anything: absolute or `..` paths, empty path parts, backslashes, control characters (including a NUL that would shorten a name), links, devices and other special entries, encrypted entries, compression other than stored or deflate, two names that differ only in case or Unicode normalisation, a file used as a directory, more than 100,000 entries, more than 16 GiB uncompressed, a path over 1,024 characters or 64 levels, a manifest over 64 MiB, and an archive that expands more than 1,100:1 (beyond what deflate can do, so only overlapping or forged entries). On Windows it also refuses `:`, names ending in `.` or a space, and device names such as `CON` or `AUX`. The same limits apply when exporting, so a refused export never yields an archive that import would reject.
+- For a `"3"` manifest, import first requires the file members and the manifest's `files` list to name the same files with the same sizes, then checks each member's SHA-256 while extracting it. A member that is missing, unlisted, resized or changed is refused with its name, before the target appears.
+- The archive is extracted into a hidden staging directory next to the target, then the archived config is reloaded and must give the same `config_digest` as the manifest and the report. Only then is the staging directory renamed to the target; on any failure it is deleted and the target is left as it was. Matching digests show that the parts belong together, not who made the archive or that its data or config can be trusted: review them before running your flow on them.
+- An archive written before this version (`schema_version` `"1"`) is still imported. It has no per-file checksums (its members are checked only against the zip CRCs) and no provenance, and import says so on stderr: `Provenance unavailable: …`. To get both, export the run again with the current rdetoolkit.
+- `repro inspect` applies the same member checks as import, then reads (never writes) every member of a full `"3"` archive and compares it with the manifest. It prints three groups: the verified inputs, the known provenance, and what is unknown or unavailable (always including `source_code`). `--format json` emits the [diagnostics envelope](diagnostics.en.md) with `command: "repro inspect"`, `archive`, `inputs` (`status` `verified`, `mismatch`, `unverifiable` for `"1"`, or `not_included` for metadata-only), and `provenance` (`captured_at`, `known`, `unavailable`). Its findings have `code: null`: `ReproChecksumMismatch` (error, per member), `ReproProvenanceUnavailable` (warning, per attribute), `ReproInputsUnverifiable` (warning), `ReproInputsNotIncluded` and `ReproSourceNotIncluded` (info). Values read from the manifest are shown only if they are short printable text in the expected form; anything else is reported as unreadable.
+- None of this makes a rerun deterministic. Matching config and file digests mean you have the same inputs and configuration. A different interpreter, dependency set, operating system or flow source can still change the result, and the provenance only tells you which of these the archive could record.
 
-Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing or unsafe input, an existing output, a config that does not reproduce the digest, a non-empty target, or an archive member, manifest or digest that import does not accept.
+Exit codes: `0` success, `2` invalid command line, `3` unreadable report or zip, a missing or unsafe input, an existing output, a config that does not reproduce the digest, a non-empty target, a member that differs from the manifest (import and inspect), or an archive member, manifest or digest that import does not accept. `repro inspect` exits `0` when provenance is merely unavailable.
+
+#### repro to-pytest: Turn an Archived Run into a Regression Test
+
+`repro to-pytest` writes an editable pytest module that declares the archived run as an [`rde_case`](testing.en.md#from-a-repro-archive), so a fixed failure stays covered.
+
+=== "Unix/macOS"
+
+    ```shell
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --project <imported dir>
+    python3 -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests/test_x.py> --stage-inputs <new dir>
+    ```
+
+=== "Windows"
+
+    ```powershell
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --project <imported dir>
+    py -m rdetoolkit repro to-pytest <archive.zip> --ref <pkg.mod:flow> -o <tests\test_x.py> --stage-inputs <new dir>
+    ```
+
+- `--ref pkg.mod:callable` is required: the flow is never guessed from the archived `flow_id`. Every part must be a Python identifier. The module is imported from the working directory, as `rdetoolkit run` does, which runs its top-level code; the flow itself is never called, and no bytecode cache is written.
+- Only a full archive is accepted. It is checked like `repro inspect`: unsafe member names are refused, and a member that differs from `repro_manifest.json` stops the command. A `--manifest-only` archive is refused because it holds neither the inputs nor the report.
+- Choose where the case's inputs come from, exactly once:
+    - `--project DIR`: an existing project, typically made with `repro import`. Its `data/{inputdata,invoice,tasksupport}` files must equal the archived ones (same names and SHA-256) and its effective config must reproduce the archived `config_digest`; otherwise the differences are listed and nothing is written. This needs a `schema_version` `"3"` archive.
+    - `--stage-inputs DIR`: extract the archive into the new or empty `DIR` with the same checks as `repro import`, and use it. This copies the raw research inputs, invoice and config into `DIR`, possibly inside your test folder: use it only when that data may be stored there, and keep the directory out of version control otherwise. It also works for a `"1"` archive (no per-file checksums; the generated file says so).
+- The generated test expects `"success"`, the behaviour after the fix. The archived status is quoted in a comment but never becomes the expectation unless you pass `--expect-status success|partial|failed` after confirming the outcome; with `failed` or `partial` the archived error code is added as `expect_error_code`. Before the fix, the generated test therefore fails.
+- The project path is written relative to the generated file. The archive contributes only its run id (in the test name), its status and error code, and the provenance as `#` comments (an environment difference, such as another rdetoolkit or Python version, is also printed as a warning). Report messages, `flow_id`, config values and input file names are never copied.
+- An existing `-o` file is replaced only with `--force` (in one rename); a link or directory is always refused, and the file must end in `.py`.
+
+Exit codes: `0` success, `2` invalid command line (including neither or both of `--project` and `--stage-inputs`, or an unknown `--expect-status`), `3` an unreadable, unsafe, metadata-only or modified archive, an invalid or unimportable `--ref`, a project that differs from the archive, a non-empty `--stage-inputs` directory, or an output that exists or cannot be written.
 
 ### migrate: Find and Convert v1 Code
 

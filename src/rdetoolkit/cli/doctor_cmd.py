@@ -15,8 +15,8 @@ import json
 import shutil
 import sys
 import typing
-from collections.abc import Callable
-from contextlib import redirect_stderr, redirect_stdout
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Any, NoReturn, cast
@@ -33,7 +33,9 @@ DOCTOR_HELP = CommandHelp(
     details=(
         "Doctor reuses the Runner's data-root, config and mode resolution and its validate-only preflight, "
         "run on a temporary copy of the inputs. It never calls the flow or its `prepare=` hook, never writes into "
-        "the project, and makes no network requests. `--ref` imports the flow's module, which runs its top-level code."
+        "the project, and makes no network requests. `--ref` and `--module` import the named modules, which runs "
+        "their top-level code. These are static checks only: the flow is not executed, so a passing doctor does "
+        "not prove that processing succeeds."
     ),
     inputs=(
         (
@@ -44,6 +46,14 @@ DOCTOR_HELP = CommandHelp(
             "`--ref REF`: also import and check a flow `pkg.mod:callable` (the `rdetoolkit run` REF): "
             "its import and that the Runner can inject every parameter."
         ),
+        (
+            "`--module NAME`: also import a project module (repeatable) and report the `rdetoolkit nodes lint` "
+            "findings for the registered nodes and flows."
+        ),
+        (
+            "`--strict`: treat warnings as failures, for example an `inputdata/` without any file "
+            "(`NoInputFiles`). Missing required inputs always fail."
+        ),
         "`--format`: `text` (default) or `json` (the versioned diagnostics envelope).",
     ),
     outputs=(
@@ -51,14 +61,16 @@ DOCTOR_HELP = CommandHelp(
             "Prints one line per finding, or one JSON object with `--format json`. Paths are relative to `PROJECT_DIR`; "
             "input values, config values and exception text are not printed. Writes no files."
         ),
+        "States that the flow was not executed (text), or `flow_executed: false` (JSON).",
     ),
     examples=(
         "rdetoolkit doctor",
         "rdetoolkit doctor --format json --ref modules.processing:pipeline",
+        "rdetoolkit doctor --strict --module modules.processing",
     ),
     exit_codes=(
-        (0, "every check passed (warnings allowed)"),
-        (1, "one or more checks failed"),
+        (0, "every check passed (warnings allowed without `--strict`)"),
+        (1, "one or more checks failed, or a warning was reported under `--strict`"),
         EXIT_CLICK_USAGE,
         (3, "`PROJECT_DIR` is not a directory, or `--format` is not text or json"),
     ),
@@ -138,6 +150,8 @@ def _required_inputs(checks: _Checks, data_root: Path) -> bool:
             message="A required project input is missing or has the wrong file type.",
             remediation="Restore the input at the reported path (`rdetoolkit init` creates the standard layout).",
         )
+    if (data_root / "inputdata").is_dir():
+        _check_input_files(checks, data_root / "inputdata")
     metadata_definition = data_root / "tasksupport/metadata-def.json"
     if metadata_definition.is_file():
         checks.passed("metadata.definition.exists", metadata_definition)
@@ -149,6 +163,24 @@ def _required_inputs(checks: _Checks, data_root: Path) -> bool:
             remediation="Add metadata-def.json when the dataset saves metadata (`rdetoolkit init` creates one).",
         )
     return ready
+
+
+def _check_input_files(checks: _Checks, inputdata: Path) -> None:
+    """Warn when ``inputdata/`` holds no file: nothing would be processed.
+
+    This is doctor's side of the ``validate all --require-files`` policy (#696):
+    a missing required input is already an error; an empty ``inputdata/`` is
+    legitimate for an invoice-only registration, so it is a warning that
+    ``--strict`` makes fatal. The symbolic name has no catalog code.
+    """
+    if any(path.is_file() for path in inputdata.rglob("*")):
+        checks.passed("inputs.files", inputdata)
+        return
+    checks.finding(
+        "inputs.files", code=None, name="NoInputFiles", severity="warning", path=inputdata,
+        message="inputdata/ contains no file, so the run would process no input data.",
+        remediation="Add the input files to inputdata/, or pass --strict in CI to fail on this warning.",
+    )
 
 
 def _load_json(checks: _Checks, check_id: str, path: Path, code: int) -> dict[str, Any] | None:
@@ -298,15 +330,44 @@ def _check_flow_signature(checks: _Checks, value: Callable[..., Any]) -> None:
         )
 
 
-def _check_flow(checks: _Checks, root: Path, ref: str) -> None:
-    from rdetoolkit.cli.run_cmd import resolve_flow
-    from rdetoolkit.core.flow import flow_prepare
-
+@contextmanager
+def _project_imports(root: Path) -> Iterator[None]:
+    """Make ``root`` importable without writing bytecode into the project."""
     previous_path = list(sys.path)
     previous_bytecode = sys.dont_write_bytecode
     try:
         sys.path.insert(0, str(root))
         sys.dont_write_bytecode = True
+        yield
+    finally:
+        sys.path[:] = previous_path
+        sys.dont_write_bytecode = previous_bytecode
+
+
+def _check_modules(checks: _Checks, root: Path, modules: list[str]) -> None:
+    """Import ``--module`` modules and report the ``nodes lint`` findings.
+
+    The findings come from ``nodes lint`` itself (JSON mode), so doctor adds no
+    lint rule of its own and reports the same codes and names (#697).
+    """
+    from rdetoolkit.cli.nodes_cmd import _import_findings, _lint_findings
+
+    with _project_imports(root):
+        findings = _import_findings(modules, as_json=True) + _lint_findings()
+    if not findings:
+        checks.passed("nodes.lint")
+        return
+    for finding in findings:
+        item = {**finding.value, "check_id": "nodes.lint"}
+        checks.diagnostics.append(item)
+        checks.checks.append({"check_id": "nodes.lint", "status": item["severity"]})
+
+
+def _check_flow(checks: _Checks, root: Path, ref: str) -> None:
+    from rdetoolkit.cli.run_cmd import resolve_flow
+    from rdetoolkit.core.flow import flow_prepare
+
+    with _project_imports(root):
         try:
             # resolve_flow owns the REF syntax and import rules; its messages
             # (which quote the import error) are swallowed with the module's output.
@@ -326,9 +387,6 @@ def _check_flow(checks: _Checks, root: Path, ref: str) -> None:
                 message="The flow declares prepare=; doctor checked the current input files without running it.",
                 remediation="If prepare= generates the inputs that decide the mode, prepare them before running doctor.",
             )
-    finally:
-        sys.path[:] = previous_path
-        sys.dont_write_bytecode = previous_bytecode
 
 
 def _config_summary(checks: _Checks, root: Path) -> dict[str, Any] | None:
@@ -348,7 +406,9 @@ def _config_summary(checks: _Checks, root: Path) -> dict[str, Any] | None:
     }
 
 
-def _inspect_project(checks: _Checks, root: Path, data_root: Path, ref: str | None) -> tuple[dict[str, Any] | None, str | None]:
+def _inspect_project(
+    checks: _Checks, root: Path, data_root: Path, ref: str | None, modules: list[str],
+) -> tuple[dict[str, Any] | None, str | None]:
     mode = None
     with redirect_stdout(sys.stderr):
         inputs_ready = _required_inputs(checks, data_root)
@@ -365,6 +425,8 @@ def _inspect_project(checks: _Checks, root: Path, data_root: Path, ref: str | No
                 )
         if ref is not None:
             _check_flow(checks, root, ref)
+        if modules:
+            _check_modules(checks, root, modules)
     return config, mode
 
 
@@ -372,8 +434,13 @@ def doctor(
     project_dir: Annotated[Path | None, typer.Argument(metavar="PROJECT_DIR", help="Project root or its data/ directory.")] = None,
     ref: Annotated[str | None, typer.Option("--ref", metavar="REF", help="Also check the flow pkg.mod:callable (imports it; never calls it).")] = None,
     output_format: Annotated[str, typer.Option("--format", help="Output format: text or json.")] = "text",
+    modules: Annotated[
+        list[str] | None,
+        typer.Option("--module", metavar="NAME", help="Also import a project module and lint its nodes; repeatable."),
+    ] = None,
+    strict: Annotated[bool, typer.Option("--strict", help="Treat warnings as failures (exit 1).")] = False,
 ) -> None:
-    """Check the project's inputs, config, mode and (with --ref) flow without running it."""
+    """Check the project's inputs, config, mode and (with --ref / --module) code without running the flow."""
     if output_format not in {"text", "json"}:
         _usage_error(f"Unsupported --format {output_format!r}.\nRemediation: pass --format text or --format json.")
     root = (project_dir or Path.cwd()).resolve()
@@ -381,16 +448,31 @@ def doctor(
         _usage_error(f"PROJECT_DIR is not a directory: {project_dir}\nRemediation: pass the project root or its data/ directory.")
     data_root = resolve_data_root(root)
     checks = _Checks(root)
-    config, mode = _inspect_project(checks, root, data_root, ref)
+    config, mode = _inspect_project(checks, root, data_root, ref, modules or [])
     payload = envelope(
         checks.diagnostics, command="doctor", data_root=checks.relative(data_root), mode=mode, config=config, checks=checks.checks,
+        flow_executed=False, strict=strict,
     )
     if output_format == "json":
         typer.echo(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2))
     else:
-        typer.echo(f"doctor: {payload['status']} (data root: {payload['data_root']}, mode: {mode or 'unavailable'})")
-        for item in payload["diagnostics"]:
-            where = f" [{item['location']['path']}]" if "location" in item else ""
-            typer.echo(f"{item['severity']}: {item['check_id']}{where}: {item['message']}\n  Remediation: {item['remediation']}")
-    if payload["status"] == "failed":
+        _echo_text(payload, mode)
+    if payload["status"] == "failed" or (strict and payload["status"] == "warning"):
         raise typer.Exit(code=1)
+
+
+#: Doctor never runs the flow; the report must not read as "processing passes" (#697).
+STATIC_ONLY_NOTE = (
+    "Static preflight only: the flow was not executed, so a passing doctor does not prove that processing succeeds."
+)
+
+
+def _echo_text(payload: dict[str, Any], mode: str | None) -> None:
+    typer.echo(f"doctor: {payload['status']} (data root: {payload['data_root']}, mode: {mode or 'unavailable'})")
+    typer.echo(STATIC_ONLY_NOTE)
+    for item in payload["diagnostics"]:
+        # Lint findings locate a source (module:qualname), not a project file.
+        location = item.get("location") or {}
+        place = location.get("path") or location.get("source")
+        where = f" [{place}]" if place else ""
+        typer.echo(f"{item['severity']}: {item['check_id']}{where}: {item['message']}\n  Remediation: {item['remediation']}")

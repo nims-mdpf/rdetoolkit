@@ -92,15 +92,18 @@ class TestExecutionResultShape:
             "title",
             "target",
             "stacktrace",
+            # #686: the failed tile's phase-aware diagnostic, kept out of
+            # every persisted payload (the RunReport v2 shape is unchanged).
+            "diagnostic",
         }
 
     def test_execution_result_error_defaults_to_none(self) -> None:
-        """TC-EXEC-002: error is optional with a None default."""
+        """TC-EXEC-002: error (and the #686 diagnostic) are optional with a None default."""
         from rdetoolkit.runner.execute import ExecutionResult  # noqa: PLC0415
 
-        for f in dataclasses.fields(ExecutionResult):
-            if f.name == "error":
-                assert f.default is None
+        defaults = {f.name: f.default for f in dataclasses.fields(ExecutionResult)}
+        assert defaults["error"] is None
+        assert defaults["diagnostic"] is None
 
 
 class TestRunTileDIWiring:

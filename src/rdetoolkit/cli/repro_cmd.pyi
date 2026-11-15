@@ -6,3 +6,13 @@ app: typer.Typer
 
 def export_run(run_report: Path, output: Path, config: Path | None = None, manifest_only: bool = False) -> None: ...
 def import_run(archive_path: Path, target: Path) -> None: ...
+def inspect_archive(archive_path: Path, output_format: str = "text") -> None: ...
+def to_pytest(
+    archive_path: Path,
+    ref: str,
+    output: Path,
+    project: Path | None = None,
+    stage_inputs: Path | None = None,
+    expect_status: str | None = None,
+    force: bool = False,
+) -> None: ...

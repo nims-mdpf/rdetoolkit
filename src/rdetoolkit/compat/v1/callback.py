@@ -20,7 +20,7 @@ import inspect
 import traceback
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any
 
 from rdetoolkit.api.request import LegacyCallbackTarget
 from rdetoolkit.core.calllog import CallLogRecorder
@@ -38,6 +38,7 @@ from rdetoolkit.models.rde2types import (
 )
 from rdetoolkit.runner.execute import (
     ExecutionResult,
+    InvocationEventEmitter,
     TileExecutionError,
     _emit_node_events,
     _failed_error,
@@ -302,9 +303,10 @@ class LegacyCallbackInvoker:
         recorder = CallLogRecorder(
             repr_head=config.provenance.repr_head,
             repr_head_len=config.provenance.repr_head_len,
-            type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
+            type_check=config.execution.type_check,
             iteration_index=iteration.index,
             sequence=material.call_sequence,
+            invocation_listener=InvocationEventEmitter(event_sink, run_id=run_id),
         )
         datatile_id = _datatile_id(context, iteration.index)
         try:

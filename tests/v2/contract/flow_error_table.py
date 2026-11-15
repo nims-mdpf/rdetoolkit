@@ -24,8 +24,9 @@ Three translation rules cover all ten cells:
     cases are covered in test_invoice_validation_timing_647.py.
 
 The CB-V2 column records callback counts and final report iterations under the
-v1 configuration. Run-level output validation replaces the iteration report on
-failure, so callbacks may have run even when the final report has no iterations.
+v1 configuration. A run-level output validation failure keeps the executed
+tiles in the final report (#685), so a callback whose final invoice is rejected
+leaves every tile it ran, as completed.
 """
 
 from __future__ import annotations
@@ -56,10 +57,12 @@ class IterationRule(Enum):
 
     #: Default ``on_iteration_error: continue`` — every tile runs and fails.
     EVERY_TILE = "every-tile"
-    #: Run-level validation failure: no iterations in the final failed report.
-    #: Source validation stops before iteration; output validation replaces the
-    #: iteration report at the run failure boundary.
+    #: Source validation failure: the run stops before iteration, so the final
+    #: failed report has no iterations.
     NONE = "none"
+    #: Output validation failure after every tile completed: the final failed
+    #: report keeps each executed tile, as completed (#685).
+    EXECUTED = "executed"
     #: ``fail_fast`` aborts at the first failing tile, so exactly one tile runs.
     FIRST_TILE = "first-tile"
 
@@ -101,10 +104,10 @@ FLOW_ERROR_TABLE: tuple[FlowErrorCell, ...] = (
     FlowErrorCell("multidatatile", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
     FlowErrorCell("rdeformat", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
     FlowErrorCell("smarttable", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
-    FlowErrorCell("invoice", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.NONE, 1),
+    FlowErrorCell("invoice", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.EXECUTED, 1),
     FlowErrorCell("excelinvoice", "valerr", 1, 0, 3001, MessageRule.V2_PREPARATION, IterationRule.EVERY_TILE, "basic: null prevents Excel row merging before invocation", IterationRule.FIRST_TILE, 0),
-    FlowErrorCell("multidatatile", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.NONE, 2),
-    FlowErrorCell("rdeformat", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.NONE, 2),
+    FlowErrorCell("multidatatile", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.EXECUTED, 2),
+    FlowErrorCell("rdeformat", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.EXECUTED, 2),
     FlowErrorCell("smarttable", "valerr", 1, 0, 1, MessageRule.V2_PREPARATION, IterationRule.EVERY_TILE, "basic: null prevents SmartTable row merging before invocation", IterationRule.FIRST_TILE, 0),
 )
 

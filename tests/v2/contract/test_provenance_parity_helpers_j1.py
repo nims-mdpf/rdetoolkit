@@ -191,6 +191,8 @@ def test_canonical_sequence_for_one_tile__tc_j1_pp_ep_002() -> None:
     assert expected_event_names(tiles=1) == [
         "run.started",
         "iteration.started",
+        "node.invocation_started",
+        "node.invocation_finished",
         "node.started",
         "node.completed",
         "iteration.completed",

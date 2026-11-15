@@ -15,7 +15,7 @@
       },
       "additionalProperties": false
     },
-    "command": {"enum": ["nodes lint", "doctor", "report diagnose"]},
+    "command": {"enum": ["nodes lint", "doctor", "report diagnose", "report explain"]},
     "status": {"enum": ["passed", "warning", "failed"]},
     "truncated": {"type": "boolean"},
     "source": {

@@ -116,6 +116,7 @@ from tests.v2.contract.provenance_parity import (
 from tests.v2.contract.flow_error_table import (
     FAILED_EXIT_CODE,
     VALIDATION_REASON,
+    IterationRule,
     MessageRule,
     expected_cb_v2_iteration_count,
     expected_divided_indices,
@@ -432,6 +433,8 @@ def test_callback_target_validation_error_follows_mode_timing(
     assert _callback_count(root) == cell.cb_v2_callback_count
     tile_count = int(_frozen(mode, "ok")["observed"]["callback_count"])
     assert len(report.iterations) == expected_cb_v2_iteration_count(cell, tile_count)
+    if cell.cb_v2_iterations is IterationRule.EXECUTED:
+        assert {iteration["status"] for iteration in report.iterations} == {"completed"}
 
 
 def test_callback_target_smarttable_row_material_matches_the_v1_oracle__tc_um_smt_cb_v2_rowdata(

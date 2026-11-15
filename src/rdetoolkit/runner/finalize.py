@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any
 
 from rdetoolkit.errors import ERROR_CATALOG, ProcessingError, _write_job_failed_marker
 from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.report.failure import FailureDiagnostic, diagnostics_document, diagnostics_filename
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.types import RdeConfig
 
@@ -145,6 +147,37 @@ def write_run_report(report: RunReport, *, data_root: Path) -> None:
     logs_dir.mkdir(parents=True, exist_ok=True)
     report_path = logs_dir / f"run_report_{report.run_id}.json"
     atomic_write_text(report_path, report.to_json())
+
+
+def write_failure_diagnostics(
+    diagnostics: list[FailureDiagnostic],
+    *,
+    run_id: str,
+    run_status: str,
+    data_root: Path,
+    truncated: bool = False,
+) -> Path:
+    """Write the run's failure-diagnostics sidecar below ``<data root>/logs`` (#686).
+
+    The sidecar is a separately versioned document, so the run report keeps
+    its v2 shape. It is written atomically like the run report.
+
+    Args:
+        diagnostics: Diagnostics in the order they happened.
+        run_id: Run identifier, which names the file.
+        run_status: Final ``RunReport.status``.
+        data_root: The run's single resolved data root.
+        truncated: Diagnostics were dropped before this call.
+
+    Returns:
+        The written ``logs/diagnostics_<run_id>.json``.
+    """
+    logs_dir = data_root / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    path = logs_dir / diagnostics_filename(run_id)
+    document = diagnostics_document(diagnostics, run_id=run_id, run_status=run_status, truncated=truncated)
+    atomic_write_text(path, json.dumps(document, ensure_ascii=False, indent=2))
+    return path
 
 
 def atomic_write_text(path: Path, text: str) -> None:
