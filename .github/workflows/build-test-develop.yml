@@ -28,7 +28,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        # develop/v2 push wheels are disposable; PRs retain the release matrix.
+        python-version: ${{ fromJSON(github.event_name == 'push' && github.ref == 'refs/heads/develop/v2' && '["3.12"]' || '["3.10", "3.11", "3.12", "3.13", "3.14"]') }}
         include:
           - os: ubuntu-latest
             platform_name: Linux
@@ -103,11 +104,14 @@ jobs:
         with:
           name: wheels-${{ matrix.platform_name }}-py${{ matrix.python-version }}
           path: dist/*.whl
+          if-no-files-found: error
+          # Zero preserves the repository's default retention for non-smoke builds.
+          retention-days: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop/v2' && 3 || 0 }}
 
   test-build-cross-platform:
     name: Cross-platform Build Test
     runs-on: ubuntu-latest
-    if: ${{ (
+    if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/develop/v2') && (
       (github.event_name == 'pull_request' && startsWith(github.head_ref, 'develop/v') && !contains(github.head_ref, '_')) ||
       (github.event_name != 'pull_request' && startsWith(github.ref_name, 'develop/v') && !contains(github.ref_name, '_'))
       ) && ! (
@@ -145,11 +149,16 @@ jobs:
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist/*.whl
+          if-no-files-found: error
 
   summary:
     name: Build Test Summary
     needs: [test-build-multi-platform, test-build-cross-platform]
     runs-on: ubuntu-latest
+    env:
+      SMOKE_BUILD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop/v2' }}
+      NATIVE_RESULT: ${{ needs.test-build-multi-platform.result }}
+      CROSS_RESULT: ${{ needs.test-build-cross-platform.result }}
     if: ${{ always() && (
       (github.event_name == 'pull_request' && startsWith(github.head_ref, 'develop/v') && !contains(github.head_ref, '_')) ||
       (github.event_name != 'pull_request' && startsWith(github.ref_name, 'develop/v') && !contains(github.ref_name, '_'))
@@ -159,6 +168,21 @@ jobs:
       ) }}
 
     steps:
+      - name: Check build status
+        run: |
+          python - <<'PY'
+          import os
+
+          expected_cross = "skipped" if os.environ["SMOKE_BUILD"] == "true" else "success"
+          results = {
+              "native": (os.environ["NATIVE_RESULT"], "success"),
+              "cross": (os.environ["CROSS_RESULT"], expected_cross),
+          }
+          for job, (actual, expected) in results.items():
+              if actual != expected:
+                  raise SystemExit(f"{job} build result: {actual!r}; expected {expected!r}")
+          PY
+
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
@@ -175,11 +199,39 @@ jobs:
           echo "=== Wheel sizes ==="
           find all-wheels -name "*.whl" -type f -exec ls -lh {} \;
 
-      - name: Check build status
+      - name: Check expected artifacts
         run: |
-          if [ $(find all-wheels -name "*.whl" -type f | wc -l) -eq 0 ]; then
-            echo "❌ No wheels were successfully built!"
-            exit 1
-          else
-            echo "✅ Build test completed successfully!"
-          fi
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          smoke = os.environ["SMOKE_BUILD"] == "true"
+          versions = ["3.12"] if smoke else ["3.10", "3.11", "3.12", "3.13", "3.14"]
+          expected = {
+              f"wheels-{platform}-py{version}"
+              for platform in ["Linux", "Windows", "macOS"]
+              for version in versions
+          }
+          if not smoke:
+              expected.update(
+                  f"wheels-linux-{target}"
+                  for target in [
+                      "x86_64-unknown-linux-gnu",
+                      "aarch64-unknown-linux-gnu",
+                      "armv7-unknown-linux-gnueabihf",
+                  ]
+              )
+
+          root = Path("all-wheels")
+          actual = {entry.name for entry in root.iterdir()} if root.is_dir() else set()
+          if actual != expected:
+              raise SystemExit(
+                  f"Artifact mismatch: missing={sorted(expected - actual)}, "
+                  f"unexpected={sorted(actual - expected)}"
+              )
+          for name in sorted(expected):
+              wheels = list((root / name).glob("*.whl"))
+              if not wheels or any(not wheel.is_file() or wheel.stat().st_size == 0 for wheel in wheels):
+                  raise SystemExit(f"Missing or empty wheels in artifact {name}")
+          print(f"Build test completed successfully: {len(expected)} wheel artifacts verified")
+          PY
