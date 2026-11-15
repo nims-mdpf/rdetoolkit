@@ -34,12 +34,17 @@ EP Table:
 | node registry           | duplicate node id                                 | still RdeRegistryError 2001                      | TC-640-EP-014   |
 | suite registry guard    | flow defined locally / by executed snippet        | dropped after the test                           | TC-640-GUARD-EP-001 |
 | suite registry guard    | flow bound in an imported module                  | kept (matches the import cache)                  | TC-640-GUARD-EP-002 |
+| suite registry guard    | factory-built flow exported under another name    | kept; cached re-import resolves it               | TC-640-GUARD-EP-003 |
+| suite registry guard    | module flow exposed only by an alias              | kept                                             | TC-640-GUARD-EP-004 |
+| suite registry guard    | flow registered at import, not exposed            | kept                                             | TC-640-GUARD-EP-005 |
+| suite registry guard    | factory in module A called at import of module B  | kept (owned by B)                                | TC-640-GUARD-EP-006 |
 
 BV Table:
 | API            | Boundary                                    | Expected                                   | Test ID       |
 |----------------|---------------------------------------------|--------------------------------------------|---------------|
 | flow decorator | explicit id equal to another flow's default | RdeRegistryError 2007                      | TC-640-BV-001 |
 | flow decorator | ids differing only by one character         | both register                              | TC-640-BV-002 |
+| suite registry guard | owning module evicted from sys.modules | dropped; a fresh import re-registers       | TC-640-GUARD-BV-001 |
 | flow decorator | double decoration ``flow(flow(fn))``        | RdeRegistryError 2007 (different wrapper)  | TC-640-BV-003 |
 """
 
@@ -444,54 +449,188 @@ class TestErrorPayload:
 
 
 class TestSuiteRegistryGuard:
-    """TC-640-GUARD-EP-001/002: the tests/v2 conftest isolation keeps import-cached flows only."""
+    """TC-640-GUARD-EP-001/002: the tests/v2 conftest isolation keeps only flows a cached import registered."""
 
     def test_module_bound_flow_is_kept__tc_640_guard_ep_002(self, module_dir: Path, unique_id: str) -> None:
-        from tests.v2.conftest import _bound_in_loaded_module
+        from tests.v2.conftest import _drop_flows_registered_since
 
         # Given: a flow bound as an attribute of an imported module
         name = f"issue640_guard_{uuid.uuid4().hex}"
         _write_module(module_dir, name, unique_id)
+        saved = set(registry._flow_specs)
         module = importlib.import_module(name)
 
-        # When / Then: the guard recognises it as owned by the import cache
-        assert _bound_in_loaded_module(module.entry) is True
+        # When: the next test's isolation runs
+        _drop_flows_registered_since(saved)
+
+        # Then: the import cache still owns it
+        assert get_flow_function(unique_id) is module.entry
 
     def test_local_flow_is_dropped__tc_640_guard_ep_001(self) -> None:
-        from tests.v2.conftest import _bound_in_loaded_module
+        from tests.v2.conftest import _drop_flows_registered_since
 
-        # Given: a flow defined inside a factory function
+        # Given: a flow defined inside a factory function called by the test
+        saved = set(registry._flow_specs)
         produced = _flow_factory()
+        flow_id = produced.__flow_spec__.id
 
-        # When / Then: it is not reachable from its module, so the guard drops it
-        assert _bound_in_loaded_module(produced) is False
+        # When: the isolation runs
+        _drop_flows_registered_since(saved)
+
+        # Then: no import registered it, so it is dropped and can be defined again
+        assert flow_id not in registry._flow_specs
+        assert get_flow_function(_flow_factory().__flow_spec__.id) is not produced
 
     def test_executed_snippet_flow_is_dropped__tc_640_guard_ep_001_exec(self, unique_id: str) -> None:
-        from tests.v2.conftest import _bound_in_loaded_module
+        from tests.v2.conftest import _drop_flows_registered_since
 
         # Given: a flow created by executing a snippet in a module-less namespace
+        saved = set(registry._flow_specs)
         namespace: dict[str, object] = {}
         exec(  # noqa: S102
             f"from rdetoolkit.core.flow import flow\n@flow(id={unique_id!r})\ndef snippet() -> None:\n    return None\n",
             namespace,
         )
 
-        # When / Then: no loaded module exposes it
-        assert _bound_in_loaded_module(namespace["snippet"]) is False
+        # When: the isolation runs
+        _drop_flows_registered_since(saved)
 
-    def test_module_attribute_replaced_is_dropped__tc_640_guard_ep_001_shadowed(
+        # Then: exec is not an import, so the flow is dropped
+        assert unique_id not in registry._flow_specs
+
+    def test_module_attribute_replaced_keeps_registration__tc_640_guard_ep_002_shadowed(
         self,
         module_dir: Path,
         unique_id: str,
     ) -> None:
-        from tests.v2.conftest import _bound_in_loaded_module
+        from tests.v2.conftest import _drop_flows_registered_since
 
         # Given: an imported module whose attribute no longer is the registered flow
         name = f"issue640_guard_shadow_{uuid.uuid4().hex}"
         _write_module(module_dir, name, unique_id)
+        saved = set(registry._flow_specs)
         module = importlib.import_module(name)
         original = module.entry
         module.entry = lambda: "shadow"
 
-        # When / Then: identity, not the name, decides
-        assert _bound_in_loaded_module(original) is False
+        # When: the isolation runs
+        _drop_flows_registered_since(saved)
+
+        # Then: the cached import registered it, so the registration stays with the cache
+        assert get_flow_function(unique_id) is original
+
+
+_FACTORY_EXPORT = """from rdetoolkit.core.flow import flow
+
+
+def _make():
+    @flow(id={flow_id!r})
+    def built() -> str:
+        return "built"
+
+    return built
+
+
+pipeline = _make()
+"""
+
+_ALIAS_EXPORT = """from rdetoolkit.core.flow import flow
+
+
+@flow(id={flow_id!r})
+def entry() -> str:
+    return "aliased"
+
+
+exported = entry
+del entry
+"""
+
+_UNEXPORTED = """from rdetoolkit.core.flow import flow
+
+FLOWS = []
+
+
+@FLOWS.append
+@flow(id={flow_id!r})
+def entry() -> str:
+    return "in a list"
+
+
+del entry
+"""
+
+
+class TestSuiteRegistryGuardFollowsImportCache:
+    """TC-640-GUARD-EP-003..006 / BV-001: a flow a cached import registered survives the next test's isolation.
+
+    Each test registers through a real import, runs the isolation the next
+    test would run, and imports the module again: the cached module must still
+    resolve through the registry, however the module exposes (or hides) it.
+    """
+
+    @staticmethod
+    def _import_then_isolate(module_dir: Path, source: str) -> Any:
+        from tests.v2.conftest import _drop_flows_registered_since
+
+        name = f"issue640_cache_{uuid.uuid4().hex}"
+        (module_dir / f"{name}.py").write_text(source, encoding="utf-8")
+        saved = set(registry._flow_specs)
+        module = importlib.import_module(name)
+        _drop_flows_registered_since(saved)
+        assert importlib.import_module(name) is module
+        return module
+
+    def test_factory_flow_exported_under_another_name__tc_640_guard_ep_003(self, module_dir: Path, unique_id: str) -> None:
+        # Given / When: a module exposing a factory-built flow as ``pipeline``, then the next test's isolation
+        module = self._import_then_isolate(module_dir, _FACTORY_EXPORT.format(flow_id=unique_id))
+
+        # Then: the cached module and the registry still agree
+        assert get_flow_function(unique_id) is module.pipeline
+
+    def test_flow_exposed_only_by_an_alias__tc_640_guard_ep_004(self, module_dir: Path, unique_id: str) -> None:
+        # Given / When: a module flow whose own name was deleted, kept only as ``exported``
+        module = self._import_then_isolate(module_dir, _ALIAS_EXPORT.format(flow_id=unique_id))
+
+        # Then: the alias still resolves through the registry
+        assert get_flow_function(unique_id) is module.exported
+
+    def test_flow_registered_at_import_but_not_exposed__tc_640_guard_ep_005(self, module_dir: Path, unique_id: str) -> None:
+        # Given / When: a module that registers a flow and keeps it only in a list
+        module = self._import_then_isolate(module_dir, _UNEXPORTED.format(flow_id=unique_id))
+
+        # Then: the registration made by the cached import stays
+        assert get_flow_function(unique_id) is module.FLOWS[0]
+
+    def test_factory_in_another_module_called_at_import__tc_640_guard_ep_006(self, module_dir: Path, unique_id: str) -> None:
+        # Given: a factory module (imported before) and a module that calls it at import time
+        factory = f"issue640_factory_{uuid.uuid4().hex}"
+        (module_dir / f"{factory}.py").write_text(
+            "from rdetoolkit.core.flow import flow\n\n\ndef make(flow_id):\n    @flow(id=flow_id)\n    def built() -> str:\n        return 'built'\n\n    return built\n",
+            encoding="utf-8",
+        )
+        importlib.import_module(factory)
+
+        # When: the calling module is imported, then the next test's isolation runs
+        module = self._import_then_isolate(module_dir, f"import {factory}\n\npipeline = {factory}.make({unique_id!r})\n")
+
+        # Then: the calling module's cached registration stays
+        assert get_flow_function(unique_id) is module.pipeline
+
+    def test_evicted_module_is_dropped_and_reimports__tc_640_guard_bv_001(self, module_dir: Path, unique_id: str) -> None:
+        from tests.v2.conftest import _drop_flows_registered_since
+
+        # Given: a module flow whose module leaves the import cache before isolation
+        name = f"issue640_evicted_{uuid.uuid4().hex}"
+        (module_dir / f"{name}.py").write_text(_FACTORY_EXPORT.format(flow_id=unique_id), encoding="utf-8")
+        saved = set(registry._flow_specs)
+        importlib.import_module(name)
+        del sys.modules[name]
+
+        # When: the isolation runs
+        _drop_flows_registered_since(saved)
+
+        # Then: the registration is gone, so a fresh import re-registers without 2007
+        assert unique_id not in registry._flow_specs
+        fresh = importlib.import_module(name)
+        assert get_flow_function(unique_id) is fresh.pipeline
