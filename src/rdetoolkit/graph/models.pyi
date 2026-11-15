@@ -106,13 +106,13 @@ class ParsedData:
     series_col: str | None = ...
     direction_col: str | None = ...
 
-@dataclass
+@dataclass(frozen=True)
 class MatplotlibArtifact:
     filename: str
     figure: Any
     metadata: dict[str, Any] | None = ...
 
-@dataclass
+@dataclass(frozen=True)
 class NormalizedColumns:
     x_col: int | list[int]
     y_cols: list[int]
@@ -120,7 +120,7 @@ class NormalizedColumns:
     derived_x_label: str
     derived_y_label: str
 
-@dataclass
+@dataclass(frozen=True)
 class RenderCollections:
     overlay: list[RenderResult]
     individual: list[RenderResult]

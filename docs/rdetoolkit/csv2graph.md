@@ -86,6 +86,10 @@ package root. Each name belongs to exactly one tier:
 Automated tests fail if this table, the runtime `__all__`, and the package stub
 disagree.
 
+The supported names from `PlotRequestError` onwards form the spec-first Graph
+Engine API (`render_graph`, specs, plans, results, readers, renderers and output
+sinks); see [Graph Engine](../usage/structured_process/graph_engine.md).
+
 <!-- graph-export-inventory:start -->
 | Name | Tier | Defining module |
 |------|------|-----------------|
@@ -109,6 +113,48 @@ disagree.
 | `PlotConfig` | supported | `rdetoolkit.graph.models` |
 | `CSVMetadata` | supported | `rdetoolkit.graph.models` |
 | `ParsedData` | supported | `rdetoolkit.graph.models` |
+| `PlotRequestError` | supported | `rdetoolkit.graph.exceptions` |
+| `GraphUserWarning` | supported | `rdetoolkit.graph.exceptions` |
+| `render_graph` | supported | `rdetoolkit.graph.engine` |
+| `build_plot_plan` | supported | `rdetoolkit.graph.plan` |
+| `GraphSpec` | supported | `rdetoolkit.graph.spec` |
+| `SeriesSpec` | supported | `rdetoolkit.graph.spec` |
+| `AxisSpec` | supported | `rdetoolkit.graph.spec` |
+| `LegendSpec` | supported | `rdetoolkit.graph.spec` |
+| `StyleSpec` | supported | `rdetoolkit.graph.spec` |
+| `OutputSpec` | supported | `rdetoolkit.graph.spec` |
+| `PlotPlan` | supported | `rdetoolkit.graph.plan` |
+| `SeriesPlan` | supported | `rdetoolkit.graph.plan` |
+| `FigurePlan` | supported | `rdetoolkit.graph.plan` |
+| `GraphDiagnostic` | supported | `rdetoolkit.graph.plan` |
+| `PlotData` | supported | `rdetoolkit.graph.plan` |
+| `GraphResult` | supported | `rdetoolkit.graph.result` |
+| `Artifact` | supported | `rdetoolkit.graph.result` |
+| `TableReader` | supported | `rdetoolkit.graph.readers` |
+| `TableData` | supported | `rdetoolkit.graph.readers` |
+| `ColumnProvenance` | supported | `rdetoolkit.graph.readers` |
+| `ReaderRegistry` | supported | `rdetoolkit.graph.readers` |
+| `builtin_readers` | supported | `rdetoolkit.graph.readers` |
+| `discover_readers` | supported | `rdetoolkit.graph.readers` |
+| `read_table` | supported | `rdetoolkit.graph.readers` |
+| `detect_table_format` | supported | `rdetoolkit.graph.readers` |
+| `DetectionDecision` | supported | `rdetoolkit.graph.readers` |
+| `FormatCandidate` | supported | `rdetoolkit.graph.readers` |
+| `UnknownReaderError` | supported | `rdetoolkit.graph.exceptions` |
+| `AmbiguousFormatError` | supported | `rdetoolkit.graph.exceptions` |
+| `DuplicateReaderError` | supported | `rdetoolkit.graph.exceptions` |
+| `ReaderPluginError` | supported | `rdetoolkit.graph.exceptions` |
+| `GraphRenderer` | supported | `rdetoolkit.graph.renderers.base` |
+| `RendererCapabilities` | supported | `rdetoolkit.graph.renderers.base` |
+| `RendererRegistry` | supported | `rdetoolkit.graph.renderers.registry` |
+| `builtin_renderers` | supported | `rdetoolkit.graph.renderers.registry` |
+| `RendererUnavailableError` | supported | `rdetoolkit.graph.exceptions` |
+| `UnsupportedFormatError` | supported | `rdetoolkit.graph.exceptions` |
+| `ArtifactSink` | supported | `rdetoolkit.graph.outputs` |
+| `DirectorySink` | supported | `rdetoolkit.graph.outputs` |
+| `OutputContextSink` | supported | `rdetoolkit.graph.outputs` |
+| `OutputPathError` | supported | `rdetoolkit.graph.exceptions` |
+| `ArtifactCollisionError` | supported | `rdetoolkit.graph.exceptions` |
 | `titleize` | compatibility | `rdetoolkit.graph.textutils` |
 | `sanitize_filename` | compatibility | `rdetoolkit.graph.textutils` |
 | `to_snake_case` | compatibility | `rdetoolkit.graph.textutils` |
