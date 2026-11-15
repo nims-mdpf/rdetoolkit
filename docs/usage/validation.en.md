@@ -319,6 +319,27 @@ except Exception as e:
     print(f"Workflow execution error (including validation): {e}")
 ```
 
+### Configuration Values Checked at Load Time
+
+The v2 configuration is validated when it is loaded, before any input is read.
+An unknown key or an invalid value fails with `ConfigLoadFailed` (error code 1002),
+and the message names the offending key.
+
+`execution.type_check` accepts exactly `off` (default), `warn` or `strict`.
+Any other value is rejected, including misspellings (`strcit`), other letter
+case (`Strict`), surrounding spaces, `null`, numbers and lists:
+
+```text
+[ConfigLoadFailed] Failed to load RDE configuration: 1 validation error for RdeConfig
+execution.type_check
+  Input should be 'off', 'warn' or 'strict' ...
+```
+
+The same check applies to `rdeconfig.yaml`, `[tool.rdetoolkit]` in
+`pyproject.toml`, `--config` overrides and an explicit `RdeConfig`.
+`rdetoolkit run REF --validate-only` and `rdetoolkit doctor` both report it
+without running the flow.
+
 ## CLI Validation Commands
 
 RDEToolKit provides command-line validation tools with standardized exit codes for CI/CD integration.
@@ -421,6 +442,35 @@ $ echo $?
 0
 ```
 
+#### Require Files to Be Validated (`--require-files`)
+
+By default, `validate all` exits 0 when it finds no standard RDE file, which
+suits interactive discovery. In CI, a wrong path or an incomplete checkout would
+then pass after validating nothing. With `--require-files`, finding nothing to
+validate is a validation failure (exit 1) with the stable error type
+`no_target_files`, and the message lists the searched directories:
+
+```bash
+$ rdetoolkit validate all ./wrong-dir --strict --require-files
+✗ INVALID: /abs/path/wrong-dir
+
+Errors:
+  1. Field:
+     Type: no_target_files
+     Message: No standard RDE file was found to validate (--require-files). Searched under the project directory: container/data/tasksupport/, template/tasksupport/, input/invoice/, input/metadata/. Remediation: ...
+
+$ echo $?
+1
+```
+
+With `--format json`, the failure is one more entry in the usual JSON array
+(`"valid": false`, error `"type": "no_target_files"`). `--strict` alone keeps its
+meaning (warnings fail); it does not require files. A deprecation notice for the
+v1 `templates/` layout does not count as a validated file. For a Runner `data/`
+directory (`data/tasksupport`, `data/invoice`), use `rdetoolkit doctor` instead.
+
+Use `--strict --require-files` in CI.
+
 ### CI/CD Integration Examples
 
 #### GitHub Actions Example
@@ -446,14 +496,15 @@ jobs:
 
       - name: Validate RDE Project
         run: |
-          rdetoolkit validate all ./rde-project
-          if [ $? -eq 1 ]; then
-            echo "::error::RDE validation failed - check data and schema"
-            exit 1
-          elif [ $? -eq 2 ]; then
+          set +e
+          rdetoolkit validate all ./rde-project --strict --require-files
+          status=$?
+          if [ $status -eq 1 ]; then
+            echo "::error::RDE validation failed (or no file was validated) - check data and schema"
+          elif [ $status -eq 2 ]; then
             echo "::error::RDE validation configuration error"
-            exit 2
           fi
+          exit $status
 ```
 
 #### GitLab CI Example
@@ -464,7 +515,7 @@ validate:
   image: python:3.12
   script:
     - pip install rdetoolkit
-    - rdetoolkit validate all ./rde-project
+    - rdetoolkit validate all ./rde-project --strict --require-files
   allow_failure: false
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'

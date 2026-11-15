@@ -20,7 +20,7 @@ import inspect
 import traceback
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any
 
 from rdetoolkit.api.request import LegacyCallbackTarget
 from rdetoolkit.core.calllog import CallLogRecorder
@@ -302,7 +302,7 @@ class LegacyCallbackInvoker:
         recorder = CallLogRecorder(
             repr_head=config.provenance.repr_head,
             repr_head_len=config.provenance.repr_head_len,
-            type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
+            type_check=config.execution.type_check,
             iteration_index=iteration.index,
             sequence=material.call_sequence,
         )

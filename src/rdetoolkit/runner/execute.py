@@ -6,7 +6,7 @@ import inspect
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.core.calllog import CallLogRecorder, CallSequence, NodeCallRecord, TypeSummary
@@ -86,7 +86,7 @@ def run_tile(
     recorder = CallLogRecorder(
         repr_head=config.provenance.repr_head,
         repr_head_len=config.provenance.repr_head_len,
-        type_check=cast("Literal['off', 'warn', 'strict']", config.execution.type_check),
+        type_check=config.execution.type_check,
         iteration_index=iteration_index,
         sequence=sequence,
     )
