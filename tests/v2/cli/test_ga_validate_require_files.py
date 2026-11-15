@@ -234,7 +234,10 @@ class TestRequireFilesPathMessages:
         result = _invoke(str(missing), "--require-files")
         # Then: it is a usage error naming the path (unchanged contract, exit 2)
         assert result.exit_code == 2, result.output
-        assert "does-not-exist" in result.output
+        # Rich wraps long paths inside its error box at any terminal width, so
+        # compare with box drawing and whitespace removed.
+        flattened = "".join(ch for ch in result.output if not ch.isspace() and ch not in "│╭╮╰╯─")
+        assert "does-not-exist" in flattened
         assert not missing.exists()
 
     @pytest.mark.parametrize("form", ["dot", "default"])
