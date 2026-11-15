@@ -416,10 +416,15 @@ def test_assert_success_passes_on_success__tc_rr_ep_010(rde_runner: RdeTestRunne
 
 def test_diagnostics_path_follows_the_sidecar__tc_rr_ep_011(rde_runner: RdeTestRunner, tmp_path: Path) -> None:
     """TC-RR-EP-011: diagnostics_path names logs/diagnostics_<run_id>.json only when it exists."""
-    # Given: a finished run without a sidecar
+    # Given: a failed run, which writes its sidecar since #686
     result = rde_runner.run(flow=_failing, project=_nested_project(tmp_path / "project"))
-    assert result.diagnostics_path is None
     sidecar = result.data_root / "logs" / f"diagnostics_{result.report.run_id}.json"
+    assert result.diagnostics_path == sidecar
+
+    # And: once the sidecar is gone (a historic run), no path is exposed
+    sidecar.unlink()
+    without = _collect_result(result.report, project_root=result.project_root, data_root=result.data_root)
+    assert without.diagnostics_path is None
     sidecar.write_text("{}", encoding="utf-8")
 
     # When: collecting the result again once the sidecar exists

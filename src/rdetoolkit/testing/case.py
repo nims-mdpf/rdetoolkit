@@ -92,7 +92,10 @@ def rde_case(
         expect_error_code: Catalog code the run or one of its tiles must
             record. Only valid with a non-success ``expect_status``.
         expect_phase: Phase that the diagnostics sidecar
-            (``logs/diagnostics_<run_id>.json``) must record. Only valid with a
+            (``logs/diagnostics_<run_id>.json``) must record as one of its
+            ``diagnostics[*].phase`` values. A file that is not a
+            ``rdetoolkit.failure-diagnostics`` document of a schema version
+            this rdetoolkit reads fails the expectation. Only valid with a
             non-success ``expect_status``.
         config: ``RdeConfig`` or override mapping for the run.
         checks: Reusable output checks (``rde_check`` functions or plain
@@ -319,21 +322,33 @@ def _phase_failures(expected: str, result: RdeTestResult) -> list[str]:
         document = json.loads(result.diagnostics_path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         return [f"rde_case could not read the diagnostics sidecar {result.diagnostics_path}: {exc}"]
-    phases = sorted(set(_phases(document)))
+    diagnostics = _sidecar_diagnostics(document)
+    if isinstance(diagnostics, str):
+        return [f"rde_case expected diagnostic phase {expected!r}, but the sidecar {result.diagnostics_path} {diagnostics}"]
+    phases = sorted({item["phase"] for item in diagnostics if isinstance(item.get("phase"), str)})
     if expected not in phases:
         return [f"rde_case expected diagnostic phase {expected!r}; the sidecar records {phases or 'none'}"]
     return []
 
 
-def _phases(document: object) -> Iterator[str]:
-    # The sidecar schema is owned by the diagnostics feature; any "phase"
-    # string anywhere in it counts, so this check does not pin its layout.
-    if isinstance(document, Mapping):
-        for key, value in document.items():
-            if key == "phase" and isinstance(value, str):
-                yield value
-            else:
-                yield from _phases(value)
-    elif isinstance(document, list):
-        for item in document:
-            yield from _phases(item)
+def _sidecar_diagnostics(document: object) -> list[Mapping[str, Any]] | str:
+    """Return the sidecar's diagnostics, or why the document is not a readable sidecar.
+
+    Only ``diagnostics[*].phase`` of the versioned document ``report/failure.py``
+    writes counts: a ``phase`` key elsewhere (an exception detail, a foreign
+    document) is not a recorded failure phase.
+    """
+    from rdetoolkit.report.failure import (  # noqa: PLC0415 -- keep importing this module light
+        FAILURE_DIAGNOSTICS_FORMAT,
+        FAILURE_DIAGNOSTICS_SCHEMA_VERSION,
+    )
+
+    if not isinstance(document, Mapping) or document.get("format") != FAILURE_DIAGNOSTICS_FORMAT:
+        return f"is not a {FAILURE_DIAGNOSTICS_FORMAT!r} document"
+    version = document.get("schema_version")
+    if version != FAILURE_DIAGNOSTICS_SCHEMA_VERSION:
+        return f"has schema_version {version!r}; this rdetoolkit reads {FAILURE_DIAGNOSTICS_SCHEMA_VERSION!r}"
+    diagnostics = document.get("diagnostics")
+    if not isinstance(diagnostics, list):
+        return "has no 'diagnostics' list"
+    return [item for item in diagnostics if isinstance(item, Mapping)]

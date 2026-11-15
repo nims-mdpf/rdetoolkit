@@ -202,12 +202,36 @@ def test_plain_test_is_untouched__tc_case_ep_009(request: pytest.FixtureRequest)
     assert "rde_run" not in request.fixturenames
 
 
+#: ``_result_with_sidecar`` document meaning "remove the sidecar the run wrote",
+#: i.e. a historic run from before #686 or a sidecar whose write failed.
+_NO_SIDECAR = object()
+
+
+def _sidecar_document(diagnostics: object, **overrides: object) -> dict[str, object]:
+    """Return a sidecar shaped like ``report/failure.py`` writes it."""
+    document: dict[str, object] = {
+        "schema_version": "1",
+        "format": "rdetoolkit.failure-diagnostics",
+        "run_id": "r",
+        "run_status": "failed",
+        "diagnostics": diagnostics,
+        "truncated": False,
+    }
+    document.update(overrides)
+    return document
+
+
 def _result_with_sidecar(tmp_path: Path, document: object | str | None) -> RdeTestResult:
+    """Run the failing case; ``None`` keeps the real sidecar, otherwise it is replaced or removed."""
     from rdetoolkit.testing.runner import _collect_result
 
     result = RdeTestRunner(tmp_path / "runs").run(flow=_failing, project=FIXTURE)
-    if document is not None:
-        sidecar = result.data_root / "logs" / f"diagnostics_{result.report.run_id}.json"
+    sidecar = result.data_root / "logs" / f"diagnostics_{result.report.run_id}.json"
+    # Since #686 every failed run writes the sidecar; the cases below start from it.
+    assert result.diagnostics_path == sidecar
+    if document is _NO_SIDECAR:
+        sidecar.unlink()
+    elif document is not None:
         sidecar.write_text(document if isinstance(document, str) else json.dumps(document), encoding="utf-8")
     return _collect_result(result.report, project_root=result.project_root, data_root=result.data_root)
 
@@ -219,21 +243,81 @@ def _failed_case(**overrides: object) -> RdeCase:
 
 
 def test_phase_expectation_reads_the_sidecar__tc_case_ep_010(tmp_path: Path) -> None:
-    """TC-CASE-EP-010: a phase anywhere in the sidecar satisfies expect_phase."""
+    """TC-CASE-EP-010: a ``diagnostics[*].phase`` of the sidecar satisfies expect_phase."""
     # Given: a failed run whose sidecar records a node_execution diagnostic
     result = _result_with_sidecar(
-        tmp_path, {"schema_version": "1", "diagnostics": [{"phase": "node_execution", "detail": {"phase": 3}}]},
+        tmp_path, _sidecar_document([{"phase": "node_execution", "detail": {"phase": 3}}, "not-a-diagnostic"]),
     )
     # When / Then: the expectation holds
     assert check_case(_failed_case(expect_phase="node_execution"), result) == []
 
 
-def test_phase_found_in_top_level_list__tc_case_ep_010(tmp_path: Path) -> None:
-    """TC-CASE-EP-010 (layout): the phase is found whatever the sidecar's nesting."""
-    # Given: a sidecar that is a list mixing scalars and objects
-    result = _result_with_sidecar(tmp_path, [1, "phase", {"items": [{"phase": "finalize"}, None]}])
-    # When / Then
-    assert check_case(_failed_case(expect_phase="finalize"), result) == []
+def test_phase_expectation_on_the_real_sidecar__tc_case_ep_010(tmp_path: Path) -> None:
+    """TC-CASE-EP-010 (end to end): the sidecar a real failing run writes is what is read."""
+    # Given: a real failed run whose sidecar is left exactly as the Runner wrote it
+    result = _result_with_sidecar(tmp_path, None)
+    assert result.diagnostics_path is not None
+    document = json.loads(result.diagnostics_path.read_text(encoding="utf-8"))
+    assert (document["format"], document["schema_version"]) == ("rdetoolkit.failure-diagnostics", "1")
+    assert [item["phase"] for item in document["diagnostics"]] == ["node_execution"]
+
+    # When / Then: the recorded phase holds, any other phase is reported with what was recorded
+    assert check_case(_failed_case(expect_phase="node_execution"), result) == []
+    assert check_case(_failed_case(expect_phase="post_validate"), result) == [
+        "rde_case expected diagnostic phase 'post_validate'; the sidecar records ['node_execution']",
+    ]
+
+
+@rde_case(flow=_failing, project=FIXTURE, expect_status="failed", expect_error_code=3001, expect_phase="node_execution")
+def test_phase_expectation_through_the_marker__tc_case_ep_010(rde_run: RdeTestResult) -> None:
+    """TC-CASE-EP-010 (marker): the plugin checks expect_phase against the real sidecar."""
+    # Then: the case passed its checks at setup, against the sidecar the run wrote
+    assert rde_run.diagnostics_path is not None
+    assert rde_run.diagnostics_path.name == f"diagnostics_{rde_run.report.run_id}.json"
+
+
+@pytest.mark.parametrize(
+    ("document", "fragment"),
+    [
+        pytest.param(
+            [1, "phase", {"items": [{"phase": "node_execution"}, None]}],
+            "is not a 'rdetoolkit.failure-diagnostics' document",
+            id="top-level-list",
+        ),
+        pytest.param(
+            {"schema_version": "1", "diagnostics": [{"phase": "node_execution"}]},
+            "is not a 'rdetoolkit.failure-diagnostics' document",
+            id="no-format",
+        ),
+        pytest.param(
+            _sidecar_document([{"phase": "node_execution"}], format="rdetoolkit.diagnostics"),
+            "is not a 'rdetoolkit.failure-diagnostics' document",
+            id="other-format",
+        ),
+        pytest.param(
+            _sidecar_document([{"phase": "node_execution"}], schema_version="2"),
+            "schema_version '2'",
+            id="unsupported-version",
+        ),
+        pytest.param(
+            _sidecar_document({"phase": "node_execution"}),
+            "has no 'diagnostics' list",
+            id="diagnostics-not-a-list",
+        ),
+        pytest.param(
+            _sidecar_document([{"exception": {"phase": "node_execution"}}], phase="node_execution"),
+            "records none",
+            id="phase-outside-diagnostics",
+        ),
+    ],
+)
+def test_phase_is_read_from_the_sidecar_schema_only__tc_case_ep_010(tmp_path: Path, document: object, fragment: str) -> None:
+    """TC-CASE-EP-010 (layout): only ``diagnostics[*].phase`` of a known sidecar version counts."""
+    # Given / When: a sidecar mentioning the expected phase outside the real schema
+    failures = check_case(_failed_case(expect_phase="node_execution"), _result_with_sidecar(tmp_path, document))
+    # Then: the expectation does not hold, and the message says why
+    assert len(failures) == 1
+    assert fragment in failures[0]
 
 
 def test_error_code_found_on_a_tile_of_a_partial_run(tmp_path: Path) -> None:
@@ -381,9 +465,9 @@ def test_error_code_mismatch_message__tc_case_bv_004(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("document", "fragment"),
     [
-        pytest.param(None, "wrote no diagnostics sidecar", id="no-sidecar"),
-        pytest.param({"diagnostics": [{"phase": "finalize"}]}, "records ['finalize']", id="other-phase"),
-        pytest.param({"diagnostics": []}, "records none", id="no-phase"),
+        pytest.param(_NO_SIDECAR, "wrote no diagnostics sidecar", id="no-sidecar"),
+        pytest.param(_sidecar_document([{"phase": "finalize"}]), "records ['finalize']", id="other-phase"),
+        pytest.param(_sidecar_document([]), "records none", id="no-phase"),
         pytest.param("{not json", "could not read", id="unreadable"),
     ],
 )
