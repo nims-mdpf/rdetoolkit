@@ -23,7 +23,7 @@ from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.core.flow import derive_flow_id, flow_error, flow_prepare
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
-from rdetoolkit.domain.validation import invoice_validate, validate_tile_outputs, wrap_validation_error
+from rdetoolkit.domain.validation import InvoiceValidator, invoice_validate, validate_tile_outputs, wrap_validation_error
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.errors import (
     ERROR_CATALOG,
@@ -51,6 +51,8 @@ from rdetoolkit.types import RdeConfig
 _RUN_INTERRUPTED_CODE = 3004
 _TILE_ITERATION_FAILURE_CODE = 3001
 _REQUIRED_ARTIFACT_MISSING_CODE = 4003
+#: Modes whose table rows complete the uploaded invoice of every tile (#647).
+_ROW_MODES = frozenset({ModeKind.excelinvoice, ModeKind.smarttable})
 
 
 class Runner:
@@ -114,6 +116,11 @@ class Runner:
         # a ``finalizer=`` implementing the same two-argument call -- and a
         # pre-flight flag is not worth changing either protocol for.
         self._validate_only = False
+        # Whether ``pre_validate`` checks the source invoice's content. Set per
+        # run by ``_validate_inputs`` (#647); state rather than a parameter for
+        # the same reason as ``_validate_only``: ``pre_validate(config)`` is an
+        # overridden seam, and a direct call keeps the full check.
+        self._source_invoice_is_final = True
         self._planner = planner or RunPlanner(
             inputdata_path=lambda: self.inputdata_path,
             unpacked_dir_path=lambda: self.unpacked_dir_path,
@@ -479,10 +486,22 @@ class Runner:
             config: Effective configuration.
         """
         reject_empty_input(target, mode, self.inputdata_path)
-        self.pre_validate(config)
+        # ExcelInvoice / SmartTable rows and a v1 callback may still supply
+        # required fields, as in v1, which validated only the final invoice
+        # (#647). Only a flow in the other modes receives a final source invoice.
+        self._source_invoice_is_final = isinstance(target, FlowTarget) and mode not in _ROW_MODES
+        try:
+            self.pre_validate(config)
+        finally:
+            self._source_invoice_is_final = True
 
     def pre_validate(self, config: RdeConfig) -> None:
         """Validate source structure and invoice schema before flow execution.
+
+        The source files must exist (4003) and the schema itself must be valid
+        (4001). The source invoice's content is validated too, except where
+        rows or a v1 callback may still complete it (``_validate_inputs``);
+        those runs are checked on their final invoices by ``post_validate``.
 
         Args:
             config: Effective configuration.
@@ -495,7 +514,10 @@ class Runner:
             if not path.exists():
                 raise _validation_error(4003, str(path))
         try:
-            invoice_validate(invoice_path, schema_path)
+            if self._source_invoice_is_final:
+                invoice_validate(invoice_path, schema_path)
+            else:
+                InvoiceValidator(schema_path)
         except Exception as exc:  # noqa: BLE001
             # A stopped run is not an invalid invoice: keep 3004 (review rc1 F01).
             if is_run_interrupted(exc):
