@@ -73,10 +73,48 @@ def find_unstable_node_ids() -> tuple[str, ...]:
     return tuple(node_id for node_id in _node_specs if "<locals>" in node_id)
 
 
+def _duplicate_flow_error(registered: FlowSpec, rejected: FlowSpec) -> RdeRegistryError:
+    error_def = ERROR_CATALOG[2007]
+    error_cls: Any = RdeRegistryError
+    return error_cls(
+        code=2007,
+        name=error_def.name,
+        message=error_def.message_template.format(
+            flow_id=registered.id,
+            registered_source_location=registered.source_location,
+            rejected_source_location=rejected.source_location,
+        ),
+        detail={
+            "flow_id": registered.id,
+            "registered_source_location": registered.source_location,
+            "rejected_source_location": rejected.source_location,
+            "remediation": error_def.remediation,
+        },
+    )
+
+
 def register_flow(spec: FlowSpec, fn: Any) -> None:
-    """Register a flow spec and callable."""
-    _flow_specs.setdefault(spec.id, spec)
-    _flow_functions.setdefault(spec.id, fn)
+    """Register a flow spec and callable under ``spec.id``.
+
+    Re-registering the exact same callable object with an equal spec is a
+    no-op. Any other registration under a used id is rejected: a source
+    location is not proof of identity (``importlib.reload`` builds a new
+    function object at the same location), and keeping the first entry
+    silently would let the registry and the decorated function disagree.
+
+    Raises:
+        RdeRegistryError: Code 2007 (``DuplicateFlowId``) if ``spec.id`` is
+            already owned by a different callable or a different spec. The
+            registry is left unchanged.
+    """
+    registered = _flow_specs.get(spec.id)
+    if registered is not None:
+        if _flow_functions[spec.id] is fn and registered == spec:
+            return
+        raise _duplicate_flow_error(registered, spec)
+    # Both maps are written only after the check, so they always agree.
+    _flow_specs[spec.id] = spec
+    _flow_functions[spec.id] = fn
 
 
 def get_flow(flow_id: str) -> FlowSpec:

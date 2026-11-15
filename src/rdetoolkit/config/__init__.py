@@ -11,7 +11,7 @@ from tomlkit.toml_file import TOMLFile
 from yaml import YAMLError
 
 from rdetoolkit.exceptions import ConfigError
-from rdetoolkit.models.config import Config, TracebackSettings, MultiDataTileSettings, SystemSettings, SmartTableSettings
+from rdetoolkit.models.config import Config, TracebackSettings, MultiDataTileOrder, MultiDataTileSettings, SystemSettings, SmartTableSettings
 from rdetoolkit.models.rde2types import RdeFsPath
 
 CONFIG_FILE: Final = ["rdeconfig.yaml", "rdeconfig.yml"]

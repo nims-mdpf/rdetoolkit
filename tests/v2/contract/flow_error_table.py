@@ -5,7 +5,7 @@ matrix cells. ``local/develop/v2/merge_v1/contracts.md`` §I6-0 transcribes it;
 the tests read it directly so the contract, the documentation, and the
 assertions cannot drift apart.
 
-Two translation rules cover all ten cells:
+Three translation rules cover all ten cells:
 
 ``MessageRule.V1_VERBATIM``
     User code raised the v1 public ``StructuredError``. Its ``ecode`` and
@@ -13,22 +13,19 @@ Two translation rules cover all ten cells:
     frozen v1 observation (Design §6.3, 2026-09-07 addendum).
 
 ``MessageRule.V2_VALIDATION``
-    The failure is an invoice-schema violation. v2 detects it in
-    ``pre_validate`` — before the flow runs — and reports the v2 catalog code
-    4001 with the underlying defect, where v1 reported a mode-specific
-    downstream symptom after the callback had already run. This divergence was
-    ruled intentional in session_h2.md Conflict #2 and is pinned here.
+    Non-table flows reject the source invoice before execution (4001).
+    Legacy callbacks validate final outputs instead (#647).
 
-Session I-REVIEW-B (review F5) added the **CB-V2 column**: the same ten cells
-executed through ``Runner.run(RunRequest(target=LegacyCallbackTarget(...)))``,
-i.e. the unified Runner driving the new ``LegacyCallbackInvoker`` rather than
-v1's own loop. The translation rules are unchanged — a user ``StructuredError``
-still passes through verbatim and an invalid source invoice is still frontloaded
-to 4001 — but the *iteration* column differs from the FLOW column, because a
-v1 ``Config`` handed to ``config_source`` seeds ``on_iteration_error:
-fail_fast`` (``ConfigNormalizer._convert_v1``) where a v2 flow cell takes the v2
-default ``continue``. That is what makes the CB-V2 callback counts equal to the
-frozen v1 ones instead of equal to the tile count.
+``MessageRule.V2_PREPARATION``
+    Table modes defer source content validation. The malformed ``basic: null``
+    fixture fails during tile construction, before user code: ExcelInvoice's
+    ordinary exception maps to 3001; SmartTable preserves StructuredError(1).
+    This fixture does not represent a repairable missing custom field; those
+    cases are covered in test_invoice_validation_timing_647.py.
+
+The CB-V2 column records callback counts and final report iterations under the
+v1 configuration. Run-level output validation replaces the iteration report on
+failure, so callbacks may have run even when the final report has no iterations.
 """
 
 from __future__ import annotations
@@ -39,8 +36,7 @@ from enum import Enum
 #: v2 catalog code for a source invoice that violates its schema.
 INVOICE_SCHEMA_INVALID_CODE = 4001
 
-#: The actual invoice defect ``_invalidate_invoice`` introduces. Every mode
-#: reports it in v2 because pre_validate inspects the source invoice itself.
+#: The defect non-table source/final invoice validation reports.
 VALIDATION_REASON = "'basic' is a required property"
 
 #: A failed run maps to v1 exit code 1 (Design §9.3).
@@ -52,14 +48,17 @@ class MessageRule(Enum):
 
     V1_VERBATIM = "v1-verbatim"
     V2_VALIDATION = "v2-validation"
+    V2_PREPARATION = "v2-preparation"
 
 
 class IterationRule(Enum):
-    """How many tiles the v2 Runner attempts before the run fails."""
+    """How many iterations the final run report retains."""
 
     #: Default ``on_iteration_error: continue`` — every tile runs and fails.
     EVERY_TILE = "every-tile"
-    #: ``pre_validate`` rejects the run, so ``iterate`` is never entered.
+    #: Run-level validation failure: no iterations in the final failed report.
+    #: Source validation stops before iteration; output validation replaces the
+    #: iteration report at the run failure boundary.
     NONE = "none"
     #: ``fail_fast`` aborts at the first failing tile, so exactly one tile runs.
     FIRST_TILE = "first-tile"
@@ -79,8 +78,8 @@ class FlowErrorCell:
     rationale: str
     #: CB-V2 column: the same cell executed through the unified Runner with a
     #: ``LegacyCallbackTarget``. The code and message rules are shared with the
-    #: FLOW column; only the iteration and callback counts differ, because the
-    #: v1 ``Config`` the cell passes seeds the fail-fast policy.
+    #: FLOW column; timing and counts differ because callbacks may complete
+    #: invoices and the v1 configuration seeds the fail-fast policy.
     cb_v2_iterations: IterationRule = IterationRule.FIRST_TILE
     cb_v2_callback_count: int = 1
 
@@ -90,9 +89,10 @@ _USER_PASSTHROUGH = (
     "first failing tile (fail-fast) while v2 attempts every tile under the "
     "default continue policy"
 )
-_VALIDATION_FRONTLOADED = (
-    "v2 pre_validate rejects the source invoice before the flow runs, so the "
-    "v2 catalog code replaces the v1 mode-specific downstream symptom"
+_VALIDATION_CATALOGUED = (
+    "the flow entry's pre_validate rejects the source invoice before the flow "
+    "runs and the v1 callback entry's post_validate rejects the final invoice, "
+    "so the v2 catalog code replaces the v1 mode-specific downstream symptom"
 )
 
 FLOW_ERROR_TABLE: tuple[FlowErrorCell, ...] = (
@@ -101,11 +101,11 @@ FLOW_ERROR_TABLE: tuple[FlowErrorCell, ...] = (
     FlowErrorCell("multidatatile", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
     FlowErrorCell("rdeformat", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
     FlowErrorCell("smarttable", "usererr", 999, 1, 999, MessageRule.V1_VERBATIM, IterationRule.EVERY_TILE, _USER_PASSTHROUGH),
-    FlowErrorCell("invoice", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
-    FlowErrorCell("excelinvoice", "valerr", 1, 0, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
-    FlowErrorCell("multidatatile", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
-    FlowErrorCell("rdeformat", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
-    FlowErrorCell("smarttable", "valerr", 1, 0, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_FRONTLOADED, IterationRule.NONE, 0),
+    FlowErrorCell("invoice", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.NONE, 1),
+    FlowErrorCell("excelinvoice", "valerr", 1, 0, 3001, MessageRule.V2_PREPARATION, IterationRule.EVERY_TILE, "basic: null prevents Excel row merging before invocation", IterationRule.FIRST_TILE, 0),
+    FlowErrorCell("multidatatile", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.NONE, 2),
+    FlowErrorCell("rdeformat", "valerr", 999, 1, INVOICE_SCHEMA_INVALID_CODE, MessageRule.V2_VALIDATION, IterationRule.NONE, _VALIDATION_CATALOGUED, IterationRule.NONE, 2),
+    FlowErrorCell("smarttable", "valerr", 1, 0, 1, MessageRule.V2_PREPARATION, IterationRule.EVERY_TILE, "basic: null prevents SmartTable row merging before invocation", IterationRule.FIRST_TILE, 0),
 )
 
 _BY_CASE = {(cell.mode, cell.outcome): cell for cell in FLOW_ERROR_TABLE}

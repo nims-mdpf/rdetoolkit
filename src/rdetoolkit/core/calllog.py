@@ -137,6 +137,12 @@ def _summarize(value: Any, *, repr_head: str, repr_head_len: int) -> TypeSummary
 
 
 def _summarize_outputs(value: Any, *, repr_head: str, repr_head_len: int) -> tuple[TypeSummary, ...]:
+    """Summarize a return value: ``None`` -> none, a tuple -> one per element.
+
+    This is the only summary implementation (#641): node records here and the
+    Runner's tile outputs (``runner/execute.py``) both call it, so a value
+    reads the same on either path. Internal; not public API.
+    """
     if value is None:
         return ()
     if isinstance(value, tuple):

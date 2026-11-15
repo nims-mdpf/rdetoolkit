@@ -16,7 +16,13 @@ from typing import Any
 
 __version__ = "2.0.0rc1"
 
+# The supported top-level API is declared in four places that must agree:
+# ``_LAZY_ATTRS`` / ``_LAZY_MODULES`` (runtime resolution), ``__all__`` (star
+# imports), ``__dir__`` and ``__init__.pyi`` (type checkers). Lazy resolution
+# keeps a bare ``import rdetoolkit`` free of submodule and heavy-dependency
+# imports. tests/v2/api/test_top_level_api_637.py enforces the synchronization.
 _LAZY_ATTRS: dict[str, tuple[str, str]] = {
+    # v1 Rust-extension re-exports (compatibility contract)
     "DirectoryOps": ("rdetoolkit.core", "DirectoryOps"),
     "ManagedDirectory": ("rdetoolkit.core", "ManagedDirectory"),
     "detect_encoding": ("rdetoolkit.core", "detect_encoding"),
@@ -42,7 +48,7 @@ _LAZY_MODULES: dict[str, str] = {
     "workflows": "rdetoolkit.workflows",
     "storage": "rdetoolkit.storage",
     "traceback": "rdetoolkit.traceback",
-    "config": "rdetoolkit.models.config",
+    "config": "rdetoolkit.config",
     "invoice": "rdetoolkit.models.invoice",
     "invoice_schema": "rdetoolkit.models.invoice_schema",
     "metadata": "rdetoolkit.models.metadata",
@@ -76,6 +82,9 @@ __all__ = [
     "metadata",
     "rde2types",
     "models",
+    # v2 decorators (Design v2.1 §3.1)
+    "node",
+    "flow",
     "as_node",
 ]
 
