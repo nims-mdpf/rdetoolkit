@@ -53,7 +53,7 @@ plotly = ["plotly>=6.3.1"]
 render = ["pypdfium2>=4.30", "cairosvg>=2.7"]
 
 [tool.setuptools]
-package_data = { "rdetoolkit" = ["py.typed", "*.pyi", "_agent/*.md"] }
+package_data = { "rdetoolkit" = ["py.typed", "*.pyi"] }
 
 
 [project.scripts]

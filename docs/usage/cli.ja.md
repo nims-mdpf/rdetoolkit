@@ -27,7 +27,7 @@ RDEToolKitは、RDE構造化処理の開発ワークフロー全体を支援す�
 | Inspect | `report show`、`report trace`、`nodes list/show/lint`、`flows list/show`、`skeletons list/show`、`formats list` | 実行レポートの確認と登録済みコンポーネントの一覧 |
 | Package | `package`、`repro export`、`repro import` | 提出用アーカイブの作成、実行の書き出しと再取り込み |
 | Migrate | `migrate check`、`migrate apply` | v2 移行が必要な v1 コードと CLI 呼び出しの検出・変換 |
-| Info | `agent-guide`、`version` | AIエージェントガイドとインストール済みバージョンの表示 |
+| Info | `version` | インストール済みバージョンの表示 |
 | Deprecated (removed in v2.1) | v1 のコマンド名 | 警告を表示する別名として残っています。[v2.0 でのコマンド名の変更](#renamed-commands)を参照してください |
 
 ## 利用可能なコマンド
@@ -621,34 +621,6 @@ python3 -m rdetoolkit migrate apply container --no-dry-run -o container_v2
 終了コード: `0` 成功、`2` コマンドラインが不正(`migrate apply` では入力パスが存在しない場合も含む)、`3` パスが存在しない(`migrate check`)、または Python ファイルが見つからない、出力ディレクトリが既に存在するか入力の内側にある(`migrate apply`)。
 
 移行手順は [v1 から v2 への移行](../migration_v1_to_v2.md) を参照してください。
-
-### agent-guide: AIエージェントガイドの表示
-
-AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor等）向けの組み込みガイドを表示します。
-
-=== "Unix/macOS"
-
-    ```shell
-    python3 -m rdetoolkit agent-guide [--detailed]
-    ```
-
-=== "Windows"
-
-    ```powershell
-    py -m rdetoolkit agent-guide [--detailed]
-    ```
-
-このコマンドはrdetoolkitの使用方法、アーキテクチャ、ベストプラクティスに関するガイドテキストを Markdown で出力します。`--detailed` を付けると応用パターンと API リファレンス全体が加わります。AIアシスタントのコンテキストに追加して、rdetoolkitを使用したコード生成の精度を向上させることができます。
-
-#### Pythonからの使用
-
-```python
-import rdetoolkit
-
-# エージェントガイドを取得
-guide = rdetoolkit.agent_guide()
-print(guide)
-```
 
 ### version: バージョン確認
 

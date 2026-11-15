@@ -26,8 +26,6 @@ _LAZY_ATTRS: dict[str, tuple[str, str]] = {
     "Success": ("rdetoolkit.result", "Success"),
     "Failure": ("rdetoolkit.result", "Failure"),
     "try_result": ("rdetoolkit.result", "try_result"),
-    # Agent guide for AI coding assistants
-    "get_agent_guide": ("rdetoolkit._agent", "get_guide"),
     # v2 public API (Design v2.1 §3.1): from rdetoolkit import node, flow
     "node": ("rdetoolkit.core.node", "node"),
     "flow": ("rdetoolkit.core.flow", "flow"),
@@ -65,7 +63,6 @@ __all__ = [
     "try_result",
     "errors",
     "exceptions",
-    "get_agent_guide",
     "img2thumb",
     "invoicefile",
     "rde2util",

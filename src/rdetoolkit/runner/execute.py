@@ -38,8 +38,8 @@ class TileExecutionError(RdeExecutionError):
 
     def __init__(self, result: ExecutionResult, cause: Exception) -> None:
         error = result.error or _failed_error(cause, result.call_records)
-        super().__init__(  # type: ignore[call-arg]
-            code=int(error["code"]),  # type: ignore[arg-type]
+        super().__init__(
+            code=int(error["code"]),
             name=str(error["name"]),
             message=str(error["message"]),
             call_id=str(error.get("call_id", "")) or None,

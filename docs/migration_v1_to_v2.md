@@ -530,6 +530,23 @@ Dockerfile を新しい名前に更新してください。
 ください。`RdeOutputResourcePath` の `smarttable_rowfile=` 引数も、v1.7 と同じく
 `smarttable_rawfile` への非推奨エイリアスです。
 
+### 削除されたもの(2.0.0rc1 以降、GA 前)
+
+- v1.6.0 で追加されたパッケージ同梱の AI エージェントガイド:
+  `rdetoolkit.get_agent_guide()`、CLI の `agent-guide` コマンド、
+  内部モジュール `rdetoolkit._agent` と同梱 Markdown、およびパッケージ内の
+  `.agents/` ガイド。インストールされたパッケージにはエージェント向け文書を
+  同梱しません。代替 API はありません。呼び出しているコードやスクリプトからは
+  削除してください(#644)。
+- v2 プレリリースの草案エラー体系: 文字列の `rdetoolkit.errors.ErrorCode` 列挙
+  (`E001`〜`E025`)、`RdeGraphError`、`RdeCompileError`、`RdeIOError`、
+  `UnconnectedInputError`、および定数 `E_CYCLE` / `E_UNCONNECTED_INPUT` /
+  `E_DUPLICATE_ID` / `E_AMBIGUOUS_DEPENDENCY`。いずれも 2.0.0a1 / 2.0.0rc1 の
+  プレリリースにのみ存在し、v1 には含まれていません。`ERROR_CATALOG` の int
+  コードを持つ `RdeError` の派生クラス(`RdeConfigError`、`RdeRegistryError`、
+  `RdeExecutionError`、`RdeValidationError`、`RdeInternalError`)を使ってください
+  (#646)。
+
 ### 挙動の変更
 
 **v1.7 系で入った変更(v2 でもそのまま)**

@@ -2,8 +2,7 @@
 
 Fast checks run against the installed package in every environment; the true
 wheel-content check builds a wheel and therefore only runs where the build
-backend (build + maturin) is available — e.g. CI (same convention as
-tests/test_package_data.py).
+backend (build + maturin) is available — e.g. CI.
 """
 
 from __future__ import annotations
@@ -113,3 +112,8 @@ class TestWheelContents:
             or name in ("rdetoolkit/processing.pyi", "rdetoolkit/processing/processors.pyi")
         ]
         assert legacy == [], f"wheel must not contain the removed v1 orchestration: {legacy}"
+        # #644: the package-embedded agent guide is retired; typing data still ships.
+        agent_guide = [name for name in names if name.startswith(("rdetoolkit/_agent/", "rdetoolkit/.agents/"))]
+        assert agent_guide == [], f"wheel must not ship the retired agent guide: {agent_guide}"
+        assert "rdetoolkit/py.typed" in names, "wheel must keep shipping py.typed"
+        assert "rdetoolkit/__init__.pyi" in names, "wheel must keep shipping the package stubs"

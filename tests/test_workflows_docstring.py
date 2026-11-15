@@ -62,12 +62,3 @@ class TestWorkflowsDocstring:
         assert "MultiDataTile" in docstring
         assert "SmartTable" in docstring
         assert "invoice" in docstring.lower()
-
-    def test_docstring_references_agent_guide(self):
-        """Test: Docstring references agent guide for more info."""
-        # Given: run() function docstring
-        docstring = run.__doc__
-
-        # When: Checking for agent guide reference
-        # Then: Should mention get_agent_guide or agent-guide command
-        assert "get_agent_guide" in docstring or "agent-guide" in docstring

@@ -3,8 +3,9 @@
 Design authority: PhaseK_prompts ruling #6(b)/(c). The run report and every
 ``iteration_{i}.json`` are written to a same-directory temporary file and moved
 into place with ``os.replace``: an interrupted write leaves the previous file
-intact and no temporary behind. ``job.failed`` stays with v1's
-``write_job_errorlog_file`` (contract). At the start of tile iteration the
+intact and no temporary behind. ``job.failed`` keeps the v1 marker format
+and plain write (contract; issue #645 shares the primitive with v1's
+``write_job_errorlog_file``). At the start of tile iteration the
 Runner empties ``<data_root>/logs/iterations/`` so a shorter re-run never mixes
 with a longer run's high indices; ``job.failed``, ``run_report_*`` and
 ``events_*`` are not touched.
@@ -19,7 +20,7 @@ EP table:
 | TC-K3-ATM-004 | write raises half-way                          | previous file intact, no temp left, error re-raised |
 | TC-K3-ATM-005 | write_run_report while os.replace fails        | previous report intact, no temp left                |
 | TC-K3-ATM-006 | iteration json while os.replace fails          | previous iteration file intact, no temp left        |
-| TC-K3-ATM-007 | failed run                                     | job.failed still written by write_job_errorlog_file |
+| TC-K3-ATM-007 | failed run                                     | job.failed has v1 bytes, not atomic-written         |
 | TC-K3-ATM-008 | interrupt (BaseException) during write         | temp removed, interrupt propagates                  |
 | TC-K3-HYG-001 | re-run with fewer tiles                        | stale high-index iteration files removed            |
 | TC-K3-HYG-002 | successful re-run after a failed run           | job.failed kept (v1 behaviour, documented)          |
@@ -37,6 +38,7 @@ BV table:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -231,25 +233,20 @@ class TestReportWritersAreAtomic:
         assert json.loads(previous)["status"] == "completed"
         assert _leftovers(iterations) == []
 
-    def test_job_failed_stays_with_v1_writer__tc_k3_atm_007(
+    def test_job_failed_keeps_v1_marker_format__tc_k3_atm_007(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """TC-K3-ATM-007: ``job.failed`` is v1's contract, not the atomic writer's."""
-        # Given: spies on both writers
-        v1_calls: list[tuple[int, str, str]] = []
+        """TC-K3-ATM-007: ``job.failed`` is the v1 marker, not an atomic-writer artifact."""
+        # Given: a spy on the atomic writer
         atomic_targets: list[str] = []
         real_atomic = finalize_module.atomic_write_text
-
-        def _v1(code: int, message: str, *, filename: str) -> None:
-            v1_calls.append((code, message, filename))
 
         def _atomic(path: Path, text: str) -> None:
             atomic_targets.append(path.name)
             real_atomic(path, text)
 
-        monkeypatch.setattr(finalize_module, "write_job_errorlog_file", _v1)
         monkeypatch.setattr(finalize_module, "atomic_write_text", _atomic)
         # When: finalizing a failed run
         finalize(
@@ -257,8 +254,10 @@ class TestReportWritersAreAtomic:
             RdeConfig(),
             data_root=tmp_path,
         )
-        # Then: job.failed came from the v1 writer, the report from the atomic one
-        assert v1_calls == [(3001, "boom", str((tmp_path / "job.failed").resolve()))]
+        # Then: job.failed holds the exact v1 marker bytes, and only the report
+        # went through the atomic writer
+        # (text-mode write: the platform line ending, CRLF on Windows)
+        assert (tmp_path / "job.failed").read_bytes() == f"ErrorCode=3001{os.linesep}ErrorMessage=boom{os.linesep}".encode()
         assert atomic_targets == ["run_report_k3-atomic.json"]
 
 
