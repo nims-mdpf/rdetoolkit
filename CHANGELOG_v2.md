@@ -324,6 +324,26 @@
 - StructuredError messages are converted to strings before aggregation, preserving
   user error codes and messages in reports and `job.failed` on both entries (#571).
 
+### Documentation
+
+- New v2 user documentation, in Japanese and English (#454):
+  - Getting Started (`docs/getting-started.md`): from `rdetoolkit init` to a
+    first flow run, `report show`, `graph` and `nodes lint`.
+  - Concept pages for nodes, flows (reserved types, dependency injection,
+    ProcessingTemplate) and the Runner (lifecycle, config discovery, modes,
+    error policy, exit codes, `job.failed`, RunReport) under `docs/concepts/`.
+  - Testing guide (`docs/guides/testing.md`) and plugin development guide
+    (`docs/guides/plugins.md`).
+  - CLI reference for every command and option (`docs/reference/cli.md`).
+  - Architecture decision records ADR-020 to ADR-023 (`docs/adr/`).
+- New v2 API reference pages generated with mkdocstrings
+  (`docs/rdetoolkit/v2/`): decorators, types, built-in nodes, templates,
+  testing, plugins, Runner, RunReport and the v2 error hierarchy.
+- The code examples of the new pages are executed by `tests/v2/docs/`,
+  including an end-to-end run of the Getting Started walkthrough. The CLI
+  reference is checked against the real command tree, and every new page
+  must exist in both languages and appear in both navigations.
+
 ### Session RC1-INT-CORE (rc1 review: runtime)
 
 #### Fixed

@@ -41,10 +41,17 @@ plugins:
                 - はじめに: index.ja.md
                 - インストール: installation.md
                 - クイックスタート: quick-start.ja.md
+                - v2 をはじめる: getting-started.md
             - ユーザーガイド:
                 - ガイド概要: user-guide/index.ja.md
                 - v2 チュートリアル: tutorial_v2.md
                 - v1 から v2 への移行: migration_v1_to_v2.md
+                - v2 の概念:
+                    - ノード: concepts/node.md
+                    - フロー: concepts/flow.md
+                    - Runner: concepts/runner.md
+                - テストガイド: guides/testing.md
+                - プラグイン開発ガイド: guides/plugins.md
                 - 設定ガイド: user-guide/config.ja.md
                 - 構造化処理ガイド: user-guide/structured-processing.ja.md
                 - 構造化処理開発:
@@ -79,6 +86,18 @@ plugins:
                     - AIアシスタント向け Agent Skills: usage/agent_skills.md
             - API リファレンス:
                 - APIガイド: api/index.ja.md
+                - CLI リファレンス: reference/cli.md
+                - v2 API:
+                    - 概要: rdetoolkit/v2/index.md
+                    - デコレータ: rdetoolkit/v2/decorators.md
+                    - 型: rdetoolkit/v2/types.md
+                    - 組込ノード: rdetoolkit/v2/nodes.md
+                    - テンプレート: rdetoolkit/v2/templates.md
+                    - テスト: rdetoolkit/v2/testing.md
+                    - プラグイン: rdetoolkit/v2/plugin.md
+                    - Runner: rdetoolkit/v2/runner.md
+                    - RunReport: rdetoolkit/v2/report.md
+                    - エラー: rdetoolkit/v2/errors.md
                 - 概要: rdetoolkit/index.md
                 - コアモジュール:
                     - 設定: rdetoolkit/config.md
@@ -123,6 +142,12 @@ plugins:
                     - MinIO 統合: rdetoolkit/storage/minio.md
                 - アーティファクト:
                     - レポート生成: rdetoolkit/artifact/report.md
+            - 設計判断 (ADR):
+                - 概要: adr/index.md
+                - ADR-020 eager 実行: adr/0020-eager-execution.md
+                - ADR-021 v1 の条件付きサンセット: adr/0021-conditional-v1-sunset.md
+                - ADR-022 コールログ: adr/0022-call-log-without-lineage.md
+                - ADR-023 単一 Runner: adr/0023-single-runner-contract-compat.md
             - Changelog: releases/index.ja.md
             - コントリビューション:
                 - 概要: development/index.md
@@ -140,10 +165,17 @@ plugins:
                 - Introduction: index.en.md
                 - Installation: installation.md
                 - Quick Start: quick-start.en.md
+                - Getting Started with v2: getting-started.md
             - User Guide:
                 - Guide Overview: user-guide/index.en.md
                 - v2 Tutorial: tutorial_v2.md
                 - Migrating from v1 to v2: migration_v1_to_v2.en.md
+                - v2 Concepts:
+                    - Nodes: concepts/node.md
+                    - Flows: concepts/flow.md
+                    - Runner: concepts/runner.md
+                - Testing Guide: guides/testing.md
+                - Plugin Development Guide: guides/plugins.md
                 - Configuration Guide: user-guide/config.en.md
                 - Structuring Processing Guide: user-guide/structured-processing.en.md
                 - Structuring Processing:
@@ -178,6 +210,18 @@ plugins:
                     - Agent Skills for AI Assistants: usage/agent_skills.md
             - API Reference:
                 - API Guide: api/index.en.md
+                - CLI Reference: reference/cli.md
+                - v2 API:
+                    - Overview: rdetoolkit/v2/index.md
+                    - Decorators: rdetoolkit/v2/decorators.md
+                    - Types: rdetoolkit/v2/types.md
+                    - Built-in Nodes: rdetoolkit/v2/nodes.md
+                    - Templates: rdetoolkit/v2/templates.md
+                    - Testing: rdetoolkit/v2/testing.md
+                    - Plugins: rdetoolkit/v2/plugin.md
+                    - Runner: rdetoolkit/v2/runner.md
+                    - RunReport: rdetoolkit/v2/report.md
+                    - Errors: rdetoolkit/v2/errors.md
                 - Overview: rdetoolkit/index.md
                 - Core Modules:
                     - Configuration: rdetoolkit/config.md
@@ -222,6 +266,12 @@ plugins:
                     - MinIO Integration: rdetoolkit/storage/minio.md
                 - Artifacts:
                     - Report Generation: rdetoolkit/artifact/report.md
+            - Architecture Decisions (ADR):
+                - Overview: adr/index.md
+                - ADR-020 Eager Execution: adr/0020-eager-execution.md
+                - ADR-021 Conditional v1 Sunset: adr/0021-conditional-v1-sunset.md
+                - ADR-022 Call Log: adr/0022-call-log-without-lineage.md
+                - ADR-023 Single Runner: adr/0023-single-runner-contract-compat.md
             - Changelog: releases/index.en.md
             - Contributing:
                 - Overview: development/index.md
