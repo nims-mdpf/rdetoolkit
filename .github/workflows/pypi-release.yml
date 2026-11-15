@@ -332,6 +332,11 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Build version-matched Skills release asset
+        run: python scripts/skills_pack.py build --output skill-dist
       - name: Download all the dists
         uses: actions/download-artifact@v8
         with:
@@ -361,6 +366,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: >-
-          gh release upload ${{ github.ref_name }} dist/**/*.whl dist/**/*.tar.gz \
+          gh release upload ${{ github.ref_name }} dist/**/*.whl dist/**/*.tar.gz skill-dist/*.zip skill-dist/*.sha256 \
             --repo '${{ github.repository }}' \
             --clobber

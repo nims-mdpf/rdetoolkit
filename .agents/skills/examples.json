@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "examples": [
+    {
+      "id": "authoring-discovery",
+      "path": "rdetoolkit-flow-authoring/SKILL.md",
+      "language": "console",
+      "fixture": "empty-project"
+    },
+    {
+      "id": "authoring-flow",
+      "path": "rdetoolkit-flow-authoring/references/flow.md",
+      "language": "python",
+      "fixture": "invoice-text"
+    },
+    {
+      "id": "metadata-discovery",
+      "path": "rdetoolkit-metadata/SKILL.md",
+      "language": "console",
+      "fixture": "empty-project"
+    },
+    {
+      "id": "metadata-flow",
+      "path": "rdetoolkit-metadata/references/metadata.md",
+      "language": "python",
+      "fixture": "invoice-text"
+    },
+    {
+      "id": "debugging-flow",
+      "path": "rdetoolkit-debugging/references/debugging.md",
+      "language": "python",
+      "fixture": "invoice-invalid-then-repaired"
+    },
+    {
+      "id": "debugging-repair",
+      "path": "rdetoolkit-debugging/references/debugging.md",
+      "language": "python",
+      "fixture": "invoice-invalid-then-repaired"
+    },
+    {
+      "id": "testing-discovery",
+      "path": "rdetoolkit-testing/SKILL.md",
+      "language": "console",
+      "fixture": "empty-project"
+    },
+    {
+      "id": "testing-roundtrip",
+      "path": "rdetoolkit-testing/references/testing.md",
+      "language": "python",
+      "fixture": "empty-project"
+    },
+    {
+      "id": "migration-commands",
+      "path": "rdetoolkit-v1-migration/SKILL.md",
+      "language": "console",
+      "fixture": "v1-case01-init"
+    },
+    {
+      "id": "authoring-run",
+      "path": "rdetoolkit-flow-authoring/references/flow.md",
+      "language": "console",
+      "fixture": "invoice-text"
+    },
+    {
+      "id": "debugging-report",
+      "path": "rdetoolkit-debugging/references/debugging.md",
+      "language": "console",
+      "fixture": "invoice-invalid-then-repaired"
+    }
+  ]
+}

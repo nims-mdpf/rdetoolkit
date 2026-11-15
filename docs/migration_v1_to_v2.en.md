@@ -574,7 +574,8 @@ v1.7, a deprecated alias of `smarttable_rawfile`.
   private `rdetoolkit._agent` module with its bundled Markdown, and the
   package-local `.agents/` guidance. The installed package no longer ships
   agent-facing documents, and there is no replacement API. Remove calls to it
-  from code and scripts (#644).
+  from code and scripts (#644). Agent guidance for v2 is published as a
+  separate, version-matched [Agent Skills pack](usage/agent_skills.en.md).
 - The draft error taxonomy of the v2 prereleases: the string
   `rdetoolkit.errors.ErrorCode` enum (`E001`-`E025`), `RdeGraphError`,
   `RdeCompileError`, `RdeIOError`, `UnconnectedInputError`, and the `E_CYCLE` /

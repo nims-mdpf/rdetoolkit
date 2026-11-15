@@ -673,10 +673,14 @@ value = result.unwrap_or_else(lambda e: -1)  # -1
 
 #### AIコーディングアシスタント向けエージェントガイド (Issue #380)
 
+> 以下はv1のリリース記録です。組み込みガイド、`rdetoolkit.get_agent_guide()`、
+> `agent-guide` コマンドはv2 GA前に削除しました（[移行ガイド](../migration_v1_to_v2.md)参照）。
+> 代わりに別配布のバージョン一致[Skillsパック](../usage/agent_skills.ja.md)を使ってください。
+
 AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor等）向けの組み込みガイドを追加しました。
 
 **機能**
-- `rdetoolkit.agent_guide()`: ガイドテキストを取得する関数
+- `rdetoolkit.get_agent_guide()`: ガイドテキストを取得する関数
 - `rdetoolkit agent-guide`: CLIコマンドでガイドを表示
 
 **使用例**
@@ -684,7 +688,7 @@ AIコーディングアシスタント（Claude Code、GitHub Copilot、Cursor�
 import rdetoolkit
 
 # エージェントガイドを取得
-guide = rdetoolkit.agent_guide()
+guide = rdetoolkit.get_agent_guide()
 print(guide)
 ```
 
@@ -697,6 +701,9 @@ rdetoolkit agent-guide
 
 #### AIコーディングアシスタント向けAgent Skills
 
+> 以下はv1の配置です。v2ではルートの`.agents/skills/`にある5つのSkillsをwheel/sdistと
+> 分離して配布します。[現在の導入手順](../usage/agent_skills.ja.md)を参照してください。
+
 AIコーディングアシスタント（Claude Code等）がRDE構造化プログラムの開発をcontextual guidanceとしてサポートする Agent Skills（`.agents/SKILL.md`）を追加しました。
 
 **既存のAgent Guide（`_agent/`）との違い**
@@ -704,7 +711,7 @@ AIコーディングアシスタント（Claude Code等）がRDE構造化プロ�
 | 項目 | Agent Guide (`_agent/`) | Agent Skills (`.agents/`) |
 |------|-------------------------|---------------------------|
 | 配布方法 | パッケージ同梱（pip install後に利用可能） | ソースリポジトリ内（開発時に自動認識） |
-| アクセス方法 | `rdetoolkit.agent_guide()` API / CLI | Claude Codeが自動検出・適用 |
+| アクセス方法 | `rdetoolkit.get_agent_guide()` API / CLI | Claude Codeが自動検出・適用 |
 | 用途 | 汎用的なエージェントガイド | 開発セッション中のcontextual guidance |
 
 **構成**

@@ -76,6 +76,7 @@ plugins:
                 - 統合:
                     - オブジェクトストレージ (MinIO): usage/object_storage.md
                     - Docker の使用: usage/docker.md
+                    - AIアシスタント向け Agent Skills: usage/agent_skills.md
             - API リファレンス:
                 - APIガイド: api/index.ja.md
                 - 概要: rdetoolkit/index.md
@@ -127,6 +128,8 @@ plugins:
                 - 概要: development/index.md
                 - ドキュメントへの貢献: development/docs.md
                 - ソースコードへの貢献: development/contributing.md
+                - v2 アーキテクチャ: v2_architecture.md
+                - Agent Skills の検証記録: development/agent-skills-verification.md
                 - ドキュメントワークフロー: contribute/documents_contributing.md
                 - コントリビューションガイド: contribute/home.md
                 - ソースコードワークフロー: contribute/sourcecode_contributing.md
@@ -174,6 +177,7 @@ plugins:
                 - Integrations:
                     - Object Storage (MinIO): usage/object_storage.md
                     - Docker Usage: usage/docker.md
+                    - Agent Skills for AI Assistants: usage/agent_skills.md
             - API Reference:
                 - API Guide: api/index.en.md
                 - Overview: rdetoolkit/index.md
@@ -225,6 +229,8 @@ plugins:
                 - Overview: development/index.md
                 - Documentation: development/docs.md
                 - Source Code: development/contributing.md
+                - v2 Architecture: v2_architecture.md
+                - Agent Skills Verification: development/agent-skills-verification.md
                 - Documentation Workflow: contribute/documents_contributing.md
                 - Contribution Home: contribute/home.md
                 - Source Contribution Workflow: contribute/sourcecode_contributing.md

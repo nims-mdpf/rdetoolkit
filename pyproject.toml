@@ -108,6 +108,7 @@ dev = [
 python-source = "src"
 module-name = "rdetoolkit._core"
 features = ["pyo3/extension-module"]
+exclude = [".agents/**"]
 
 # The team has agreed not to enforce a maximum character limit per line.
 [tool.ruff]
