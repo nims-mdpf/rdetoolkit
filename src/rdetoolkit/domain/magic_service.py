@@ -6,6 +6,8 @@ import json
 import os
 import re
 import tempfile
+from collections.abc import Mapping
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
@@ -129,11 +131,13 @@ def _publish_invoice(path: Path, candidate: dict[str, Any]) -> None:
             temporary = Path(stream.name)
         writef_json(temporary, candidate)
         os.replace(temporary, path)
+        temporary = None
     except (OSError, StructuredError):
         raise validation_error(4007, "Atomic invoice replacement failed; check write permissions and free space.") from None
     finally:
         if temporary is not None:
-            temporary.unlink(missing_ok=True)
+            with suppress(OSError):
+                temporary.unlink(missing_ok=True)
 
 
 def validate_templates(invoice: dict[str, Any], options: MagicOptions) -> bool:
@@ -161,3 +165,27 @@ def validate_templates(invoice: dict[str, Any], options: MagicOptions) -> bool:
             tokens = _parse_field(template, field)
             pending |= any(isinstance(token, ExpressionToken) for token in tokens)
     return pending
+
+
+def template_destinations(invoice: Mapping[str, Any], options: MagicOptions) -> frozenset[tuple[str, ...]]:
+    """Find string destinations whose values await the interpolation stage.
+
+    Args:
+        invoice: Source invoice whose final values may depend on interpolation.
+        options: Effective policy; disabled preserves all source literals.
+
+    Returns:
+        Exact paths of eligible templates, including escaped expression openers.
+
+    """
+    if options.policy == "disabled":
+        return frozenset()
+    basic = invoice.get("basic", {})
+    if not isinstance(basic, dict):
+        return frozenset()
+    destinations: set[tuple[str, ...]] = set()
+    for field in ("dataName", "description"):
+        template = basic.get(field)
+        if contains_expression(template):
+            destinations.add(("basic", field))
+    return frozenset(destinations)

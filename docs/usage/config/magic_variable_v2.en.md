@@ -66,7 +66,9 @@ expression remain literal. An unclosed opener is an error, including an escaped
 opener without its closing brace.
 
 Templates are limited to 16,384 characters and 128 expressions per eligible
-field. Expanded fields are limited to 16,384 characters. `basic.dataName` has an
+field. Expanded fields are limited to 16,384 characters after omission and
+literal-separator normalization. Intermediate lengths do not reject a valid
+final value. `basic.dataName` has an
 additional 1–4,096 character limit and rejects control characters. These are
 versioned library limits; the invoice schema can impose tighter constraints.
 
@@ -79,9 +81,9 @@ interpolation. The later optional feature-description stage may amend descriptio
 
 Missing sources, absent keys, null, empty strings, and empty lists are distinct
 diagnostic reasons. Each fails by default. `missing: omit` explicitly omits those
-values. Omission collapses only the redundant underscore beside the omitted
-placeholder; existing literal separators and source values are otherwise
-preserved. A name that becomes empty still fails.
+values. Omission collapses redundant underscore runs only when both neighboring
+pieces are template literals. Referenced source text is always preserved,
+including leading or trailing underscores. A name that becomes empty still fails.
 
 Zero and false remain scalar values, formatted as `0` and `False`. Unicode code
 points are preserved without NFC or NFKC rewriting. Sample names retain their
@@ -89,10 +91,20 @@ order and join nonempty strings with `_`; non-string members fail. Objects and
 lists cannot be scalar substitutions. Nonfinite numbers fail. Path-looking
 values remain labels; interpolation never opens them as filesystem paths.
 
+For active flow interpolation, initial invoice validation defers direct string
+value constraints (`pattern`, `enum`, `const`, `format`, `minLength`, and
+`maxLength`) only at eligible template destinations. Required fields, types,
+and other destinations are still checked before the flow. Aggregate and ancestor
+schema constraints remain strict at this stage. Disabled interpolation,
+RDEFormat, and direct `Runner.pre_validate()` calls retain full value validation.
+Row modes and legacy callbacks retain their existing validation timing.
+
 Every changed invoice is validated against the standard invoice contract and
 its `invoice.schema.json` before atomic replacement. Any expression, schema, or
 publication failure leaves the invoice unchanged. The generated
 [error catalog](../../rdetoolkit/error_catalog.md) documents error remedies.
+If cleanup after a failed publication also fails, the original redacted error
+is retained. Cleanup is best effort and can leave an unremoved temporary file.
 
 ## Registration modes
 

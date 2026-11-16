@@ -283,31 +283,34 @@ def _render(
     destination: str,
     diagnostics: list[ResolutionDiagnostic],
 ) -> str:
-    parts: list[str] = []
+    parts: list[LiteralToken | str] = []
     omitted = False
     for token in tokens:
-        text: str | None
         if isinstance(token, LiteralToken):
-            text = _join_literal(parts, token.text, omitted)
+            _join_literal(parts, token, omitted)
             omitted = False
         else:
             text = _resolve_token(context, options, sources, token, destination, diagnostics)
             if text is None:
                 omitted = True
                 continue
+            parts.append(text)
             omitted = False
-        parts.append(text)
-        if sum(map(len, parts)) > MAX_OUTPUT_LENGTH:
-            diagnostics.append(_diagnostic(context, destination, status="invalid", reason="output_too_long", code=4007))
-            return ""
-    return "".join(parts)
+    text_parts = [part.text if isinstance(part, LiteralToken) else part for part in parts]
+    if sum(map(len, text_parts)) > MAX_OUTPUT_LENGTH:
+        diagnostics.append(_diagnostic(context, destination, status="invalid", reason="output_too_long", code=4007))
+        return ""
+    return "".join(text_parts)
 
 
-def _join_literal(parts: list[str], text: str, omitted: bool) -> str:
-    if omitted and parts and parts[-1].endswith("_") and text.startswith("_"):
-        parts[-1] = parts[-1].rstrip("_") + "_"
-        return text.lstrip("_")
-    return text
+def _join_literal(parts: list[LiteralToken | str], token: LiteralToken, omitted: bool) -> None:
+    previous = parts[-1] if parts else None
+    text = token.text
+    if omitted and isinstance(previous, LiteralToken) and previous.text.endswith("_") and text.startswith("_"):
+        parts[-1] = LiteralToken(previous.text.rstrip("_") + "_")
+        text = text.lstrip("_")
+    if text:
+        parts.append(LiteralToken(text))
 
 
 def _resolve_token(

@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any
 
 from rdetoolkit.domain.magic import MagicOptions, ResolutionPreview
@@ -13,3 +14,5 @@ def apply_interpolation(
 ) -> ResolutionPreview: ...
 
 def validate_templates(invoice: dict[str, Any], options: MagicOptions) -> bool: ...
+
+def template_destinations(invoice: Mapping[str, Any], options: MagicOptions) -> frozenset[tuple[str, ...]]: ...

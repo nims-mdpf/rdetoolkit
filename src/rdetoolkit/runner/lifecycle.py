@@ -25,7 +25,7 @@ from rdetoolkit.core.flow import derive_flow_id, flow_error, flow_prepare
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
 from rdetoolkit.domain.magic_policy import options_from_config
-from rdetoolkit.domain.magic_service import validate_templates
+from rdetoolkit.domain.magic_service import template_destinations, validate_templates
 from rdetoolkit.domain.validation import InvoiceValidator, invoice_validate, validate_tile_outputs, wrap_validation_error
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.errors import (
@@ -149,6 +149,7 @@ class Runner:
         # the same reason as ``_validate_only``: ``pre_validate(config)`` is an
         # overridden seam, and a direct call keeps the full check.
         self._source_invoice_is_final = True
+        self._source_invoice_allows_templates = False
         self._planner = planner or RunPlanner(
             inputdata_path=lambda: self.inputdata_path,
             unpacked_dir_path=lambda: self.unpacked_dir_path,
@@ -669,10 +670,12 @@ class Runner:
         # required fields, as in v1, which validated only the final invoice
         # (#647). Only a flow in the other modes receives a final source invoice.
         self._source_invoice_is_final = isinstance(target, FlowTarget) and mode not in _ROW_MODES
+        self._source_invoice_allows_templates = self._source_invoice_is_final and mode != ModeKind.rdeformat
         try:
             self.pre_validate(config)
         finally:
             self._source_invoice_is_final = True
+            self._source_invoice_allows_templates = False
 
     def pre_validate(self, config: RdeConfig) -> None:
         """Validate source structure and invoice schema before flow execution.
@@ -685,7 +688,6 @@ class Runner:
         Args:
             config: Effective configuration.
         """
-        _ = config
         data_root = self.data_root
         invoice_path = data_root / "invoice" / "invoice.json"
         schema_path = data_root / "tasksupport" / "invoice.schema.json"
@@ -695,15 +697,26 @@ class Runner:
                 raise _validation_error(4003, str(path))
         try:
             if self._source_invoice_is_final:
-                invoice_validate(invoice_path, schema_path)
+                self._validate_source_invoice(config, invoice_path, schema_path)
             else:
                 InvoiceValidator(schema_path)
         except Exception as exc:  # noqa: BLE001
-            # A stopped run is not an invalid invoice: keep 3004 (review rc1 F01).
-            if is_run_interrupted(exc):
+            if isinstance(exc, RdeError) or is_run_interrupted(exc):
                 raise
             self._failure_context = {"artifact_path": _data_relative(invoice_path, data_root)}
             raise _wrap_domain_validation_error(exc) from exc
+
+    def _validate_source_invoice(self, config: RdeConfig, invoice_path: Path, schema_path: Path) -> None:
+        if not self._source_invoice_allows_templates:
+            invoice_validate(invoice_path, schema_path)
+            return
+        options = options_from_config(config)
+        invoice = readf_json(invoice_path)
+        destinations = template_destinations(invoice, options)
+        if not destinations:
+            invoice_validate(invoice_path, schema_path)
+            return
+        InvoiceValidator(schema_path).validate(obj=invoice, deferred_value_paths=destinations)
 
     def iterate(
         self,

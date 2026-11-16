@@ -28,6 +28,7 @@ class InvoiceValidator:
         path: str | Path | None = None,
         obj: Mapping[str, Any] | None = None,
         preserve_none_values: bool = False,
+        deferred_value_paths: frozenset[tuple[str, ...]] = frozenset(),
     ) -> dict[str, Any]: ...
 
 def invoice_validate(path: str | Path, schema: str | Path) -> None: ...

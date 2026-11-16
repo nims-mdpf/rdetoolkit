@@ -1,9 +1,6 @@
 """PR757 review regressions.
 
-EP/BV table is local/develop/v2/magic704/review-fixes-todo.md.
-RF01-RF04 preserve source text and check final output bounds.
-RF05-RF08 defer only interpolated values, retaining preflight validation.
-RF09 preserves the catalogued publication failure when cleanup also fails.
+Contract IDs RF01-RF10 map to the verification matrix in PR757.
 """
 
 from __future__ import annotations
@@ -24,7 +21,7 @@ from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.report.events import MemoryEventSink
 from rdetoolkit.report.failure import failure_diagnostic
 from rdetoolkit.runner.lifecycle import Runner
-from rdetoolkit.types import OutputContext
+from rdetoolkit.types import OutputContext, RdeConfig
 from tests.v2.domain.test_magic_service import _bundle
 from tests.v2.runner.test_magic_integration import _seed
 
@@ -54,7 +51,7 @@ def test_runner_preserves_source_underscores(tmp_path: Path, field: str) -> None
     writef_json(path, invoice)
 
     def emit(out: OutputContext) -> None:
-        writef_json(out.meta / "metadata.json", {"constant": {"id": {"value": "alpha__"}}})
+        writef_json(out.meta / "metadata.json", {"constant": {"id": {"value": "alpha__"}}, "variable": []})
 
     # When: publishing with the explicit omission policy
     report = Runner(root=root).run(emit, custom={"interpolation": {"missing": "omit"}})
@@ -214,6 +211,29 @@ def test_validate_only_defers_value_constraints(tmp_path: Path) -> None:
     assert any("deferred" in event.payload.get("message", "") for event in events.events)
 
 
+@pytest.mark.parametrize("prior_run", ["none", "success", "failure"])
+def test_direct_prevalidation_remains_strict(tmp_path: Path, prior_run: str) -> None:
+    """RF07: Direct pre-validation never inherits a previous run's deferral."""
+    # Given: an unresolved template and a Runner before or after an ordinary run
+    root, owner = _constrained_case(tmp_path, {"pattern": "^[0-9a-f-]+$"})
+    runner = Runner(root=root)
+    path = root / "data/invoice/invoice.json"
+    invoice = readf_json(path)
+    if prior_run != "none":
+        if prior_run == "failure":
+            invoice["basic"]["dataOwnerId"] = "invalid"
+            writef_json(path, invoice)
+        report = runner.run(lambda: None)
+        assert report.status == ("success" if prior_run == "success" else "failed")
+        invoice["basic"]["dataOwnerId"] = owner
+        writef_json(path, invoice)
+    # When: using the public pre-validation seam directly
+    with pytest.raises(RdeValidationError) as caught:
+        runner.pre_validate(RdeConfig())
+    # Then: the source value is strictly checked, even after a failed run
+    assert caught.value.code == 4001
+
+
 @pytest.mark.parametrize("failure", ["replace", "write"])
 @pytest.mark.parametrize("error_type", [PermissionError, StructuredError])
 def test_cleanup_failure_preserves_typed_error(
@@ -251,7 +271,8 @@ def test_successful_replace_releases_temporary_ownership(tmp_path: Path, monkeyp
     paths, snapshot = _bundle(tmp_path, "${invoice:basic:dataOwnerId}")
 
     def fail_cleanup(*args: Any, **kwargs: Any) -> None:
-        raise PermissionError("private consumed temporary path")
+        message = "private consumed temporary path"
+        raise PermissionError(message)
 
     monkeypatch.setattr(Path, "unlink", fail_cleanup)
     # When: atomically replacing the destination succeeds
