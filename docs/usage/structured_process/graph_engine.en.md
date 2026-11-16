@@ -99,7 +99,9 @@ whose `explain()` gives a readable summary). On the command line,
 
 A distribution can publish readers in the entry-point group `rdetoolkit.graph.readers`.
 The entry-point name is the reader id; the target is a `TableReader` instance or a
-zero-argument callable returning one. For example, in `pyproject.toml`:
+zero-argument callable returning one. A reader class is such a callable: it is
+instantiated with no arguments, and a constructor that fails or needs arguments raises
+`ReaderPluginError` naming the entry point. For example, in `pyproject.toml`:
 `[project.entry-points."rdetoolkit.graph.readers"]` with
 `"vendor.instrument" = "vendor_pkg.readers:READER"`. Entry points are listed only when a
 reader is looked up (`discover_readers()`), never at import time, and an id that clashes

@@ -190,11 +190,16 @@ def _checked_id(reader: object) -> str:
 
 
 def _load_entry_point(entry: _PendingEntry) -> TableReader:
-    """Load an entry point: a ``TableReader`` instance or a zero-argument factory returning one."""
+    """Load an entry point: a ``TableReader`` instance or a zero-argument factory returning one.
+
+    A reader class is such a factory and is always called: a class with class-level
+    ``reader_id`` / ``extensions`` / ``read`` passes the runtime-checkable
+    ``TableReader`` check itself, so the class test must come before the protocol test.
+    """
     where = f"Reader plugin {entry.name!r} ({entry.value})"
     try:
         target = entry.load()
-        reader = target() if callable(target) and not isinstance(target, TableReader) else target
+        reader = target() if isinstance(target, type) or (callable(target) and not isinstance(target, TableReader)) else target
     except Exception as exc:
         msg = f"{where} failed to load: {exc}. Install the plugin's dependencies or remove the entry point."
         raise ReaderPluginError(msg) from exc
@@ -226,7 +231,8 @@ def discover_readers() -> ReaderRegistry:
 
     Entry points are listed now and loaded on first request; nothing is cached between
     calls. The entry-point name is the reader id; the target is a ``TableReader``
-    instance or a zero-argument callable returning one.
+    instance or a zero-argument callable returning one (a reader class is
+    instantiated with no arguments).
 
     Returns:
         The registry (empty when no entry point is installed).

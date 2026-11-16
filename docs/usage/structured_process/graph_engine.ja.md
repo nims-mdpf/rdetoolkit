@@ -83,6 +83,7 @@ Plotly が入っていない環境での HTML は、やはり何かを書き込�
 
 配布パッケージはエントリーポイントのグループ `rdetoolkit.graph.readers` で読み取りを公開できます。
 エントリーポイント名が読み取りの ID で、対象は `TableReader` のインスタンスか、それを返す引数なしの呼び出し可能オブジェクトです。
+読み取りのクラスもこの呼び出し可能オブジェクトに当たり、引数なしでインスタンス化されます。コンストラクタが失敗する場合や引数を必要とする場合は、エントリーポイント名を含む `ReaderPluginError` になります。
 たとえば `pyproject.toml` の `[project.entry-points."rdetoolkit.graph.readers"]` に `"vendor.instrument" = "vendor_pkg.readers:READER"` と書きます。
 エントリーポイントは読み取りを探すとき(`discover_readers()`)にだけ列挙され、インポート時には読み込まれません。
 組み込みの読み取り、`"auto"`、他のエントリーポイントと ID が重なる場合は、どちらかを選ばずに `DuplicateReaderError` になります。
