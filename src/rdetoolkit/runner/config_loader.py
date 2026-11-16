@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from rdetoolkit.config.normalize import ConfigNormalizer
-from rdetoolkit.domain.mode_selection import normalize_mode_name
+from rdetoolkit.domain.mode_selection import _normalize_mode_setting
 from rdetoolkit.errors import RdeConfigError
 from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
@@ -93,7 +93,10 @@ def compute_config_digest(config: RdeConfig) -> str:
     """Return the digest identifying effective values and registration intent.
 
     The digest is sha256 over the config's JSON dump written canonically:
-    mapping keys sorted at every depth, compact separators, UTF-8. Auto and explicit invoice are distinct; accepted mode aliases are equivalent.
+    mapping keys sorted at every depth, compact separators, UTF-8. Auto and
+    explicit invoice are distinct. Mode aliases share an identity only when
+    both execution contracts interpret them identically; ``RDEFormat`` retains
+    its spelling until a flow target resolves it to ``rdeformat``.
     Configs holding the same values and mode intent share a digest however their
     free-form mappings (such as ``custom``) were ordered, while list order and
     JSON value types (``1`` vs ``1.0``) still count. ``RunReport.config_digest``
@@ -113,7 +116,7 @@ def compute_config_digest(config: RdeConfig) -> str:
     else:
         # Historic callback settings may contain arbitrary mode names.
         with suppress(RdeConfigError):
-            values["system"]["extended_mode"] = normalize_mode_name(config.system.extended_mode).value
+            values["system"]["extended_mode"] = _normalize_mode_setting(config.system.extended_mode)
     canonical = json.dumps(
         values,
         sort_keys=True,

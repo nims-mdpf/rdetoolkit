@@ -69,12 +69,18 @@ version-matched release asset, and never belong to wheel/sdist package data.
 V2 flows preserve explicit registration intent. The canonical mode names are
 `invoice`, `multidatatile`, `smarttable`, `excelinvoice`, and `rdeformat`.
 The exact aliases `Invoice`, `MultiDataTile`, `SmartTableInvoice`,
-`ExcelInvoice`, and `RDEFormat` normalize to those names. Unknown names and
+`ExcelInvoice`, and `RDEFormat` normalize to those names at the flow boundary. Unknown names and
 other case variants fail configuration validation with the valid vocabulary.
 An omitted or null `system.extended_mode` enables automatic selection. An
 explicit `invoice` requests Invoice grouping even when its effective setting
 matches the default. Normalization, config digests, and reproduction archives
 retain this distinction.
+
+Configuration loading and reproduction preserve the exact `RDEFormat`
+spelling until the execution target is known. The callback contract interprets
+it as Invoice, whereas `rdeformat` selects RDEFormat; their config digests must
+differ. Aliases whose meanings agree under both contracts can normalize during
+loading. A v2 flow converts `RDEFormat` to `rdeformat` before mode selection.
 
 A single special input can select SmartTable or ExcelInvoice automatically.
 Multiple ordinary files remain one Invoice tile unless MultiDataTile is
@@ -108,6 +114,10 @@ V2 RDEFormat preview and execution group tiles by numeric directory and retain
 archive-member order within each group. The callback route retains its legacy
 filesystem ordering. MultiDataTile `filesystem` ordering explicitly reports
 that its order is not reproducible; name ordering remains deterministic.
+
+ExcelInvoice folder grouping retains the legacy parent-before-child traversal
+before applying workbook order. When a parent and its nested folder both have
+files, each keeps the invoice from its corresponding workbook row.
 
 RDEFormat report `datatile_id` and `target` keep their first-input derivation.
 V2 now takes that first input from archive order, so their values can differ

@@ -12,7 +12,7 @@ from typing import Any, Literal
 import yaml
 from pydantic import ValidationError
 
-from rdetoolkit.domain.mode_selection import normalize_mode_name
+from rdetoolkit.domain.mode_selection import _normalize_mode_setting
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
 from rdetoolkit.models.config import Config
 from rdetoolkit.types import RdeConfig
@@ -61,7 +61,7 @@ class ConfigNormalizer:
                 ``<data_root>/tasksupport/rdeconfig.yaml`` (ruling #4).
 
         Returns:
-            Strict canonical v2 configuration.
+            Validated configuration preserving target-dependent mode semantics.
 
         Raises:
             RdeConfigError: If the source cannot be loaded or normalized.
@@ -190,7 +190,7 @@ class ConfigNormalizer:
         result = copy.deepcopy(dict(data))
         system = result.get("system")
         if isinstance(system, dict) and system.get("extended_mode") is not None:
-            system["extended_mode"] = normalize_mode_name(system["extended_mode"]).value
+            system["extended_mode"] = _normalize_mode_setting(system["extended_mode"])
         return result
 
 

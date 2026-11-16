@@ -183,7 +183,7 @@ def _excel_folder_groups(refs: tuple[InputReference, ...]) -> list[tuple[InputRe
     for ref in sorted(refs, key=lambda ref: str(ref.member)):
         if PurePosixPath(str(ref.member)).name != "invoice_org.json":
             buckets[str(PurePosixPath(str(ref.member)).parent)].append(ref)
-    return [tuple(group) for group in buckets.values()]
+    return [tuple(buckets[name]) for name in sorted(buckets, key=lambda name: PurePosixPath(name).parts)]
 
 
 def _excel_group_index(group: tuple[InputReference, ...], order: list[Any]) -> int:

@@ -43,6 +43,7 @@ from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli._repro_provenance import _file_digest, capture_provenance, read_provenance
 from rdetoolkit.cli.run_cmd import load_config_overrides
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.domain.mode_selection import normalize_mode_name
 from rdetoolkit.report.diagnostics import diagnostic, envelope
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.config_loader import compute_config_digest, load_config
@@ -323,8 +324,8 @@ def _config_candidates(data_root: Path, overrides: dict[str, Any] | None) -> Ite
     The caller accepts the first candidate whose digest equals the report's,
     so the order only decides which of several digest-identical configs is
     archived, never whether a mismatching one is. A source that no longer loads
-    is skipped rather than raised: it cannot reproduce the digest, and the
-    caller reports that as one usage error.
+    is skipped. The caller reports one usage
+    error if no candidate reproduces the digest.
     """
     for root in _project_roots(data_root):
         builders: list[Callable[[], RdeConfig]] = [partial(load_config, root, overrides, data_root=data_root)]
@@ -332,7 +333,13 @@ def _config_candidates(data_root: Path, overrides: dict[str, Any] | None) -> Ite
             builders.append(partial(_v1_entry_config, root, data_root))
         for build in builders:
             try:
-                yield build()
+                config = build()
+                yield config
+                mode = normalize_mode_name(config.system.extended_mode).value
+                if config.system.extended_mode != mode:
+                    canonical = config.model_copy(deep=True)
+                    canonical.system.extended_mode = mode
+                    yield canonical
             except Exception:  # noqa: BLE001,S112 -- any loader failure means "not this source"
                 continue
 

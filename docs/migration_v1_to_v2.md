@@ -675,10 +675,16 @@ v1 callback経路は従来のファイル検出優先順位とW1001を維持し�
 同じ競合入力でもv2 flowではカタログ登録済み設定エラーになります。
 設定ファイルがv1形式でも、flowの選択契約はv2です。
 
+`RDEFormat`という綴りは、設定読込とreproでそのまま保持します。
+互換callbackでは`RDEFormat`はInvoice、`rdeformat`はRDEFormatとして扱われるため、
+両者のconfig digestは異なります。v2 flowでは実行境界で`RDEFormat`を
+`rdeformat`に正規化します。repro後も同じ入口で再実行すれば、モードとタイル数を維持します。
+
 設定正規化と新しいrepro archiveは、invoiceが明示指定されたかどうかを保持します。
 config digestも自動選択と明示invoiceを区別します。以前のexportが既に省略した
 明示性は復元できません。モードが省略されていた、または既定値で保存されていた
-過去archiveは、現行版のimportでconfig digestが一致せず、終了コード3になる場合も
+過去archiveや、`RDEFormat`と`rdeformat`を同一digestにしていた版のarchiveは、
+現行版のimportでconfig digestが一致せず、終了コード3になる場合も
 あります。そのarchiveを作成したRDEToolKitのバージョンでimportしてください。
 復元した`rdeconfig.yaml`を確認して意図したモードを設定し、現行版で再実行して
 新しいレポートとarchiveをexportします。archive内の設定だけを書き換えても、
@@ -702,6 +708,9 @@ RDEFormat archive内のディレクトリ番号とは異なる場合がありま
 | `smarttable` | 各データ行が参照するファイルをグループにする。最終行がタイル0、先行する行は表の順。`save_table_file=true`なら元の表がタイル1、先行する行はタイル2から。 | データ行数。元の表を保存する場合はさらに1 |
 | `excelinvoice` | workbookのデータ行ごとに1グループを作り、workbook順に並べる。ZIPがなければ生ファイルは空。フォルダグループが1つなら全行で共有できる。ファイル指定はarchive内で一意なファイル名が必要。 | データ行数。データ行がないworkbookは拒否 |
 | `rdeformat` | ZIPのパスで最初に現れる4桁の数値ディレクトリごとにグループ化し、該当しないmemberはグループ0に入れる。グループは数値順、内部はarchive内の順序。 | グループ数。空ZIPは1空タイル |
+
+ExcelInvoiceで親フォルダと子フォルダの両方にファイルがある場合は、従来どおり
+親を先にグループ化してからworkbook順を適用します。各ファイルと対応行のinvoiceを維持します。
 
 ヘッダーだけのSmartTableは0タイルですが、`save_table_file=true`なら元の表だけを
 タイル0にします。元の表のタイルではflowを呼びません。このSmartTableのindexは、

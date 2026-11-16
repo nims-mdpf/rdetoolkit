@@ -721,11 +721,18 @@ conflicting setting. A v2 flow raises a catalogued configuration error for
 the same conflict. Loading a legacy-format config does not turn a flow into
 a callback compatibility run.
 
+Configuration loading and reproduction retain the exact spelling `RDEFormat`.
+The callback contract interprets it as Invoice, while `rdeformat` selects
+RDEFormat, so their config digests differ. A v2 flow canonicalizes `RDEFormat`
+to `rdeformat` at its execution boundary. Replaying through the same entry
+preserves the mode and tile count.
+
 Config normalization and new reproduction archives retain whether invoice
 was explicitly requested. Config digests now distinguish automatic selection
 from explicit invoice. Archives created by earlier versions may already have
 lost this information; importing them cannot recover intent that was omitted
-at export. An older archive that omitted the mode or stored its default can
+at export. An older archive that omitted the mode, stored its default, or
+conflated `RDEFormat` and `rdeformat` in the config digest can
 also fail the current import's config-digest check with exit code 3. Import
 that archive using the RDEToolKit version that created it. Review the recovered
 `rdeconfig.yaml`, set the intended mode, then rerun with the current version
@@ -750,6 +757,10 @@ indices, including when an RDEFormat archive uses different directory numbers.
 | `smarttable` | Each data row supplies its referenced files. The last row is tile 0; earlier rows follow in table order. With `save_table_file=true`, the original table occupies tile 1 and earlier rows begin at tile 2. | Data-row count, plus 1 when saving the original table |
 | `excelinvoice` | One group per workbook data row, in workbook order. Without a ZIP, groups have no raw files; one folder group may be reused for every row. File mappings must identify unique archive filenames. | Data-row count; a workbook with no data rows is rejected |
 | `rdeformat` | ZIP members are grouped by the first four-digit directory component in their path. Members without one join group 0. Groups sort numerically and retain archive-member order internally. | Group count, or 1 empty tile for an empty ZIP |
+
+When both a parent folder and its child contain files, ExcelInvoice groups
+the parent first before applying workbook order, preserving the legacy
+traversal and each file's corresponding invoice row.
 
 A header-only SmartTable produces no tiles unless `save_table_file=true`, in
 which case its original table is tile 0. Original-table tiles register the

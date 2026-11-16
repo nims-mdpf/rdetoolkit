@@ -7,6 +7,8 @@
 | LM-N3 | RDEFormat callback export/import/reread | invoice and one tile survive |
 | LM-B1 | canonical rdeformat callback export/import/reread | two format tiles survive |
 | LM-P1 | all accepted aliases | normalization preserves both contracts' choices |
+| LM-P2 | RDEFormat and rdeformat under the strict flow contract | same mode, tiles, digest |
+| LM-N5 | strict flow configured with RDEFormat exports after resolution | canonical replay remains exportable |
 | LM-N4 | rejected mixed-case or unknown mode | catalogued 1002 without an archive |
 """
 
@@ -16,7 +18,7 @@ from zipfile import ZipFile
 import pytest
 from typer.testing import CliRunner
 
-from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
+from rdetoolkit.api.request import FlowTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.cli.app import app
 from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.domain.mode_selection import ModeKind, decide_mode, normalize_mode_name
@@ -102,6 +104,51 @@ def test_alias_normalization_preserves_both_mode_contracts__lm_p1(tmp_path: Path
     assert decide_mode(normalized, tmp_path, contract="v1").chosen_mode == decide_mode(original, tmp_path, contract="v1").chosen_mode
     assert decide_mode(normalized, tmp_path, contract="v2").chosen_mode is strict_mode
     assert compute_config_digest(normalized) == compute_config_digest(original)
+
+
+def test_strict_flow_aliases_keep_canonical_identity__lm_p2(tmp_path: Path) -> None:
+    # Given: identical format inputs with either accepted spelling in the source YAML.
+    reports: list[RunReport] = []
+    for raw in ("RDEFormat", "rdeformat"):
+        root = tmp_path / raw
+        _generate.materialize_case(_generate.oracle_case("v1/rdeformat/ok"), root)
+        (root / "rdeconfig.yaml").write_text(f"system:\n  extended_mode: {raw}\n", encoding="utf-8")
+        config = load_run_config(root)
+        request = RunRequest(root=root, target=FlowTarget(function=lambda: None), config_source=config)
+        # When: the actual strict Runner resolves the now-known flow target.
+        report = Runner(root=root, inputdata_path=root / "data/inputdata", unpacked_dir_path=root / "data/temp").run(request)
+        reports.append(report)
+    # Then: target-bound normalization gives both flow runs one canonical identity.
+    assert all(report.status == "success" for report in reports)
+    assert [(report.mode, len(report.iterations)) for report in reports] == [("rdeformat", 2), ("rdeformat", 2)]
+    assert reports[0].config_digest == reports[1].config_digest
+
+
+def test_strict_flow_alias_exports_after_target_resolution__lm_n5(tmp_path: Path) -> None:
+    # Given: the strict Runner canonicalizes the spelling after its target becomes known.
+    root = tmp_path / "original"
+    _generate.materialize_case(_generate.oracle_case("v1/rdeformat/ok"), root)
+    (root / "rdeconfig.yaml").write_text("system:\n  extended_mode: RDEFormat\n", encoding="utf-8")
+    request = RunRequest(root=root, target=FlowTarget(function=lambda: None), config_source=load_run_config(root))
+    original = Runner(root=root, inputdata_path=root / "data/inputdata", unpacked_dir_path=root / "data/temp").run(request)
+    assert original.status == "success", original.error
+    report = root / "data/logs" / f"run_report_{original.run_id}.json"
+    archive = tmp_path / "strict.zip"
+    target = tmp_path / "imported"
+    # When: repro discovers the same source and matches the strict run's canonical identity.
+    exported = CliRunner().invoke(app, ["repro", "export", str(report), "--output", str(archive)])
+    assert exported.exit_code == 0, exported.output
+    imported = CliRunner().invoke(app, ["repro", "import", str(archive), str(target)])
+    # Then: archive validation, rereading, and the actual strict rerun retain mode and identity.
+    assert imported.exit_code == 0, imported.output
+    reloaded = load_run_config(target)
+    assert decide_mode(reloaded, target / "data/inputdata").chosen_mode is ModeKind.rdeformat
+    assert compute_config_digest(reloaded) == original.config_digest
+    replay_request = RunRequest(root=target, target=FlowTarget(function=lambda: None), config_source=reloaded)
+    replay = Runner(root=target, inputdata_path=target / "data/inputdata", unpacked_dir_path=target / "data/temp").run(replay_request)
+    assert replay.status == "success", replay.error
+    assert (replay.mode, len(replay.iterations)) == ("rdeformat", 2)
+    assert replay.config_digest == original.config_digest
 
 
 @pytest.mark.parametrize("raw", ["RDEFORMAT", "rdeFormat", "unknown", "", "RDEFormat "])

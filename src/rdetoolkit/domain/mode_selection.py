@@ -52,6 +52,12 @@ def normalize_mode_name(value: object) -> ModeKind:
     raise RdeConfigError(code=1002, message=f"Invalid system.extended_mode. Valid names: {valid}. Legacy aliases: Invoice, MultiDataTile, SmartTableInvoice, ExcelInvoice, RDEFormat.")
 
 
+def _normalize_mode_setting(value: object) -> str:
+    mode = normalize_mode_name(value)
+    # This alias means Invoice on the callback path until a flow target is known.
+    return "RDEFormat" if value == "RDEFormat" else mode.value
+
+
 @dataclass(frozen=True, slots=True)
 class ModeEvidence:
     """A filename and format indicator, without input payloads."""
