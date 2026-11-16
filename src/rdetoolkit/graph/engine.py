@@ -184,14 +184,21 @@ def _artifact_job(figure: FigurePlan, fmt: str, output: OutputSpec, renderer: Gr
 def _check_unique_destinations(jobs: Sequence[_ArtifactJob]) -> None:
     """Fail when two artifacts of one run would land on the same file.
 
-    Two destinations clash when they are in the same directory (compared exactly,
-    after resolving symlinks) and their file names share a collision key (case and
-    Unicode normalization, as on macOS / Windows). Directories differing only by
-    case are different directories on a case-sensitive filesystem.
+    The comparison is on each destination's real target: the destination file
+    itself is resolved, so a symlinked file, a dangling link and a link chain are
+    followed (otherwise one artifact would silently overwrite a sibling through a
+    link). Two targets clash when they are in the same directory (compared exactly,
+    after resolving) and their file names share a collision key (case and Unicode
+    normalization, as on macOS / Windows). Directories differing only by case are
+    different directories on a case-sensitive filesystem.
+
+    A link leaving the sink directory never gets here: ``sink.resolve`` (called
+    while planning each job) rejects it first with ``OutputPathError``.
     """
     seen: dict[tuple[Path, str], str] = {}
     for job in jobs:
-        key = (job.path.parent.resolve(), collision_key(job.path.name))
+        target = job.path.resolve()
+        key = (target.parent, collision_key(target.name))
         if key in seen:
             msg = f"Artifacts {seen[key]!r} and {job.filename!r} resolve to the same destination {str(job.path)!r}"
             raise ArtifactCollisionError(msg)
