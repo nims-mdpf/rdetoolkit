@@ -65,8 +65,8 @@ def apply_interpolation(
 def _read_source(path: Path, scope: str, index: int) -> dict[str, Any]:
     try:
         source = readf_json(path)
-    except (OSError, ValueError, StructuredError) as exc:
-        raise validation_error(4006, f"Source {scope} JSON is unavailable at tile {index}.") from exc
+    except (OSError, ValueError, StructuredError):
+        raise validation_error(4006, f"Source {scope} JSON is unavailable at tile {index}.") from None
     if not isinstance(source, dict):
         raise validation_error(4006, f"Source {scope} must be a JSON object at tile {index}.")
     return source
@@ -111,7 +111,7 @@ def _validate_candidate(candidate: dict[str, Any], schema: Path, index: int) -> 
         InvoiceValidator(schema).validate(obj=candidate, preserve_none_values=True)
     except (InvoiceSchemaValidationError, OSError, ValueError, StructuredError) as exc:
         field = _schema_field(exc)
-        raise validation_error(4007, f"Field {field} fails invoice schema validation at tile {index}.") from exc
+        raise validation_error(4007, f"Field {field} fails invoice schema validation at tile {index}.") from None
 
 
 def _schema_field(error: Exception) -> str:
@@ -129,8 +129,8 @@ def _publish_invoice(path: Path, candidate: dict[str, Any]) -> None:
             temporary = Path(stream.name)
         writef_json(temporary, candidate)
         os.replace(temporary, path)
-    except (OSError, StructuredError) as exc:
-        raise validation_error(4007, "Atomic invoice replacement failed; check write permissions and free space.") from exc
+    except (OSError, StructuredError):
+        raise validation_error(4007, "Atomic invoice replacement failed; check write permissions and free space.") from None
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)

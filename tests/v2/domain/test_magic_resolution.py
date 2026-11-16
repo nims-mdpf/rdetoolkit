@@ -27,6 +27,7 @@ def _context(template: str, *, rawfiles: tuple[Path, ...] = (), value: Any = "ti
 @pytest.mark.parametrize("rawfiles", [(), (Path("one.csv"),), (Path("one.csv"), Path("two.csv"))])
 @pytest.mark.parametrize("template", ["${invoice:basic:dataOwnerId}", "${metadata:constant:name}"])
 def test_sources_without_filename(rawfiles: tuple[Path, ...], template: str) -> None:
+    """MV01: Invoice and metadata sources work with any rawfile count."""
     # Given: independent invoice/metadata sources and any rawfile count
     context = _context(template, rawfiles=rawfiles)
     # When: resolving without requesting filename
@@ -37,6 +38,7 @@ def test_sources_without_filename(rawfiles: tuple[Path, ...], template: str) -> 
 
 @pytest.mark.parametrize("rawfiles", [(), (Path("one.csv"), Path("two.csv"))])
 def test_unavailable_filename(rawfiles: tuple[Path, ...]) -> None:
+    """MV02: Filename requires exactly one selected raw input."""
     # Given: a filename reference with no unique file
     context = _context("${filename}", rawfiles=rawfiles)
     # When: strict resolution requests that source
@@ -47,6 +49,7 @@ def test_unavailable_filename(rawfiles: tuple[Path, ...]) -> None:
 
 
 def test_unique_filename() -> None:
+    """MV03: A unique filename resolves without reading the file."""
     # Given: exactly one selected input
     context = _context("${filename}", rawfiles=(Path("directory/file.csv"),))
     # When: resolving the filename
@@ -56,6 +59,7 @@ def test_unique_filename() -> None:
 
 
 def test_immutable_scopes() -> None:
+    """MV04: Detached original and current snapshots remain distinct."""
     # Given: mutable original/current sources and a nested metadata entry
     original = {"basic": {"dataOwnerId": "original"}}
     current = {"basic": {"dataName": "${invoice:basic:dataOwnerId}_${invoice-current:basic:dataOwnerId}", "dataOwnerId": "current"}}
@@ -78,6 +82,7 @@ def test_immutable_scopes() -> None:
 @pytest.mark.parametrize("value", [None, "", []])
 @pytest.mark.parametrize("template", ["pre_${invoice:basic:dataOwnerId}_post", "pre_${metadata:constant:name}_post"])
 def test_missing_states(value: Any, template: str) -> None:
+    """MV05: Missing values fail by default and omit only by explicit policy."""
     # Given: null, empty string, or empty list in an otherwise present source
     context = _context(template, value=value)
     # When: strict interpolation requests the value
@@ -90,6 +95,7 @@ def test_missing_states(value: Any, template: str) -> None:
 
 @pytest.mark.parametrize("original", [{}, {"basic": {}}, {"basic": None}])
 def test_absent_invoice_source(original: dict[str, Any]) -> None:
+    """MV05: Missing invoice sections and keys fail with code 4006."""
     # Given: a section/key unavailable in the original invoice
     context = ResolutionContext.from_sources(original_invoice=original, current_invoice={"basic": {"dataName": "pre_${invoice:basic:absent}_post"}})
     # When: the source is requested under strict policy
@@ -102,6 +108,7 @@ def test_absent_invoice_source(original: dict[str, Any]) -> None:
 
 @pytest.mark.parametrize("metadata", [None, {}, {"constant": {}}, {"constant": {"name": {}}}])
 def test_absent_metadata_source(metadata: dict[str, Any] | None) -> None:
+    """MV05: Missing metadata sections and entries fail with code 4006."""
     # Given: a missing metadata source, section, entry or value
     context = ResolutionContext.from_sources(original_invoice={}, current_invoice={"basic": {"dataName": "${metadata:constant:name}"}}, metadata=metadata)
     # When: strict interpolation requests metadata
@@ -113,6 +120,7 @@ def test_absent_metadata_source(metadata: dict[str, Any] | None) -> None:
 
 @pytest.mark.parametrize("value", [0, False, "e\u0301", "a/b\\c", "日本語", 1.25])
 def test_scalar_values(value: Any) -> None:
+    """MV06: Zero, false, Unicode, and scalar identifiers retain their values."""
     # Given: a scientific identifier or false/zero scalar
     context = _context("${invoice:basic:dataOwnerId}", value=value)
     # When: interpolation formats a scalar
@@ -124,6 +132,7 @@ def test_scalar_values(value: Any) -> None:
 @pytest.mark.parametrize("value", [{"nested": "secret"}, ["nonempty"], float("nan"), float("inf"), -float("inf")])
 @pytest.mark.parametrize("missing", ["error", "omit"])
 def test_invalid_source_types(value: Any, missing: str) -> None:
+    """MV07: Invalid containers and nonfinite numbers fail under either policy."""
     # Given: a non-scalar or non-finite source
     context = _context("${invoice:basic:dataOwnerId}", value=value)
     # When: either missing policy resolves the invalid type
@@ -135,6 +144,7 @@ def test_invalid_source_types(value: Any, missing: str) -> None:
 
 @pytest.mark.parametrize("sample", [{}, {"names": None}, {"names": "not-list"}, {"names": ["good", 3]}, {"names": [None]}])
 def test_invalid_sample_names(sample: dict[str, Any]) -> None:
+    """MV07: Invalid sample name collections cannot be interpolated."""
     # Given: missing or wrongly typed sample names
     context = ResolutionContext.from_sources(original_invoice={"sample": sample}, current_invoice={"basic": {"dataName": "${invoice:sample:names}"}})
     # When: names are requested
@@ -146,6 +156,7 @@ def test_invalid_sample_names(sample: dict[str, Any]) -> None:
 
 @pytest.mark.parametrize("names", [[], ["", ""]])
 def test_empty_sample_names(names: list[str]) -> None:
+    """MV05: Empty sample names follow the missing-value policy."""
     # Given: an empty list or a list containing only empty strings
     context = ResolutionContext.from_sources(original_invoice={"sample": {"names": names}}, current_invoice={"basic": {"dataName": "a_${invoice:sample:names}_b"}})
     # When: strict mode requests sample names
@@ -157,6 +168,7 @@ def test_empty_sample_names(names: list[str]) -> None:
 
 
 def test_sample_names_join_in_order() -> None:
+    """MV06: Nonempty sample names retain their order when joined."""
     # Given: sample names including an empty optional entry
     context = ResolutionContext.from_sources(original_invoice={"sample": {"names": ["β", "", "alpha"]}}, current_invoice={"basic": {"dataName": "${invoice-original:sample:names}"}})
     # When: resolving the explicit original scope
@@ -177,6 +189,7 @@ def test_sample_names_join_in_order() -> None:
     ],
 )
 def test_omit_separators(template: str, expected: str) -> None:
+    """MV08: Omissions collapse only their neighboring underscore runs."""
     # Given: an omitted value surrounded by literal underscores
     context = _context(template, value=None)
     # When: explicitly selecting omission
@@ -187,6 +200,7 @@ def test_omit_separators(template: str, expected: str) -> None:
 
 @pytest.mark.parametrize("value", ["", "x" * 4097, "line\nbreak", "tab\there", "\x00", "\x7f", "\x85"])
 def test_invalid_name_boundaries(value: str) -> None:
+    """MV09: Empty, oversized, or control-bearing names fail with code 4007."""
     # Given: an output exceeding the name limits or containing controls
     context = _context("${invoice:basic:dataOwnerId}", value=value)
     # When: resolution validates the final name
@@ -198,6 +212,7 @@ def test_invalid_name_boundaries(value: str) -> None:
 
 @pytest.mark.parametrize("size", [1, 4096])
 def test_valid_name_boundaries(size: int) -> None:
+    """MV09: Names at both allowed length boundaries succeed."""
     # Given: the first or last allowed name length
     context = _context("${invoice:basic:dataOwnerId}", value="x" * size)
     # When: resolving the name
@@ -208,6 +223,7 @@ def test_valid_name_boundaries(size: int) -> None:
 
 @pytest.mark.parametrize("policy", ["auto", "enabled", "disabled"])
 def test_policy(policy: str) -> None:
+    """MV10: Each policy selects its documented resolution behavior."""
     # Given: an expression and an explicit v2 policy
     context = _context("${invoice:basic:dataOwnerId}")
     # When: resolving that policy
@@ -218,6 +234,7 @@ def test_policy(policy: str) -> None:
 
 @pytest.mark.parametrize("options", [{"policy": "typo"}, {"policy": True}, {"missing": "typo"}, {"missing": None}])
 def test_invalid_policy(options: dict[str, Any]) -> None:
+    """MV10: Invalid policy options fail with code 4005."""
     # Given: malformed typed options at the public boundary
     # When: constructing options
     with pytest.raises(RdeValidationError) as caught:
@@ -228,6 +245,7 @@ def test_invalid_policy(options: dict[str, Any]) -> None:
 
 @pytest.mark.parametrize("template", ["${}", "${filename:extra}", "${unsupported}", "${"])
 def test_malformed_templates(template: str) -> None:
+    """MV10: Malformed eligible expressions fail with code 4005."""
     # Given: a malformed expression in an eligible field
     context = _context(template)
     # When: auto mode sees template syntax
@@ -238,6 +256,7 @@ def test_malformed_templates(template: str) -> None:
 
 
 def test_fields() -> None:
+    """MV11: Interpolation changes only the allowlisted string fields."""
     # Given: eligible and forbidden string, scalar and nested fields
     current = {"basic": {"dataName": "${invoice:basic:dataOwnerId}", "description": "label ${invoice:basic:dataOwnerId}", "dataOwnerId": "${filename}"}, "custom": {"text": "${filename}", "list": ["${filename}"], "number": 0}}
     context = ResolutionContext.from_sources(original_invoice={"basic": {"dataOwnerId": "owner"}}, current_invoice=current)
@@ -253,6 +272,7 @@ def test_fields() -> None:
 
 @pytest.mark.parametrize("value", [17, ["${filename}"], {"text": "${filename}"}, None])
 def test_non_string_allowlisted_values_unchanged(value: Any) -> None:
+    """MV11: Non-string allowlisted fields remain untouched."""
     # Given: a non-string value in an allowlisted field
     context = ResolutionContext.from_sources(original_invoice={}, current_invoice={"basic": {"dataName": "plain", "description": value}})
     # When: resolving strings only
@@ -262,6 +282,7 @@ def test_non_string_allowlisted_values_unchanged(value: Any) -> None:
 
 
 def test_schema_failure() -> None:
+    """MV12: Schema failure identifies the field without mutating the source."""
     # Given: a source value incompatible with the destination schema
     context = _context("${invoice:basic:dataOwnerId}", value="secret-output")
     schema = {"type": "object", "properties": {"basic": {"type": "object", "properties": {"dataName": {"const": "approved"}}}}}
@@ -277,6 +298,7 @@ def test_schema_failure() -> None:
 
 @pytest.mark.parametrize("keyword", ["$ref", "$dynamicRef", "$recursiveRef"])
 def test_external_schema_references(keyword: str, tmp_path: Path) -> None:
+    """MV12: Pure validation rejects external schema resources without retrieval."""
     # Given: a schema reference naming a file that must never be opened
     secret = tmp_path / "secret.json"
     secret.write_text('{"const": "private-file-value"}', encoding="utf-8")
@@ -294,6 +316,7 @@ def test_external_schema_references(keyword: str, tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("schema", [{"$ref": "#/$defs/absent"}, {"type": "unrecognised"}, {"$ref": "#"}])
 def test_invalid_or_unresolved_schema(schema: dict[str, Any]) -> None:
+    """MV12: Invalid or unresolved schemas fail with code 4007."""
     # Given: an invalid schema or a local reference without a definition
     context = _context("${invoice:basic:dataOwnerId}")
     # When: preview and resolution inspect the schema
@@ -306,6 +329,7 @@ def test_invalid_or_unresolved_schema(schema: dict[str, Any]) -> None:
 
 
 def test_plain_fields_are_not_interpolated() -> None:
+    """MV11: Plain field values do not opt into interpolation validation."""
     # Given: an ordinary label outside interpolation policy limits
     context = _context("plain\nlabel")
     # When: auto mode detects no expression syntax
@@ -317,6 +341,7 @@ def test_plain_fields_are_not_interpolated() -> None:
 
 @pytest.mark.parametrize("source", [{"basic": {"secret": object()}}, {"self": None}])
 def test_non_json_sources(source: dict[str, Any]) -> None:
+    """MV07: Non-JSON and recursive sources fail with code 4006."""
     # Given: unsupported JSON material or a recursive mapping
     if "self" in source:
         source["self"] = source
@@ -328,6 +353,7 @@ def test_non_json_sources(source: dict[str, Any]) -> None:
 
 
 def test_oversized_description_and_missing_basic() -> None:
+    """MV09: Output bounds apply to expanded descriptions."""
     # Given: an interpolated description exceeding its explicit output budget
     context = ResolutionContext.from_sources(original_invoice={"custom": {"text": "x" * 16385}}, current_invoice={"basic": {"dataName": "plain", "description": "${invoice:custom:text}"}})
     # When: rendering the bounded description
@@ -340,6 +366,7 @@ def test_oversized_description_and_missing_basic() -> None:
 
 
 def test_preview(tmp_path: Path) -> None:
+    """MV13: Preview is deterministic, read-only, and value-free."""
     # Given: private source material and an otherwise empty filesystem
     context = _context("literal-secret_${invoice:basic:dataOwnerId}", value="private-value")
     before = list(tmp_path.rglob("*"))
@@ -357,6 +384,7 @@ def test_preview(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(("template", "policy", "status", "code"), [("${filename}", "auto", "unavailable", 4006), ("${}", "auto", "invalid", 4005), ("${filename}", "disabled", "disabled", None), ("${}", "disabled", "disabled", None)])
 def test_preview_failure_and_disabled(template: str, policy: str, status: str, code: int | None) -> None:
+    """MV13: Preview preserves failure codes and disabled reasons."""
     # Given: a missing source, invalid expression or explicit disable
     context = _context(template)
     # When: inspecting the outcome without committing a candidate
@@ -370,6 +398,7 @@ def test_preview_failure_and_disabled(template: str, policy: str, status: str, c
 
 
 def test_rdeformat_not_applicable() -> None:
+    """MV13: RDEFormat preview explains its omitted interpolation stage."""
     # Given: a mode that does not have an interpolation stage
     context = ResolutionContext.from_sources(original_invoice={}, current_invoice={"basic": {"dataName": "${filename}"}}, mode="rdeformat")
     # When: previewing or resolving that stage
@@ -382,6 +411,7 @@ def test_rdeformat_not_applicable() -> None:
 @pytest.mark.property
 @given(st.text(alphabet=st.characters(blacklist_categories=("Cc", "Cs")), min_size=1, max_size=128).filter(lambda value: "${" not in value))
 def test_resolution_property(value: str) -> None:
+    """MV14: Resolution is deterministic and preserves its input snapshot."""
     # Given: arbitrary scientific scalar text
     context = _context("${invoice:basic:dataOwnerId}", value=value)
     # When: the same immutable context is resolved repeatedly
