@@ -159,8 +159,9 @@ class MatplotlibRenderer:
             config: Plot configuration (``x_col`` and ``y_cols`` are required)
             y_col_index: Column position of the series' y values.
             series_position: Position of the series within ``config.y_cols``;
-                ``None`` selects the first series plotting ``y_col_index`` (or
-                position 0 for a column outside ``y_cols``).
+                ``None`` means position 0, as in v1: the column is drawn against
+                the first series' x (and direction) column even when it is
+                planned at another position.
 
         Returns:
             A pyplot figure owned by the caller.

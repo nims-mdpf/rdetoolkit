@@ -373,17 +373,19 @@ def individual_plan(
 ) -> tuple[PlotPlan, FigurePlan]:
     """Plan the figure of a legacy ``render_individual`` call with the v1 semantics.
 
-    A column planned at ``series_position`` (or, without a position, anywhere) uses
-    the call's plan. Any other column is drawn as v1 did: against the x column of the
-    position (the first x column when the position is beyond the x list) and the
-    direction column of the position (none beyond the direction list).
+    A column planned at the position uses the call's plan. Any other column is drawn
+    as v1 did: against the x column of the position (the first x column when the
+    position is beyond the x list) and the direction column of the position (none
+    beyond the direction list). An omitted position is position 0, as in v1, even
+    when the column is planned at another position: the plan is never searched for
+    the column, so the x and direction columns never depend on ``y_col_index``.
 
     Args:
         df: The data frame.
         config: The legacy configuration (``x_col`` and ``y_cols`` required).
         y_col_index: Column position of the y values.
-        series_position: Position within ``config.y_cols``; ``None`` means 0 for a
-            column that is not planned.
+        series_position: Position within ``config.y_cols``; ``None`` means 0
+            (the x and direction columns of the first series).
         label_of: Legend label rule of the calling backend.
         axis_label_of: Axis label rule of the calling backend.
 
@@ -394,25 +396,21 @@ def individual_plan(
         ValueError: If ``x_col`` or ``y_cols`` is missing, or as ``plan_from_config``.
         PlotRequestError: ``reason="unknown_column"`` for a column the frame lacks.
     """
+    position = 0 if series_position is None else series_position
     plan = legacy_plan(df, config, label_of=label_of, axis_label_of=axis_label_of)
-    figure = _planned_individual(plan, y_col_index, series_position)
+    figure = _planned_individual(plan, y_col_index, position)
     if figure is not None:
         return plan, figure
-    single = _single_series_config(config, y_col_index, 0 if series_position is None else series_position)
+    single = _single_series_config(config, y_col_index, position)
     substitute = _legacy_y_labels(_planned(df, single, label_of, axis_label_of), single, axis_label_of, mixed=mixes_units(plan))
     return substitute, next(item for item in substitute.figures if item.kind == "individual")
 
 
-def _planned_individual(plan: PlotPlan, y_col_index: int, series_position: int | None) -> FigurePlan | None:
+def _planned_individual(plan: PlotPlan, y_col_index: int, series_position: int) -> FigurePlan | None:
     """The planned individual figure of the column at the position, if the plan has one."""
-    if series_position is None:
-        entry = next((item for item in plan.series if item.y_index == y_col_index), None)
-    elif 0 <= series_position < len(plan.series) and plan.series[series_position].y_index == y_col_index:
-        entry = plan.series[series_position]
-    else:
-        entry = None
-    if entry is None:
+    if not (0 <= series_position < len(plan.series) and plan.series[series_position].y_index == y_col_index):
         return None
+    entry = plan.series[series_position]
     return next(item for item in plan.figures if item.kind == "individual" and item.figure_id == entry.series_id)
 
 
