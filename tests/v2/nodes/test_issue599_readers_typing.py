@@ -28,7 +28,7 @@ import rdetoolkit.nodes.io as io_module
 _PANDAS_STUB = "from typing import Any\n\nclass DataFrame: ...\n\ndef __getattr__(name: str) -> Any: ...\n"
 
 _HEADER = """from pathlib import Path
-from typing import assert_type
+from typing_extensions import assert_type
 import pandas as pd
 from rdetoolkit.nodes import read_csv_with_header, read_excel, read_text
 p = Path("x")
@@ -42,7 +42,7 @@ def _check(tmp_path: Path, body: str) -> subprocess.CompletedProcess[str]:
     consumer = tmp_path / "consumer.py"
     consumer.write_text(_HEADER + body, encoding="utf-8")
     return subprocess.run(
-        [sys.executable, "-m", "mypy", "--strict", "--no-incremental", str(consumer)],
+        [sys.executable, "-m", "mypy", "--strict", "--no-incremental", "--python-version", "3.10", str(consumer)],
         cwd=tmp_path, capture_output=True, text=True, check=False,
         env={**os.environ, "MYPYPATH": str(tmp_path / "stubs")},
     )
@@ -50,7 +50,8 @@ def _check(tmp_path: Path, body: str) -> subprocess.CompletedProcess[str]:
 
 def test_call_shapes_are_inferred__i599r_type_001(tmp_path: Path) -> None:
     """I599R-TYPE-001: single sheets infer DataFrame, None and lists infer dicts."""
-    # Given: a strict consumer covering every documented call shape
+    # Given: a strict consumer covering every documented call shape, checked
+    # against the oldest supported Python (assert_type comes from typing_extensions)
     body = '''assert_type(read_text(p), str)
 assert_type(read_text(p, encoding="utf-8"), str)
 assert_type(read_text(p, encoding=None), str)
@@ -77,28 +78,34 @@ def pick(name: str | int) -> pd.DataFrame:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("line, code", [
+# mypy 1.18 reports a positional use of a keyword-only option as [misc], while
+# later releases (2.x) report [call-arg]; both are accepted.
+_POSITIONAL = ("[call-arg]", "[misc]")
+
+
+@pytest.mark.parametrize("line, codes", [
     ("frame: pd.DataFrame = read_excel(p, sheet_name=None)", "[assignment]"),
     ("frame2: pd.DataFrame = read_excel(p, sheet_name=['a'])", "[assignment]"),
     ("sheets: dict[str, pd.DataFrame] = read_excel(p)", "[assignment]"),
     ("assert_type(read_excel(p, sheet_name=None), pd.DataFrame)", "[assert-type]"),
-    ("read_text(p, 'utf-8')", "[call-arg]"),
+    ("read_text(p, 'utf-8')", _POSITIONAL),
     ("read_text(p, encoding=1)", "[arg-type]"),
-    ("read_csv_with_header(p, 'cp932')", "[call-arg]"),
+    ("read_csv_with_header(p, 'cp932')", _POSITIONAL),
     ("read_csv_with_header(p, header='first')", "[arg-type]"),
     ("read_csv_with_header(p, skiprows='2')", "[arg-type]"),
     ("read_csv_with_header(p, encoding=b'utf-8')", "[arg-type]"),
     ("read_excel(p, sheet_name=('a',))", "[call-overload]"),
     ("read_excel(p, sheet_name=1.5)", "[call-overload]"),
 ])
-def test_invalid_uses_are_rejected__i599r_type_neg_001(tmp_path: Path, line: str, code: str) -> None:
+def test_invalid_uses_are_rejected__i599r_type_neg_001(tmp_path: Path, line: str, codes: str | tuple[str, ...]) -> None:
     """I599R-TYPE-NEG-001: wrong results and option types are reported, not hidden."""
     # Given: one invalid use in a strict consumer
     # When: checking it
     result = _check(tmp_path, line + "\n")
     # Then: mypy reports the specific error code
     assert result.returncode == 1, result.stdout + result.stderr
-    assert code in result.stdout, result.stdout
+    expected = (codes,) if isinstance(codes, str) else codes
+    assert any(code in result.stdout for code in expected), result.stdout
 
 
 def _signatures(path: Path, names: set[str]) -> list[str]:
