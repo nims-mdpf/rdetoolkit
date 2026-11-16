@@ -149,7 +149,7 @@ csv2graph("data.csv", grid=True)
 
 ### Axis Inversion
 
-You can invert the X-axis or Y-axis. Useful for XPS spectra.
+You can invert the X-axis or Y-axis. Useful for XPS spectra. The inversion applies to the HTML output too.
 
 ```python
 csv2graph(

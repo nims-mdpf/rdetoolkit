@@ -149,7 +149,7 @@ csv2graph("data.csv", grid=True)
 
 ### 軸反転
 
-X軸やY軸を反転できます。XPSスペクトルなどで有用です。
+X軸やY軸を反転できます。XPSスペクトルなどで有用です。HTML出力の軸も同じく反転します。
 
 ```python
 csv2graph(

@@ -267,8 +267,7 @@ class PlotlyRenderer:
                 "exponentformat": "power",
                 "showexponent": "all",
             })
-        if axis.limits is not None:
-            axis_layout["range"] = _plotly_range(axis.limits, axis.scale)
+        axis_layout.update(_plotly_extent(axis))
         return axis_layout
 
     def _build_update_menus(self, plan: PlotPlan) -> list[dict[str, Any]]:
@@ -341,6 +340,29 @@ class PlotlyRenderer:
             bordercolor="rgba(0,0,0,0.2)",
             borderwidth=1,
         )
+
+
+def _plotly_extent(axis: AxisSpec) -> dict[str, Any]:
+    """The ``range`` / ``autorange`` keys of an axis: its limits and its direction (IC-14, IC-16).
+
+    Matplotlib sets the limits and then inverts the axis; Plotly expresses the same
+    picture as a range in display order (larger bound first when reversed). A
+    ``None`` side stays automatic: Plotly reads ``"max reversed"`` as "automatic
+    maximum on the left, ``range[1]`` fixed" and ``"min reversed"`` as "``range[0]``
+    fixed, automatic minimum on the right".
+    """
+    if axis.limits is None:
+        return {"autorange": "reversed"} if axis.invert else {}
+    low, high = _plotly_range(axis.limits, axis.scale)
+    if not axis.invert:
+        return {"range": [low, high]}
+    if low is None and high is None:
+        return {"autorange": "reversed"}
+    if high is None:
+        return {"range": [None, low], "autorange": "max reversed"}
+    if low is None:
+        return {"range": [high, None], "autorange": "min reversed"}
+    return {"range": [high, low]}
 
 
 def _plotly_range(limits: tuple[float | None, float | None], scale: str) -> list[float | None]:
