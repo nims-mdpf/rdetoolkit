@@ -55,7 +55,7 @@ def plots(frame: Any, figure: Any, out: OutputContext) -> None:
     ('from rdetoolkit.types import Metadata\nMetadata().set("x", 1, unit=7)\n', "[arg-type]"),
     ('from rdetoolkit import flow\n@flow(error_code="bad")\ndef pipeline() -> None:\n    pass\n', "[call-overload]"),
     ('from rdetoolkit.nodes import save_json\nfrom rdetoolkit.types import OutputContext\ndef invalid(out: OutputContext) -> None:\n    save_json({}, out, "x.json", kind="bad")\n', "[arg-type]"),
-    ('from pathlib import Path\nfrom rdetoolkit.nodes import read_excel\nread_excel(Path("x.xlsx"), sheet_name=object())\n', "[arg-type]"),
+    ('from pathlib import Path\nfrom rdetoolkit.nodes import read_excel\nread_excel(Path("x.xlsx"), sheet_name=object())\n', "[call-overload]"),
 ])
 def test_invalid_ga_arguments_are_rejected__ga_type_neg_1_2_3_4(tmp_path: Path, source: str, diagnostic: str) -> None:
     """GA-TYPE-NEG-1..4: new APIs retain useful type constraints for consumers."""
