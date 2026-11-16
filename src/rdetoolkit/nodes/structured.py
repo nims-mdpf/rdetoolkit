@@ -9,15 +9,17 @@ import os
 from io import StringIO
 from pathlib import Path
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 import pandas as pd
 
 from rdetoolkit.core.node import node
 from rdetoolkit.types import InvoiceData, OutputContext, OutputKind
 
-# csv.writer is typed with the six stdlib constants; save_csv accepts any int and lets csv validate it.
-_CsvQuoting = Literal[0, 1, 2, 3, 4, 5]
+_CsvQuoting = Literal[0, 1, 2, 3]
+# QUOTE_STRINGS and QUOTE_NOTNULL (Python 3.12+) are left out: pandas turns a missing value into ""
+# before csv sees it, so those modes would quote it in the table but not in preamble rows.
+_SUPPORTED_QUOTING: tuple[_CsvQuoting, ...] = (csv.QUOTE_MINIMAL, csv.QUOTE_ALL, csv.QUOTE_NONNUMERIC, csv.QUOTE_NONE)
 
 
 @node(tags=["builtin", "structured"], version="2.0.0", idempotent=True)
@@ -67,8 +69,13 @@ def save_csv(
             ``lineterminator``, between a non-empty preamble and the table.
         encoding: Codec used for the whole file, for example ``"utf-8-sig"``
             or ``"cp932"``.
-        quoting: A ``csv`` module quoting constant such as
-            ``csv.QUOTE_NONNUMERIC``, applied to preamble rows and the table.
+        quoting: ``csv.QUOTE_MINIMAL``, ``csv.QUOTE_ALL``,
+            ``csv.QUOTE_NONNUMERIC`` or ``csv.QUOTE_NONE``, applied to preamble
+            rows and the table. A missing value (``None`` in a row, ``None`` or
+            NaN in the table) is an empty field, quoted only where the mode
+            quotes strings. ``QUOTE_STRINGS`` and ``QUOTE_NOTNULL`` are
+            rejected because pandas and ``csv`` write missing values
+            differently under them.
             The table follows ``DataFrame.to_csv``: values formatted by
             ``float_format`` are text, so ``QUOTE_NONNUMERIC`` quotes them.
         lineterminator: Line ending for preamble rows and the table;
@@ -78,10 +85,11 @@ def save_csv(
         Path to the CSV under ``out.struct``.
 
     Raises:
-        ValueError: If the data frame would require multiple header rows, or
+        ValueError: If the data frame would require multiple header rows,
+            ``quoting`` is not one of the four supported constants, or
             ``lineterminator`` is empty.
         TypeError: If a preamble row is a single string instead of a
-            sequence of fields, ``quoting`` is not a csv quoting constant, or
+            sequence of fields, ``quoting`` is not an int, or
             ``lineterminator`` is not a str.
         LookupError: If ``encoding`` is not a known text codec.
         UnicodeEncodeError: If the text contains a character ``encoding``
@@ -92,13 +100,25 @@ def save_csv(
     if df.columns.nlevels != 1:
         msg = "save_csv requires a one-row header; MultiIndex columns are not supported"
         raise ValueError(msg)
+    quote = _csv_quoting(quoting)
     terminator = _csv_terminator(lineterminator)
     codecs.lookup(encoding)
-    lead = _preamble_text(preamble, quoting=quoting, lineterminator=terminator)
+    lead = _preamble_text(preamble, quoting=quote, lineterminator=terminator)
     if lead and blank_line_after_preamble:
         lead += terminator
-    table = df.to_csv(index=index, header=header, float_format=float_format, quoting=quoting, lineterminator=terminator)
+    table = df.to_csv(index=index, header=header, float_format=float_format, quoting=quote, lineterminator=terminator)
     return out.write_bytes("struct", filename, (lead + table).encode(encoding))
+
+
+def _csv_quoting(quoting: object) -> _CsvQuoting:
+    if isinstance(quoting, bool) or not isinstance(quoting, int):
+        msg = f"save_csv quoting must be an int csv quoting constant, not {type(quoting).__name__}"
+        raise TypeError(msg)
+    for supported in _SUPPORTED_QUOTING:
+        if quoting == supported:
+            return supported
+    msg = f"save_csv quoting must be one of csv.QUOTE_MINIMAL, csv.QUOTE_ALL, csv.QUOTE_NONNUMERIC or csv.QUOTE_NONE, not {quoting}"
+    raise ValueError(msg)
 
 
 def _csv_terminator(lineterminator: str | None) -> str:
@@ -113,12 +133,11 @@ def _csv_terminator(lineterminator: str | None) -> str:
     return lineterminator
 
 
-def _preamble_text(preamble: Sequence[Sequence[object]] | str | None, *, quoting: int, lineterminator: str) -> str:
-    buffer = StringIO()
-    # Built before the preamble check so a bad quoting value fails on every call.
-    writer = csv.writer(buffer, quoting=cast("_CsvQuoting", quoting), lineterminator=lineterminator)
+def _preamble_text(preamble: Sequence[Sequence[object]] | str | None, *, quoting: _CsvQuoting, lineterminator: str) -> str:
     if preamble is None or isinstance(preamble, str):
         return preamble or ""
+    buffer = StringIO()
+    writer = csv.writer(buffer, quoting=quoting, lineterminator=lineterminator)
     for row in preamble:
         if isinstance(row, (str, bytes)):
             msg = f"save_csv preamble rows must be sequences of fields, not {type(row).__name__}: {row!r}"

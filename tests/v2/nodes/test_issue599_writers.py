@@ -20,7 +20,9 @@ EP table
 | all | direct call / flow call | @node transparency | metadata kept, recorded in a run | I599W-EP-015 |
 | save_csv | PBT text frames x options | invariant | file == options applied once, BOM count <= 1 | I599W-EP-016 |
 | save_invoice | PBT nested JSON | invariant | no None left, idempotent, input unchanged | I599W-EP-017 |
-| save_csv | quoting out of range / not int | invalid | TypeError, nothing written | I599W-NEG-001 |
+| save_csv | missing values in rows and table, each supported quoting | same missing-value field | preamble None == table None/NaN | I599W-EP-018 |
+| save_csv | quoting not int | invalid | TypeError, nothing written | I599W-NEG-001 |
+| save_csv | quoting int outside MINIMAL/ALL/NONNUMERIC/NONE (incl. 4 QUOTE_STRINGS, 5 QUOTE_NOTNULL) | unsupported | ValueError, nothing written | I599W-NEG-012 |
 | save_csv | lineterminator empty / not str | invalid | ValueError / TypeError, nothing written | I599W-NEG-002 |
 | save_csv | unknown encoding | invalid | LookupError, nothing written | I599W-NEG-003 |
 | save_csv | character the encoding lacks | encode failure | UnicodeEncodeError, nothing written | I599W-NEG-004 |
@@ -135,8 +137,13 @@ class TestSaveCsvOptions:
         text = "#title,生データ\n#x,a b\n"
         # When: saving with CRLF and QUOTE_ALL
         path = save_csv(
-            frame, make_output_context(tmp_path), "raw.csv",
-            preamble=text, encoding="utf-8-sig", lineterminator="\r\n", quoting=csv.QUOTE_ALL,
+            frame,
+            make_output_context(tmp_path),
+            "raw.csv",
+            preamble=text,
+            encoding="utf-8-sig",
+            lineterminator="\r\n",
+            quoting=csv.QUOTE_ALL,
         )
         data = path.read_bytes()
         # Then: the preamble is unchanged, only the table uses the options
@@ -150,14 +157,24 @@ class TestSaveCsvOptions:
         rows: list[list[object]] = [["#param", 3, 1.5]]
         # When: saving with QUOTE_NONNUMERIC, CRLF and the existing table options
         path = save_csv(
-            frame, make_output_context(tmp_path), "param.csv",
-            quoting=csv.QUOTE_NONNUMERIC, lineterminator="\r\n", preamble=rows,
-            float_format="%.3f", header=["value"], index=True,
+            frame,
+            make_output_context(tmp_path),
+            "param.csv",
+            quoting=csv.QUOTE_NONNUMERIC,
+            lineterminator="\r\n",
+            preamble=rows,
+            float_format="%.3f",
+            header=["value"],
+            index=True,
         )
         # Then: rows follow csv.writer, the table follows DataFrame.to_csv, which
         # quotes float_format output because it is already text (v1 parity)
         expected = _rows_text(rows, quoting=csv.QUOTE_NONNUMERIC, lineterminator="\r\n") + frame.to_csv(
-            quoting=csv.QUOTE_NONNUMERIC, lineterminator="\r\n", float_format="%.3f", header=["value"], index=True,
+            quoting=csv.QUOTE_NONNUMERIC,
+            lineterminator="\r\n",
+            float_format="%.3f",
+            header=["value"],
+            index=True,
         )
         assert path.read_bytes() == expected.encode("utf-8")
         assert path.read_bytes() == b'"#param",3,1.5\r\n"","value"\r\n"a","1.000"\r\n"b","2.250"\r\n'
@@ -168,11 +185,31 @@ class TestSaveCsvOptions:
         frame = pd.DataFrame({"p": [1.0, 2.25]}, index=["a", "b"])
         # When
         path = save_csv(
-            frame, make_output_context(tmp_path), "param.csv",
-            quoting=csv.QUOTE_NONNUMERIC, lineterminator="\r\n", preamble=[["#param", 3]], header=["value"], index=True,
+            frame,
+            make_output_context(tmp_path),
+            "param.csv",
+            quoting=csv.QUOTE_NONNUMERIC,
+            lineterminator="\r\n",
+            preamble=[["#param", 3]],
+            header=["value"],
+            index=True,
         )
         # Then
         assert path.read_bytes() == b'"#param",3\r\n"","value"\r\n"a",1.0\r\n"b",2.25\r\n'
+
+    @pytest.mark.parametrize(
+        ("quoting", "line"),
+        [(csv.QUOTE_MINIMAL, "a,,,1"), (csv.QUOTE_ALL, '"a","","","1"'), (csv.QUOTE_NONNUMERIC, '"a","","",1'), (csv.QUOTE_NONE, "a,,,1")],
+        ids=["minimal", "all", "nonnumeric", "none"],
+    )
+    def test_missing_values_match__i599w_ep_018(self, tmp_path: Path, quoting: int, line: str) -> None:
+        """I599W-EP-018: a missing value is written the same way in preamble rows and the table."""
+        # Given: a None in a preamble row and None / NaN in the table
+        frame = pd.DataFrame({"s": ["a"], "o": [None], "f": [float("nan")], "i": [1]})
+        # When
+        path = save_csv(frame, make_output_context(tmp_path), "m.csv", quoting=quoting, lineterminator="\n", preamble=[["a", None, None, 1]], header=False)
+        # Then: both lines carry the same missing-value fields
+        assert path.read_text(encoding="utf-8") == f"{line}\n{line}\n"
 
     def test_cp932_encoding__i599w_ep_005(self, tmp_path: Path) -> None:
         """I599W-EP-005: a legacy encoding is applied to the whole file."""
@@ -213,12 +250,23 @@ class TestSaveCsvOptions:
 
 
 class TestSaveCsvFailures:
-    @pytest.mark.parametrize("quoting", [99, -1, "all", True, None], ids=["99", "neg", "str", "bool", "none"])
+    @pytest.mark.parametrize("quoting", ["all", True, None, 1.0], ids=["str", "bool", "none", "float"])
     def test_bad_quoting__i599w_neg_001(self, tmp_path: Path, write_spy: list[Any], quoting: Any) -> None:
-        """I599W-NEG-001: an invalid quoting value fails before writing."""
+        """I599W-NEG-001: a quoting value that is not an int fails before writing."""
         # Given / When / Then: TypeError and no write
-        with pytest.raises(TypeError, match='"quoting"'):
+        with pytest.raises(TypeError, match="save_csv quoting must be an int"):
             save_csv(_frame(), make_output_context(tmp_path), "x.csv", quoting=quoting)
+        assert write_spy == []
+
+    @pytest.mark.parametrize("preamble", [None, [["#p", None]]], ids=["table", "rows"])
+    @pytest.mark.parametrize("quoting", [4, 5, 99, -1], ids=["QUOTE_STRINGS", "QUOTE_NOTNULL", "99", "neg"])
+    def test_unsupported_quoting__i599w_neg_012(self, tmp_path: Path, write_spy: list[Any], quoting: int, preamble: Any) -> None:
+        """I599W-NEG-012: quoting modes whose missing values pandas and csv disagree on are rejected."""
+        # Given: a table with a missing value
+        frame = pd.DataFrame({"x": [None]})
+        # When / Then: ValueError naming the supported constants, and no write
+        with pytest.raises(ValueError, match="save_csv quoting must be one of csv.QUOTE_MINIMAL"):
+            save_csv(frame, make_output_context(tmp_path), "x.csv", quoting=quoting, preamble=preamble)
         assert write_spy == []
 
     @pytest.mark.parametrize(("lineterminator", "error"), [("", ValueError), (1, TypeError), (b"\n", TypeError)], ids=["empty", "int", "bytes"])
@@ -413,10 +461,16 @@ class TestSaveInvoiceOptions:
 
 
 class TestSaveInvoiceFailures:
-    @pytest.mark.parametrize(("kwargs", "error"), [
-        ({"drop_none": 1}, TypeError), ({"drop_none": "yes"}, TypeError),
-        ({"indent": -4}, ValueError), ({"indent": False}, TypeError),
-    ], ids=["drop-int", "drop-str", "indent-neg", "indent-bool"])
+    @pytest.mark.parametrize(
+        ("kwargs", "error"),
+        [
+            ({"drop_none": 1}, TypeError),
+            ({"drop_none": "yes"}, TypeError),
+            ({"indent": -4}, ValueError),
+            ({"indent": False}, TypeError),
+        ],
+        ids=["drop-int", "drop-str", "indent-neg", "indent-bool"],
+    )
     def test_bad_options__i599w_neg_010(self, tmp_path: Path, write_spy: list[Any], kwargs: dict[str, Any], error: type[Exception]) -> None:
         """I599W-NEG-010: invalid options fail before writing."""
         # Given / When / Then
@@ -463,11 +517,15 @@ class TestSignatureAndTransparency:
         assert stub_kw.get("quoting", "QUOTE_MINIMAL") in ("QUOTE_MINIMAL", csv.QUOTE_MINIMAL)
         assert {k: v for k, v in stub_kw.items() if k != "quoting"} == {k: v for k, v in runtime_kw.items() if k != "quoting"}
 
-    @pytest.mark.parametrize(("call", "args"), [
-        (save_csv, (pd.DataFrame({"x": [1]}), "x.csv", "utf-8")),
-        (save_json, ({"a": 1}, "a.json", "struct", 4)),
-        (save_invoice, ({"a": 1}, 4)),
-    ], ids=["csv", "json", "invoice"])
+    @pytest.mark.parametrize(
+        ("call", "args"),
+        [
+            (save_csv, (pd.DataFrame({"x": [1]}), "x.csv", "utf-8")),
+            (save_json, ({"a": 1}, "a.json", "struct", 4)),
+            (save_invoice, ({"a": 1}, 4)),
+        ],
+        ids=["csv", "json", "invoice"],
+    )
     def test_new_options_keyword_only__i599w_neg_006(self, tmp_path: Path, write_spy: list[Any], call: Callable[..., Any], args: tuple[Any, ...]) -> None:
         """I599W-NEG-006: new options cannot be passed positionally."""
         # Given: the output context in its positional slot
@@ -554,7 +612,12 @@ def _has_none(value: Any) -> bool:
 )
 def test_save_csv_applies_options_once__i599w_ep_016(
     tmp_path_factory: pytest.TempPathFactory,
-    cells: list[str], rows: list[list[object]], encoding: str, quoting: int, lineterminator: str, blank: bool,
+    cells: list[str],
+    rows: list[list[object]],
+    encoding: str,
+    quoting: int,
+    lineterminator: str,
+    blank: bool,
 ) -> None:
     """I599W-EP-016: the file is the preamble and table encoded once with the same options."""
     # Given: a one-column text frame and random preamble rows
