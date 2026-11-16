@@ -247,9 +247,9 @@ def test_cleared_registry_returns_to_the_planner_fallback__tc_ep_i5_004(
     calls: list[object] = []
     original = importlib.import_module("rdetoolkit.runner.planner").iterate_tiles
 
-    def _spy(*args: object) -> Any:
+    def _spy(*args: object, **kwargs: object) -> Any:
         calls.append(args)
-        return original(*args)
+        return original(*args, **kwargs)
 
     monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", _spy)
 

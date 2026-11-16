@@ -26,7 +26,7 @@ def test_invoice_mode_matches_every_tile__ga574_ep_1_bv_1(
         seen.append((invoice.mode, iteration.mode))
 
     # When: running the actual v2 public entry
-    configured = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode, "")
+    configured = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
     report = workflows.run(flow=pipeline, config={"system": {"extended_mode": configured, "save_thumbnail_image": False}})
     # Then: each injected invoice agrees with the Runner's mode
     assert report.status == "success", report.error

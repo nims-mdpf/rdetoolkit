@@ -5,7 +5,7 @@
 | D02 | missing invoice / schema / metadata / input directory | error, exit 1 |
 | D03 | malformed invoice / schema / metadata / config | safe error, exit 1 |
 | D04 | mismatched invoice | 4001, exit 1 |
-| D05 | mode detected despite explicit config | W1001, warning, exit 0 |
+| D05 | special input conflicts with explicit config | 1005, error, exit 1 |
 | D06 | flow with body and preparation | neither invoked |
 | D07 | missing / noncallable / invalid flow reference | error, exit 1 |
 | D08 | unresolved / duplicate reserved parameters | 2003 / 2006 |
@@ -140,15 +140,14 @@ def test_file_mode_override_d05(tmp_path):
     # Given: SmartTable input and an explicitly configured MultiDataTile mode
     data = _project(tmp_path)
     (tmp_path / "rdeconfig.yaml").write_text("system:\n  extended_mode: MultiDataTile\n", encoding="utf-8")
-    (data / "inputdata" / "smarttable_sample.csv").write_text("x\n1\n", encoding="utf-8")
+    (data / "inputdata" / "smarttable_sample.csv").write_text("Name\nbasic/dataName\nexample\n", encoding="utf-8")
     # When: mode detection runs without executing processing
     result = _invoke(tmp_path)
-    # Then: the Runner's override is visible and warning-only is successful
+    # Then: strict v2 intent rejects the conflict with the Runner's catalog error.
     payload = json.loads(result.stdout)
-    assert result.exit_code == 0, result.output
-    assert payload["mode"] == "smarttable"
-    assert payload["status"] == "warning"
-    assert any(d["code"] == 1001 and d["severity"] == "warning" for d in payload["diagnostics"])
+    assert result.exit_code == 1, result.output
+    assert payload["status"] == "failed"
+    assert any(d["code"] == 1005 and d["severity"] == "error" for d in payload["diagnostics"])
 
 
 def test_no_flow_or_prepare_execution_d06(tmp_path, monkeypatch):
@@ -374,9 +373,9 @@ def test_matches_run_validate_only_d19(tmp_path, monkeypatch, smarttable):
 
     project = tmp_path / "project"
     data = _project(project)
-    (project / "rdeconfig.yaml").write_text("system:\n  extended_mode: MultiDataTile\n", encoding="utf-8")
+    (project / "rdeconfig.yaml").write_text("{}\n" if smarttable else "system:\n  extended_mode: MultiDataTile\n", encoding="utf-8")
     if smarttable:
-        (data / "inputdata" / "smarttable_sample.csv").write_text("x\n1\n", encoding="utf-8")
+        (data / "inputdata" / "smarttable_sample.csv").write_text("Name\nbasic/dataName\nexample\n", encoding="utf-8")
     reference = tmp_path / "reference"
     shutil.copytree(project, reference)
     module = f"doctor_parity_flow_{smarttable}"
@@ -390,7 +389,7 @@ def test_matches_run_validate_only_d19(tmp_path, monkeypatch, smarttable):
     payload = json.loads(_invoke(project).stdout)
     # Then: it reports the same mode and effective-config digest as the run
     assert (payload["mode"], payload["config"]["digest"]) == (expected["mode"], expected["config_digest"])
-    assert ("mode.selection" in {d["check_id"] for d in payload["diagnostics"]}) is smarttable
+    assert "mode.selection" not in {d["check_id"] for d in payload["diagnostics"]}
 
 
 def test_temporary_copy_is_removed_d20(tmp_path, monkeypatch):

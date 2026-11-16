@@ -419,7 +419,8 @@ class TestLifecycleErrorTranslation:
         )
 
         # When: the planner reads that workbook through the production path
-        report = runner.run(lambda: None)
+        from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
+        report = runner.run(RunRequest(root=root, target=LegacyCallbackTarget(function=lambda src, out: None)))
 
         # Then: the framework's own ecode/emsg reach job.failed unchanged
         assert report.status == "failed"

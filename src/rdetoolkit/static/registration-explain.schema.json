@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nims-mdpf.github.io/rdetoolkit/schemas/registration-explain-v1.json",
+  "title": "Registration explanation version 1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1"
+        },
+        "status": {
+          "const": "success"
+        },
+        "decision": {
+          "$ref": "#/$defs/decision"
+        },
+        "tile_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tile"
+          }
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage"
+          }
+        },
+        "config_source": {
+          "type": "string"
+        },
+        "iteration_policy": {
+          "type": "string"
+        },
+        "deterministic_order": {
+          "type": "boolean"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "preparation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "reason"
+          ]
+        },
+        "magic_preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "reason"
+          ]
+        },
+        "graph_preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "status",
+        "decision",
+        "tile_count",
+        "tiles",
+        "stages",
+        "config_source",
+        "iteration_policy",
+        "deterministic_order",
+        "warnings",
+        "preparation",
+        "magic_preview",
+        "graph_preview"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1"
+        },
+        "status": {
+          "const": "failed"
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "code",
+            "name",
+            "message"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "status",
+        "error"
+      ]
+    }
+  ],
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "thumbnail",
+            "structured",
+            "magic",
+            "description"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "side_effects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "enabled",
+        "reason",
+        "side_effects"
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1"
+        },
+        "configured_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "invoice",
+                "multidatatile",
+                "smarttable",
+                "excelinvoice",
+                "rdeformat"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "chosen_mode": {
+          "enum": [
+            "invoice",
+            "multidatatile",
+            "smarttable",
+            "excelinvoice",
+            "rdeformat"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "invoice",
+              "multidatatile",
+              "smarttable",
+              "excelinvoice",
+              "rdeformat"
+            ]
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "enum": [
+                  "invoice",
+                  "multidatatile",
+                  "smarttable",
+                  "excelinvoice",
+                  "rdeformat"
+                ]
+              },
+              "filename": {
+                "type": "string"
+              },
+              "indicator": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "filename",
+              "indicator"
+            ]
+          }
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ambiguous": {
+          "type": "boolean"
+        },
+        "warning_codes": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "configured_mode",
+        "chosen_mode",
+        "candidates",
+        "evidence",
+        "reason_codes",
+        "ambiguous",
+        "warning_codes"
+      ]
+    },
+    "tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "input_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_row": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "invoice_origin": {
+          "type": "string"
+        },
+        "output_paths": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "invokes_flow": {
+          "type": "boolean"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage"
+          }
+        }
+      },
+      "required": [
+        "index",
+        "input_names",
+        "source_row",
+        "invoice_origin",
+        "output_paths",
+        "invokes_flow",
+        "stages"
+      ]
+    }
+  }
+}

@@ -36,6 +36,7 @@ class ExecutionPlan:
     data_root: Path
     invoice_source: Path
     call_sequence: CallSequence = ...
+    artifact_stages: tuple[str, ...] | None = ...
 
 @dataclass(frozen=True, slots=True)
 class TileMaterial:

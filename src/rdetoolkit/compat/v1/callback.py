@@ -408,7 +408,8 @@ def to_legacy_config(config: RdeConfig | None, *, legacy_config: Config | None =
     if config is None:
         return Config(**extras)
     system = config.system
-    extended_mode = system.extended_mode if system.extended_mode in _V1_EXTENDED_MODES else None
+    mode_value = "MultiDataTile" if system.extended_mode == "multidatatile" else system.extended_mode
+    extended_mode = mode_value if mode_value in _V1_EXTENDED_MODES else None
     return Config(
         system=SystemSettings(
             extended_mode=extended_mode,

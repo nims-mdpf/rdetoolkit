@@ -665,7 +665,7 @@ def test_w1001_with_failing_stderr_keeps_the_run__tc_k4f3_ep_014(
     with pd.ExcelWriter(tmp_path / "data" / "inputdata" / "sample_excel_invoice.xlsx") as writer:
         pd.DataFrame([["invoiceList_format_id"], [""]]).to_excel(writer, sheet_name="invoice_form", index=False, header=False)
     (tmp_path / "rdeconfig.yaml").write_text(yaml.safe_dump({"system": {"extended_mode": "invoice"}}), encoding="utf-8")
-    request = build_run_request(flow=_ok_flow, custom_dataset_function=None, config=None, root=tmp_path, validate_only=True)
+    request = build_run_request(flow=None, custom_dataset_function=lambda src, out: None, config=None, root=tmp_path, validate_only=True)
     monkeypatch.setattr(sys, "stderr", _BrokenStream())
 
     # When: validating
@@ -696,7 +696,7 @@ def test_w1001_event_emit_failure_keeps_the_run__tc_k4f3_ep_015(
     with pd.ExcelWriter(tmp_path / "data" / "inputdata" / "sample_excel_invoice.xlsx") as writer:
         pd.DataFrame([["invoiceList_format_id"], [""]]).to_excel(writer, sheet_name="invoice_form", index=False, header=False)
     (tmp_path / "rdeconfig.yaml").write_text(yaml.safe_dump({"system": {"extended_mode": "invoice"}}), encoding="utf-8")
-    request = build_run_request(flow=_ok_flow, custom_dataset_function=None, config=None, root=tmp_path, validate_only=True)
+    request = build_run_request(flow=None, custom_dataset_function=lambda src, out: None, config=None, root=tmp_path, validate_only=True)
 
     # When: validating
     report = runner.run(request)

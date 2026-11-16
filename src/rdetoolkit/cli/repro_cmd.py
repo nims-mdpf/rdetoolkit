@@ -43,6 +43,7 @@ from rdetoolkit.cli._help import EXIT_CLICK_USAGE, EXIT_OK, CommandHelp
 from rdetoolkit.cli._repro_provenance import _file_digest, capture_provenance, read_provenance
 from rdetoolkit.cli.run_cmd import load_config_overrides
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.domain.mode_selection import normalize_mode_name
 from rdetoolkit.report.diagnostics import diagnostic, envelope
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.config_loader import compute_config_digest, load_config
@@ -323,8 +324,8 @@ def _config_candidates(data_root: Path, overrides: dict[str, Any] | None) -> Ite
     The caller accepts the first candidate whose digest equals the report's,
     so the order only decides which of several digest-identical configs is
     archived, never whether a mismatching one is. A source that no longer loads
-    is skipped rather than raised: it cannot reproduce the digest, and the
-    caller reports that as one usage error.
+    is skipped. The caller reports one usage
+    error if no candidate reproduces the digest.
     """
     for root in _project_roots(data_root):
         builders: list[Callable[[], RdeConfig]] = [partial(load_config, root, overrides, data_root=data_root)]
@@ -332,7 +333,13 @@ def _config_candidates(data_root: Path, overrides: dict[str, Any] | None) -> Ite
             builders.append(partial(_v1_entry_config, root, data_root))
         for build in builders:
             try:
-                yield build()
+                config = build()
+                yield config
+                mode = normalize_mode_name(config.system.extended_mode).value
+                if config.system.extended_mode != mode:
+                    canonical = config.model_copy(deep=True)
+                    canonical.system.extended_mode = mode
+                    yield canonical
             except Exception:  # noqa: BLE001,S112 -- any loader failure means "not this source"
                 continue
 
@@ -366,19 +373,23 @@ def _replays_to(text: str, digest: str) -> bool:
 def _config_yaml(config: RdeConfig, digest: str) -> str:
     """Serialize the effective config as v2-form YAML that replays to ``digest``.
 
-    Only non-default values are written so a replay does not see defaults as
-    explicitly set. If that form ever fails to reload to the same digest, the
+    Only explicitly supplied values are written, including an explicit invoice
+    default, so a replay preserves mode intent. If that form ever fails to reload to the same digest, the
     full dump is used instead; the digest is the contract, not the form.
 
     Keys are sorted: ``config_digest`` is computed over key-sorted JSON, so key
     order never affects whether the archived form replays.
     """
-    dumps: tuple[Callable[[], dict[str, Any]], ...] = (
-        lambda: config.model_dump(mode="json", exclude_defaults=True),
-        lambda: config.model_dump(mode="json"),
+    candidates = (
+        config.model_dump(mode="json", exclude_defaults=True),
+        config.model_dump(mode="json"),
     )
-    for dump in dumps:
-        text = yaml.safe_dump(dump(), sort_keys=True, allow_unicode=True)
+    for values in candidates:
+        if "extended_mode" in config.system.model_fields_set:
+            values.setdefault("system", {})["extended_mode"] = config.system.extended_mode
+        else:
+            values.get("system", {}).pop("extended_mode", None)
+        text = yaml.safe_dump(values, sort_keys=True, allow_unicode=True)
         if _replays_to(text, digest):
             return text
     _usage_error(f"The effective configuration cannot be written in a form that reproduces config_digest {digest}.")

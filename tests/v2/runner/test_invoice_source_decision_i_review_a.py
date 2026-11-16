@@ -87,7 +87,7 @@ def _prepare_invoice_case_with_stale_backup(tmp_path: Path) -> Path:
 def _overrides() -> dict[str, Any]:
     return {
         "system": {
-            "extended_mode": "invoice",
+            "extended_mode": None,
             "save_raw": True,
             "save_nonshared_raw": True,
             "save_thumbnail_image": False,

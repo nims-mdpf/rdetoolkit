@@ -37,6 +37,7 @@ from typing import Any
 
 import pytest
 
+from rdetoolkit.errors import RdeConfigError
 from rdetoolkit.models.config import Config, SystemSettings
 from rdetoolkit.report.events import MemoryEventSink
 from rdetoolkit.runner.config_loader import load_config
@@ -127,38 +128,32 @@ class TestV2LoaderKeepsTheModeImplicit:
         assert config.system.model_fields_set == {"save_thumbnail_image"}
         assert codes == []
 
-    def test_explicit_invoice_in_rdeconfig_still_warns__tc_rc1_c02_neg_001(self, tmp_path: Path) -> None:
-        # Given: an explicit invoice mode in the project rdeconfig.yaml
+    def test_explicit_invoice_conflicts__tc_rc1_c02_neg_001(self, tmp_path: Path) -> None:
+        # Given: an explicit invoice setting and a special input.
         (tmp_path / "rdeconfig.yaml").write_text("system:\n  extended_mode: invoice\n", encoding="utf-8")
+        # When: selecting under the strict v2 policy.
+        with pytest.raises(RdeConfigError) as caught:
+            _detect(tmp_path, _SMARTTABLE_FILE)
+        # Then: no file override silently changes registration boundaries.
+        assert caught.value.code == 1005
 
-        # When
-        config, mode, codes = _detect(tmp_path, _SMARTTABLE_FILE)
+    def test_explicit_override_conflicts__tc_rc1_c02_neg_002(self, tmp_path: Path) -> None:
+        # Given: a MultiDataTile override and an ExcelInvoice input.
+        # When: selecting under the strict v2 policy.
+        with pytest.raises(RdeConfigError) as caught:
+            _detect(tmp_path, _EXCELINVOICE_FILE, {"system": {"extended_mode": "MultiDataTile"}})
+        # Then: the configured registration boundary is protected.
+        assert caught.value.code == 1005
 
-        # Then: detection still wins, and the explicit conflict is published
-        assert "extended_mode" in config.system.model_fields_set
-        assert mode is ModeKind.smarttable
-        assert codes == [_W1001]
-
-    def test_explicit_override_mode_still_warns__tc_rc1_c02_neg_002(self, tmp_path: Path) -> None:
-        # Given / When: an override configuring MultiDataTile
-        _, mode, codes = _detect(tmp_path, _EXCELINVOICE_FILE, {"system": {"extended_mode": "MultiDataTile"}})
-
-        # Then
-        assert mode is ModeKind.excelinvoice
-        assert codes == [_W1001]
-
-    def test_explicit_v1_tasksupport_mode_still_warns__tc_rc1_c02_neg_003(self, tmp_path: Path) -> None:
-        # Given: a v1 tasksupport file configuring MultiDataTile
+    def test_legacy_config_format_keeps_v2_policy__tc_rc1_c02_neg_003(self, tmp_path: Path) -> None:
+        # Given: a legacy-format config loaded for a v2 flow.
         (tmp_path / "tasksupport").mkdir()
         (tmp_path / "tasksupport" / "rdeconfig.yaml").write_text("system:\n  extended_mode: MultiDataTile\n", encoding="utf-8")
-
-        # When
-        config, mode, codes = _detect(tmp_path, _SMARTTABLE_FILE)
-
-        # Then
-        assert config.system.extended_mode == "MultiDataTile"
-        assert mode is ModeKind.smarttable
-        assert codes == [_W1001]
+        # When: selecting the conflicting SmartTable input.
+        with pytest.raises(RdeConfigError) as caught:
+            _detect(tmp_path, _SMARTTABLE_FILE)
+        # Then: config source format does not select compatibility semantics.
+        assert caught.value.code == 1005
 
 
 def _noop_callback(srcpaths: object, resource_paths: object) -> None:

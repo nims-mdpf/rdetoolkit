@@ -12,6 +12,7 @@ from typing import Any, Literal
 import yaml
 from pydantic import ValidationError
 
+from rdetoolkit.domain.mode_selection import _normalize_mode_setting
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
 from rdetoolkit.models.config import Config
 from rdetoolkit.types import RdeConfig
@@ -60,7 +61,7 @@ class ConfigNormalizer:
                 ``<data_root>/tasksupport/rdeconfig.yaml`` (ruling #4).
 
         Returns:
-            Strict canonical v2 configuration.
+            Validated configuration preserving target-dependent mode semantics.
 
         Raises:
             RdeConfigError: If the source cannot be loaded or normalized.
@@ -84,7 +85,8 @@ class ConfigNormalizer:
         try:
             return RdeConfig(**normalized)
         except ValidationError as exc:
-            raise _config_error(str(exc)) from exc
+            fields = [_safe_validation_issue(error) for error in exc.errors(include_input=False, include_url=False)]
+            raise _config_error("invalid fields: " + ", ".join(fields)) from exc
 
     def _normalize_tasksupport(self, root: Path, data_root: Path) -> RdeConfig:
         """Read the v1 tasksupport configuration with the v1 loader itself.
@@ -112,7 +114,7 @@ class ConfigNormalizer:
         try:
             legacy = parse_config_file(path=str(path))
         except ConfigError as exc:
-            reason = f"could not read {path}: {exc}"
+            reason = f"could not parse configuration file {path.name} ({type(exc).__name__})"
             raise _config_error(reason) from exc
         return self._build(legacy.model_dump(exclude_none=True), origin="v1")
 
@@ -126,7 +128,10 @@ class ConfigNormalizer:
         if source is None:
             return _discover_config(root, origin)
         if isinstance(source, RdeConfig):
-            return source.model_dump()
+            values = source.model_dump()
+            if "extended_mode" not in source.system.model_fields_set:
+                values["system"].pop("extended_mode", None)
+            return values
         if isinstance(source, Config):
             return source.model_dump(exclude_none=True)
         if isinstance(source, Mapping):
@@ -182,7 +187,20 @@ class ConfigNormalizer:
         return result
 
     def _convert_v2(self, data: Mapping[str, Any]) -> dict[str, Any]:
-        return copy.deepcopy(dict(data))
+        result = copy.deepcopy(dict(data))
+        system = result.get("system")
+        if isinstance(system, dict) and system.get("extended_mode") is not None:
+            system["extended_mode"] = _normalize_mode_setting(system["extended_mode"])
+        return result
+
+
+def _safe_validation_issue(error: Mapping[str, Any]) -> str:
+    field = ".".join(str(part) for part in error["loc"])
+    reason = error["type"]
+    if reason == "literal_error":
+        # Literal choices come from the model definition, never the rejected input.
+        reason += f"; expected {error['ctx']['expected']}"
+    return f"{field} ({reason})"
 
 
 def _mapping_section(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:
@@ -266,8 +284,8 @@ def _load_optional_mapping(path: Path) -> dict[str, Any] | None:
         raise _config_error(reason)
     try:
         raw = _read_configuration(path)
-    except (OSError, tomllib.TOMLDecodeError, yaml.YAMLError) as exc:
-        reason = f"could not read {path}: {exc}"
+    except (OSError, UnicodeError, tomllib.TOMLDecodeError, yaml.YAMLError) as exc:
+        reason = f"could not parse configuration file {path.name} ({type(exc).__name__})"
         raise _config_error(reason) from exc
     if raw is None:
         return None if path.suffix.lower() == ".toml" else {}
@@ -282,7 +300,11 @@ def _read_configuration(path: Path) -> Any:
         return yaml.safe_load(path.read_text(encoding="utf-8"))
     if path.suffix.lower() == ".toml":
         document = tomllib.loads(path.read_text(encoding="utf-8"))
-        return document.get("tool", {}).get("rdetoolkit")
+        tool = document.get("tool", {})
+        if not isinstance(tool, Mapping):
+            reason = "pyproject.toml tool must be a table"
+            raise _config_error(reason)
+        return tool.get("rdetoolkit")
     reason = f"unsupported configuration file: {path.name}"
     raise _config_error(reason)
 

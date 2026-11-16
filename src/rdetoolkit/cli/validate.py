@@ -96,10 +96,10 @@ ALL_HELP = CommandHelp(
         ),
     ),
     outputs=(
-        "Checks `container/data/tasksupport/{invoice.schema.json,metadata-def.json}`, "
+        ("Checks `container/data/tasksupport/{invoice.schema.json,metadata-def.json}`, "
         "`template/tasksupport/{invoice.schema.json,metadata-def.json}`, `input/invoice/invoice.json`, and "
         "`input/metadata/metadata.json` when they exist. A v1 project without `template/tasksupport/` is read from "
-        "the deprecated `templates/tasksupport/` with a warning (exit 1 only with `--strict`).",
+        "the deprecated `templates/tasksupport/` with a warning (exit 1 only with `--strict`)."),
         "Prints one report per file (a JSON array with `--format json`); prints the expected locations when none is found. Writes no files.",
     ),
     examples=(

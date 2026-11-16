@@ -390,3 +390,30 @@ def test_unreplayable_effective_config_is_usage_error__tc_rc1_f09_neg_007(
     assert result.exit_code == 3, result.output
     assert original["config_digest"] in result.output
     assert not archive.exists()
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_repro_keeps_invoice_selection_intent__rm01_repro_roundtrip(tmp_path: Path, explicit: bool) -> None:
+    """RM01-REPRO: export, import, rerun, and reload retain meaningful mode intent."""
+    from rdetoolkit.domain.mode_selection import ModeKind, decide_mode
+    from rdetoolkit.errors import RdeConfigError
+    from rdetoolkit.runner.config_loader import load_run_config
+
+    # Given: successful Invoice inputs with either auto or explicit Invoice intent.
+    root, data_root = _project(tmp_path, "default")
+    text = "system:\n  extended_mode: invoice\n" if explicit else "{}\n"
+    (root / "rdeconfig.yaml").write_text(text, encoding="utf-8")
+    original = _run(root)
+    # When: exporting, importing, and executing the actual reproduction archive.
+    replay, target, manifest = _round_trip(tmp_path, _report_path(data_root, original))
+    config = load_run_config(target)
+    (target / "data" / "inputdata" / "smarttable_new.csv").touch()
+    # Then: identity and explicitness survive, and new conflicting evidence preserves policy.
+    assert replay["config_digest"] == manifest["config_digest"] == original["config_digest"]
+    assert ("extended_mode" in config.system.model_fields_set) is explicit
+    if explicit:
+        with pytest.raises(RdeConfigError) as caught:
+            decide_mode(config, target / "data" / "inputdata")
+        assert caught.value.code == 1005
+    else:
+        assert decide_mode(config, target / "data" / "inputdata").chosen_mode is ModeKind.smarttable
