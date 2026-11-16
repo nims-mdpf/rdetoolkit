@@ -6,8 +6,9 @@ import csv
 import zipfile
 import json
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 import chardet
 import pandas as pd
@@ -47,35 +48,79 @@ def _zip_destination(base_dir: Path, filename: str) -> Path:
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
-def read_text(path: Path) -> str:
-    """Read a text file using detected character encoding.
+def read_text(path: Path, *, encoding: str | None = None) -> str:
+    """Read a text file using a detected or an explicit character encoding.
 
-    Uses the legacy encoding preference while retaining primary CP932 detection.
+    Without ``encoding`` the legacy encoding preference is used while
+    retaining primary CP932 detection; a UTF-8 BOM is detected as
+    ``utf-8-sig`` and stripped. An explicit ``encoding`` is applied as given
+    with strict error handling: bytes it cannot decode raise instead of being
+    decoded with another codec. Pass ``"utf-8-sig"`` rather than ``"utf-8"``
+    to strip a BOM.
 
     Args:
         path: Text file to read.
+        encoding: Codec name, or None to detect it.
 
     Returns:
         Decoded text content.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        LookupError: If ``encoding`` names no known codec.
+        UnicodeDecodeError: If the file is not valid in ``encoding``.
     """
     source = Path(path)
-    return source.read_text(encoding=_detect_encoding(source))
+    return source.read_text(encoding=_detect_encoding(source) if encoding is None else encoding)
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
-def read_csv_with_header(path: Path) -> pd.DataFrame:
-    """Read a CSV whose first row contains its column names.
+def read_csv_with_header(
+    path: Path, *, encoding: str | None = None,
+    skiprows: int | list[int] | Callable[[int], bool] | None = None,
+    header: int | list[int] | Literal["infer"] | None = "infer", **pandas_kwargs: object,
+) -> pd.DataFrame:
+    """Read a CSV into a data frame, by default with its first row as the header.
 
-    Uses the legacy encoding preference while retaining primary CP932 detection.
+    Without options this reads the first row as the column names, as before.
+    ``skiprows`` and ``header`` have their ``pandas.read_csv`` meaning: with
+    the default ``header="infer"`` the first row after ``skiprows`` is the
+    header unless ``names`` is given, in which case every row is data. Other
+    ``pandas.read_csv`` options such as ``sep``, ``dtype=str``,
+    ``keep_default_na=False`` or ``names`` are passed through unchanged.
+
+    Without ``encoding`` the legacy encoding preference is used while
+    retaining primary CP932 detection; an explicit ``encoding`` is used as
+    given and a decoding error is raised, never replaced by another codec.
 
     Args:
         path: CSV file to read.
+        encoding: Codec name, or None to detect it.
+        skiprows: Leading rows to skip, row positions, or a row predicate.
+        header: Header row positions, ``"infer"``, or None for no header row.
+        pandas_kwargs: Further ``pandas.read_csv`` options.
 
     Returns:
-        Parsed data frame with the first row used as its header.
+        Parsed data frame.
+
+    Raises:
+        ValueError: If ``iterator`` or ``chunksize`` is set, since pandas
+            then returns a ``TextFileReader`` instead of a data frame.
+        TypeError: If ``pandas_kwargs`` names a second source with
+            ``filepath_or_buffer``.
+        LookupError: If ``encoding`` names no known codec.
+        UnicodeDecodeError: If the file is not valid in the codec.
     """
+    active = {"iterator": bool(pandas_kwargs.get("iterator")), "chunksize": pandas_kwargs.get("chunksize") is not None}
+    readers = [name for name, used in active.items() if used]
+    if readers:
+        msg = f"read_csv_with_header returns a DataFrame; {', '.join(readers)} would return a TextFileReader"
+        raise ValueError(msg)
     source = Path(path)
-    return pd.read_csv(source, encoding=_detect_encoding(source))
+    return pd.read_csv(
+        source, encoding=_detect_encoding(source) if encoding is None else encoding,
+        skiprows=skiprows, header=header, **pandas_kwargs,
+    )
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
@@ -130,20 +175,64 @@ def read_key_values(
     return values
 
 
-@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+@overload
 def read_excel(
     path: Path, *, sheet_name: str | int = 0, header: int | list[int] | None = 0,
     skiprows: int | list[int] | None = None, nrows: int | None = None,
     usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
-) -> pd.DataFrame:
-    """Read a selected worksheet using pandas row and column options.
+) -> pd.DataFrame: ...
+
+
+@overload
+def read_excel(
+    path: Path, *, sheet_name: None, header: int | list[int] | None = 0,
+    skiprows: int | list[int] | None = None, nrows: int | None = None,
+    usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
+) -> dict[str, pd.DataFrame]: ...
+
+
+@overload
+def read_excel(
+    path: Path, *, sheet_name: list[str], header: int | list[int] | None = 0,
+    skiprows: int | list[int] | None = None, nrows: int | None = None,
+    usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
+) -> dict[str, pd.DataFrame]: ...
+
+
+@overload
+def read_excel(
+    path: Path, *, sheet_name: list[int], header: int | list[int] | None = 0,
+    skiprows: int | list[int] | None = None, nrows: int | None = None,
+    usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
+) -> dict[int, pd.DataFrame]: ...
+
+
+@overload
+def read_excel(
+    path: Path, *, sheet_name: list[str | int], header: int | list[int] | None = 0,
+    skiprows: int | list[int] | None = None, nrows: int | None = None,
+    usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
+) -> dict[str | int, pd.DataFrame]: ...
+
+
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+def read_excel(
+    path: Path, *, sheet_name: str | int | list[str] | list[int] | list[str | int] | None = 0, header: int | list[int] | None = 0,
+    skiprows: int | list[int] | None = None, nrows: int | None = None,
+    usecols: str | list[int] | list[str] | None = None, **pandas_kwargs: object,
+) -> pd.DataFrame | dict[str, pd.DataFrame] | dict[int, pd.DataFrame] | dict[str | int, pd.DataFrame]:
+    """Read one, several or all worksheets using pandas row and column options.
 
     This is the node form of the pandas-backed Excel reads used by v1 RDE
-    processing code.
+    processing code. One sheet, selected by name or position, is returned as
+    a data frame. ``sheet_name=None`` returns every sheet in a dict keyed by
+    sheet name; a list returns the listed sheets in a dict keyed by the list
+    items as given, so ``["raw", 0]`` gives the keys ``"raw"`` and ``0``.
 
     Args:
         path: Excel workbook to read.
-        sheet_name: Worksheet name or zero-based position.
+        sheet_name: Worksheet name or zero-based position, a list of them,
+            or None for all worksheets.
         header: Header row positions, or None for unlabelled source data.
         skiprows: Number or positions of rows to skip.
         nrows: Maximum number of data rows to read.
@@ -151,7 +240,12 @@ def read_excel(
         pandas_kwargs: Additional pandas Excel reader options.
 
     Returns:
-        Parsed data frame.
+        A data frame for one sheet, or a dict of data frames for None or a list.
+
+    Raises:
+        ValueError: If a selected sheet does not exist, the list is empty, or
+            the file is not a recognisable workbook.
+        zipfile.BadZipFile: If an ``.xlsx`` container is corrupt.
     """
     return pd.read_excel(Path(path), sheet_name=sheet_name, header=header, skiprows=skiprows, nrows=nrows, usecols=usecols, **pandas_kwargs)
 
