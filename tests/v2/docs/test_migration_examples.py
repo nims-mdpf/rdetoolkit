@@ -225,7 +225,7 @@ def test_load_run_config_example_executes__tc_600_doc_001(doc: Path, tmp_path: P
     report = namespace["report"]
     assert isinstance(config, RdeConfig)
     assert isinstance(report, RunReport)
-    assert config.system.extended_mode == "MultiDataTile"
+    assert config.system.extended_mode == "multidatatile"
     assert "extended_mode" in config.system.model_fields_set
     assert config.system.save_raw is True
     assert config.custom == {"label": "retained"}

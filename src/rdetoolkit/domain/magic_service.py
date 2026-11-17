@@ -41,7 +41,7 @@ def apply_interpolation(
         Redacted dependency diagnostics from the same resolution contract.
 
     Raises:
-        RdeValidationError: Syntax (4005), source (4006), or output (4007) error.
+        RdeValidationError: Syntax (4009), source (4010), or output (4007) error.
     """
     path = dataset_paths.invoice / "invoice.json"
     if not path.exists() and options.policy != "enabled":
@@ -68,9 +68,9 @@ def _read_source(path: Path, scope: str, index: int) -> dict[str, Any]:
     try:
         source = readf_json(path)
     except (OSError, ValueError, StructuredError):
-        raise validation_error(4006, f"Source {scope} JSON is unavailable at tile {index}.") from None
+        raise validation_error(4010, f"Source {scope} JSON is unavailable at tile {index}.") from None
     if not isinstance(source, dict):
-        raise validation_error(4006, f"Source {scope} must be a JSON object at tile {index}.")
+        raise validation_error(4010, f"Source {scope} must be a JSON object at tile {index}.")
     return source
 
 
@@ -151,7 +151,7 @@ def validate_templates(invoice: dict[str, Any], options: MagicOptions) -> bool:
         Whether runtime resolution needs a per-tile preview after processing.
 
     Raises:
-        RdeValidationError: Code 4005 for an invalid eligible expression.
+        RdeValidationError: Code 4009 for an invalid eligible expression.
     """
     if options.policy == "disabled":
         return False

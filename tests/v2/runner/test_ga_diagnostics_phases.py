@@ -377,11 +377,14 @@ def test_mode_resolution_resolver_failure(tmp_path: Path, monkeypatch: pytest.Mo
     def unresolvable(*_args: Any, **_kwargs: Any) -> Any:
         raise RuntimeError("cannot decide the mode")
 
+    # Given: mode selection fails after configuration has loaded.
     root = _materialize(tmp_path)
-    monkeypatch.setattr("rdetoolkit.runner.lifecycle.resolve_mode_from_paths", unresolvable)
+    monkeypatch.setattr("rdetoolkit.runner.lifecycle.resolve_mode_decision", unresolvable)
 
+    # When: the Runner records that failure.
     report = _run(root, quiet_flow, monkeypatch)
 
+    # Then: diagnostics retain the mode-resolution phase and original location.
     diagnostic = _only(root, report)
     assert diagnostic["phase"] == "mode_resolution"
     assert report.error is not None and diagnostic["code"] == report.error["code"]

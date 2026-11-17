@@ -53,7 +53,7 @@ _SCHEMA: dict[str, Any] = {
 
 _OVERRIDES: dict[str, Any] = {
     "system": {
-        "extended_mode": "invoice",
+        "extended_mode": None,
         "save_raw": True,
         "save_nonshared_raw": False,
         "save_thumbnail_image": False,
@@ -176,10 +176,12 @@ def test_checker_rejection_still_leaves_the_unpack_directory__tc_j0_temp_ev_002(
     # When: the run is rejected by the checker
     report = _nested_runner(root).run(_noop_flow, **_OVERRIDES)
 
-    # Then: no tile ran, yet the pre-parse directory is on disk
+    # Then: strict v2 ambiguity is rejected before registration creates temp.
     assert report.status == "failed"
     assert report.iterations == []
-    assert (root / "data" / "temp").is_dir()
+    assert report.error is not None and report.error["code"] == 1007
+    assert not (root / "data" / "temp").exists()
+
 
 
 def test_pre_validate_rejection_still_leaves_the_unpack_directory__tc_j0_temp_ev_003(

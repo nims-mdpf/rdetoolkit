@@ -23,7 +23,7 @@ def test_preview_syntax_offset() -> None:
     # Then: offset and destination are structured, rather than only in prose
     assert result.diagnostics[0].offset == 4
     assert result.diagnostics[0].destination == "basic.dataName"
-    assert result.diagnostics[0].code == 4005
+    assert result.diagnostics[0].code == 4009
 
 
 def test_runtime_syntax_location(tmp_path: Path) -> None:
@@ -34,7 +34,7 @@ def test_runtime_syntax_location(tmp_path: Path) -> None:
     with pytest.raises(RdeValidationError) as caught:
         apply_interpolation(paths, original_invoice_snapshot=snapshot, options=MagicOptions(), iteration_index=7, mode="invoice")
     # Then: diagnostic context does not disappear during dependency scanning
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert "basic.dataName" in str(caught.value)
     assert "tile 7" in str(caught.value)
     assert "offset 4" in str(caught.value)

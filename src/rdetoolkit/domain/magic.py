@@ -39,9 +39,9 @@ class MagicOptions:
 
     def __post_init__(self) -> None:
         if self.policy not in ("auto", "enabled", "disabled"):
-            raise validation_error(4005, "Interpolation policy must be auto, enabled, or disabled.")
+            raise validation_error(4009, "Interpolation policy must be auto, enabled, or disabled.")
         if self.missing not in ("error", "omit"):
-            raise validation_error(4005, "Interpolation missing policy must be error or omit.")
+            raise validation_error(4009, "Interpolation missing policy must be error or omit.")
 
 
 _DEFAULT_OPTIONS = MagicOptions()
@@ -94,7 +94,7 @@ class ResolutionContext:
             A context whose nested source values cannot be mutated.
 
         Raises:
-            RdeValidationError: Code 4006 for non-JSON source material.
+            RdeValidationError: Code 4010 for non-JSON source material.
         """
         return cls(
             _snapshot(original_invoice),
@@ -190,7 +190,7 @@ def resolve_invoice(
         An independent invoice mapping after all requested checks pass.
 
     Raises:
-        RdeValidationError: 4005 for syntax, 4006 for unavailable/invalid source
+        RdeValidationError: 4009 for syntax, 4010 for unavailable/invalid source
             values, or 4007 for invalid destination names or schema failures.
     """
     candidate, diagnostics = _evaluate(context, options, schema)
@@ -230,7 +230,7 @@ def _snapshot(source: Mapping[str, Any]) -> str:
     try:
         return json.dumps(dict(source), ensure_ascii=False)
     except (TypeError, ValueError):
-        raise validation_error(4006, "Interpolation source must contain JSON-compatible values.") from None
+        raise validation_error(4010, "Interpolation source must contain JSON-compatible values.") from None
 
 
 def _evaluate(
@@ -269,7 +269,7 @@ def _evaluate_fields(
         try:
             tokens = parse_template(template)
         except MagicExpressionError as error:
-            diagnostics.append(_diagnostic(context, destination, status="invalid", reason="invalid_expression", code=4005, message=str(error), offset=error.offset))
+            diagnostics.append(_diagnostic(context, destination, status="invalid", reason="invalid_expression", code=4009, message=str(error), offset=error.offset))
             continue
         basic[key] = _render(context, options, sources, tokens, destination, diagnostics)
         _validate_output(context, destination, basic[key], diagnostics)
@@ -327,7 +327,7 @@ def _resolve_token(
     omittable = reason in ("missing_source", "missing_key", "null", "empty_string", "empty_list")
     if reason is not None:
         omit = options.missing == "omit" and omittable
-        diagnostics.append(_diagnostic(context, destination, token, status="omitted" if omit else "unavailable", reason=reason, code=None if omit else 4006))
+        diagnostics.append(_diagnostic(context, destination, token, status="omitted" if omit else "unavailable", reason=reason, code=None if omit else 4010))
         return None
     diagnostics.append(_diagnostic(context, destination, token, status="resolved", reason="value_available"))
     return cast(str, value)

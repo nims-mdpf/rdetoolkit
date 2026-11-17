@@ -291,7 +291,7 @@ def test_backup_is_written_even_without_tiles__tc_i6_1_ev_071(
         (data_root / name).mkdir(parents=True)
     source = {"basic": {"dataName": "seed"}}
     (data_root / "invoice" / "invoice.json").write_text(json.dumps(source), encoding="utf-8")
-    monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", lambda *args: iter(()))
+    monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", lambda *args, **kwargs: iter(()))
     context = PlanningContext(
         root=tmp_path,
         inputdata_path=data_root / "inputdata",

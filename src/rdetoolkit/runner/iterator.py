@@ -14,6 +14,7 @@ from rdetoolkit.impl.input_controller import ExcelInvoiceChecker
 from rdetoolkit.invoicefile import ExcelInvoiceFile
 from rdetoolkit.models.config import Config
 from rdetoolkit.models.rde2types import RdeInputDirPaths
+from rdetoolkit.runner.input_snapshot import InputSnapshot, materialize_input_snapshot
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.runner.paths import TileOutputPaths, resolve_tile_paths
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
@@ -105,6 +106,8 @@ def iterate_tiles(
     unpacked_dir_path: Path,
     data_root: Path,
     config: RdeConfig | None = None,
+    *,
+    snapshot: InputSnapshot | Callable[[], InputSnapshot] | None = None,
 ) -> Iterator[tuple[IterationInfo, InputPaths, OutputContext]]:
     """Yield v1-compatible tile contexts for all Runner modes.
 
@@ -119,6 +122,7 @@ def iterate_tiles(
         config: Effective run configuration. The legacy checkers consume
             ``smarttable.save_table_file`` from it; passing ``None`` keeps the
             v1 default behavior.
+        snapshot: Optional strict-v2 grouping already selected by read-only discovery.
 
     Yields:
         Per-tile ``(IterationInfo, InputPaths, OutputContext)`` triples.
@@ -128,21 +132,25 @@ def iterate_tiles(
         invoice=data_root / "invoice",
         tasksupport=data_root / "tasksupport",
     )
-    checker = selected_input_checker(
-        src_paths,
-        unpacked_dir_path,
-        _mode_for_checker(mode),
-        config=_checker_config(config),
-    )
-    groups, _special = checker.parse(inputdata_path)
-    total = len(groups)
+    if snapshot is None:
+        checker = selected_input_checker(
+            src_paths,
+            unpacked_dir_path,
+            _mode_for_checker(mode),
+            config=_checker_config(config),
+        )
+        groups, _special = checker.parse(inputdata_path)
+        materials = tuple(_tile_files(mode, group, idx) for idx, group in enumerate(groups))
+    else:
+        resolved_snapshot = snapshot() if callable(snapshot) else snapshot
+        materials = materialize_input_snapshot(resolved_snapshot, unpacked_dir_path)
+    total = len(materials)
     if mode is ModeKind.excelinvoice and total == 0:
         raise EmptyExcelInvoiceError
 
-    for idx, group in enumerate(groups):
+    for idx, (rawfiles, row_csv) in enumerate(materials):
         tile_paths = resolve_tile_paths(data_root, idx)
         _create_output_dirs(tile_paths)
-        rawfiles, row_csv = _tile_files(mode, group, idx)
         yield (
             IterationInfo(index=idx, total=total, mode=mode.value),
             InputPaths(

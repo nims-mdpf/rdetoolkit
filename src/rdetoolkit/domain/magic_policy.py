@@ -21,13 +21,13 @@ def options_from_config(config: RdeConfig) -> MagicOptions:
         Validated policy and missing-value behavior.
 
     Raises:
-        RdeValidationError: Code 4005 for invalid or contradictory options.
+        RdeValidationError: Code 4009 for invalid or contradictory options.
     """
     configured = "magic_variable" in config.system.model_fields_set
     boolean_policy = "enabled" if config.system.magic_variable else "disabled"
     data = config.custom.get("interpolation", {})
     if not isinstance(data, Mapping) or set(data) - {"policy", "missing"}:
-        raise validation_error(4005, "custom.interpolation accepts only policy and missing options.")
+        raise validation_error(4009, "custom.interpolation accepts only policy and missing options.")
     policy = data.get("policy", boolean_policy if configured else "auto")
     missing = data.get("missing", "error")
     options = MagicOptions(
@@ -40,4 +40,4 @@ def options_from_config(config: RdeConfig) -> MagicOptions:
 
 def _check_compatibility(configured: bool, boolean_policy: str, data: Mapping[str, object], policy: object) -> None:
     if configured and "policy" in data and policy != boolean_policy:
-        raise validation_error(4005, "custom.interpolation.policy conflicts with explicit system.magic_variable.")
+        raise validation_error(4009, "custom.interpolation.policy conflicts with explicit system.magic_variable.")

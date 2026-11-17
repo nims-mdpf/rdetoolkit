@@ -61,7 +61,7 @@ def _overrides(mode: str) -> dict:
     extended_mode = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
     return {
         "system": {
-            "extended_mode": extended_mode or "invoice",
+            "extended_mode": extended_mode,
             "save_raw": True,
             "save_nonshared_raw": True,
             "save_thumbnail_image": False,

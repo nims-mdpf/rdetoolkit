@@ -54,7 +54,9 @@ from rdetoolkit.runner.finalize import (
     write_run_report,
 )
 from rdetoolkit.runner.invoker import InvokerRegistry, record_run_failure
-from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
+from rdetoolkit.modes.smarttable_validation import ensure_smarttable_valid
+from rdetoolkit.domain.mode_selection import normalize_mode_name
+from rdetoolkit.runner.mode_resolver import ModeDecision, ModeKind, resolve_mode_decision
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
 from rdetoolkit.runner.planner import RunPlanner, TilePlan, reject_empty_input
 from rdetoolkit.types import RdeConfig
@@ -125,6 +127,8 @@ class Runner:
         # a Runner driven step-by-step resolves it lazily on first use so the
         # answer is still taken exactly once.
         self._data_root: Path | None = None
+        self.mode_decision: ModeDecision | None = None
+        self._legacy_mode_contract = False
         # Per-run, like ``run_id`` and ``_data_root``: whether this run is a
         # pre-flight check. It is state rather than a ``finalize`` parameter
         # because both finalization seams are already contracted -- several test
@@ -568,6 +572,8 @@ class Runner:
         # answering with the old root (Session J0, contracts.md §I-REVIEW-A
         # debt 4), so the cache is dropped here and re-taken lazily.
         self._data_root = None
+        self.mode_decision = None
+        self._legacy_mode_contract = False
 
     def _prepare_and_resolve_mode(self, target: ExecutionTarget, config: RdeConfig) -> ModeKind:
         """Prepare the inputs, then resolve the mode from what was prepared.
@@ -575,6 +581,11 @@ class Runner:
         The order is the point: files a ``@flow(prepare=...)`` writes to
         ``inputdata`` decide the mode and the tiles (#573).
         """
+        self._legacy_mode_contract = isinstance(target, LegacyCallbackTarget)
+        if not self._legacy_mode_contract:
+            normalized_mode = normalize_mode_name(config.system.extended_mode)
+            if "extended_mode" in config.system.model_fields_set:
+                config.system.extended_mode = normalized_mode.value
         self.prepare_inputs(target, config)
         return self.resolve_mode(config)
 
@@ -645,13 +656,14 @@ class Runner:
         Returns:
             Effective internal mode.
         """
-        return resolve_mode_from_paths(
+        self.mode_decision = resolve_mode_decision(
             config,
             self.inputdata_path,
-            self.unpacked_dir_path,
             self._events,
             self.run_id,
+            contract="v1" if getattr(self, "_legacy_mode_contract", False) else "v2",
         )
+        return self.mode_decision.chosen_mode
 
     def _validate_inputs(self, target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> None:
         """Diagnose an empty Excel invoice, then pre-validate the run inputs.
@@ -676,6 +688,8 @@ class Runner:
         finally:
             self._source_invoice_is_final = True
             self._source_invoice_allows_templates = False
+        if isinstance(target, FlowTarget) and mode is ModeKind.smarttable:
+            ensure_smarttable_valid(self.inputdata_path, self.data_root / "tasksupport")
 
     def pre_validate(self, config: RdeConfig) -> None:
         """Validate source structure and invoice schema before flow execution.

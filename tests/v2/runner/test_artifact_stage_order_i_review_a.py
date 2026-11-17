@@ -30,7 +30,7 @@ EP table:
 | TC-IRA-5-EP-036 | structured failure | multidatatile | frozen v1: magic already expanded in the tile invoice |
 | TC-IRA-5-EP-037 | structured failure | excelinvoice | frozen v1: magic already expanded in the tile invoice |
 | TC-IRA-5-EP-038 | structured failure | invoice | frozen v1: magic never ran (structured comes first) |
-| TC-MV-STAGE-001 | strict missing source | same 3 modes | code 4006 with the same mode-owned artifact order |
+| TC-MV-STAGE-001 | strict missing source | same 3 modes | code 4010 with the same mode-owned artifact order |
 | TC-MV-STAGE-002 | strict structured failure | same 3 modes | explicit invoice source resolves before the later stage |
 
 BV / negative table:
@@ -38,7 +38,7 @@ BV / negative table:
 |----|-------|-------|----------|
 | TC-IRA-5-EV-034 | API | ``modes.protocol`` | ``invoice_stage_steps`` is gone |
 | TC-IRA-5-EV-035 | default | no provider | the invoice order is the default |
-| TC-MV-STAGE-003 | grouped Excel filename | multiple raw inputs | code 4006 before invoice replacement or structured export |
+| TC-MV-STAGE-003 | grouped Excel filename | multiple raw inputs | code 4010 before invoice replacement or structured export |
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ def _v2_overrides(mode: str) -> dict[str, Any]:
     extended_mode = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
     return {
         "system": {
-            "extended_mode": extended_mode or "invoice",
+            "extended_mode": extended_mode,
             "save_raw": True,
             "save_nonshared_raw": True,
             "save_thumbnail_image": False,
@@ -207,8 +207,8 @@ def test_magic_failure_leaves_the_v1_artifacts__tc_ira_5_ep_031_032_033(
         assert actual["job_failed_code"] == expected["job_failed_error_code"]
         assert actual["error_code"] == 1
     else:
-        assert actual["job_failed_code"] == "ErrorCode=4006"
-        assert actual["error_code"] == 4006
+        assert actual["job_failed_code"] == "ErrorCode=4010"
+        assert actual["error_code"] == 4010
     assert _structured_invoices(actual) == _structured_invoices(expected)
     assert (mode == "invoice") is bool(_structured_invoices(expected))
 
@@ -303,8 +303,8 @@ def test_strict_grouped_filename_fails_before_publication__tc_mv_stage_003(
     actual = _observe_v2("v1/excelinvoice/structfail", tmp_path / "strict", monkeypatch, target)
     # Then: source ambiguity fails before either invoice replacement or structured export
     assert actual["status"] == "failed"
-    assert actual["error_code"] == 4006
-    assert actual["job_failed_code"] == "ErrorCode=4006"
+    assert actual["error_code"] == 4010
+    assert actual["job_failed_code"] == "ErrorCode=4010"
     assert _structured_invoices(actual) == []
     assert set(_invoice_data_names(actual).values()) == {_FILENAME_TEMPLATE}
 

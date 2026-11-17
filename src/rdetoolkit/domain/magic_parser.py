@@ -35,8 +35,8 @@ class MagicExpressionError(RdeValidationError):
             reason: Value-free explanation of the grammar violation.
             offset: Character offset in the original template.
         """
-        definition = ERROR_CATALOG[4005]
-        super().__init__(code=4005, name=definition.name, message=f"{reason} at offset {offset}. Remediation: {definition.remediation}")
+        definition = ERROR_CATALOG[4009]
+        super().__init__(code=4009, name=definition.name, message=f"{reason} at offset {offset}. Remediation: {definition.remediation}")
         self.offset = offset
         self.reason = reason
 
@@ -97,7 +97,7 @@ def parse_template(template: str) -> tuple[LiteralToken | ExpressionToken, ...]:
         Immutable literal and expression tokens in their original order.
 
     Raises:
-        RdeValidationError: Code 4005 for unsupported syntax or exceeded bounds.
+        RdeValidationError: Code 4009 for unsupported syntax or exceeded bounds.
     """
     if len(template) > MAX_TEMPLATE_LENGTH:
         _invalid("Template length exceeds the supported limit", 0)

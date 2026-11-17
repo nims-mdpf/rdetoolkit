@@ -1,7 +1,7 @@
 """Review regressions for opt-in scanning and mutable model normalization.
 
 EP/BV: P01 long plain eligible fields stay unchanged; P02 long expression
-templates fail4005; P03 mutations inside default child models survive
+templates fail4009; P03 mutations inside default child models survive
 normalization; P04 an invalid mutated policy is rejected rather than dropped.
 """
 
@@ -49,7 +49,7 @@ def test_long_expression_template_still_fails(field: str, policy: str) -> None:
     with pytest.raises(RdeValidationError) as caught:
         validate_templates(invoice, MagicOptions(policy=policy))
     # Then: bounded parsing still identifies the destination
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert f"basic.{field}" in str(caught.value)
 
 
@@ -63,7 +63,7 @@ def test_normalization_retains_default_child_mutations(tmp_path: Path, change: s
     elif change == "raw":
         config.system.save_raw = True
     elif change == "mode":
-        config.system.extended_mode = "MultiDataTile"
+        config.system.extended_mode = "multidatatile"
     else:
         config.custom["interpolation"] = {"policy": "disabled"}
     # When: normalizing that already-valid model
@@ -84,4 +84,4 @@ def test_invalid_mutated_policy_is_not_discarded(tmp_path: Path) -> None:
     with pytest.raises(RdeValidationError) as caught:
         options_from_config(normalized)
     # Then: the invalid setting remains visible at its proper validation boundary
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009

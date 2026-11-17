@@ -48,7 +48,7 @@ def test_service_no_rawfiles(tmp_path: Path, mode: str) -> None:
     assert result.diagnostics[0].iteration_index == 2
 
 
-@pytest.mark.parametrize("failure,code", [("no_filename", 4006), ("metadata_missing", 4006), ("metadata_invalid", 4006), ("invoice_missing", 4006), ("schema_missing", 4007), ("write", 4007), ("write_json", 4007)])
+@pytest.mark.parametrize("failure,code", [("no_filename", 4010), ("metadata_missing", 4010), ("metadata_invalid", 4010), ("invoice_missing", 4010), ("schema_missing", 4007), ("write", 4007), ("write_json", 4007)])
 def test_service_failure(tmp_path: Path, failure: str, code: int, monkeypatch: pytest.MonkeyPatch) -> None:
     """RUN09: Source and publication failures never publish a partial invoice."""
     # Given: a requested source or publication failure
@@ -132,7 +132,7 @@ def test_strict_magic_hook_preserves_failure(tmp_path: Path) -> None:
     # Given: a catalogued error from the strict operation
     paths, _ = _bundle(tmp_path, "plain")
     before = (paths.invoice / "invoice.json").read_bytes()
-    expected = validation_error(4006, "Requested source is absent.")
+    expected = validation_error(4010, "Requested source is absent.")
 
     def fail_update() -> None:
         raise expected
@@ -142,5 +142,5 @@ def test_strict_magic_hook_preserves_failure(tmp_path: Path) -> None:
         InvoiceService().apply_step("magic", config=RdeConfig(), dataset_paths=paths, magic_updater=fail_update)
     # Then: type, integer code, and invoice contents remain intact
     assert caught.value is expected
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
     assert (paths.invoice / "invoice.json").read_bytes() == before

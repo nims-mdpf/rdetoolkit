@@ -2,8 +2,8 @@
 
 EP/BV table (written before implementation):
 G01 schema rejects substituted value -> 4007, artifact_publish, no value leak.
-G02 read/write cause contains private text -> typed 4006/4007, no cause leak.
-G03 malformed validate-only template -> 4005, pre_validate, no flow call.
+G02 read/write cause contains private text -> typed 4010/4007, no cause leak.
+G03 malformed validate-only template -> 4009, pre_validate, no flow call.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ def test_schema_failure_sidecar_redacts_value(tmp_path: Path) -> None:
     assert (root / "data/invoice/invoice.json").read_bytes() == before
 
 
-@pytest.mark.parametrize("operation,code", [("read", 4006), ("write", 4007)])
+@pytest.mark.parametrize("operation,code", [("read", 4010), ("write", 4007)])
 @pytest.mark.parametrize("error_type", [OSError, StructuredError])
 def test_io_diagnostics_hide_private_causes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, operation: str, code: int, error_type: type[Exception],
@@ -92,6 +92,6 @@ def test_validate_only_failure_phase(tmp_path: Path, template: str) -> None:
     # Then: failure remains static, catalogued, and independent of user processing
     assert calls == []
     assert report.status == "failed"
-    assert report.error["code"] == 4005
+    assert report.error["code"] == 4009
     assert document["diagnostics"][0]["phase"] == "pre_validate"
-    assert document["diagnostics"][0]["code"] == 4005
+    assert document["diagnostics"][0]["code"] == 4009

@@ -1,7 +1,7 @@
 """Boundary contracts for strict interpolation publication and diagnostics.
 
 EP/BV: B01 local omission length accounts for collapsed separators; B02 absent
-auto target has no eligible fields; B03 non-object source fails 4006; B04 schema
+auto target has no eligible fields; B03 non-object source fails 4010; B04 schema
 failure identifies a standard field; B05 tempfile failure leaves no output;
 B06 disabled/non-object static template inputs remain untouched.
 """
@@ -59,7 +59,7 @@ def test_non_object_source_is_rejected(tmp_path: Path, source: object) -> None:
     with pytest.raises(RdeValidationError) as caught:
         apply_interpolation(paths, original_invoice_snapshot=snapshot, options=MagicOptions(policy="enabled"), iteration_index=0, mode="invoice")
     # Then: its type and privacy-safe error preserve the source
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
     assert "private" not in str(caught.value)
     assert path.read_bytes() == before
 

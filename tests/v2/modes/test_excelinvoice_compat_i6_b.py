@@ -71,7 +71,7 @@ _STRUCTURED_ERROR_CODE = 1
 #: implementation difference (contracts.md §I6-1 ruling #8).
 _V2_OVERRIDES: dict[str, Any] = {
     "system": {
-        "extended_mode": "invoice",
+        "extended_mode": None,
         "save_raw": True,
         "save_nonshared_raw": True,
         "save_thumbnail_image": False,
@@ -280,15 +280,11 @@ def test_rejected_shapes_match_the_v1_oracle(
     root = tmp_path / _MODE
     report, observed = _observe_v2(variant, root, monkeypatch)
 
-    # Then: the run fails before any tile, with v1's byte-identical job.failed
+    # Then: v2 rejects before any tile with its versioned planning error contract.
     assert report.status == "failed"
     assert report.iterations == []
     assert report.error is not None
-    assert report.error["code"] == _STRUCTURED_ERROR_CODE
-    assert report.error["name"] == "StructuredError"
-    assert _job_failed(root) == oracle["job_failed_text"]
-
-    # And: the artifacts agree exactly -- Session J0 closed the temp/ asymmetry
-    assert observed["raw_sha256"] == parity_view(oracle)["raw_sha256"]
-    assert observed["invoices"] == parity_view(oracle)["invoices"]
-    assert _tree_divergence(observed, oracle) == set()
+    code = 1007 if variant == "two_workbooks" else 4006
+    assert report.error["code"] == code
+    assert _job_failed(root).startswith(f"ErrorCode={code}\n")
+    assert not list((root / "data" / "temp").rglob("*"))

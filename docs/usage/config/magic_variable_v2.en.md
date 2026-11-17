@@ -72,6 +72,11 @@ final value. `basic.dataName` has an
 additional 1–4,096 character limit and rejects control characters. These are
 versioned library limits; the invoice schema can impose tighter constraints.
 
+The error catalog reserves 4005 and 4006 for SmartTable mapping and input
+planning. Interpolation syntax/policy errors use 4009 and unavailable sources
+use 4010. These replace the colliding numbers in the unmerged pre-GA draft;
+output validation remains 4007 and rule mapping validation remains 4008.
+
 ## Fields and missing values
 
 The output allowlist is `basic.dataName` and `basic.description`, when their

@@ -12,6 +12,10 @@ Authority: `local/develop/v2/Design.md` §9.
 | 1002 | ConfigLoadFailed | Failed to load RDE configuration: {reason} | Fix the reported issue in rdeconfig.yaml (or [tool.rdetoolkit] in pyproject.toml). Unknown keys are rejected: check for typos and remove settings this version does not support. |
 | 1003 | InvalidTestInputPath | Test input file must name a file inside inputdata: {path} | Pass relative file names to make_input_paths(files=...). Avoid absolute paths, directories, parent paths escaping inputdata, and symlinks pointing outside the input tree. |
 | 1004 | InvalidMetadataMatchMode | Unsupported metadata source matching mode: {mode} | Pass match='key', match='original_name' or match='both' to build_meta(). |
+| 1005 | ModeInputConflict | Configured registration mode conflicts with input evidence: {reason} | Remove the conflicting special input or explicitly request its matching mode. Omit extended_mode for automatic selection. |
+| 1006 | InvalidArtifactStagePlan | Invalid artifact-stage plan: {reason} | Use each supported stage at most once: thumbnail, structured, magic, description. Place description after every other selected stage. |
+| 1007 | AmbiguousModeInput | Registration input is ambiguous: {reason} | Provide one special table/workbook and an unambiguous archive with unique safe member names. |
+| 1008 | ModeInputMissing | Registration mode input is missing or unreadable: {reason} | Provide the matching SmartTable, Excel invoice, or RDEFormat ZIP input, then validate again. |
 | 2001 | DuplicateNodeId | Duplicate node id registered: {node_id} | Rename one of the functions or move it to another module (the node id is '{module}.{qualname}'), or pass an explicit id via @node(id=...). |
 | 2002 | ~~ReservedParamMismatch~~ (retired) | Reserved flow parameter has an incompatible type: {param_name} | Retired by design revision R1: DI is type-based and parameter names are advisory only, so a name mismatch is no longer an error. This number must not be reused. |
 | 2003 | UnresolvableFlowParam | Could not resolve flow parameter: {param_name} | Annotate the parameter with one of the reserved types (InputPaths, OutputContext, RdeConfig, InvoiceData, IterationInfo) or give it a default value. |
@@ -38,10 +42,12 @@ Authority: `local/develop/v2/Design.md` §9.
 | 4002 | MetadataDefinitionInvalid | Metadata definition validation failed: {reason} | Fix metadata-def.json to satisfy the metadata definition schema; the reported reason names the offending field. |
 | 4003 | RequiredArtifactMissing | Required output artifact is missing: {path} | Ensure the flow writes the artifact before finalize (use the save nodes in rdetoolkit.nodes); check that the reported path is produced in the expected output directory. |
 | 4004 | EmptyExcelInvoice | The Excel invoice has no data rows. | Add at least one data row to the Excel invoice, then rerun. |
-| 4005 | InvalidMagicExpression | Invalid v2 magic-variable expression: {reason} | Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits. |
-| 4006 | MissingMagicSource | A requested interpolation source is unavailable or invalid: {reason} | Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values. |
+| 4005 | SmartTableMappingInvalid | SmartTable mapping failed at row {row}, column {column}: {reason} | Correct the indicated mapping header or cell type using invoice.schema.json and metadata-def.json, then validate the complete table again. |
+| 4006 | InputPlanningFailed | Input grouping cannot be planned: {reason} | Check workbook rows and archive member names; use unique relative paths and safe ZIP entries. |
 | 4007 | InvalidMagicOutput | Interpolation produced an invalid invoice field: {reason} | Correct the source or template so each output satisfies the invoice schema, length limits, and dataName character rules. The invoice has not been replaced. |
 | 4008 | InvalidMappingRule | A rule mapping destination is invalid: {reason} | Use nonempty dotted object paths without overlapping parent/child destinations or scalar ancestors. |
+| 4009 | InvalidMagicExpression | Invalid v2 magic-variable expression: {reason} | Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits. |
+| 4010 | MissingMagicSource | A requested interpolation source is unavailable or invalid: {reason} | Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values. |
 | 5001 | InternalInvariantViolation | Internal rdetoolkit invariant failed: {reason} | This is a bug in rdetoolkit, not in user code. Please report it together with the run report and the stack trace. |
 
 ## Warnings

@@ -17,9 +17,7 @@ from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.magic_policy import options_from_config
 from rdetoolkit.domain.magic_service import apply_interpolation
 from rdetoolkit.domain.invoice_service import (
-    INVOICE_STEP_DESCRIPTION,
     INVOICE_STEP_MAGIC,
-    INVOICE_STEP_STRUCTURED,
     InvoiceService,
     build_tile_dataset_paths,
 )
@@ -28,6 +26,7 @@ from rdetoolkit.errors import ERROR_CATALOG, RdeError
 from rdetoolkit.domain.validation import validate_tile_outputs, wrap_validation_error
 from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
+from rdetoolkit.modes.stages import DEFAULT_ARTIFACT_STAGE_ORDER, artifact_stage_order  # noqa: F401
 from rdetoolkit.report.events import Event, EventSink, _best_effort_stderr
 from rdetoolkit.report.failure import FailureDiagnostic, FailurePhase, failure_diagnostic, node_argument_rejection
 from rdetoolkit.runner.execute import ExecutionResult, TileExecutionError
@@ -556,39 +555,6 @@ def _raw_copy_strategy(plan: ExecutionPlan) -> RawCopyStrategy | None:
     if provider is None:
         return None
     return provider(plan)
-
-
-#: The v1 invoice/SmartTable pipeline order, used when a mode declares none.
-DEFAULT_ARTIFACT_STAGE_ORDER: tuple[str, ...] = (
-    _THUMBNAIL_STAGE,
-    INVOICE_STEP_STRUCTURED,
-    INVOICE_STEP_MAGIC,
-    INVOICE_STEP_DESCRIPTION,
-)
-
-
-def artifact_stage_order(plan: ExecutionPlan) -> tuple[str, ...]:
-    """Return the ordered post-invoke artifact stages this mode runs.
-
-    The sequence — not a set — is the contract (ruling #5): v1's MultiDataTile
-    and ExcelInvoice pipelines run ``VariableApplier`` before the thumbnail and
-    structured stages, and RDEFormat runs neither the structured export nor the
-    magic expansion at all. The capability stays optional and is read through
-    ``getattr``, so a handler that declares only ``kind``/``create_tiles``
-    remains valid at runtime *and* in the type system (ruling #8).
-
-    Args:
-        plan: Immutable run execution plan.
-
-    Returns:
-        The ordered stage names, defaulting to the v1 invoice pipeline's.
-    """
-    handler = handler_for(plan.mode)
-    provider = getattr(handler, "artifact_stage_order", None)
-    if provider is None:
-        return DEFAULT_ARTIFACT_STAGE_ORDER
-    order = provider(plan)
-    return DEFAULT_ARTIFACT_STAGE_ORDER if order is None else tuple(order)
 
 
 #: Fields the passthrough record owns. ``remediation`` is included because it

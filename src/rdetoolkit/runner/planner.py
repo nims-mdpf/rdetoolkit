@@ -18,6 +18,8 @@ from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
+from rdetoolkit.modes.stages import artifact_stage_order
+from rdetoolkit.runner.input_snapshot import discover_input_snapshot
 from rdetoolkit.runner.iterator import EmptyExcelInvoiceError, iterate_tiles, reject_empty_excelinvoice
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, InvoiceData, IterationInfo, OutputContext, RdeConfig
@@ -84,6 +86,7 @@ class ExecutionPlan:
     #: counter per run; every tile's recorder draws from it through
     #: ``TileMaterial`` so ``seq`` is run-global and ``call_id`` run-unique.
     call_sequence: CallSequence = field(default_factory=CallSequence)
+    artifact_stages: tuple[str, ...] | None = None
     original_invoice_snapshot: str | None = field(default=None, repr=False)
 
 
@@ -165,6 +168,10 @@ class RunPlanner:
         """
         if isinstance(request.target, FlowTarget):
             options_from_config(config)
+        snapshot = (
+            None if isinstance(request.target, LegacyCallbackTarget)
+            else partial(discover_input_snapshot, mode, _resolve_path(self._inputdata_path), config)
+        )
         context = PlanningContext(
             root=request.root,
             inputdata_path=_resolve_path(self._inputdata_path),
@@ -172,25 +179,22 @@ class RunPlanner:
             invoice_service=self._invoice_service,
             config=config,
             data_root=data_root,
+            input_snapshot=snapshot,
         )
+        plan = ExecutionPlan(
+            run_id=self._run_id_factory(), target=request.target, mode=mode, config=config,
+            root=request.root, error_policy=_error_policy(request.target, mode, config),
+            tiles=(), data_root=data_root, invoice_source=invoice_source_for(mode, data_root=data_root),
+            original_invoice_snapshot=_original_invoice_snapshot(request.target, data_root),
+        )
+        stages = artifact_stage_order(plan)
         handler = handler_for(mode)
         tiles: Iterable[TilePlan] = (
             create_common_tiles(mode, context) if handler is None else handler.create_tiles(context)
         )
         if isinstance(request.target, LegacyCallbackTarget):
             tiles = _legacy_input_tiles(tiles)
-        return ExecutionPlan(
-            run_id=self._run_id_factory(),
-            target=request.target,
-            mode=mode,
-            config=config,
-            root=request.root,
-            error_policy=_error_policy(request.target, mode, config),
-            tiles=tiles,
-            data_root=data_root,
-            invoice_source=invoice_source_for(mode, data_root=data_root),
-            original_invoice_snapshot=_original_invoice_snapshot(request.target, data_root),
-        )
+        return replace(plan, tiles=tiles, artifact_stages=stages)
 
 
 def _original_invoice_snapshot(target: ExecutionTarget, data_root: Path) -> str | None:
@@ -290,6 +294,7 @@ def create_common_tiles(mode: ModeKind, context: PlanningContext) -> Iterator[Ti
             context.unpacked_dir_path,
             data_root,
             context.config,
+            snapshot=context.input_snapshot,
         ),
     )
     # v1 backs the invoice up AFTER check_files (workflows.py), so

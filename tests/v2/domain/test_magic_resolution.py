@@ -45,7 +45,7 @@ def test_unavailable_filename(rawfiles: tuple[Path, ...]) -> None:
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: a targeted catalogued source error is raised
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
 
 
 def test_unique_filename() -> None:
@@ -89,33 +89,33 @@ def test_missing_states(value: Any, template: str) -> None:
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: strict mode errors and the explicit omit policy is stable
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
     assert resolve_invoice(context, options=MagicOptions(missing="omit"))["basic"]["dataName"] == "pre_post"
 
 
 @pytest.mark.parametrize("original", [{}, {"basic": {}}, {"basic": None}])
 def test_absent_invoice_source(original: dict[str, Any]) -> None:
-    """MV05: Missing invoice sections and keys fail with code 4006."""
+    """MV05: Missing invoice sections and keys fail with code 4010."""
     # Given: a section/key unavailable in the original invoice
     context = ResolutionContext.from_sources(original_invoice=original, current_invoice={"basic": {"dataName": "pre_${invoice:basic:absent}_post"}})
     # When: the source is requested under strict policy
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: source absence is catalogued and omit is available explicitly
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
     assert resolve_invoice(context, options=MagicOptions(missing="omit"))["basic"]["dataName"] == "pre_post"
 
 
 @pytest.mark.parametrize("metadata", [None, {}, {"constant": {}}, {"constant": {"name": {}}}])
 def test_absent_metadata_source(metadata: dict[str, Any] | None) -> None:
-    """MV05: Missing metadata sections and entries fail with code 4006."""
+    """MV05: Missing metadata sections and entries fail with code 4010."""
     # Given: a missing metadata source, section, entry or value
     context = ResolutionContext.from_sources(original_invoice={}, current_invoice={"basic": {"dataName": "${metadata:constant:name}"}}, metadata=metadata)
     # When: strict interpolation requests metadata
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: missing data never silently vanishes
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
 
 
 @pytest.mark.parametrize("value", [0, False, "e\u0301", "a/b\\c", "日本語", 1.25])
@@ -139,7 +139,7 @@ def test_invalid_source_types(value: Any, missing: str) -> None:
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context, options=MagicOptions(missing=missing))  # type: ignore[arg-type]
     # Then: omit cannot hide malformed source types
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
 
 
 @pytest.mark.parametrize("sample", [{}, {"names": None}, {"names": "not-list"}, {"names": ["good", 3]}, {"names": [None]}])
@@ -151,7 +151,7 @@ def test_invalid_sample_names(sample: dict[str, Any]) -> None:
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: samples require an explicit list of strings
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
 
 
 @pytest.mark.parametrize("names", [[], ["", ""]])
@@ -163,7 +163,7 @@ def test_empty_sample_names(names: list[str]) -> None:
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: the missing policy also applies to empty sample lists
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
     assert resolve_invoice(context, options=MagicOptions(missing="omit"))["basic"]["dataName"] == "a_b"
 
 
@@ -207,7 +207,7 @@ def test_invalid_name_boundaries(value: str) -> None:
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: empty source and invalid final output are distinguished
-    assert caught.value.code == (4006 if value == "" else 4007)
+    assert caught.value.code == (4010 if value == "" else 4007)
 
 
 @pytest.mark.parametrize("size", [1, 4096])
@@ -234,25 +234,25 @@ def test_policy(policy: str) -> None:
 
 @pytest.mark.parametrize("options", [{"policy": "typo"}, {"policy": True}, {"missing": "typo"}, {"missing": None}])
 def test_invalid_policy(options: dict[str, Any]) -> None:
-    """MV10: Invalid policy options fail with code 4005."""
+    """MV10: Invalid policy options fail with code 4009."""
     # Given: malformed typed options at the public boundary
     # When: constructing options
     with pytest.raises(RdeValidationError) as caught:
         MagicOptions(**options)
     # Then: an actionable catalogued policy error is returned
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
 
 
 @pytest.mark.parametrize("template", ["${}", "${filename:extra}", "${unsupported}", "${"])
 def test_malformed_templates(template: str) -> None:
-    """MV10: Malformed eligible expressions fail with code 4005."""
+    """MV10: Malformed eligible expressions fail with code 4009."""
     # Given: a malformed expression in an eligible field
     context = _context(template)
     # When: auto mode sees template syntax
     with pytest.raises(RdeValidationError) as caught:
         resolve_invoice(context)
     # Then: it cannot survive silently as an output name
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
 
 
 def test_fields() -> None:
@@ -341,7 +341,7 @@ def test_plain_fields_are_not_interpolated() -> None:
 
 @pytest.mark.parametrize("source", [{"basic": {"secret": object()}}, {"self": None}])
 def test_non_json_sources(source: dict[str, Any]) -> None:
-    """MV07: Non-JSON and recursive sources fail with code 4006."""
+    """MV07: Non-JSON and recursive sources fail with code 4010."""
     # Given: unsupported JSON material or a recursive mapping
     if "self" in source:
         source["self"] = source
@@ -349,7 +349,7 @@ def test_non_json_sources(source: dict[str, Any]) -> None:
     with pytest.raises(RdeValidationError) as caught:
         ResolutionContext.from_sources(original_invoice=source, current_invoice={})
     # Then: the error is catalogued without exposing the source value
-    assert caught.value.code == 4006
+    assert caught.value.code == 4010
 
 
 def test_oversized_description_and_missing_basic() -> None:
@@ -382,7 +382,7 @@ def test_preview(tmp_path: Path) -> None:
     assert list(tmp_path.rglob("*")) == before
 
 
-@pytest.mark.parametrize(("template", "policy", "status", "code"), [("${filename}", "auto", "unavailable", 4006), ("${}", "auto", "invalid", 4005), ("${filename}", "disabled", "disabled", None), ("${}", "disabled", "disabled", None)])
+@pytest.mark.parametrize(("template", "policy", "status", "code"), [("${filename}", "auto", "unavailable", 4010), ("${}", "auto", "invalid", 4009), ("${filename}", "disabled", "disabled", None), ("${}", "disabled", "disabled", None)])
 def test_preview_failure_and_disabled(template: str, policy: str, status: str, code: int | None) -> None:
     """MV13: Preview preserves failure codes and disabled reasons."""
     # Given: a missing source, invalid expression or explicit disable

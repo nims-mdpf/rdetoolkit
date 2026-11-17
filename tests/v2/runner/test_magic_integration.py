@@ -77,7 +77,7 @@ def test_invalid_options(custom: Any) -> None:
     with pytest.raises(RdeValidationError) as caught:
         options_from_config(config)
     # Then: its type/code and privacy contract are stable
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert "secret" not in str(caught.value)
 
 
@@ -89,7 +89,7 @@ def test_contradictory_options() -> None:
     with pytest.raises(RdeValidationError) as caught:
         options_from_config(config)
     # Then: configuration does not silently choose a winner
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
 
 
 def test_runner_auto(tmp_path: Path) -> None:
@@ -117,7 +117,7 @@ def test_runner_disabled(tmp_path: Path) -> None:
     assert any(event.name == "warning" and event.payload.get("code") == 1102 for event in events.events)
 
 
-@pytest.mark.parametrize("template,code", [("${}", 4005), ("${filename:extra}", 4005), ("${invoice:custom:absent}", 4006)])
+@pytest.mark.parametrize("template,code", [("${}", 4009), ("${filename:extra}", 4009), ("${invoice:custom:absent}", 4010)])
 def test_runner_failure(tmp_path: Path, template: str, code: int) -> None:
     """RUN06: Strict errors retain their code without partial invoice writes."""
     # Given: a template rejected by the strict v2 contract
@@ -159,7 +159,7 @@ def test_validate_only_magic(tmp_path: Path, template: str, expected: str) -> No
     assert report.status == expected
     assert called == []
     if expected == "failed":
-        assert report.error["code"] == 4005
+        assert report.error["code"] == 4009
     else:
         assert any("deferred" in event.payload.get("message", "") for event in events.events)
 
@@ -215,4 +215,4 @@ def test_planning_rejects_invalid_policy_without_tiles(tmp_path: Path) -> None:
     with pytest.raises(RdeValidationError) as caught:
         planner.create(request, config=config, mode=ModeKind.invoice, data_root=tmp_path)
     # Then: no user flow or tile is needed to reject the invalid setting
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009

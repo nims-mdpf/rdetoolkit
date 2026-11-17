@@ -739,7 +739,11 @@ class TestEventLogHelpersReraiseInterruption:
         monkeypatch.setattr("sys.stderr", writer)
 
         # When: the run resolves its mode
-        report = _run(root, system={"extended_mode": "MultiDataTile"})
+        from rdetoolkit.api.request import LegacyCallbackTarget, RunRequest
+        report = Runner(root=root, event_sink=MemoryEventSink()).run(RunRequest(
+            root=root, target=LegacyCallbackTarget(function=lambda src, out: None),
+            config_source={"system": {"extended_mode": "MultiDataTile"}},
+        ))
 
         # Then: the interruption is the run's outcome, not a lost notice
         assert any("ModeOverriddenByFileDetection" in message for message in writer.calls)

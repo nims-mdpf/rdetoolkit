@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from rdetoolkit.domain.invoice_service import InvoiceService
+    from rdetoolkit.runner.input_snapshot import InputSnapshot
     from rdetoolkit.runner.mode_resolver import ModeKind
     from rdetoolkit.runner.planner import ExecutionPlan, TilePlan
     from rdetoolkit.types import RdeConfig
@@ -34,6 +35,7 @@ class PlanningContext:
     invoice_service: InvoiceService
     data_root: Path
     config: RdeConfig | None = None
+    input_snapshot: InputSnapshot | Callable[[], InputSnapshot] | None = None
 
 
 class RawCopyStrategy(Protocol):

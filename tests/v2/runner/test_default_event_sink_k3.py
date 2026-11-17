@@ -290,12 +290,11 @@ class TestProductionEntriesWriteEvents:
             app,
             ["run", f"{_FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"],
         )
-        # Then: the CLI's events file carries exactly one W1001 with its run id
-        assert result.exit_code == 0, result.output
+        # Then: the strict conflict is reported and the run still has complete events.
+        assert result.exit_code == 1, result.output
         files = _events_files(tmp_path / "data" / "logs")
         assert len(files) == 1
         lines = _read(files[0])
-        warnings = [line for line in lines if line.get("name") == "warning" and line["payload"]["code"] == 1001]
-        assert len(warnings) == 1
-        assert warnings[0]["run_id"] == lines[0]["run_id"]
+        assert not [line for line in lines if line.get("name") == "warning"]
         assert lines[-1]["name"] == "run.completed"
+        assert "invoice" in result.output

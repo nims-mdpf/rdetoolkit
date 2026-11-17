@@ -91,7 +91,7 @@ def test_invalid_grammar__ep_005_006_007(template: str) -> None:
     with pytest.raises(RdeValidationError) as caught:
         parse_template("safe_" + template)
     # Then: the error identifies the grammar boundary and remediation.
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert "offset" in str(caught.value)
     assert "Remediation:" in str(caught.value)
 
@@ -104,7 +104,7 @@ def test_error_does_not_expose_template__ep_008() -> None:
     with pytest.raises(RdeValidationError) as caught:
         parse_template(template)
     # Then: location is available without leaking either value.
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert "offset 19" in str(caught.value)
     assert "private-experiment" not in str(caught.value)
     assert "secret/key" not in str(caught.value)
@@ -142,7 +142,7 @@ def test_template_length_over_limit__bv_001() -> None:
     with pytest.raises(RdeValidationError) as caught:
         parse_template("x" * (MAX_TEMPLATE_LENGTH + 1))
     # Then: a catalogued length diagnostic is raised.
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert "length" in str(caught.value)
 
 
@@ -164,7 +164,7 @@ def test_expression_count_over_limit__bv_002() -> None:
     with pytest.raises(RdeValidationError) as caught:
         parse_template("${filename}" * (MAX_EXPRESSIONS + 1))
     # Then: the bound is enforced with a catalogued error.
-    assert caught.value.code == 4005
+    assert caught.value.code == 4009
     assert "count" in str(caught.value)
 
 

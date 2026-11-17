@@ -6,10 +6,13 @@ import copy
 import hashlib
 import json
 from collections.abc import Mapping
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
 from rdetoolkit.config.normalize import ConfigNormalizer
+from rdetoolkit.domain.mode_selection import _normalize_mode_setting
+from rdetoolkit.errors import RdeConfigError
 from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
 
@@ -87,19 +90,21 @@ def load_config(
 
 
 def compute_config_digest(config: RdeConfig) -> str:
-    """Return the digest that identifies an effective config by value.
+    """Return the digest identifying effective values and registration intent.
 
-    The digest is sha256 over the effective config written canonically:
-    mapping keys sorted at every depth, compact separators, UTF-8. Two
-    configs holding the same effective values share a digest however their
+    The digest is sha256 over the config's JSON dump written canonically:
+    mapping keys sorted at every depth, compact separators, UTF-8. Auto and
+    explicit invoice are distinct. Mode aliases share an identity only when
+    both execution contracts interpret them identically; ``RDEFormat`` retains
+    its spelling until a flow target resolves it to ``rdeformat``.
+    Configs holding the same values and mode intent share a digest however their
     free-form mappings (such as ``custom``) were ordered, while list order and
     JSON value types (``1`` vs ``1.0``) still count. ``RunReport.config_digest``
     and ``repro export`` both use this function, so "same config" has one
     definition.
 
-    An omitted ``system.magic_variable`` is omitted from the hash input, since
-    it means auto for flows; explicit false means disabled. This distinction
-    also prevents repro export from dropping an explicit false default.
+    Omitted ``system.magic_variable`` means auto for flows, while explicit
+    false means disabled. Both interpolation and mode intent are retained.
 
     Args:
         config: Effective v2 configuration.
@@ -117,20 +122,25 @@ def compute_config_digest(config: RdeConfig) -> str:
 
 
 def config_for_replay(config: RdeConfig, *, compact: bool = False) -> dict[str, Any]:
-    """Serialize effective settings while retaining interpolation policy.
+    """Serialize effective settings while retaining mode and interpolation intent.
 
     Args:
         config: Effective configuration with its explicitly configured fields.
-        compact: Omit values equal to defaults except policy-significant flags.
+        compact: Omit values equal to defaults except policy-significant fields.
 
     Returns:
-        Fresh JSON-compatible settings preserving auto versus disabled.
+        Fresh JSON-compatible settings preserving explicit mode and magic flags.
     """
     data = config.model_dump(mode="json", exclude_defaults=compact)
-    if "magic_variable" in config.system.model_fields_set:
-        data.setdefault("system", {})["magic_variable"] = config.system.magic_variable
-    else:
-        data.get("system", {}).pop("magic_variable", None)
+    for field in ("extended_mode", "magic_variable"):
+        if field in config.system.model_fields_set:
+            data.setdefault("system", {})[field] = getattr(config.system, field)
+        else:
+            data.get("system", {}).pop(field, None)
+    if "extended_mode" in config.system.model_fields_set:
+        # Historic callback settings may contain arbitrary mode names.
+        with suppress(RdeConfigError):
+            data["system"]["extended_mode"] = _normalize_mode_setting(config.system.extended_mode)
     return data
 
 

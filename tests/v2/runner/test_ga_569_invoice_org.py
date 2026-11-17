@@ -34,7 +34,7 @@ def test_flow_receives_run_level_invoice_source__ga569_ep_1_2_bv_1_2(
         assert "basic" in source
 
     # When: invoking the v2 public entry with the fixture's configured mode
-    configured = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode, "")
+    configured = {"multidatatile": "MultiDataTile", "rdeformat": "rdeformat"}.get(mode)
     report = workflows.run(flow=pipeline, config={"system": {"extended_mode": configured, "save_thumbnail_image": False}})
     # Then: every tile receives the same mode-selected source, not another tile
     assert report.status == "success", report.error
