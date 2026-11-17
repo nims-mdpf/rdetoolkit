@@ -62,6 +62,9 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "render_png",
     "read_key_values",
     "artifact_logger",
+    "read_lines",
+    "detect_encoding",
+    "list_excel_sheets",
     "copy_file",
     "save_image",
 )

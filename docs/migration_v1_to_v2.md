@@ -215,6 +215,14 @@ PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため
 解析結果の重ね描きやマスクなど、NumPy 配列・Pillow 画像は `save_image(image, out, filename)` で保存します
 （形式はファイル名の拡張子から決まり、既定の出力先は `other_image`）。OpenCV の配列は BGR 順なので、
 `cv2.imwrite` と同じ画像にするには `channel_order="bgr"` を指定してください。
+テキストを行単位で読むには `read_lines(path)` を使います（`read_text` と同じ文字コード判定で、
+`f.read().splitlines()` と同じ行を返します。`keepends=True` で改行を残します）。
+v1 の文字コード判定ヘルパーを直接呼んでいたコードは、builtin の読み込みノードと同じ規則の
+`detect_encoding(path)` に置き換えられます。シート名の一覧は `list_excel_sheets(path)` で取得でき、
+「名前に X を含むシート」を探して `read_excel(path, sheet_name=...)` に渡せます。
+`unzip_inputs` は ZIP に加えて tar（`.tar`、`.tar.gz`、`.tar.bz2`、`.tar.xz`）も展開します。
+UTF-8 フラグのない ZIP のメンバー名は CP932 として復元されるため、`ZipFile.extractall` で
+cp437 のまま展開していた v1 コードとはファイル名が異なる場合があります。
 
 v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
 `run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`

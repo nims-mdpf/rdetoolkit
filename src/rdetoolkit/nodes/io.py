@@ -1,8 +1,11 @@
-"""Builtin input nodes for text, tabular files, and ZIP archives."""
+"""Builtin input nodes for text, tabular files, and ZIP / tar archives."""
 
 from __future__ import annotations
 
+import codecs
 import csv
+import io
+import tarfile
 import zipfile
 import json
 import os
@@ -48,6 +51,34 @@ def _zip_destination(base_dir: Path, filename: str) -> Path:
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+def detect_encoding(path: Path) -> str:
+    """Return the text encoding the builtin readers use when none is given.
+
+    This is the rule of v1 ``CharDecEncoding.detect_text_file_encoding``,
+    which ``read_text``, ``read_csv_with_header`` and ``read_json`` apply
+    without ``encoding``: a codec outside the usual set (ASCII, Shift-JIS,
+    UTF-8, UTF-8 with BOM, EUC-JP) is re-detected, and Shift-JIS is reported
+    as ``cp932``. Unlike v1, a primary CP932 detection is kept: v1 could
+    re-detect such a file as ``MacCyrillic``. The name is Python's canonical
+    codec name (``codecs.lookup(name).name``), such as ``utf-8``,
+    ``utf-8-sig`` for a UTF-8 BOM, ``cp932`` or ``ascii``; an empty file gives
+    ``utf-8``. It can be passed to ``open`` or to the readers' ``encoding=``.
+    As with the readers, a short, mostly ASCII CP932 text can be detected as
+    UTF-8; pass the encoding explicitly for such files.
+
+    Args:
+        path: File to inspect.
+
+    Returns:
+        Canonical codec name.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
+    return codecs.lookup(_detect_encoding(Path(path))).name
+
+
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
 def read_text(path: Path, *, encoding: str | None = None) -> str:
     """Read a text file using a detected or an explicit character encoding.
 
@@ -72,6 +103,36 @@ def read_text(path: Path, *, encoding: str | None = None) -> str:
     """
     source = Path(path)
     return source.read_text(encoding=_detect_encoding(source) if encoding is None else encoding)
+
+
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+def read_lines(path: Path, *, encoding: str | None = None, keepends: bool = False) -> list[str]:
+    r"""Read a text file as a list of lines.
+
+    The text is decoded exactly as by ``read_text`` and split as text-mode
+    ``open(...).readlines()`` splits it: ``\n``, ``\r\n`` and ``\r`` end a
+    line and are read as ``\n``; other Unicode line separators do not split.
+    Without ``keepends`` the line endings are removed, as by
+    ``f.read().splitlines()`` on an ordinary file, so a final line ending adds
+    no empty line.
+
+    Args:
+        path: Text file to read.
+        encoding: Codec name, or None to detect it like ``read_text``.
+        keepends: Whether each line keeps its ``"\n"``.
+
+    Returns:
+        The lines in file order; an empty file gives an empty list.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        LookupError: If ``encoding`` names no known codec.
+        UnicodeDecodeError: If the file is not valid in ``encoding``.
+    """
+    source = Path(path)
+    text = source.read_text(encoding=_detect_encoding(source) if encoding is None else encoding)
+    lines = io.StringIO(text).readlines()
+    return lines if keepends else [line.removesuffix("\n") for line in lines]
 
 
 @node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
@@ -250,6 +311,28 @@ def read_excel(
     return pd.read_excel(Path(path), sheet_name=sheet_name, header=header, skiprows=skiprows, nrows=nrows, usecols=usecols, **pandas_kwargs)
 
 
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=True)
+def list_excel_sheets(path: Path) -> list[str]:
+    """Return the worksheet names of a workbook in workbook order.
+
+    The position of a name in the list is the ``sheet_name`` position
+    ``read_excel`` accepts, so a sheet can be found by part of its name, for
+    example ``next(name for name in list_excel_sheets(path) if "raw" in name)``.
+
+    Args:
+        path: Excel workbook to inspect.
+
+    Returns:
+        Worksheet names, including hidden sheets.
+
+    Raises:
+        ValueError: If the file is not a recognisable workbook.
+        zipfile.BadZipFile: If an ``.xlsx`` container is corrupt.
+    """
+    with pd.ExcelFile(Path(path)) as workbook:
+        return [str(name) for name in workbook.sheet_names]
+
+
 def _fill_colour(cell: Any) -> str | None:
     fill = cell.fill
     if fill is None or fill.fill_type is None:
@@ -343,32 +426,9 @@ def read_json(path: Path) -> Any:
     return json.loads(source.read_text(encoding=_detect_encoding(source)))
 
 
-@node(tags=["builtin", "io"], version="2.0.0", idempotent=False)
-def unzip_inputs(src_zip: Path, dst_dir: Path, *, include_dirs: bool = False) -> list[Path]:
-    """Extract a ZIP archive while repairing Shift-JIS member names.
-
-    Ported from ``rde2util.unzip_japanese_zip`` and its filename decoder.
-    Each member's destination is resolved -- symlinks already present in
-    ``dst_dir`` included -- and a member that would land outside ``dst_dir``
-    is skipped with a warning, the containment policy of
-    ``impl._zip_encoding.extract_zip_with_encoding``. Without it a member named
-    like a pre-existing outward link overwrote the file behind the link.
-
-    Args:
-        src_zip: ZIP archive to extract.
-        dst_dir: Destination directory.
-        include_dirs: Whether directory entries of the archive, including
-            empty directories, are returned as well.
-
-    Returns:
-        Extracted file paths in archive order, including repeated members.
-        Directory entries are included only with ``include_dirs``; unsafe
-        destinations are always excluded. Paths are absolute, matching the
-        resolved extraction directory.
-    """
-    base_dir = Path(dst_dir).resolve()
+def _unzip(src_zip: Path, base_dir: Path, *, include_dirs: bool) -> list[Path]:
     extracted: list[Path] = []
-    with zipfile.ZipFile(Path(src_zip)) as archive:
+    with zipfile.ZipFile(src_zip) as archive:
         for member in archive.infolist():
             if not member.flag_bits & _UTF8_FLAG:
                 member.filename = member.filename.encode("cp437").decode("cp932")
@@ -383,3 +443,69 @@ def unzip_inputs(src_zip: Path, dst_dir: Path, *, include_dirs: bool = False) ->
             if include_dirs or not member.is_dir():
                 extracted.append(Path(extracted_path))
     return extracted
+
+
+def _untar(src_tar: Path, base_dir: Path, *, include_dirs: bool) -> list[Path]:
+    extracted: list[Path] = []
+    with tarfile.open(src_tar) as archive:
+        for member in archive:
+            if not (member.isfile() or member.isdir()):
+                logger.warning(f"Skipping tar entry {member.name!r}: links and special files are not extracted")
+                continue
+            if os.path.isabs(member.name) or not (base_dir / member.name).resolve().is_relative_to(base_dir):
+                logger.warning(
+                    f"Skipping unsafe tar entry {member.name!r}: path resolves outside {str(base_dir)!r}",
+                )
+                continue
+            if hasattr(tarfile, "data_filter"):
+                archive.extract(member, base_dir, filter="data")
+            else:  # pragma: no cover -- Python 3.10 before 3.10.12
+                archive.extract(member, base_dir)
+            if include_dirs or not member.isdir():
+                extracted.append(base_dir / member.name)
+    return extracted
+
+
+@node(tags=["builtin", "io"], version="2.0.0", idempotent=False)
+def unzip_inputs(src_zip: Path, dst_dir: Path, *, include_dirs: bool = False) -> list[Path]:
+    """Extract a ZIP or tar archive, repairing Shift-JIS ZIP member names.
+
+    The archive type is read from the file content, not its suffix: ZIP, and
+    tar uncompressed or compressed with gzip, bzip2 or xz (``.tar``,
+    ``.tar.gz`` / ``.tgz``, ``.tar.bz2``, ``.tar.xz`` / ``.txz``).
+
+    ZIP extraction is ported from ``rde2util.unzip_japanese_zip`` and its
+    filename decoder: a member name without the UTF-8 flag is decoded as
+    CP932, so ``2θ_θ.TXT`` is restored from its cp437 mojibake. This differs
+    from v1 code that called ``ZipFile.extractall`` directly, which kept the
+    cp437 names. Tar member names are used as stored.
+
+    Each member's destination is resolved -- symlinks already present in
+    ``dst_dir`` included -- and a member that would land outside ``dst_dir``
+    is skipped with a warning, the containment policy of
+    ``impl._zip_encoding.extract_zip_with_encoding``. Without it a member named
+    like a pre-existing outward link overwrote the file behind the link.
+    Tar links, devices and FIFOs are also skipped with a warning, so only
+    regular files and directories are extracted.
+
+    Args:
+        src_zip: ZIP or tar archive to extract.
+        dst_dir: Destination directory.
+        include_dirs: Whether directory entries of the archive, including
+            empty directories, are returned as well.
+
+    Returns:
+        Extracted file paths in archive order, including repeated members.
+        Directory entries are included only with ``include_dirs``; unsafe
+        and skipped entries are always excluded. Paths are absolute, matching
+        the resolved extraction directory.
+
+    Raises:
+        zipfile.BadZipFile: If the file is neither a ZIP nor a tar archive.
+        tarfile.TarError: If a tar archive is corrupt.
+    """
+    source = Path(src_zip)
+    base_dir = Path(dst_dir).resolve()
+    if not zipfile.is_zipfile(source) and tarfile.is_tarfile(source):
+        return _untar(source, base_dir, include_dirs=include_dirs)
+    return _unzip(source, base_dir, include_dirs=include_dirs)

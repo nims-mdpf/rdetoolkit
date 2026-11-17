@@ -7,7 +7,18 @@ from rdetoolkit.core.node import node
 from rdetoolkit.nodes.external import CompletedProgram, run_program, to_wine_path
 from rdetoolkit.nodes.image import copy_file, copy_raw, make_thumbnail, render_png, save_image, save_main_image, to_jpeg, to_png
 from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
-from rdetoolkit.nodes.io import read_csv_with_header, read_excel, read_excel_fills, read_json, read_key_values, read_text, unzip_inputs
+from rdetoolkit.nodes.io import (
+    detect_encoding,
+    list_excel_sheets,
+    read_csv_with_header,
+    read_excel,
+    read_excel_fills,
+    read_json,
+    read_key_values,
+    read_lines,
+    read_text,
+    unzip_inputs,
+)
 from rdetoolkit.nodes.logfile import ArtifactLogger, artifact_logger
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
 from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure, save_html_figure
@@ -44,10 +55,13 @@ def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..
 
 __all__ = [
     "read_text",
+    "read_lines",
+    "detect_encoding",
     "read_json",
     "read_csv_with_header",
     "read_excel",
     "read_excel_fills",
+    "list_excel_sheets",
     "read_key_values",
     "unzip_inputs",
     "save_csv",

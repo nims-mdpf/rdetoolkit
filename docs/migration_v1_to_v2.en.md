@@ -238,6 +238,16 @@ Save NumPy arrays and Pillow images, such as analysis overlays and masks, with
 `save_image(image, out, filename)`; the filename suffix selects the format and
 the default directory is `other_image`. OpenCV arrays are BGR: pass
 `channel_order="bgr"` to get the image `cv2.imwrite` writes.
+Read a text file as lines with `read_lines(path)`, which decodes like
+`read_text` and returns the lines of `f.read().splitlines()`
+(`keepends=True` keeps the line endings). Code that called the v1 encoding
+helper directly can use `detect_encoding(path)`, the rule the builtin readers
+apply. `list_excel_sheets(path)` lists the sheet names, so a sheet whose name
+contains a word can be found and passed to `read_excel(path, sheet_name=...)`.
+`unzip_inputs` extracts tar archives (`.tar`, `.tar.gz`, `.tar.bz2`,
+`.tar.xz`) as well as ZIP. ZIP member names without the UTF-8 flag are
+restored as CP932, so file names can differ from v1 code that called
+`ZipFile.extractall`, which kept the cp437 names.
 
 To run an external converter, as v1 templates did with `subprocess.run`, use
 `run_program(args, ...)` (#630). The converter writes into directories you pass

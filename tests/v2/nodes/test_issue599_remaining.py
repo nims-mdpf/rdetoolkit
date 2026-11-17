@@ -1,4 +1,5 @@
-"""Issue 599 (remaining): image kinds, copy_file and save_image.
+"""Issue 599 (remaining): image kinds, copy_file, save_image, read_lines,
+list_excel_sheets, detect_encoding and tar archives.
 
 EP table
 
@@ -16,27 +17,51 @@ EP table
 | save_image | .jpg / .tif suffix, kind | format by suffix | file in that format and directory | I599X-EP-006 |
 | save_image | unknown suffix / channel order / kind | invalid | ValueError, nothing written | I599X-NEG-005 |
 | save_image | RGBA as JPEG | unsupported mode | OSError, nothing written | I599X-NEG-006 |
+| read_lines | LF / CRLF / CR, keepends | text-mode lines | same as readlines / splitlines | I599X-EP-007 |
+| read_lines | U+2028 / form feed in a line | no extra split | one line | I599X-EP-008 |
+| read_lines | detected / explicit encoding | same as read_text | decoded text | I599X-EP-009 |
+| detect_encoding | BOM / CP932 / UTF-8 / ASCII | reader rule | canonical name of the codec read_text uses | I599X-EP-010 |
+| list_excel_sheets | several sheets, one hidden | sheet listing | names in workbook order | I599X-EP-011 |
+| unzip_inputs | .tar / .tar.gz / .tar.bz2 / .tar.xz | tar uploads | files extracted in archive order | I599X-EP-012 |
+| unzip_inputs | tar with include_dirs | directory entries | directories listed | I599X-EP-013 |
+| unzip_inputs | tar traversal / absolute / link / outward dst link | containment | skipped with warning | I599X-NEG-007 |
+| unzip_inputs | neither ZIP nor tar | invalid | BadZipFile | I599X-NEG-008 |
+| all new nodes | flow with strict type check | recorded calls | success | I599X-EP-017 |
 
 BV table
 
 | API | Boundary | Rationale | Expected | Test ID |
 |---|---|---|---|---|
+| read_lines | empty file / no final newline | zero and last line | [] / last line kept | I599X-BV-001 |
+| detect_encoding | empty file | zero bytes | "utf-8" | I599X-BV-002 |
 """
 
 from __future__ import annotations
 
+import io
+import json
+import logging
+import tarfile
+import zipfile
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
 from rdetoolkit.nodes import (
     copy_file,
+    detect_encoding,
+    list_excel_sheets,
+    read_excel,
+    read_lines,
+    read_text,
     save_image,
     to_jpeg,
     to_png,
+    unzip_inputs,
 )
 from rdetoolkit.types import OutputContext
 
@@ -203,3 +228,207 @@ class TestSaveImage:
         with pytest.raises(OSError):  # noqa: PT011 -- Pillow's message
             save_image(rgba, output_context, "a.jpg")
         assert _files(output_context) == []
+
+
+class TestReadLines:
+    @pytest.mark.parametrize("newline", [b"\n", b"\r\n", b"\r"])
+    def test_lines_match_text_mode_reading__i599x_ep_007(self, tmp_path: Path, newline: bytes) -> None:
+        """I599X-EP-007: lines split like readlines; without keepends like splitlines."""
+        # Given: a file with three lines and a final line ending
+        source = _write(tmp_path / "a.txt", newline.join([b"a", b"", b"c"]) + newline)
+        # When: reading it as lines
+        lines = read_lines(source)
+        kept = read_lines(source, keepends=True)
+        # Then: both views match text-mode open()
+        with source.open(encoding="utf-8") as fin:
+            expected_kept = fin.readlines()
+        assert kept == expected_kept == ["a\n", "\n", "c\n"]
+        assert lines == source.read_text(encoding="utf-8").splitlines() == ["a", "", "c"]
+
+    def test_unicode_separators_do_not_split__i599x_ep_008(self, tmp_path: Path) -> None:
+        """I599X-EP-008: U+2028 and form feed stay inside their line, as with readlines."""
+        source = _write(tmp_path / "a.txt", "x y\x0cz\nnext".encode())
+        assert read_lines(source) == ["x y\x0cz", "next"]
+
+    def test_decoding_matches_read_text__i599x_ep_009(self, tmp_path: Path) -> None:
+        """I599X-EP-009: detected and explicit encodings decode like read_text."""
+        # Given: a UTF-8 BOM file and a CP932 file
+        bom = _write(tmp_path / "bom.txt", "﻿温度\n湿度\n".encode())
+        sjis = _write(tmp_path / "sjis.txt", "\n".join(_JA_LINES).encode("cp932"))
+        # When / Then: the lines are those of read_text
+        assert read_lines(bom) == read_text(bom).splitlines() == ["温度", "湿度"]
+        assert read_lines(sjis) == _JA_LINES
+        assert read_lines(sjis, encoding="cp932") == _JA_LINES
+        with pytest.raises(UnicodeDecodeError):
+            read_lines(sjis, encoding="utf-8")
+
+    def test_boundaries__i599x_bv_001(self, tmp_path: Path) -> None:
+        """I599X-BV-001: an empty file gives []; a last line without newline is kept."""
+        assert read_lines(_write(tmp_path / "e.txt", b"")) == []
+        assert read_lines(_write(tmp_path / "n.txt", b"a\nb")) == ["a", "b"]
+        assert read_lines(_write(tmp_path / "k.txt", b"a\nb"), keepends=True) == ["a\n", "b"]
+
+
+class TestDetectEncoding:
+    @pytest.mark.parametrize(
+        ("content", "expected"),
+        [
+            ("﻿温度,湿度\n".encode(), "utf-8-sig"),
+            ("測定値,単位\n温度,℃\n".encode("cp932") * 5, "cp932"),
+            ("測定値,単位\n温度,℃\n".encode() * 5, "utf-8"),
+            (b"plain,ascii\n", "ascii"),
+        ],
+    )
+    def test_reader_rule__i599x_ep_010(self, tmp_path: Path, content: bytes, expected: str) -> None:
+        """I599X-EP-010: the codec is the one read_text uses without encoding."""
+        source = _write(tmp_path / "a.txt", content)
+        detected = detect_encoding(source)
+        assert detected == expected
+        assert source.read_text(encoding=detected) == read_text(source)
+
+    def test_empty_file__i599x_bv_002(self, tmp_path: Path) -> None:
+        """I599X-BV-002: an empty file is reported as UTF-8."""
+        assert detect_encoding(_write(tmp_path / "e.txt", b"")) == "utf-8"
+
+
+class TestListExcelSheets:
+    def test_names_in_workbook_order__i599x_ep_011(self, tmp_path: Path) -> None:
+        """I599X-EP-011: names follow workbook order, include hidden sheets, and index read_excel."""
+        # Given: a workbook with three sheets, the middle one hidden
+        path = tmp_path / "book.xlsx"
+        with pd.ExcelWriter(path) as writer:
+            for name in ("summary", "raw data 1", "測定"):
+                pd.DataFrame({"v": [name]}).to_excel(writer, sheet_name=name, index=False)
+            writer.book["raw data 1"].sheet_state = "hidden"
+        # When: listing the sheets
+        names = list_excel_sheets(path)
+        # Then: the order is the workbook's and positions select the same sheet
+        assert names == ["summary", "raw data 1", "測定"]
+        wanted = next(name for name in names if "raw" in name)
+        assert read_excel(path, sheet_name=names.index(wanted))["v"].tolist() == ["raw data 1"]
+
+
+def _tar(path: Path, mode: str, members: list[tuple[str, bytes | None]]) -> Path:
+    with tarfile.open(path, mode) as archive:
+        for name, content in members:
+            info = tarfile.TarInfo(name)
+            if content is None:
+                info.type = tarfile.DIRTYPE
+                archive.addfile(info)
+            else:
+                info.size = len(content)
+                archive.addfile(info, io.BytesIO(content))
+    return path
+
+
+class TestUnzipTar:
+    @pytest.mark.parametrize(("suffix", "mode"), [(".tar", "w"), (".tar.gz", "w:gz"), (".tgz", "w:gz"), (".tar.bz2", "w:bz2"), (".tar.xz", "w:xz")])
+    def test_tar_variants_extract__i599x_ep_012(self, tmp_path: Path, suffix: str, mode: str) -> None:
+        """I599X-EP-012: tar archives extract their files in archive order."""
+        # Given: a tar archive with nested and Japanese names
+        archive = _tar(tmp_path / f"upload{suffix}", mode, [("b.txt", b"b"), ("sub/", None), ("sub/測定.csv", b"x,y\n")])
+        # When: extracting it
+        extracted = unzip_inputs(archive, tmp_path / "out")
+        # Then: the files are extracted and returned in order
+        base = (tmp_path / "out").resolve()
+        assert extracted == [base / "b.txt", base / "sub" / "測定.csv"]
+        assert (base / "sub" / "測定.csv").read_bytes() == b"x,y\n"
+
+    def test_tar_include_dirs__i599x_ep_013(self, tmp_path: Path) -> None:
+        """I599X-EP-013: include_dirs also returns directory entries."""
+        archive = _tar(tmp_path / "a.tar", "w", [("empty/", None), ("f.txt", b"1")])
+        base = (tmp_path / "out").resolve()
+        assert unzip_inputs(archive, tmp_path / "out", include_dirs=True) == [base / "empty", base / "f.txt"]
+        assert (base / "empty").is_dir()
+
+    def test_unsafe_tar_members_are_skipped__i599x_neg_007(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+        """I599X-NEG-007: traversal, absolute, link and outward-link members are skipped with a warning."""
+        # Given: a destination holding an outward symlink and an archive with unsafe members
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        dst = tmp_path / "out"
+        dst.mkdir()
+        (dst / "escape").symlink_to(outside, target_is_directory=True)
+        archive = tmp_path / "evil.tar"
+        with tarfile.open(archive, "w") as tar:
+            for name in ("../up.txt", "/abs.txt", "escape/through.txt", "ok.txt"):
+                info = tarfile.TarInfo(name)
+                info.size = 1
+                tar.addfile(info, io.BytesIO(b"x"))
+            link = tarfile.TarInfo("link")
+            link.type = tarfile.SYMTYPE
+            link.linkname = "/etc/passwd"
+            tar.addfile(link)
+        # When: extracting it
+        with caplog.at_level(logging.WARNING):
+            extracted = unzip_inputs(archive, dst)
+        # Then: only the safe member is extracted and nothing escaped
+        assert extracted == [dst.resolve() / "ok.txt"]
+        assert list(outside.iterdir()) == []
+        assert not (tmp_path / "up.txt").exists()
+        assert not (dst / "link").exists()
+        assert caplog.text.count("Skipping") == 4
+
+    def test_neither_zip_nor_tar__i599x_neg_008(self, tmp_path: Path) -> None:
+        """I599X-NEG-008: a file that is no archive raises BadZipFile, as before."""
+        with pytest.raises(zipfile.BadZipFile):
+            unzip_inputs(_write(tmp_path / "a.tar.xz", b"not an archive at all"), tmp_path / "out")
+
+    def test_zip_is_still_extracted(self, tmp_path: Path) -> None:
+        """ZIP archives keep their extraction path, including the CP932 repair."""
+        archive = tmp_path / "a.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            zf.writestr("m.txt", "x")
+        assert [path.name for path in unzip_inputs(archive, tmp_path / "out")] == ["m.txt"]
+
+
+def _dataset(root: Path, metadef: dict[str, Any]) -> None:
+    from tests.v2.runner.test_event_log_robustness_k4 import _INVOICE, _build_tree
+
+    _build_tree(root / "data")
+    invoice = json.loads(json.dumps(_INVOICE))
+    invoice["basic"]["description"] = "既存"
+    (root / "data/invoice/invoice.json").write_text(json.dumps(invoice, ensure_ascii=False), encoding="utf-8")
+    (root / "data/tasksupport/metadata-def.json").write_text(json.dumps(metadef, ensure_ascii=False), encoding="utf-8")
+
+
+def test_new_nodes_in_a_strict_flow__i599x_ep_017(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """I599X-EP-017: the new nodes run in a recorded flow with strict type checks."""
+    from rdetoolkit import flow, workflows
+    from rdetoolkit.nodes import save_text
+    from rdetoolkit.types import InputPaths
+
+    # Given: a dataset with a text, a workbook, a tar archive and a TIFF
+    _dataset(tmp_path, {})
+    inputs = tmp_path / "data/inputdata"
+    (inputs / "file_0.txt").unlink()
+    _write(inputs / "a.txt", "\r\n".join(_JA_LINES).encode("cp932"))
+    with pd.ExcelWriter(inputs / "b.xlsx") as writer:
+        pd.DataFrame({"v": [1]}).to_excel(writer, sheet_name="first", index=False)
+    _tar(inputs / "c.tar.gz", "w:gz", [("in.txt", b"t")])
+    _tiff(inputs / "d.tif")
+    monkeypatch.chdir(tmp_path)
+
+    @flow
+    def pipeline(paths: InputPaths, out: OutputContext) -> None:
+        by_name = {path.name: path for path in paths.rawfiles}
+        lines = read_lines(by_name["a.txt"])
+        encoding = detect_encoding(by_name["a.txt"])
+        sheets = list_excel_sheets(by_name["b.xlsx"])
+        members = unzip_inputs(by_name["c.tar.gz"], out.struct)
+        to_png(by_name["d.tif"], out, "d.png", kind="main_image")
+        copy_file(by_name["d.tif"], out, "d.tif", kind="attachment")
+        save_image(np.zeros((2, 2, 3), dtype=np.uint8), out, "mask.png", channel_order="bgr")
+        summary = {"lines": lines, "encoding": encoding, "sheets": sheets, "members": [member.name for member in members]}
+        save_text(json.dumps(summary, ensure_ascii=False), out, "summary.json")
+
+    # When: running it with strict type checks
+    report = workflows.run(flow=pipeline, config={"execution": {"type_check": "strict"}})
+    # Then: the run succeeds with the expected values and files
+    assert report.status == "success", report.error
+    data = tmp_path / "data"
+    summary = json.loads((data / "structured/summary.json").read_text(encoding="utf-8"))
+    assert summary == {"lines": _JA_LINES, "encoding": "cp932", "sheets": ["first"], "members": ["in.txt"]}
+    assert (data / "main_image/d.png").is_file()
+    assert (data / "attachment/d.tif").read_bytes() == (inputs / "d.tif").read_bytes()
+    assert (data / "other_image/mask.png").is_file()
