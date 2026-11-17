@@ -208,6 +208,26 @@ PDF と SVG には `pip install 'rdetoolkit[render]'` が必要で、SVG には 
 未導入の場合は、必要な extra とライブラリ名を示す `ImportError` になります。
 PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため、画素単位では v1 と一致しないことがあります。
 
+`to_png` / `to_jpeg` は `kind=` で出力先を選べます（既定は `other_image`）。TIF のアップロードを
+代表画像の PNG にするには `to_png(path, out, "main.png", kind="main_image")` とします。
+画像や添付ファイルを変換せずに登録するには `copy_file(src, out, filename, kind=...)` を使います。
+`struct`・`other_image`・`thumbnail`・`attachment` など任意の出力先へバイト単位でそのまま複製します。
+解析結果の重ね描きやマスクなど、NumPy 配列・Pillow 画像は `save_image(image, out, filename)` で保存します
+（形式はファイル名の拡張子から決まり、既定の出力先は `other_image`）。OpenCV の配列は BGR 順なので、
+`cv2.imwrite` と同じ画像にするには `channel_order="bgr"` を指定してください。
+テキストを行単位で読むには `read_lines(path)` を使います（`read_text` と同じ文字コード判定で、
+`f.read().splitlines()` と同じ行を返します。`keepends=True` で改行を残します）。
+v1 の文字コード判定ヘルパーを直接呼んでいたコードは、builtin の読み込みノードと同じ規則の
+`detect_encoding(path)` に置き換えられます。シート名の一覧は `list_excel_sheets(path)` で取得でき、
+「名前に X を含むシート」を探して `read_excel(path, sheet_name=...)` に渡せます。
+`unzip_inputs` は ZIP に加えて tar（`.tar`、`.tar.gz`、`.tar.bz2`、`.tar.xz`）も展開します。
+UTF-8 フラグのない ZIP のメンバー名は CP932 として復元されるため、`ZipFile.extractall` で
+cp437 のまま展開していた v1 コードとはファイル名が異なる場合があります。
+`_feature` 付きメタデータを送り状の説明文に書き込む処理を自分で行う場合は、
+`describe_features(invoice, metadata, metadef_path)` が Runner の `feature_description` と同じ書式で
+`basic.description` に追記した送り状を返します。その結果を `save_invoice` で保存するときは、
+同じ行が二重に追記されないよう `rdeconfig.yaml` の `system.feature_description` を `false` にしてください。
+
 v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
 `run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
 など引数で渡したディレクトリへ書き込みます。標準出力と標準エラーは取り込まれ、
