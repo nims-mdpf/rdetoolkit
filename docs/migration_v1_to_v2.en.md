@@ -229,6 +229,16 @@ library; without them the node raises an `ImportError` that names the extra
 and the library. PDF pages are rendered with pypdfium2 instead of v1's
 pdf2image (poppler), so the pixels can differ from v1.
 
+`to_png` and `to_jpeg` take `kind=` (default `other_image`); turn a TIF upload
+into the main image with `to_png(path, out, "main.png", kind="main_image")`.
+Copy images and attachments that are registered unchanged with
+`copy_file(src, out, filename, kind=...)`, a byte-for-byte copy into any
+output directory such as `struct`, `other_image`, `thumbnail` or `attachment`.
+Save NumPy arrays and Pillow images, such as analysis overlays and masks, with
+`save_image(image, out, filename)`; the filename suffix selects the format and
+the default directory is `other_image`. OpenCV arrays are BGR: pass
+`channel_order="bgr"` to get the image `cv2.imwrite` writes.
+
 To run an external converter, as v1 templates did with `subprocess.run`, use
 `run_program(args, ...)` (#630). The converter writes into directories you pass
 as arguments, such as `out.struct` and `out.logs`. Output streams are captured

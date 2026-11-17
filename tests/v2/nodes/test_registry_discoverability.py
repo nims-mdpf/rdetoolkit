@@ -62,6 +62,8 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "render_png",
     "read_key_values",
     "artifact_logger",
+    "copy_file",
+    "save_image",
 )
 
 
