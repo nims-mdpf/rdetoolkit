@@ -44,6 +44,10 @@ Authority: `local/develop/v2/Design.md` §9.
 | 4004 | EmptyExcelInvoice | The Excel invoice has no data rows. | Add at least one data row to the Excel invoice, then rerun. |
 | 4005 | SmartTableMappingInvalid | SmartTable mapping failed at row {row}, column {column}: {reason} | Correct the indicated mapping header or cell type using invoice.schema.json and metadata-def.json, then validate the complete table again. |
 | 4006 | InputPlanningFailed | Input grouping cannot be planned: {reason} | Check workbook rows and archive member names; use unique relative paths and safe ZIP entries. |
+| 4007 | InvalidMagicOutput | Interpolation produced an invalid invoice field: {reason} | Correct the source or template so each output satisfies the invoice schema, length limits, and dataName character rules. The invoice has not been replaced. |
+| 4008 | InvalidMappingRule | A rule mapping destination is invalid: {reason} | Use nonempty dotted object paths without overlapping parent/child destinations or scalar ancestors. |
+| 4009 | InvalidMagicExpression | Invalid v2 magic-variable expression: {reason} | Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits. |
+| 4010 | MissingMagicSource | A requested interpolation source is unavailable or invalid: {reason} | Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values. |
 | 5001 | InternalInvariantViolation | Internal rdetoolkit invariant failed: {reason} | This is a bug in rdetoolkit, not in user code. Please report it together with the run report and the stack trace. |
 
 ## Warnings
@@ -53,3 +57,4 @@ Authority: `local/develop/v2/Design.md` §9.
 | W1001 | ModeOverriddenByFileDetection | Configured mode was overridden by input file detection: {mode} |
 | W1002 | EventsLogTruncated | events log truncated at the size cap; node-level events are no longer recorded for this run |
 | W1101 | TemplateSelfStateUsage | Template slot or hook uses hidden self state: {qualified_name}.{attribute_name} |
+| W1102 | InterpolationDiagnostic | Interpolation stage diagnostic: {reason} |

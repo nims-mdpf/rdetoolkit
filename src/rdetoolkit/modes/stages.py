@@ -7,10 +7,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from rdetoolkit.api.request import FlowTarget
+from rdetoolkit.domain.magic_policy import options_from_config
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
 from rdetoolkit.modes.registry import handler_for
 
 if TYPE_CHECKING:
+    from rdetoolkit.domain.magic import MagicOptions
     from rdetoolkit.runner.mode_resolver import ModeKind
     from rdetoolkit.runner.planner import ExecutionPlan
     from rdetoolkit.types import RdeConfig
@@ -110,6 +113,9 @@ def plan_artifact_stages(
 ) -> tuple[StageSpec, ...]:
     """Describe the same handler-selected stages that execution consumes.
 
+    Flow targets use strict interpolation policy. Legacy callback targets keep
+    the historical boolean and raw-file gates.
+
     Args:
         plan: Accepted execution plan or a read-only plan with no tile enumeration.
         has_rawfiles: Whether the tile has raw files, or ``None`` before discovery.
@@ -117,6 +123,10 @@ def plan_artifact_stages(
 
     Returns:
         Selected stages in execution order, followed by mode-omitted stages.
+
+    Raises:
+        RdeConfigError: If the selected artifact stage order is invalid.
+        RdeValidationError: If a flow target's interpolation options are invalid.
     """
     return describe_artifact_stages(
         plan.mode,
@@ -124,6 +134,7 @@ def plan_artifact_stages(
         order=artifact_stage_order(plan),
         has_rawfiles=has_rawfiles,
         precompleted=precompleted,
+        magic_options=options_from_config(plan.config) if isinstance(plan.target, FlowTarget) else None,
     )
 
 
@@ -134,6 +145,7 @@ def describe_artifact_stages(
     order: tuple[str, ...] | None = None,
     has_rawfiles: bool | None = None,
     precompleted: bool = False,
+    magic_options: MagicOptions | None = None,
 ) -> tuple[StageSpec, ...]:
     """Describe a mode's artifact plan without constructing an execution target.
 
@@ -143,6 +155,9 @@ def describe_artifact_stages(
         order: Selected handler override, or ``None`` for the built-in mode order.
         has_rawfiles: Whether raw files exist, or ``None`` when not yet discovered.
         precompleted: Whether the original-table tile bypasses post-invoke work.
+        magic_options: Strict flow interpolation policy. ``None`` retains legacy
+            boolean and raw-file gates. Strict auto and enabled policies do not
+            require raw files because sources can come from invoice or metadata.
 
     Returns:
         Immutable stage descriptions. Paths are relative, and values are omitted.
@@ -152,7 +167,7 @@ def describe_artifact_stages(
     """
     selected = tuple(ArtifactStage(name) for name in _validated_order(mode_stage_order(mode) if order is None else order))
     names = (*selected, *(stage for stage in ArtifactStage if stage not in selected))
-    return tuple(_describe_stage(stage, stage in selected, config, has_rawfiles, precompleted) for stage in names)
+    return tuple(_describe_stage(stage, stage in selected, config, has_rawfiles, precompleted, magic_options) for stage in names)
 
 
 def _validated_order(raw: object) -> tuple[str, ...]:
@@ -186,8 +201,9 @@ def _describe_stage(
     config: RdeConfig,
     has_rawfiles: bool | None,
     precompleted: bool,
+    magic_options: MagicOptions | None,
 ) -> StageSpec:
-    reason = _omission_reason(stage, selected, config, has_rawfiles, precompleted)
+    reason = _omission_reason(stage, selected, config, has_rawfiles, precompleted, magic_options)
     enabled = reason in {None, "runtime_inputs_pending"}
     return StageSpec(stage, enabled, reason, _SIDE_EFFECTS[stage])
 
@@ -198,16 +214,25 @@ def _omission_reason(
     config: RdeConfig,
     has_rawfiles: bool | None,
     precompleted: bool,
+    magic_options: MagicOptions | None,
 ) -> str | None:
     if not selected:
         return "omitted_by_mode"
     if precompleted:
         return "precompleted_tile"
+    if stage is ArtifactStage.magic:
+        return _magic_omission_reason(config, has_rawfiles, magic_options)
     if not getattr(config.system, _STAGE_CONFIG_FIELDS[stage]):
         return "disabled_by_config"
-    if stage is ArtifactStage.magic:
-        return {False: "no_rawfiles", None: "runtime_inputs_pending", True: None}[has_rawfiles]
     return None
+
+
+def _magic_omission_reason(config: RdeConfig, has_rawfiles: bool | None, options: MagicOptions | None) -> str | None:
+    if options is not None:
+        return "disabled_by_config" if options.policy == "disabled" else None
+    if not config.system.magic_variable:
+        return "disabled_by_config"
+    return {False: "no_rawfiles", None: "runtime_inputs_pending", True: None}[has_rawfiles]
 
 
 def _stage_error(reason: str) -> RdeConfigError:

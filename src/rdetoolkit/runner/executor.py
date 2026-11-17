@@ -6,18 +6,23 @@ import contextlib
 import traceback
 from collections.abc import Callable, Iterator
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from rdetoolkit._interrupt import is_run_interrupted
+from rdetoolkit.api.request import FlowTarget
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
+from rdetoolkit.domain.magic_policy import options_from_config
+from rdetoolkit.domain.magic_service import apply_interpolation
 from rdetoolkit.domain.invoice_service import (
+    INVOICE_STEP_MAGIC,
     InvoiceService,
     build_tile_dataset_paths,
 )
 from rdetoolkit.models.rde2types import RdeDatasetPaths
-from rdetoolkit.errors import ERROR_CATALOG
+from rdetoolkit.errors import ERROR_CATALOG, RdeError
 from rdetoolkit.domain.validation import validate_tile_outputs, wrap_validation_error
 from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
@@ -326,7 +331,10 @@ class TileExecutor:
             if step == _THUMBNAIL_STAGE:
                 self._publish_images(plan, tile)
                 continue
-            self._publish_invoice_step(plan, step, dataset_paths)
+            self._publish_invoice_step(plan, step, dataset_paths, tile.iteration.index)
+
+    def _interpolation_notice(self, plan: ExecutionPlan, message: str) -> None:
+        self._event_sink.emit(Event.warning(run_id=plan.run_id, code=1102, message=message))
 
     def _publish_raw(self, plan: ExecutionPlan, tile: TilePlan) -> None:
         """Copy raw inputs through the mode strategy, or the generic service."""
@@ -360,14 +368,35 @@ class TileExecutor:
         plan: ExecutionPlan,
         step: str,
         dataset_paths: RdeDatasetPaths,
+        iteration_index: int = 0,
     ) -> None:
         """Apply one structured / magic-variable / description invoice step."""
         with _publication_guard(_invoice_stage_error):
+            if step == INVOICE_STEP_MAGIC and isinstance(plan.target, FlowTarget):
+                self._invoice_service.apply_step(
+                    step,
+                    config=plan.config,
+                    dataset_paths=dataset_paths,
+                    magic_updater=partial(self._publish_magic, plan, dataset_paths, iteration_index),
+                )
+                return
             self._invoice_service.apply_step(
                 step,
                 config=plan.config,
                 dataset_paths=dataset_paths,
             )
+
+    def _publish_magic(self, plan: ExecutionPlan, dataset_paths: RdeDatasetPaths, index: int) -> None:
+        preview = apply_interpolation(
+            dataset_paths,
+            original_invoice_snapshot=plan.original_invoice_snapshot,
+            options=options_from_config(plan.config),
+            iteration_index=index,
+            mode=plan.mode.value,
+        )
+        for diagnostic in preview.diagnostics:
+            if diagnostic.status in {"disabled", "omitted", "not_applicable"}:
+                self._interpolation_notice(plan, f"Field {diagnostic.destination} interpolation {diagnostic.status} at tile {index}.")
 
 
 def _guarded_diagnostic(build: Callable[[], FailureDiagnostic]) -> FailureDiagnostic | None:
@@ -571,6 +600,8 @@ def _invoice_stage_error(exc: Exception) -> dict[str, Any]:
     passthrough = structured_error_record(exc)
     if passthrough is not None:
         return passthrough
+    if isinstance(exc, RdeError):
+        return _execution_error(exc)
     return _catalogued_stage_error(_INVOICE_ARTIFACT_FAILED_CODE, exc)
 
 

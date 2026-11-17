@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import partial
@@ -9,10 +10,12 @@ from itertools import chain
 from pathlib import Path
 from typing import Any, Literal
 
-from rdetoolkit.api.request import ExecutionTarget, LegacyCallbackTarget, RunRequest
+from rdetoolkit.api.request import ExecutionTarget, FlowTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.core.calllog import CallSequence
 from rdetoolkit.domain.invoice_service import InvoiceService, invoice_source_for
+from rdetoolkit.domain.magic_policy import options_from_config
 from rdetoolkit.exceptions import StructuredError
+from rdetoolkit.fileops import readf_json
 from rdetoolkit.modes.protocol import PlanningContext
 from rdetoolkit.modes.registry import handler_for
 from rdetoolkit.modes.stages import artifact_stage_order
@@ -84,6 +87,7 @@ class ExecutionPlan:
     #: ``TileMaterial`` so ``seq`` is run-global and ``call_id`` run-unique.
     call_sequence: CallSequence = field(default_factory=CallSequence)
     artifact_stages: tuple[str, ...] | None = None
+    original_invoice_snapshot: str | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,6 +166,8 @@ class RunPlanner:
         Returns:
             Frozen plan whose ``tiles`` iterable performs existing tile discovery lazily.
         """
+        if isinstance(request.target, FlowTarget):
+            options_from_config(config)
         snapshot = (
             None if isinstance(request.target, LegacyCallbackTarget)
             else partial(discover_input_snapshot, mode, _resolve_path(self._inputdata_path), config)
@@ -179,6 +185,7 @@ class RunPlanner:
             run_id=self._run_id_factory(), target=request.target, mode=mode, config=config,
             root=request.root, error_policy=_error_policy(request.target, mode, config),
             tiles=(), data_root=data_root, invoice_source=invoice_source_for(mode, data_root=data_root),
+            original_invoice_snapshot=_original_invoice_snapshot(request.target, data_root),
         )
         stages = artifact_stage_order(plan)
         handler = handler_for(mode)
@@ -188,6 +195,13 @@ class RunPlanner:
         if isinstance(request.target, LegacyCallbackTarget):
             tiles = _legacy_input_tiles(tiles)
         return replace(plan, tiles=tiles, artifact_stages=stages)
+
+
+def _original_invoice_snapshot(target: ExecutionTarget, data_root: Path) -> str | None:
+    if isinstance(target, LegacyCallbackTarget):
+        return None
+    path = data_root / "invoice" / "invoice.json"
+    return json.dumps(readf_json(path), ensure_ascii=False) if path.exists() else None
 
 
 def reject_empty_input(target: ExecutionTarget, mode: ModeKind, inputdata_path: Path) -> None:

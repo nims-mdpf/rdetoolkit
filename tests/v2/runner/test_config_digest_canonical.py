@@ -79,6 +79,7 @@ def test_non_ascii_value_hashes_canonical_utf8_json__tc_d1_ep_006() -> None:
     config = RdeConfig(custom={"名前": "試料", "a": 1})
     values = config.model_dump(mode="json")
     values["system"].pop("extended_mode")
+    values["system"].pop("magic_variable")
     canonical = json.dumps(values, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     # When: the digest is computed
     digest = compute_config_digest(config)

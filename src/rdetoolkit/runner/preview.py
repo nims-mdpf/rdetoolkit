@@ -9,9 +9,13 @@ from typing import Any
 
 from rdetoolkit.api.request import FlowTarget
 from rdetoolkit.config.normalize import _find_tasksupport_config, _load_optional_mapping
+from rdetoolkit.domain.invoice_service import invoice_source_for
+from rdetoolkit.domain.magic import MagicOptions
+from rdetoolkit.domain.magic_policy import options_from_config
+from rdetoolkit.domain.magic_service import validate_templates
 from rdetoolkit.domain.mode_selection import ModeDecision, ModeKind, decide_mode
 from rdetoolkit.errors import RdeValidationError
-from rdetoolkit.domain.invoice_service import invoice_source_for
+from rdetoolkit.fileops import readf_json
 from rdetoolkit.modes.stages import StageSpec, artifact_stage_order, describe_artifact_stages
 from rdetoolkit.runner.config_loader import load_run_config
 from rdetoolkit.runner.input_snapshot import InputGroup, InputSnapshot, discover_input_snapshot
@@ -108,7 +112,7 @@ def _output_description(paths: TileOutputPaths, data_root: Path) -> tuple[tuple[
     return tuple((name, getattr(paths, name).relative_to(data_root).as_posix()) for name in names)
 
 
-def _planned_tile(index: int, group: InputGroup, snapshot: InputSnapshot, data_root: Path, config: RdeConfig, order: tuple[str, ...]) -> PlannedTile:
+def _planned_tile(index: int, group: InputGroup, snapshot: InputSnapshot, data_root: Path, config: RdeConfig, order: tuple[str, ...], magic_options: MagicOptions) -> PlannedTile:
     origin = "invoice/invoice.json"
     if snapshot.table_path is not None and group.source_row is not None:
         origin = f"inputdata/{snapshot.table_path.name}#row={group.source_row}"
@@ -119,7 +123,7 @@ def _planned_tile(index: int, group: InputGroup, snapshot: InputSnapshot, data_r
         invoice_origin=origin,
         output_paths=_output_description(resolve_tile_paths(data_root, index), data_root),
         invokes_flow=not group.original_table,
-        stages=describe_artifact_stages(snapshot.mode, config, order=order, has_rawfiles=bool(group.files), precompleted=group.original_table),
+        stages=describe_artifact_stages(snapshot.mode, config, order=order, has_rawfiles=bool(group.files), precompleted=group.original_table, magic_options=magic_options),
     )
 
 
@@ -156,7 +160,8 @@ def preview_registration(root: Path, *, overrides: Mapping[str, Any] | None = No
         Immutable selection, tile, stage, and optional-preview descriptions.
 
     Raises:
-        RdeError: If configuration, source artifacts, mappings, or grouping are invalid.
+        RdeError: If configuration, source artifacts, template syntax, mappings,
+            or grouping are invalid.
     """
     root = root.resolve()
     data_root = resolve_data_root(root)
@@ -165,6 +170,9 @@ def preview_registration(root: Path, *, overrides: Mapping[str, Any] | None = No
     _require_source_artifacts(data_root)
     runner = Runner(root=root, inputdata_path=data_root / "inputdata", unpacked_dir_path=data_root / "temp")
     runner._validate_inputs(FlowTarget(function=_preview_target), decision.chosen_mode, config)  # noqa: SLF001 -- same validation boundary without run publication
+    magic_options = options_from_config(config)
+    if decision.chosen_mode is not ModeKind.rdeformat:
+        validate_templates(readf_json(data_root / "invoice" / "invoice.json"), magic_options)
     snapshot = discover_input_snapshot(decision.chosen_mode, data_root / "inputdata", config)
     order = _effective_stage_order(root, data_root, snapshot.mode, config)
     warnings = ["User preparation and flow are not invoked; this plan describes only the current input snapshot."]
@@ -172,8 +180,8 @@ def preview_registration(root: Path, *, overrides: Mapping[str, Any] | None = No
         warnings.append("Filesystem ordering is not deterministic across filesystems.")
     return RegistrationPreview(
         decision=decision,
-        tiles=tuple(_planned_tile(index, group, snapshot, data_root, config, order) for index, group in enumerate(snapshot.groups)),
-        stages=describe_artifact_stages(snapshot.mode, config, order=order),
+        tiles=tuple(_planned_tile(index, group, snapshot, data_root, config, order, magic_options) for index, group in enumerate(snapshot.groups)),
+        stages=describe_artifact_stages(snapshot.mode, config, order=order, magic_options=magic_options),
         config_source=_config_source(root, data_root, overrides=bool(overrides)),
         iteration_policy=snapshot.iteration_policy,
         deterministic_order=snapshot.deterministic_order,

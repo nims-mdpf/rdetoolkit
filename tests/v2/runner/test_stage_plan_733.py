@@ -31,7 +31,7 @@ from typing import Any
 import pytest
 from hypothesis import given, strategies as st
 
-from rdetoolkit.api.request import FlowTarget, RunRequest
+from rdetoolkit.api.request import FlowTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError
 from rdetoolkit.modes.install import install_default_handlers
 from rdetoolkit.modes.registry import clear, register
@@ -44,6 +44,7 @@ from tests.v2.runner.stage_order_helpers import make_plan
 
 @pytest.fixture(autouse=True)
 def restore_handlers() -> Any:
+    """Keep handler registration isolated between stage-contract tests."""
     clear()
     install_default_handlers()
     yield
@@ -60,7 +61,8 @@ class _Handler:
 
     def create_tiles(self, context: object) -> Any:
         self.iterated = True
-        raise AssertionError("planning must not enumerate tiles")
+        message = "planning must not enumerate tiles"
+        raise AssertionError(message)
 
     def artifact_stage_order(self, plan: object) -> object:
         return self.order
@@ -155,17 +157,20 @@ def test_preview_reasons_and_immutability__rm05_p2_n4(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("precompleted", [False, True])
-def test_magic_rawfile_and_precompleted_gates__rm05_p2(precompleted: bool, tmp_path: Path) -> None:
-    """RM05-P2: original-table tiles bypass stages and rawless tiles omit magic."""
+@pytest.mark.parametrize("legacy", [False, True])
+def test_magic_rawfile_and_precompleted_gates__rm05_p2(precompleted: bool, legacy: bool, tmp_path: Path) -> None:
+    """RM05-P2: strict rawless flows retain magic; legacy and early-exit gates remain."""
     # Given: all stage configuration gates enabled
     config = RdeConfig(system={"magic_variable": True, "save_invoice_to_structured": True, "save_thumbnail_image": True})
     plan = replace(make_plan(ModeKind.invoice, tmp_path), config=config)
+    if legacy:
+        plan = replace(plan, target=LegacyCallbackTarget(function=None))
     # When: describing a rawless or precompleted tile
     specs = plan_artifact_stages(plan, has_rawfiles=False, precompleted=precompleted)
-    # Then: no rawfile and precompleted omissions are explicit
+    # Then: omission reasons follow the execution target and early-exit contract
     by_name = {spec.name.value: spec for spec in specs}
-    assert by_name["magic"].reason == ("precompleted_tile" if precompleted else "no_rawfiles")
-    assert by_name["magic"].enabled is False
+    assert by_name["magic"].reason == ("precompleted_tile" if precompleted else "no_rawfiles" if legacy else None)
+    assert by_name["magic"].enabled is (not precompleted and not legacy)
     if precompleted:
         assert not any(spec.enabled for spec in specs)
 

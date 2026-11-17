@@ -13,6 +13,7 @@ from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any
 
+from rdetoolkit.errors import ERROR_CATALOG, RdeValidationError
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 
@@ -20,8 +21,8 @@ from rdetoolkit.fileops import readf_json, writef_json
 class RuleBasedReplacer:
     """A class for changing the rules of data naming.
 
-    This class is used to manage and apply file name mapping rules. It reads rules from a JSON format
-    rule file, sets rules, and performs file name transformations and replacements based on those rules.
+    This compatibility API applies explicit dotted-path assignments. It is
+    separate from magic-variable interpolation and does not parse templates.
 
     Attributes:
         rules (dict[str, str]): Dictionary holding the mapping rules.
@@ -67,53 +68,42 @@ class RuleBasedReplacer:
         *,
         mapping_rules: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
-        """Function to convert file mapping rules into a JSON format.
+        """Apply dotted-path rules to a mutable JSON object.
 
-        This function takes string mappings separated by dots ('.') and converts them into a dictionary format, making it easier to handle within a target JsonObject.
+        An explicit ``mapping_rules`` replaces ``self.rules``, including when
+        it is empty. Missing replacement keys produce an empty string for v1
+        compatibility. Missing object ancestors are created. Empty path
+        segments, scalar ancestors, and overlapping parent/child destinations
+        fail before any source assignment is published.
+
+        Successful calls mutate ``source_json_obj`` as in v1. Replacement
+        values are copied, so later source edits cannot change ``replacements``.
+        Failed calls preserve both the source and ``last_apply_result``.
 
         Args:
-            replacements (Mapping[str, Any]): The object containing mapping rules (read-only).
-            source_json_obj (MutableMapping[str, Any] | None): Objects of key and value to which you want to apply the rule (performs nested assignments).
-            mapping_rules (Mapping[str, str] | None, optional): Rules for mapping key and value (read-only). Defaults to None.
+            replacements: Read-only placeholder-to-value mapping.
+            source_json_obj: Object to update, or None to create an object.
+            mapping_rules: Read-only destination-to-placeholder mapping.
+                None selects the stored rules.
 
         Returns:
-            dict[str, Any]: dictionary type data after conversion
+            Updated object, also stored in ``last_apply_result``.
 
-        Example:
-            # rule.json
-            rule = {
-                "filename_mapping": {
-                    "invoice.basic.dataName": "${filename}",
-                    "invoice.sample.names": ["${somedataname}"],
-                }
-            }
-            replacer = RuleBasedReplacer('rules.json')
-            replacements = {
-                '${filename}': 'example.txt',
-                '${somedataname}': ['some data']
-            }
-            result = replacer.apply_rules(replacement_rule, save_file_path, mapping_rules = rule)
-            print(result)
+        Raises:
+            RdeValidationError: If a destination path is malformed or conflicts
+                with the source structure or another rule (4008).
         """
-        # [TODO] Correction of type definitions in version 0.1.6
-        if mapping_rules is None:
-            mapping_rules = self.rules
-        if source_json_obj is None:
-            source_json_obj = {}
-
-        for key, value in self.rules.items():
-            keys = key.split(".")
-            replace_value = replacements.get(value, "")
-            current_obj: MutableMapping[str, Any] = source_json_obj
-            for k in keys[:-1]:
-                # search for the desired key in the dictionary from "xxx.xxx.xxx" ...
-                if k not in current_obj:
-                    current_obj[k] = {}
-                current_obj = current_obj[k]
-            current_obj[keys[-1]] = replace_value
-
-        self.last_apply_result = dict(source_json_obj)
-
+        rules = self.rules if mapping_rules is None else mapping_rules
+        _validate_rule_paths(rules)
+        result = copy.deepcopy(dict(source_json_obj)) if source_json_obj is not None else {}
+        assignments = [(path, copy.deepcopy(replacements.get(placeholder, ""))) for path, placeholder in rules.items()]
+        for path, value in assignments:
+            _assign_rule(result, path, value)
+        if source_json_obj is not None:
+            for path, value in assignments:
+                _assign_rule(source_json_obj, path, value)
+            result = dict(source_json_obj)
+        self.last_apply_result = dict(result)
         return self.last_apply_result
 
     def set_rule(self, path: str, variable: str) -> None:
@@ -173,6 +163,38 @@ class RuleBasedReplacer:
             raise StructuredError(emsg) from json_err
 
         return contents
+
+
+def _validate_rule_paths(rules: Mapping[str, str]) -> None:
+    for path in rules:
+        segments = path.split(".")
+        if any(not segment for segment in segments):
+            raise _mapping_rule_error(path, "path segments must not be empty")
+        for index in range(1, len(segments)):
+            if ".".join(segments[:index]) in rules:
+                raise _mapping_rule_error(path, "parent and child destinations overlap")
+
+
+def _assign_rule(result: MutableMapping[str, Any], path: str, value: Any) -> None:
+    segments = path.split(".")
+    current = result
+    for segment in segments[:-1]:
+        if segment not in current:
+            current[segment] = {}
+        child = current[segment]
+        if not isinstance(child, MutableMapping):
+            raise _mapping_rule_error(path, "an ancestor is not a JSON object")
+        current = child
+    current[segments[-1]] = value
+
+
+def _mapping_rule_error(path: str, reason: str) -> RdeValidationError:
+    definition = ERROR_CATALOG[4008]
+    return RdeValidationError(
+        code=4008,
+        name=definition.name,
+        message=f"Invalid mapping destination {path!r}: {reason}. Remediation: {definition.remediation}",
+    )
 
 
 def apply_default_filename_mapping_rule(replacement_rule: dict[str, Any], save_file_path: str | Path) -> dict[str, Any]:

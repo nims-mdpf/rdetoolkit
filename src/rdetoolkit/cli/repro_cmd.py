@@ -46,7 +46,7 @@ from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.domain.mode_selection import normalize_mode_name
 from rdetoolkit.report.diagnostics import diagnostic, envelope
 from rdetoolkit.report.run_report import RunReport
-from rdetoolkit.runner.config_loader import compute_config_digest, load_config
+from rdetoolkit.runner.config_loader import compute_config_digest, config_for_replay, load_config
 from rdetoolkit.runner.paths import resolve_data_root
 from rdetoolkit.types import RdeConfig
 
@@ -373,23 +373,19 @@ def _replays_to(text: str, digest: str) -> bool:
 def _config_yaml(config: RdeConfig, digest: str) -> str:
     """Serialize the effective config as v2-form YAML that replays to ``digest``.
 
-    Only explicitly supplied values are written, including an explicit invoice
-    default, so a replay preserves mode intent. If that form ever fails to reload to the same digest, the
-    full dump is used instead; the digest is the contract, not the form.
+    Defaults are omitted except policy-significant flags. If the compact form
+    fails to reload to the same digest, the full replay-safe dump is used
+    instead; the digest is the contract, not the form.
 
     Keys are sorted: ``config_digest`` is computed over key-sorted JSON, so key
     order never affects whether the archived form replays.
     """
-    candidates = (
-        config.model_dump(mode="json", exclude_defaults=True),
-        config.model_dump(mode="json"),
+    dumps: tuple[Callable[[], dict[str, Any]], ...] = (
+        lambda: config_for_replay(config, compact=True),
+        lambda: config_for_replay(config),
     )
-    for values in candidates:
-        if "extended_mode" in config.system.model_fields_set:
-            values.setdefault("system", {})["extended_mode"] = config.system.extended_mode
-        else:
-            values.get("system", {}).pop("extended_mode", None)
-        text = yaml.safe_dump(values, sort_keys=True, allow_unicode=True)
+    for dump in dumps:
+        text = yaml.safe_dump(dump(), sort_keys=True, allow_unicode=True)
         if _replays_to(text, digest):
             return text
     _usage_error(f"The effective configuration cannot be written in a form that reproduces config_digest {digest}.")

@@ -103,27 +103,45 @@ def compute_config_digest(config: RdeConfig) -> str:
     and ``repro export`` both use this function, so "same config" has one
     definition.
 
+    Omitted ``system.magic_variable`` means auto for flows, while explicit
+    false means disabled. Both interpolation and mode intent are retained.
+
     Args:
         config: Effective v2 configuration.
 
     Returns:
         ``"sha256:"`` followed by 64 lowercase hex digits.
     """
-    values = config.model_dump(mode="json")
-    # Auto and explicit invoice select differently in v2; identity retains that intent.
-    if "extended_mode" not in config.system.model_fields_set:
-        values["system"].pop("extended_mode", None)
-    else:
-        # Historic callback settings may contain arbitrary mode names.
-        with suppress(RdeConfigError):
-            values["system"]["extended_mode"] = _normalize_mode_setting(config.system.extended_mode)
     canonical = json.dumps(
-        values,
+        config_for_replay(config),
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
     )
     return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def config_for_replay(config: RdeConfig, *, compact: bool = False) -> dict[str, Any]:
+    """Serialize effective settings while retaining mode and interpolation intent.
+
+    Args:
+        config: Effective configuration with its explicitly configured fields.
+        compact: Omit values equal to defaults except policy-significant fields.
+
+    Returns:
+        Fresh JSON-compatible settings preserving explicit mode and magic flags.
+    """
+    data = config.model_dump(mode="json", exclude_defaults=compact)
+    for field in ("extended_mode", "magic_variable"):
+        if field in config.system.model_fields_set:
+            data.setdefault("system", {})[field] = getattr(config.system, field)
+        else:
+            data.get("system", {}).pop(field, None)
+    if "extended_mode" in config.system.model_fields_set:
+        # Historic callback settings may contain arbitrary mode names.
+        with suppress(RdeConfigError):
+            data["system"]["extended_mode"] = _normalize_mode_setting(config.system.extended_mode)
+    return data
 
 
 def _deep_merge(base: Mapping[str, Any], overlay: Mapping[str, Any]) -> dict[str, Any]:

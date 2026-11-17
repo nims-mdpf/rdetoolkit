@@ -30,12 +30,15 @@ EP table:
 | TC-IRA-5-EP-036 | structured failure | multidatatile | frozen v1: magic already expanded in the tile invoice |
 | TC-IRA-5-EP-037 | structured failure | excelinvoice | frozen v1: magic already expanded in the tile invoice |
 | TC-IRA-5-EP-038 | structured failure | invoice | frozen v1: magic never ran (structured comes first) |
+| TC-MV-STAGE-001 | strict missing source | same 3 modes | code 4010 with the same mode-owned artifact order |
+| TC-MV-STAGE-002 | strict structured failure | same 3 modes | explicit invoice source resolves before the later stage |
 
 BV / negative table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
 | TC-IRA-5-EV-034 | API | ``modes.protocol`` | ``invoice_stage_steps`` is gone |
 | TC-IRA-5-EV-035 | default | no provider | the invoice order is the default |
+| TC-MV-STAGE-003 | grouped Excel filename | multiple raw inputs | code 4010 before invoice replacement or structured export |
 """
 
 from __future__ import annotations
@@ -46,7 +49,10 @@ from typing import Any
 
 import pytest
 
+from rdetoolkit.api.request import ExecutionTarget, FlowTarget, LegacyCallbackTarget, RunRequest
 from rdetoolkit.core.flow import flow
+from rdetoolkit.fileops import readf_json, writef_json
+from rdetoolkit.models.rde2types import RdeDatasetPaths
 from rdetoolkit.runner.executor import artifact_stage_order
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.types import InputPaths, OutputContext
@@ -57,6 +63,11 @@ from tests.v2.contract.observe import observe_v2_run
 @flow
 def _noop_flow(paths: InputPaths) -> None:
     """Succeed on every tile so only artifact publication can fail."""
+    assert paths.inputdata.is_dir()
+
+
+def _noop_callback(paths: RdeDatasetPaths) -> None:
+    """Use the frozen callback entry without changing the registration inputs."""
     assert paths.inputdata.is_dir()
 
 
@@ -86,21 +97,23 @@ def _invoice_data_names(observation: dict[str, Any]) -> dict[str, Any]:
     return {path: invoice["basic"]["dataName"] for path, invoice in observation["invoices"].items()}
 
 
-def _observe_v2(case_id: str, root: Path, monkeypatch: pytest.MonkeyPatch, flow_target: Any) -> dict[str, Any]:
-    """Run the v2 Runner on the registered case's input; observe it."""
+def _observe_v2(case_id: str, root: Path, monkeypatch: pytest.MonkeyPatch, target: ExecutionTarget) -> dict[str, Any]:
+    """Observe either entry contract through the same Runner and registered input."""
     case = _generate.oracle_case(case_id)
     _generate.materialize_case(case, root)
+    original_owner = readf_json(root / "data" / "invoice" / "invoice.json")["basic"]["dataOwnerId"]
     monkeypatch.chdir(root)
     runner = Runner(
         root=root,
         inputdata_path=root / "data" / "inputdata",
         unpacked_dir_path=root / "data" / "temp",
     )
-    report = runner.run(flow_target, **_v2_overrides(case.mode))
+    report = runner.run(RunRequest(root=root, target=target, config_source=_v2_overrides(case.mode)))
     job_failed = root / "data" / "job.failed"
     return {
         "status": report.status,
         "error_code": (report.error or {}).get("code"),
+        "original_owner": original_owner,
         "job_failed_code": (
             job_failed.read_text(encoding="utf-8").splitlines()[0] if job_failed.exists() else None
         ),
@@ -167,12 +180,14 @@ def test_stage_order_matches_the_v1_pipeline__tc_ira_5_ep_030(
         pytest.param("invoice", id="TC-IRA-5-EP-033"),
     ],
 )
+@pytest.mark.parametrize("entry", ["legacy", "strict-v2"])
 def test_magic_failure_leaves_the_v1_artifacts__tc_ira_5_ep_031_032_033(
     mode: str,
+    entry: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-IRA-5-EP-031/032/033: a failed magic step leaves v1's artifacts.
+    """TC-IRA-5-EP-031/032/033, TC-MV-STAGE-001: failures retain stage order.
 
     This is review R3's counterexample. For MultiDataTile and ExcelInvoice v1
     expands the magic variable *first*, so the structured export never happens;
@@ -181,28 +196,45 @@ def test_magic_failure_leaves_the_v1_artifacts__tc_ira_5_ep_031_032_033(
     # Given: v1's frozen run of the same input with an unresolvable magic variable
     expected = frozen_observed(f"v1/{mode}/magicfail")
 
-    # When: the v2 Runner executes the same input and configuration
-    actual = _observe_v2(f"v1/{mode}/magicfail", tmp_path / "v2", monkeypatch, _noop_flow)
+    # When: the selected versioned entry executes the same missing-source case
+    target = LegacyCallbackTarget(function=_noop_callback) if entry == "legacy" else FlowTarget(function=_noop_flow)
+    actual = _observe_v2(f"v1/{mode}/magicfail", tmp_path / "v2", monkeypatch, target)
 
-    # Then: the run failed with the v1 code and left exactly v1's artifacts
+    # Then: each contract retains its error code and the frozen artifact ordering
     assert expected["job_failed_error_code"] is not None
     assert actual["status"] == "failed"
-    assert actual["job_failed_code"] == expected["job_failed_error_code"]
+    if entry == "legacy":
+        assert actual["job_failed_code"] == expected["job_failed_error_code"]
+        assert actual["error_code"] == 1
+    else:
+        assert actual["job_failed_code"] == "ErrorCode=4010"
+        assert actual["error_code"] == 4010
     assert _structured_invoices(actual) == _structured_invoices(expected)
     assert (mode == "invoice") is bool(_structured_invoices(expected))
 
 
-#: ``${filename}`` resolves from the tile's first raw file, so a completed magic
-#: step is visible as a concrete file name in the tile invoice.
+#: The frozen callback selects the first raw file; strict flows instead use an
+#: explicit invoice field so grouped Excel input cannot make the source ambiguous.
 _FILENAME_TEMPLATE = _generate.FILENAME_TEMPLATE
+_STRICT_TEMPLATE = "${invoice:basic:dataOwnerId}"
 
 
 @flow
 def _structured_sabotaging_flow(paths: InputPaths, out: OutputContext) -> None:
-    """Succeed, but leave ``structured`` as a plain file for the stage after."""
+    """Use an unambiguous strict source, then sabotage the later structured stage."""
     assert paths.inputdata.is_dir()
+    invoice_path = out.invoice / "invoice.json"
+    invoice = readf_json(invoice_path)
+    invoice["basic"]["dataName"] = _STRICT_TEMPLATE
+    writef_json(invoice_path, invoice)
     shutil.rmtree(out.struct)
     out.struct.write_text("not a directory", encoding="utf-8")
+
+
+def _structured_sabotaging_callback(paths: RdeDatasetPaths) -> None:
+    """Reproduce the frozen v1 structured-directory failure unchanged."""
+    shutil.rmtree(paths.struct)
+    paths.struct.write_text("not a directory", encoding="utf-8")
 
 
 @pytest.mark.parametrize(
@@ -213,13 +245,15 @@ def _structured_sabotaging_flow(paths: InputPaths, out: OutputContext) -> None:
         pytest.param("invoice", False, id="TC-IRA-5-EP-038"),
     ],
 )
+@pytest.mark.parametrize("entry", ["legacy", "strict-v2"])
 def test_structured_failure_after_magic_keeps_the_expanded_invoice__tc_ira_5_ep_036_037_038(
     mode: str,
     magic_completed: bool,
+    entry: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-IRA-5-EP-036/037/038: a later structured failure keeps an earlier magic.
+    """TC-IRA-5-EP-036/037/038, TC-MV-STAGE-002: later failure retains expansion.
 
     Review R3's required test, the other direction: when the *structured*
     export fails, the tile invoice must already carry the expanded magic
@@ -232,8 +266,9 @@ def test_structured_failure_after_magic_keeps_the_expanded_invoice__tc_ira_5_ep_
     # Given: v1's frozen run with a callback that sabotages the structured directory
     expected = frozen_observed(f"v1/{mode}/structfail")
 
-    # When: the v2 Runner executes a flow that does the same
-    actual = _observe_v2(f"v1/{mode}/structfail", tmp_path / "v2", monkeypatch, _structured_sabotaging_flow)
+    # When: either entry sabotages the structured directory after its invocation
+    target = LegacyCallbackTarget(function=_structured_sabotaging_callback) if entry == "legacy" else FlowTarget(function=_structured_sabotaging_flow)
+    actual = _observe_v2(f"v1/{mode}/structfail", tmp_path / "v2", monkeypatch, target)
 
     # Then: both runs failed and left the same invoices, structured export absent
     assert expected["exit_code"] == 1
@@ -242,15 +277,36 @@ def test_structured_failure_after_magic_keeps_the_expanded_invoice__tc_ira_5_ep_
     assert actual["job_failed_code"] is not None
     assert actual["error_code"] == 3006
     assert _structured_invoices(actual) == _structured_invoices(expected) == []
-    assert _invoice_data_names(actual) == _invoice_data_names(expected)
+    if entry == "legacy":
+        assert _invoice_data_names(actual) == _invoice_data_names(expected)
 
     # And: whether magic completed before the failure is exactly v1's order
     data_names = set(_invoice_data_names(actual).values())
     assert data_names
+    template = _FILENAME_TEMPLATE if entry == "legacy" else _STRICT_TEMPLATE
     if magic_completed:
-        assert _FILENAME_TEMPLATE not in data_names
+        assert template not in data_names
+        if entry == "strict-v2":
+            assert data_names == {actual["original_owner"]}
     else:
-        assert data_names == {_FILENAME_TEMPLATE}
+        assert data_names == {template}
+
+
+def test_strict_grouped_filename_fails_before_publication__tc_mv_stage_003(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-MV-STAGE-003: strict Excel filename cannot select an implicit first file."""
+    # Given: the frozen Excel case requests filename for a group with several inputs
+    target = FlowTarget(function=_noop_flow)
+    # When: the successful flow reaches the strict magic stage
+    actual = _observe_v2("v1/excelinvoice/structfail", tmp_path / "strict", monkeypatch, target)
+    # Then: source ambiguity fails before either invoice replacement or structured export
+    assert actual["status"] == "failed"
+    assert actual["error_code"] == 4010
+    assert actual["job_failed_code"] == "ErrorCode=4010"
+    assert _structured_invoices(actual) == []
+    assert set(_invoice_data_names(actual).values()) == {_FILENAME_TEMPLATE}
 
 
 def test_frozenset_seam_is_gone__tc_ira_5_ev_034() -> None:
