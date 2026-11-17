@@ -130,11 +130,10 @@ class ConfigNormalizer:
         if source is None:
             return _discover_config(root, origin)
         if isinstance(source, RdeConfig):
-            return _canonical_model_data(source, origin)
+            return _canonical_model_data(source)
         if isinstance(source, Config):
             data = source.model_dump(exclude_none=True)
-            if origin == "v2":
-                _preserve_magic_omission(data, source)
+            _preserve_magic_omission(data, source)
             return data
         if isinstance(source, Mapping):
             return copy.deepcopy(dict(source))
@@ -324,10 +323,10 @@ def _preserve_magic_omission(data: dict[str, Any], source: Config) -> None:
         data.get("system", {}).pop("magic_variable", None)
 
 
-def _canonical_model_data(source: RdeConfig, origin: ConfigOrigin) -> dict[str, Any]:
+def _canonical_model_data(source: RdeConfig) -> dict[str, Any]:
     data = source.model_dump()
     if "extended_mode" not in source.system.model_fields_set:
         data["system"].pop("extended_mode", None)
-    if origin == "v2" and "magic_variable" not in source.system.model_fields_set:
+    if "magic_variable" not in source.system.model_fields_set:
         data["system"].pop("magic_variable", None)
     return data

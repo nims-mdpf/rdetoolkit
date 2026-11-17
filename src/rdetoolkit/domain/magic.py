@@ -408,6 +408,7 @@ def _validate_schema(
     schema: Mapping[str, Any],
     diagnostics: list[ResolutionDiagnostic],
 ) -> None:
+    from jsonschema import FormatChecker  # noqa: PLC0415
     from jsonschema.exceptions import SchemaError  # noqa: PLC0415
     from jsonschema.validators import validator_for  # noqa: PLC0415
     from referencing import Registry  # noqa: PLC0415
@@ -419,7 +420,7 @@ def _validate_schema(
             return
         validator = validator_for(schema)
         validator.check_schema(schema)
-        error = next(validator(schema, registry=Registry()).iter_errors(candidate), None)
+        error = next(validator(schema, registry=Registry(), format_checker=FormatChecker()).iter_errors(candidate), None)
     except (SchemaError, Unresolvable, RecursionError):
         diagnostics.append(_diagnostic(context, "", status="invalid", reason="invalid_schema", code=4007))
         return
