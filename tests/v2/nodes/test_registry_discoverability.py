@@ -67,6 +67,7 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "list_excel_sheets",
     "copy_file",
     "save_image",
+    "describe_features",
 )
 
 

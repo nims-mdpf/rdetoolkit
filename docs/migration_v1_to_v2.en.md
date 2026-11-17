@@ -248,6 +248,12 @@ contains a word can be found and passed to `read_excel(path, sheet_name=...)`.
 `.tar.xz`) as well as ZIP. ZIP member names without the UTF-8 flag are
 restored as CP932, so file names can differ from v1 code that called
 `ZipFile.extractall`, which kept the cp437 names.
+Programs that write the `_feature` metadata into the invoice description
+themselves can use `describe_features(invoice, metadata, metadef_path)`: it
+returns the invoice with the lines the Runner's `feature_description` appends
+to `basic.description`. When a flow saves that result with `save_invoice`, set
+`system.feature_description: false` in `rdeconfig.yaml` so the lines are not
+appended twice.
 
 To run an external converter, as v1 templates did with `subprocess.run`, use
 `run_program(args, ...)` (#630). The converter writes into directories you pass

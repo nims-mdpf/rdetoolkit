@@ -6,7 +6,7 @@ from typing import Any
 from rdetoolkit.core.node import node
 from rdetoolkit.nodes.external import CompletedProgram, run_program, to_wine_path
 from rdetoolkit.nodes.image import copy_file, copy_raw, make_thumbnail, render_png, save_image, save_main_image, to_jpeg, to_png
-from rdetoolkit.nodes.invoice import resolve_custom_key, set_custom_fields
+from rdetoolkit.nodes.invoice import describe_features, resolve_custom_key, set_custom_fields
 from rdetoolkit.nodes.io import (
     detect_encoding,
     list_excel_sheets,
@@ -70,6 +70,7 @@ __all__ = [
     "save_invoice",
     "set_custom_fields",
     "resolve_custom_key",
+    "describe_features",
     "save_figure",
     "save_html_figure",
     "parse_invoice_meta",

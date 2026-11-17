@@ -1,5 +1,5 @@
 """Issue 599 (remaining): image kinds, copy_file, save_image, read_lines,
-list_excel_sheets, detect_encoding and tar archives.
+list_excel_sheets, detect_encoding, tar archives and describe_features.
 
 EP table
 
@@ -26,6 +26,10 @@ EP table
 | unzip_inputs | tar with include_dirs | directory entries | directories listed | I599X-EP-013 |
 | unzip_inputs | tar traversal / absolute / link / outward dst link | containment | skipped with warning | I599X-NEG-007 |
 | unzip_inputs | neither ZIP nor tar | invalid | BadZipFile | I599X-NEG-008 |
+| describe_features | constant / variable / unit / existing text | Runner rule | same text as v1 updater | I599X-EP-014 |
+| describe_features | Metadata or metadata.json mapping, path or mapping def | inputs | same result, input unchanged | I599X-EP-015 |
+| describe_features | invoice without basic | invalid | ValueError | I599X-NEG-009 |
+| describe_features | flow with feature_description off | Runner parity | invoice equals the Runner's | I599X-EP-016 |
 | all new nodes | flow with strict type check | recorded calls | success | I599X-EP-017 |
 
 BV table
@@ -34,6 +38,7 @@ BV table
 |---|---|---|---|---|
 | read_lines | empty file / no final newline | zero and last line | [] / last line kept | I599X-BV-001 |
 | detect_encoding | empty file | zero bytes | "utf-8" | I599X-BV-002 |
+| describe_features | no _feature definition / no value | nothing to add | description unchanged | I599X-BV-003 |
 """
 
 from __future__ import annotations
@@ -51,8 +56,11 @@ import pandas as pd
 import pytest
 from PIL import Image
 
+from rdetoolkit.invoicefile import update_description_with_features
+from rdetoolkit.models.rde2types import RdeOutputResourcePath
 from rdetoolkit.nodes import (
     copy_file,
+    describe_features,
     detect_encoding,
     list_excel_sheets,
     read_excel,
@@ -63,7 +71,9 @@ from rdetoolkit.nodes import (
     to_png,
     unzip_inputs,
 )
-from rdetoolkit.types import OutputContext
+from rdetoolkit.testing.builders import make_output_context
+from rdetoolkit.types import InvoiceData, Metadata, OutputContext
+
 
 # Long enough that charset detection is not ambiguous (short CP932 text can read as UTF-8).
 _JA_LINES = ["測定値,単位", "温度,℃", "試料名称,酸化チタン粉末", "測定日時,二〇二六年十一月十七日"]
@@ -382,6 +392,77 @@ class TestUnzipTar:
         assert [path.name for path in unzip_inputs(archive, tmp_path / "out")] == ["m.txt"]
 
 
+_METADEF: dict[str, Any] = {
+    "temperature": {"name": {"ja": "温度", "en": "Temperature"}, "schema": {"type": "number"}, "unit": "K", "_feature": True},
+    "operator": {"name": {"ja": "測定者", "en": "Operator"}, "schema": {"type": "string"}, "_feature": True},
+    "sample": {"name": {"ja": "試料", "en": "Sample"}, "schema": {"type": "string"}, "variable": 1, "_feature": True},
+    "peak": {"name": {"ja": "ピーク", "en": "Peak"}, "schema": {"type": "number"}, "variable": 1, "_feature": True},
+    "comment": {"name": {"ja": "コメント", "en": "Comment"}, "schema": {"type": "string"}},
+    "absent": {"name": {"ja": "なし", "en": "Absent"}, "schema": {"type": "string"}, "_feature": True},
+}
+_METADATA = Metadata(
+    custom={"temperature": 300.5, "operator": "sono", "comment": "not a feature"},
+    variable=[{"sample": {"value": "A"}, "peak": {"value": 1.5}}, {"peak": {"value": 2}}],
+)
+
+
+def _v1_description(tmp_path: Path, description: str | None, metadata: Metadata, metadef: dict[str, Any]) -> str:
+    """Run v1 ``update_description_with_features`` on files and return the description."""
+    out = make_output_context(tmp_path / "v1")
+    invoice_path = _write(out.invoice / "invoice.json", json.dumps({"basic": {"description": description}}).encode())
+    schema = _write(tmp_path / "v1" / "invoice.schema.json", b"{}")
+    metadef_path = _write(tmp_path / "v1" / "metadata-def.json", json.dumps(metadef, ensure_ascii=False).encode())
+    constant = {key: {"value": value} for key, value in metadata.custom.items()}
+    _write(out.meta / "metadata.json", json.dumps({"constant": constant, "variable": metadata.variable}).encode())
+    resource = RdeOutputResourcePath(
+        raw=out.raw, nonshared_raw=out.nonshared_raw, rawfiles=(), struct=out.struct, main_image=out.main_image,
+        other_image=out.other_image, meta=out.meta, thumbnail=out.thumbnail, logs=out.logs, invoice=out.invoice,
+        invoice_schema_json=schema, invoice_org=invoice_path,
+    )
+    update_description_with_features(resource, invoice_path, metadef_path)
+    return str(json.loads(invoice_path.read_text(encoding="utf-8"))["basic"]["description"])
+
+
+class TestDescribeFeatures:
+    @pytest.mark.parametrize("description", [None, "", "既存の説明"])
+    def test_text_equals_the_v1_updater__i599x_ep_014(self, tmp_path: Path, description: str | None) -> None:
+        """I599X-EP-014: the description is the one v1 update_description_with_features writes."""
+        # Given: an invoice and metadata with constant, unit and variable features
+        invoice = InvoiceData(raw={"basic": {"description": description, "dataName": "d"}}, mode="invoice")
+        # When: describing the features
+        result = describe_features(invoice, _METADATA, _METADEF)
+        # Then: the text equals v1's, line by line
+        expected = _v1_description(tmp_path, description, _METADATA, _METADEF)
+        assert result.raw["basic"]["description"] == expected
+        assert expected.endswith("温度(K):300.5\n測定者:sono\n試料:A\nピーク:[1.5,2]")
+
+    def test_inputs_are_interchangeable_and_unchanged__i599x_ep_015(self, tmp_path: Path) -> None:
+        """I599X-EP-015: Metadata or a metadata.json mapping, path or mapping definition give one result."""
+        # Given: equivalent inputs in each form
+        raw = {"basic": {"description": "x"}, "custom": {"k": 1}}
+        invoice = InvoiceData(raw=raw, mode="invoice", schema={"s": 1})
+        metadef_path = _write(tmp_path / "metadata-def.json", json.dumps(_METADEF, ensure_ascii=False).encode("cp932"))
+        as_json = {"constant": {key: {"value": value} for key, value in _METADATA.custom.items()}, "variable": _METADATA.variable}
+        # When: describing with each combination
+        results = [describe_features(invoice, metadata, metadef) for metadata in (_METADATA, as_json) for metadef in (_METADEF, metadef_path)]
+        # Then: the results agree, keep mode and schema, and the input is unchanged
+        assert len({json.dumps(result.raw, ensure_ascii=False) for result in results}) == 1
+        assert all(result.mode == "invoice" and result.schema == {"s": 1} for result in results)
+        assert raw == {"basic": {"description": "x"}, "custom": {"k": 1}}
+
+    def test_invoice_without_basic__i599x_neg_009(self) -> None:
+        """I599X-NEG-009: an invoice without a basic object is refused."""
+        with pytest.raises(ValueError, match="'basic'"):
+            describe_features(InvoiceData(raw={}), _METADATA, _METADEF)
+
+    def test_nothing_to_add__i599x_bv_003(self) -> None:
+        """I599X-BV-003: no _feature definition or no value leaves the description unchanged."""
+        invoice = InvoiceData(raw={"basic": {"description": "keep"}})
+        plain = {"comment": _METADEF["comment"], "absent": _METADEF["absent"]}
+        assert describe_features(invoice, _METADATA, plain).raw["basic"]["description"] == "keep"
+        assert describe_features(InvoiceData(raw={"basic": {"description": None}}), Metadata(), _METADEF).raw["basic"]["description"] == ""
+
+
 def _dataset(root: Path, metadef: dict[str, Any]) -> None:
     from tests.v2.runner.test_event_log_robustness_k4 import _INVOICE, _build_tree
 
@@ -390,6 +471,43 @@ def _dataset(root: Path, metadef: dict[str, Any]) -> None:
     invoice["basic"]["description"] = "既存"
     (root / "data/invoice/invoice.json").write_text(json.dumps(invoice, ensure_ascii=False), encoding="utf-8")
     (root / "data/tasksupport/metadata-def.json").write_text(json.dumps(metadef, ensure_ascii=False), encoding="utf-8")
+
+
+def _tile_description(root: Path) -> str:
+    return str(json.loads((root / "data/invoice/invoice.json").read_text(encoding="utf-8"))["basic"]["description"])
+
+
+def test_node_matches_the_runner_stage__i599x_ep_016(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """I599X-EP-016: describe_features + save_invoice with the stage off equals the Runner's stage."""
+    from rdetoolkit import flow, workflows
+    from rdetoolkit.nodes import build_meta, save_invoice, save_meta
+    from rdetoolkit.types import InputPaths
+
+    values = {"temperature": 300.5, "operator": "sono"}
+    metadef = {key: _METADEF[key] for key in ("temperature", "operator", "comment")}
+
+    @flow
+    def by_runner(paths: InputPaths, out: OutputContext) -> None:
+        save_meta(build_meta(values, paths.tasksupport / "metadata-def.json"), out)
+
+    @flow
+    def by_node(paths: InputPaths, out: OutputContext, invoice: InvoiceData) -> None:
+        metadata = build_meta(values, paths.tasksupport / "metadata-def.json")
+        save_meta(metadata, out)
+        save_invoice(describe_features(invoice, metadata, paths.tasksupport / "metadata-def.json"), out)
+
+    # Given: two identical datasets
+    descriptions = []
+    for name, pipeline, enabled in (("runner", by_runner, True), ("node", by_node, False)):
+        root = tmp_path / name
+        _dataset(root, metadef)
+        monkeypatch.chdir(root)
+        # When: one relies on the Runner stage, the other on the node with the stage off
+        report = workflows.run(flow=pipeline, config={"system": {"feature_description": enabled}})
+        assert report.status == "success", report.error
+        descriptions.append(_tile_description(root))
+    # Then: both invoices carry the same description
+    assert descriptions[0] == descriptions[1] == "既存\n温度(K):300.5\n測定者:sono"
 
 
 def test_new_nodes_in_a_strict_flow__i599x_ep_017(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -223,6 +223,10 @@ v1 の文字コード判定ヘルパーを直接呼んでいたコードは、bu
 `unzip_inputs` は ZIP に加えて tar（`.tar`、`.tar.gz`、`.tar.bz2`、`.tar.xz`）も展開します。
 UTF-8 フラグのない ZIP のメンバー名は CP932 として復元されるため、`ZipFile.extractall` で
 cp437 のまま展開していた v1 コードとはファイル名が異なる場合があります。
+`_feature` 付きメタデータを送り状の説明文に書き込む処理を自分で行う場合は、
+`describe_features(invoice, metadata, metadef_path)` が Runner の `feature_description` と同じ書式で
+`basic.description` に追記した送り状を返します。その結果を `save_invoice` で保存するときは、
+同じ行が二重に追記されないよう `rdeconfig.yaml` の `system.feature_description` を `false` にしてください。
 
 v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
 `run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
