@@ -963,3 +963,24 @@ WARNING_CATALOG[1102] = WarningDef(
     name="InterpolationDiagnostic",
     message_template="Interpolation stage diagnostic: {reason}",
 )
+
+
+# --- invoice custom-field helpers (#621): raised by rdetoolkit.nodes.invoice as
+#     StructuredError(ecode=<code>), so a flow-level error_code does not remap them ---
+ERROR_CATALOG[4011] = ErrorDef(
+    name="InvoiceCustomKeyUndefined",
+    message_template="Field 'custom.{key}' is not defined in invoice.schema.json.",
+    remediation="Add the field to invoice.schema.json, or fix the key passed to set_custom_fields().",
+)
+
+ERROR_CATALOG[4012] = ErrorDef(
+    name="InvoiceCustomLabelUnknown",
+    message_template="Label '{label}' does not match any custom field label in invoice.schema.json.",
+    remediation="Check the spreadsheet header against label.ja / label.en in invoice.schema.json, or pass lang= to resolve_custom_key().",
+)
+
+ERROR_CATALOG[4013] = ErrorDef(
+    name="InvoiceCustomLabelAmbiguous",
+    message_template="Label '{label}' matches more than one custom field in invoice.schema.json: {keys}.",
+    remediation="Make the labels unique in invoice.schema.json, or pass lang= to resolve_custom_key() to restrict the match.",
+)

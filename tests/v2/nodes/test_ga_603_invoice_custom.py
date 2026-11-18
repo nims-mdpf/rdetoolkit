@@ -17,9 +17,9 @@ set_custom_fields          pd.NA / NumPy NaN / NaT     stored as None           
 set_custom_fields          NumPy scalars               cast as the Python value            GA603-EP-020
 set_custom_fields          empty string (default)      not applied, key left as is (#619)  GA603-EP-021
 set_custom_fields          keep_empty_strings=True     "" kept for string, else error      GA603-EP-022
-set_custom_fields          empty string, undeclared    StructuredError code 1              GA603-EP-023
+set_custom_fields          empty string, undeclared    StructuredError code 4011           GA603-EP-023
 set_custom_fields          non-string for plain string kept as given (#619 decision)       GA603-EP-024
-set_custom_fields          undeclared key              StructuredError code 1              GA603-EP-008
+set_custom_fields          undeclared key              StructuredError code 4011           GA603-EP-008
 set_custom_fields          uncastable value            StructuredError code 1, v1 message  GA603-EP-009
 set_custom_fields          unparseable date / object   StructuredError code 1, chained     GA603-EP-010
 set_custom_fields          unsupported schema type     StructuredError code 1              GA603-EP-011
@@ -27,9 +27,10 @@ set_custom_fields          no schema anywhere          ValueError               
 set_custom_fields          schema path / non-object    loaded / ValueError                 GA603-EP-013
 set_custom_fields          cast=False                  verbatim, schema not read           GA603-EP-014
 resolve_custom_key         ja / en label               key                                 GA603-EP-015
-resolve_custom_key         unknown label               StructuredError code 1              GA603-EP-016
-resolve_custom_key         label on two keys           StructuredError code 1, both keys   GA603-EP-017
+resolve_custom_key         unknown label               StructuredError code 4012           GA603-EP-016
+resolve_custom_key         label on two keys           StructuredError 4013, both keys     GA603-EP-017
 resolve_custom_key         lang restriction            other language not matched          GA603-EP-018
+@flow(error_code=7)        4011 / 4012 / 4013 raised   catalog code + remediation kept     GA603-EP-025
 =========================  ==========================  ==================================  ================
 
 BV table
@@ -63,10 +64,13 @@ import pandas as pd
 import pytest
 from hypothesis import given, strategies as st
 
+from rdetoolkit import flow, workflows
+from rdetoolkit.errors import ERROR_CATALOG
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.nodes import read_excel, resolve_custom_key, save_invoice, set_custom_fields
 from rdetoolkit.rde2util import castval
 from rdetoolkit.types import InvoiceData, OutputContext
+from tests.v2.runner.test_event_log_robustness_k4 import _build_tree
 
 SCHEMA: dict[str, Any] = {
     "properties": {
@@ -101,6 +105,12 @@ def _invoice(custom: dict[str, Any] | None = None, *, schema: dict[str, Any] | N
 
 def _custom(updates: dict[str, Any]) -> dict[str, Any]:
     return set_custom_fields(_invoice({}), updates).raw["custom"]
+
+
+def _catalog_message(code: int, **fields: str) -> str:
+    """Return the message a catalogued custom-field error carries (#621)."""
+    definition = ERROR_CATALOG[code]
+    return f"{definition.message_template.format(**fields)} Remediation: {definition.remediation}"
 
 
 def _cast_error(updates: dict[str, Any]) -> StructuredError:
@@ -242,9 +252,10 @@ class TestCastFailures:
         """GA603-EP-008: a key outside the schema is rejected with the SmartTable message."""
         # Given/When: updating a key the schema does not declare
         error = _cast_error({"unknown_key": "1"})
-        # Then: a StructuredError with code 1 names the field
-        assert error.ecode == 1
-        assert str(error) == "Field 'custom.unknown_key' is not defined in invoice.schema.json."
+        # Then: a StructuredError with the catalog code 4011 names the field and the remediation
+        assert error.ecode == 4011
+        assert str(error) == _catalog_message(4011, key="unknown_key")
+        assert str(error).startswith("Field 'custom.unknown_key' is not defined in invoice.schema.json. Remediation: ")
 
     @pytest.mark.parametrize(("key", "value", "expected_type"), [("count", "abc", "integer"), ("count", "1e3", "integer"), ("power", "W", "number"), ("enabled", "yes", "boolean"), ("count", True, "integer")])
     def test_uncastable_value__ga603_ep_009(self, key: str, value: Any, expected_type: str) -> None:
@@ -395,18 +406,20 @@ class TestResolveCustomKey:
         # Given/When: text that is no custom field label
         with pytest.raises(StructuredError) as info:
             resolve_custom_key(SCHEMA, label)
-        # Then: code 1 and a message naming the label
-        assert info.value.ecode == 1
-        assert str(info.value) == f"Label '{label}' does not match any custom field label in invoice.schema.json."
+        # Then: code 4012 and a message naming the label, with the remediation
+        assert info.value.ecode == 4012
+        assert str(info.value) == _catalog_message(4012, label=label)
+        assert str(info.value).startswith(f"Label '{label}' does not match any custom field label in invoice.schema.json. Remediation: ")
 
     def test_ambiguous_label__ga603_ep_017(self) -> None:
         """GA603-EP-017: a label shared by two keys is rejected, naming both."""
         # Given/When: the ja label carried by note_a and note_b
         with pytest.raises(StructuredError) as info:
             resolve_custom_key(SCHEMA, "備考")
-        # Then: both keys are listed in schema order
-        assert info.value.ecode == 1
-        assert str(info.value) == "Label '備考' matches more than one custom field in invoice.schema.json: note_a, note_b."
+        # Then: code 4013, and both keys are listed in schema order
+        assert info.value.ecode == 4013
+        assert str(info.value) == _catalog_message(4013, label="備考", keys="note_a, note_b")
+        assert str(info.value).startswith("Label '備考' matches more than one custom field in invoice.schema.json: note_a, note_b. Remediation: ")
 
     def test_lang_restriction__ga603_ep_018(self) -> None:
         """GA603-EP-018: lang restricts matching, which also disambiguates."""
@@ -440,6 +453,37 @@ class TestResolveCustomKey:
         # Then: setting a field also reports it as undeclared
         with pytest.raises(StructuredError, match="is not defined"):
             set_custom_fields(_invoice({}, schema=schema), {"x": "1"})
+
+
+class TestCatalogCodesInRun:
+    @pytest.mark.parametrize(
+        ("call", "code"),
+        [
+            (lambda: set_custom_fields(_invoice({}), {"unknown_key": "1"}), 4011),
+            (lambda: resolve_custom_key(SCHEMA, "Unknown"), 4012),
+            (lambda: resolve_custom_key(SCHEMA, "備考"), 4013),
+        ],
+        ids=["undefined-key", "unknown-label", "ambiguous-label"],
+    )
+    def test_flow_error_code_does_not_remap__ga603_ep_025(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, call: Any, code: int) -> None:
+        """GA603-EP-025: the catalog code and remediation reach job.failed through @flow(error_code=7)."""
+        # Given: a flow declaring a generic error code whose body hits a schema mismatch
+        _build_tree(tmp_path / "data")
+        monkeypatch.chdir(tmp_path)
+
+        @flow(error_code=7, error_message="generic failure")
+        def pipeline() -> None:
+            call()
+
+        # When: running it
+        report = workflows.run(flow=pipeline, config={"system": {"save_thumbnail_image": False}})
+        # Then: the helper's catalog code and remediation win over the declaration
+        job_failed = (tmp_path / "data" / "job.failed").read_text(encoding="utf-8")
+        assert report.error is not None
+        assert report.error["code"] == code
+        assert f"ErrorCode={code}" in job_failed
+        assert f"Remediation: {ERROR_CATALOG[code].remediation}" in job_failed
+        assert "generic failure" not in job_failed
 
 
 class TestEmptyStrings:
@@ -485,8 +529,8 @@ class TestEmptyStrings:
         # Given/When: an empty string under a key the schema does not declare
         error = _cast_error({"unknown_key": ""})
         # Then: the undeclared-key error, as for any other value
-        assert error.ecode == 1
-        assert str(error) == "Field 'custom.unknown_key' is not defined in invoice.schema.json."
+        assert error.ecode == 4011
+        assert str(error) == _catalog_message(4011, key="unknown_key")
 
     def test_cast_false_stores_empty_string(self) -> None:
         """GA603-EP-014: cast=False stays verbatim, so empty strings are stored."""

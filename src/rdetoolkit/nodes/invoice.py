@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from rdetoolkit.core.node import node
+from rdetoolkit.errors import ERROR_CATALOG
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json
 from rdetoolkit.invoicefile._description import compose_feature_description
@@ -35,6 +36,16 @@ def _load_schema(schema: Mapping[str, Any] | Path | None, invoice: InvoiceData |
         msg = "No invoice schema: pass schema= (a mapping or the path to invoice.schema.json)"
         raise ValueError(msg)
     return resolved
+
+
+def _catalog_error(code: int, **fields: str) -> StructuredError:
+    """Return a ``StructuredError`` carrying a catalog code and its remediation (#621).
+
+    A ``StructuredError`` keeps its own code through ``@flow(error_code=...)``,
+    and the remediation reaches ``job.failed`` through the message.
+    """
+    definition = ERROR_CATALOG[code]
+    return StructuredError(f"{definition.message_template.format(**fields)} Remediation: {definition.remediation}", ecode=code)
 
 
 def _custom_definitions(schema: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -83,8 +94,7 @@ def _cast_value(value: Any, value_type: Any, fmt: str | None) -> Any:
 def _definition(key: str, definitions: Mapping[str, Any]) -> Mapping[str, Any]:
     definition = definitions.get(key)
     if not isinstance(definition, Mapping):
-        msg = f"Field 'custom.{key}' is not defined in invoice.schema.json."
-        raise StructuredError(msg)
+        raise _catalog_error(4011, key=key)
     return definition
 
 
@@ -158,8 +168,9 @@ def set_custom_fields(
         A new ``InvoiceData`` with the same mode and schema.
 
     Raises:
-        StructuredError: If a key is not declared in the schema, or a value
-            does not match its declared type (the v1 message, code 1).
+        StructuredError: If a key is not declared in the schema (code 4011
+            ``InvoiceCustomKeyUndefined``), or a value does not match its
+            declared type (the v1 message, code 1).
         ValueError: If casting is requested and no schema is available.
     """
     raw = copy.deepcopy(invoice.raw)
@@ -200,7 +211,9 @@ def resolve_custom_key(schema: Mapping[str, Any] | Path, label: str, *, lang: Li
         The key under ``properties.custom.properties``.
 
     Raises:
-        StructuredError: If no field, or more than one field, has the label.
+        StructuredError: If no field has the label (code 4012
+            ``InvoiceCustomLabelUnknown``), or more than one field has it
+            (code 4013 ``InvoiceCustomLabelAmbiguous``).
     """
     wanted = label.strip()
     languages: tuple[str, ...] = (lang,) if lang is not None else _LABEL_LANGUAGES
@@ -208,10 +221,8 @@ def resolve_custom_key(schema: Mapping[str, Any] | Path, label: str, *, lang: Li
     if len(matches) == 1:
         return matches[0]
     if not matches:
-        msg = f"Label '{wanted}' does not match any custom field label in invoice.schema.json."
-        raise StructuredError(msg)
-    msg = f"Label '{wanted}' matches more than one custom field in invoice.schema.json: {', '.join(matches)}."
-    raise StructuredError(msg)
+        raise _catalog_error(4012, label=wanted)
+    raise _catalog_error(4013, label=wanted, keys=", ".join(matches))
 
 
 def _metadata_json(metadata: Metadata | Mapping[str, Any]) -> Mapping[str, Any]:
