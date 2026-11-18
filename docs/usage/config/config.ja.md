@@ -161,9 +161,12 @@ system:
   extended_mode: "MultiDataTile" # マルチデータタイルモード
 ```
 
-`null` とキーの省略は「未指定」を表し、値は既定の `"invoice"` になります。
-未指定と `"invoice"` の明示指定は区別され、`config_digest` も異なります。
-Python から型付きで設定する場合は `None` を渡さず、引数を省略してください。
+v2 の設定モデル（`RdeConfig` / `V2SystemSettings`）では、`null` とキーの省略は
+「未指定」を表し、検証後の値は既定の `"invoice"` になります。未指定と
+`"invoice"` の明示指定は区別され、`config_digest` も異なります。型付きの Python
+コードで `V2SystemSettings` を生成する場合は `None` を渡さず、引数を省略してください。
+v1 の設定モデル（`rdetoolkit.models.config.SystemSettings`）の挙動は変わりません。
+`extended_mode` の既定値は `None` のままで、`"invoice"` は値として受け付けません。
 
 ### 処理モード
 
