@@ -106,6 +106,24 @@
             },
             "reason": {
               "type": "string"
+            },
+            "checks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "not_checked": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "tiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/graph_tile"
+              }
             }
           },
           "required": [
@@ -437,6 +455,126 @@
         "code",
         "message",
         "remediation"
+      ]
+    },
+    "graph_tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/graph_file"
+          }
+        }
+      },
+      "required": [
+        "index",
+        "files"
+      ]
+    },
+    "graph_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "detected",
+            "ambiguous",
+            "unreadable",
+            "skipped"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "reader": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "reader_id": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "reader_id",
+              "confidence",
+              "evidence"
+            ]
+          }
+        },
+        "encoding": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "delimiter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "column_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "data_rows": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sampled_rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "status",
+        "reason",
+        "reader",
+        "candidates",
+        "encoding",
+        "delimiter",
+        "column_count",
+        "data_rows",
+        "sampled_rows",
+        "truncated"
       ]
     }
   }

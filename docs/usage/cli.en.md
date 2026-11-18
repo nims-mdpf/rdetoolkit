@@ -422,6 +422,8 @@ Runs structured processing from the project root. The Runner reads `data/inputda
 | --legacy | Run a v1 dataset function, as passed to `workflows.run(custom_dataset_function=...)` |
 | --config | YAML overrides merged over the discovered `rdeconfig.yaml` (v2 flows only) |
 | --validate-only | Check the config, mode, and invoice without calling the flow (v2 flows only). In ExcelInvoice / SmartTable mode only the invoice files and the schema are checked, because the rows complete the invoice. Writes no outputs |
+| --explain | With `--validate-only`: explain the current input snapshot instead of validating through a run. Prints the selected mode and its reasons, the tile plan, artifact stages, the config source, a magic variable preview, a graph input preview and warnings. The flow module is not imported, `prepare=` and the flow are not called, and nothing is written |
+| --format | `text` (default) or `json`, with `--explain` only. JSON follows the checked-in schema `rdetoolkit/static/registration-explain.schema.json` (`schema_version` `"1"`) and is printed with sorted keys, so repeated runs on the same inputs give identical bytes. A failure prints one `{"status": "failed", "error": ...}` envelope on stdout and exits 1 |
 
 Outputs: the RDE output tree under `data/` (`structured/`, `meta/`, `raw/`, images, `logs/`, and `job.failed` on failure). A v2 run prints the run report JSON and saves it as `data/logs/run_report_<run_id>.json`; a v1 run prints the legacy status JSON.
 
@@ -442,6 +444,12 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 1 | The run failed (or validation failed) |
 | 2 | Partial: some tiles failed (also used by the parser for an unknown option) |
 | 3 | Invalid REF, unresolvable flow, unreadable `--config`, or options that do not apply to `--legacy` |
+
+```bash title="Explain the registration plan as JSON without running the flow"
+python3 -m rdetoolkit run modules.processing:pipeline --validate-only --explain --format json
+```
+
+The `graph_preview` section reports, for every `.csv` and `.tsv` input of every tile, how the Graph Engine's builtin table detection would read it: `detected` with the selected reader (`standard`, `noheader`, `transpose`, `meta_block`), `ambiguous` with every candidate, its confidence and evidence, or `unreadable` for an empty or unreadable file. It also gives the encoding, delimiter, column count and data-row count. Column names and cell values are never printed. Inputs inside an archive that is extracted only at run time (SmartTable, ExcelInvoice, RDEFormat) are `skipped`, and the section is `deferred` when nothing else is tabular. Reader plugins, the flow's own plot settings and rendering are not checked, so name the reader with `csv_format=<id>` or `--csv-format <id>` when a file is `ambiguous`.
 
 ### test: Run the Project's pytest Tests
 

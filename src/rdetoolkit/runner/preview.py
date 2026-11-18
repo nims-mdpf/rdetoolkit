@@ -18,6 +18,7 @@ from rdetoolkit.errors import RdeValidationError
 from rdetoolkit.fileops import readf_json
 from rdetoolkit.modes.stages import ArtifactStage, StageSpec, artifact_stage_order, describe_artifact_stages
 from rdetoolkit.runner.config_loader import load_run_config
+from rdetoolkit.runner.graph_preview import GraphPreview, preview_graph_inputs
 from rdetoolkit.runner.input_snapshot import InputGroup, InputSnapshot, discover_input_snapshot
 from rdetoolkit.runner.lifecycle import Runner
 from rdetoolkit.runner.paths import TileOutputPaths, resolve_data_root, resolve_tile_paths
@@ -88,6 +89,7 @@ class RegistrationPreview:
     deterministic_order: bool
     warnings: tuple[str, ...]
     magic: MagicPreview
+    graph: GraphPreview
     schema_version: str = "1"
 
     def to_dict(self) -> dict[str, Any]:
@@ -109,7 +111,7 @@ class RegistrationPreview:
             "warnings": list(self.warnings),
             "preparation": {"status": "not_invoked", "reason": "current_input_snapshot_only"},
             "magic_preview": self.magic.to_dict(),
-            "graph_preview": {"status": "unavailable", "reason": "graph_preview_api_pending"},
+            "graph_preview": self.graph.to_dict(),
         }
 
 
@@ -269,4 +271,5 @@ def preview_registration(root: Path, *, overrides: Mapping[str, Any] | None = No
         deterministic_order=snapshot.deterministic_order,
         warnings=tuple(warnings),
         magic=_magic_preview(snapshot.mode, invoice, tiles, snapshot, magic_options),
+        graph=preview_graph_inputs(snapshot.groups),
     )
