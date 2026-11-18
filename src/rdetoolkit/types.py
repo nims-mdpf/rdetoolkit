@@ -314,7 +314,16 @@ class IterationInfo:
 
 
 class V2SystemSettings(BaseModel):
-    """Strict v2 system settings normalized by the Runner."""
+    """Strict v2 system settings normalized by the Runner.
+
+    ``extended_mode`` is always a ``str`` after validation. Omitting it means
+    "not set": the ``"invoice"`` default applies and the field stays out of
+    ``model_fields_set``, which keeps it distinct from an explicit
+    ``"invoice"`` in mode resolution, the config digest and ``repro``.
+    Mapping and YAML input may spell "not set" as ``None`` / ``null``
+    (Design §6.2). Typed Python code omits the argument instead; ``None`` is
+    not part of the typed constructor signature (#609).
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -329,7 +338,7 @@ class V2SystemSettings(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _omit_null_mode(cls, data: Any) -> Any:
-        """Keep a null mode out of model_fields_set for W1001 (Design §6.2)."""
+        """Treat a null mode in mapping input as omitted (Design §6.2, #609)."""
         if isinstance(data, Mapping) and data.get("extended_mode") is None:
             data = dict(data)
             data.pop("extended_mode", None)

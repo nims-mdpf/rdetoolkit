@@ -408,6 +408,14 @@ For v2 flows, a conflicting mode explicitly set as a string raises a catalogued
 configuration error. Only the v1 callback entry retains the detection override
 and W1001 (Design §6.2).
 
+After validation, `config.system.extended_mode` is always a `str`. An unset
+mode and an explicit `"invoice"` stay distinct through mode resolution,
+`config_digest`, and `repro` export → import → run. To leave the mode unset in
+typed Python code, omit the argument rather than calling
+`V2SystemSettings(extended_mode=None)`. Pass `None` only in mappings
+(`load_run_config(overrides=...)` or `RdeConfig.model_validate(...)`), or write
+`null` in YAML. Type checkers report `extended_mode=None` as an `arg-type` error.
+
 ## Runtime changes
 
 In a production `main.py`, opt into nonzero exits for failed or partial runs.

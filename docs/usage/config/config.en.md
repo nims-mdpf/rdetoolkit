@@ -182,6 +182,15 @@ system:
   extended_mode: "MultiDataTile"    # Multi-data-tile mode
 ```
 
+For the v2 configuration model (`RdeConfig` / `V2SystemSettings`), `null` and
+an omitted key both mean "not set", and the validated value becomes the
+default `"invoice"`. An unset mode and an explicit `"invoice"` stay distinct
+and produce different `config_digest` values. When constructing
+`V2SystemSettings` in typed Python code, omit the argument instead of passing
+`None`. The legacy v1 model (`rdetoolkit.models.config.SystemSettings`) is
+unchanged: its `extended_mode` defaults to and keeps `None`, and it does not
+accept `"invoice"` as a value.
+
 ### Processing Modes
 
 Choose the `extended_mode` value that matches your workflow. The **[Data Registration Modes](../mode/mode.en.md)** documentation describes prerequisites, inputs, and expected outputs for every mode.

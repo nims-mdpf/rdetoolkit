@@ -370,6 +370,14 @@ W1001 は出ません。文字列で明示したモードと検出結果が競�
 v2 flow はカタログ登録済みの設定エラーにします。検出結果による上書きと
 W1001 を維持するのは v1 callback 経路だけです（Design §6.2）。
 
+検証後の `config.system.extended_mode` は常に `str` です。未指定と、
+文字列 `"invoice"` の明示指定は区別されたまま、モード解決・`config_digest`・
+`repro` の export → import → run に引き継がれます。型付きの Python コードで
+モードを未指定にするときは、`V2SystemSettings(extended_mode=None)` とせず
+引数を省略してください。`None` を渡すのはマッピング（`load_run_config(overrides=...)`
+や `RdeConfig.model_validate(...)`）と YAML の `null` だけです。型チェッカーは
+`extended_mode=None` を `arg-type` エラーにします。
+
 ## 実行時の変更点
 
 本番の `main.py` では、失敗・一部失敗をプロセスの終了コードへ反映する指定を追加してください。
