@@ -94,6 +94,8 @@ def test_run_level_invoice_backup_matches_v1_mode_contract__tc_g0_backup(
     unpacked = data_root / "temp"
     for path in (inputdata, invoice_dir, tasksupport, unpacked):
         path.mkdir(parents=True)
+    # The Runner's pre_validate guarantees this file; the injected invoice carries it (#620).
+    (tasksupport / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
     source = {"datasetId": "source", "basic": {"dataName": "original"}}
     source_path = invoice_dir / "invoice.json"
     source_path.write_text(json.dumps(source), encoding="utf-8")
@@ -169,6 +171,8 @@ def test_invoice_backup_is_root_relative_across_layout_cwd_mode_matrix__tc_gr_ba
     unpacked = data_root / "temp"
     for path in (inputdata, invoice_dir, tasksupport, unpacked):
         path.mkdir(parents=True)
+    # The Runner's pre_validate guarantees this file; the injected invoice carries it (#620).
+    (tasksupport / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
     source = {"datasetId": f"{layout}-{cwd_relation}", "basic": {"dataName": mode.value}}
     (invoice_dir / "invoice.json").write_text(json.dumps(source), encoding="utf-8")
     rawfile = inputdata / ("source.xlsx" if mode is ModeKind.excelinvoice else "source.dat")
@@ -289,6 +293,8 @@ def test_backup_is_written_even_without_tiles__tc_i6_1_ev_071(
     data_root = tmp_path / "data"
     for name in ("inputdata", "invoice", "tasksupport", "temp"):
         (data_root / name).mkdir(parents=True)
+    # The Runner's pre_validate guarantees this file; the injected invoice carries it (#620).
+    (data_root / "tasksupport" / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
     source = {"basic": {"dataName": "seed"}}
     (data_root / "invoice" / "invoice.json").write_text(json.dumps(source), encoding="utf-8")
     monkeypatch.setattr("rdetoolkit.runner.planner.iterate_tiles", lambda *args, **kwargs: iter(()))

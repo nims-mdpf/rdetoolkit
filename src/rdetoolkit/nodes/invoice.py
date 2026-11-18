@@ -147,7 +147,8 @@ def set_custom_fields(
         updates: New values keyed by custom field key. Use
             ``resolve_custom_key`` to translate schema labels.
         schema: ``invoice.schema.json`` as a mapping or a path. Defaults to
-            ``invoice.schema``.
+            ``invoice.schema``, which the Runner fills with
+            ``tasksupport/invoice.schema.json`` in every mode.
         cast: When false, values are stored as given and the schema is not
             read, so undeclared keys are accepted. Empty strings are then
             stored as well.
