@@ -68,8 +68,11 @@ jobs:
           .venv/bin/python -m pytest --collect-only -q ${{ matrix.paths }} > ci-results/nodeids-${{ matrix.shard }}.txt
       - name: Run the shard
         # Thresholds apply to the combined data in full-suite, not per shard.
+        # The plugin loads HYPOTHESIS_PROFILE in every shard; only
+        # tests/property/conftest.py defines the profiles, and only one shard
+        # collects that directory.
         run: |
-          .venv/bin/python -m pytest ${{ matrix.paths }} --durations=30 \
+          .venv/bin/python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} --durations=30 \
             --junitxml=ci-results/junit-${{ matrix.shard }}.xml \
             --cov-config=pyproject.toml --cov=rdetoolkit --cov-report=
       - name: Validate the shard's report set

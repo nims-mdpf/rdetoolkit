@@ -17,6 +17,7 @@ EP table (written before implementation):
 | report absent or empty | report validation fails | CI-012 |
 | shard listings vs complete collection | missing, extra, duplicate, empty fail | CI-013 |
 | shard matrix result | only success passes the aggregate | CI-014 |
+| Hypothesis profile in a shard without tests/property | CI profile loaded by the plugin | CI-016 |
 | shard coverage data | gates apply to the combined data; absent shard fails | CI-015 |
 
 BV table:
@@ -26,7 +27,8 @@ BV table:
 | total coverage 79%, 80% | fail, pass | CI-009 |
 | scoped coverage 94%, 95% | fail, pass | CI-008, CI-010 |
 | full-suite gate has zero positional arguments | scoped checks cannot skip | CI-002 |
-| ID drift, same function and count / changed count | pass / fail | CI-013 |
+| ID drift in the known unstable function, same count / changed count | pass / fail | CI-013 |
+| same-count substitution in an ordinary parametrized function | fail | CI-013 |
 
 Flow semantics and RDE error codes are outside this workflow-only change.
 """
@@ -63,6 +65,7 @@ REMAINDER = next(
     for entry in yaml.load((ROOT / ".github/workflows/v2-ci.yml").read_text(encoding="utf-8"), Loader=yaml.BaseLoader)["jobs"]["pytest-shard"]["strategy"]["matrix"]["include"]  # noqa: S506
     if entry["paths"].startswith("tests ")
 )
+PROFILE_PLUGIN = "scripts.pytest_hypothesis_profile"
 FORBIDDEN_SELECTION = ("-m", "-k", "-o", "--override-ini", "--deselect", "-x", "--exitfirst", "--lf", "--last-failed", "||")
 
 
@@ -119,10 +122,13 @@ def _shard_policy(job: dict[str, Any]) -> None:
     collect_commands = [command for command in commands if command[:3] == ["python", "-m", "pytest"] and "--collect-only" in command]
     assert len(pytest_commands) == 1
     assert len(collect_commands) == 1
-    for command in (*pytest_commands, *collect_commands):
-        assert command[3 + ("--collect-only" in command) * 2 :][:1] == ["${{matrix.paths}}"]
-        assert not any(token in command[3:] for token in FORBIDDEN_SELECTION)
-        assert not any(token.startswith(("tests", "--ignore", "--deselect", "--override-ini", "-p")) for token in command[3:])
+    # Only tests/property/conftest.py defines the Hypothesis profiles, so every
+    # shard run loads them through the plugin before importing test modules.
+    assert pytest_commands[0][3:6] == ["-p", PROFILE_PLUGIN, "${{matrix.paths}}"]
+    for command in (pytest_commands[0][5:], collect_commands[0][5:]):
+        assert command[:1] == ["${{matrix.paths}}"]
+        assert not any(token in command for token in FORBIDDEN_SELECTION)
+        assert not any(token.startswith(("tests", "--ignore", "--deselect", "--override-ini", "-p")) for token in command)
     command = pytest_commands[0]
     assert "--cov=rdetoolkit" in command
     assert "--cov-config=pyproject.toml" in command
@@ -272,11 +278,13 @@ def _mutate(workflow: dict[str, Any], job_name: str, original: str, replacement:
         ("pytest-shard", "--cov=rdetoolkit", "--cov=rdetoolkit.runner"),
         ("pytest-shard", "--cov-config=pyproject.toml", "--cov-config=/dev/null"),
         ("pytest-shard", "--durations=30", "--durations=0"),
-        ("pytest-shard", "python -m pytest ${{ matrix.paths }} --durations", "python -m pytest ${{ matrix.paths }} -m 'not graph_outputs' --durations"),
-        ("pytest-shard", "python -m pytest ${{ matrix.paths }} --durations", "python -m pytest ${{ matrix.paths }} -o addopts='' --durations"),
-        ("pytest-shard", "python -m pytest ${{ matrix.paths }} --durations", "python -m pytest ${{ matrix.paths }} -k 'not slow' --durations"),
-        ("pytest-shard", "python -m pytest ${{ matrix.paths }} --durations", "python -m pytest ${{ matrix.paths }} -x --durations"),
+        ("pytest-shard", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} --durations", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} -m 'not graph_outputs' --durations"),
+        ("pytest-shard", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} --durations", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} -o addopts='' --durations"),
+        ("pytest-shard", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} --durations", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} -k 'not slow' --durations"),
+        ("pytest-shard", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} --durations", "python -m pytest -p scripts.pytest_hypothesis_profile ${{ matrix.paths }} -x --durations"),
         ("pytest-shard", "--collect-only -q ${{ matrix.paths }}", "--collect-only -q tests/v2"),
+        ("pytest-shard", "-p scripts.pytest_hypothesis_profile ", ""),
+        ("pytest-shard", "-p scripts.pytest_hypothesis_profile ", "-p no:hypothesispytest "),
         ("full-suite", 'test "$SHARDS" = success', 'test "$SHARDS" = success || true'),
         ("full-suite", "--collect-only -q tests/", "--collect-only -q tests/v2"),
         ("full-suite", " shards/nodeids-remainder.txt", ""),
@@ -522,7 +530,8 @@ def _listing(path: Path, nodeids: list[str]) -> Path:
     return path
 
 
-FULL = ["tests/test_a.py::test_one", "tests/v2/test_b.py::test_two[x]", "tests/v2/test_b.py::test_two[\\x1f\\x8b\\x01]", "tests/v2/test_c.py::TestC::test_three"]
+UNSTABLE = "tests/v2/nodes/test_issue_627_render_png.py::TestSvg::test_svg_is_rasterized_at_its_own_size"
+FULL = ["tests/test_a.py::test_one", f"{UNSTABLE}[x]", f"{UNSTABLE}[\\x1f\\x8b\\x01]", "tests/v2/test_c.py::TestC::test_three", "tests/v2/test_b.py::test_mode[safe]", "tests/v2/test_b.py::test_mode[unsafe]"]
 
 
 @pytest.mark.parametrize(
@@ -534,11 +543,12 @@ FULL = ["tests/test_a.py::test_one", "tests/v2/test_b.py::test_two[x]", "tests/v
         (FULL[:2], FULL[1:], False),
         ([], FULL, False),
         (FULL[:1], [*FULL[1:], FULL[3]], False),
-        (FULL[:1], [FULL[1], "tests/v2/test_b.py::test_two[\\x1f\\x8b\\x02]", FULL[3]], True),
-        (FULL[:1], [FULL[1], FULL[3]], False),
-        (FULL[:1], [FULL[1], "tests/v2/test_b.py::test_two[\\x1f\\x8b\\x02]", "tests/v2/test_b.py::test_two[\\x1f\\x8b\\x03]", FULL[3]], False),
+        (FULL[:1], [FULL[1], f"{UNSTABLE}[\\x1f\\x8b\\x02]", *FULL[3:]], True),
+        (FULL[:1], [FULL[1], *FULL[3:]], False),
+        (FULL[:1], [FULL[1], f"{UNSTABLE}[\\x1f\\x8b\\x02]", f"{UNSTABLE}[\\x1f\\x8b\\x03]", *FULL[3:]], False),
+        (FULL[:1], [*FULL[1:5], "tests/v2/test_b.py::test_mode[unrelated]"], False),
     ],
-    ids=["exact", "missing", "extra", "duplicate", "empty-shard", "repeated", "id-drift", "drift-missing", "drift-extra"],
+    ids=["exact", "missing", "extra", "duplicate", "empty-shard", "repeated", "id-drift", "drift-missing", "drift-extra", "ordinary-substitution"],
 )
 def test_partition_check__ci_013(tmp_path: Path, root: list[str], v2: list[str], passes: bool) -> None:
     """CI-013: the real partition script fails on any missing, extra or duplicate case."""
@@ -547,7 +557,7 @@ def test_partition_check__ci_013(tmp_path: Path, root: list[str], v2: list[str],
     shards = [_listing(tmp_path / "nodeids-tests-root.txt", root), _listing(tmp_path / "nodeids-tests-v2.txt", v2)]
     # When: executing the script exactly as the aggregate job does.
     result = subprocess.run([sys.executable, str(ROOT / "scripts/check_test_partition.py"), str(full), *map(str, shards)], capture_output=True, text=True, check=False)
-    # Then: only an exact partition, up to same-function ID drift, passes.
+    # Then: only an exact partition, up to ID drift in the known unstable function, passes.
     assert (result.returncode == 0) is passes, result.stdout + result.stderr
 
 
@@ -593,3 +603,33 @@ def test_gates_apply_to_combined_coverage__ci_015(tmp_path: Path, last: int | No
     assert (result.returncode == 0) is passes, result.stdout + result.stderr
     if passes:
         assert (tmp_path / "ci-results" / "coverage.json").stat().st_size > 0
+
+
+PROBE = """
+from hypothesis import settings
+
+
+def test_probe():
+    print("PROFILE", settings.default.max_examples, settings.default.deadline.total_seconds())
+"""
+
+
+@pytest.mark.parametrize(("plugin", "profile"), [(True, "50 5.0"), (False, "100 0.2")], ids=["plugin", "conftest-only"])
+def test_every_shard_loads_the_ci_profile__ci_016(tmp_path: Path, plugin: bool, profile: str) -> None:
+    """CI-016: a shard that does not collect tests/property still runs the CI profile."""
+    # Given: a test outside tests/property, as in every shard but contracts-property.
+    probe = tmp_path / "test_probe.py"
+    probe.write_text(PROBE, encoding="utf-8")
+    arguments = ["-p", PROFILE_PLUGIN] if plugin else []
+    # When: running pytest from the repository root as the shard step does.
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", *arguments, "-c", os.devnull, "-p", "no:cacheprovider", "-q", "-s", str(probe)],
+        cwd=ROOT,
+        env={**os.environ, "HYPOTHESIS_PROFILE": "ci"},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    # Then: the plugin loads the profile; without it Hypothesis keeps its defaults.
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"PROFILE {profile}" in result.stdout

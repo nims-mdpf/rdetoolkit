@@ -8,11 +8,13 @@ Each file is ``pytest --collect-only -q`` output. Every shard must be non-empty,
 no node ID may be selected by two shards, and the union of the shards must
 equal the complete collection.
 
-A node ID is allowed to differ between two collections only when its
-parametrization text is not reproducible (``drawing.SVGZ`` embeds gzip bytes,
-which contain a timestamp). Such drift is accepted only when the missing and
-the extra IDs name the same test functions the same number of times, so a
-missing or an extra case still fails.
+Node IDs are compared exactly. The only exception is a test function listed in
+``UNSTABLE_PARAMETRIZATION``, whose parametrization text is not reproducible
+between two collections (``drawing.SVGZ`` embeds gzip bytes, which contain a
+timestamp). For those functions alone, a missing and an extra ID are accepted
+when they name the same function the same number of times. Any other
+difference, including a same-count substitution in an ordinary parametrized
+function, fails.
 
 Exit code 0 = exact partition, 1 = missing, extra, duplicate or empty selection.
 """
@@ -22,6 +24,13 @@ from __future__ import annotations
 import sys
 from collections import Counter
 from pathlib import Path
+
+
+UNSTABLE_PARAMETRIZATION = frozenset(
+    {
+        "tests/v2/nodes/test_issue_627_render_png.py::TestSvg::test_svg_is_rasterized_at_its_own_size",
+    },
+)
 
 
 def read_nodeids(path: Path) -> list[str]:
@@ -63,12 +72,15 @@ def check(full: list[str], shards: dict[str, list[str]]) -> list[str]:
     expected = Counter(full)
     missing = expected - selected
     extra = selected - expected
-    if Counter(map(_function, missing.elements())) != Counter(map(_function, extra.elements())):
-        problems += [f"missing from every shard: {nodeid}" for nodeid in sorted(missing)]
-        problems += [f"not in the complete collection: {nodeid}" for nodeid in sorted(extra)]
-    else:
-        for nodeid in sorted(missing):
-            print(f"Accepted non-reproducible parametrization text in: {_function(nodeid)}")
+    for function in sorted({_function(nodeid) for nodeid in missing + extra} & UNSTABLE_PARAMETRIZATION):
+        drift_missing = Counter({nodeid: n for nodeid, n in missing.items() if _function(nodeid) == function})
+        drift_extra = Counter({nodeid: n for nodeid, n in extra.items() if _function(nodeid) == function})
+        if sum(drift_missing.values()) == sum(drift_extra.values()):
+            missing -= drift_missing
+            extra -= drift_extra
+            print(f"Accepted non-reproducible parametrization text in: {function}")
+    problems += [f"missing from every shard: {nodeid}" for nodeid in sorted(missing)]
+    problems += [f"not in the complete collection: {nodeid}" for nodeid in sorted(extra)]
     return problems
 
 
