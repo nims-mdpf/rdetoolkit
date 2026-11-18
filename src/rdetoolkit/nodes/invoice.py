@@ -15,8 +15,9 @@ import pandas as pd
 from rdetoolkit.core.node import node
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json
+from rdetoolkit.invoicefile._description import compose_feature_description
 from rdetoolkit.rde2util import ValueCaster, castval
-from rdetoolkit.types import InvoiceData
+from rdetoolkit.types import InvoiceData, Metadata
 
 _DATE_FORMATS = frozenset({"date", "date-time", "time"})
 _LABEL_LANGUAGES = ("ja", "en")
@@ -187,3 +188,56 @@ def resolve_custom_key(schema: Mapping[str, Any] | Path, label: str, *, lang: Li
         raise StructuredError(msg)
     msg = f"Label '{wanted}' matches more than one custom field in invoice.schema.json: {', '.join(matches)}."
     raise StructuredError(msg)
+
+
+def _metadata_json(metadata: Metadata | Mapping[str, Any]) -> Mapping[str, Any]:
+    if not isinstance(metadata, Metadata):
+        return metadata
+    # The metadata.json shape save_meta writes, which the Runner reads back.
+    constant = {key: {"value": value} for key, value in metadata.custom.items()}
+    return {"constant": constant, "variable": metadata.variable}
+
+
+@node(tags=["builtin", "invoice"], version="2.0.0", idempotent=True)
+def describe_features(
+    invoice: InvoiceData,
+    metadata: Metadata | Mapping[str, Any],
+    metadef_path: Path | Mapping[str, Any],
+) -> InvoiceData:
+    """Return a copy of the invoice with ``_feature`` metadata in its description.
+
+    This is the formatting the Runner applies after the flow when
+    ``system.feature_description`` is enabled (v1
+    ``update_description_with_features``), for programs that build or edit
+    the description themselves. For each ``metadata-def.json`` definition
+    marked ``_feature``, in definition order, one line
+    ``<name.ja>(<unit>):<value>`` is appended to ``basic.description``; a
+    variable field gives its single value, or ``[A,B]`` for several rows,
+    and a field without a value adds nothing.
+
+    The Runner still appends the same lines to the saved ``invoice.json``
+    unless ``system.feature_description`` is false, so set it to false in
+    ``rdeconfig.yaml`` when a flow saves the result of this node.
+
+    Args:
+        invoice: Parsed invoice to update; it is not modified.
+        metadata: Metadata as built by ``build_meta``, or ``metadata.json``
+            content with ``constant`` and ``variable`` sections.
+        metadef_path: Path to ``metadata-def.json`` or its content.
+
+    Returns:
+        A new ``InvoiceData`` with the same mode and schema.
+
+    Raises:
+        ValueError: If the invoice has no ``basic`` object.
+        StructuredError: If the definition file cannot be read.
+        KeyError: If a ``_feature`` definition has no ``name.ja``.
+    """
+    raw = copy.deepcopy(invoice.raw)
+    basic = raw.get("basic")
+    if not isinstance(basic, dict):
+        msg = "describe_features needs an invoice with a 'basic' object"
+        raise ValueError(msg)
+    definitions = readf_json(metadef_path) if isinstance(metadef_path, Path) else metadef_path
+    basic["description"] = compose_feature_description(basic.get("description"), definitions, _metadata_json(metadata))
+    return replace(invoice, raw=raw)

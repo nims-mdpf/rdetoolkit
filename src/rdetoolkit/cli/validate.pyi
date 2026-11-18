@@ -20,6 +20,9 @@ class OutputFormat(str, Enum):
 FormatOption = Annotated[OutputFormat, typer.Option]
 StrictOption = Annotated[bool, typer.Option]
 QuietOption = Annotated[bool, typer.Option]
+RequireFilesOption = Annotated[bool, typer.Option]
+
+NO_TARGET_FILES: str
 
 def handle_validation_result(
     result: ValidationResult,
@@ -67,4 +70,5 @@ def validate_all(
     format_type: OutputFormat = OutputFormat.TEXT,
     strict: bool = False,
     quiet: bool = False,
+    require_files: bool = False,
 ) -> None: ...

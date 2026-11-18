@@ -3,3 +3,5 @@ from rdetoolkit.runner.config_loader import load_run_config as load_run_config
 from rdetoolkit.runner.lifecycle import Runner as Runner
 from rdetoolkit.runner.mode_resolver import ModeKind as ModeKind
 from rdetoolkit.runner.mode_resolver import resolve_mode as resolve_mode
+
+from rdetoolkit.runner.mode_resolver import ModeDecision as ModeDecision, resolve_mode_decision as resolve_mode_decision

@@ -13,6 +13,7 @@ EP table:
 | count, total size, whole-archive ratio | refused | test_archive_limits |
 | broken manifest / config / report / digests | no project published | test_inconsistent_archives |
 | CRC error, extraction or publish failure | target unchanged, staging removed | test_failure_leaves_target_unchanged |
+| member absent from the v3 manifest listing (#699) | refused before extraction | test_member_not_in_manifest_is_refused |
 | target is a symlink or a file | refused, untouched | test_import_target_refusals |
 | POSIX-legal names (``aux.csv``, ``12:30.csv``) and odd report names | export, import and digest round trip | test_portable_names_round_trip |
 BV table:
@@ -110,7 +111,10 @@ def test_manifest_only_holds_no_data(tmp_path: Path, flat: bool) -> None:
     for leaked in (SECRET.encode(), PAYLOAD, str(tmp_path).encode()):
         assert leaked not in content
     manifest = json.loads(content)
-    assert (manifest["schema_version"], manifest["archive_kind"], manifest["replayable"], manifest["config_included"]) == ("2", "manifest-only", False, False)
+    # schema_version "3" since #699: the metadata-only kind also records export-time provenance
+    assert (manifest["schema_version"], manifest["archive_kind"], manifest["replayable"], manifest["config_included"]) == ("3", "manifest-only", False, False)
+    assert manifest["provenance"]["captured_at"] == "export"
+    assert manifest["provenance"]["source_code"]["status"] == "not_included"
     assert manifest["files"][0]["sha256"] == "sha256:" + hashlib.sha256(PAYLOAD).hexdigest()
     assert manifest["directories"]["inputdata"] == {"file_count": 1, "byte_count": len(PAYLOAD)}
     assert manifest["diagnostics"]["command"] == "report diagnose"
@@ -403,7 +407,13 @@ def test_failure_leaves_target_unchanged(tmp_path: Path, monkeypatch: pytest.Mon
         _rewrite(archive, _entries(archive), compression=zipfile.ZIP_STORED)
         archive.write_bytes(archive.read_bytes().replace(PAYLOAD, b"X" * len(PAYLOAD)))
     elif failure == "corrupt_deflate":
-        entries = {**_entries(archive), "data/inputdata/big.bin": os.urandom(16) * 4096}
+        big = os.urandom(16) * 4096
+        entries = {**_entries(archive), "data/inputdata/big.bin": big}
+        # List the member in the v3 manifest (#699) so the import gets past the listing check
+        # and fails in the deflate stream itself.
+        manifest = json.loads(entries["repro_manifest.json"])
+        manifest["files"].append({"path": "data/inputdata/big.bin", "byte_count": len(big), "sha256": "sha256:" + hashlib.sha256(big).hexdigest()})
+        entries["repro_manifest.json"] = json.dumps(manifest).encode()
         _rewrite(archive, entries, compression=zipfile.ZIP_DEFLATED)
         with zipfile.ZipFile(archive) as opened:
             info = opened.getinfo("data/inputdata/big.bin")
@@ -439,6 +449,36 @@ def test_failure_leaves_target_unchanged(tmp_path: Path, monkeypatch: pytest.Mon
     result = _import(archive, target)
     # Then: the target is as before and the staging directory is gone
     assert result.exit_code == 3, result.output
+    # And: it failed where the case says (extraction or rename), not at an earlier check
+    assert "Unable to import archive" in result.stderr, result.stderr
+    assert target.exists() is existing
+    if existing:
+        assert list(target.iterdir()) == []
+    assert _no_staging(tmp_path)
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_member_not_in_manifest_is_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing: bool) -> None:
+    # Given: a v3 archive with an otherwise valid input member that its manifest does not list
+    archive = _rewrite(tmp_path / "extra.zip", {**_entries(_full_archive(tmp_path)), "data/inputdata/big.bin": os.urandom(64)})
+    extracted: list[str] = []
+    real_extract = repro_cmd._extract_members
+
+    def track(*args: object, **kwargs: object) -> None:
+        extracted.append("called")
+        real_extract(*args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(repro_cmd, "_extract_members", track)
+    target = tmp_path / "target"
+    if existing:
+        target.mkdir()
+    # When: importing it
+    result = _import(archive, target)
+    # Then: refused by the listing check, naming the member, before extraction starts
+    assert result.exit_code == 3, result.output
+    assert "do not match repro_manifest.json" in result.stderr
+    assert "'data/inputdata/big.bin' is not listed" in result.stderr
+    assert extracted == []
     assert target.exists() is existing
     if existing:
         assert list(target.iterdir()) == []

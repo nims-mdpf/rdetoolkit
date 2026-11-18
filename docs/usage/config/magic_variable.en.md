@@ -1,6 +1,9 @@
 
 # What Is the Magic Variable Feature?
 
+For `run(flow=...)`, see the [strict v2 interpolation contract](magic_variable_v2.en.md).
+The boolean configuration and omission behavior below describe the legacy callback API.
+
 ## Purpose
 
 This document explains the Magic Variable feature of RDEToolKit. You will understand how dynamic values such as file names and timestamps are automatically substituted, as well as how to configure the feature.

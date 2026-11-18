@@ -1,8 +1,9 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Protocol
 from rdetoolkit.errors import RdeValidationError
 
+from rdetoolkit.runner.input_snapshot import InputSnapshot
 from rdetoolkit.runner.mode_resolver import ModeKind
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 
@@ -27,4 +28,6 @@ def iterate_tiles(
     unpacked_dir_path: Path,
     data_root: Path,
     config: RdeConfig | None = ...,
+    *,
+    snapshot: InputSnapshot | Callable[[], InputSnapshot] | None = ...,
 ) -> Iterator[tuple[IterationInfo, InputPaths, OutputContext]]: ...

@@ -128,6 +128,58 @@ def __format_description_entry(name_ja: str, header_value: Any, unit: str | None
     return f"\n{name_ja}:{header_value}"
 
 
+def compose_feature_description(
+    description: str | None,
+    metadata_def_obj: Mapping[str, Any],
+    metadata_json_obj: Mapping[str, Any],
+) -> str:
+    r"""Return ``description`` with one line appended per ``_feature`` definition.
+
+    This is the text rule of ``update_description_with_features``. For each
+    definition marked ``_feature``, in definition order, the constant value
+    or else the variable values (one value as is, several as ``[A,B]``) are
+    appended as ``\n<name.ja>(<unit>):<value>``; a definition without a value
+    adds nothing. The leading newline is removed when a line was added to an
+    empty description.
+
+    Args:
+        description: Current invoice description; None or "" for none.
+        metadata_def_obj: ``metadata-def.json`` content.
+        metadata_json_obj: ``metadata.json`` content with ``constant`` and
+            optional ``variable`` sections.
+
+    Returns:
+        The new description.
+    """
+    text = description if description else ""
+    feature_added = False
+    for key, value in metadata_def_obj.items():
+        if not value.get("_feature"):
+            continue
+
+        metadata_details = value
+        name_ja = metadata_details["name"]["ja"]
+        unit = metadata_details.get("unit")
+        header_value = None
+
+        if key in metadata_json_obj["constant"]:
+            header_entry = metadata_json_obj["constant"][key]
+            header_value = header_entry["value"]
+        else:
+            variable_values = __collect_values_from_variable(key, metadata_json_obj)
+            if variable_values:
+                header_value = variable_values[0] if len(variable_values) == 1 else f"[{','.join(str(v) for v in variable_values)}]"
+
+        if header_value is not None:
+            text += __format_description_entry(name_ja, header_value, unit)
+            feature_added = True
+
+    # Only trim leading newline if feature was actually added
+    if feature_added and text.startswith("\n"):
+        text = text[1:]
+    return text
+
+
 def update_description_with_features(
     rde_resource: RdeOutputResourcePath,
     dst_invoice_json: Path,
@@ -170,32 +222,6 @@ def update_description_with_features(
     with open(rde_resource.meta.joinpath("metadata.json"), encoding=enc) as f:
         metadata_json_obj = json.load(f)
 
-    description = invoice_obj["basic"]["description"] if invoice_obj["basic"]["description"] else ""
-    feature_added = False
-    for key, value in metadata_def_obj.items():
-        if not value.get("_feature"):
-            continue
-
-        metadata_details = value
-        name_ja = metadata_details["name"]["ja"]
-        unit = metadata_details.get("unit")
-        header_value = None
-
-        if key in metadata_json_obj["constant"]:
-            header_entry = metadata_json_obj["constant"][key]
-            header_value = header_entry["value"]
-        else:
-            variable_values = __collect_values_from_variable(key, metadata_json_obj)
-            if variable_values:
-                header_value = variable_values[0] if len(variable_values) == 1 else f"[{','.join(str(v) for v in variable_values)}]"
-
-        if header_value is not None:
-            description += __format_description_entry(name_ja, header_value, unit)
-            feature_added = True
-
-    # Only trim leading newline if feature was actually added
-    if feature_added and description.startswith("\n"):
-        description = description[1:]
-
+    description = compose_feature_description(invoice_obj["basic"]["description"], metadata_def_obj, metadata_json_obj)
     _assign_invoice_val(invoice_obj, "basic", "description", description, invoice_schema_obj)
     writef_json(dst_invoice_json, invoice_obj)

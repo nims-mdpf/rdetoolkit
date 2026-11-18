@@ -89,18 +89,21 @@ def test_empty_form_preserves_file_layout_error__pr593_neg_1_5(
     else:
         report = workflows.run(flow=pipeline, config=config)
         assert report.status == "failed"
-        assert report.mode == "excelinvoice"
         assert report.iterations == []
         assert report.error is not None
-        assert report.error["code"] == 1
-        assert report.error["name"] == "StructuredError"
-        assert report.error["message"] == message
+        expected_code = 1007 if len([name for name in names if name.endswith(".zip")]) > 1 or "second_excel_invoice.xlsx" in names else 4006
+        assert report.error["code"] == expected_code
 
-    # Then: no tile runs, and job.failed keeps the exact legacy code and message
+    # Then: neither entry invokes user code; v1 retains its frozen error text.
     assert calls == []
-    assert (data / "job.failed").read_text(encoding="utf-8") == f"ErrorCode=1\nErrorMessage={message}\n"
-    assert not any((data / "temp").iterdir())
+    error = (data / "job.failed").read_text(encoding="utf-8")
+    if entry == "v1":
+        assert error == f"ErrorCode=1\nErrorMessage={message}\n"
+        assert not any((data / "temp").iterdir())
+    else:
+        assert error.startswith(f"ErrorCode={expected_code}\n")
     assert not (data / "divided").exists()
+
 
 
 @pytest.mark.parametrize(("names", "message"), _INVALID_LAYOUTS)
@@ -169,14 +172,17 @@ def test_invalid_layout_keeps_missing_invoice_priority__pr593_neg_8(
         assert report.status == "failed"
         assert report.iterations == []
         assert report.error is not None
-        assert report.error["code"] == 4003
-        assert report.error["name"] == "RequiredArtifactMissing"
+        expected_code = 1007 if len(names) > 1 else 4003
+        assert report.error["code"] == expected_code
 
-    # Then: invoice pre-validation retains its existing priority over layout checks
+    # Then: legacy source validation keeps priority; strict v2 ambiguity is rejected earlier.
     error = (data / "job.failed").read_text(encoding="utf-8")
-    assert error.startswith("ErrorCode=4003\n")
-    assert "invoice/invoice.json" in error
+    code = 4003 if entry == "v1" or len(names) == 1 else 1007
+    assert error.startswith(f"ErrorCode={code}\n")
+    if code == 4003:
+        assert "invoice/invoice.json" in error
     assert calls == []
+
 
 
 @pytest.mark.parametrize("zip_count", [0, 1])

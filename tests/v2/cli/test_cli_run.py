@@ -530,24 +530,12 @@ class TestRunValidateOnly:
         # (contracts.md §J0-3), the same layout TC-CLI-RUN-EP-009b validates
         assert (isolated_root / "data" / "temp").is_dir()
 
-    def test_mode_override_publishes_w1001__tc_cli_run_ep_019(
+    def test_mode_conflict_reports_catalog_error__tc_cli_run_ep_019(
         self,
         cli_runner: CliRunner,
         isolated_root: Path,
     ) -> None:
-        """TC-CLI-RUN-EP-019: --validate-only publishes the W1001 override event.
-
-        Regression cell for §I-REVIEW-A debt 5, closed by Session J2 ruling #4.
-        The pre-J2 path built the first three lifecycle steps by hand *before*
-        any run id existed, so ``resolve_mode``'s W1001 warning was emitted with
-        ``run_id=""`` and could not be published to a sink at all. Driving the
-        same work through ``Runner.run(RunRequest(validate_only=True))`` gives it
-        a real run id.
-
-        The fixture declares ``extended_mode: invoice`` while shipping an
-        ExcelInvoice workbook, which is exactly the "file detection overrode an
-        explicitly configured mode" condition W1001 exists for.
-        """
+        """TC-CLI-RUN-EP-019: strict v2 validation reports a mode conflict before flow."""
         from rdetoolkit.api.request import build_run_request
         from rdetoolkit.report.events import MemoryEventSink
         from rdetoolkit.runner.lifecycle import Runner
@@ -563,9 +551,10 @@ class TestRunValidateOnly:
         # When: validating through the CLI
         result = cli_runner.invoke(app, ["run", f"{FIXTURE_MODULE}:validate_only_pipeline", "--validate-only"])
 
-        # Then: validation succeeds without running the flow
-        assert result.exit_code == 0, result.output
-        assert "Validation succeeded" in result.output
+        # Then: validation rejects the conflicting setting without running the flow.
+        assert result.exit_code == 1, result.output
+        assert "Validation failed" in result.output
+        assert "invoice" in result.output
         assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
 
         # And: the same request publishes W1001 with a real run id. The CLI owns
@@ -587,14 +576,10 @@ class TestRunValidateOnly:
                 validate_only=True,
             ),
         )
-        assert report.status == "success"
+        assert report.status == "failed"
+        assert report.error is not None and report.error["code"] == 1005
         assert report.iterations == []
-        warnings_published = [
-            event for event in sink.events if event.name == "warning" and event.payload.get("code") == 1001
-        ]
-        assert len(warnings_published) == 1
-        assert warnings_published[0].run_id == report.run_id
-        assert warnings_published[0].run_id != "", "W1001 was unpublishable while run_id was empty"
+        assert not [event for event in sink.events if event.name == "warning"]
         assert len(run_flows.VALIDATE_ONLY_SENTINEL) == before
 
 

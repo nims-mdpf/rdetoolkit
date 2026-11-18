@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import dataclasses
 import shutil
 import signal
 import time
 import uuid
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from pathlib import Path
 from types import FrameType
 from typing import Any
@@ -23,6 +24,8 @@ from rdetoolkit.config.normalize import ConfigNormalizer
 from rdetoolkit.core.flow import derive_flow_id, flow_error, flow_prepare
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
 from rdetoolkit.domain.invoice_service import InvoiceService
+from rdetoolkit.domain.magic_policy import options_from_config
+from rdetoolkit.domain.magic_service import template_destinations, validate_templates
 from rdetoolkit.domain.validation import InvoiceValidator, invoice_validate, validate_tile_outputs, wrap_validation_error
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.errors import (
@@ -34,23 +37,38 @@ from rdetoolkit.errors import (
     RdeValidationError,
 )
 from rdetoolkit.models.config import Config
+from rdetoolkit.fileops import readf_json
 from rdetoolkit.report.events import Event, EventSink, FileEventSink, _best_effort_stderr
+from rdetoolkit.report.failure import MAX_DIAGNOSTICS, FailureDiagnostic, FailurePhase, failure_diagnostic
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.aggregator import RunAggregator
 from rdetoolkit.runner.config_loader import compute_config_digest
 from rdetoolkit.runner.config_loader import load_config as load_config_from_root
+from rdetoolkit.runner.execute import ExecutionResult
 from rdetoolkit.runner.executor import TileExecutor, _BestEffortEventSink
-from rdetoolkit.runner.finalize import RunFinalizer, processing_error_record, structured_error_record, write_run_report
+from rdetoolkit.runner.finalize import (
+    RunFinalizer,
+    processing_error_record,
+    structured_error_record,
+    write_failure_diagnostics,
+    write_run_report,
+)
 from rdetoolkit.runner.invoker import InvokerRegistry, record_run_failure
-from rdetoolkit.runner.mode_resolver import ModeKind, resolve_mode as resolve_mode_from_paths
+from rdetoolkit.modes.smarttable_validation import ensure_smarttable_valid
+from rdetoolkit.domain.mode_selection import normalize_mode_name
+from rdetoolkit.runner.mode_resolver import ModeDecision, ModeKind, resolve_mode_decision
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
-from rdetoolkit.runner.planner import RunPlanner, reject_empty_input
+from rdetoolkit.runner.planner import RunPlanner, TilePlan, reject_empty_input
 from rdetoolkit.types import RdeConfig
 
 
 _RUN_INTERRUPTED_CODE = 3004
 _TILE_ITERATION_FAILURE_CODE = 3001
+_METADATA_INVALID_CODE = 4002
 _REQUIRED_ARTIFACT_MISSING_CODE = 4003
+#: Sidecar slots tile diagnostics leave free: the lifecycle failure and a
+#: finalize failure must survive a run whose every tile failed.
+_RESERVED_RUN_DIAGNOSTICS = 2
 #: Modes whose table rows complete the uploaded invoice of every tile (#647).
 _ROW_MODES = frozenset({ModeKind.excelinvoice, ModeKind.smarttable})
 
@@ -109,6 +127,8 @@ class Runner:
         # a Runner driven step-by-step resolves it lazily on first use so the
         # answer is still taken exactly once.
         self._data_root: Path | None = None
+        self.mode_decision: ModeDecision | None = None
+        self._legacy_mode_contract = False
         # Per-run, like ``run_id`` and ``_data_root``: whether this run is a
         # pre-flight check. It is state rather than a ``finalize`` parameter
         # because both finalization seams are already contracted -- several test
@@ -116,11 +136,24 @@ class Runner:
         # a ``finalizer=`` implementing the same two-argument call -- and a
         # pre-flight flag is not worth changing either protocol for.
         self._validate_only = False
+        # Per-run: the report ``iterate`` returned and when it returned. A
+        # failure after iteration (post-validation, #685) publishes this report
+        # as failed instead of a tile-free one, so the executed tiles and their
+        # call summaries stay inspectable.
+        self._iterated: tuple[RunReport, float] | None = None
+        # Per-run failure diagnostics (#686): the lifecycle phase in progress,
+        # what the failing step knows about its failure (tile, artifact), and
+        # the diagnostics collected for ``logs/diagnostics_<run_id>.json``.
+        self._phase: FailurePhase = "config_load"
+        self._failure_context: dict[str, Any] = {}
+        self._diagnostics: list[FailureDiagnostic] = []
+        self._diagnostics_dropped = False
         # Whether ``pre_validate`` checks the source invoice's content. Set per
         # run by ``_validate_inputs`` (#647); state rather than a parameter for
         # the same reason as ``_validate_only``: ``pre_validate(config)`` is an
         # overridden seam, and a direct call keeps the full check.
         self._source_invoice_is_final = True
+        self._source_invoice_allows_templates = False
         self._planner = planner or RunPlanner(
             inputdata_path=lambda: self.inputdata_path,
             unpacked_dir_path=lambda: self.unpacked_dir_path,
@@ -180,7 +213,7 @@ class Runner:
             msg = "Config overrides must be carried by RunRequest.config_source"
             raise TypeError(msg)
         target = run_request.target
-        self._validate_only = run_request.validate_only
+        self._begin_run_state(validate_only=run_request.validate_only)
         self._apply_request_root(run_request.root)
         # Resolved before any directory is created, so the alias-flat answer
         # cannot change once tile 0 exists (ruling #1).
@@ -213,8 +246,13 @@ class Runner:
                 self._events.open(self.run_id)
                 try:
                     self._events.emit(Event.run_started(run_id=self.run_id))
+                    # ``_begin_run_state`` opened the run in phase config_load.
                     config = self.load_config(run_request.config_source)
+                    # ``prepare=`` rewrites the inputs mode resolution reads, so
+                    # it is reported as part of that phase.
+                    self._phase = "mode_resolution"
                     mode = self._prepare_and_resolve_mode(target, config)
+                    self._phase = "pre_validate"
                     # v1 creates the unpack directory before it parses anything
                     # (``workflows.check_files_result`` opens with
                     # ``StorageDir.get_specific_outputdir(True, "temp")``), so a
@@ -232,18 +270,9 @@ class Runner:
                     )
                 except Exception as exc:  # noqa: BLE001
                     config = config or RdeConfig()
-                    report = _failed_report(
-                        run_id=self.run_id,
-                        flow_id=_target_flow_id(target),
-                        mode=mode,
-                        started=started,
-                        config=config,
-                        exc=exc,
-                    )
-                try:
-                    self.finalize(report, config)
-                except Exception as exc:  # noqa: BLE001
-                    raise _finalize_error(exc) from exc
+                    report = self._failure_report(target, mode=mode, started=started, config=config, exc=exc)
+                    self._record_diagnostic(exc, phase=self._phase, error=report.error, **self._failure_context)
+                self._finalize_with_diagnostics(report, config)
                 returning = True
                 return report
             finally:
@@ -255,6 +284,19 @@ class Runner:
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
             self._invoice_service.end_run()
+
+    def _begin_run_state(self, *, validate_only: bool) -> None:
+        """Reset the per-run state a previous run on this Runner left behind.
+
+        Args:
+            validate_only: Whether this run is a pre-flight check.
+        """
+        self._validate_only = validate_only
+        self._iterated = None
+        self._phase = "config_load"
+        self._failure_context = {}
+        self._diagnostics = []
+        self._diagnostics_dropped = False
 
     def _close_event_sink(self, report: RunReport | None, *, primary_propagating: bool) -> None:
         """Emit ``run.completed`` and close the event sink as one error boundary.
@@ -294,6 +336,86 @@ class Runner:
                 return
             raise _event_log_error(exc) from exc
 
+    def _finalize_with_diagnostics(self, report: RunReport, config: RdeConfig) -> None:
+        """Finalize the run, then persist its failure diagnostics best-effort.
+
+        A finalize failure is diagnosed as phase ``finalize`` and still mapped
+        exactly as before (``RdeError`` unchanged, anything else 5001); the
+        sidecar is attempted first so the diagnosis of that failure is kept
+        when the logs directory is still writable.
+
+        Args:
+            report: Report to finalize.
+            config: Effective configuration.
+
+        Raises:
+            RdeError: When finalization fails.
+        """
+        try:
+            self.finalize(report, config)
+        except Exception as exc:  # noqa: BLE001
+            error = _finalize_error(exc)
+            self._record_diagnostic(exc, phase="finalize", error=_exception_error(error))
+            self._persist_diagnostics(report, primary_propagating=True)
+            raise error from exc
+        self._persist_diagnostics(report, primary_propagating=False)
+
+    def _record_diagnostic(self, exc: BaseException | None, *, phase: FailurePhase, error: Mapping[str, Any] | None, **context: Any) -> None:
+        """Diagnose one run-level failure; diagnosing never changes the outcome.
+
+        Run-level diagnostics are always kept: tile diagnostics leave room for
+        them under the cap (:meth:`_record_tile_diagnostic`).
+        """
+        try:
+            diagnostic = failure_diagnostic(exc, phase=phase, error=error, root=self.root, **context)
+        except Exception as build_error:  # noqa: BLE001
+            if is_run_interrupted(build_error):
+                raise
+            _best_effort_stderr(f"rdetoolkit: a failure could not be diagnosed (the run's outcome is unchanged): {type(build_error).__name__}\n")
+            return
+        self._diagnostics.append(diagnostic)
+
+    def _record_tile_diagnostic(self, result: ExecutionResult) -> None:
+        """Keep a failed tile's diagnostic, up to the per-document cap."""
+        diagnostic = result.diagnostic
+        if diagnostic is None:
+            return
+        if len(self._diagnostics) >= MAX_DIAGNOSTICS - _RESERVED_RUN_DIAGNOSTICS:
+            self._diagnostics_dropped = True
+            return
+        self._diagnostics.append(diagnostic)
+
+    def _persist_diagnostics(self, report: RunReport, *, primary_propagating: bool) -> None:
+        """Write ``logs/diagnostics_<run_id>.json`` when the run diagnosed a failure.
+
+        The sidecar is evidence about a decided outcome (#686): its write
+        failure is one stderr notice saying the diagnostics are unavailable,
+        never a replacement for the primary error, a different status or a
+        different exit code. A run interruption propagates like the event-log
+        shutdown's (3004), unless another error is already propagating.
+
+        Args:
+            report: The finalized report, read for its status.
+            primary_propagating: Whether a finalize error is about to be raised.
+        """
+        if not self._diagnostics:
+            return
+        try:
+            write_failure_diagnostics(
+                self._diagnostics,
+                run_id=self.run_id,
+                run_status=report.status,
+                data_root=self.data_root,
+                truncated=self._diagnostics_dropped,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if is_run_interrupted(exc) and not primary_propagating:
+                raise
+            _best_effort_stderr(
+                "rdetoolkit: failure diagnostics could not be written and are unavailable for this run "
+                f"(the run's outcome is unchanged): {type(exc).__name__}: {exc}\n",
+            )
+
     def _execute(
         self,
         request: RunRequest,
@@ -324,6 +446,7 @@ class Runner:
             The iteration report, or a tile-free successful report.
         """
         if request.validate_only:
+            self._validate_interpolation(target, mode, config)
             return RunReport(
                 run_id=self.run_id,
                 status="success",
@@ -343,8 +466,69 @@ class Runner:
             if iteration_error is None:
                 raise
             raise iteration_error from exc
+        self._iterated = (report, time.time())
+        self._phase = "post_validate"
         self.post_validate(config, report)
         return report
+
+    def _failure_report(
+        self,
+        target: ExecutionTarget,
+        *,
+        mode: ModeKind | None,
+        started: float,
+        config: RdeConfig,
+        exc: Exception,
+    ) -> RunReport:
+        """Return the failed report for an exception that escaped the lifecycle.
+
+        A failure after ``iterate`` returned (post-validation, or an
+        interruption while validating) keeps the iteration report: its tiles
+        and call summaries are the evidence of what ran, and a successful tile
+        is not rewritten as failed (#685). Only ``status`` and ``error``
+        change, and the duration is extended to the moment of failure. An
+        earlier failure has no tile to keep and publishes the tile-free report.
+
+        Args:
+            target: Execution target, used for the report's ``flow_id``.
+            mode: Resolved mode, or ``None`` when resolution did not finish.
+            started: Run start time.
+            config: Effective configuration, or the default one.
+            exc: The exception that escaped.
+
+        Returns:
+            The failed run report.
+        """
+        if self._iterated is None:
+            return _failed_report(
+                run_id=self.run_id,
+                flow_id=_target_flow_id(target),
+                mode=mode,
+                started=started,
+                config=config,
+                exc=exc,
+            )
+        iterated, iterated_at = self._iterated
+        record_run_failure(exc)
+        return dataclasses.replace(
+            iterated,
+            status="failed",
+            error=_run_error(exc),
+            duration_ms=iterated.duration_ms + (time.time() - iterated_at) * 1000.0,
+        )
+
+    def _validate_interpolation(self, target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> None:
+        if not isinstance(target, FlowTarget):
+            return
+        options = options_from_config(config)
+        if mode.value == "rdeformat":
+            message = "Interpolation is not applicable to preformatted RDEFormat artifacts."
+        else:
+            path = self.data_root / "invoice" / "invoice.json"
+            if not path.exists() or not validate_templates(readf_json(path), options):
+                return
+            message = "Template syntax is valid; source resolution is deferred until per-tile invoice and metadata exist. SmartTable row previews are not available."
+        self._events.emit(Event.warning(run_id=self.run_id, code=1102, message=message))
 
     def load_config(self, source: object | None = None) -> RdeConfig:
         """Load the effective v2 Runner config.
@@ -388,6 +572,8 @@ class Runner:
         # answering with the old root (Session J0, contracts.md §I-REVIEW-A
         # debt 4), so the cache is dropped here and re-taken lazily.
         self._data_root = None
+        self.mode_decision = None
+        self._legacy_mode_contract = False
 
     def _prepare_and_resolve_mode(self, target: ExecutionTarget, config: RdeConfig) -> ModeKind:
         """Prepare the inputs, then resolve the mode from what was prepared.
@@ -395,6 +581,11 @@ class Runner:
         The order is the point: files a ``@flow(prepare=...)`` writes to
         ``inputdata`` decide the mode and the tiles (#573).
         """
+        self._legacy_mode_contract = isinstance(target, LegacyCallbackTarget)
+        if not self._legacy_mode_contract:
+            normalized_mode = normalize_mode_name(config.system.extended_mode)
+            if "extended_mode" in config.system.model_fields_set:
+                config.system.extended_mode = normalized_mode.value
         self.prepare_inputs(target, config)
         return self.resolve_mode(config)
 
@@ -465,13 +656,14 @@ class Runner:
         Returns:
             Effective internal mode.
         """
-        return resolve_mode_from_paths(
+        self.mode_decision = resolve_mode_decision(
             config,
             self.inputdata_path,
-            self.unpacked_dir_path,
             self._events,
             self.run_id,
+            contract="v1" if getattr(self, "_legacy_mode_contract", False) else "v2",
         )
+        return self.mode_decision.chosen_mode
 
     def _validate_inputs(self, target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> None:
         """Diagnose an empty Excel invoice, then pre-validate the run inputs.
@@ -490,10 +682,14 @@ class Runner:
         # required fields, as in v1, which validated only the final invoice
         # (#647). Only a flow in the other modes receives a final source invoice.
         self._source_invoice_is_final = isinstance(target, FlowTarget) and mode not in _ROW_MODES
+        self._source_invoice_allows_templates = self._source_invoice_is_final and mode != ModeKind.rdeformat
         try:
             self.pre_validate(config)
         finally:
             self._source_invoice_is_final = True
+            self._source_invoice_allows_templates = False
+        if isinstance(target, FlowTarget) and mode is ModeKind.smarttable:
+            ensure_smarttable_valid(self.inputdata_path, self.data_root / "tasksupport")
 
     def pre_validate(self, config: RdeConfig) -> None:
         """Validate source structure and invoice schema before flow execution.
@@ -506,23 +702,35 @@ class Runner:
         Args:
             config: Effective configuration.
         """
-        _ = config
         data_root = self.data_root
         invoice_path = data_root / "invoice" / "invoice.json"
         schema_path = data_root / "tasksupport" / "invoice.schema.json"
         for path in (invoice_path, schema_path):
             if not path.exists():
+                self._failure_context = {"artifact_path": _data_relative(path, data_root)}
                 raise _validation_error(4003, str(path))
         try:
             if self._source_invoice_is_final:
-                invoice_validate(invoice_path, schema_path)
+                self._validate_source_invoice(config, invoice_path, schema_path)
             else:
                 InvoiceValidator(schema_path)
         except Exception as exc:  # noqa: BLE001
-            # A stopped run is not an invalid invoice: keep 3004 (review rc1 F01).
-            if is_run_interrupted(exc):
+            if isinstance(exc, RdeError) or is_run_interrupted(exc):
                 raise
+            self._failure_context = {"artifact_path": _data_relative(invoice_path, data_root)}
             raise _wrap_domain_validation_error(exc) from exc
+
+    def _validate_source_invoice(self, config: RdeConfig, invoice_path: Path, schema_path: Path) -> None:
+        if not self._source_invoice_allows_templates:
+            invoice_validate(invoice_path, schema_path)
+            return
+        options = options_from_config(config)
+        invoice = readf_json(invoice_path)
+        destinations = template_destinations(invoice, options)
+        if not destinations:
+            invoice_validate(invoice_path, schema_path)
+            return
+        InvoiceValidator(schema_path).validate(obj=invoice, deferred_value_paths=destinations)
 
     def iterate(
         self,
@@ -541,6 +749,7 @@ class Runner:
             Minimal successful run report.
         """
         started = time.time()
+        self._phase = "tile_prepare"
         execution_target = target if isinstance(target, (FlowTarget, LegacyCallbackTarget)) else FlowTarget(function=target)
         request = RunRequest(
             root=self.root,
@@ -562,12 +771,20 @@ class Runner:
         failed_count = 0
         completed_count = 0
         terminal_error: dict[str, Any] | None = None
-        for tile in plan.tiles:
+        for tile in self._tiles_in_phase(plan.tiles):
             info = tile.iteration
             iteration_status = "failed"
             self._events.emit(Event.iteration_started(run_id=self.run_id, index=info.index))
             try:
+                # The executor reports its own failures as results carrying a
+                # diagnostic; only an interruption escapes it.
+                self._phase = "node_execution"
                 result = self._executor.execute(plan, tile)
+                self._record_tile_diagnostic(result)
+                # The executor has returned; what can still fail for this tile
+                # is persisting its record (``logs/iterations``), an artifact
+                # write -- not the node that already finished.
+                self._phase = "artifact_publish"
                 iteration_status = result.status
                 if result.status == "failed":
                     failed_count += 1
@@ -591,6 +808,10 @@ class Runner:
                         payload={"iteration_index": info.index, "status": iteration_status},
                     ),
                 )
+        # The loop is over (exhausted or stopped by fail_fast): no tile is being
+        # prepared any more, so a failure from here to post-validation belongs
+        # to the next real phase, never to the last ``tile_prepare`` pull.
+        self._phase = "post_validate"
         status = _run_status(
             completed_count=completed_count,
             failed_count=failed_count,
@@ -613,6 +834,21 @@ class Runner:
             error=terminal_error if status == "failed" else None,
         )
 
+    def _tiles_in_phase(self, tiles: Iterable[TilePlan]) -> Iterator[TilePlan]:
+        """Yield the planned tiles, marking each pull as phase ``tile_prepare``.
+
+        Tiles are discovered lazily (input checker, iterator, mode planner), so
+        a failure while pulling the next tile is a tile-preparation failure.
+        """
+        iterator = iter(tiles)
+        while True:
+            self._phase = "tile_prepare"
+            try:
+                tile = next(iterator)
+            except StopIteration:
+                return
+            yield tile
+
     def post_validate(self, config: RdeConfig, report: RunReport) -> None:
         """Validate final artifacts for completed iterations only.
 
@@ -631,17 +867,24 @@ class Runner:
             if not isinstance(index, int):
                 raise _validation_error(4003, f"Completed iteration has invalid index: {index!r}")
             paths = resolve_tile_paths(output_root, index)
+            invoice_path = paths.invoice / "invoice.json"
+            metadata_path = paths.meta / "metadata.json"
+            self._failure_context = {"iteration_index": index}
             try:
                 validate_tile_outputs(
-                    invoice_path=paths.invoice / "invoice.json",
+                    invoice_path=invoice_path,
                     schema_path=schema_path,
-                    metadata_path=paths.meta / "metadata.json",
+                    metadata_path=metadata_path,
                 )
             except Exception as exc:  # noqa: BLE001
                 # A stopped run is not an invalid tile: keep 3004 (review rc1 F01).
                 if is_run_interrupted(exc):
                     raise
-                raise _wrap_domain_validation_error(exc) from exc
+                error = _wrap_domain_validation_error(exc)
+                failed_artifact = metadata_path if error.code == _METADATA_INVALID_CODE else invoice_path
+                self._failure_context = {"iteration_index": index, "artifact_path": _data_relative(failed_artifact, data_root)}
+                raise error from exc
+        self._failure_context = {}
 
     def finalize(self, report: RunReport, config: RdeConfig) -> None:
         """Finalize the report and job failure contract (Design §6.1 step 6, §6.3).
@@ -748,6 +991,14 @@ def _raise_run_interrupted(signum: int, frame: FrameType | None) -> None:
     message = f"{error_def.message_template} Remediation: {error_def.remediation}"
     error_cls: Any = RdeExecutionError
     raise error_cls(code=_RUN_INTERRUPTED_CODE, name=error_def.name, message=message)
+
+
+def _data_relative(path: Path, data_root: Path) -> str:
+    """Return ``path`` relative to the data root, so no absolute path is recorded."""
+    try:
+        return path.relative_to(data_root).as_posix()
+    except ValueError:
+        return path.name
 
 
 def _iso_timestamp(timestamp: float) -> str:

@@ -208,6 +208,26 @@ PDF と SVG には `pip install 'rdetoolkit[render]'` が必要で、SVG には 
 未導入の場合は、必要な extra とライブラリ名を示す `ImportError` になります。
 PDF の描画は v1 の pdf2image(poppler)ではなく pypdfium2 を使うため、画素単位では v1 と一致しないことがあります。
 
+`to_png` / `to_jpeg` は `kind=` で出力先を選べます（既定は `other_image`）。TIF のアップロードを
+代表画像の PNG にするには `to_png(path, out, "main.png", kind="main_image")` とします。
+画像や添付ファイルを変換せずに登録するには `copy_file(src, out, filename, kind=...)` を使います。
+`struct`・`other_image`・`thumbnail`・`attachment` など任意の出力先へバイト単位でそのまま複製します。
+解析結果の重ね描きやマスクなど、NumPy 配列・Pillow 画像は `save_image(image, out, filename)` で保存します
+（形式はファイル名の拡張子から決まり、既定の出力先は `other_image`）。OpenCV の配列は BGR 順なので、
+`cv2.imwrite` と同じ画像にするには `channel_order="bgr"` を指定してください。
+テキストを行単位で読むには `read_lines(path)` を使います（`read_text` と同じ文字コード判定で、
+`f.read().splitlines()` と同じ行を返します。`keepends=True` で改行を残します）。
+v1 の文字コード判定ヘルパーを直接呼んでいたコードは、builtin の読み込みノードと同じ規則の
+`detect_encoding(path)` に置き換えられます。シート名の一覧は `list_excel_sheets(path)` で取得でき、
+「名前に X を含むシート」を探して `read_excel(path, sheet_name=...)` に渡せます。
+`unzip_inputs` は ZIP に加えて tar（`.tar`、`.tar.gz`、`.tar.bz2`、`.tar.xz`）も展開します。
+UTF-8 フラグのない ZIP のメンバー名は CP932 として復元されるため、`ZipFile.extractall` で
+cp437 のまま展開していた v1 コードとはファイル名が異なる場合があります。
+`_feature` 付きメタデータを送り状の説明文に書き込む処理を自分で行う場合は、
+`describe_features(invoice, metadata, metadef_path)` が Runner の `feature_description` と同じ書式で
+`basic.description` に追記した送り状を返します。その結果を `save_invoice` で保存するときは、
+同じ行が二重に追記されないよう `rdeconfig.yaml` の `system.feature_description` を `false` にしてください。
+
 v1 のテンプレートが `subprocess.run` で行っていた外部変換プログラムの実行には
 `run_program(args, ...)` を使います（#630）。変換プログラムは、`out.struct` や `out.logs`
 など引数で渡したディレクトリへ書き込みます。標準出力と標準エラーは取り込まれ、
@@ -332,8 +352,9 @@ if report.status != "success":
 `RdeConfig.model_validate({"system": {"extended_mode": None}})` も受理します。
 YAML の `null` や上書きの `None` はモード未指定として正規化され、
 値は既定の `"invoice"` になります。SmartTable / ExcelInvoice の検出で
-W1001 は出ません。文字列で明示したモードと検出結果が競合する場合は、
-引き続き W1001 を出します（Design §6.2）。
+W1001 は出ません。文字列で明示したモードと検出結果が競合する場合、
+v2 flow はカタログ登録済みの設定エラーにします。検出結果による上書きと
+W1001 を維持するのは v1 callback 経路だけです（Design §6.2）。
 
 ## 実行時の変更点
 
@@ -729,3 +750,72 @@ git タグ `v2.0.0a1` からのソースインストールのみ可能です(切
 
 `2.0.0rc1` → GA `2.0.1` の順に公開します。版番号 `2.0.0` は欠番で、
 正式版としては公開しません。
+
+## 登録モード選択とreproの変更
+
+v2 flowでは`system.extended_mode`を登録単位の明示指定として扱います。
+canonical名は`invoice`、`multidatatile`、`smarttable`、`excelinvoice`、
+`rdeformat`です。従来の`Invoice`、`MultiDataTile`、`SmartTableInvoice`、
+`ExcelInvoice`、`RDEFormat`も完全一致のaliasとして使用できます。
+その他の綴りや大小文字は、有効な名前を示す設定エラーになります。
+
+設定の省略とnullは自動選択です。明示的な`invoice`はInvoiceモードの要求なので、
+SmartTableやExcelInvoice入力との競合を拒否します。競合ファイルを取り除くか、
+その形式を明示指定してください。複数の特殊形式やworkbook、曖昧な特殊archiveも
+登録前に拒否します。通常ファイルが複数あってもInvoiceでは1タイルです。
+1ファイルずつ登録する場合は`multidatatile`を指定してください。
+
+v1 callback経路は従来のファイル検出優先順位とW1001を維持します。
+同じ競合入力でもv2 flowではカタログ登録済み設定エラーになります。
+設定ファイルがv1形式でも、flowの選択契約はv2です。
+
+`RDEFormat`という綴りは、設定読込とreproでそのまま保持します。
+互換callbackでは`RDEFormat`はInvoice、`rdeformat`はRDEFormatとして扱われるため、
+両者のconfig digestは異なります。v2 flowでは実行境界で`RDEFormat`を
+`rdeformat`に正規化します。repro後も同じ入口で再実行すれば、モードとタイル数を維持します。
+
+設定正規化と新しいrepro archiveは、invoiceが明示指定されたかどうかを保持します。
+config digestも自動選択と明示invoiceを区別します。以前のexportが既に省略した
+明示性は復元できません。モードが省略されていた、または既定値で保存されていた
+過去archiveや、`RDEFormat`と`rdeformat`を同一digestにしていた版のarchiveは、
+現行版のimportでconfig digestが一致せず、終了コード3になる場合も
+あります。そのarchiveを作成したRDEToolKitのバージョンでimportしてください。
+復元した`rdeconfig.yaml`を確認して意図したモードを設定し、現行版で再実行して
+新しいレポートとarchiveをexportします。archive内の設定だけを書き換えても、
+manifestとレポートのdigestは修復されません。
+
+`rdetoolkit run pkg.mod:pipeline --validate-only --explain --format json`は現在の入力を読み取り専用で
+説明します。ユーザーのprepareやflowを実行せず、成果物やレポートを出力しません。
+タイルのグループ・順序・出力先・モード別stageを確認できます。
+既存の`--validate-only`単独はprepareとレポート出力を維持します。
+prepareが入力を変更する場合、後の実行ではその変更後のsnapshotが対象になります。
+
+system fileを除外した後、各モードは次の登録グループを作ります。
+タイル0は解決済みdata root直下、タイル1以降は`divided/0001/`、
+`divided/0002/`のように出力します。この番号は出力タイルのindexであり、
+RDEFormat archive内のディレクトリ番号とは異なる場合があります。
+
+| モード | グループと順序 | タイル数 |
+| --- | --- | --- |
+| `invoice` | 通常ファイルとZIPをすべて1グループにする。ZIPは展開せず生入力として扱う。通常ファイル、ZIPの順で、それぞれの内部はfilesystem順。 | 空入力を含めて1 |
+| `multidatatile` | 1入力ファイルを1グループにする。既定の`name`はファイル名順、`filesystem`はディレクトリの列挙順。 | ファイル数。空入力は1空タイル |
+| `smarttable` | 各データ行が参照するファイルをグループにする。最終行がタイル0、先行する行は表の順。`save_table_file=true`なら元の表がタイル1、先行する行はタイル2から。 | データ行数。元の表を保存する場合はさらに1 |
+| `excelinvoice` | workbookのデータ行ごとに1グループを作り、workbook順に並べる。ZIPがなければ生ファイルは空。フォルダグループが1つなら全行で共有できる。ファイル指定はarchive内で一意なファイル名が必要。 | データ行数。データ行がないworkbookは拒否 |
+| `rdeformat` | ZIPのパスで最初に現れる4桁の数値ディレクトリごとにグループ化し、該当しないmemberはグループ0に入れる。グループは数値順、内部はarchive内の順序。 | グループ数。空ZIPは1空タイル |
+
+ExcelInvoiceで親フォルダと子フォルダの両方にファイルがある場合は、従来どおり
+親を先にグループ化してからworkbook順を適用します。各ファイルと対応行のinvoiceを維持します。
+
+ヘッダーだけのSmartTableは0タイルですが、`save_table_file=true`なら元の表だけを
+タイル0にします。元の表のタイルではflowを呼びません。このSmartTableのindexは、
+rootタイルを最後に登録するRDEの慣例を維持しています。
+
+v2 RDEFormatは数値ディレクトリでグループを並べ、各グループ内はarchive内の順序を
+previewと実行で共有します。v1 callback内のfilesystem順序は維持します。
+MultiDataTileの`filesystem`指定は順序の非決定性を説明出力に示します。
+
+RDEFormatのレポート`datatile_id`と`target`は従来どおり最初の入力から決まります。
+v2はarchive順の先頭を使うため、callbackのfilesystem順の先頭とは値が異なる場合が
+あります。タイルindexと成果物の出力先は既存契約を維持します。
+v2の特殊入力の不正レイアウトは、展開やinvoice不足の検証より先に計画エラーになる
+場合があります。callbackは従来のエラー優先順位と部分成果物を維持します。

@@ -211,7 +211,18 @@ def _failures(report: RunReport) -> list[dict[str, Any]]:
 
 
 def _evidence_diagnostics(evidence: dict[str, Any]) -> list[dict[str, Any]]:
-    entries = [evidence["events"], *(item["iteration_detail"] for item in evidence["iterations"])]
+    return evidence_findings([evidence["events"], *(item["iteration_detail"] for item in evidence["iterations"])])
+
+
+def evidence_findings(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Turn every flag of supporting-evidence entries into one warning finding.
+
+    Args:
+        entries: Evidence entries, each with ``path`` and ``flags``.
+
+    Returns:
+        One ``SupportingEvidence<Flag>`` warning per flag, about the entry's path.
+    """
     return [
         diagnostic(
             code=None, severity="warning", name=f"SupportingEvidence{flag.title()}", subject=entry["path"],
@@ -223,10 +234,38 @@ def _evidence_diagnostics(evidence: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def _failure_subject(failure: dict[str, Any]) -> str:
+def failure_subject(failure: dict[str, Any]) -> str:
+    """Return the stable finding subject of a failure: its call, tile, or the run.
+
+    Args:
+        failure: A failure with ``call_id`` and ``iteration_index``.
+
+    Returns:
+        The call id, ``iteration:<index>``, or ``run``.
+    """
     if failure["call_id"] is not None:
         return str(failure["call_id"])
     return "run" if failure["iteration_index"] is None else f"iteration:{failure['iteration_index']}"
+
+
+def read_report_evidence(path: Path) -> tuple[RunReport, list[dict[str, Any]], dict[str, Any]]:
+    """Read a saved RunReport with its recorded failures and run-bound evidence.
+
+    Args:
+        path: ``run_report_<run_id>.json``.
+
+    Returns:
+        The report, its failures (as in :func:`diagnose_report`, uncapped) and
+        the ``iterations`` / ``events`` evidence next to it.
+
+    Raises:
+        OSError: The report cannot be read.
+        ValueError: Its JSON, schema version or field shapes are not supported.
+        RecursionError: Its JSON nests too deeply to parse.
+    """
+    report = _read_report(path)
+    evidence = {"iterations": _iteration_evidence(report, path.parent), "events": _events_evidence(report, path.parent)}
+    return report, _failures(report), evidence
 
 
 def diagnose_report(path: Path) -> dict[str, Any]:
@@ -246,13 +285,11 @@ def diagnose_report(path: Path) -> dict[str, Any]:
         ValueError: Its JSON, schema version or field shapes are not supported.
         RecursionError: Its JSON nests too deeply to parse.
     """
-    report = _read_report(path)
-    evidence = {"iterations": _iteration_evidence(report, path.parent), "events": _events_evidence(report, path.parent)}
-    failures = _failures(report)
+    report, failures, evidence = read_report_evidence(path)
     findings = [
         diagnostic(
             code=item["code"], severity="error", name=item["name"], message=item["message"],
-            remediation=item["remediation"], subject=_failure_subject(item),
+            remediation=item["remediation"], subject=failure_subject(item),
         )
         for item in failures
     ]

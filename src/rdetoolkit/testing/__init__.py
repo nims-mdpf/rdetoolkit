@@ -15,6 +15,38 @@ if TYPE_CHECKING:
     from rdetoolkit.runner.lifecycle import Runner
     from rdetoolkit.types import InputPaths, InvoiceData, OutputContext
 
+#: Public names served lazily by ``__getattr__``. The pytest plugin imports
+#: this package before coverage and the test session start, so these modules
+#: load only when a test or script asks for them -- and none imports pytest.
+_LAZY_EXPORTS = {
+    "RdeIterationSummary": "rdetoolkit.testing.runner",
+    "RdeTestResult": "rdetoolkit.testing.runner",
+    "RdeTestRunner": "rdetoolkit.testing.runner",
+    "rde_case": "rdetoolkit.testing.case",
+    "rde_check": "rdetoolkit.testing.checks",
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve the lazily exported isolated-run and ``rde_case`` API.
+
+    Args:
+        name: Attribute requested from the package.
+
+    Returns:
+        The exported object.
+
+    Raises:
+        AttributeError: If ``name`` is not a lazily exported name.
+    """
+    module_name = _LAZY_EXPORTS.get(name)
+    if module_name is None:
+        msg = f"module {__name__!r} has no attribute {name!r}"
+        raise AttributeError(msg)
+    import importlib  # noqa: PLC0415
+
+    return getattr(importlib.import_module(module_name), name)
+
 
 def make_input_paths(tmp_path: Path, files: Iterable[str] = (), *, invoice_org: Path | None = None) -> InputPaths:
     """Create a minimal on-disk input tree for tests.

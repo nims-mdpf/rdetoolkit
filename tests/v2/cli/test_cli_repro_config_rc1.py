@@ -38,6 +38,7 @@ BV table:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import zipfile
@@ -153,7 +154,19 @@ def test_round_trip_keeps_effective_config__tc_rc1_f09_ep_001_005(tmp_path: Path
     # Then: the config-dependent output and the config digest are both reproduced
     assert (target / "data" / "structured" / "label.txt").read_text(encoding="utf-8") == original_label
     assert replay["config_digest"] == original["config_digest"]
-    assert manifest == {"schema_version": "1", "config_included": True, "config_digest": original["config_digest"]}
+    # And: the v3 manifest (#699) identifies a full archive with the config, and its file list
+    # carries the SHA-256 of the archived config that the replay read
+    identity = ("schema_version", "format", "archive_kind", "replayable", "config_included", "config_digest")
+    assert {key: manifest[key] for key in identity} == {
+        "schema_version": "3", "format": "rdetoolkit.repro-manifest", "archive_kind": "full", "replayable": True,
+        "config_included": True, "config_digest": original["config_digest"],
+    }
+    listed = {item["path"]: item for item in manifest["files"]}
+    config_bytes = (target / "rdeconfig.yaml").read_bytes()
+    assert listed["rdeconfig.yaml"] == {
+        "path": "rdeconfig.yaml", "byte_count": len(config_bytes), "sha256": "sha256:" + hashlib.sha256(config_bytes).hexdigest(),
+    }
+    assert manifest["provenance"]["captured_at"] == "export"
 
 
 def test_reordered_config_file_still_exports__tc_d1_ep_007(tmp_path: Path) -> None:
@@ -377,3 +390,30 @@ def test_unreplayable_effective_config_is_usage_error__tc_rc1_f09_neg_007(
     assert result.exit_code == 3, result.output
     assert original["config_digest"] in result.output
     assert not archive.exists()
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_repro_keeps_invoice_selection_intent__rm01_repro_roundtrip(tmp_path: Path, explicit: bool) -> None:
+    """RM01-REPRO: export, import, rerun, and reload retain meaningful mode intent."""
+    from rdetoolkit.domain.mode_selection import ModeKind, decide_mode
+    from rdetoolkit.errors import RdeConfigError
+    from rdetoolkit.runner.config_loader import load_run_config
+
+    # Given: successful Invoice inputs with either auto or explicit Invoice intent.
+    root, data_root = _project(tmp_path, "default")
+    text = "system:\n  extended_mode: invoice\n" if explicit else "{}\n"
+    (root / "rdeconfig.yaml").write_text(text, encoding="utf-8")
+    original = _run(root)
+    # When: exporting, importing, and executing the actual reproduction archive.
+    replay, target, manifest = _round_trip(tmp_path, _report_path(data_root, original))
+    config = load_run_config(target)
+    (target / "data" / "inputdata" / "smarttable_new.csv").touch()
+    # Then: identity and explicitness survive, and new conflicting evidence preserves policy.
+    assert replay["config_digest"] == manifest["config_digest"] == original["config_digest"]
+    assert ("extended_mode" in config.system.model_fields_set) is explicit
+    if explicit:
+        with pytest.raises(RdeConfigError) as caught:
+            decide_mode(config, target / "data" / "inputdata")
+        assert caught.value.code == 1005
+    else:
+        assert decide_mode(config, target / "data" / "inputdata").chosen_mode is ModeKind.smarttable

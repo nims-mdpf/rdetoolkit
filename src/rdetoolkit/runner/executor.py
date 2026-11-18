@@ -6,25 +6,29 @@ import contextlib
 import traceback
 from collections.abc import Callable, Iterator
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from rdetoolkit._interrupt import is_run_interrupted
+from rdetoolkit.api.request import FlowTarget
 from rdetoolkit.core.context import RunContext
 from rdetoolkit.domain.artifacts import ImageArtifactService, RawArtifactService
+from rdetoolkit.domain.magic_policy import options_from_config
+from rdetoolkit.domain.magic_service import apply_interpolation
 from rdetoolkit.domain.invoice_service import (
-    INVOICE_STEP_DESCRIPTION,
     INVOICE_STEP_MAGIC,
-    INVOICE_STEP_STRUCTURED,
     InvoiceService,
     build_tile_dataset_paths,
 )
 from rdetoolkit.models.rde2types import RdeDatasetPaths
-from rdetoolkit.errors import ERROR_CATALOG
+from rdetoolkit.errors import ERROR_CATALOG, RdeError
 from rdetoolkit.domain.validation import validate_tile_outputs, wrap_validation_error
 from rdetoolkit.modes.protocol import RawCopyStrategy
 from rdetoolkit.modes.registry import handler_for
+from rdetoolkit.modes.stages import DEFAULT_ARTIFACT_STAGE_ORDER, artifact_stage_order  # noqa: F401
 from rdetoolkit.report.events import Event, EventSink, _best_effort_stderr
+from rdetoolkit.report.failure import FailureDiagnostic, FailurePhase, failure_diagnostic, node_argument_rejection
 from rdetoolkit.runner.execute import ExecutionResult, TileExecutionError
 from rdetoolkit.runner.finalize import processing_error_record, structured_error_record
 from rdetoolkit.runner.invoker import FlowInvoker, TargetInvoker
@@ -41,6 +45,7 @@ _THUMBNAIL_STAGE = "thumbnail"
 
 _ARTIFACT_PUBLICATION_FAILED_CODE = 3005
 _INVOICE_ARTIFACT_FAILED_CODE = 3006
+_METADATA_INVALID_CODE = 4002
 
 
 class _BestEffortEventSink:
@@ -161,6 +166,10 @@ class TileExecutor:
         """
         invoice = tile.invoice
         preparation = TilePreparation(invoice=tile.invoice)
+        # Which part of the tile a failure belongs to (#686). Node failures and
+        # artifact-stage failures carry their own type; everything else that
+        # fails before the flow body is tile preparation.
+        phase: FailurePhase = "tile_prepare"
         try:
             if tile.prepare_invoice is not None:
                 preparation = tile.prepare_invoice()
@@ -182,6 +191,7 @@ class TileExecutor:
                 # rest of the pipeline, so the check belongs *before* the tile
                 # is recorded as completed (ruling #6). Validating afterwards
                 # let flows run that v1 never reached (review R5).
+                phase = "post_validate"
                 _validate_precompleted_tile(tile)
                 # The mode already finished this tile. v1's SmartTable
                 # EarlyExit is the case: it writes the tile invoice, lets the
@@ -215,19 +225,21 @@ class TileExecutor:
                 raise
             if isinstance(exc, TileExecutionError):
                 return _with_legacy_metadata(
-                    _with_user_error(exc.result, exc.__cause__),
+                    self._diagnosed_node_failure(plan, _with_user_error(exc.result, exc.__cause__), exc),
                     invoice=invoice,
                     rawfiles=tile.paths.rawfiles,
                     root=plan.root,
                 )
+            error = _stage_record(exc) if isinstance(exc, _StagePublicationError) else _execution_error(exc)
             result = ExecutionResult(
                 iteration_index=tile.iteration.index,
                 status="failed",
                 call_records=(),
                 outputs=(),
-                error=_stage_record(exc) if isinstance(exc, _StagePublicationError) else _execution_error(exc),
+                error=error,
                 datatile_id=_datatile_id(tile.paths.rawfiles, tile.iteration.index),
                 stacktrace=traceback.format_exc() if isinstance(exc, _StagePublicationError) else None,
+                diagnostic=_tile_failure_diagnostic(plan, tile, exc, phase=phase, error=error),
             )
             return _with_legacy_metadata(
                 result,
@@ -249,8 +261,56 @@ class TileExecutor:
                 error=exc.record,
                 stacktrace=traceback.format_exc(),
                 target=_legacy_failed_target(tile.paths.rawfiles, root=plan.root),
+                diagnostic=_tile_failure_diagnostic(plan, tile, exc, phase="artifact_publish", error=exc.record),
             )
         return result
+
+    def _diagnosed_node_failure(self, plan: ExecutionPlan, result: ExecutionResult, exc: TileExecutionError) -> ExecutionResult:
+        """Attach the diagnostic of a failed flow call, and announce an argument rejection.
+
+        The diagnostic is built from the exception the flow raised (the
+        wrapper's ``__cause__``), so its location is the user's source line.
+        A strict-mode argument rejection (#688) is phase
+        ``node_argument_validation``: the rejected node never ran, so no
+        ``call_id`` is claimed for it and the call log is left untouched; an
+        additive ``node.argument_rejected`` event names the node and
+        parameter.
+
+        Args:
+            plan: Immutable run execution plan.
+            result: The failed result, user error already restored.
+            exc: The tile failure the invoker raised.
+
+        Returns:
+            ``result`` with its diagnostic.
+        """
+        origin = exc.__cause__ if exc.__cause__ is not None else exc
+        rejection = node_argument_rejection(origin)
+        call_id = _recorded_call_id(result)
+        node_id = next((record.node_id for record in result.call_records if record.call_id == call_id), None)
+        if rejection is not None:
+            self._event_sink.emit(
+                Event.node_argument_rejected(
+                    run_id=plan.run_id,
+                    node_id=str(rejection.get("node_id") or "unknown"),
+                    iteration_index=result.iteration_index,
+                    parameter=str(rejection.get("parameter", "")),
+                    expected_type=str(rejection.get("expected_type", "")),
+                    actual_type=str(rejection.get("actual_type", "")),
+                ),
+            )
+        diagnostic = _guarded_diagnostic(
+            lambda: failure_diagnostic(
+                origin,
+                phase="node_argument_validation" if rejection is not None else "node_execution",
+                error=result.error,
+                root=plan.root,
+                iteration_index=result.iteration_index,
+                node_id=node_id,
+                call_id=None if rejection is not None else call_id,
+            ),
+        )
+        return replace(result, diagnostic=diagnostic)
 
     def _publish_post_invoke(self, plan: ExecutionPlan, tile: TilePlan) -> None:
         """Publish the artifacts v1 produces after the dataset callback.
@@ -271,7 +331,10 @@ class TileExecutor:
             if step == _THUMBNAIL_STAGE:
                 self._publish_images(plan, tile)
                 continue
-            self._publish_invoice_step(plan, step, dataset_paths)
+            self._publish_invoice_step(plan, step, dataset_paths, tile.iteration.index)
+
+    def _interpolation_notice(self, plan: ExecutionPlan, message: str) -> None:
+        self._event_sink.emit(Event.warning(run_id=plan.run_id, code=1102, message=message))
 
     def _publish_raw(self, plan: ExecutionPlan, tile: TilePlan) -> None:
         """Copy raw inputs through the mode strategy, or the generic service."""
@@ -305,14 +368,100 @@ class TileExecutor:
         plan: ExecutionPlan,
         step: str,
         dataset_paths: RdeDatasetPaths,
+        iteration_index: int = 0,
     ) -> None:
         """Apply one structured / magic-variable / description invoice step."""
         with _publication_guard(_invoice_stage_error):
+            if step == INVOICE_STEP_MAGIC and isinstance(plan.target, FlowTarget):
+                self._invoice_service.apply_step(
+                    step,
+                    config=plan.config,
+                    dataset_paths=dataset_paths,
+                    magic_updater=partial(self._publish_magic, plan, dataset_paths, iteration_index),
+                )
+                return
             self._invoice_service.apply_step(
                 step,
                 config=plan.config,
                 dataset_paths=dataset_paths,
             )
+
+    def _publish_magic(self, plan: ExecutionPlan, dataset_paths: RdeDatasetPaths, index: int) -> None:
+        preview = apply_interpolation(
+            dataset_paths,
+            original_invoice_snapshot=plan.original_invoice_snapshot,
+            options=options_from_config(plan.config),
+            iteration_index=index,
+            mode=plan.mode.value,
+        )
+        for diagnostic in preview.diagnostics:
+            if diagnostic.status in {"disabled", "omitted", "not_applicable"}:
+                self._interpolation_notice(plan, f"Field {diagnostic.destination} interpolation {diagnostic.status} at tile {index}.")
+
+
+def _guarded_diagnostic(build: Callable[[], FailureDiagnostic]) -> FailureDiagnostic | None:
+    """Build a diagnostic; a defect in diagnosing never changes the tile outcome."""
+    try:
+        return build()
+    except Exception as exc:  # noqa: BLE001
+        if is_run_interrupted(exc):
+            raise
+        _best_effort_stderr(f"rdetoolkit: a tile failure could not be diagnosed (the outcome is unchanged): {type(exc).__name__}\n")
+        return None
+
+
+def _recorded_call_id(result: ExecutionResult) -> str | None:
+    """Return the executed call the tile error names, or ``None`` when there is none."""
+    call_id = (result.error or {}).get("call_id")
+    return call_id if isinstance(call_id, str) and call_id and call_id != "unknown" else None
+
+
+def _tile_failure_diagnostic(
+    plan: ExecutionPlan,
+    tile: TilePlan,
+    exc: Exception,
+    *,
+    phase: FailurePhase,
+    error: dict[str, Any],
+) -> FailureDiagnostic | None:
+    """Diagnose a tile failure outside the flow body (#686).
+
+    An artifact-stage failure is diagnosed from the I/O error the stage
+    wrapped, so its location is not the guard that attributed it.
+
+    Args:
+        plan: Immutable run execution plan.
+        tile: The failed tile.
+        exc: The failure.
+        phase: Phase reached when it failed.
+        error: The published tile error record.
+
+    Returns:
+        The diagnostic, or ``None`` if diagnosing itself failed.
+    """
+    origin: BaseException = exc
+    if isinstance(exc, _StagePublicationError):
+        phase = "artifact_publish"
+        origin = exc.__cause__ if exc.__cause__ is not None else exc
+    artifact_path = _validated_artifact(plan, tile, error) if phase == "post_validate" else None
+    return _guarded_diagnostic(
+        lambda: failure_diagnostic(
+            origin,
+            phase=phase,
+            error=error,
+            root=plan.root,
+            iteration_index=tile.iteration.index,
+            artifact_path=artifact_path,
+        ),
+    )
+
+
+def _validated_artifact(plan: ExecutionPlan, tile: TilePlan, error: dict[str, Any]) -> str:
+    """Name the tile artifact a per-tile validation code is about, data-root relative."""
+    path = tile.out.meta / "metadata.json" if error.get("code") == _METADATA_INVALID_CODE else tile.out.invoice / "invoice.json"
+    with contextlib.suppress(ValueError):
+        return path.relative_to(plan.data_root).as_posix()
+    return path.name
 
 
 def _validate_precompleted_tile(tile: TilePlan) -> None:
@@ -408,39 +557,6 @@ def _raw_copy_strategy(plan: ExecutionPlan) -> RawCopyStrategy | None:
     return provider(plan)
 
 
-#: The v1 invoice/SmartTable pipeline order, used when a mode declares none.
-DEFAULT_ARTIFACT_STAGE_ORDER: tuple[str, ...] = (
-    _THUMBNAIL_STAGE,
-    INVOICE_STEP_STRUCTURED,
-    INVOICE_STEP_MAGIC,
-    INVOICE_STEP_DESCRIPTION,
-)
-
-
-def artifact_stage_order(plan: ExecutionPlan) -> tuple[str, ...]:
-    """Return the ordered post-invoke artifact stages this mode runs.
-
-    The sequence — not a set — is the contract (ruling #5): v1's MultiDataTile
-    and ExcelInvoice pipelines run ``VariableApplier`` before the thumbnail and
-    structured stages, and RDEFormat runs neither the structured export nor the
-    magic expansion at all. The capability stays optional and is read through
-    ``getattr``, so a handler that declares only ``kind``/``create_tiles``
-    remains valid at runtime *and* in the type system (ruling #8).
-
-    Args:
-        plan: Immutable run execution plan.
-
-    Returns:
-        The ordered stage names, defaulting to the v1 invoice pipeline's.
-    """
-    handler = handler_for(plan.mode)
-    provider = getattr(handler, "artifact_stage_order", None)
-    if provider is None:
-        return DEFAULT_ARTIFACT_STAGE_ORDER
-    order = provider(plan)
-    return DEFAULT_ARTIFACT_STAGE_ORDER if order is None else tuple(order)
-
-
 #: Fields the passthrough record owns. ``remediation`` is included because it
 #: is derived from the catalog code being replaced, so keeping the wrapper's
 #: 3001 remediation would describe an error the run no longer reports.
@@ -484,6 +600,8 @@ def _invoice_stage_error(exc: Exception) -> dict[str, Any]:
     passthrough = structured_error_record(exc)
     if passthrough is not None:
         return passthrough
+    if isinstance(exc, RdeError):
+        return _execution_error(exc)
     return _catalogued_stage_error(_INVOICE_ARTIFACT_FAILED_CODE, exc)
 
 

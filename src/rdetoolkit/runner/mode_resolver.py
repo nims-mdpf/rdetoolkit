@@ -1,130 +1,52 @@
-"""Mode resolution wrapper for the v2 Runner."""
-
+"""Target-specific mode resolution for the unified Runner."""
 from __future__ import annotations
 
-from enum import Enum
 from pathlib import Path
+from typing import Literal
 
-from rdetoolkit.domain.input_checker import selected_input_checker
+from rdetoolkit.domain.mode_selection import ModeDecision, ModeKind, decide_mode
 from rdetoolkit.errors import WARNING_CATALOG
-from rdetoolkit.impl.input_controller import (
-    ExcelInvoiceChecker,
-    InvoiceChecker,
-    MultiFileChecker,
-    RDEFormatChecker,
-    SmartTableChecker,
-)
-from rdetoolkit.models.rde2types import RdeInputDirPaths
 from rdetoolkit.report.events import Event, EventSink, _best_effort_stderr
 from rdetoolkit.types import RdeConfig
 
-
-class ModeKind(Enum):
-    """Lowercase internal mode names for v2 Runner reports."""
-
-    invoice = "invoice"
-    excelinvoice = "excelinvoice"
-    multidatatile = "multidatatile"
-    smarttable = "smarttable"
-    rdeformat = "rdeformat"
+__all__ = ["ModeDecision", "ModeKind", "resolve_mode", "resolve_mode_decision"]
 
 
-def resolve_mode(
-    config: RdeConfig,
-    inputdata_path: Path,
-    unpacked_dir_path: Path,
-    event_sink: EventSink,
-    run_id: str,
-) -> ModeKind:
-    """Resolve the effective v2 mode using the v1-compatible detector.
-
-    File detection priority is delegated to ``domain.input_checker.selected_input_checker``.
-    If file detection overrides an explicitly configured mode, W1001 is emitted
-    to both the event sink and stderr.
+def resolve_mode_decision(config: RdeConfig, inputdata_path: Path, event_sink: EventSink, run_id: str, *, contract: Literal["v1", "v2"] = "v2") -> ModeDecision:
+    """Resolve one decision and publish compatibility warnings.
 
     Args:
-        config: Effective v2 Runner configuration.
-        inputdata_path: Directory containing input files.
-        unpacked_dir_path: Directory used by legacy input checkers.
-        event_sink: Open event sink for warnings.
-        run_id: Current run identifier.
+        config: Effective run configuration.
+        inputdata_path: Input snapshot directory.
+        event_sink: Run warning sink.
+        run_id: Active run identifier.
+        contract: Selection policy determined by the execution target.
 
     Returns:
-        Effective internal mode.
+        Immutable mode decision shared with Runner diagnostics.
     """
-    configured_mode = _configured_mode(config)
-    src_paths = RdeInputDirPaths(
-        inputdata=inputdata_path,
-        invoice=inputdata_path.parent / "invoice",
-        tasksupport=inputdata_path.parent / "tasksupport",
-    )
-    checker = selected_input_checker(
-        src_paths,
-        unpacked_dir_path,
-        _mode_for_legacy_detector(configured_mode),
-    )
-    detected_mode = _mode_from_checker(checker)
-    # W1001 is scoped to conflicts with an EXPLICITLY configured mode (Design
-    # §6.2); file-based detection over the implicit default is normal operation.
-    mode_explicitly_configured = "extended_mode" in config.system.model_fields_set
-    if (
-        mode_explicitly_configured
-        and detected_mode != configured_mode
-        and _file_detection_overrode_config(detected_mode)
-    ):
-        _emit_mode_override_warning(
-            event_sink=event_sink,
-            run_id=run_id,
-            detected_mode=detected_mode,
-        )
-    return detected_mode
+    decision = decide_mode(config, inputdata_path, contract=contract)
+    for code in decision.warning_codes:
+        definition = WARNING_CATALOG[code]
+        message = definition.message_template.format(mode=decision.chosen_mode.value)
+        event_sink.emit(Event.warning(run_id=run_id, code=code, message=message))
+        _best_effort_stderr(f"{definition.name}: {message}\n")
+    return decision
 
 
-def _configured_mode(config: RdeConfig) -> ModeKind:
-    raw_mode = config.system.extended_mode
-    if raw_mode == "MultiDataTile":
-        return ModeKind.multidatatile
-    if raw_mode == "rdeformat":
-        return ModeKind.rdeformat
-    return ModeKind.invoice
+def resolve_mode(config: RdeConfig, inputdata_path: Path, unpacked_dir_path: Path, event_sink: EventSink, run_id: str, *, contract: Literal["v1", "v2"] = "v2") -> ModeKind:
+    """Resolve the strict v2 mode or the callback compatibility mode.
 
+    Args:
+        config: Effective run configuration.
+        inputdata_path: Input snapshot directory.
+        unpacked_dir_path: Compatibility argument; selection never unpacks inputs.
+        event_sink: Run warning sink.
+        run_id: Active run identifier.
+        contract: Strict v2 by default; callbacks select the v1 contract.
 
-def _mode_for_legacy_detector(mode: ModeKind) -> str | None:
-    if mode is ModeKind.multidatatile:
-        return "MultiDataTile"
-    if mode is ModeKind.rdeformat:
-        return "rdeformat"
-    return None
-
-
-def _mode_from_checker(checker: object) -> ModeKind:
-    if isinstance(checker, SmartTableChecker):
-        return ModeKind.smarttable
-    if isinstance(checker, ExcelInvoiceChecker):
-        return ModeKind.excelinvoice
-    if isinstance(checker, RDEFormatChecker):
-        return ModeKind.rdeformat
-    if isinstance(checker, MultiFileChecker):
-        return ModeKind.multidatatile
-    if isinstance(checker, InvoiceChecker):
-        return ModeKind.invoice
-    msg = f"Unsupported input checker type: {type(checker).__name__}"
-    raise TypeError(msg)
-
-
-def _file_detection_overrode_config(mode: ModeKind) -> bool:
-    return mode in {ModeKind.smarttable, ModeKind.excelinvoice}
-
-
-def _emit_mode_override_warning(
-    *,
-    event_sink: EventSink,
-    run_id: str,
-    detected_mode: ModeKind,
-) -> None:
-    warning_def = WARNING_CATALOG[1001]
-    message = warning_def.message_template.format(mode=detected_mode.value)
-    event_sink.emit(Event.warning(run_id=run_id, code=1001, message=message))
-    # Best-effort: resolve_mode runs inside the lifecycle's failure boundary,
-    # so a failing stderr would otherwise fail the run with 1002 (K4-F3).
-    _best_effort_stderr(f"{warning_def.name}: {message}\n")
+    Returns:
+        Effective canonical mode.
+    """
+    _ = unpacked_dir_path
+    return resolve_mode_decision(config, inputdata_path, event_sink, run_id, contract=contract).chosen_mode

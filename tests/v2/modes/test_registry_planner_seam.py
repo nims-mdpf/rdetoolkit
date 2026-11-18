@@ -158,7 +158,7 @@ def test_planner_falls_back_when_mode_is_unregistered__tc_ep_i0_003(
     expected = _tile(tmp_path)
     fallback_calls: list[tuple[object, ...]] = []
 
-    def _fallback(*args: object) -> Iterable[tuple[IterationInfo, InputPaths, OutputContext]]:
+    def _fallback(*args: object, **kwargs: object) -> Iterable[tuple[IterationInfo, InputPaths, OutputContext]]:
         fallback_calls.append(args)
         return ((expected.iteration, expected.paths, expected.out),)
 

@@ -232,7 +232,7 @@ def test_failing_callback_reports_failure_and_finalizes__tc_bv_i5_202(tmp_path: 
     assert (tmp_path / "data" / "job.failed").exists()
 
 
-def test_mode_override_warning_survives_handler_installation__tc_ep_i5_301(
+def test_mode_conflict_survives_handler_installation__tc_ep_i5_301(
     tmp_path: Path,
 ) -> None:
     """TC-EP-I5-301 (I5.3): W1001 still fires once mode handlers are installed."""
@@ -254,10 +254,9 @@ def test_mode_override_warning_survives_handler_installation__tc_ep_i5_301(
     runner.run_id = "i5-w1001"
 
     # When: resolving the mode with every walking-skeleton handler installed
-    resolved = runner.resolve_mode(RdeConfig(system=V2SystemSettings(extended_mode="MultiDataTile")))
-
-    # Then: file detection still wins and still warns with catalogued W1001
-    assert handler_for(ModeKind.smarttable) is not None
-    assert resolved is ModeKind.smarttable
-    codes = [event.payload.get("code") for event in sink.events if event.name == "warning"]
-    assert 1001 in codes
+    from rdetoolkit.errors import RdeConfigError
+    with pytest.raises(RdeConfigError) as caught:
+        runner.resolve_mode(RdeConfig(system=V2SystemSettings(extended_mode="MultiDataTile")))
+    # Then: installing handlers does not weaken strict v2 conflict detection.
+    assert caught.value.code == 1005
+    assert not [event for event in sink.events if event.name == "warning"]

@@ -8,7 +8,7 @@ from rdetoolkit.report.events import EventSink
 from rdetoolkit.report.run_report import RunReport
 from rdetoolkit.runner.executor import TileExecutor
 from rdetoolkit.runner.finalize import RunFinalizer
-from rdetoolkit.runner.mode_resolver import ModeKind
+from rdetoolkit.runner.mode_resolver import ModeDecision, ModeKind
 from rdetoolkit.runner.planner import RunPlanner
 from rdetoolkit.types import RdeConfig
 
@@ -18,6 +18,7 @@ class Runner:
     unpacked_dir_path: Path
     event_sink: EventSink
     run_id: str
+    mode_decision: ModeDecision | None
     @property
     def data_root(self) -> Path: ...
     def __init__(
@@ -47,6 +48,7 @@ class Runner:
     def load_config(self, source: object | None = None) -> RdeConfig: ...
     def prepare_inputs(self, target: ExecutionTarget, config: RdeConfig) -> None: ...
     def resolve_mode(self, config: RdeConfig) -> ModeKind: ...
+    def _validate_inputs(self, target: ExecutionTarget, mode: ModeKind, config: RdeConfig) -> None: ...
     def pre_validate(self, config: RdeConfig) -> None: ...
     def iterate(
         self,

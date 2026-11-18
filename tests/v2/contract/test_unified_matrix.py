@@ -116,6 +116,7 @@ from tests.v2.contract.provenance_parity import (
 from tests.v2.contract.flow_error_table import (
     FAILED_EXIT_CODE,
     VALIDATION_REASON,
+    IterationRule,
     MessageRule,
     expected_cb_v2_iteration_count,
     expected_divided_indices,
@@ -199,7 +200,7 @@ def _v2_overrides(mode: str) -> dict:
     }.get(mode)
     return {
         "system": {
-            "extended_mode": extended_mode or "invoice",
+            "extended_mode": extended_mode,
             "save_raw": True,
             "save_nonshared_raw": True,
             "save_thumbnail_image": False,
@@ -432,6 +433,8 @@ def test_callback_target_validation_error_follows_mode_timing(
     assert _callback_count(root) == cell.cb_v2_callback_count
     tile_count = int(_frozen(mode, "ok")["observed"]["callback_count"])
     assert len(report.iterations) == expected_cb_v2_iteration_count(cell, tile_count)
+    if cell.cb_v2_iterations is IterationRule.EXECUTED:
+        assert {iteration["status"] for iteration in report.iterations} == {"completed"}
 
 
 def test_callback_target_smarttable_row_material_matches_the_v1_oracle__tc_um_smt_cb_v2_rowdata(
@@ -1333,7 +1336,7 @@ def _cb_obs_cli_views(mode: str, root: Path, report_path: Path) -> tuple[str, st
     # A v1 ``Config`` source is normalized with origin "v1" on both entries.
     override = root / "override.yaml"
     effective = ConfigNormalizer().normalize(_generate.oracle_config(mode), root=root, origin="v1")
-    override.write_text(yaml.safe_dump(effective.model_dump(mode="json")), encoding="utf-8")
+    override.write_text(yaml.safe_dump(effective.model_dump(mode="json", exclude_unset=True)), encoding="utf-8")
     export = cli.invoke(app, ["repro", "export", str(report_path), "--output", str(archive), "--config", str(override)])
     assert export.exit_code == 0, export.output
     return graph.output, show.output, archive_listing(archive, report_name=report_path.name)
@@ -1397,7 +1400,16 @@ def test_callback_observability_matches_the_flow_entry(
 
     # Then (column 6): the RunReport shape matches
     assert cb_report.status == "success"
-    assert report_shape(cb_report) == report_shape(flow_report)
+    cb_shape = report_shape(cb_report)
+    flow_shape = report_shape(flow_report)
+    if mode == "rdeformat":
+        # V2 freezes archive-member order; legacy filesystem order chooses a different first stem.
+        assert [item["datatile_id"] for item in flow_shape["iterations"]] == ["first", "metadata"]
+        assert flow_shape["iterations"][0]["target"] == "data/temp/0000/raw"
+        for item in (*cb_shape["iterations"], *flow_shape["iterations"]):
+            item.pop("datatile_id")
+            item.pop("target")
+    assert cb_shape == flow_shape
     assert len(cb_report.iterations) == tiles
 
     # Then (column 12): both runs are equally consumable by the CLI
@@ -1412,7 +1424,13 @@ def test_callback_observability_matches_the_flow_entry(
     for rendered in (cb_graph, flow_graph):
         assert _CB_OBS_NODE_ID in rendered
         assert "No recorded calls" not in rendered
-    assert graph_iterations(cb_graph) == graph_iterations(flow_graph)
+    cb_graph_iterations = graph_iterations(cb_graph)
+    flow_graph_iterations = graph_iterations(flow_graph)
+    if mode == "rdeformat":
+        assert [item["datatile_id"] for item in flow_graph_iterations] == ["first", "metadata"]
+        for item in (*cb_graph_iterations, *flow_graph_iterations):
+            item.pop("datatile_id")
+    assert cb_graph_iterations == flow_graph_iterations
 
     # And: ``report show`` is non-empty and identical once the run id line is
     # dropped. It prints failed call ids only, so a successful run shows no node

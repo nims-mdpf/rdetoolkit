@@ -112,8 +112,8 @@ def generate_config(
 CONFIG_HELP = CommandHelp(
     summary="Generate rdeconfig.yaml from a preset.",
     inputs=(
-        "`--preset`: `minimal` (default), `full`, `multitile`, `rdeformat`, `smarttable`, or `interactive` "
-        "(asks questions; `--lang en|ja` sets the prompt language).",
+        ("`--preset`: `minimal` (default), `full`, `multitile`, `rdeformat`, `smarttable`, or `interactive` "
+        "(asks questions; `--lang en|ja` sets the prompt language)."),
     ),
     outputs=(
         "Writes `rdeconfig.yaml` into `-o DIR` (default: the current directory); the directory is created if needed.",
@@ -264,8 +264,8 @@ EXCELINVOICE_HELP = CommandHelp(
         "`--mode file` (default) registers one row per file; `--mode folder` one row per folder.",
     ),
     outputs=(
-        f"Writes `-o FILE` (default: `./{DEFAULT_EXCEL_INVOICE_TEMPLATE}`); the name must end with `_excel_invoice.xlsx`. "
-        "An existing file is overwritten.",
+        (f"Writes `-o FILE` (default: `./{DEFAULT_EXCEL_INVOICE_TEMPLATE}`); the name must end with `_excel_invoice.xlsx`. "
+        "An existing file is overwritten."),
     ),
     examples=(
         "rdetoolkit new excelinvoice data/tasksupport/invoice.schema.json",
@@ -303,8 +303,8 @@ PROCESSING_HELP = CommandHelp(
     summary="Generate processing.py, main.py, and a sample test from a registered processing skeleton.",
     inputs=(
         "`SKELETON`: a skeleton id or unambiguous class name as printed by `rdetoolkit skeletons list`.",
-        "`--module`: import a module that declares skeletons before the lookup (repeatable). Without it, "
-        "skeletons are found in `*.py` files of the current directory, its `modules/` package, and installed plugins.",
+        ("`--module`: import a module that declares skeletons before the lookup (repeatable). Without it, "
+        "skeletons are found in `*.py` files of the current directory, its `modules/` package, and installed plugins."),
     ),
     outputs=(
         "Writes `processing.py`, `main.py`, and `tests/test_processing.py` under `-o DIR` (default: the current directory).",

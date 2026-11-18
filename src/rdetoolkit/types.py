@@ -341,7 +341,7 @@ class V2ExecutionSettings(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    type_check: str = "off"
+    type_check: Literal["off", "warn", "strict"] = "off"
     on_iteration_error: Literal["continue", "fail_fast"] = "continue"
 
 

@@ -20,8 +20,8 @@ FORMATS_HELP = CommandHelp(
 LIST_HELP = CommandHelp(
     summary="List format handlers from installed `rdetoolkit.plugins` entry points.",
     outputs=(
-        "Prints `name (extensions) -> target [plugin]` per handler, or a JSON array with `--json`. "
-        "Prints nothing when no plugin declares a handler. Writes no files.",
+        ("Prints `name (extensions) -> target [plugin]` per handler, or a JSON array with `--json`. "
+        "Prints nothing when no plugin declares a handler. Writes no files."),
     ),
     examples=("rdetoolkit formats list", "rdetoolkit formats list --json"),
     exit_codes=(EXIT_OK, EXIT_CLICK_USAGE),

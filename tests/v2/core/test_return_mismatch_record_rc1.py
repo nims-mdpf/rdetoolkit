@@ -164,7 +164,13 @@ class TestTileAndRunnerSeeTheFailedCall:
         assert result.error["call_id"] == record.call_id
         assert result.error["call_id"] != "unknown"
         node_events = [(event.name, event.payload.get("call_id")) for event in sink.events if event.name.startswith("node.")]
-        assert node_events == [("node.started", record.call_id), ("node.failed", record.call_id)]
+        # #689: the live in-flight pair precedes the replay; only the finish has a call_id.
+        assert node_events == [
+            ("node.invocation_started", None),
+            ("node.invocation_finished", record.call_id),
+            ("node.started", record.call_id),
+            ("node.failed", record.call_id),
+        ]
 
     def test_run_report_error_points_at_the_recorded_call__tc_rc1_f06_ep_003(self, tmp_path: Path) -> None:
         # Given: a valid one-tile input tree run in strict mode

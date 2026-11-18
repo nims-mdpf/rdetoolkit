@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, Literal, Protocol
 
 @dataclass(frozen=True, slots=True)
 class TypeSummary:
@@ -24,6 +24,18 @@ class NodeCallRecord:
 class CallSequence:
     def __init__(self) -> None: ...
     def next(self) -> int: ...
+    def next_invocation(self) -> int: ...
+
+@dataclass(frozen=True, slots=True)
+class NodeInvocation:
+    invocation_id: str
+    node_id: str
+    iteration_index: int
+    parent_invocation_id: str | None
+
+class InvocationListener(Protocol):
+    def invocation_started(self, invocation: NodeInvocation) -> None: ...
+    def invocation_finished(self, invocation: NodeInvocation, record: NodeCallRecord) -> None: ...
 
 def get_active_recorder() -> CallLogRecorder | None: ...
 def type_name_of(target: type) -> str: ...
@@ -45,6 +57,7 @@ class CallLogRecorder:
         type_check: Literal["off", "warn", "strict"] = "off",
         iteration_index: int = 0,
         sequence: CallSequence | None = None,
+        invocation_listener: InvocationListener | None = None,
     ) -> None: ...
     @property
     def records(self) -> tuple[NodeCallRecord, ...]: ...

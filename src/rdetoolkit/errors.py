@@ -889,3 +889,77 @@ ERROR_CATALOG[2007] = ErrorDef(
         "restart the interpreter instead."
     ),
 )
+
+
+ERROR_CATALOG[1005] = ErrorDef(
+    name="ModeInputConflict",
+    message_template="Configured registration mode conflicts with input evidence: {reason}",
+    remediation="Remove the conflicting special input or explicitly request its matching mode. Omit extended_mode for automatic selection.",
+)
+ERROR_CATALOG[1007] = ErrorDef(
+    name="AmbiguousModeInput",
+    message_template="Registration input is ambiguous: {reason}",
+    remediation="Provide one special table/workbook and an unambiguous archive with unique safe member names.",
+)
+ERROR_CATALOG[1008] = ErrorDef(
+    name="ModeInputMissing",
+    message_template="Registration mode input is missing or unreadable: {reason}",
+    remediation="Provide the matching SmartTable, Excel invoice, or RDEFormat ZIP input, then validate again.",
+)
+
+
+ERROR_CATALOG[1006] = ErrorDef(
+    name="InvalidArtifactStagePlan",
+    message_template="Invalid artifact-stage plan: {reason}",
+    remediation=(
+        "Use each supported stage at most once: thumbnail, structured, magic, description. "
+        "Place description after every other selected stage."
+    ),
+)
+
+
+ERROR_CATALOG[4005] = ErrorDef(
+    name="SmartTableMappingInvalid",
+    message_template="SmartTable mapping failed at row {row}, column {column}: {reason}",
+    remediation="Correct the indicated mapping header or cell type using invoice.schema.json and metadata-def.json, then validate the complete table again.",
+)
+
+
+ERROR_CATALOG[4006] = ErrorDef(
+    name="InputPlanningFailed",
+    message_template="Input grouping cannot be planned: {reason}",
+    remediation="Check workbook rows and archive member names; use unique relative paths and safe ZIP entries.",
+)
+
+
+ERROR_CATALOG[4009] = ErrorDef(
+    name="InvalidMagicExpression",
+    message_template="Invalid v2 magic-variable expression: {reason}",
+    remediation=(
+        "Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key "
+        "inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits."
+    ),
+)
+
+ERROR_CATALOG[4010] = ErrorDef(
+    name="MissingMagicSource",
+    message_template="A requested interpolation source is unavailable or invalid: {reason}",
+    remediation="Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values.",
+)
+
+ERROR_CATALOG[4007] = ErrorDef(
+    name="InvalidMagicOutput",
+    message_template="Interpolation produced an invalid invoice field: {reason}",
+    remediation="Correct the source or template so each output satisfies the invoice schema, length limits, and dataName character rules. The invoice has not been replaced.",
+)
+
+ERROR_CATALOG[4008] = ErrorDef(
+    name="InvalidMappingRule",
+    message_template="A rule mapping destination is invalid: {reason}",
+    remediation="Use nonempty dotted object paths without overlapping parent/child destinations or scalar ancestors.",
+)
+
+WARNING_CATALOG[1102] = WarningDef(
+    name="InterpolationDiagnostic",
+    message_template="Interpolation stage diagnostic: {reason}",
+)

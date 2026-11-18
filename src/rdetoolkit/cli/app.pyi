@@ -93,6 +93,8 @@ def run(
     legacy: bool = False,
     validate_only: bool = False,
     config: Optional[pathlib.Path] = None,
+    explain: bool = False,
+    output_format: str = "text",
 ) -> None: ...
 def package(
     source_dir: pathlib.Path,

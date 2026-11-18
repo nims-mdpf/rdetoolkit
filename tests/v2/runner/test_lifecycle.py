@@ -17,6 +17,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from rdetoolkit.types import RdeConfig
+
 # Target import — fails until implementation exists (expected in Red phase):
 # from rdetoolkit.runner.lifecycle import Runner
 # from rdetoolkit.report.run_report import RunReport
@@ -38,7 +40,7 @@ class TestRunnerLifecycle:
             patch.object(
                 runner,
                 "load_config",
-                side_effect=lambda *a, **kw: call_log.append("load_config") or MagicMock(),
+                side_effect=lambda *a, **kw: call_log.append("load_config") or RdeConfig(),
             ),
             patch.object(
                 runner,
@@ -91,7 +93,7 @@ class TestRunnerLifecycle:
             return mock_report
 
         with (
-            patch.object(runner, "load_config", return_value=MagicMock()),
+            patch.object(runner, "load_config", return_value=RdeConfig()),
             patch.object(runner, "resolve_mode", return_value=MagicMock()),
             patch.object(runner, "pre_validate"),
             patch.object(runner, "iterate", side_effect=iterate_stub),
@@ -121,7 +123,7 @@ class TestRunnerLifecycle:
         )
 
         with (
-            patch.object(runner, "load_config", return_value=MagicMock()),
+            patch.object(runner, "load_config", return_value=RdeConfig()),
             patch.object(runner, "resolve_mode", return_value=MagicMock()),
             patch.object(runner, "pre_validate"),
             patch.object(runner, "iterate", return_value=real_report),
@@ -145,7 +147,7 @@ class TestRunnerLifecycle:
             patch.object(
                 runner,
                 "load_config",
-                side_effect=lambda *a, **kw: call_log.append("load_config") or MagicMock(),
+                side_effect=lambda *a, **kw: call_log.append("load_config") or RdeConfig(),
             ),
             patch.object(
                 runner,
@@ -192,7 +194,7 @@ class TestRunnerLifecycle:
             patch.object(
                 runner,
                 "load_config",
-                side_effect=lambda *a, **kw: call_log.append("load_config") or MagicMock(),
+                side_effect=lambda *a, **kw: call_log.append("load_config") or RdeConfig(),
             ),
             patch.object(
                 runner,
@@ -237,7 +239,7 @@ class TestRunnerLifecycle:
             patch.object(
                 runner,
                 "load_config",
-                side_effect=lambda *a, **kw: call_log.append("load_config") or MagicMock(),
+                side_effect=lambda *a, **kw: call_log.append("load_config") or RdeConfig(),
             ),
             patch.object(
                 runner,
@@ -285,7 +287,7 @@ class TestRunnerLifecycle:
             patch.object(
                 runner,
                 "load_config",
-                side_effect=lambda *a, **kw: call_log.append("load_config") or MagicMock(),
+                side_effect=lambda *a, **kw: call_log.append("load_config") or RdeConfig(),
             ),
             patch.object(
                 runner,

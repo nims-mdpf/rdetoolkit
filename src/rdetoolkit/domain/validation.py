@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 import os
-from collections.abc import Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -199,6 +199,7 @@ class InvoiceValidator:
         path: str | Path | None = None,
         obj: Mapping[str, Any] | None = None,
         preserve_none_values: bool = False,
+        deferred_value_paths: frozenset[tuple[str, ...]] = frozenset(),
     ) -> dict[str, Any]:
         """Validate the provided JSON data against the schema.
 
@@ -211,6 +212,10 @@ class InvoiceValidator:
             preserve_none_values (bool): If True, returns original data with None
                 values preserved after successful validation. Validation itself is
                 always performed against a cleaned copy without None values.
+            deferred_value_paths: Exact string destinations whose pattern, enum,
+                const, format, and length errors may await interpolation. All
+                structural errors and aggregate combinator failures remain
+                strict. The default validates every value immediately.
 
         Raises:
             ValueError: If neither 'path' nor 'obj' is provided.
@@ -235,21 +240,10 @@ class InvoiceValidator:
             emsg = "Expected a dictionary, but got a different type."
             raise ValueError(emsg)
 
-        draft_202012_validator, format_checker_cls, validate, schema_validation_error = _jsonschema_tools()
-        basic_info = readf_json(self.pre_basic_info_schema)
-        # with open(self.pre_basic_info_schema, encoding="utf-8") as f:
-        #     basic_info = json.load(f)
-        try:
-            validate(instance=data, schema=basic_info)
-        except schema_validation_error as schema_error:
-            emsg = "Error in validating system standard field.\nPlease correct the following fields in invoice.json\n"
-            emsg += f"Field: {'.'.join(list(map(str, schema_error.path)))}\n"
-            emsg += f"Type: {schema_error.validator}\n"
-            emsg += f"Context: {schema_error.message}\n"
-            raise InvoiceSchemaValidationError(emsg) from schema_error
-
+        draft_202012_validator, format_checker_cls, _, _ = _jsonschema_tools()
+        _validate_system_fields(data, readf_json(self.pre_basic_info_schema), deferred_value_paths)
         validator = draft_202012_validator(self.schema, format_checker=format_checker_cls())
-        errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
+        errors = sorted(_nondeferred_errors(validator.iter_errors(data), deferred_value_paths), key=lambda e: e.path)
 
         # Custom validation: Check if invoice.json contains only required fields
         required_fields_errors = self._validate_required_fields_only(data)
@@ -415,6 +409,49 @@ class InvoiceValidator:
                 errors.append(error)
 
         return errors
+
+
+_VALUE_CONSTRAINTS = frozenset({"pattern", "enum", "const", "format", "minLength", "maxLength"})
+
+
+def _nondeferred_errors(
+    errors: Iterable[SchemaValidationError],
+    deferred_value_paths: frozenset[tuple[str, ...]],
+) -> Iterator[SchemaValidationError]:
+    for error in errors:
+        deferred = (
+            isinstance(error.instance, str)
+            and error.validator in _VALUE_CONSTRAINTS
+            and tuple(error.absolute_path) in deferred_value_paths
+        )
+        if not deferred:
+            yield error
+
+
+def _validate_system_fields(
+    data: dict[str, Any],
+    schema: dict[str, Any],
+    deferred_value_paths: frozenset[tuple[str, ...]],
+) -> None:
+    from jsonschema.validators import validator_for
+
+    _, _, validate, schema_validation_error = _jsonschema_tools()
+    try:
+        if not deferred_value_paths:
+            validate(instance=data, schema=schema)
+            return
+        # Preserve jsonschema.validate's dialect selection and absent format checker.
+        validator_cls = validator_for(schema)
+        validator_cls.check_schema(schema)
+        error = next(_nondeferred_errors(validator_cls(schema).iter_errors(data), deferred_value_paths), None)
+        if error is not None:
+            raise error
+    except schema_validation_error as schema_error:
+        emsg = "Error in validating system standard field.\nPlease correct the following fields in invoice.json\n"
+        emsg += f"Field: {'.'.join(list(map(str, schema_error.path)))}\n"
+        emsg += f"Type: {schema_error.validator}\n"
+        emsg += f"Context: {schema_error.message}\n"
+        raise InvoiceSchemaValidationError(emsg) from schema_error
 
 
 def invoice_validate(path: str | Path, schema: str | Path) -> None:
