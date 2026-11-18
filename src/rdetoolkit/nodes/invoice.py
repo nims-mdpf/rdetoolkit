@@ -80,11 +80,15 @@ def _cast_value(value: Any, value_type: Any, fmt: str | None) -> Any:
     return castval(value, value_type, None)
 
 
-def _cast_field(key: str, value: Any, definitions: Mapping[str, Any]) -> Any:
+def _definition(key: str, definitions: Mapping[str, Any]) -> Mapping[str, Any]:
     definition = definitions.get(key)
     if not isinstance(definition, Mapping):
         msg = f"Field 'custom.{key}' is not defined in invoice.schema.json."
         raise StructuredError(msg)
+    return definition
+
+
+def _cast_field(key: str, value: Any, definition: Mapping[str, Any]) -> Any:
     value_type = definition.get("type")
     try:
         return _cast_value(value, value_type, definition.get("format"))
@@ -100,6 +104,7 @@ def set_custom_fields(
     *,
     schema: Mapping[str, Any] | Path | None = None,
     cast: bool = True,
+    keep_empty_strings: bool = False,
 ) -> InvoiceData:
     """Return a copy of the invoice with ``custom`` values cast by the invoice schema.
 
@@ -119,7 +124,20 @@ def set_custom_fields(
     - ``string`` with format ``date`` / ``date-time`` / ``time``: parsed by
       dateutil and written as ``YYYY-MM-DD`` / ISO 8601 / ``HH:MM:SS``;
       ``datetime.date`` and ``datetime.datetime`` values are accepted.
-      Any other string format, or none, keeps the value unchanged.
+      Any other string format, or none, keeps the value unchanged,
+      including a non-string value (v1 ``castval``). Such a value then
+      fails the invoice validation after processing (``1.5 is not of
+      type 'string'``, ErrorCode 4001), so convert it deliberately. To
+      keep the digits as entered (``1.50``), read the cell as text
+      (``read_excel(..., dtype=str)``): ``str(1.5)`` cannot restore them.
+
+    A string that is empty after stripping whitespace is not applied by
+    default, for every type: the key keeps its current value in
+    ``custom``, or stays absent, as ``build_meta`` omits empty strings.
+    With ``keep_empty_strings=True`` the string is cast like any other
+    value: stored unchanged for a ``string`` field without a date format,
+    a type mismatch for ``integer`` / ``number`` / ``boolean`` and the
+    date formats. An undeclared key is rejected even with an empty value.
 
     Keys keep their position in ``custom``; new keys are appended. The input
     invoice is never modified.
@@ -131,7 +149,10 @@ def set_custom_fields(
         schema: ``invoice.schema.json`` as a mapping or a path. Defaults to
             ``invoice.schema``.
         cast: When false, values are stored as given and the schema is not
-            read, so undeclared keys are accepted.
+            read, so undeclared keys are accepted. Empty strings are then
+            stored as well.
+        keep_empty_strings: Cast empty and whitespace-only strings instead
+            of skipping them.
 
     Returns:
         A new ``InvoiceData`` with the same mode and schema.
@@ -146,7 +167,10 @@ def set_custom_fields(
     fields = dict(custom) if isinstance(custom, dict) else {}
     if cast:
         definitions = _custom_definitions(_load_schema(schema, invoice))
-        fields.update({key: _cast_field(key, value, definitions) for key, value in updates.items()})
+        for key, value in updates.items():
+            definition = _definition(key, definitions)
+            if keep_empty_strings or not (isinstance(value, str) and not value.strip()):
+                fields[key] = _cast_field(key, value, definition)
     else:
         fields.update(copy.deepcopy(dict(updates)))
     raw["custom"] = fields
