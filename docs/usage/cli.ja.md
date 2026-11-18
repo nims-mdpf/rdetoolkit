@@ -448,7 +448,7 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 python3 -m rdetoolkit run modules.processing:pipeline --validate-only --explain --format json
 ```
 
-`graph_preview` セクションは、各タイルの `.csv` と `.tsv` の入力ごとに、Graph Engine の組み込みの表形式判定がどう読むかを示します。`detected` は選ばれた reader(`standard`、`noheader`、`transpose`、`meta_block`)、`ambiguous` はすべての候補とその確信度・根拠、`unreadable` は空または読めないファイルです。文字コード、区切り文字、列数、データ行数も示します。列名とセルの値は出力しません。実行時にだけ展開される archive 内の入力(SmartTable、ExcelInvoice、RDEFormat)は `skipped` となり、ほかに表形式の入力がなければセクションは `deferred` になります。reader プラグイン、flow 側のプロット設定、描画は確認しないため、`ambiguous` のファイルは `csv_format=<id>` または `--csv-format <id>` で reader を指定してください。
+`graph_preview` セクションは、各タイルの `.csv` と `.tsv` の入力ごとに、Graph Engine の組み込みの表形式判定がどう読むかを示します。`detected` は選ばれた reader(`standard`、`noheader`、`transpose`、`meta_block`)、`ambiguous` はすべての候補とその確信度・根拠(判定用のサンプルを解析できない場合、たとえば CR のみの改行では理由 `sample_not_parseable`)、`unreadable` は空または読めないファイルです。文字コード、区切り文字、列数、データ行数も示します。列名とセルの値は出力しません。実行時にだけ展開される archive 内の入力(SmartTable、ExcelInvoice、RDEFormat)は `skipped` となり、ほかに表形式の入力がなければセクションは `deferred` になります。reader プラグイン、flow 側のプロット設定、描画は確認しないため、`ambiguous` のファイルは `csv_format=<id>` または `--csv-format <id>` で reader を指定してください。
 
 ### test: プロジェクトの pytest テストの実行
 

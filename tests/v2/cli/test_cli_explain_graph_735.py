@@ -151,3 +151,26 @@ def test_invalid_config_with_tabular_inputs_fails_before_detection__graph_n1(tmp
     jsonschema.validate(payload, _schema())
     assert payload["status"] == "failed"
     assert "graph_preview" not in payload
+
+
+_UNPARSEABLE_SAMPLES = {
+    # Valid for StandardReader; csv.Error ("new-line character seen in unquoted field") in the sniffer.
+    "cr_newlines": b"x,y\r1,2\r3,4\r",
+    # Valid for StandardReader; a quoted field crossing the 64 KiB sniff window raises pandas ParserError.
+    "quoted_field_across_window": ('x,y\n1,"' + ("2\n" * 33000) + '"\n').encode(),
+}
+
+
+@pytest.mark.parametrize("case", sorted(_UNPARSEABLE_SAMPLES))
+def test_unparseable_sample_is_a_file_outcome__graph_n2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str) -> None:
+    # Given: a valid CSV whose bounded sample the detector cannot parse, next to a detectable one.
+    root = _project(tmp_path, monkeypatch, "invoice", {"a_header.csv": "x,y\n1,2\n"})
+    (root / "data" / "inputdata" / "b_sample.csv").write_bytes(_UNPARSEABLE_SAMPLES[case])
+    # When: explaining as JSON.
+    payload = _explain_json(root)
+    # Then: only that file is ambiguous; the rest of the explanation is still returned.
+    by_name = _files_by_name(payload)
+    assert (by_name["b_sample.csv"]["status"], by_name["b_sample.csv"]["reason"]) == ("ambiguous", "sample_not_parseable")
+    assert by_name["b_sample.csv"]["reader"] is None
+    assert (by_name["a_header.csv"]["status"], by_name["a_header.csv"]["reader"]) == ("detected", "standard")
+    assert payload["graph_preview"]["status"] == "previewed"

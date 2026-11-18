@@ -16,9 +16,12 @@ for them, like the rest of the explanation, which carries no input values.
 
 from __future__ import annotations
 
+import csv
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Final
+
+import pandas as pd
 
 from rdetoolkit.graph.exceptions import AmbiguousFormatError, InvalidCSVFormatError
 from rdetoolkit.graph.readers.base import DetectionDecision, FormatCandidate
@@ -130,6 +133,11 @@ def _preview_file(ref: InputReference) -> GraphFilePreview:
         decision = exc.decision if isinstance(exc.decision, DetectionDecision) else undecided
     except (InvalidCSVFormatError, OSError):
         return GraphFilePreview(ref.name, "unreadable", "empty_oversized_or_unreadable")
+    except (csv.Error, pd.errors.ParserError):
+        # The bounded sample does not parse (CR-only newlines, a quoted field
+        # crossing the sniff window), although a named reader may read the
+        # whole file. Report it per file instead of aborting the explanation.
+        return GraphFilePreview(ref.name, "ambiguous", "sample_not_parseable")
     return _from_decision(ref.name, decision)
 
 
