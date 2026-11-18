@@ -6,6 +6,7 @@ import inspect
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NoReturn, cast
@@ -266,8 +267,24 @@ def _print_explanation(payload: dict[str, Any]) -> None:
     typer.echo(f"Tiles: {payload['tile_count']} ({payload['iteration_policy']})")
     for tile in payload["tiles"]:
         typer.echo(f"  {tile['index']}: {', '.join(tile['input_names']) or '(no raw files)'}")
+    _print_magic_preview(payload["magic_preview"])
     for warning in payload["warnings"]:
         typer.echo(f"Warning: {warning}")
+
+
+def _print_magic_preview(magic: dict[str, Any]) -> None:
+    typer.echo(f"Magic preview: {magic['status']} ({magic['reason']})")
+    counts = Counter((tile["status"], tile["reason"]) for tile in magic["tiles"])
+    for (status, reason), count in sorted(counts.items()):
+        typer.echo(f"  {status} ({reason}): {count} tile(s)")
+    for tile in magic["tiles"]:
+        for item in tile["diagnostics"]:
+            code = f" [{item['code']}]" if item["code"] is not None else ""
+            remedy = f" Remedy: {item['remediation']}" if item["code"] is not None else ""
+            typer.echo(f"  tile {tile['index']} {item['destination']}: {item['status']}{code} {item['reason']}.{remedy}")
+    if magic["status"] != "not_applicable":
+        typer.echo(f"  Checked: {', '.join(magic['checks'])}")
+        typer.echo(f"  Not checked: {', '.join(magic['not_checked'])}")
 
 
 def run_flow(
