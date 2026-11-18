@@ -5,6 +5,7 @@ from typing import Any
 from rdetoolkit.domain.magic import ResolutionDiagnostic
 from rdetoolkit.domain.mode_selection import ModeDecision
 from rdetoolkit.modes.stages import StageSpec
+from rdetoolkit.runner.graph_preview import GraphPreview
 
 @dataclass(frozen=True, slots=True)
 class PlannedTile:
@@ -41,6 +42,7 @@ class RegistrationPreview:
     deterministic_order: bool
     warnings: tuple[str, ...]
     magic: MagicPreview
+    graph: GraphPreview
     schema_version: str = ...
     def to_dict(self) -> dict[str, Any]: ...
 

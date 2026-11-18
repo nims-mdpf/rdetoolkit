@@ -421,6 +421,8 @@ python3 -m rdetoolkit doctor --strict --module modules.processing
 | --legacy | v1 のデータセット関数(`workflows.run(custom_dataset_function=...)` に渡していた関数)を実行 |
 | --config | 検出した `rdeconfig.yaml` に重ねる YAML の上書き設定(v2 flow のみ) |
 | --validate-only | flow を呼ばずに設定、モード、インボイスだけを検証(v2 flow のみ)。ExcelInvoice / SmartTable モードでは行がインボイスを補うため、インボイスのファイルとスキーマだけを検証します。出力は書き込みません |
+| --explain | `--validate-only` と併用。実行による検証の代わりに、現在の入力 snapshot を説明します。選択されたモードと理由、タイル計画、成果物 stage、設定の読み込み元、マジック変数プレビュー、グラフ入力プレビュー、警告を表示します。flow のモジュールは import せず、`prepare=` も flow も呼ばず、何も書き込みません |
+| --format | `text`(既定)または `json`。`--explain` 指定時のみ。JSON はリポジトリに含まれるスキーマ `rdetoolkit/static/registration-explain.schema.json`(`schema_version` は `"1"`)に従い、キーをソートして出力するため、同じ入力なら繰り返し実行しても同一のバイト列になります。失敗時は stdout に `{"status": "failed", "error": ...}` を 1 つだけ出力し、終了コード 1 で終了します |
 
 出力: `data/` 配下の RDE 出力ツリー(`structured/`、`meta/`、`raw/`、画像、`logs/`、失敗時は `job.failed`)。v2 の実行は実行レポートの JSON を表示し、`data/logs/run_report_<run_id>.json` として保存します。v1 の実行は従来のステータス JSON を表示します。
 
@@ -441,6 +443,12 @@ python3 -m rdetoolkit run --legacy main.py::dataset
 | 1 | 実行が失敗(または検証が失敗) |
 | 2 | 部分成功: 一部のタイルが失敗(未知のオプションなどパーサーのエラーでも使用) |
 | 3 | REF が不正、flow を解決できない、`--config` を読めない、または `--legacy` に適用できないオプションを指定 |
+
+```bash title="flow を実行せずに登録計画を JSON で説明する"
+python3 -m rdetoolkit run modules.processing:pipeline --validate-only --explain --format json
+```
+
+`graph_preview` セクションは、各タイルの `.csv` と `.tsv` の入力ごとに、Graph Engine の組み込みの表形式判定がどう読むかを示します。`detected` は選ばれた reader(`standard`、`noheader`、`transpose`、`meta_block`)、`ambiguous` はすべての候補とその確信度・根拠(判定用のサンプルを解析できない場合、たとえば CR のみの改行では理由 `sample_not_parseable`)、`unreadable` は空または読めないファイルです。文字コード、区切り文字、列数、データ行数も示します。列名とセルの値は出力しません。実行時にだけ展開される archive 内の入力(SmartTable、ExcelInvoice、RDEFormat)は `skipped` となり、ほかに表形式の入力がなければセクションは `deferred` になります。reader プラグイン、flow 側のプロット設定、描画は確認しないため、`ambiguous` のファイルは `csv_format=<id>` または `--csv-format <id>` で reader を指定してください。
 
 ### test: プロジェクトの pytest テストの実行
 
