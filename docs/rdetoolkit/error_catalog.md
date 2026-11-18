@@ -49,6 +49,9 @@ Authority: `local/develop/v2/Design.md` §9.
 | 4008 | InvalidMappingRule | A rule mapping destination is invalid: {reason} | Use nonempty dotted object paths without overlapping parent/child destinations or scalar ancestors. |
 | 4009 | InvalidMagicExpression | Invalid v2 magic-variable expression: {reason} | Use filename, invoice:basic/custom:field, invoice:sample:names, or metadata:constant:key inside ${...}; use $${...} for a literal. Check the reported character offset and parser limits. |
 | 4010 | MissingMagicSource | A requested interpolation source is unavailable or invalid: {reason} | Provide the requested invoice/metadata field or exactly one raw file for filename; use custom.interpolation.missing=omit only for intentionally absent values. |
+| 4011 | InvoiceCustomKeyUndefined | Field 'custom.{key}' is not defined in invoice.schema.json. | Add the field to invoice.schema.json, or fix the key passed to set_custom_fields(). |
+| 4012 | InvoiceCustomLabelUnknown | Label '{label}' does not match any custom field label in invoice.schema.json. | Check the spreadsheet header against label.ja / label.en in invoice.schema.json, or pass lang= to resolve_custom_key(). |
+| 4013 | InvoiceCustomLabelAmbiguous | Label '{label}' matches more than one custom field in invoice.schema.json: {keys}. | Make the labels unique in invoice.schema.json, or pass lang= to resolve_custom_key() to restrict the match. |
 | 5001 | InternalInvariantViolation | Internal rdetoolkit invariant failed: {reason} | This is a bug in rdetoolkit, not in user code. Please report it together with the run report and the stack trace. |
 
 ## Warnings
