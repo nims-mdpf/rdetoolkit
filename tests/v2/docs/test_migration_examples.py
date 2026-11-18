@@ -13,6 +13,7 @@ external converter    exit 0, Path argument   output written, result kept    GA6
 default_value.csv     defaults + measured     measured wins in build_meta    629-DOC
 ProcessingError       missing input file      3007 with cause and guidance   634-DOC
 artifact logger       shared logger in flow   file holds the block lines     GA631-DOC
+template settings     v1 section vs v2 custom same custom, no warning        624-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -179,7 +180,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program", "read-key-values", "processing-error", "ga631-artifact-logger"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program", "read-key-values", "processing-error", "ga631-artifact-logger", "template-settings-v1", "template-settings-v2"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
@@ -230,3 +231,27 @@ def test_load_run_config_example_executes__tc_600_doc_001(doc: Path, tmp_path: P
     assert config.system.save_raw is True
     assert config.custom == {"label": "retained"}
     assert report.status == "success"
+
+
+@DOCS
+def test_template_settings_examples_are_equivalent__624_doc(doc: Path, tmp_path: Path) -> None:
+    """624-DOC: the v1 section and the v2 ``custom:`` form give one ``config.custom``."""
+    import warnings
+
+    from rdetoolkit.runner.config_loader import load_config
+
+    # Given: the v1 example in tasksupport and the v2 example at a project root
+    examples = _examples(doc)
+    v1_root, v2_root = tmp_path / "v1", tmp_path / "v2"
+    (v1_root / "data" / "tasksupport").mkdir(parents=True)
+    (v1_root / "data" / "tasksupport" / "rdeconfig.yaml").write_text(examples["template-settings-v1"][1], encoding="utf-8")
+    v2_root.mkdir()
+    (v2_root / "rdeconfig.yaml").write_text(examples["template-settings-v2"][1], encoding="utf-8")
+    # When: the Runner discovers each configuration with warnings as errors
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        v1 = load_config(v1_root, data_root=v1_root / "data")
+        v2 = load_config(v2_root, data_root=v2_root / "data")
+    # Then: the documented lookup works and both forms agree
+    assert v1.custom["sem"]["magnification_key"] == "Mag"
+    assert v1.custom == v2.custom

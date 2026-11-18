@@ -210,16 +210,24 @@ def _mapping_section(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:
 
 
 def _legacy_custom(data: Mapping[str, Any]) -> dict[str, Any]:
-    """Merge legacy extensions while keeping the explicit custom namespace flat."""
+    """Merge legacy extensions while keeping the explicit custom namespace flat.
+
+    A top-level mapping section (``sem:``, ``xps:``, ...) is how v1 templates
+    keep their own settings, so it becomes ``custom[<section>]`` silently
+    (#624). Any other unknown top-level value still warns.
+    """
     custom: dict[str, Any] = {}
     for key, value in data.items():
-        if key not in _V1_TOP_LEVEL_KEYS:
+        if key in _V1_TOP_LEVEL_KEYS:
+            continue
+        if not isinstance(value, Mapping):
             warnings.warn(
-                f"Legacy configuration key {key!r} is preserved under custom.",
+                f"Legacy configuration key {key!r} is preserved under custom; "
+                "move it under `custom:` to silence this warning.",
                 UserWarning,
                 stacklevel=4,
             )
-            custom[key] = copy.deepcopy(value)
+        custom[key] = copy.deepcopy(value)
     explicit = data.get("custom", {})
     if not isinstance(explicit, Mapping):
         reason = "custom must contain a mapping"

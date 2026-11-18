@@ -171,11 +171,15 @@ def test_traceback_keys_are_discarded_without_warning__tc_ep_g2_203(
 def test_unknown_v1_key_moves_to_custom_with_warning__tc_ep_g2_204(
     tmp_path: Path,
 ) -> None:
-    """TC-EP-G2-204: Unknown v1 keys survive in custom with an explicit warning."""
+    """TC-EP-G2-204: Unknown v1 keys survive in custom with an explicit warning.
+
+    A non-mapping value is used: a mapping is a template section and is moved
+    silently (#624, ``test_ga_566_custom_config``).
+    """
     from rdetoolkit.config.normalize import ConfigNormalizer
 
     # Given: a v1-origin vendor extension accepted by the legacy model
-    extension = {"enabled": True}
+    extension = "enabled"
     source = {"vendor_extension": extension}
 
     # When: normalizing the unknown v1 key

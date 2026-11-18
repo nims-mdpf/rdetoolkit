@@ -378,6 +378,41 @@ W1001 を維持するのは v1 callback 経路だけです（Design §6.2）。
 や `RdeConfig.model_validate(...)`）と YAML の `null` だけです。型チェッカーは
 `extended_mode=None` を `arg-type` エラーにします。
 
+### テンプレート固有の設定 {#template-settings}
+
+v2 では、rdetoolkit ではなくテンプレート自身が使う設定は `custom:` の下に置きます。
+v1 のテンプレートの多くは、`tasksupport/rdeconfig.yaml` の `system:` と並ぶ
+トップレベルのセクションにこれを置いています。v2 はこのセクションを警告なしで
+`config.custom["<セクション名>"]` として読むため、テンプレートは変更せずに動きます。
+次の例は v1 形式の `tasksupport/rdeconfig.yaml` です。
+
+<!-- test: template-settings-v1 -->
+```yaml
+system:
+  extended_mode: null
+sem:
+  magnification_key: Mag
+  thumbnail: true
+```
+
+flow からは `config.custom["sem"]["magnification_key"]` で参照します。
+同じ名前がこのセクションと `custom:` の両方にある場合は `custom:` が優先されます。
+マッピングでないトップレベルの値(例: `vendor: acme`)も `custom` に保持しますが、
+`custom:` の下へ移すよう求める警告を出します。
+
+プロジェクト直下の `rdeconfig.yaml` と `[tool.rdetoolkit]` は v2 形式で、
+未知のトップレベルセクションをエラー(E1002)にします。そのため `sytem:` のような
+タイプミスはここで失敗します。プロジェクト直下の `rdeconfig.yaml` では、
+同じ設定を `custom:` の下に書きます。
+
+<!-- test: template-settings-v2 -->
+```yaml
+custom:
+  sem:
+    magnification_key: Mag
+    thumbnail: true
+```
+
 ## 実行時の変更点
 
 本番の `main.py` では、失敗・一部失敗をプロセスの終了コードへ反映する指定を追加してください。

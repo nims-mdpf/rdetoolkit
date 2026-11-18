@@ -416,6 +416,41 @@ typed Python code, omit the argument rather than calling
 (`load_run_config(overrides=...)` or `RdeConfig.model_validate(...)`), or write
 `null` in YAML. Type checkers report `extended_mode=None` as an `arg-type` error.
 
+### Template settings {#template-settings}
+
+In v2, settings that belong to your template, not to rdetoolkit, live under
+`custom:`. Many v1 templates instead keep them in a top-level section of
+`tasksupport/rdeconfig.yaml`, next to `system:`. v2 reads such a section as
+`config.custom["<section>"]` without a warning, so an unchanged template keeps
+working. This is a v1-form `tasksupport/rdeconfig.yaml`:
+
+<!-- test: template-settings-v1 -->
+```yaml
+system:
+  extended_mode: null
+sem:
+  magnification_key: Mag
+  thumbnail: true
+```
+
+A flow reads it as `config.custom["sem"]["magnification_key"]`. When the
+section and `custom:` both define the same name, `custom:` wins. A top-level
+value that is not a mapping (for example `vendor: acme`) is also kept under
+`custom`, but it warns and asks you to move it under `custom:`.
+
+A project-root `rdeconfig.yaml` or `[tool.rdetoolkit]` is the v2 form and
+rejects unknown top-level sections (E1002), so a typo such as `sytem:` fails
+there. In a project-root `rdeconfig.yaml`, write the same settings under
+`custom:`:
+
+<!-- test: template-settings-v2 -->
+```yaml
+custom:
+  sem:
+    magnification_key: Mag
+    thumbnail: true
+```
+
 ## Runtime changes
 
 In a production `main.py`, opt into nonzero exits for failed or partial runs.
