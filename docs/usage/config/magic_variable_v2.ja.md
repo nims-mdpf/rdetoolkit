@@ -175,10 +175,14 @@ explain 出力の `magic_preview` は、計画されたすべてのタイルに�
 
 検査するのは、テンプレートの構文、参照元の解決(`filename` の一意性を含む)、値の正規化、
 出力の上限(`dataName` の妥当性と長さ)です。全体の状態は `previewed`、`disabled`
-(ポリシーで無効)、`no_templates`、`not_applicable`(RDEFormat には補間ステージがない)の
-いずれかです。各タイルは `previewed`、`skipped`(完了済み、またはモードにより省略)、
+(ポリシーで無効)、`deferred`、`no_templates`、`not_applicable`(RDEFormat には補間ステージがない)の
+いずれかです。SmartTable と ExcelInvoice では、テンプレートがテーブルにだけ書かれている場合が
+あるため、`no_templates` ではなく `deferred`(タイルの invoice がテーブルの行から作られ、まだ
+検査していない)になります。各タイルは `previewed`、`skipped`(完了済み、またはモードにより省略)、
 `deferred`(invoice が実行時にテーブルの行から作られる)のいずれかです。メタデータは flow が
-`metadata.json` を作るため、メタデータの式は常に `deferred` になります。
+`metadata.json` を作るため、メタデータの式は常に `deferred` になります。既定のテキスト出力には、
+全体の状態、状態ごとのタイル数、各診断の対象フィールド・エラーコード・対処方法、検査する項目と
+検査しない項目が表示されます。`--format json` では出力全体を取得できます。
 
 invoice スキーマ、`InvoiceValidator` の標準検査とアプリケーション固有の検査、flow や
 準備ステップによる変更は検査**しません**。これらは出力の `not_checked` に列挙されます。

@@ -181,11 +181,16 @@ code, or emits source values.
 
 It checks template syntax, source resolution (including `filename` uniqueness),
 value normalization, and output limits (`dataName` validity and length).
-Status values are `previewed`, `disabled` (policy off), `no_templates`, and
-`not_applicable` (RDEFormat has no magic stage). Each tile is `previewed`,
-`skipped` (precompleted or omitted by mode), or `deferred` (its invoice is built
-from a table row at run time). Metadata expressions are always `deferred`
-because the flow produces `metadata.json`.
+Status values are `previewed`, `disabled` (policy off), `deferred` (tile
+invoices are built from table rows and have not been inspected), `no_templates`,
+and `not_applicable` (RDEFormat has no magic stage). SmartTable and ExcelInvoice
+therefore report `deferred` rather than `no_templates`, because a template may
+appear only in the table. Each tile is `previewed`, `skipped` (precompleted or
+omitted by mode), or `deferred` (its invoice is built from a table row at run
+time). Metadata expressions are always `deferred` because the flow produces
+`metadata.json`. The default text output prints the summary, the tile count per
+status, each diagnostic with its field, code and remedy, and the checked and
+unchecked areas. `--format json` returns the full payload.
 
 It does **not** check the invoice schema, the `InvoiceValidator` standard and
 application checks, or anything the flow or preparation step changes. These

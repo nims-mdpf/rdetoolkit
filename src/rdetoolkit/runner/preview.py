@@ -160,7 +160,11 @@ def _magic_preview(mode: ModeKind, invoice: dict[str, Any], tiles: tuple[Planned
     previews = tuple(_preview_tile(tile, group, invoice, mode, options) for tile, group in zip(tiles, snapshot.groups, strict=True))
     if options.policy == "disabled":
         return MagicPreview("disabled", "policy_disabled", previews)
-    if not template_destinations(invoice, options):
+    statuses = {tile.status for tile in previews}
+    has_templates = bool(template_destinations(invoice, options))
+    if "deferred" in statuses and ("previewed" not in statuses or not has_templates):
+        return MagicPreview("deferred", "row_invoice_built_at_runtime", previews)
+    if not has_templates:
         return MagicPreview("no_templates", "no_eligible_templates", previews)
     return MagicPreview("previewed", "pre_flow_snapshot", previews)
 

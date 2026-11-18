@@ -185,3 +185,29 @@ def test_explain_never_mutates_tree__magic_p11(tmp_path: Path, mode: str) -> Non
     assert SECRET not in json.dumps(first)
     assert before == _snapshot(tmp_path)
 
+
+
+def test_table_only_template_is_deferred_not_absent__magic_p10(tmp_path: Path) -> None:
+    # Given: a plain base invoice, with the template only in the SmartTable row mapped to basic/dataName.
+    import openpyxl
+
+    _project(tmp_path, "smarttable", name="plain")
+    table = tmp_path / "data" / "inputdata" / "smarttable_full.xlsx"
+    workbook = openpyxl.load_workbook(table)
+    workbook.active["A3"] = "${metadata:constant:batch}"
+    workbook.save(table)
+    # When: explaining.
+    preview = _explain(tmp_path)
+    # Then: the summary reports the rows as uninspected, not as template-free.
+    assert (preview["status"], preview["reason"]) == ("deferred", "row_invoice_built_at_runtime")
+    assert {tile["status"] for tile in preview["tiles"]} == {"deferred"}
+
+
+@pytest.mark.parametrize("mode", ["smarttable", "excelinvoice"])
+def test_row_modes_never_claim_no_templates__magic_p11(tmp_path: Path, mode: str) -> None:
+    # Given: a row-built mode whose base invoice has no templates.
+    _project(tmp_path, mode, name="plain")
+    # When: explaining.
+    preview = _explain(tmp_path)
+    # Then: deferred, because row invoices are only known at runtime.
+    assert (preview["status"], preview["reason"]) == ("deferred", "row_invoice_built_at_runtime")
