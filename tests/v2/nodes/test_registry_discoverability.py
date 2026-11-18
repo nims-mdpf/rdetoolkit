@@ -68,6 +68,8 @@ _EXPECTED_BUILTIN_NODE_SUFFIXES = (
     "copy_file",
     "save_image",
     "describe_features",
+    "remove_raw_copy",
+    "replace_raw_copy",
 )
 
 

@@ -368,6 +368,50 @@ still apply. Callers that ignored the old return value can keep doing so.
 Pass `include_dirs=True` to also receive directory entries, including empty
 directories, when listing the archive structure.
 
+Before a flow runs, the Runner copies the tile's input files into `raw/` when
+`system.save_raw` is on and into `nonshared_raw/` when
+`system.save_nonshared_raw` is on, as v1 did before the dataset callback.
+Templates that removed or replaced such a copy use
+`remove_raw_copy(out, config, filename)` and
+`replace_raw_copy(out, config, filename, members)` (#623). Use
+`remove_raw_copy` when an uploaded `*_meta.json` is saved under `meta/` and
+must not stay as raw data, and
+`replace_raw_copy(out, config, archive.name, unzip_inputs(archive, tmp))` when
+the extracted files, not the ZIP, are the raw data. Both nodes act on the
+enabled kinds only (a disabled kind is not touched), and the call is recorded
+in the call log. `replace_raw_copy` copies the members by name (archive
+subdirectories are not kept) and then removes the original copy. A missing
+copy, two members with the same name, or a member that would overwrite
+another input's copy raises an exception and changes nothing. Replace code
+that deleted a copy directly, such as
+`out.path_for("nonshared_raw", name).unlink()`, with these nodes.
+
+<!-- test: ga623-raw-copy -->
+```python
+import tempfile
+import zipfile
+from pathlib import Path
+
+from rdetoolkit.nodes import remove_raw_copy, replace_raw_copy, unzip_inputs
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import RdeConfig
+
+config = RdeConfig.model_validate({"system": {"save_raw": True, "save_nonshared_raw": True}})
+with tempfile.TemporaryDirectory() as tmp:
+    root = Path(tmp)
+    archive = root / "upload.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("image.tif", b"tif")
+    out = make_output_context(root / "data")
+    for directory in (out.raw, out.nonshared_raw):  # what the Runner copied before the flow
+        (directory / "upload.zip").write_bytes(archive.read_bytes())
+        (directory / "sample_meta.json").write_text("{}", encoding="utf-8")
+    replace_raw_copy(out, config, "upload.zip", unzip_inputs(archive, root / "extracted"))
+    remove_raw_copy(out, config, "sample_meta.json")
+    stored = sorted(path.name for path in out.nonshared_raw.iterdir())
+    assert stored == ["image.tif"]
+```
+
 ### Load settings and override the mode in main.py
 
 To prepare configuration before entering a flow, use

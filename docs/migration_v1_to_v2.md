@@ -331,6 +331,45 @@ with tempfile.TemporaryDirectory() as tmp:
 戻り値を使用していなかった呼び出し方も継続できます。
 アーカイブ構造を列挙する場合は `include_dirs=True` で空ディレクトリを含むディレクトリエントリーも返します。
 
+Runner は flow の実行前に、タイルの入力ファイルを `system.save_raw` が有効なら `raw/` に、
+`system.save_nonshared_raw` が有効なら `nonshared_raw/` にコピーします(v1 がデータセット関数の前に
+コピーしていたのと同じです)。v1 のテンプレートがこのコピーを削除・置換していた処理には、
+`remove_raw_copy(out, config, filename)` と `replace_raw_copy(out, config, filename, members)` を使います(#623)。
+アップロードされた `*_meta.json` を `meta/` に保存して raw データとしては残さない場合は `remove_raw_copy`、
+ZIP の代わりに展開したファイルを raw データとして保存する場合は
+`replace_raw_copy(out, config, archive.name, unzip_inputs(archive, tmp))` とします。
+どちらも有効な種類だけを操作し(無効な種類には触れません)、呼び出しはコールログに記録されます。
+`replace_raw_copy` はメンバーをファイル名で(アーカイブ内のサブディレクトリは保持せず)コピーしてから
+元のコピーを削除します。コピーがない、同名のメンバーが 2 つある、別の入力のコピーを上書きする、
+といった場合は何も変更せずに例外になります。
+`out.path_for("nonshared_raw", name).unlink()` のように直接削除するコードは、これらに置き換えてください。
+
+<!-- test: ga623-raw-copy -->
+```python
+import tempfile
+import zipfile
+from pathlib import Path
+
+from rdetoolkit.nodes import remove_raw_copy, replace_raw_copy, unzip_inputs
+from rdetoolkit.testing import make_output_context
+from rdetoolkit.types import RdeConfig
+
+config = RdeConfig.model_validate({"system": {"save_raw": True, "save_nonshared_raw": True}})
+with tempfile.TemporaryDirectory() as tmp:
+    root = Path(tmp)
+    archive = root / "upload.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("image.tif", b"tif")
+    out = make_output_context(root / "data")
+    for directory in (out.raw, out.nonshared_raw):  # what the Runner copied before the flow
+        (directory / "upload.zip").write_bytes(archive.read_bytes())
+        (directory / "sample_meta.json").write_text("{}", encoding="utf-8")
+    replace_raw_copy(out, config, "upload.zip", unzip_inputs(archive, root / "extracted"))
+    remove_raw_copy(out, config, "sample_meta.json")
+    stored = sorted(path.name for path in out.nonshared_raw.iterdir())
+    assert stored == ["image.tif"]
+```
+
 ### main.py で設定を読み込み、モードを上書きする
 
 flow 入口の設定を事前に用意する場合は、`rdetoolkit.runner.load_run_config(root=None, *, overrides=None)`

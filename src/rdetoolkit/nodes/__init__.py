@@ -22,6 +22,7 @@ from rdetoolkit.nodes.io import (
 from rdetoolkit.nodes.logfile import ArtifactLogger, artifact_logger
 from rdetoolkit.nodes.meta import build_meta, parse_invoice_meta, save_meta
 from rdetoolkit.nodes.plot import plot_lines, plot_scatter, save_figure, save_html_figure
+from rdetoolkit.nodes.raw import remove_raw_copy, replace_raw_copy
 from rdetoolkit.nodes.structured import save_csv, save_invoice, save_json, save_text
 
 
@@ -83,6 +84,8 @@ __all__ = [
     "save_main_image",
     "copy_raw",
     "copy_file",
+    "remove_raw_copy",
+    "replace_raw_copy",
     "save_image",
     "plot_lines",
     "plot_scatter",
