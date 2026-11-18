@@ -610,12 +610,12 @@ from hypothesis import settings
 
 
 def test_probe():
-    print("PROFILE", settings.default.max_examples, settings.default.deadline.total_seconds())
+    print("PROFILE", settings.default.max_examples, settings.default.deadline)
 """
 
 
-@pytest.mark.parametrize(("plugin", "profile"), [(True, "50 5.0"), (False, "100 0.2")], ids=["plugin", "conftest-only"])
-def test_every_shard_loads_the_ci_profile__ci_016(tmp_path: Path, plugin: bool, profile: str) -> None:
+@pytest.mark.parametrize("plugin", [True, False], ids=["plugin", "conftest-only"])
+def test_every_shard_loads_the_ci_profile__ci_016(tmp_path: Path, plugin: bool) -> None:
     """CI-016: a shard that does not collect tests/property still runs the CI profile."""
     # Given: a test outside tests/property, as in every shard but contracts-property.
     probe = tmp_path / "test_probe.py"
@@ -630,6 +630,7 @@ def test_every_shard_loads_the_ci_profile__ci_016(tmp_path: Path, plugin: bool, 
         text=True,
         check=False,
     )
-    # Then: the plugin loads the profile; without it Hypothesis keeps its defaults.
+    # Then: the plugin loads the profile; without it the settings are Hypothesis's
+    # own (which differ locally and on CI runners), never the repository's CI profile.
     assert result.returncode == 0, result.stdout + result.stderr
-    assert f"PROFILE {profile}" in result.stdout
+    assert ("PROFILE 50 0:00:05\n" in result.stdout) is plugin, result.stdout
