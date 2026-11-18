@@ -1,0 +1,118 @@
+name: v2 GA benchmark
+
+# Release gate for rendering resources and multi-tile throughput (#739).
+# Builds the wheel, installs it into a clean venv and runs, against that wheel:
+#   1. the CI-fast resource smoke tests (tests/v2/perf), and
+#   2. scripts/bench_ga.py --profile full, compared with the committed
+#      scripts/bench_ga_baseline.json.
+# A threshold breach or a figure left alive fails the job. Accepting a
+# regression is a reviewed change: regenerate the baseline with
+# --write-baseline and commit it, so the pull request diff shows every
+# changed number. The result JSON (hardware, Python, dependency versions,
+# data sizes, commands and measurements) is uploaded on every run.
+
+on:
+  # Pull requests that change the measured code or the gate itself. A release
+  # pull request into main carries every source change since the last release,
+  # so it always matches.
+  pull_request:
+    branches: [main, develop/v2]
+    paths:
+      - 'src/rdetoolkit/graph/**'
+      - 'src/rdetoolkit/runner/**'
+      - 'src/rdetoolkit/modes/**'
+      - 'src/rdetoolkit/domain/**'
+      - 'src/rdetoolkit/invoicefile/**'
+      - 'scripts/bench_ga.py'
+      - 'scripts/bench_ga_baseline.json'
+      - 'tests/v2/perf/**'
+      - '.github/workflows/v2-ga-benchmark.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ga-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the wheel
+        run: |
+          python -m pip install --upgrade pip
+          pip install build maturin
+          python -m build --wheel --outdir dist
+      - name: Install the wheel into a clean venv
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-venv"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -m pip install --upgrade pip
+          wheel="$(ls dist/rdetoolkit-*.whl)"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -m pip install "${wheel}" pytest pytest-mpl
+      - name: Assert rdetoolkit resolves to the installed wheel
+        run: |
+          "$RUNNER_TEMP/wheel-venv/bin/python" - <<'PY'
+          import pathlib, rdetoolkit
+          origin = pathlib.Path(rdetoolkit.__file__).resolve()
+          print(origin)
+          assert "site-packages" in origin.parts, origin
+          assert pathlib.Path("src").resolve() not in origin.parents, origin
+          PY
+      - name: Resource smoke tests against the wheel
+        run: |
+          export PATH="$RUNNER_TEMP/wheel-venv/bin:$PATH"
+          python -m pytest -p no:cacheprovider tests/v2/perf
+      - name: Benchmark and compare with the committed baseline
+        run: |
+          mkdir -p ci-results
+          export PATH="$RUNNER_TEMP/wheel-venv/bin:$PATH"
+          python scripts/bench_ga.py --profile full --repeat 3 \
+            --baseline scripts/bench_ga_baseline.json \
+            --output ci-results/bench_ga.json \
+            --write-baseline ci-results/bench_ga_baseline.candidate.json
+      - name: Write the benchmark summary
+        if: ${{ always() }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path('ci-results/bench_ga.json')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              if not path.exists():
+                  summary.write('## GA benchmark\n\nNo result was written; see the step log.\n')
+                  raise SystemExit(0)
+              result = json.loads(path.read_text())
+              env = result['environment']
+              summary.write('## GA benchmark\n\n')
+              summary.write(f"rdetoolkit {env['dependencies']['rdetoolkit']} from `{env['rdetoolkit_origin']}`, "
+                            f"Python {env['python']['version']}, {env['hardware']['cpu_model']} x{env['hardware']['cpu_count']}, "
+                            f"calibration {result['calibration_seconds']:.4f} s.\n\n")
+              for problem in result.get('figure_violations', []):
+                  summary.write(f'- figure violation: {problem}\n')
+              rows = [row for row in result.get('comparison', []) if row['verdict'] != 'ok']
+              summary.write('| case | metric | baseline | current | limit | verdict |\n|---|---|---|---|---|---|\n')
+              for row in rows or [{'case': 'all', 'metric': '-', 'baseline': '-', 'current': '-', 'limit': '-', 'verdict': 'ok'}]:
+                  summary.write(f"| {row['case']} | {row['metric']} | {row['baseline']} | {row['current']} | {row['limit']} | {row['verdict']} |\n")
+          PY
+      - name: Upload the benchmark result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: v2-ga-benchmark
+          path: ci-results/
+          if-no-files-found: warn
+          retention-days: 30
