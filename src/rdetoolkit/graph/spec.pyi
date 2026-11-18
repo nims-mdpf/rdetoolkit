@@ -19,6 +19,7 @@ class SeriesSpec:
     direction: ColumnRef | None = None
     label: str | None = None
     unit: str | None = None
+    def __post_init__(self) -> None: ...
 
 @dataclass(frozen=True, slots=True)
 class AxisSpec:
@@ -28,6 +29,7 @@ class AxisSpec:
     grid: bool = False
     invert: bool = False
     tick_format: Literal["auto", "plain", "sci", "eng"] = "auto"
+    def __post_init__(self) -> None: ...
 
 @dataclass(frozen=True, slots=True)
 class LegendSpec:
@@ -38,11 +40,13 @@ class LegendSpec:
     outside_threshold: int = 8
     bottom_threshold: int | None = 21
     ncol: int | None = None
+    def __post_init__(self) -> None: ...
 
 @dataclass(frozen=True, slots=True)
 class StyleSpec:
     figure_size: tuple[float, float] | None = None
     rc_params: Mapping[str, Any] = field(default_factory=dict)
+    def __post_init__(self) -> None: ...
 
 @dataclass(frozen=True, slots=True)
 class GraphSpec:
@@ -61,6 +65,7 @@ class GraphSpec:
     label_style: Literal["humanized", "header", "raw"] = "humanized"
     unit_policy: Literal["error", "split", "warn", "allow"] = "error"
     style: StyleSpec = ...
+    def __post_init__(self) -> None: ...
 
 @dataclass(frozen=True, slots=True)
 class OutputSpec:
@@ -69,3 +74,4 @@ class OutputSpec:
     base_name: str = "plot"
     on_existing: Literal["overwrite", "error"] = "overwrite"
     dpi: int = 300
+    def __post_init__(self) -> None: ...

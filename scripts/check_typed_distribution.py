@@ -3,18 +3,20 @@
 
 Checks (issue #642, RDE-009):
 
-1. The wheel ships ``py.typed`` and the canonical package stubs
-   (``graph/__init__.pyi``, ``cli/__init__.pyi``) and none of the removed
-   module-level stubs (``cli.pyi``, ``graph.pyi``, ``invoicefile.pyi``).
+1. The wheel ships ``py.typed`` and every ``.pyi`` stub of the source tree,
+   and no ``X.py``/``X.pyi`` module that a package directory ``X/`` shadows
+   (type checkers read the package and never the sibling, #642/#736).
 2. Installed into a fresh virtual environment, ``mypy --strict`` run on a
    consumer sample against that environment (not the source checkout) is
    clean and infers the expected types for ``rdetoolkit.cli`` /
-   ``rdetoolkit.graph`` / ``rdetoolkit.invoicefile``.
+   ``rdetoolkit.graph`` / ``rdetoolkit.invoicefile``, and accepts the GA
+   GraphSpec, magic and ModeDecision APIs.
 
 The wheel build compiles the Rust extension, so this is kept out of the tox
 suite (where ``tests/v2/test_rde009_stub_consolidation.py`` already checks the
-wheel tox installs). Requires ``uv`` on PATH and mypy in the running
-interpreter.
+wheel tox installs); CI runs it on the built wheels in
+``.github/workflows/build-test-develop.yml``. Requires ``uv`` on PATH and mypy
+in the running interpreter.
 
 Usage:
     python scripts/check_typed_distribution.py                 # build + check
@@ -24,6 +26,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -33,8 +36,12 @@ import zipfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-REQUIRED_MEMBERS = ("rdetoolkit/py.typed", "rdetoolkit/graph/__init__.pyi", "rdetoolkit/cli/__init__.pyi", "rdetoolkit/invoicefile/__init__.py")
-FORBIDDEN_MEMBERS = ("rdetoolkit/cli.pyi", "rdetoolkit/graph.pyi", "rdetoolkit/invoicefile.pyi")
+SOURCE_PACKAGE = PROJECT_ROOT / "src" / "rdetoolkit"
+REQUIRED_MEMBERS = (
+    "rdetoolkit/py.typed",
+    "rdetoolkit/invoicefile/__init__.py",
+    *sorted(f"rdetoolkit/{stub.relative_to(SOURCE_PACKAGE).as_posix()}" for stub in SOURCE_PACKAGE.rglob("*.pyi")),
+)
 
 CONSUMER = """\
 from pathlib import Path
@@ -42,6 +49,17 @@ import rdetoolkit.cli as cli
 import rdetoolkit.invoicefile as inv
 from rdetoolkit.graph import GraphPlottingError, PlotConfig, PlotMode, csv2graph
 from rdetoolkit.invoicefile import ExcelInvoiceFile, InvoiceFile, SmartTableFile, apply_magic_variable
+from rdetoolkit.domain.magic import MagicOptions, ResolutionContext, ResolutionPreview, preview_invoice
+from rdetoolkit.domain.mode_selection import ModeDecision, ModeKind, decide_mode
+from rdetoolkit.graph import GraphSpec, SeriesSpec
+from rdetoolkit.types import RdeConfig
+
+def use_ga(path: Path) -> None:
+    decision: ModeDecision = decide_mode(RdeConfig(), path, contract="v2")
+    chosen: ModeKind = decision.chosen_mode
+    context = ResolutionContext.from_sources(original_invoice={}, current_invoice={})
+    preview: ResolutionPreview = preview_invoice(context, options=MagicOptions(policy="enabled"))
+    GraphSpec(x="x", series=(SeriesSpec(y="y"),), layout="overlay")
 
 def use(path: Path) -> None:
     invoice = InvoiceFile(path)
@@ -90,16 +108,25 @@ def check_members(wheel: Path) -> list[str]:
     """Return problems with the wheel's stub/marker contents."""
     with zipfile.ZipFile(wheel) as archive:
         names = set(archive.namelist())
+    packages = {name.rsplit("/", 1)[0] for name in names if name.endswith("/__init__.py")}
     problems = [f"missing {member}" for member in REQUIRED_MEMBERS if member not in names]
-    problems += [f"unexpected {member}" for member in FORBIDDEN_MEMBERS if member in names]
+    problems += [
+        f"unexpected {name} (shadowed by package {name.rsplit('.', 1)[0]}/)"
+        for name in sorted(names)
+        if name.endswith((".py", ".pyi")) and name.rsplit(".", 1)[0] in packages
+    ]
     return problems
+
+
+def _venv_python(venv: Path) -> Path:
+    return venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
 
 def check_consumer(uv: str, wheel: Path, work: Path) -> list[str]:
     """Install ``wheel`` into a fresh venv and type check the consumer against it."""
     venv = work / "venv"
     version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    for cmd in ([uv, "venv", "--python", version, str(venv)], [uv, "pip", "install", "--python", str(venv / "bin" / "python"), str(wheel)]):
+    for cmd in ([uv, "venv", "--python", version, str(venv)], [uv, "pip", "install", "--python", str(_venv_python(venv)), str(wheel)]):
         result = _run(cmd, work)
         if result.returncode != 0:
             return [f"{cmd[1]} failed: {result.stderr[-2000:]}"]
@@ -108,7 +135,7 @@ def check_consumer(uv: str, wheel: Path, work: Path) -> list[str]:
     (work / "mypy.ini").write_text("[mypy]\n", encoding="utf-8")
     result = _run(
         [sys.executable, "-m", "mypy", "--strict", "--no-incremental", "--config-file", str(work / "mypy.ini"),
-         "--python-executable", str(venv / "bin" / "python"), str(consumer)],
+         "--python-executable", str(_venv_python(venv)), str(consumer)],
         work,
     )
     print(result.stdout)
