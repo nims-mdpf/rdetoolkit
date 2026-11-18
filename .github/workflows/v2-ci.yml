@@ -12,12 +12,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  full-suite:
-    # Keep the former coverage-report context during the migration.
-    name: Code Coverage with pytest
+  pytest-shard:
+    # One complete logical suite split into isolated runners by path, so each
+    # shard keeps the repository-root working directory the v1 fixtures need.
+    # The full-suite job proves that the shards together selected exactly the
+    # complete collection and applies every coverage gate to the combined data.
+    name: pytest (${{ matrix.shard }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Balanced by measured durations (locally, 2026-11: 1371 s of test
+        # time in total; about 366 / 360 / 252 / 393 s per shard). The last
+        # shard is everything else, so a new directory is never left out.
+        include:
+          - shard: graph-runner
+            paths: tests/v2/graph tests/v2/runner
+          - shard: cli-nodes-docs
+            paths: tests/v2/cli tests/v2/nodes tests/v2/docs
+          - shard: contracts-property
+            paths: tests/v2/ga tests/v2/contract tests/v2/modes tests/v2/api tests/v2/testing tests/property
+          - shard: remainder
+            paths: >-
+              tests
+              --ignore=tests/v2/graph --ignore=tests/v2/runner
+              --ignore=tests/v2/cli --ignore=tests/v2/nodes --ignore=tests/v2/docs
+              --ignore=tests/v2/ga --ignore=tests/v2/contract --ignore=tests/v2/modes
+              --ignore=tests/v2/api --ignore=tests/v2/testing --ignore=tests/property
     env:
       HYPOTHESIS_PROFILE: ci
+      # Absolute, so a test that changes the working directory cannot move it.
+      COVERAGE_FILE: ${{ github.workspace }}/ci-results/.coverage.${{ matrix.shard }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -36,19 +61,78 @@ jobs:
           # v1 CLI tests spawn bare `python` and `rdetoolkit` from PATH, as the
           # activated venv of the former coverage workflows provided.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Record the shard's test selection
+        # pyproject excludes legacy only; do not inherit tox's exclusion of graph_outputs.
+        run: |
+          mkdir -p ci-results
+          .venv/bin/python -m pytest --collect-only -q ${{ matrix.paths }} > ci-results/nodeids-${{ matrix.shard }}.txt
+      - name: Run the shard
+        # Thresholds apply to the combined data in full-suite, not per shard.
+        run: |
+          .venv/bin/python -m pytest ${{ matrix.paths }} --durations=30 \
+            --junitxml=ci-results/junit-${{ matrix.shard }}.xml \
+            --cov-config=pyproject.toml --cov=rdetoolkit --cov-report=
+      - name: Validate the shard's report set
+        run: |
+          for report in ci-results/nodeids-${{ matrix.shard }}.txt ci-results/junit-${{ matrix.shard }}.xml ci-results/.coverage.${{ matrix.shard }}; do
+            test -s "$report"
+          done
+      - name: Upload the shard's results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: v2-shard-${{ matrix.shard }}
+          path: ci-results/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  full-suite:
+    # Keep the former coverage-report context during the migration. It runs
+    # even when a shard fails, so this required context fails instead of being
+    # reported as skipped.
+    name: Code Coverage with pytest
+    if: ${{ always() }}
+    needs: [pytest-shard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every shard to succeed
+        env:
+          SHARDS: ${{ needs.pytest-shard.result }}
+        run: test "$SHARDS" = success
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: Swatinem/rust-cache@v2
+      - name: Install dependencies
+        run: uv sync --locked --python 3.12 --group dev --extra minio --extra plotly --extra render
+      - name: Download every shard's results
+        uses: actions/download-artifact@v8
+        with:
+          pattern: v2-shard-*
+          path: shards
+          merge-multiple: true
       - name: Record the complete test selection
-        # Match the former coverage workflows: pyproject excludes legacy only.
-        # In particular, do not inherit tox's exclusion of graph_outputs.
         run: |
           mkdir -p ci-results
           .venv/bin/python -m pytest --collect-only -q tests/ > ci-results/test-nodeids.txt
-      - name: Run the complete test suite
+      - name: Require the shards to partition the complete selection
         run: |
-          .venv/bin/python -m pytest tests/ --durations=30 \
-            --junitxml=ci-results/junit.xml --cov-config=pyproject.toml \
-            --cov=rdetoolkit --cov-fail-under=80 \
-            --cov-report=term-missing --cov-report=xml:ci-results/coverage.xml \
-            --cov-report=json:ci-results/coverage.json
+          .venv/bin/python scripts/check_test_partition.py ci-results/test-nodeids.txt \
+            shards/nodeids-graph-runner.txt shards/nodeids-cli-nodes-docs.txt shards/nodeids-contracts-property.txt shards/nodeids-remainder.txt
+      - name: Combine the shards' coverage
+        run: |
+          .venv/bin/python -m coverage combine --keep --rcfile=pyproject.toml \
+            shards/.coverage.graph-runner shards/.coverage.cli-nodes-docs shards/.coverage.contracts-property shards/.coverage.remainder
+          .venv/bin/python -m coverage xml --rcfile=pyproject.toml -o ci-results/coverage.xml
+          .venv/bin/python -m coverage json --rcfile=pyproject.toml -o ci-results/coverage.json
+      - name: Enforce the overall 80% coverage gate
+        run: .venv/bin/python -m coverage report --rcfile=pyproject.toml --fail-under=80 --show-missing --skip-covered
       - name: Enforce all six Phase H coverage gates
         run: .venv/bin/python scripts/check_phase_h_coverage.py
       - name: Write a concise coverage summary
@@ -60,18 +144,22 @@ jobs:
           from pathlib import Path
 
           coverage = json.loads(Path('ci-results/coverage.json').read_text())
-          suites = ET.parse('ci-results/junit.xml').getroot().findall('testsuite')
+          suites = [suite for report in sorted(Path('shards').glob('junit-*.xml'))
+                    for suite in ET.parse(report).getroot().iter('testsuite')]
           counts = {key: sum(int(s.get(key, 0)) for s in suites)
                     for key in ('tests', 'failures', 'errors', 'skipped')}
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
               summary.write('## Python 3.12 full suite\n\n')
               summary.write(f"Tests: {counts}. Coverage: {coverage['totals']['percent_covered']:.2f}%.\n\n")
-              summary.write('Overall 80% and all six Phase H 95% gates passed. '
+              summary.write('Every shard passed, the shards selected exactly the complete suite, and the overall 80% '
+                            'and all six Phase H 95% gates passed on the combined data. '
                             'Collection, JUnit and detailed coverage are in the v2-test-results artifact.\n')
           PY
       - name: Validate the complete report set
         run: |
-          for report in ci-results/test-nodeids.txt ci-results/junit.xml ci-results/coverage.xml ci-results/coverage.json .coverage; do
+          for report in ci-results/test-nodeids.txt ci-results/coverage.xml ci-results/coverage.json .coverage \
+              shards/nodeids-graph-runner.txt shards/nodeids-cli-nodes-docs.txt shards/nodeids-contracts-property.txt shards/nodeids-remainder.txt \
+              shards/junit-graph-runner.xml shards/junit-cli-nodes-docs.xml shards/junit-contracts-property.xml shards/junit-remainder.xml; do
             test -s "$report"
           done
       - name: Upload the canonical test results
@@ -81,6 +169,7 @@ jobs:
           name: v2-test-results
           path: |
             ci-results/
+            shards/
             .coverage
           include-hidden-files: true
           if-no-files-found: error
@@ -196,7 +285,7 @@ jobs:
     # Retain the former badge workflow's context, including on docs branches.
     name: test
     if: ${{ always() }}
-    needs: [full-suite, quality, rust, wheel-install-gate, changelog]
+    needs: [pytest-shard, full-suite, quality, rust, wheel-install-gate, changelog]
     runs-on: ubuntu-latest
     steps:
       - name: Require every validation job to succeed
@@ -207,7 +296,7 @@ jobs:
           import json
           import os
           results = json.loads(os.environ['RESULTS'])
-          expected = {'full-suite', 'quality', 'rust', 'wheel-install-gate', 'changelog'}
+          expected = {'pytest-shard', 'full-suite', 'quality', 'rust', 'wheel-install-gate', 'changelog'}
           assert set(results) == expected, results
           assert all(job['result'] == 'success' for job in results.values()), results
           PY
