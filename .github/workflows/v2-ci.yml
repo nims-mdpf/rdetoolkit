@@ -26,17 +26,13 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-          cache-dependency-glob: |
-            requirements-dev.lock
-            pyproject.toml
+          cache-dependency-glob: uv.lock
       - uses: Swatinem/rust-cache@v2
       - name: Install Cairo for SVG rendering
         run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends libcairo2
       - name: Install dependencies
         run: |
-          uv venv .venv --python 3.12
-          uv pip install --python .venv/bin/python -r requirements-dev.lock
-          uv pip install --python .venv/bin/python -e '.[minio,plotly,render]'
+          uv sync --locked --python 3.12 --group dev --extra minio --extra plotly --extra render
           # v1 CLI tests spawn bare `python` and `rdetoolkit` from PATH, as the
           # activated venv of the former coverage workflows provided.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -100,16 +96,13 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-          cache-dependency-glob: |
-            requirements-dev.lock
-            .github/workflows/v2-ci.yml
+          cache-dependency-glob: uv.lock
       - name: Install quality tools
+        run: uv sync --locked --python 3.12 --no-install-project --group dev --extra minio --extra plotly --extra render
+      - name: requirements*.lock match uv.lock
         run: |
-          uv venv .venv --python 3.12
-          uv pip install --python .venv/bin/python -r requirements-dev.lock
-          # Match the type checker validated by main's current tox resolution.
-          # The old lock's mypy 1.18.2 misdiagnoses the InitVar/property alias.
-          uv pip install --python .venv/bin/python 'mypy==2.4.1'
+          scripts/export_requirements_locks.sh
+          git diff --exit-code -- requirements.lock requirements-dev.lock
       - name: Ruff
         run: .venv/bin/ruff check src/rdetoolkit/
       - name: mypy

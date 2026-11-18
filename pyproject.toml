@@ -407,4 +407,4 @@ dev-dependencies = [
 
 [tool.rye.scripts]
 generate-stubs = "stubgen -o src/ src/rdetoolkit/"
-export-locks = "bash -c 'uv lock && uv export --no-dev --extra minio --format requirements-txt --no-editable > requirements.lock && uv export --group dev --extra minio --format requirements-txt --no-editable > requirements-dev.lock && sed -i '' \"/^\\.$/d\" requirements-dev.lock'"
+export-locks = "bash -c 'uv lock && scripts/export_requirements_locks.sh'"

@@ -21,29 +21,20 @@ repos:
         language: python
         types_or: [python, pyi]
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.14
+  # ruff runs from uv.lock, the same version as tox and CI.
+  # --isolated keeps the hooks from rebuilding the checkout's .venv.
+  - repo: local
     hooks:
-      # Run the linter.
       - id: ruff
         name: ruff
-        description: "Run 'ruff' for extremely fast Python linting"
-        entry: ruff check --force-exclude
-        language: python
+        entry: uv run --isolated --frozen --only-group dev ruff check --force-exclude
+        language: system
         types_or: [python, pyi]
-        # --fix: enable lint fixes
         args: [--fix]
         require_serial: true
-        additional_dependencies: []
-        minimum_pre_commit_version: "2.9.2"
-      # Run the formatter.
       - id: ruff-format
         name: ruff-format
-        description: "Run 'ruff format' for extremely fast Python formatting"
-        entry: ruff format --force-exclude
-        language: python
+        entry: uv run --isolated --frozen --only-group dev ruff format --force-exclude
+        language: system
         types_or: [python, pyi]
-        args: []
         require_serial: true
-        additional_dependencies: []
-        minimum_pre_commit_version: "2.9.2"
